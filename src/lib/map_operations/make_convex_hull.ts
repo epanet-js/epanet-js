@@ -1,4 +1,4 @@
-import { convex } from "vendor/concaveman";
+import { convex } from "src/vendor/concaveman";
 import type { Feature } from "types";
 
 export const makeConvexHull = (features: Feature[]) => {
