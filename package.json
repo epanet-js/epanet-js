@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx .",
     "test": "vitest run",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "check-types": "tsc --noEmit",
+    "check-types:watch": "tsc --noEmit -w"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
