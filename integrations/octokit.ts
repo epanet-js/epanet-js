@@ -1,4 +1,4 @@
-import { env } from "app/lib/env_server";
+import { env } from "src/lib/env_server";
 import { OAuthApp, createNodeMiddleware } from "@octokit/oauth-app";
 
 export const app = new OAuthApp({

@@ -1,6 +1,6 @@
 // Menu
 import React, { memo, useCallback } from "react";
-import { styledCheckbox } from "app/components/elements";
+import { styledCheckbox } from "src/components/elements";
 import { dataAtom, Sel, selectionAtom } from "state/jotai";
 import { USelection } from "state/uselection";
 import { HEIGHT } from "../feature_table";

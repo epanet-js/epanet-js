@@ -1,11 +1,11 @@
 import type { Feature, Point } from "types";
-import { e6position, parseCoordinates } from "app/lib/geometry";
+import { e6position, parseCoordinates } from "src/lib/geometry";
 import type { FileType, ImportOptions } from ".";
 import { okResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import { ConvertError } from "app/lib/errors";
-import readAsText from "app/lib/read_as_text";
-import { eitherToAsync } from "app/lib/utils";
+import { ConvertError } from "src/lib/errors";
+import readAsText from "src/lib/read_as_text";
+import { eitherToAsync } from "src/lib/utils";
 
 export class CCoordinateString implements FileType {
   id = "coordinate-string" as const;

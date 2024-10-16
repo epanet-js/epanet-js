@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "state/jotai";
-import { groupFiles } from "app/lib/group_files";
+import { groupFiles } from "src/lib/group_files";
 import { useQuery } from "react-query";
 import * as Sentry from "@sentry/nextjs";
 

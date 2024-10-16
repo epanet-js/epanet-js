@@ -1,6 +1,6 @@
 import { Cross1Icon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { contentLike } from "app/components/elements";
-import { useBreakpoint } from "app/hooks/use_responsive";
+import { contentLike } from "src/components/elements";
+import { useBreakpoint } from "src/hooks/use_responsive";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import { hideHintsAtom, selectionAtom } from "state/jotai";

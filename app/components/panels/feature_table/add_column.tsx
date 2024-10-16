@@ -8,7 +8,7 @@ import {
   StyledField,
   StyledPopoverArrow,
   StyledPopoverContent,
-} from "app/components/elements";
+} from "src/components/elements";
 
 export default function AddColumn({
   onAddColumn,

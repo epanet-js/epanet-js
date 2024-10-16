@@ -1,15 +1,15 @@
 import { useContext } from "react";
 import type { IWrappedFeature, GeometryCollection } from "types";
-import { GeometryEditor } from "app/components/panels/feature_editor/feature_editor_geometry";
-import { pluralize } from "app/lib/utils";
+import { GeometryEditor } from "src/components/panels/feature_editor/feature_editor_geometry";
+import { pluralize } from "src/lib/utils";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
-import Zoom from "app/components/icons/zoom";
+import Zoom from "src/components/icons/zoom";
 import * as Sentry from "@sentry/nextjs";
-import { getExtent } from "app/lib/geometry";
-import { MapContext } from "app/context/map_context";
+import { getExtent } from "src/lib/geometry";
+import { MapContext } from "src/context/map_context";
 import cloneDeep from "lodash/cloneDeep";
-import { usePersistence } from "app/lib/persistence/context";
-import { countVertexes, CVertexId } from "app/lib/id";
+import { usePersistence } from "src/lib/persistence/context";
+import { countVertexes, CVertexId } from "src/lib/id";
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export function GeometryCollectionEditor({

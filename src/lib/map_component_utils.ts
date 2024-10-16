@@ -6,16 +6,16 @@ import type {
   FolderMap,
 } from "types";
 import type { Map as MapboxMap } from "mapbox-gl";
-import { CLICKABLE_LAYERS } from "app/lib/load_and_augment_style";
-import { bufferPoint } from "app/lib/geometry";
+import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
+import { bufferPoint } from "src/lib/geometry";
 import type { EphemeralEditingStateLasso } from "state/jotai";
-import { decodeId } from "app/lib/id";
+import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";
 import { IDMap, UIDMap } from "./id_mapper";
 import { getMapCoord } from "./handlers/utils";
-import PMap from "app/lib/pmap";
-import { DECK_SYNTHETIC_ID } from "app/lib/constants";
+import PMap from "src/lib/pmap";
+import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 
 type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
 

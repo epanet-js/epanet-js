@@ -1,7 +1,7 @@
 import { dataAtom, fileInfoAtom, fileInfoMachineAtom } from "state/jotai";
-import { fromGeoJSON } from "app/lib/convert";
+import { fromGeoJSON } from "src/lib/convert";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";

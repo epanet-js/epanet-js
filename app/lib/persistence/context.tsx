@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { IPersistence } from "app/lib/persistence/ipersistence";
+import type { IPersistence } from "src/lib/persistence/ipersistence";
 
 const notInContext = {} as IPersistence;
 

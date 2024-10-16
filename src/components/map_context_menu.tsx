@@ -9,18 +9,18 @@ import {
   ClipboardCopyIcon,
   CommitIcon,
 } from "@radix-ui/react-icons";
-import type { ContextInfo } from "app/components/map_component";
+import type { ContextInfo } from "src/components/map_component";
 import type { IFeature, IWrappedFeature, LineString } from "types";
-import { GeometryActions } from "app/components/context_actions/geometry_actions";
+import { GeometryActions } from "src/components/context_actions/geometry_actions";
 import { CMContent, CMSubContent, CMItem, CMSubTriggerItem } from "./elements";
 import {
   continueFeature,
   getContinuationDirection,
-} from "app/hooks/use_line_mode";
+} from "src/hooks/use_line_mode";
 import * as Sentry from "@sentry/nextjs";
-import { usePersistence } from "app/lib/persistence/context";
-import { writeToClipboard } from "app/lib/utils";
-import { stringifyFeatures } from "app/hooks/use_clipboard";
+import { usePersistence } from "src/lib/persistence/context";
+import { writeToClipboard } from "src/lib/utils";
+import { stringifyFeatures } from "src/hooks/use_clipboard";
 import toast from "react-hot-toast";
 
 function FeatureItem({ feature }: { feature: IWrappedFeature }) {

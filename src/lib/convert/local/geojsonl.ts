@@ -1,7 +1,7 @@
 import type { Feature, FeatureCollection } from "types";
-import { ConvertError, parseOrError } from "app/lib/errors";
+import { ConvertError, parseOrError } from "src/lib/errors";
 import { Left, Right, Either } from "purify-ts/Either";
-import { rough } from "app/lib/roughly_geojson";
+import { rough } from "src/lib/roughly_geojson";
 
 export function GeoJSONToGeoJSONL(geojson: FeatureCollection) {
   return geojson.features

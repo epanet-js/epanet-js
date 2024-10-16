@@ -1,5 +1,5 @@
-import { TextWell } from "app/components/elements";
-import { ShapefileGroup } from "app/lib/group_files";
+import { TextWell } from "src/components/elements";
+import { ShapefileGroup } from "src/lib/group_files";
 
 export function ShapefileWarning({ file }: { file: ShapefileGroup }) {
   const warnings: React.ReactNode[] = [];

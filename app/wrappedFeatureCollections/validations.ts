@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Folder, WrappedFeature } from "types";
-import { name } from "app/core/utils";
+import { name } from "src/core/utils";
 
 export const CreateWrappedFeatureCollection = z.object({
   name,

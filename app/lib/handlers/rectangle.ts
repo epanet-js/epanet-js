@@ -5,9 +5,9 @@ import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "state/jotai";
 import { useContext, useState } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { toast } from "react-hot-toast";
-import replaceCoordinates from "app/lib/replace_coordinates";
-import { isRectangleNonzero } from "app/lib/geometry";
-import { MapContext } from "app/context/map_context";
+import replaceCoordinates from "src/lib/replace_coordinates";
+import { isRectangleNonzero } from "src/lib/geometry";
+import { MapContext } from "src/context/map_context";
 import { useSetAtom } from "jotai";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 

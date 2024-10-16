@@ -3,9 +3,9 @@ import { LayersIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "state/jotai";
 import * as T from "@radix-ui/react-tooltip";
-import * as E from "app/components/elements";
+import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";
-import { getIsMac, localizeKeybinding } from "app/lib/utils";
+import { getIsMac, localizeKeybinding } from "src/lib/utils";
 import { SEARCH_KEYBINDING } from "./dialogs/cheatsheet";
 import { LayersPopover } from "./layers/popover";
 

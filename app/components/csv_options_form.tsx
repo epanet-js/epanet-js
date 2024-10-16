@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import { dsvFormat } from "d3-dsv";
 import { Field, FormikContextType, useFormikContext } from "formik";
-import type { ImportOptions } from "app/lib/convert";
-import { CSV_DELIMITERS, CSV_KINDS } from "app/lib/convert";
-import { SelectHeader } from "app/components/csv_options_form/select_header";
+import type { ImportOptions } from "src/lib/convert";
+import { CSV_DELIMITERS, CSV_KINDS } from "src/lib/convert";
+import { SelectHeader } from "src/components/csv_options_form/select_header";
 import {
   FieldCheckbox,
   styledInlineA,
@@ -15,14 +15,14 @@ import {
 } from "./elements";
 import * as Sentry from "@sentry/nextjs";
 import type { WorkBook } from "xlsx";
-import { detectColumns } from "app/lib/convert/local/csv_to_geojson";
+import { detectColumns } from "src/lib/convert/local/csv_to_geojson";
 import { InlineError } from "./inline_error";
 import { JsonObject } from "type-fest";
-import { MAX_GEOCODER_ROWS } from "app/lib/constants";
+import { MAX_GEOCODER_ROWS } from "src/lib/constants";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "state/jotai";
-import { extractPropertyKeys } from "app/lib/multi_properties";
+import { extractPropertyKeys } from "src/lib/multi_properties";
 
 function KindSelector({ geocoder }: { geocoder: boolean }) {
   return (

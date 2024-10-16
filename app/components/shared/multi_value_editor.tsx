@@ -1,9 +1,9 @@
 import React, { useCallback, useRef } from "react";
-import type { MultiPair } from "app/lib/multi_properties";
+import type { MultiPair } from "src/lib/multi_properties";
 import type { JsonValue } from "type-fest";
 import isObject from "lodash/isObject";
 import { CardStackIcon } from "@radix-ui/react-icons";
-import { pluralize } from "app/lib/utils";
+import { pluralize } from "src/lib/utils";
 import * as P from "@radix-ui/react-popover";
 import { useVirtual } from "react-virtual";
 import { Formik, Form } from "formik";
@@ -13,9 +13,9 @@ import {
   StyledField,
   StyledPopoverArrow,
   StyledPopoverContent,
-} from "app/components/elements";
+} from "src/components/elements";
 import { CoordProps } from "types";
-import { coordPropsAttr } from "app/components/panels/feature_editor/property_row/value";
+import { coordPropsAttr } from "src/components/panels/feature_editor/property_row/value";
 
 type MultiValueProps = CoordProps & {
   pair: MultiPair;

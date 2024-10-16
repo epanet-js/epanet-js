@@ -1,6 +1,6 @@
 import { useFormikContext } from "formik";
 import clsx from "clsx";
-import { Button } from "app/components/elements";
+import { Button } from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
 
 export default function SimpleDialogActions({

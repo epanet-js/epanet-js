@@ -1,6 +1,6 @@
 import { CircleIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import { usePersistence } from "app/lib/persistence/context";
+import { DialogHeader } from "src/components/dialog";
+import { usePersistence } from "src/lib/persistence/context";
 import {
   Hint,
   StyledField,
@@ -10,14 +10,14 @@ import {
 } from "../elements";
 import * as Sentry from "@sentry/nextjs";
 import { dialogAtom, DialogStateCircle } from "state/dialog_state";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
-import { UnitOptionsGroups } from "app/components/unit_select";
-import { GROUPED_UNIT_OPTIONS } from "app/lib/constants";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
+import { UnitOptionsGroups } from "src/components/unit_select";
+import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";
 import { Formik, Form, Field } from "formik";
 import { CIRCLE_TYPE } from "state/mode";
-import { ICircleProp, makeCircleNative } from "app/lib/circle";
-import { newFeatureId } from "app/lib/id";
-import { useZoomTo } from "app/hooks/use_zoom_to";
+import { ICircleProp, makeCircleNative } from "src/lib/circle";
+import { newFeatureId } from "src/lib/id";
+import { useZoomTo } from "src/hooks/use_zoom_to";
 import { USelection } from "state";
 import { convertLength, Units } from "@turf/helpers";
 import { useSetAtom } from "jotai";

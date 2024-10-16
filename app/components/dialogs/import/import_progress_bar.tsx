@@ -1,6 +1,6 @@
 import * as ProgressPrimitive from "@radix-ui/react-progress";
 import classed from "classed-components";
-import { Progress } from "app/lib/convert";
+import { Progress } from "src/lib/convert";
 
 const StyledProgress = classed(ProgressPrimitive.Root)(
   `relative h-2 rounded-full overflow-hidden bg-gray-100`

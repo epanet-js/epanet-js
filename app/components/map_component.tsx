@@ -1,7 +1,7 @@
-import type { PMapHandlers } from "app/lib/pmap";
+import type { PMapHandlers } from "src/lib/pmap";
 import type { IWrappedFeature, HandlerContext, DragTarget } from "types";
 import { SYMBOLIZATION_NONE } from "types";
-import type { FlatbushLike } from "app/lib/generate_flatbush_instance";
+import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
 import React, {
   useRef,
   useEffect,
@@ -25,29 +25,29 @@ import {
   cursorStyleAtom,
   layerConfigAtom,
 } from "state/jotai";
-import { MapContext } from "app/context/map_context";
-import PMap from "app/lib/pmap";
-import { EmptyIndex } from "app/lib/generate_flatbush_instance";
+import { MapContext } from "src/context/map_context";
+import PMap from "src/lib/pmap";
+import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
-import { CLICKABLE_LAYERS } from "app/lib/load_and_augment_style";
-import { env } from "app/lib/env_client";
-import { MapContextMenu } from "app/components/map_context_menu";
-import { useHandlers } from "app/lib/handlers/index";
-import { wrappedFeaturesFromMapFeatures } from "app/lib/map_component_utils";
+import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
+import { env } from "src/lib/env_client";
+import { MapContextMenu } from "src/components/map_context_menu";
+import { useHandlers } from "src/lib/handlers/index";
+import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "integrations/hotkeys";
-import { keybindingOptions } from "app/hooks/use_map_keybindings";
-import { useClipboard } from "app/hooks/use_clipboard";
+import { keybindingOptions } from "src/hooks/use_map_keybindings";
+import { useClipboard } from "src/hooks/use_clipboard";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "./last_search_result";
 import { ModeHints } from "./mode_hints";
-import { fMoment } from "app/lib/persistence/moment";
+import { fMoment } from "src/lib/persistence/moment";
 import { captureException } from "@sentry/nextjs";
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
-import { DECK_SYNTHETIC_ID } from "app/lib/constants";
+import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(

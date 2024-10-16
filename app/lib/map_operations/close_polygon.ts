@@ -1,5 +1,5 @@
 import type { IFeature, Polygon } from "types";
-import replaceCoordinates from "app/lib/replace_coordinates";
+import replaceCoordinates from "src/lib/replace_coordinates";
 
 /**
  * Used when someone hits "Enter" or "Escape" while drawing

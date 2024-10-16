@@ -1,6 +1,6 @@
-import * as E from "app/components/elements";
+import * as E from "src/components/elements";
 import noop from "lodash/noop";
-import useResettable from "app/hooks/use_resettable";
+import useResettable from "src/hooks/use_resettable";
 import isObject from "lodash/isObject";
 import {
   PropertyPair,
@@ -21,7 +21,7 @@ import {
 } from "@radix-ui/react-icons";
 import * as T from "@radix-ui/react-tooltip";
 import { JsonObject, JsonValue } from "type-fest";
-import { asHTML, castExplicit, ExplicitCast } from "app/lib/cast";
+import { asHTML, castExplicit, ExplicitCast } from "src/lib/cast";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tabs from "@radix-ui/react-tabs";
 import { HexColorPicker, HexColorInput } from "react-colorful";
@@ -45,13 +45,13 @@ import {
 } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { json } from "@codemirror/lang-json";
-import { placemarkTheme } from "app/lib/codemirror_theme";
+import { placemarkTheme } from "src/lib/codemirror_theme";
 import clsx from "clsx";
 import { CoordProps } from "types";
 import { Field, Form, Formik } from "formik";
-import { parseOrError } from "app/lib/errors";
+import { parseOrError } from "src/lib/errors";
 import { dataAtom } from "state/jotai";
-import { truncate } from "app/lib/utils";
+import { truncate } from "src/lib/utils";
 
 type Preview =
   | {

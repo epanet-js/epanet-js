@@ -7,10 +7,10 @@ import { EditorView, drawSelection, keymap } from "@codemirror/view";
 import * as Sentry from "@sentry/nextjs";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { json } from "@codemirror/lang-json";
-import { placemarkTheme } from "app/lib/codemirror_theme";
+import { placemarkTheme } from "src/lib/codemirror_theme";
 import { linter } from "@codemirror/lint";
-import { usePersistence } from "app/lib/persistence/context";
-import { lib } from "app/lib/worker";
+import { usePersistence } from "src/lib/persistence/context";
+import { lib } from "src/lib/worker";
 
 const checker = linter((view) => {
   return lib.getIssues(view.state.doc.toString());

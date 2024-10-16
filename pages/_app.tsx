@@ -6,7 +6,7 @@ import "core-js/features/array/at";
 
 const RouterProgressBar = dynamic(
   () =>
-    import("app/components/router_progress_bar").then(
+    import("src/components/router_progress_bar").then(
       (m) => m.RouterProgressBar
     ),
   {

@@ -2,11 +2,11 @@ import { memo, useCallback, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { Formik, Form, Field } from "formik";
-import { COPIERS } from "app/lib/copiers";
-import { PanelDetailsCollapsible } from "app/components/panel_details";
+import { COPIERS } from "src/lib/copiers";
+import { PanelDetailsCollapsible } from "src/components/panel_details";
 import type { Geometry, IFeature, IWrappedFeature } from "types";
-import { Button, styledSelect } from "app/components/elements";
-import { writeToClipboard } from "app/lib/utils";
+import { Button, styledSelect } from "src/components/elements";
+import { writeToClipboard } from "src/lib/utils";
 import { panelExportOpen } from "state/jotai";
 
 type CopyForm = {

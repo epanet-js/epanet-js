@@ -23,27 +23,27 @@ import React, {
 import { useVirtual } from "react-virtual";
 import { USelection } from "state";
 import { useAtom, useAtomValue } from "jotai";
-import { PropertyColumn } from "app/components/panels/feature_table/property_column";
+import { PropertyColumn } from "src/components/panels/feature_table/property_column";
 import sortBy from "lodash/sortBy";
 import clamp from "lodash/clamp";
 import { useMove } from "@react-aria/interactions";
-import { Header } from "app/components/panels/feature_table/header";
-import RowActions from "app/components/panels/feature_table/row_actions";
-import TableEmptyState from "app/components/panels/feature_table/table_empty_state";
-import AddColumn from "app/components/panels/feature_table/add_column";
-import * as E from "app/components/elements";
+import { Header } from "src/components/panels/feature_table/header";
+import RowActions from "src/components/panels/feature_table/row_actions";
+import TableEmptyState from "src/components/panels/feature_table/table_empty_state";
+import AddColumn from "src/components/panels/feature_table/add_column";
+import * as E from "src/components/elements";
 import {
   BarChartIcon,
   Cross2Icon,
   GearIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
-import { FeatureTableStats } from "app/components/panels/feature_table/feature_table_stats";
-import { onArrow } from "app/lib/arrow_navigation";
+import { FeatureTableStats } from "src/components/panels/feature_table/feature_table_stats";
+import { onArrow } from "src/lib/arrow_navigation";
 import Fuse from "fuse.js";
-import { geometryTypes } from "app/lib/constants";
+import { geometryTypes } from "src/lib/constants";
 import clsx from "clsx";
-import { getFn, useColumns } from "app/lib/search_utils";
+import { getFn, useColumns } from "src/lib/search_utils";
 
 type FolderId = IFolder["id"];
 type ColumnConfig = Map<string, { width: number }>;

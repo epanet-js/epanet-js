@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import RBush from "rbush";
 import Queue from "./tinyqueue";
-import { GeometryError } from "app/lib/errors";
+import { GeometryError } from "src/lib/errors";
 import { orient2d } from "./orient2d";
 import { coordEach } from "@turf/meta";
 import type { IFeature, Polygon } from "types";

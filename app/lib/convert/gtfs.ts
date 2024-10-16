@@ -1,8 +1,8 @@
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { FileType } from ".";
 import { ConvertResult, okResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 
 export class CGTFS implements FileType {
   id = "gtfs" as const;

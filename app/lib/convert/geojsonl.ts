@@ -1,12 +1,12 @@
 import type { Feature, FeatureCollection } from "types";
 import type { FileType, ImportOptions } from ".";
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import { GeoJSONLToGeoJSON, GeoJSONToGeoJSONL } from "./local/geojsonl";
 import { stringToBlob, ConvertResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import { rough } from "app/lib/roughly_geojson";
+import { rough } from "src/lib/roughly_geojson";
 import { Right } from "purify-ts/Either";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 
 export class CGeoJSONL implements FileType {
   id = "geojsonl" as const;

@@ -1,10 +1,10 @@
 import { ConvertResult, toDom, stringToBlob } from "./utils";
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { FeatureCollection, FeatureMap, FolderMap } from "types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import { ConvertError } from "app/lib/errors";
-import { solveRootItems } from "app/components/panels/feature_editor/feature_editor_folder/math";
+import { ConvertError } from "src/lib/errors";
+import { solveRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
 
 export class CKML implements FileType {
   id = "kml" as const;

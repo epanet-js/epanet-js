@@ -1,10 +1,10 @@
-import { leaflet } from "app/lib/leaflet_export";
+import { leaflet } from "src/lib/leaflet_export";
 import {
   asColorExpression,
   CIRCLE_PAINT,
   FILL_PAINT,
   LINE_PAINT,
-} from "app/lib/load_and_augment_style";
+} from "src/lib/load_and_augment_style";
 import { ISymbolization } from "types";
 
 export interface EOption {

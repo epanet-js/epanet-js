@@ -5,13 +5,13 @@ import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
-} from "app/lib/constants";
+} from "src/lib/constants";
 import type { ISymbolization, LayerConfigMap } from "types";
 import {
   addMapboxStyle,
   addXYZStyle,
   addTileJSONStyle,
-} from "app/lib/layer_config_adapters";
+} from "src/lib/layer_config_adapters";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {

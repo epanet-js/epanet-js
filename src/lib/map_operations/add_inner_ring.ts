@@ -1,7 +1,7 @@
 import type { Feature, IFeature, Polygon } from "types";
-import replaceCoordinates from "app/lib/replace_coordinates";
+import replaceCoordinates from "src/lib/replace_coordinates";
 import { difference, Geom } from "polygon-clipping";
-import { GeometryError } from "app/lib/errors";
+import { GeometryError } from "src/lib/errors";
 import type { Either } from "purify-ts/Either";
 import { Left, Right } from "purify-ts/Either";
 

@@ -2,7 +2,7 @@ import mapboxgl from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   EPHEMERAL_SOURCE_NAME,
-} from "app/lib/load_and_augment_style";
+} from "src/lib/load_and_augment_style";
 import type {
   EphemeralEditingState,
   Sel,
@@ -19,8 +19,8 @@ import {
   WHITE,
   DECK_SYNTHETIC_ID,
   DECK_LASSO_ID,
-} from "app/lib/constants";
-import { splitFeatureGroups } from "app/lib/pmap/split_feature_groups";
+} from "src/lib/constants";
+import { splitFeatureGroups } from "src/lib/pmap/split_feature_groups";
 import type {
   Feature,
   IPresence,
@@ -30,10 +30,10 @@ import type {
   IFeature,
   Point,
 } from "types";
-import { makeRectangle } from "app/lib/pmap/merge_ephemeral_state";
-import { colorFromPresence } from "app/lib/color";
-import { IDMap } from "app/lib/id_mapper";
-import { shallowArrayEqual } from "app/lib/utils";
+import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
+import { colorFromPresence } from "src/lib/color";
+import { IDMap } from "src/lib/id_mapper";
+import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox/typed";
 import { PolygonLayer, ScatterplotLayer } from "@deck.gl/layers/typed";
 

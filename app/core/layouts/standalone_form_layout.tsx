@@ -1,5 +1,5 @@
-import { H1, MinimalHeader, styledInlineA } from "app/components/elements";
-import Notifications from "app/components/notifications";
+import { H1, MinimalHeader, styledInlineA } from "src/components/elements";
+import Notifications from "src/components/notifications";
 import clsx from "clsx";
 import type { LayoutProps } from "./shared";
 import { LayoutHead } from "./shared";

@@ -5,8 +5,8 @@ import {
   DownloadIcon,
 } from "@radix-ui/react-icons";
 import * as Sentry from "@sentry/nextjs";
-import Line from "app/components/icons/line";
-import { useOpenFiles } from "app/hooks/use_open_files";
+import Line from "src/components/icons/line";
+import { useOpenFiles } from "src/hooks/use_open_files";
 import { useSetAtom } from "jotai";
 import { memo } from "react";
 import { dialogAtom } from "state/dialog_state";

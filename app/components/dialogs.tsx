@@ -16,7 +16,7 @@ import * as dialogState from "state/dialog_state";
 const CircleDialog = dynamic<{
   modal: dialogState.DialogStateCircle;
   onClose: () => void;
-}>(() => import("app/components/dialogs/circle").then((r) => r.CircleDialog), {
+}>(() => import("src/components/dialogs/circle").then((r) => r.CircleDialog), {
   loading: () => <Loading />,
 });
 
@@ -25,7 +25,7 @@ const ExportSVGDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("app/components/dialogs/export_svg").then((r) => r.ExportSVGDialog),
+    import("src/components/dialogs/export_svg").then((r) => r.ExportSVGDialog),
   {
     loading: () => <Loading />,
   }
@@ -34,13 +34,13 @@ const ExportSVGDialog = dynamic<{
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
-}>(() => import("app/components/dialogs/import").then((r) => r.ImportDialog), {
+}>(() => import("src/components/dialogs/import").then((r) => r.ImportDialog), {
   loading: () => <Loading />,
 });
 
 const ExportDialog = dynamic<{
   onClose: () => void;
-}>(() => import("app/components/dialogs/export").then((r) => r.ExportDialog), {
+}>(() => import("src/components/dialogs/export").then((r) => r.ExportDialog), {
   loading: () => <Loading />,
 });
 
@@ -48,7 +48,7 @@ const ImportURLDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("app/components/dialogs/import_url").then((r) => r.ImportURLDialog),
+    import("src/components/dialogs/import_url").then((r) => r.ImportURLDialog),
   {
     loading: () => <Loading />,
   }
@@ -58,7 +58,7 @@ const ImportExampleDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("app/components/dialogs/import_example").then(
+    import("src/components/dialogs/import_example").then(
       (r) => r.ImportExampleDialog
     ),
   {
@@ -71,7 +71,7 @@ const ImportTextDialog = dynamic<{
   modal: dialogState.DialogStateLoadText;
 }>(
   () =>
-    import("app/components/dialogs/import_text").then(
+    import("src/components/dialogs/import_text").then(
       (r) => r.ImportTextDialog
     ),
   {
@@ -81,7 +81,7 @@ const ImportTextDialog = dynamic<{
 
 const CircleTypesDialog = dynamic<Record<string, never>>(
   () =>
-    import("app/components/dialogs/circle_types").then(
+    import("src/components/dialogs/circle_types").then(
       (r) => r.CircleTypesDialog
     ),
   {
@@ -91,7 +91,7 @@ const CircleTypesDialog = dynamic<Record<string, never>>(
 
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
-    import("app/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
+    import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
   {
     loading: () => <Loading />,
   }
@@ -101,7 +101,7 @@ const QuickswitcherDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("app/components/dialogs/quickswitcher").then(
+    import("src/components/dialogs/quickswitcher").then(
       (r) => r.QuickswitcherDialog
     ),
   {
@@ -114,7 +114,7 @@ const CastPropertyDialog = dynamic<{
   modal: dialogState.DialogStateCastProperty;
 }>(
   () =>
-    import("app/components/dialogs/cast_property").then(
+    import("src/components/dialogs/cast_property").then(
       (r) => r.CastPropertyDialog
     ),
   {
@@ -126,7 +126,7 @@ const ExportCodeDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("app/components/dialogs/export_code").then(
+    import("src/components/dialogs/export_code").then(
       (r) => r.ExportCodeDialog
     ),
   {
@@ -139,7 +139,7 @@ const ImportNotesDialog = dynamic<{
   modal: dialogState.DialogStateImportNotes;
 }>(
   () =>
-    import("app/components/dialogs/import_notes").then(
+    import("src/components/dialogs/import_notes").then(
       (r) => r.ImportNotesDialog
     ),
   {
@@ -150,14 +150,14 @@ const ImportNotesDialog = dynamic<{
 const Simplify = dynamic<{
   onClose: () => void;
   modal: dialogState.DialogStateSimplify;
-}>(() => import("app/components/dialogs/simplify"), {
+}>(() => import("src/components/dialogs/simplify"), {
   loading: () => <Loading />,
 });
 
 const BufferDialog = dynamic<{
   onClose: () => void;
   modal: dialogState.DialogStateBuffer;
-}>(() => import("app/components/dialogs/buffer"), {
+}>(() => import("src/components/dialogs/buffer"), {
   loading: () => <Loading />,
 });
 

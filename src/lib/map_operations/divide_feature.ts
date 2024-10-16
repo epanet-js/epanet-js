@@ -1,5 +1,5 @@
-import { newFeatureId } from "app/lib/id";
-import { MomentInput } from "app/lib/persistence/moment";
+import { newFeatureId } from "src/lib/id";
+import { MomentInput } from "src/lib/persistence/moment";
 import type { Feature, IWrappedFeature } from "types";
 
 export function divideFeatures(

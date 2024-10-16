@@ -15,7 +15,7 @@ import {
   getIsMac,
   shallowArrayEqual,
   MAC_CMD_SYMBOL,
-} from "app/lib/utils";
+} from "src/lib/utils";
 
 test("formatTitle", () => {
   expect(formatTitle("X")).toMatchInlineSnapshot(`"X | Placemark"`);

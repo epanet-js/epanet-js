@@ -1,10 +1,10 @@
 import type { FileType, ExportOptions, ImportOptions } from ".";
 import { stringToBlob, ConvertResult } from "./utils";
-import readAsText from "app/lib/read_as_text";
-import { parseOrError } from "app/lib/errors";
-import type { ConvertError } from "app/lib/errors";
+import readAsText from "src/lib/read_as_text";
+import { parseOrError } from "src/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 import { FeatureMap } from "types";
-import { rough } from "app/lib/roughly_geojson";
+import { rough } from "src/lib/roughly_geojson";
 import { Right } from "purify-ts/Either";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { geojsonToString } from "./local/geojson";

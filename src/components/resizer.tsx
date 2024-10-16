@@ -3,7 +3,7 @@ import * as T from "@radix-ui/react-tooltip";
 import { useSetAtom, useAtom } from "jotai";
 import { Side, splitsAtom, Splits, MIN_SPLITS, OTHER_SIDE } from "state/jotai";
 import { useMove } from "@react-aria/interactions";
-import { TContent } from "app/components/elements";
+import { TContent } from "src/components/elements";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useMediaQuery } from "react-responsive";

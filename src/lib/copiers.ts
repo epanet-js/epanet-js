@@ -14,7 +14,7 @@ export const COPIERS: Record<
   (arg0: IFeature) => Promise<Either<PlacemarkError, string>>
 > = {
   wkt: async (feature) => {
-    const { WKT } = await import("app/lib/convert/wkt");
+    const { WKT } = await import("src/lib/convert/wkt");
     return WKT.featureToString(feature);
   },
   geojson: (feature) => {
@@ -36,11 +36,11 @@ export const COPIERS: Record<
     return Promise.resolve(CoordinateString.featureToString(feature));
   },
   bbox: async (feature) => {
-    const { BBOX } = await import("app/lib/convert/bbox");
+    const { BBOX } = await import("src/lib/convert/bbox");
     return BBOX.featureToString(feature);
   },
   polyline: async (feature) => {
-    const { Polyline } = await import("app/lib/convert/polyline");
+    const { Polyline } = await import("src/lib/convert/polyline");
     return Polyline.featureToString(feature);
   },
 };

@@ -6,8 +6,8 @@ import { useCallback } from "react";
 import { selectionAtom, ephemeralStateAtom, dataAtom } from "state/jotai";
 import { modeAtom, Mode } from "state/mode";
 import { Feature, IFeature, IWrappedFeature } from "types";
-import { usePersistence } from "app/lib/persistence/context";
-import replaceCoordinates from "app/lib/replace_coordinates";
+import { usePersistence } from "src/lib/persistence/context";
+import replaceCoordinates from "src/lib/replace_coordinates";
 import { USelection } from "state";
 
 export function getContinuationDirection(

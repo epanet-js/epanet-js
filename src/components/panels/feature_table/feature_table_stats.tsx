@@ -1,14 +1,14 @@
 import type { IWrappedFeature } from "types";
-import { formatCount, pluralize } from "app/lib/utils";
+import { formatCount, pluralize } from "src/lib/utils";
 import React, { useCallback, useMemo, useRef } from "react";
 import {
   collectGeometryCounts,
   collectStatistics,
   RetStat,
-} from "app/lib/stats";
+} from "src/lib/stats";
 import { useVirtual } from "react-virtual";
 import * as P from "@radix-ui/react-popover";
-import * as E from "app/components/elements";
+import * as E from "src/components/elements";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 export function GeometryTypesGrid({

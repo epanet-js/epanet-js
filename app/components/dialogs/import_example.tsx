@@ -1,8 +1,8 @@
 import { ClipboardIcon, DownloadIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import { styledInlineA, TextWell } from "app/components/elements";
-import { useImportString } from "app/hooks/use_import";
-import { DEFAULT_IMPORT_OPTIONS } from "app/lib/convert";
+import { DialogHeader } from "src/components/dialog";
+import { styledInlineA, TextWell } from "src/components/elements";
+import { useImportString } from "src/hooks/use_import";
+import { DEFAULT_IMPORT_OPTIONS } from "src/lib/convert";
 import React from "react";
 import toast from "react-hot-toast";
 import { useQuery as useReactQuery } from "react-query";

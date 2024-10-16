@@ -1,6 +1,6 @@
 import Head from "next/head";
-import { Converter } from "app/components/converter";
-import { formatTitle } from "app/lib/utils";
+import { Converter } from "src/components/converter";
+import { formatTitle } from "src/lib/utils";
 
 const PlacemarkConverter = () => {
   return (

@@ -1,28 +1,28 @@
 import React, { useRef, memo, useMemo } from "react";
 import { PropertyRow, PropertyRowReadonly } from "./property_row";
 import { NewRow } from "./new_row";
-import { castExplicit, ExplicitCast } from "app/lib/cast";
-import { usePersistence } from "app/lib/persistence/context";
+import { castExplicit, ExplicitCast } from "src/lib/cast";
+import { usePersistence } from "src/lib/persistence/context";
 import type { Feature, IWrappedFeature } from "types";
 import without from "lodash/without";
 import sortBy from "lodash/sortBy";
 import type { JsonValue } from "type-fest";
 import * as Sentry from "@sentry/nextjs";
-import { updatePropertyValue } from "app/lib/map_operations/update_property_value";
-import { updatePropertyKey } from "app/lib/map_operations/update_property_key";
-import { deletePropertyKey } from "app/lib/map_operations/delete_property_key";
-import type { IPersistence } from "app/lib/persistence/ipersistence";
+import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
+import { updatePropertyKey } from "src/lib/map_operations/update_property_key";
+import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
+import type { IPersistence } from "src/lib/persistence/ipersistence";
 import {
   styledCheckbox,
   StyledTooltipArrow,
   TContent,
-} from "app/components/elements";
-import { PanelDetails } from "app/components/panel_details";
-import { extractPropertyKeys } from "app/lib/multi_properties";
+} from "src/components/elements";
+import { PanelDetails } from "src/components/panel_details";
+import { extractPropertyKeys } from "src/lib/multi_properties";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
 import { dataAtom, showAllAtom } from "state/jotai";
-import { onArrow } from "app/lib/arrow_navigation";
+import { onArrow } from "src/lib/arrow_navigation";
 
 const ShowAllToggle = memo(function ShowAllToggle() {
   const [showAll, setShowAll] = useAtom(showAllAtom);

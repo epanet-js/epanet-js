@@ -1,7 +1,7 @@
-import { emptySelection, EMPTY_ARRAY } from "app/lib/constants";
-import { generateExclude } from "app/lib/folder";
-import { encodeId } from "app/lib/id";
-import { IDMap, UIDMap } from "app/lib/id_mapper";
+import { emptySelection, EMPTY_ARRAY } from "src/lib/constants";
+import { generateExclude } from "src/lib/folder";
+import { encodeId } from "src/lib/id";
+import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { Data, PreviewProperty } from "state/jotai";
 import { Feature, ISymbolization } from "types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";

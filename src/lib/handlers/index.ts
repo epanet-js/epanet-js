@@ -1,12 +1,12 @@
 import type { HandlerContext } from "types";
 import { Mode } from "state/jotai";
-import { useNoneHandlers } from "app/lib/handlers/none";
-import { useLassoHandlers } from "app/lib/handlers/lasso";
-import { useRectangleHandlers } from "app/lib/handlers/rectangle";
-import { useCircleHandlers } from "app/lib/handlers/circle";
-import { useLineHandlers } from "app/lib/handlers/line";
-import { usePointHandlers } from "app/lib/handlers/point";
-import { usePolygonHandlers } from "app/lib/handlers/polygon";
+import { useNoneHandlers } from "src/lib/handlers/none";
+import { useLassoHandlers } from "src/lib/handlers/lasso";
+import { useRectangleHandlers } from "src/lib/handlers/rectangle";
+import { useCircleHandlers } from "src/lib/handlers/circle";
+import { useLineHandlers } from "src/lib/handlers/line";
+import { usePointHandlers } from "src/lib/handlers/point";
+import { usePolygonHandlers } from "src/lib/handlers/polygon";
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {

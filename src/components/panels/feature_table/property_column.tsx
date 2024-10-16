@@ -1,9 +1,9 @@
 import { memo } from "react";
-import { updatePropertyValue } from "app/lib/map_operations/update_property_value";
+import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
 import * as Sentry from "@sentry/nextjs";
 import type { CoordProps, IWrappedFeature } from "types";
-import { usePersistence } from "app/lib/persistence/context";
-import { useZoomTo } from "app/hooks/use_zoom_to";
+import { usePersistence } from "src/lib/persistence/context";
+import { useZoomTo } from "src/hooks/use_zoom_to";
 import { PropertyRowValue } from "../feature_editor/property_row/value";
 import { JsonValue } from "type-fest";
 

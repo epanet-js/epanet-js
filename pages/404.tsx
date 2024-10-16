@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
 import { HomeIcon } from "@radix-ui/react-icons";
-import Placemark from "app/components/icons/placemark";
-import { formatTitle } from "app/lib/utils";
+import Placemark from "src/components/icons/placemark";
+import { formatTitle } from "src/lib/utils";
 
 export default function Page404() {
   return (

@@ -2,14 +2,14 @@ import { USelection } from "state";
 import type { HandlerContext, IFeature, LineString, Position } from "types";
 import { selectionAtom, modeAtom, Mode, cursorStyleAtom } from "state/jotai";
 import * as Sentry from "@sentry/nextjs";
-import * as utils from "app/lib/map_component_utils";
-import replaceCoordinates from "app/lib/replace_coordinates";
+import * as utils from "src/lib/map_component_utils";
+import replaceCoordinates from "src/lib/replace_coordinates";
 import { useSetAtom } from "jotai";
-import { usePopMoment } from "app/lib/persistence/shared";
-import { CURSOR_DEFAULT } from "app/lib/constants";
+import { usePopMoment } from "src/lib/persistence/shared";
+import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
-import { lockDirection, useShiftHeld } from "app/hooks/use_held";
+import { lockDirection, useShiftHeld } from "src/hooks/use_held";
 
 export function useLineHandlers({
   rep,

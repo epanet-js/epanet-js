@@ -1,10 +1,10 @@
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { FileType } from ".";
 import type { Feature } from "types";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { ConvertResult } from "./utils";
-import { ConvertError } from "app/lib/errors";
-import { rough } from "app/lib/roughly_geojson";
+import { ConvertError } from "src/lib/errors";
+import { rough } from "src/lib/roughly_geojson";
 import { Maybe } from "purify-ts/Maybe";
 
 export class CWKT implements FileType {

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { SIMPLESTYLE_PROPERTIES } from "app/lib/constants";
+import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { fcLineString, wrapMapAndId } from "test/helpers";
 import { stripFeature, pick } from "./strip_features";
 

@@ -1,18 +1,18 @@
 import type { GeoJsonProperties, IWrappedFeature } from "types";
 import { panelStyleOpen, tabAtom, TabOption } from "state/jotai";
-import { PanelDetailsCollapsible } from "app/components/panel_details";
+import { PanelDetailsCollapsible } from "src/components/panel_details";
 import {
   Button,
   inputClass,
   styledCheckbox,
   StyledLabelSpan,
   TextWell,
-} from "app/components/elements";
+} from "src/components/elements";
 import { Field, Form, Formik, FormikProps } from "formik";
-import { ColorPopoverField } from "app/components/color_popover";
-import { useAutoSubmit } from "app/hooks/use_auto_submit";
-import { purple900 } from "app/lib/constants";
-import { usePersistence } from "app/lib/persistence/context";
+import { ColorPopoverField } from "src/components/color_popover";
+import { useAutoSubmit } from "src/hooks/use_auto_submit";
+import { purple900 } from "src/lib/constants";
+import { usePersistence } from "src/lib/persistence/context";
 import { useMemo } from "react";
 import { JsonValue } from "type-fest";
 import cloneDeep from "lodash/cloneDeep";

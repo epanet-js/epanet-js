@@ -2,9 +2,9 @@ import type { ReactNode, PropsWithoutRef } from "react";
 import { useState } from "react";
 import type { FormikHelpers, FormikProps } from "formik";
 import { Formik } from "formik";
-import { InlineError } from "app/components/inline_error";
+import { InlineError } from "src/components/inline_error";
 import type { z } from "zod";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 
 export interface FormProps<S extends z.ZodType<any, any>>
   extends Omit<PropsWithoutRef<JSX.IntrinsicElements["form"]>, "onSubmit"> {

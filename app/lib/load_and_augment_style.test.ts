@@ -7,10 +7,10 @@ import loadAndAugmentStyle, {
 import { NIL_PREVIEW } from "test/helpers";
 import { validate } from "@mapbox/mapbox-gl-style-spec";
 import { ILayerConfig, ISymbolization } from "types";
-import { purple900 } from "app/lib/constants";
-import { exportStyle } from "app/lib/export_style";
+import { purple900 } from "src/lib/constants";
+import { exportStyle } from "src/lib/export_style";
 
-vi.mock("app/lib/env_client", () => {
+vi.mock("src/lib/env_client", () => {
   return {
     env: {
       NEXT_PUBLIC_MAPBOX_TOKEN: "xxx",

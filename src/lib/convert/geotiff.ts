@@ -1,7 +1,7 @@
 import type { FileType, ImportOptions } from ".";
 import { okResult, ConvertResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 
 // https://github.com/geotiffjs/cog-explorer/blob/master/src/components/mapview.jsx#L202
 export class CGeoTIFF implements FileType {

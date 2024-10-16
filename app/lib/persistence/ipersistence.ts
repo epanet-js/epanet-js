@@ -1,6 +1,6 @@
 import type { ISymbolization } from "types";
 import type { MomentInput } from "./moment";
-import { IDMap } from "app/lib/id_mapper";
+import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
 

@@ -1,10 +1,10 @@
-import { UnitSelect } from "app/components/unit_select";
+import { UnitSelect } from "src/components/unit_select";
 import measureArea from "@turf/area";
 import { convertArea } from "@turf/helpers";
 import type { Polygon, MultiPolygon, IWrappedFeature } from "types";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Input, StyledLabelSpan } from "app/components/elements";
-import { useUpdateMaybeUser } from "app/hooks/update_user";
+import { Input, StyledLabelSpan } from "src/components/elements";
+import { useUpdateMaybeUser } from "src/hooks/update_user";
 
 function PolygonAreaError() {
   return (

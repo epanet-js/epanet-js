@@ -1,13 +1,13 @@
 import { DownloadIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import { usePersistence } from "app/lib/persistence/context";
+import { DialogHeader } from "src/components/dialog";
+import { usePersistence } from "src/lib/persistence/context";
 import {
   Button,
   styledInlineA,
   styledTextarea,
   TextWell,
-} from "app/components/elements";
-import { asColorExpression } from "app/lib/load_and_augment_style";
+} from "src/components/elements";
+import { asColorExpression } from "src/lib/load_and_augment_style";
 import type { ISymbolization } from "types";
 
 function CopySymbolization({

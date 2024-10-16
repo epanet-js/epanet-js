@@ -1,6 +1,6 @@
 import { toast } from "react-hot-toast";
-import type { ConvertResult } from "app/lib/convert/utils";
-import { pluralize } from "app/lib/utils";
+import type { ConvertResult } from "src/lib/convert/utils";
+import { pluralize } from "src/lib/utils";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "state/dialog_state";
 import { Button } from "./elements";

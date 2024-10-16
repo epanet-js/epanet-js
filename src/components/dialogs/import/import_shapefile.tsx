@@ -1,8 +1,8 @@
-import { InlineError } from "app/components/inline_error";
+import { InlineError } from "src/components/inline_error";
 import { Formik, FormikHelpers, Form, ErrorMessage } from "formik";
-import { useImportShapefile } from "app/hooks/use_import";
-import { ImportOptions, DEFAULT_IMPORT_OPTIONS } from "app/lib/convert";
-import { ShapefileGroup } from "app/lib/group_files";
+import { useImportShapefile } from "src/hooks/use_import";
+import { ImportOptions, DEFAULT_IMPORT_OPTIONS } from "src/lib/convert";
+import { ShapefileGroup } from "src/lib/group_files";
 import { OnNext } from "../import";
 import SimpleDialogActions from "../simple_dialog_actions";
 import { FileWarning } from "./file_warning";

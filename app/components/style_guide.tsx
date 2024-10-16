@@ -1,9 +1,9 @@
-import { InlineError } from "app/components/inline_error";
+import { InlineError } from "src/components/inline_error";
 import { Form, Formik } from "formik";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import SimpleDialogActions from "./dialogs/simple_dialog_actions";
-import { ToolbarTrigger } from "app/components/context_actions";
+import { ToolbarTrigger } from "src/components/context_actions";
 import MenuAction from "./menu_action";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import * as D from "@radix-ui/react-dialog";

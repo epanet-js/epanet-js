@@ -12,9 +12,9 @@ import type {
   Polygon,
   MultiPolygon,
 } from "types";
-import { encodeVertex, encodeMidpoint } from "app/lib/id";
+import { encodeVertex, encodeMidpoint } from "src/lib/id";
 import { match } from "ts-pattern";
-import { midpoint } from "app/lib/geometry";
+import { midpoint } from "src/lib/geometry";
 import memoize from "memoize-one";
 
 // fp = FromPoint

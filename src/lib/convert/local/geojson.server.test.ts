@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { DEFAULT_EXPORT_OPTIONS } from "app/lib/convert";
+import { DEFAULT_EXPORT_OPTIONS } from "src/lib/convert";
 import { fcLineString, wrapMap } from "test/helpers";
 import { geojsonToString } from "./geojson";
 

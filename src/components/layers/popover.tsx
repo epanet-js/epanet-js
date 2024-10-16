@@ -11,16 +11,16 @@ import {
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { layerConfigAtom } from "state/jotai";
-import * as E from "app/components/elements";
-import { usePersistence } from "app/lib/persistence/context";
+import * as E from "src/components/elements";
+import { usePersistence } from "src/lib/persistence/context";
 import * as P from "@radix-ui/react-popover";
-import LAYERS from "app/lib/default_layers";
+import LAYERS from "src/lib/default_layers";
 import { Maybe } from "purify-ts/Maybe";
 import { DefaultLayerItem } from "./default_layer_item";
-import { newFeatureId } from "app/lib/id";
-import { Form, FORM_ERROR } from "app/core/components/Form";
-import { LabeledTextField } from "app/core/components/LabeledTextField";
-import { TextWell } from "app/components/elements";
+import { newFeatureId } from "src/lib/id";
+import { Form, FORM_ERROR } from "src/core/components/Form";
+import { LabeledTextField } from "src/core/components/LabeledTextField";
+import { TextWell } from "src/components/elements";
 import { ILayerConfig, zLayerConfig } from "types";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -50,11 +50,11 @@ import { useQuery as reactUseQuery } from "react-query";
 import { Suspense, useState } from "react";
 import toast from "react-hot-toast";
 import { match } from "ts-pattern";
-import { zTileJSON } from "app/mapbox-layers/validations";
-import { getTileJSON, get, getMapboxLayerURL } from "app/lib/utils";
-import { useZoomTo } from "app/hooks/use_zoom_to";
+import { zTileJSON } from "src/mapbox-layers/validations";
+import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
+import { useZoomTo } from "src/hooks/use_zoom_to";
 import clamp from "lodash/clamp";
-import { Moment } from "app/lib/persistence/moment";
+import { Moment } from "src/lib/persistence/moment";
 
 type Mode =
   | "initial"
@@ -734,7 +734,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   );
 }
 
-export { FORM_ERROR } from "app/core/components/Form";
+export { FORM_ERROR } from "src/core/components/Form";
 
 export function LayersPopover() {
   const rep = usePersistence();

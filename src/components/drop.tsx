@@ -4,7 +4,7 @@ import { dialogAtom } from "state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
-import { groupFiles } from "app/lib/group_files";
+import { groupFiles } from "src/lib/group_files";
 import { StyledDropOverlay } from "./elements";
 
 /**

@@ -2,8 +2,8 @@ import { expect, describe, it, test } from "vitest";
 
 import { fcLineString, fcMultiPoint, fcMultiPoly, fcPoly } from "test/helpers";
 import type { IFeature, GeometryCollection } from "types";
-import { generateSyntheticPoints } from "app/lib/pmap/generate_synthetic_points";
-import * as jsonpointer from "app/lib/pointer";
+import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
+import * as jsonpointer from "src/lib/pointer";
 import { Random, MersenneTwister19937 } from "random-js";
 import {
   encodeId,

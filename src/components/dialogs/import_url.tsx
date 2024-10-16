@@ -1,14 +1,14 @@
 import { Formik, Form } from "formik";
 import { GlobeIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
-import LabeledTextField from "app/core/components/LabeledTextField";
+import { DialogHeader } from "src/components/dialog";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
+import LabeledTextField from "src/core/components/LabeledTextField";
 import { useState } from "react";
-import { InlineError } from "app/components/inline_error";
+import { InlineError } from "src/components/inline_error";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "state/dialog_state";
-import { styledInlineA, TextWell } from "app/components/elements";
-import { MB_TO_BYTES } from "app/lib/constants";
+import { styledInlineA, TextWell } from "src/components/elements";
+import { MB_TO_BYTES } from "src/lib/constants";
 
 interface UrlValue {
   url: string;

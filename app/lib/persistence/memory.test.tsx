@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest";
 
-import { MemPersistence } from "app/lib/persistence/memory";
+import { MemPersistence } from "src/lib/persistence/memory";
 
 let persistence: MemPersistence;
 

@@ -1,6 +1,6 @@
-import { QItem } from "app/lib/geocode";
+import { QItem } from "src/lib/geocode";
 import Fuse from "fuse.js";
-import { truncate } from "app/lib/utils";
+import { truncate } from "src/lib/utils";
 import { Combobox } from "@headlessui/react";
 import { match } from "ts-pattern";
 import {
@@ -9,7 +9,7 @@ import {
   MagnifyingGlassIcon,
   SewingPinIcon,
 } from "@radix-ui/react-icons";
-import { Folder16 } from "app/components/icons";
+import { Folder16 } from "src/components/icons";
 
 export const comboboxInputClass = `px-4 py-3
           text-black dark:text-white

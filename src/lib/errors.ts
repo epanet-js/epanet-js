@@ -1,6 +1,6 @@
 import { Either } from "purify-ts/Either";
 import { JsonValue } from "type-fest";
-import { ERROR_CODES } from "app/lib/constants";
+import { ERROR_CODES } from "src/lib/constants";
 
 export class PlacemarkError extends Error {
   name = "PlacemarkError";

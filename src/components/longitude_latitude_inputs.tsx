@@ -1,4 +1,4 @@
-import type useResettable from "app/hooks/use_resettable";
+import type useResettable from "src/hooks/use_resettable";
 import { Input } from "./elements";
 
 type ResettableProps = ReturnType<typeof useResettable>;

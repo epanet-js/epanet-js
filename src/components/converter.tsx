@@ -17,8 +17,8 @@ import {
   stringToGeoJSON,
   ExportedData,
   FILE_TYPES,
-} from "app/lib/convert";
-import { ConvertResult } from "app/lib/convert/utils";
+} from "src/lib/convert";
+import { ConvertResult } from "src/lib/convert/utils";
 import * as Comlink from "comlink";
 import { transfer } from "comlink";
 import { CoordinateStringOptionsForm } from "./coordinate_string_options_form";
@@ -36,12 +36,12 @@ import {
   ResetIcon,
   ShuffleIcon,
 } from "@radix-ui/react-icons";
-import { lib } from "app/lib/worker";
+import { lib } from "src/lib/worker";
 import { GeoJSONOptions } from "./dialogs/export";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { Data } from "state/jotai";
-import { newFeatureId } from "app/lib/id";
-import { flattenRoot } from "app/hooks/use_import";
+import { newFeatureId } from "src/lib/id";
+import { flattenRoot } from "src/hooks/use_import";
 import { fileOpen, fileSave } from "browser-fs-access";
 import { AutoDetect } from "./dialogs/autodetect";
 
