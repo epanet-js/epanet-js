@@ -108,16 +108,16 @@ interface Obj {
 
 async function importAndReproject(obj: Obj) {
   const { importContent } = await import(
-    "vendor/mapshaper/io/mapshaper-import"
+    "src/vendor/mapshaper/io/mapshaper-import"
   );
   const { exportFileContent } = await import(
-    "vendor/mapshaper/io/mapshaper-export"
+    "src/vendor/mapshaper/io/mapshaper-export"
   );
   const { projectDataset } = await import(
-    "vendor/mapshaper/commands/mapshaper-proj"
+    "src/vendor/mapshaper/commands/mapshaper-proj"
   );
   const { parsePrj } = await import(
-    "vendor/mapshaper/crs/mapshaper-projections"
+    "src/vendor/mapshaper/crs/mapshaper-projections"
   );
 
   const out = importContent(obj);
@@ -245,10 +245,10 @@ class CShapefile implements FileType {
     return EitherAsync<ConvertError, ExportResult>(
       async function backShapefile() {
         const { importContent } = await import(
-          "vendor/mapshaper/io/mapshaper-import"
+          "src/vendor/mapshaper/io/mapshaper-import"
         );
         const { exportFileContent } = await import(
-          "vendor/mapshaper/io/mapshaper-export"
+          "src/vendor/mapshaper/io/mapshaper-export"
         );
         const fflate = await import("fflate");
 

@@ -18,7 +18,7 @@ export class CGTFS implements FileType {
   forwardString(text: string) {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardGtfs() {
-        const gtfs = await import("vendor/gtfs");
+        const gtfs = await import("src/vendor/gtfs");
         const geojson = gtfs.GTFSLinesToGeoJSON(text);
         return okResult(geojson);
       }
