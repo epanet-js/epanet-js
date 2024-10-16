@@ -1,4 +1,4 @@
-import { USelection } from "state";
+import { USelection } from "src/state";
 import type { HandlerContext, IFeature, Polygon } from "types";
 import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
 import * as utils from "src/lib/map_component_utils";

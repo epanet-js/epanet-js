@@ -21,7 +21,7 @@ import React, {
   ChangeEvent,
 } from "react";
 import { useVirtual } from "react-virtual";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { useAtom, useAtomValue } from "jotai";
 import { PropertyColumn } from "src/components/panels/feature_table/property_column";
 import sortBy from "lodash/sortBy";

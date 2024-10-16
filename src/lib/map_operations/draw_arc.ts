@@ -4,7 +4,7 @@ import { GeometryError } from "src/lib/errors";
 import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
 import { GreatCircle } from "src/vendor/arc";
 import { newFeatureId } from "src/lib/id";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { Sel } from "src/state/jotai";
 
 export function drawArc(

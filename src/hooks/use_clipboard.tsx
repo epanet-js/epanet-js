@@ -14,7 +14,7 @@ import { getExtent } from "src/lib/geometry";
 import { flattenResult } from "src/components/dialogs/import_utils";
 import { Maybe } from "purify-ts/Maybe";
 import { match } from "ts-pattern";
-import { USelection } from "state";
+import { USelection } from "src/state";
 
 export function stringifyFeatures(selectedFeatures: IWrappedFeature[]): Maybe<{
   data: string;

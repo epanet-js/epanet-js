@@ -5,7 +5,7 @@ import {
   qItemToFeature,
   qItemToPolygon,
 } from "src/lib/geocode";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { newFeatureId } from "src/lib/id";
 import * as Sentry from "@sentry/nextjs";
 import { match } from "ts-pattern";
