@@ -1,4 +1,4 @@
-import "../styles/globals.css";
+import "src/styles/globals.css";
 import * as T from "@radix-ui/react-tooltip";
 import { QueryClientProvider, QueryClient } from "react-query";
 import dynamic from "next/dynamic";
