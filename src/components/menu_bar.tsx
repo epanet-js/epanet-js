@@ -51,6 +51,10 @@ export const MenuBarPlay = memo(function MenuBar() {
         >
           <SiteIcon className="w-8 h-8" />
           EpanetApp
+        </span>
+        <FileInfo />
+      </div>
+      <div className="flex items-center gap-x-2">
           <Link
             href="https://github.com/Matrado/epanet-app"
             className="text-purple-600 hover:text-purple-700 flex items-center gap-1 text-sm bg-purple-100 px-2 py-1 rounded"
@@ -58,10 +62,6 @@ export const MenuBarPlay = memo(function MenuBar() {
             <GitHubLogoIcon />
             Open Source
           </Link>
-        </span>
-        <FileInfo />
-      </div>
-      <div className="flex items-center gap-x-2">
         <MenuBarDropdown />
 
         <HelpDot />
