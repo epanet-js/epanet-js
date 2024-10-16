@@ -4,7 +4,7 @@ import { polygonFromPositions } from "src/lib/geometry";
 export async function getGeotiffExtent(
   file: ArrayBuffer
 ): Promise<FeatureCollection> {
-  const { fromArrayBuffer } = await import("vendor/geotiff/index");
+  const { fromArrayBuffer } = await import("src/vendor/geotiff/index");
   const { default: proj4 } = await import("proj4");
   const tiff = await fromArrayBuffer(file);
   const image = await tiff.getImage();

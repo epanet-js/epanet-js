@@ -15,7 +15,7 @@ export class CEXIF implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(async function eitherExif({
       fromPromise,
     }) {
-      const exif = await import("vendor/exif");
+      const exif = await import("src/vendor/exif");
       const ret = await fromPromise(exif.toGeoJSON(file));
       return okResult(ret);
     });

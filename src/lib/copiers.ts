@@ -28,7 +28,7 @@ export const COPIERS: Record<
           new ConvertError("Only Point features can be copied as geohash")
         );
       }
-      const geohash = await import("vendor/geohash");
+      const geohash = await import("src/vendor/geohash");
       return geohash.encode(geometry.coordinates as [number, number]);
     });
   },

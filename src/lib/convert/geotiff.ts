@@ -13,7 +13,7 @@ export class CGeoTIFF implements FileType {
   forwardBinary(file: ArrayBuffer, _options?: ImportOptions) {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardGeoTIFF() {
-        const { getGeotiffExtent } = await import("vendor/geotiff");
+        const { getGeotiffExtent } = await import("src/vendor/geotiff");
         const extent = await getGeotiffExtent(file);
         return okResult(extent);
       }
