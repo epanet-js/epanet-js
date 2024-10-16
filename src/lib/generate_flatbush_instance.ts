@@ -1,5 +1,5 @@
 import Flatbush from "flatbush";
-import type { IFeature, IWrappedFeature, Point } from "types";
+import type { IFeature, IWrappedFeature, Point } from "src/types";
 import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
 import { getExtents } from "src/lib/geometry";
 import uniq from "lodash/uniq";

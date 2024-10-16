@@ -1,4 +1,4 @@
-import type { Feature, Point } from "types";
+import type { Feature, Point } from "src/types";
 import { e6position, parseCoordinates } from "src/lib/geometry";
 import type { FileType, ImportOptions } from ".";
 import { okResult } from "./utils";

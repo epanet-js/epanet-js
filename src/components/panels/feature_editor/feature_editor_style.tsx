@@ -1,4 +1,4 @@
-import type { GeoJsonProperties, IWrappedFeature } from "types";
+import type { GeoJsonProperties, IWrappedFeature } from "src/types";
 import { panelStyleOpen, tabAtom, TabOption } from "src/state/jotai";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import {

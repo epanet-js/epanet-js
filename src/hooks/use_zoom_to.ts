@@ -6,7 +6,7 @@ import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { USelection } from "src/state";
 import { dataAtom, Sel } from "src/state/jotai";
-import { BBox, FeatureCollection, IWrappedFeature } from "types";
+import { BBox, FeatureCollection, IWrappedFeature } from "src/types";
 
 export function useZoomTo() {
   const map = useContext(MapContext);

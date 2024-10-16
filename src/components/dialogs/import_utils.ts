@@ -1,5 +1,5 @@
 import { ConvertResult } from "src/lib/convert/utils";
-import { Feature, FeatureCollection } from "types";
+import { Feature, FeatureCollection } from "src/types";
 import type { Folder, Root } from "@tmcw/togeojson";
 
 function flattenRoot(root: Root | Folder, features: Feature[] = []) {

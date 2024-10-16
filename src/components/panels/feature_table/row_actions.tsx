@@ -4,7 +4,7 @@ import { styledCheckbox } from "src/components/elements";
 import { dataAtom, Sel, selectionAtom } from "src/state/jotai";
 import { USelection } from "src/state/uselection";
 import { HEIGHT } from "../feature_table";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import min from "lodash/min";
 import max from "lodash/max";
 import range from "lodash/range";

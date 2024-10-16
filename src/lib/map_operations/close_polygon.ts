@@ -1,4 +1,4 @@
-import type { IFeature, Polygon } from "types";
+import type { IFeature, Polygon } from "src/types";
 import replaceCoordinates from "src/lib/replace_coordinates";
 
 /**

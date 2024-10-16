@@ -1,5 +1,5 @@
 import type { Data, Sel, SelFolder, SelSingle } from "src/state/jotai";
-import type { IFolder, IWrappedFeature } from "types";
+import type { IFolder, IWrappedFeature } from "src/types";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { getFoldersInTree } from "src/lib/folder";

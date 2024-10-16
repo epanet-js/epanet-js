@@ -33,7 +33,7 @@ import {
   realMultiLineString,
   twoPoints,
 } from "test/helpers";
-import type { Geometry, IFeatureCollection, LineString } from "types";
+import type { Geometry, IFeatureCollection, LineString } from "src/types";
 import { Just, Nothing } from "purify-ts/Maybe";
 
 test("bufferPoint", () => {

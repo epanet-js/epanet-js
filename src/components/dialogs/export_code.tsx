@@ -8,7 +8,7 @@ import {
   TextWell,
 } from "src/components/elements";
 import { asColorExpression } from "src/lib/load_and_augment_style";
-import type { ISymbolization } from "types";
+import type { ISymbolization } from "src/types";
 
 function CopySymbolization({
   symbolization,

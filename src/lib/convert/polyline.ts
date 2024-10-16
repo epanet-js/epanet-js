@@ -1,5 +1,5 @@
 import readAsText from "src/lib/read_as_text";
-import type { Feature, FeatureCollection, IFeature, LineString } from "types";
+import type { Feature, FeatureCollection, IFeature, LineString } from "src/types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { stringToBlob, ConvertResult, okResult } from "./utils";
 import { ConvertError } from "src/lib/errors";

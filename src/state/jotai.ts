@@ -9,7 +9,7 @@ import {
   IPresence,
   LayerConfigMap,
   SYMBOLIZATION_NONE,
-} from "types";
+} from "src/types";
 import type { MomentLog } from "src/lib/persistence/moment";
 import { CMomentLog } from "src/lib/persistence/moment";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";

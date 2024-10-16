@@ -1,7 +1,7 @@
 import type { ExportResult, FileType, ImportOptions } from ".";
 import { stringToBlob, RootResult, ConvertResult } from "./utils";
 import readAsText from "src/lib/read_as_text";
-import type { FeatureCollection } from "types";
+import type { FeatureCollection } from "src/types";
 import { ConvertError, parseOrError } from "src/lib/errors";
 import type { PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";

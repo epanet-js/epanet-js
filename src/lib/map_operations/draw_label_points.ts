@@ -3,7 +3,7 @@ import polylabel from "polylabel";
 import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
 import { USelection } from "src/state";
 import { Sel } from "src/state/jotai";
-import { IWrappedFeature } from "types";
+import { IWrappedFeature } from "src/types";
 
 export function centroidFeature(
   wrappedFeature: IWrappedFeature,

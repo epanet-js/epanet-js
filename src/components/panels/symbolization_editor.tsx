@@ -7,7 +7,7 @@ import {
   FeatureMap,
   ISymbolizationRamp,
   RampValues,
-} from "types";
+} from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import * as Sentry from "@sentry/nextjs";
 import { Fragment, useMemo, useState } from "react";

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 
 import { colorFromPresence, linearGradient } from "./color";
-import type { IPresence } from "types";
+import type { IPresence } from "src/types";
 import { COLORBREWER_DIVERGING } from "src/lib/colorbrewer";
 
 test("colorFromPresence", () => {

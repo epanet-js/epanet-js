@@ -6,7 +6,7 @@ import type {
   Position,
   LineString,
   MultiLineString,
-} from "types";
+} from "src/types";
 
 function polygonFromRings(
   feature: IFeature,

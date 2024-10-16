@@ -1,4 +1,4 @@
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { newFeatureId } from "src/lib/id";
 import { USelection } from "src/state/index";
 import type { Data, Sel } from "src/state/jotai";

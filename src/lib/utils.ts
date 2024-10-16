@@ -7,7 +7,7 @@ import { Promisable } from "type-fest";
 import { SafeParseReturnType, z } from "zod";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import { zTileJSON } from "src/mapbox-layers/validations";
-import { ILayerConfig } from "types";
+import { ILayerConfig } from "src/types";
 
 /**
  * Used for the "title" tag so that if we change

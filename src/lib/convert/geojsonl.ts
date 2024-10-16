@@ -1,4 +1,4 @@
-import type { Feature, FeatureCollection } from "types";
+import type { Feature, FeatureCollection } from "src/types";
 import type { FileType, ImportOptions } from ".";
 import readAsText from "src/lib/read_as_text";
 import { GeoJSONLToGeoJSON, GeoJSONToGeoJSONL } from "./local/geojsonl";

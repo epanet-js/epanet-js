@@ -11,7 +11,7 @@ import type {
   MultiLineString,
   MultiPolygon,
   GeometryCollection,
-} from "types";
+} from "src/types";
 import isPlainObject from "lodash/isPlainObject";
 import { geometryTypes } from "./constants";
 import type { Either } from "purify-ts/Either";

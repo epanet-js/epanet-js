@@ -1,4 +1,4 @@
-import { Geometry, IWrappedFeature } from "types";
+import { Geometry, IWrappedFeature } from "src/types";
 import cloneDeep from "lodash/cloneDeep";
 import center from "@turf/center";
 import {

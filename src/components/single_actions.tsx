@@ -33,7 +33,7 @@ import type {
   LineString,
   IFeature,
   IWrappedFeature,
-} from "types";
+} from "src/types";
 import { ActionItem } from "./context_actions/action_item";
 import type { Action, ActionProps } from "./context_actions/action_item";
 import { ConvexIcon } from "./icons";

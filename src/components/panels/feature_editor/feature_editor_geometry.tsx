@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { IWrappedFeature, Geometry } from "types";
+import type { IWrappedFeature, Geometry } from "src/types";
 import { e6bbox, getExtent } from "src/lib/geometry";
 import {
   PolygonArea,

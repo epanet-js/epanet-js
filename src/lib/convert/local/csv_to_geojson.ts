@@ -1,4 +1,4 @@
-import type { FeatureCollection, Feature } from "types";
+import type { FeatureCollection, Feature } from "src/types";
 import {
   DEFAULT_IMPORT_OPTIONS,
   GeocodingBehavior,

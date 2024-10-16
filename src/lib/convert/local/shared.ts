@@ -5,7 +5,7 @@ import type { Unzipped } from "fflate";
 import { ImportOptions } from "..";
 import { env } from "src/lib/env_client";
 import { GeocodeEarthResult } from "src/lib/geocode";
-import { Feature } from "types";
+import { Feature } from "src/types";
 import { wktToGeoJSON } from "betterknown";
 import { parseOrError } from "src/lib/errors";
 import { rough } from "src/lib/roughly_geojson";

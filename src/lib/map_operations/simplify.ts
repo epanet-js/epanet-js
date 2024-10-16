@@ -7,7 +7,7 @@ import type {
   Position,
   IFeature,
   IWrappedFeature,
-} from "types";
+} from "src/types";
 
 export type SimplifySupportedGeometry =
   | LineString

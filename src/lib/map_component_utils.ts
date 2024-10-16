@@ -4,7 +4,7 @@ import type {
   LineString,
   FeatureMap,
   FolderMap,
-} from "types";
+} from "src/types";
 import type { Map as MapboxMap } from "mapbox-gl";
 import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { bufferPoint } from "src/lib/geometry";

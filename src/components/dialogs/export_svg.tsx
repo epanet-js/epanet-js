@@ -15,7 +15,7 @@ import * as geo from "d3-geo";
 import { SVGAttributes, useContext, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-import { FeatureCollection, IFeature, ISymbolization, LineString } from "types";
+import { FeatureCollection, IFeature, ISymbolization, LineString } from "src/types";
 import { Field, Form, Formik } from "formik";
 import { useRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import { Root } from "@tmcw/togeojson";

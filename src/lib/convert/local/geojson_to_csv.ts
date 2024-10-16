@@ -1,4 +1,4 @@
-import type { FeatureCollection } from "types";
+import type { FeatureCollection } from "src/types";
 import { csvFormat } from "d3-dsv";
 import { ExportOptions } from "..";
 import { geoJSONToWkt } from "betterknown";

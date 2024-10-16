@@ -6,7 +6,7 @@ import {
 } from "./add_inner_ring";
 import { polygonToLine } from "./polygon_to_line";
 import { getExtent } from "src/lib/geometry";
-import { IFeature, MultiPolygon, Polygon } from "types";
+import { IFeature, MultiPolygon, Polygon } from "src/types";
 import {
   fc,
   fcPoly,
@@ -42,7 +42,7 @@ import {
 import { getIssues } from "@placemarkio/check-geojson";
 import { decodeId } from "src/lib/id";
 import { USelection } from "src/state";
-import type { Feature, FeatureMap } from "types";
+import type { Feature, FeatureMap } from "src/types";
 import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { SELECTION_NONE } from "src/state/jotai";
 import { popLineStringCoordinate } from "./pop_line_string_coordinate";

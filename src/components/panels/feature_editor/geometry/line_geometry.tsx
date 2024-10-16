@@ -4,7 +4,7 @@ import type {
   IWrappedFeature,
   LineString,
   MultiLineString,
-} from "types";
+} from "src/types";
 import { UnitSelect } from "src/components/unit_select";
 import { Input, StyledLabelSpan } from "src/components/elements";
 import { useUpdateMaybeUser } from "src/hooks/update_user";

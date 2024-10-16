@@ -1,4 +1,4 @@
-import { Geometry, IWrappedFeature } from "types";
+import { Geometry, IWrappedFeature } from "src/types";
 
 export interface Stat {
   min: number | null;

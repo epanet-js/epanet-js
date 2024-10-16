@@ -9,7 +9,7 @@ import {
   FilterOptions,
   initialFilterValues,
 } from "src/state/jotai";
-import type { IFolder, IWrappedFeature } from "types";
+import type { IFolder, IWrappedFeature } from "src/types";
 import * as P from "@radix-ui/react-popover";
 import { Field, Form, Formik } from "formik";
 import React, {

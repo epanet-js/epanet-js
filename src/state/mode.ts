@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { IWrappedFeature } from "types";
+import { IWrappedFeature } from "src/types";
 
 /**
  * Map drawing mode

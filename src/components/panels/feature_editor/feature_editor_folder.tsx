@@ -37,7 +37,7 @@ import isEqual from "lodash/isEqual";
 import { USelection } from "src/state";
 import { Coordinates, ClientRect } from "@dnd-kit/core/dist/types";
 import { LEFT_PANEL_ROW_HEIGHT } from "src/lib/constants";
-import { FolderMap } from "types";
+import { FolderMap } from "src/types";
 
 /**
  * Returns the coordinates of the center of a given ClientRect

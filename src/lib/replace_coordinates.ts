@@ -1,4 +1,4 @@
-import type { IFeature, CoordinateHavers } from "types";
+import type { IFeature, CoordinateHavers } from "src/types";
 
 export default function replaceCoordinates<T extends CoordinateHavers>(
   feature: IFeature<T>,

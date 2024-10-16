@@ -4,7 +4,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as Sentry from "@sentry/nextjs";
 import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
 import { PanelDetails } from "src/components/panel_details";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { getCoordinatesMaybe } from "src/lib/map_operations/get_coordinates";
 
 export function FeatureEditorVertex({

@@ -2,7 +2,7 @@ import {
   ISymbolization,
   ISymbolizationCategorical,
   ISymbolizationRamp,
-} from "types";
+} from "src/types";
 
 function sharedDataDrivenPreamble(
   symbolization: ISymbolizationRamp | ISymbolizationCategorical

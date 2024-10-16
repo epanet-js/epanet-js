@@ -3,7 +3,7 @@ import {
   FeatureMap,
   FolderMap,
   UWrappedFeature,
-} from "types";
+} from "src/types";
 import { ConvertResult, getExtension } from "./utils";
 import { KML } from "./kml";
 import { KMZ } from "./kmz";

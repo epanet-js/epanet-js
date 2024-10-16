@@ -3,7 +3,7 @@ import { stringToBlob, ConvertResult } from "./utils";
 import readAsText from "src/lib/read_as_text";
 import { parseOrError } from "src/lib/errors";
 import type { ConvertError } from "src/lib/errors";
-import { FeatureMap } from "types";
+import { FeatureMap } from "src/types";
 import { rough } from "src/lib/roughly_geojson";
 import { Right } from "purify-ts/Either";
 import { EitherAsync } from "purify-ts/EitherAsync";

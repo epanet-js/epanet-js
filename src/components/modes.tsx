@@ -24,7 +24,7 @@ import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { useLineMode } from "src/hooks/use_line_mode";
 import { USelection } from "src/state";
-import { IWrappedFeature } from "types";
+import { IWrappedFeature } from "src/types";
 import {
   Button,
   DDContent,

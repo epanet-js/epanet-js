@@ -1,4 +1,4 @@
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 import { parseBBOX, bboxToPolygon, getExtent, e6bbox } from "src/lib/geometry";
 import type { FileType, ImportOptions } from ".";
 import { okResult } from "./utils";

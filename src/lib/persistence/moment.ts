@@ -4,7 +4,7 @@ import type {
   ILayerConfig,
   IWrappedFeature,
   IWrappedFeatureInput,
-} from "types";
+} from "src/types";
 
 /**
  * An entry in history, an 'undo' or a 'redo'.

@@ -1,4 +1,4 @@
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
 import { FeatureEditorExport } from "./feature_editor_export";

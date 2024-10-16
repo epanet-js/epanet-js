@@ -1,4 +1,4 @@
-import type { Feature, Position, FeatureCollection } from "types";
+import type { Feature, Position, FeatureCollection } from "src/types";
 import { dsvFormat } from "d3-dsv";
 
 type GTFSRow = {

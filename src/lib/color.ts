@@ -1,5 +1,5 @@
 import randomColor from "randomcolor";
-import type { IPresence, RampValues } from "types";
+import type { IPresence, RampValues } from "src/types";
 import * as d3 from "d3-color";
 
 const purple900a: RGBA = [49, 46, 129, 255];

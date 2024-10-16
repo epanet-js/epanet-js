@@ -1,7 +1,7 @@
 import { Formik, Form, Field } from "formik";
 import { IPersistence } from "src/lib/persistence/ipersistence";
 import { useState } from "react";
-import { IFolder } from "types";
+import { IFolder } from "src/types";
 
 interface RenameForm {
   name: string;

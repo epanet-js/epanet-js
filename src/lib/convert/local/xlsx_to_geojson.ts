@@ -1,4 +1,4 @@
-import type { FeatureCollection, Feature } from "types";
+import type { FeatureCollection, Feature } from "src/types";
 import type { ImportOptions } from "src/lib/convert";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JsonObject } from "type-fest";

@@ -1,6 +1,6 @@
 import { styledPropertyInput } from "src/components/elements";
 import useResettable from "src/hooks/use_resettable";
-import { CoordProps } from "types";
+import { CoordProps } from "src/types";
 import { Pair, OnChangeKey } from "../property_row";
 import { coordPropsAttr } from "./value";
 

@@ -1,4 +1,4 @@
-import type { IWrappedFeature, Feature, ISymbolization } from "types";
+import type { IWrappedFeature, Feature, ISymbolization } from "src/types";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { PreviewProperty } from "src/state/jotai";

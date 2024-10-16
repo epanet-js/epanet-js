@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import type { Geometry, Position, Feature } from "types";
+import type { Geometry, Position, Feature } from "src/types";
 import { v1 as uuidv1, v4 } from "uuid";
 import { customAlphabet } from "nanoid";
 

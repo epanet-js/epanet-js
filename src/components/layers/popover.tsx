@@ -21,7 +21,7 @@ import { newFeatureId } from "src/lib/id";
 import { Form, FORM_ERROR } from "src/core/components/Form";
 import { LabeledTextField } from "src/core/components/LabeledTextField";
 import { TextWell } from "src/components/elements";
-import { ILayerConfig, zLayerConfig } from "types";
+import { ILayerConfig, zLayerConfig } from "src/types";
 import { CSS } from "@dnd-kit/utilities";
 import {
   restrictToFirstScrollableAncestor,

@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect } from "react";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { panelCircleOpen } from "src/state/jotai";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import { Button, inputClass, styledSelect } from "src/components/elements";

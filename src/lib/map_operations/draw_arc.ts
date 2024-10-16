@@ -1,4 +1,4 @@
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { Left, Either } from "purify-ts/Either";
 import { GeometryError } from "src/lib/errors";
 import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";

@@ -16,7 +16,7 @@ import {
   lastSearchResultAtom,
   selectionAtom,
 } from "src/state/jotai";
-import { Feature } from "types";
+import { Feature } from "src/types";
 
 export function LastSearchResult() {
   const [addMetadataWithGeocoder, setAddMetadataWithGeocoder] = useAtom(

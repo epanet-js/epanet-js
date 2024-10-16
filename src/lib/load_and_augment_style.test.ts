@@ -6,7 +6,7 @@ import loadAndAugmentStyle, {
 } from "./load_and_augment_style";
 import { NIL_PREVIEW } from "test/helpers";
 import { validate } from "@mapbox/mapbox-gl-style-spec";
-import { ILayerConfig, ISymbolization } from "types";
+import { ILayerConfig, ISymbolization } from "src/types";
 import { purple900 } from "src/lib/constants";
 import { exportStyle } from "src/lib/export_style";
 

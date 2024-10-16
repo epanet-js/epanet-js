@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { useImportString } from "src/hooks/use_import";
 import { DEFAULT_IMPORT_OPTIONS } from "src/lib/convert";
 import { dataAtom, selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
-import { IWrappedFeature, UWrappedFeature } from "types";
+import { IWrappedFeature, UWrappedFeature } from "src/types";
 import { allowNativeCopy, allowNativePaste } from "src/lib/utils";
 import toast from "react-hot-toast";
 import { useAtomCallback } from "jotai/utils";

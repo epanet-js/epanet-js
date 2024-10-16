@@ -5,7 +5,7 @@ import {
 } from "src/lib/generate_flatbush_instance";
 import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
-import type { HandlerContext } from "types";
+import type { HandlerContext } from "src/types";
 import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
 import * as Sentry from "@sentry/nextjs";

@@ -3,7 +3,7 @@ import readAsText from "src/lib/read_as_text";
 import type { FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { ConvertError } from "src/lib/errors";
-import { FeatureCollection } from "types";
+import { FeatureCollection } from "src/types";
 
 export class CGPX implements FileType {
   id = "gpx" as const;
