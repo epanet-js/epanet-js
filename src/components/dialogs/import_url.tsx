@@ -6,7 +6,7 @@ import LabeledTextField from "src/core/components/LabeledTextField";
 import { useState } from "react";
 import { InlineError } from "src/components/inline_error";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "state/dialog_state";
+import { dialogAtom } from "src/state/dialog_state";
 import { styledInlineA, TextWell } from "src/components/elements";
 import { MB_TO_BYTES } from "src/lib/constants";
 

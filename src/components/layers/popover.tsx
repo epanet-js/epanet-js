@@ -10,7 +10,7 @@ import {
 } from "@radix-ui/react-icons";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { layerConfigAtom } from "state/jotai";
+import { layerConfigAtom } from "src/state/jotai";
 import * as E from "src/components/elements";
 import { usePersistence } from "src/lib/persistence/context";
 import * as P from "@radix-ui/react-popover";

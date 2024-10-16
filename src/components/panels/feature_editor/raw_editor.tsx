@@ -1,7 +1,7 @@
 import React from "react";
 import type { IWrappedFeature } from "types";
 import { useSetAtom } from "jotai";
-import { dialogAtom, panelRawOpen } from "state/jotai";
+import { dialogAtom, panelRawOpen } from "src/state/jotai";
 import { Button, sharedOutline, TextWell } from "src/components/elements";
 import { FeatureText } from "src/components/panels/feature_editor/raw_editor_text";
 import { PanelDetailsCollapsible } from "src/components/panel_details";

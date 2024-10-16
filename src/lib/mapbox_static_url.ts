@@ -1,4 +1,4 @@
-import { PartialLayer } from "state/jotai";
+import { PartialLayer } from "src/state/jotai";
 import { targetSize } from "./constants";
 
 /**

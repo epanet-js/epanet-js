@@ -1,4 +1,4 @@
-import type { Data, Sel, SelFolder, SelSingle } from "state/jotai";
+import type { Data, Sel, SelFolder, SelSingle } from "src/state/jotai";
 import type { IFolder, IWrappedFeature } from "types";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";

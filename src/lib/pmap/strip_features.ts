@@ -1,7 +1,7 @@
 import type { IWrappedFeature, Feature, ISymbolization } from "types";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { PreviewProperty } from "state/jotai";
+import { PreviewProperty } from "src/state/jotai";
 
 export function pick(
   properties: Feature["properties"],

@@ -1,6 +1,6 @@
 import type { Options } from "react-hotkeys-hook";
 import { useHotkeys } from "integrations/hotkeys";
-import { dataAtom, selectionAtom } from "state/jotai";
+import { dataAtom, selectionAtom } from "src/state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import { usePersistence } from "src/lib/persistence/context";
 import { deleteFeatures } from "src/lib/map_operations/delete_features";

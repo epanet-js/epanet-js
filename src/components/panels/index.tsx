@@ -5,7 +5,7 @@ import {
   TabOption,
   tabAtom,
   splitsAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "integrations/hotkeys";
 import clsx from "clsx";

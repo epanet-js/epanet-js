@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect } from "react";
 import type { IWrappedFeature } from "types";
-import { panelCircleOpen } from "state/jotai";
+import { panelCircleOpen } from "src/state/jotai";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import { Button, inputClass, styledSelect } from "src/components/elements";
 import {
@@ -10,7 +10,7 @@ import {
 } from "src/lib/circle";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { usePersistence } from "src/lib/persistence/context";
-import { CIRCLE_TYPE } from "state/mode";
+import { CIRCLE_TYPE } from "src/state/mode";
 import { convertLength, Units } from "@turf/helpers";
 import { UnitOptionsGroups } from "src/components/unit_select";
 import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";

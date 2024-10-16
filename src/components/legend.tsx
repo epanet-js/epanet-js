@@ -9,7 +9,7 @@ import {
 } from "react";
 import { linearGradient } from "src/lib/color";
 import last from "lodash/last";
-import { scaleUnitAtom, tabAtom, TabOption } from "state/jotai";
+import { scaleUnitAtom, tabAtom, TabOption } from "src/state/jotai";
 import { GearIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import {
   Button,

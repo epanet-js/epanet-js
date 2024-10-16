@@ -8,7 +8,7 @@ import type {
   Sel,
   Data,
   PreviewProperty,
-} from "state/jotai";
+} from "src/state/jotai";
 import {
   CURSOR_DEFAULT,
   DEFAULT_MAP_BOUNDS,

@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { memo, Suspense, useCallback } from "react";
 import { useAtom } from "jotai";
-import { dialogAtom } from "state/jotai";
+import { dialogAtom } from "src/state/jotai";
 import { match } from "ts-pattern";
 import * as D from "@radix-ui/react-dialog";
 import {
@@ -11,7 +11,7 @@ import {
   Loading,
   DefaultErrorBoundary,
 } from "./elements";
-import * as dialogState from "state/dialog_state";
+import * as dialogState from "src/state/dialog_state";
 
 const CircleDialog = dynamic<{
   modal: dialogState.DialogStateCircle;

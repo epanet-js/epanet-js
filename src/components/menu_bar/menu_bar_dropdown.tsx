@@ -1,4 +1,4 @@
-import { dialogAtom, momentLogAtom } from "state/jotai";
+import { dialogAtom, momentLogAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useOpenFiles } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";

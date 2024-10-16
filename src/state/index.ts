@@ -10,4 +10,4 @@ export const DEFAULT_MAP_CENTER: Pos2 = [
  */
 export { USelection } from "./uselection";
 
-export type { ModeOptions, ModeWithOptions } from "state/mode";
+export type { ModeOptions, ModeWithOptions } from "src/state/mode";

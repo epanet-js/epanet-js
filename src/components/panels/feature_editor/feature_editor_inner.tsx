@@ -3,7 +3,7 @@ import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
 import { FeatureEditorExport } from "./feature_editor_export";
 import { FeatureEditorVertex } from "./feature_editor_vertex";
-import { selectionAtom } from "state/jotai";
+import { selectionAtom } from "src/state/jotai";
 import React from "react";
 import { RawEditor } from "./raw_editor";
 import { useAtomValue } from "jotai";

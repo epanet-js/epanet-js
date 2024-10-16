@@ -20,7 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { usePersistence } from "src/lib/persistence/context";
 import { useAtomValue } from "jotai";
-import { dataAtom, Sel, splitsAtom } from "state/jotai";
+import { dataAtom, Sel, splitsAtom } from "src/state/jotai";
 import { generateKeyBetween, generateNKeysBetween } from "fractional-indexing";
 import { SortableItem, OverlayItem } from "./feature_editor_folder/items";
 import { useCustomSensors } from "./feature_editor_folder/hooks";

@@ -30,7 +30,7 @@ import { CoordinateString } from "./coordinate_string";
 import isPlainObject from "lodash/isPlainObject";
 import { JsonObject, JsonValue, SetOptional } from "type-fest";
 import { FlatGeobuf } from "./flatgeobuf";
-import { Data } from "state/jotai";
+import { Data } from "src/state/jotai";
 import { ProxyMarked } from "comlink";
 
 export enum GeocodingBehavior {

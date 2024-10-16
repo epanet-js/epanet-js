@@ -11,7 +11,7 @@ import { MemoryInfo } from "src/components/map_info/memory_info";
 import { usePersistence } from "src/lib/persistence/context";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, PlacemarkIcon, DDContent, StyledItem } from "./elements";
-import { dialogAtom } from "state/jotai";
+import { dialogAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { MenuBarDropdown } from "./menu_bar/menu_bar_dropdown";
 

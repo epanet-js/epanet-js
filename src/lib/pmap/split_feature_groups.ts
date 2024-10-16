@@ -2,7 +2,7 @@ import { emptySelection, EMPTY_ARRAY } from "src/lib/constants";
 import { generateExclude } from "src/lib/folder";
 import { encodeId } from "src/lib/id";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { Data, PreviewProperty } from "state/jotai";
+import { Data, PreviewProperty } from "src/state/jotai";
 import { Feature, ISymbolization } from "types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";
 import { fixDegenerates } from "./merge_ephemeral_state";

@@ -18,7 +18,7 @@ import {
   dataAtom,
   circleTypeAtom,
   dialogAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
@@ -33,7 +33,7 @@ import {
   StyledItem,
 } from "src/components/elements";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { CIRCLE_TYPE } from "state/mode";
+import { CIRCLE_TYPE } from "src/state/mode";
 
 function CircleMenu() {
   const [circleType, setCircleType] = useAtom(circleTypeAtom);

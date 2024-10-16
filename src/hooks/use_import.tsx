@@ -6,7 +6,7 @@ import {
 } from "src/lib/convert";
 import type { ConvertResult } from "src/lib/convert/utils";
 import type { ImportOptions } from "src/lib/convert";
-import { Data, dataAtom, fileInfoAtom } from "state/jotai";
+import { Data, dataAtom, fileInfoAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { lib } from "src/lib/worker";
 import type { FileWithHandle } from "browser-fs-access";

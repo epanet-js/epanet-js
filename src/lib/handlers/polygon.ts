@@ -1,6 +1,6 @@
 import { USelection } from "state";
 import type { HandlerContext, IFeature, Polygon } from "types";
-import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "state/jotai";
+import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
 import * as utils from "src/lib/map_component_utils";
 import * as Sentry from "@sentry/nextjs";
 import replaceCoordinates from "src/lib/replace_coordinates";

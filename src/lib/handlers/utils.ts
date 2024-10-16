@@ -1,4 +1,4 @@
-import { Data, Sel } from "state/jotai";
+import { Data, Sel } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
 import { MomentInput } from "src/lib/persistence/moment";
 import { GeoJsonProperties, Geometry } from "types";

@@ -11,7 +11,7 @@ import React, { useState } from "react";
 import { StyledFieldTextareaCode } from "src/components/elements";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { CoordinateStringOptionsForm } from "src/components/coordinate_string_options_form";
-import { DialogStateLoadText } from "state/dialog_state";
+import { DialogStateLoadText } from "src/state/dialog_state";
 import * as Sentry from "@sentry/nextjs";
 import * as Comlink from "comlink";
 import { ImportProgressBar } from "./import/import_progress_bar";

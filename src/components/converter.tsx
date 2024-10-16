@@ -39,7 +39,7 @@ import {
 import { lib } from "src/lib/worker";
 import { GeoJSONOptions } from "./dialogs/export";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import { Data } from "state/jotai";
+import { Data } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
 import { flattenRoot } from "src/hooks/use_import";
 import { fileOpen, fileSave } from "browser-fs-access";

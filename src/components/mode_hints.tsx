@@ -3,8 +3,8 @@ import { contentLike } from "src/components/elements";
 import { useBreakpoint } from "src/hooks/use_responsive";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
-import { hideHintsAtom, selectionAtom } from "state/jotai";
-import { Mode, modeAtom } from "state/mode";
+import { hideHintsAtom, selectionAtom } from "src/state/jotai";
+import { Mode, modeAtom } from "src/state/mode";
 
 function ModeHint({
   mode,

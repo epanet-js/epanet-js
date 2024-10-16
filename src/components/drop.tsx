@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from "react";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "state/jotai";
+import { dialogAtom } from "src/state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";

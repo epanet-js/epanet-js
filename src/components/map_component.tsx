@@ -24,7 +24,7 @@ import {
   selectedFeaturesAtom,
   cursorStyleAtom,
   layerConfigAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
 import PMap from "src/lib/pmap";
 import { EmptyIndex } from "src/lib/generate_flatbush_instance";

@@ -11,7 +11,7 @@ import {
   lastSearchResultAtom,
   searchHistoryAtom,
   selectionAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import { Loading } from "src/components/elements";
 import Fuse from "fuse.js";
 import { getColumns, getFn } from "src/lib/search_utils";

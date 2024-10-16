@@ -21,7 +21,7 @@ import { PanelDetails } from "src/components/panel_details";
 import { extractPropertyKeys } from "src/lib/multi_properties";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
-import { dataAtom, showAllAtom } from "state/jotai";
+import { dataAtom, showAllAtom } from "src/state/jotai";
 import { onArrow } from "src/lib/arrow_navigation";
 
 const ShowAllToggle = memo(function ShowAllToggle() {

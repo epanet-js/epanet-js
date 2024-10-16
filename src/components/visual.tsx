@@ -1,7 +1,7 @@
 import { memo, Suspense } from "react";
 import { LayersIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "state/jotai";
+import { dialogAtom } from "src/state/jotai";
 import * as T from "@radix-ui/react-tooltip";
 import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";

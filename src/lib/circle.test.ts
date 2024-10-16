@@ -1,6 +1,6 @@
 import { getCircleProp, getCircleRadius, makeCircleNative } from "./circle";
 import { describe, it, expect } from "vitest";
-import { CIRCLE_TYPE } from "state/mode";
+import { CIRCLE_TYPE } from "src/state/mode";
 import { pointFeature } from "test/helpers";
 
 describe("makeCircleNative", () => {

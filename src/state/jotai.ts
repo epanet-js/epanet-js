@@ -12,7 +12,7 @@ import {
 } from "types";
 import type { MomentLog } from "src/lib/persistence/moment";
 import { CMomentLog } from "src/lib/persistence/moment";
-import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "state/mode";
+import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/lib/convert";
 import { focusAtom } from "jotai-optics";
 import { USelection } from "./uselection";
@@ -189,11 +189,11 @@ export const followPresenceAtom = atom<IPresence | null>(null);
 /**
  * Modal state
  */
-export { dialogAtom as dialogAtom } from "state/dialog_state";
+export { dialogAtom as dialogAtom } from "src/state/dialog_state";
 export type {
   DialogStateImport as ModalStateImport,
   DialogStateCastProperty as ModalStateCastProperty,
-} from "state/dialog_state";
+} from "src/state/dialog_state";
 
 /**
  * Current layer state

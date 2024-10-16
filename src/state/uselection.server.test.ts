@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest";
 
-import { USelection } from "state/uselection";
-import { Sel, SELECTION_NONE } from "state/jotai";
+import { USelection } from "src/state/uselection";
+import { Sel, SELECTION_NONE } from "src/state/jotai";
 import { CVertexId } from "src/lib/id";
 import { fcLineString, wrapMapAndId } from "test/helpers";
 import { FolderMap, IFolder } from "types";

@@ -7,7 +7,7 @@ import { PanelDetailsCollapsible } from "src/components/panel_details";
 import type { Geometry, IFeature, IWrappedFeature } from "types";
 import { Button, styledSelect } from "src/components/elements";
 import { writeToClipboard } from "src/lib/utils";
-import { panelExportOpen } from "state/jotai";
+import { panelExportOpen } from "src/state/jotai";
 
 type CopyForm = {
   format: keyof typeof COPIERS;

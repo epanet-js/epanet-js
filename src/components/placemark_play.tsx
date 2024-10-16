@@ -40,7 +40,7 @@ import {
 } from "@radix-ui/react-icons";
 import { Button, StyledTooltipArrow, TContent } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, splitsAtom, tabAtom, TabOption } from "state/jotai";
+import { dialogAtom, splitsAtom, tabAtom, TabOption } from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,

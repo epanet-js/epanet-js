@@ -9,7 +9,7 @@ import { fMoment, Moment, MomentInput, UMomentLog } from "./moment";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { useAtomValue } from "jotai";
-import { Data, dataAtom, momentLogAtom, presencesAtom } from "state/jotai";
+import { Data, dataAtom, momentLogAtom, presencesAtom } from "src/state/jotai";
 import { EMPTY_ARRAY } from "src/lib/constants";
 
 // This  used to send to posthog, but now could be removed

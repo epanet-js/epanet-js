@@ -1,4 +1,4 @@
-import type { PreviewProperty } from "state/jotai";
+import type { PreviewProperty } from "src/state/jotai";
 // TODO: this is a UI concern that should be separate.
 import type { Style } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";

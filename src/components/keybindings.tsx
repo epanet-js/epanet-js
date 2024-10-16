@@ -4,7 +4,7 @@ import { useHotkeys } from "integrations/hotkeys";
 import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
 import * as Sentry from "@sentry/nextjs";
-import { dialogAtom } from "state/jotai";
+import { dialogAtom } from "src/state/jotai";
 import toast from "react-hot-toast";
 
 export function Keybindings() {

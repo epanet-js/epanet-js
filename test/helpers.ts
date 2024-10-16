@@ -16,7 +16,7 @@ import type {
 import Fs from "fs";
 import Path from "path";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { PreviewProperty } from "state/jotai";
+import { PreviewProperty } from "src/state/jotai";
 import deepFreeze from "deep-freeze";
 
 export const NIL_PREVIEW: PreviewProperty = null;

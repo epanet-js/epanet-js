@@ -58,7 +58,7 @@ import {
 } from "src/lib/colorbrewer";
 import find from "lodash/find";
 import last from "lodash/last";
-import { dataAtom, panelSymbolizationExportOpen } from "state/jotai";
+import { dataAtom, panelSymbolizationExportOpen } from "src/state/jotai";
 import * as d3 from "d3-array";
 import { ColorPopoverField } from "src/components/color_popover";
 import { linearGradient } from "src/lib/color";

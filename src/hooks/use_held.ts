@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { cursorStyleAtom } from "state/jotai";
+import { cursorStyleAtom } from "src/state/jotai";
 import { Position } from "types";
 
 export function lockDirection(lastCoord: Position, nextCoord: Position): Pos2 {

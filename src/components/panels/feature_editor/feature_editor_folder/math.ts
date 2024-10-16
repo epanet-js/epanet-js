@@ -10,7 +10,7 @@ import {
 } from "types";
 import type { Root, Folder as TFolder } from "@tmcw/togeojson";
 import { collectFoldersByFolder } from "src/lib/folder";
-import { Data, SelSingle } from "state/jotai";
+import { Data, SelSingle } from "src/state/jotai";
 import { UniqueIdentifier } from "@dnd-kit/core";
 
 export const indentationWidth = 16;

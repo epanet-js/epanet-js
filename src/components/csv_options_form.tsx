@@ -21,7 +21,7 @@ import { JsonObject } from "type-fest";
 import { MAX_GEOCODER_ROWS } from "src/lib/constants";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { extractPropertyKeys } from "src/lib/multi_properties";
 
 function KindSelector({ geocoder }: { geocoder: boolean }) {

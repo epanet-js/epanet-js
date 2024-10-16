@@ -2,7 +2,7 @@ import React from "react";
 import { usePersistence } from "src/lib/persistence/context";
 import type { IWrappedFeature } from "types";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
-import { panelIdOpen } from "state/jotai";
+import { panelIdOpen } from "src/state/jotai";
 import {
   Button,
   inputClass,

@@ -14,10 +14,10 @@ import {
   ephemeralStateAtom,
   selectionAtom,
   cursorStyleAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { USelection } from "state";
-import { modeAtom } from "state/mode";
+import { modeAtom } from "src/state/mode";
 import { useEndSnapshot, useStartSnapshot } from "src/lib/persistence/shared";
 import { filterLockedFeatures } from "src/lib/folder";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
