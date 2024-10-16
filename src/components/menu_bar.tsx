@@ -44,7 +44,7 @@ export const MenuBarPlay = memo(function MenuBar() {
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
       <div className="flex items-center">
         <span
-          className="py-1 pl-1 pr-2
+          className="py-1 pl-2 pr-2
           text-gray-500
           inline-flex gap-x-2 items-center"
           title="Home"
