@@ -59,3 +59,13 @@ npx serve@latest out
 If you're planning to run this often or publicly, take care to secure your
 tokens better by adding [URL restrictions to the Mapbox token](https://docs.mapbox.com/help/getting-started/access-tokens/#url-restrictions) and setting allowed Referrer Hostnames to the Geocode Earth one,
 and consider copying and revising the `.env.sample` file.
+
+
+## License
+
+This repository contains code under two different licenses:
+
+1. **Placemark clone (MIT License)**: All code from the first commit (`0fa095f5c60ba944fa4e25b8a7e749e52c2beefb`) is licensed under the MIT License.
+2. **Modifications and Future Contributions (FSL-1.1-MIT)**: Any changes or contributions made after the first commit (`0fa095f5c60ba944fa4e25b8a7e749e52c2beefb`) onwards are licensed under the FSL-1.1-MIT License.
+
+You can find the full text of the MIT License in the `LICENSE` file.
