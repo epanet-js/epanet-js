@@ -10,7 +10,7 @@ import {
 import { MemoryInfo } from "src/components/map_info/memory_info";
 import { usePersistence } from "src/lib/persistence/context";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { Button, PlacemarkIcon, DDContent, StyledItem } from "./elements";
+import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
 import { dialogAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { MenuBarDropdown } from "./menu_bar/menu_bar_dropdown";
@@ -32,7 +32,7 @@ function WrappedFeatureCollectionInfo() {
           text-purple-500 hover:text-purple-700 dark:hover:text-purple-300"
         title="Home"
       >
-        <PlacemarkIcon className="w-8 h-8" />
+        <SiteIcon className="w-8 h-8" />
       </Link>
       <MemoryInfo metadata={meta} />
     </>
@@ -49,7 +49,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           inline-flex gap-x-2 items-center"
           title="Home"
         >
-          <PlacemarkIcon className="w-8 h-8" />
+          <SiteIcon className="w-8 h-8" />
           EpanetApp
           <Link
             href="https://github.com/Matrado/epanet-app"

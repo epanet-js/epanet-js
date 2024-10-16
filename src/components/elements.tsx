@@ -64,7 +64,7 @@ export function Hint({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PlacemarkIcon({ }: React.HTMLAttributes<SVGElement>) {
+export function SiteIcon({ }: React.HTMLAttributes<SVGElement>) {
   return (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="32"><path fill="#3CAED6" d="M12 0s12 13.373 12 20-5.372 12-12 12c-6.627 0-12-5.373-12-12l12-20z"/><path fill="#63BFDE" d="M16.994 16c-1.108 0-2.006.898-2.006 2.007 0 1.107.897 2.005 2.006 2.005 1.107 0 2.006-.897 2.006-2.005 0-1.109-.898-2.007-2.006-2.007z"/><path fill="#369DC0" d="M13 31c-6.627 0-12-5.373-12-12 0-5.497 8.25-15.627 11.066-18.926l-.066-.074s-12 13.373-12 20 5.373 12 12 12c3.568 0 6.764-1.566 8.961-4.039-2.119 1.885-4.901 3.039-7.961 3.039z"/></svg>)
 }
@@ -797,7 +797,7 @@ export const MinimalHeaderLogoLink = () => {
                       text-purple-500 hover:text-purple-700 dark:hover:text-purple-300"
       title="Home"
     >
-      <PlacemarkIcon className="w-8 h-8" />
+      <SiteIcon className="w-8 h-8" />
       <Placemark className="hidden sm:block w-24 text-gray-700 dark:text-gray-300" />
     </Link>
   );
