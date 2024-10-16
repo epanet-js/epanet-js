@@ -1,6 +1,6 @@
 # Play
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fplacemark%2Fplacemark&env=NEXT_PUBLIC_MAPBOX_TOKEN)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMatrado%2Fepanet-app&env=NEXT_PUBLIC_MAPBOX_TOKEN)
 
 At some point during Placemark development, I tried making a free-as-in-beer
 interface that supported a lot of the things that Placemark could, but for free.
