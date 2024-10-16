@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const basicAuthUser = process.env.BASIC_AUTH_USER || 'matrado'
-const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'matrado'
+const basicAuthUser = process.env.BASIC_AUTH_USER || 'admin'
+const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'password'
 
 export function middleware(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');
