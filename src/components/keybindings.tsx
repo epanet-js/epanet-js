@@ -1,6 +1,6 @@
 import { useMapKeybindings } from "src/hooks/use_map_keybindings";
 import { useOpenFiles } from "src/hooks/use_open_files";
-import { useHotkeys } from "integrations/hotkeys";
+import { useHotkeys } from "src/integrations/hotkeys";
 import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
 import * as Sentry from "@sentry/nextjs";

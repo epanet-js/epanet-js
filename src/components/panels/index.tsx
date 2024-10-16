@@ -7,7 +7,7 @@ import {
   splitsAtom,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
-import { useHotkeys } from "integrations/hotkeys";
+import { useHotkeys } from "src/integrations/hotkeys";
 import clsx from "clsx";
 
 const FeatureTable = dynamic(

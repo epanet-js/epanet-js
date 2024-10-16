@@ -1,5 +1,5 @@
 import type { Options } from "react-hotkeys-hook";
-import { useHotkeys } from "integrations/hotkeys";
+import { useHotkeys } from "src/integrations/hotkeys";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import { usePersistence } from "src/lib/persistence/context";
