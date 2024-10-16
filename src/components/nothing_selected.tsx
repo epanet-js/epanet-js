@@ -9,7 +9,7 @@ import Line from "src/components/icons/line";
 import { useOpenFiles } from "src/hooks/use_open_files";
 import { useSetAtom } from "jotai";
 import { memo } from "react";
-import { dialogAtom } from "state/dialog_state";
+import { dialogAtom } from "src/state/dialog_state";
 import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
 

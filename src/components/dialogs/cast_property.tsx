@@ -1,7 +1,7 @@
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import { Formik, Field, Form } from "formik";
-import type { ModalStateCastProperty } from "state/jotai";
+import type { ModalStateCastProperty } from "src/state/jotai";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { castExplicit, ExplicitCast } from "src/lib/cast";
 import { usePersistence } from "src/lib/persistence/context";

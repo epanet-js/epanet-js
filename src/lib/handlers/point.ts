@@ -1,6 +1,6 @@
 import { USelection } from "state";
 import type { HandlerContext, Point } from "types";
-import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "state/jotai";
+import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";

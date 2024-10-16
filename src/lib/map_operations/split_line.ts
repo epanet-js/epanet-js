@@ -1,5 +1,5 @@
 import type { Feature, IFeature, LineString } from "types";
-import { Sel } from "state/jotai";
+import { Sel } from "src/state/jotai";
 
 /**
  * Triggered when a user drags a midpoint, this basically instantiates

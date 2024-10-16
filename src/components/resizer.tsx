@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from "react";
 import * as T from "@radix-ui/react-tooltip";
 import { useSetAtom, useAtom } from "jotai";
-import { Side, splitsAtom, Splits, MIN_SPLITS, OTHER_SIDE } from "state/jotai";
+import { Side, splitsAtom, Splits, MIN_SPLITS, OTHER_SIDE } from "src/state/jotai";
 import { useMove } from "@react-aria/interactions";
 import { TContent } from "src/components/elements";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";

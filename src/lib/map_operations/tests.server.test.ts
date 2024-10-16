@@ -44,7 +44,7 @@ import { decodeId } from "src/lib/id";
 import { USelection } from "state";
 import type { Feature, FeatureMap } from "types";
 import { EMPTY_MOMENT } from "src/lib/persistence/moment";
-import { SELECTION_NONE } from "state/jotai";
+import { SELECTION_NONE } from "src/state/jotai";
 import { popLineStringCoordinate } from "./pop_line_string_coordinate";
 import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
 import { deletePropertyKey } from "./delete_property_key";

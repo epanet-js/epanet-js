@@ -7,7 +7,7 @@ import * as P from "@radix-ui/react-popover";
 import * as E from "src/components/elements";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtomValue } from "jotai";
-import { selectedFeaturesAtom } from "state/jotai";
+import { selectedFeaturesAtom } from "src/state/jotai";
 import * as T from "@radix-ui/react-tooltip";
 import React from "react";
 import { FeatureEditorGeometry } from "./panels/feature_editor/feature_editor_geometry";

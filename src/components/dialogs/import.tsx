@@ -1,4 +1,4 @@
-import type { ModalStateImport } from "state/jotai";
+import type { ModalStateImport } from "src/state/jotai";
 import type { ConvertResult } from "src/lib/convert/utils";
 import { PlusCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";

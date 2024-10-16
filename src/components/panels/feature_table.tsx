@@ -8,7 +8,7 @@ import {
   tableFilterAtom,
   FilterOptions,
   initialFilterValues,
-} from "state/jotai";
+} from "src/state/jotai";
 import type { IFolder, IWrappedFeature } from "types";
 import * as P from "@radix-ui/react-popover";
 import { Field, Form, Formik } from "formik";

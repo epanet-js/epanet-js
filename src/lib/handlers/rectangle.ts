@@ -1,7 +1,7 @@
 import noop from "lodash/noop";
 import { USelection } from "state";
 import type { HandlerContext, Position, IFeature, Polygon } from "types";
-import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "state/jotai";
+import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "src/state/jotai";
 import { useContext, useState } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { toast } from "react-hot-toast";

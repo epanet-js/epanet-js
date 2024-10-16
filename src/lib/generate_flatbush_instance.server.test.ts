@@ -6,7 +6,7 @@ import {
 } from "./generate_flatbush_instance";
 import { twoPoints, wrap } from "test/helpers";
 import type { IFeature, IWrappedFeature, MultiPolygon } from "types";
-import { SELECTION_NONE } from "state/jotai";
+import { SELECTION_NONE } from "src/state/jotai";
 
 const multipoly: IFeature<MultiPolygon> = {
   properties: {},

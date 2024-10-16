@@ -50,7 +50,7 @@ import clsx from "clsx";
 import { CoordProps } from "types";
 import { Field, Form, Formik } from "formik";
 import { parseOrError } from "src/lib/errors";
-import { dataAtom } from "state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { truncate } from "src/lib/utils";
 
 type Preview =

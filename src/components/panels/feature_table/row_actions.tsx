@@ -1,8 +1,8 @@
 // Menu
 import React, { memo, useCallback } from "react";
 import { styledCheckbox } from "src/components/elements";
-import { dataAtom, Sel, selectionAtom } from "state/jotai";
-import { USelection } from "state/uselection";
+import { dataAtom, Sel, selectionAtom } from "src/state/jotai";
+import { USelection } from "src/state/uselection";
 import { HEIGHT } from "../feature_table";
 import type { IWrappedFeature } from "types";
 import min from "lodash/min";

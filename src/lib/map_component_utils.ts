@@ -8,7 +8,7 @@ import type {
 import type { Map as MapboxMap } from "mapbox-gl";
 import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { bufferPoint } from "src/lib/geometry";
-import type { EphemeralEditingStateLasso } from "state/jotai";
+import type { EphemeralEditingStateLasso } from "src/state/jotai";
 import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";

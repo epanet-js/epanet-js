@@ -5,7 +5,7 @@ import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
 import { GreatCircle } from "vendor/arc";
 import { newFeatureId } from "src/lib/id";
 import { USelection } from "state";
-import { Sel } from "state/jotai";
+import { Sel } from "src/state/jotai";
 
 export function drawArc(
   features: IWrappedFeature[]

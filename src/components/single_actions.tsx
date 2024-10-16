@@ -23,8 +23,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { USelection } from "state";
-import { selectionAtom } from "state/jotai";
-import { dialogAtom } from "state/dialog_state";
+import { selectionAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog_state";
 import type {
   Polygon,
   Point,

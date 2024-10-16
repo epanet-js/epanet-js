@@ -30,7 +30,7 @@ import {
   momentLogAtom,
   layerConfigAtom,
   memoryMetaAtom,
-} from "state/jotai";
+} from "src/state/jotai";
 import {
   getFreshAt,
   momentForDeleteFeatures,

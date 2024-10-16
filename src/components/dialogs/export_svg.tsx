@@ -14,7 +14,7 @@ import { rewindGeometry } from "@placemarkio/geojson-rewind";
 import * as geo from "d3-geo";
 import { SVGAttributes, useContext, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { FeatureCollection, IFeature, ISymbolization, LineString } from "types";
 import { Field, Form, Formik } from "formik";
 import { useRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";

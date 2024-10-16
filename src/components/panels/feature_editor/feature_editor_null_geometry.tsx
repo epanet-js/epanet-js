@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { IWrappedFeature } from "types";
-import { panelNullOpen } from "state/jotai";
+import { panelNullOpen } from "src/state/jotai";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import {
   Button,

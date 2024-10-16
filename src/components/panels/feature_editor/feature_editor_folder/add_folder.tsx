@@ -12,7 +12,7 @@ import { newFeatureId } from "src/lib/id";
 import { useState } from "react";
 import { FolderAdd16 } from "src/components/icons";
 import { usePersistence } from "src/lib/persistence/context";
-import { selectionAtom } from "state/jotai";
+import { selectionAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 
 export function AddFolder() {

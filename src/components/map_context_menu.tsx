@@ -2,7 +2,7 @@ import * as CM from "@radix-ui/react-context-menu";
 import React, { memo } from "react";
 import { useSetAtom } from "jotai";
 import { USelection } from "state";
-import { dialogAtom, Mode, modeAtom, selectionAtom } from "state/jotai";
+import { dialogAtom, Mode, modeAtom, selectionAtom } from "src/state/jotai";
 import {
   ArrowRightIcon,
   CircleIcon,

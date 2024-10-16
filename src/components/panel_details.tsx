@@ -4,7 +4,7 @@ import * as C from "@radix-ui/react-collapsible";
 import { CaretDownIcon, CaretRightIcon } from "@radix-ui/react-icons";
 import React from "react";
 import { useAtom } from "jotai";
-import { PanelAtom } from "state/jotai";
+import { PanelAtom } from "src/state/jotai";
 
 export function PanelDetails({
   children,

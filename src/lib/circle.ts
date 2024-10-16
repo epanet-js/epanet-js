@@ -1,7 +1,7 @@
 import { Polygon } from "geojson";
 import clamp from "lodash/clamp";
 import { z } from "zod";
-import { CIRCLE_TYPE } from "state/mode";
+import { CIRCLE_TYPE } from "src/state/mode";
 import { Feature } from "types";
 
 const D2R = Math.PI / 180;

@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 import { DownloadIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
-import { dataAtom, fileInfoAtom } from "state/jotai";
+import { dataAtom, fileInfoAtom } from "src/state/jotai";
 import { SelectFileType } from "src/components/fields";
 import { NarrowExport } from "src/components/narrow_export";
 import { useAtomValue, useSetAtom } from "jotai";

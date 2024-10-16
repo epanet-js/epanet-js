@@ -9,12 +9,12 @@ import {
   styledSelect,
 } from "../elements";
 import * as Sentry from "@sentry/nextjs";
-import { dialogAtom, DialogStateCircle } from "state/dialog_state";
+import { dialogAtom, DialogStateCircle } from "src/state/dialog_state";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { UnitOptionsGroups } from "src/components/unit_select";
 import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";
 import { Formik, Form, Field } from "formik";
-import { CIRCLE_TYPE } from "state/mode";
+import { CIRCLE_TYPE } from "src/state/mode";
 import { ICircleProp, makeCircleNative } from "src/lib/circle";
 import { newFeatureId } from "src/lib/id";
 import { useZoomTo } from "src/hooks/use_zoom_to";

@@ -5,7 +5,7 @@ import { LngLatBoundsLike } from "mapbox-gl";
 import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { USelection } from "state";
-import { dataAtom, Sel } from "state/jotai";
+import { dataAtom, Sel } from "src/state/jotai";
 import { BBox, FeatureCollection, IWrappedFeature } from "types";
 
 export function useZoomTo() {

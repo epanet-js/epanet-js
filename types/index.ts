@@ -10,10 +10,10 @@ import type {
   FeatureCollection as IFeatureCollection,
 } from "geojson";
 import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
-import type { ModeWithOptions } from "state/mode";
+import type { ModeWithOptions } from "src/state/mode";
 import type { Dispatch, SetStateAction } from "react";
 import type { IPersistence } from "src/lib/persistence/ipersistence";
-import type { Sel } from "state/jotai";
+import type { Sel } from "src/state/jotai";
 import { JsonValue, SetOptional } from "type-fest";
 import { IDMap } from "src/lib/id_mapper";
 import { getFoldersInTree } from "src/lib/folder";

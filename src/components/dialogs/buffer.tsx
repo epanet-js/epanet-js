@@ -1,4 +1,4 @@
-import type { DialogStateBuffer } from "state/dialog_state";
+import type { DialogStateBuffer } from "src/state/dialog_state";
 import {
   StyledField,
   styledSelect,

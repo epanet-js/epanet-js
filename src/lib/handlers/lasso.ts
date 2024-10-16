@@ -1,11 +1,11 @@
 import { useAtomCallback } from "jotai/utils";
 import * as utils from "src/lib/map_component_utils";
 import noop from "lodash/noop";
-import type { EphemeralEditingStateLasso } from "state/jotai";
-import { modeAtom, ephemeralStateAtom, selectionAtom } from "state/jotai";
+import type { EphemeralEditingStateLasso } from "src/state/jotai";
+import { modeAtom, ephemeralStateAtom, selectionAtom } from "src/state/jotai";
 import { USelection } from "state";
 import type { HandlerContext } from "types";
-import { Mode } from "state/mode";
+import { Mode } from "src/state/mode";
 import { toggle, toggleByValue } from "src/lib/utils";
 import { useCallback } from "react";
 

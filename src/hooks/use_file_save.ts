@@ -1,4 +1,4 @@
-import { dataAtom, fileInfoAtom, fileInfoMachineAtom } from "state/jotai";
+import { dataAtom, fileInfoAtom, fileInfoMachineAtom } from "src/state/jotai";
 import { fromGeoJSON } from "src/lib/convert";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { ConvertError } from "src/lib/errors";

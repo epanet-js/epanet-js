@@ -1,4 +1,4 @@
-import type { DialogStateSimplify } from "state/dialog_state";
+import type { DialogStateSimplify } from "src/state/dialog_state";
 import { FieldCheckbox, StyledLabelSpan } from "src/components/elements";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Field, Form, Formik } from "formik";
@@ -9,7 +9,7 @@ import * as Sentry from "@sentry/nextjs";
 import { DialogHeader } from "src/components/dialog";
 import { getExtent } from "src/lib/geometry";
 import { useAtom } from "jotai";
-import { selectionAtom } from "state/jotai";
+import { selectionAtom } from "src/state/jotai";
 import { USelection } from "state";
 
 export default function SimplifyDialog({

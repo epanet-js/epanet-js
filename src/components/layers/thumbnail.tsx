@@ -1,4 +1,4 @@
-import { PartialLayer } from "state/jotai";
+import { PartialLayer } from "src/state/jotai";
 import { mapboxStaticURL } from "src/lib/mapbox_static_url";
 
 export function Thumbnail({

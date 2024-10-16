@@ -23,7 +23,7 @@ import {
   DDContent,
   B3Variant,
 } from "src/components/elements";
-import { dialogAtom } from "state/dialog_state";
+import { dialogAtom } from "src/state/dialog_state";
 import { SingleActions } from "src/components/single_actions";
 import { useSetAtom } from "jotai";
 import {
@@ -40,7 +40,7 @@ import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
 import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
-import { selectionAtom, dataAtom } from "state/jotai";
+import { selectionAtom, dataAtom } from "src/state/jotai";
 import { Geometry, IFeature, IWrappedFeature, Polygon } from "types";
 import { ActionItem } from "./action_item";
 import { useAtomCallback } from "jotai/utils";
