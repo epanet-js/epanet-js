@@ -10,7 +10,7 @@ import { DialogHeader } from "src/components/dialog";
 import { getExtent } from "src/lib/geometry";
 import { useAtom } from "jotai";
 import { selectionAtom } from "src/state/jotai";
-import { USelection } from "state";
+import { USelection } from "src/state";
 
 export default function SimplifyDialog({
   modal,

@@ -5,7 +5,7 @@ import * as Sentry from "@sentry/nextjs";
 import { usePersistence } from "src/lib/persistence/context";
 import { deleteFeatures } from "src/lib/map_operations/delete_features";
 import { filterLockedFeatures } from "src/lib/folder";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 

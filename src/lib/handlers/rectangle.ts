@@ -1,5 +1,5 @@
 import noop from "lodash/noop";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import type { HandlerContext, Position, IFeature, Polygon } from "types";
 import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "src/state/jotai";
 import { useContext, useState } from "react";

@@ -1,4 +1,4 @@
-import { USelection } from "state";
+import { USelection } from "src/state";
 import type { HandlerContext, Point } from "types";
 import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
 import * as Sentry from "@sentry/nextjs";

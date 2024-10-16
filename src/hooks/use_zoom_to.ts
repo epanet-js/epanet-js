@@ -4,7 +4,7 @@ import { getExtent, isBBoxEmpty } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { dataAtom, Sel } from "src/state/jotai";
 import { BBox, FeatureCollection, IWrappedFeature } from "types";
 

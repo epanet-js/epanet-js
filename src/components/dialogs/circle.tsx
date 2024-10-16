@@ -18,7 +18,7 @@ import { CIRCLE_TYPE } from "src/state/mode";
 import { ICircleProp, makeCircleNative } from "src/lib/circle";
 import { newFeatureId } from "src/lib/id";
 import { useZoomTo } from "src/hooks/use_zoom_to";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { convertLength, Units } from "@turf/helpers";
 import { useSetAtom } from "jotai";
 

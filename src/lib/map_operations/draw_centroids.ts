@@ -1,6 +1,6 @@
 import { centroidFeature } from "src/lib/map_operations/draw_label_points";
 import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
-import { USelection } from "state";
+import { USelection } from "src/state";
 import { Sel } from "src/state/jotai";
 import { IWrappedFeature, Position } from "types";
 
