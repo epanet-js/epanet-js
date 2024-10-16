@@ -1,4 +1,4 @@
-import { useHotkeys } from "integrations/hotkeys";
+import { useHotkeys } from "src/integrations/hotkeys";
 import { TContent, Keycap, Button } from "./elements";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
