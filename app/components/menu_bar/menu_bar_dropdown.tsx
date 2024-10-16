@@ -1,6 +1,6 @@
 import { dialogAtom, momentLogAtom } from "state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useOpenFiles } from "app/hooks/use_open_files";
+import { useOpenFiles } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { CaretRightIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import {
@@ -11,9 +11,9 @@ import {
   StyledItem,
   DDSeparator,
   DDSubTriggerItem,
-} from "app/components/elements";
+} from "src/components/elements";
 import React from "react";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 
 function UndoList() {
   const rep = usePersistence();

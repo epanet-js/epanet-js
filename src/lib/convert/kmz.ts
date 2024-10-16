@@ -1,11 +1,11 @@
 import { ConvertResult, getExtension } from "./utils";
-import readAsText from "app/lib/read_as_text";
-import { ConvertError, PlacemarkError } from "app/lib/errors";
+import readAsText from "src/lib/read_as_text";
+import { ConvertError, PlacemarkError } from "src/lib/errors";
 import type { FeatureCollection, FeatureMap, FolderMap } from "types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import { solveRootItems } from "app/components/panels/feature_editor/feature_editor_folder/math";
-import { KML } from "app/lib/convert/kml";
+import { solveRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
+import { KML } from "src/lib/convert/kml";
 import { unzip } from "./local/shared";
 
 export class CKMZ implements FileType {

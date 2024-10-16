@@ -1,6 +1,6 @@
 import type { Feature, Position } from "types";
-import * as jsonpointer from "app/lib/pointer";
-import { idToJSONPointers } from "app/lib/id";
+import * as jsonpointer from "src/lib/pointer";
+import { idToJSONPointers } from "src/lib/id";
 import { JsonValue } from "type-fest";
 import { Maybe } from "purify-ts/Maybe";
 

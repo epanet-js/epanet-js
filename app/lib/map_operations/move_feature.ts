@@ -6,7 +6,7 @@ import {
   getCircleProp,
   getCircleRadius,
   makeCircleNative,
-} from "app/lib/circle";
+} from "src/lib/circle";
 
 function validLatitude(lat: number) {
   return lat >= -90 && lat <= 90;

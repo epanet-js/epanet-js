@@ -1,4 +1,4 @@
-import { Button, inputClass } from "app/components/elements";
+import { Button, inputClass } from "src/components/elements";
 import { HexColorPicker, HexColorInput } from "react-colorful";
 import { PropertyPair } from "./property_row";
 import * as d3 from "d3-color";

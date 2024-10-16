@@ -1,12 +1,12 @@
-import { TextWell } from "app/components/elements";
+import { TextWell } from "src/components/elements";
 import {
   FILE_LIMIT_BYTES,
   FILE_WARN_BYTES,
   FILE_WARN_MB,
   FILE_LIMIT_MB,
-} from "app/lib/constants";
-import { FileGroup, ShapefileGroup } from "app/lib/group_files";
-import { usePersistence } from "app/lib/persistence/context";
+} from "src/lib/constants";
+import { FileGroup, ShapefileGroup } from "src/lib/group_files";
+import { usePersistence } from "src/lib/persistence/context";
 
 function getFileSize(file: FileGroup | ShapefileGroup) {
   switch (file.type) {

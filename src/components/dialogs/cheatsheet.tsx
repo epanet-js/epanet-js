@@ -1,7 +1,7 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import { Keycap } from "app/components/elements";
-import { getIsMac, localizeKeybinding } from "app/lib/utils";
+import { DialogHeader } from "src/components/dialog";
+import { Keycap } from "src/components/elements";
+import { getIsMac, localizeKeybinding } from "src/lib/utils";
 import React, { Fragment } from "react";
 
 export const SEARCH_KEYBINDING = "Command+k";

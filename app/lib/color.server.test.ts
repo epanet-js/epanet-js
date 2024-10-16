@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { colorFromPresence, linearGradient } from "./color";
 import type { IPresence } from "types";
-import { COLORBREWER_DIVERGING } from "app/lib/colorbrewer";
+import { COLORBREWER_DIVERGING } from "src/lib/colorbrewer";
 
 test("colorFromPresence", () => {
   expect(colorFromPresence({ userId: 0 } as unknown as IPresence)).toEqual(

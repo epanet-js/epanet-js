@@ -1,7 +1,7 @@
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { okResult, ConvertResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 import {
   FeatureCollection,
   Geometry,

@@ -1,8 +1,8 @@
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { Feature, FeatureCollection, IFeature, LineString } from "types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { stringToBlob, ConvertResult, okResult } from "./utils";
-import { ConvertError } from "app/lib/errors";
+import { ConvertError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
 
 export class CPolyline implements FileType {

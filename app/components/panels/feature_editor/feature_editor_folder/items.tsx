@@ -8,8 +8,8 @@ import {
 } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { usePersistence } from "app/lib/persistence/context";
-import { IPersistence } from "app/lib/persistence/ipersistence";
+import { usePersistence } from "src/lib/persistence/context";
+import { IPersistence } from "src/lib/persistence/ipersistence";
 import { USelection } from "state";
 import { dataAtom, selectionAtom } from "state/jotai";
 import { JsonValue } from "type-fest";
@@ -22,16 +22,16 @@ import {
   CMItem,
   DDSeparator,
   VisibilityToggleIcon,
-} from "app/components/elements";
-import { GeometryActions } from "app/components/context_actions/geometry_actions";
+} from "src/components/elements";
+import { GeometryActions } from "src/components/context_actions/geometry_actions";
 import { IFolder, IWrappedFeature } from "types";
 import { useAtomCallback } from "jotai/utils";
-import { deleteFeatures } from "app/lib/map_operations/delete_features";
+import { deleteFeatures } from "src/lib/map_operations/delete_features";
 import { memo, useCallback } from "react";
-import { collectFoldersByFolder, collectDescendents } from "app/lib/folder";
-import { useZoomTo } from "app/hooks/use_zoom_to";
+import { collectFoldersByFolder, collectDescendents } from "src/lib/folder";
+import { useZoomTo } from "src/hooks/use_zoom_to";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import { duplicateFeatures } from "app/lib/map_operations/duplicate_features";
+import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
 
 const visibilityToggleClass =
   "hidden opacity-30 hover:opacity-100 group-hover:inline-block pr-2";

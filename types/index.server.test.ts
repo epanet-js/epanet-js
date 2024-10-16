@@ -1,6 +1,6 @@
 import { expect, describe, it, test } from "vitest";
 
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import {
   zLayerConfigCommon,
   Symbolization,

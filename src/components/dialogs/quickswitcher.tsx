@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
-import { MapContext } from "app/context/map_context";
+import { MapContext } from "src/context/map_context";
 import { LngLatBounds, LngLatLike } from "mapbox-gl";
-import { geocodeEarth, GeocoderResults, QItem } from "app/lib/geocode";
+import { geocodeEarth, GeocoderResults, QItem } from "src/lib/geocode";
 import { ArrowDownIcon } from "@radix-ui/react-icons";
 import { Combobox } from "@headlessui/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -12,19 +12,19 @@ import {
   searchHistoryAtom,
   selectionAtom,
 } from "state/jotai";
-import { Loading } from "app/components/elements";
+import { Loading } from "src/components/elements";
 import Fuse from "fuse.js";
-import { getColumns, getFn } from "app/lib/search_utils";
-import { useZoomTo } from "app/hooks/use_zoom_to";
+import { getColumns, getFn } from "src/lib/search_utils";
+import { useZoomTo } from "src/hooks/use_zoom_to";
 import { USelection } from "state";
-import { useActions } from "app/components/context_actions/geometry_actions";
-import { useMultiActions } from "app/components/context_actions/multi_actions";
-import { useSingleActions } from "app/components/single_actions";
+import { useActions } from "src/components/context_actions/geometry_actions";
+import { useMultiActions } from "src/components/context_actions/multi_actions";
+import { useSingleActions } from "src/components/single_actions";
 import {
   comboboxFooterClass,
   comboboxInputClass,
   ResultsOptions,
-} from "app/components/dialogs/quickswitcher_shared";
+} from "src/components/dialogs/quickswitcher_shared";
 
 function featureToBounds(bbox: BBox4) {
   const [a, b, c, d] = bbox;

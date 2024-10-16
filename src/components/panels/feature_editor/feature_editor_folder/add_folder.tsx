@@ -4,14 +4,14 @@ import {
   StyledPopoverArrow,
   PopoverTitleAndClose,
   StyledField,
-} from "app/components/elements";
+} from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
 import * as Sentry from "@sentry/nextjs";
 import { Formik, Form } from "formik";
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import { useState } from "react";
-import { FolderAdd16 } from "app/components/icons";
-import { usePersistence } from "app/lib/persistence/context";
+import { FolderAdd16 } from "src/components/icons";
+import { usePersistence } from "src/lib/persistence/context";
 import { selectionAtom } from "state/jotai";
 import { useSetAtom } from "jotai";
 

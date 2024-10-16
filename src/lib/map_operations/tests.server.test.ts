@@ -5,7 +5,7 @@ import {
   CanInnerRingResult,
 } from "./add_inner_ring";
 import { polygonToLine } from "./polygon_to_line";
-import { getExtent } from "app/lib/geometry";
+import { getExtent } from "src/lib/geometry";
 import { IFeature, MultiPolygon, Polygon } from "types";
 import {
   fc,
@@ -34,19 +34,19 @@ import { booleanFeatures } from "./boolean_features";
 import { Random, MersenneTwister19937 } from "random-js";
 import { getCoordinates, getCoordinatesMaybe } from "./get_coordinates";
 import { rotateFeatures } from "./rotate_features";
-import { generateSyntheticPoints } from "app/lib/pmap/generate_synthetic_points";
+import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
 import {
   deleteFeatures,
   removeCoordinatesVertex,
-} from "app/lib/map_operations/delete_features";
+} from "src/lib/map_operations/delete_features";
 import { getIssues } from "@placemarkio/check-geojson";
-import { decodeId } from "app/lib/id";
+import { decodeId } from "src/lib/id";
 import { USelection } from "state";
 import type { Feature, FeatureMap } from "types";
-import { EMPTY_MOMENT } from "app/lib/persistence/moment";
+import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { SELECTION_NONE } from "state/jotai";
 import { popLineStringCoordinate } from "./pop_line_string_coordinate";
-import { duplicateFeatures } from "app/lib/map_operations/duplicate_features";
+import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
 import { deletePropertyKey } from "./delete_property_key";
 import { setCoordinates } from "./set_coordinates";
 import { updatePropertyValue } from "./update_property_value";

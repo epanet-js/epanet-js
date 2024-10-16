@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { collapseGeoJSON } from "app/lib/collapse_geojson";
+import { collapseGeoJSON } from "src/lib/collapse_geojson";
 import {
   fcLineString,
   fcMultiLineString,

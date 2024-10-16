@@ -4,10 +4,10 @@ import {
   GeocodingBehavior,
   ImportOptions,
   ProgressCb,
-} from "app/lib/convert";
+} from "src/lib/convert";
 import type { DSVRowString } from "d3-dsv";
 import { dsvFormat } from "d3-dsv";
-import { getZipDB, ZipDB } from "app/lib/get_zip_db";
+import { getZipDB, ZipDB } from "src/lib/get_zip_db";
 import {
   castRowGeocode,
   castRowLonLat,
@@ -20,7 +20,7 @@ import {
   EnforcedZipOptions,
 } from "./shared";
 import { JsonObject, JsonValue } from "type-fest";
-import { MAX_GEOCODER_ROWS } from "app/lib/constants";
+import { MAX_GEOCODER_ROWS } from "src/lib/constants";
 
 interface Scores {
   latitudeScore: number;

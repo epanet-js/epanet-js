@@ -1,18 +1,18 @@
 import { USelection } from "state";
 import type { HandlerContext, IFeature, Polygon } from "types";
 import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "state/jotai";
-import * as utils from "app/lib/map_component_utils";
+import * as utils from "src/lib/map_component_utils";
 import * as Sentry from "@sentry/nextjs";
-import replaceCoordinates from "app/lib/replace_coordinates";
-import { decodeId } from "app/lib/id";
+import replaceCoordinates from "src/lib/replace_coordinates";
+import { decodeId } from "src/lib/id";
 import { useSetAtom } from "jotai";
-import { usePopMoment } from "app/lib/persistence/shared";
-import { closePolygon } from "app/lib/map_operations";
-import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "app/lib/constants";
-import { UIDMap } from "app/lib/id_mapper";
+import { usePopMoment } from "src/lib/persistence/shared";
+import { closePolygon } from "src/lib/map_operations";
+import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
+import { UIDMap } from "src/lib/id_mapper";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
-import { lockDirection, useShiftHeld } from "app/hooks/use_held";
+import { lockDirection, useShiftHeld } from "src/hooks/use_held";
 
 export function usePolygonHandlers({
   rep,

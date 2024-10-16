@@ -18,7 +18,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import { useAtomValue } from "jotai";
 import { dataAtom, Sel, splitsAtom } from "state/jotai";
 import { generateKeyBetween, generateNKeysBetween } from "fractional-indexing";
@@ -36,7 +36,7 @@ import {
 import isEqual from "lodash/isEqual";
 import { USelection } from "state";
 import { Coordinates, ClientRect } from "@dnd-kit/core/dist/types";
-import { LEFT_PANEL_ROW_HEIGHT } from "app/lib/constants";
+import { LEFT_PANEL_ROW_HEIGHT } from "src/lib/constants";
 import { FolderMap } from "types";
 
 /**

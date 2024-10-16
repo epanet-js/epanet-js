@@ -21,7 +21,7 @@ import {
   EyeNoneIcon,
   EyeOpenIcon,
 } from "@radix-ui/react-icons";
-import { SUPPORT_EMAIL } from "app/lib/constants";
+import { SUPPORT_EMAIL } from "src/lib/constants";
 import Placemark from "./icons/placemark";
 import { toast } from "react-hot-toast";
 import { Portal } from "@radix-ui/react-portal";

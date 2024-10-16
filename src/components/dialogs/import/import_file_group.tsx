@@ -1,19 +1,19 @@
-import { CoordinateStringOptionsForm } from "app/components/coordinate_string_options_form";
+import { CoordinateStringOptionsForm } from "src/components/coordinate_string_options_form";
 import {
   CsvOptionsForm,
   XlsOptionsForm,
-} from "app/components/csv_options_form";
-import { SelectFileType } from "app/components/fields";
-import * as E from "app/components/elements";
+} from "src/components/csv_options_form";
+import { SelectFileType } from "src/components/fields";
+import * as E from "src/components/elements";
 import * as C from "@radix-ui/react-collapsible";
 import { Formik, FormikHelpers, Form } from "formik";
-import { useImportFile } from "app/hooks/use_import";
+import { useImportFile } from "src/hooks/use_import";
 import {
   Progress,
   ImportOptions,
   DEFAULT_IMPORT_OPTIONS,
-} from "app/lib/convert";
-import { FileGroup } from "app/lib/group_files";
+} from "src/lib/convert";
+import { FileGroup } from "src/lib/group_files";
 import { useState } from "react";
 import { OnNext } from "../import";
 import { AutoDetect } from "../autodetect";

@@ -1,5 +1,5 @@
 import { DownloadIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
+import { DialogHeader } from "src/components/dialog";
 import { expression } from "@mapbox/mapbox-gl-style-spec";
 import {
   TextWell,
@@ -8,7 +8,7 @@ import {
   StyledLabelSpan,
   StyledField,
   styledCheckbox,
-} from "app/components/elements";
+} from "src/components/elements";
 import { renderToStaticMarkup } from "react-dom/server";
 import { rewindGeometry } from "@placemarkio/geojson-rewind";
 import * as geo from "d3-geo";
@@ -17,13 +17,13 @@ import { useAtomValue } from "jotai";
 import { dataAtom } from "state/jotai";
 import { FeatureCollection, IFeature, ISymbolization, LineString } from "types";
 import { Field, Form, Formik } from "formik";
-import { useRootItems } from "app/components/panels/feature_editor/feature_editor_folder/math";
+import { useRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import { Root } from "@tmcw/togeojson";
-import { usePersistence } from "app/lib/persistence/context";
-import { asColorExpression } from "app/lib/load_and_augment_style";
+import { usePersistence } from "src/lib/persistence/context";
+import { asColorExpression } from "src/lib/load_and_augment_style";
 import memoizeOne from "memoize-one";
-import { purple900 } from "app/lib/constants";
-import { MapContext } from "app/context/map_context";
+import { purple900 } from "src/lib/constants";
+import { MapContext } from "src/context/map_context";
 
 const getExpr = memoizeOne((symbolization: ISymbolization) => {
   const expressionDefinition = asColorExpression({

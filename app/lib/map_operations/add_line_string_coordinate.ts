@@ -1,5 +1,5 @@
 import type { IFeature, Position, LineString, Feature } from "types";
-import replaceCoordinates from "app/lib/replace_coordinates";
+import replaceCoordinates from "src/lib/replace_coordinates";
 
 export function addLineStringCoordinate(
   feature: Feature,

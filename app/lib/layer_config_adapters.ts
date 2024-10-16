@@ -1,5 +1,5 @@
 import { ILayerConfig } from "types";
-import { getMapboxLayerURL, getTileJSON } from "app/lib/utils";
+import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl from "mapbox-gl";
 import { toast } from "react-hot-toast";
 import once from "lodash/once";

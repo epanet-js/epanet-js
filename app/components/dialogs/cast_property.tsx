@@ -1,13 +1,13 @@
 import { Pencil1Icon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
+import { DialogHeader } from "src/components/dialog";
 import { Formik, Field, Form } from "formik";
 import type { ModalStateCastProperty } from "state/jotai";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
-import { castExplicit, ExplicitCast } from "app/lib/cast";
-import { usePersistence } from "app/lib/persistence/context";
-import { styledSelect } from "app/components/elements";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
+import { castExplicit, ExplicitCast } from "src/lib/cast";
+import { usePersistence } from "src/lib/persistence/context";
+import { styledSelect } from "src/components/elements";
 import { JsonObject } from "type-fest";
-import { useFeatureMap } from "app/lib/persistence/shared";
+import { useFeatureMap } from "src/lib/persistence/shared";
 
 type CastFormValues = {
   castTarget: ExplicitCast;

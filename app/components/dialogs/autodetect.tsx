@@ -4,7 +4,7 @@ import {
   ImportOptions,
   detectType,
   DEFAULT_IMPORT_OPTIONS,
-} from "app/lib/convert";
+} from "src/lib/convert";
 import { useEffect } from "react";
 
 const defaultOptions = {

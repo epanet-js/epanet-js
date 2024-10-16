@@ -1,4 +1,4 @@
-import renameProperty from "app/lib/rename_property";
+import renameProperty from "src/lib/rename_property";
 import type { Feature } from "types";
 
 export function updatePropertyKey(

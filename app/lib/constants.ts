@@ -1,6 +1,6 @@
 import type { IFeatureCollection, GeoJSON, Geometry } from "types";
 import { z } from "zod";
-import { hexToArray } from "app/lib/color";
+import { hexToArray } from "src/lib/color";
 type GeoJSONTypeList = GeoJSON["type"][];
 type GeometryTypeList = Geometry["type"][];
 

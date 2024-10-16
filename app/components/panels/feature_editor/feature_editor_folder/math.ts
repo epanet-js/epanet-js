@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { sortByAt } from "app/lib/parse_stored";
+import { sortByAt } from "src/lib/parse_stored";
 import { useMemo } from "react";
 import {
   IFolder,
@@ -9,7 +9,7 @@ import {
   FolderMap,
 } from "types";
 import type { Root, Folder as TFolder } from "@tmcw/togeojson";
-import { collectFoldersByFolder } from "app/lib/folder";
+import { collectFoldersByFolder } from "src/lib/folder";
 import { Data, SelSingle } from "state/jotai";
 import { UniqueIdentifier } from "@dnd-kit/core";
 

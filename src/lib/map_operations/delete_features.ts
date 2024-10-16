@@ -1,14 +1,14 @@
 import type { Feature, FeatureMap, FolderMap } from "types";
-import { idToJSONPointers } from "app/lib/id";
-import { removeDegenerates } from "app/lib/geometry";
+import { idToJSONPointers } from "src/lib/id";
+import { removeDegenerates } from "src/lib/geometry";
 import type { Operation } from "fast-json-patch";
 import { applyPatch } from "fast-json-patch";
 import { USelection } from "state/index";
 import type { Data, Sel, SelFolder, SelMulti, SelSingle } from "state/jotai";
 import cloneDeep from "lodash/cloneDeep";
-import * as jsonpointer from "app/lib/pointer";
-import { EMPTY_MOMENT, Moment } from "app/lib/persistence/moment";
-import { getFoldersInTree } from "app/lib/folder";
+import * as jsonpointer from "src/lib/pointer";
+import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
+import { getFoldersInTree } from "src/lib/folder";
 
 interface DeleteResult {
   newSelection: Sel;

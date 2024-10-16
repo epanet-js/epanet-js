@@ -1,4 +1,4 @@
-import { detectCompatibility } from "app/lib/detect_compatibility";
+import { detectCompatibility } from "src/lib/detect_compatibility";
 import { useQuery } from "react-query";
 import { TextWell } from "./elements";
 

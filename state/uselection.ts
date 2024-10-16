@@ -1,8 +1,8 @@
 import type { Data, Sel, SelFolder, SelSingle } from "state/jotai";
 import type { IFolder, IWrappedFeature } from "types";
-import { toggle } from "app/lib/utils";
-import { EMPTY_ARRAY } from "app/lib/constants";
-import { getFoldersInTree } from "app/lib/folder";
+import { toggle } from "src/lib/utils";
+import { EMPTY_ARRAY } from "src/lib/constants";
+import { getFoldersInTree } from "src/lib/folder";
 
 export const USelection = {
   /**

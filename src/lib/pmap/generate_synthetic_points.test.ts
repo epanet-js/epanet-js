@@ -1,7 +1,7 @@
 import { expect, describe, test } from "vitest";
 
 import { generateSyntheticPoints } from "./generate_synthetic_points";
-import { decodeId, idToJSONPointers } from "app/lib/id";
+import { decodeId, idToJSONPointers } from "src/lib/id";
 import type {
   IFeature,
   Feature,
@@ -10,7 +10,7 @@ import type {
   GeometryCollection,
   Geometry,
 } from "types";
-import * as jsonpointer from "app/lib/pointer";
+import * as jsonpointer from "src/lib/pointer";
 import {
   fcPoly,
   fcLineString,

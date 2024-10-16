@@ -1,4 +1,4 @@
-import { env } from "app/lib/env_client";
+import { env } from "src/lib/env_client";
 import { ILayerConfig } from "types";
 
 const defaults = {

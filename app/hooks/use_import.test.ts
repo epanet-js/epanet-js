@@ -1,6 +1,6 @@
 import { expect, vi, test } from "vitest";
 
-vi.mock("app/lib/worker", () => {
+vi.mock("src/lib/worker", () => {
   return {};
 });
 

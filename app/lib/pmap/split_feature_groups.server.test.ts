@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest";
 
-import { UIDMap } from "app/lib/id_mapper";
+import { UIDMap } from "src/lib/id_mapper";
 import { USelection } from "state";
 import { SELECTION_NONE } from "state/jotai";
 import { fcLineString, NIL_PREVIEW, wrapMapAndId } from "test/helpers";

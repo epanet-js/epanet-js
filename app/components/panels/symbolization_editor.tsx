@@ -8,7 +8,7 @@ import {
   ISymbolizationRamp,
   RampValues,
 } from "types";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import * as Sentry from "@sentry/nextjs";
 import { Fragment, useMemo, useState } from "react";
 import { match } from "ts-pattern";
@@ -33,7 +33,7 @@ import {
   styledCheckbox,
   styledTextarea,
   Hint,
-} from "app/components/elements";
+} from "src/components/elements";
 import {
   ArrayHelpers,
   ErrorMessage,
@@ -55,23 +55,23 @@ import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
   CARTO_COLOR_QUALITATIVE,
-} from "app/lib/colorbrewer";
+} from "src/lib/colorbrewer";
 import find from "lodash/find";
 import last from "lodash/last";
 import { dataAtom, panelSymbolizationExportOpen } from "state/jotai";
 import * as d3 from "d3-array";
-import { ColorPopoverField } from "app/components/color_popover";
-import { linearGradient } from "app/lib/color";
-import { lerp, writeToClipboard } from "app/lib/utils";
+import { ColorPopoverField } from "src/components/color_popover";
+import { linearGradient } from "src/lib/color";
+import { lerp, writeToClipboard } from "src/lib/utils";
 import { InlineError } from "../inline_error";
-import { EOption, exportStyle } from "app/lib/export_style";
+import { EOption, exportStyle } from "src/lib/export_style";
 import toast from "react-hot-toast";
 import {
   PanelDetails,
   PanelDetailsCollapsible,
-} from "app/components/panel_details";
-import { useAutoSubmit } from "app/hooks/use_auto_submit";
-import { purple900 } from "app/lib/constants";
+} from "src/components/panel_details";
+import { useAutoSubmit } from "src/hooks/use_auto_submit";
+import { purple900 } from "src/lib/constants";
 
 const regenerateAtom = atom<boolean>(false);
 const DEFAULT_CLASSES = 7;

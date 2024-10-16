@@ -6,7 +6,7 @@ import {
   StyledTooltipArrow,
   Button,
   B3Variant,
-} from "app/components/elements";
+} from "src/components/elements";
 
 export interface Action {
   onSelect: (event?: Event) => Promise<void>;

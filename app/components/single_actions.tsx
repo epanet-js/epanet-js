@@ -8,19 +8,19 @@ import {
 } from "@radix-ui/react-icons";
 import * as Sentry from "@sentry/nextjs";
 import { useAtom, useSetAtom } from "jotai";
-import { bboxToPolygon, getExtent } from "app/lib/geometry";
+import { bboxToPolygon, getExtent } from "src/lib/geometry";
 import {
   makeConvexHull,
   polygonToLine,
   geometryToPoints,
   splitLine,
-} from "app/lib/map_operations";
+} from "src/lib/map_operations";
 import {
   isFeatureSimplifiable,
   SimplifySupportedGeometry,
-} from "app/lib/map_operations/simplify";
-import { usePersistence } from "app/lib/persistence/context";
-import { newFeatureId } from "app/lib/id";
+} from "src/lib/map_operations/simplify";
+import { usePersistence } from "src/lib/persistence/context";
+import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { USelection } from "state";
 import { selectionAtom } from "state/jotai";

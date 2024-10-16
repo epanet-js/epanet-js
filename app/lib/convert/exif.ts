@@ -2,7 +2,7 @@ import type { FileType, ImportOptions } from ".";
 import { ConvertResult, okResult } from "./utils";
 // import { ConvertError } from "lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 
 // https://github.com/geotiffjs/cog-explorer/blob/master/src/components/mapview.jsx#L202
 export class CEXIF implements FileType {

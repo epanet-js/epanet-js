@@ -1,9 +1,9 @@
 import type { FeatureCollection, Feature } from "types";
-import type { ImportOptions } from "app/lib/convert";
+import type { ImportOptions } from "src/lib/convert";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JsonObject } from "type-fest";
 import { read, utils } from "xlsx";
-import { getZipDB, ZipDB } from "app/lib/get_zip_db";
+import { getZipDB, ZipDB } from "src/lib/get_zip_db";
 import {
   castRowGeocode,
   castRowGeoJSON,

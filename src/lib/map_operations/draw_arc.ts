@@ -1,9 +1,9 @@
 import type { IWrappedFeature } from "types";
 import { Left, Either } from "purify-ts/Either";
-import { GeometryError } from "app/lib/errors";
-import { EMPTY_MOMENT, MomentInput } from "app/lib/persistence/moment";
+import { GeometryError } from "src/lib/errors";
+import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
 import { GreatCircle } from "vendor/arc";
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import { USelection } from "state";
 import { Sel } from "state/jotai";
 

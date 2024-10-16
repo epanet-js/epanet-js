@@ -12,7 +12,7 @@ import type {
   IPersistence,
   MetaPair,
   MetaUpdatesInput,
-} from "app/lib/persistence/ipersistence";
+} from "src/lib/persistence/ipersistence";
 import {
   fMoment,
   UMomentLog,
@@ -20,7 +20,7 @@ import {
   OPPOSITE,
   EMPTY_MOMENT,
   MomentInput,
-} from "app/lib/persistence/moment";
+} from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { useAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
@@ -38,8 +38,8 @@ import {
   momentForDeleteLayerConfigs,
   trackMoment,
 } from "./shared";
-import { IDMap, UIDMap } from "app/lib/id_mapper";
-import { sortAts } from "app/lib/parse_stored";
+import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { sortAts } from "src/lib/parse_stored";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;

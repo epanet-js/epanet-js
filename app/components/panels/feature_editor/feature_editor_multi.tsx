@@ -1,4 +1,4 @@
-import { FeatureEditorStyleMulti } from "app/components/panels/feature_editor/feature_editor_style";
+import { FeatureEditorStyleMulti } from "src/components/panels/feature_editor/feature_editor_style";
 import { IWrappedFeature } from "types";
 import { FeatureEditorPropertiesMulti } from "./feature_editor_properties_multi";
 

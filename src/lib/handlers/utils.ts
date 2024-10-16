@@ -1,9 +1,9 @@
 import { Data, Sel } from "state/jotai";
-import { newFeatureId } from "app/lib/id";
-import { MomentInput } from "app/lib/persistence/moment";
+import { newFeatureId } from "src/lib/id";
+import { MomentInput } from "src/lib/persistence/moment";
 import { GeoJsonProperties, Geometry } from "types";
 import { ModeWithOptions, USelection } from "state";
-import { e6position } from "app/lib/geometry";
+import { e6position } from "src/lib/geometry";
 
 type PutFeature = MomentInput["putFeatures"][0];
 

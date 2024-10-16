@@ -1,4 +1,4 @@
-import { ConvertResult } from "app/lib/convert/utils";
+import { ConvertResult } from "src/lib/convert/utils";
 import { Feature, FeatureCollection } from "types";
 import type { Folder, Root } from "@tmcw/togeojson";
 

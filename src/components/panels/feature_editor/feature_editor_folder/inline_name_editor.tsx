@@ -1,5 +1,5 @@
 import { Formik, Form, Field } from "formik";
-import { IPersistence } from "app/lib/persistence/ipersistence";
+import { IPersistence } from "src/lib/persistence/ipersistence";
 import { useState } from "react";
 import { IFolder } from "types";
 

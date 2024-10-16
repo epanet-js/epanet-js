@@ -1,7 +1,7 @@
-import { useMapKeybindings } from "app/hooks/use_map_keybindings";
-import { useOpenFiles } from "app/hooks/use_open_files";
+import { useMapKeybindings } from "src/hooks/use_map_keybindings";
+import { useOpenFiles } from "src/hooks/use_open_files";
 import { useHotkeys } from "integrations/hotkeys";
-import useFileSave from "app/hooks/use_file_save";
+import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
 import * as Sentry from "@sentry/nextjs";
 import { dialogAtom } from "state/jotai";

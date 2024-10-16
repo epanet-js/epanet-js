@@ -1,10 +1,10 @@
-import useResettable from "app/hooks/use_resettable";
+import useResettable from "src/hooks/use_resettable";
 import type { IWrappedFeature } from "types";
-import { LongitudeLatitudeInputs } from "app/components/longitude_latitude_inputs";
+import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
 import * as Sentry from "@sentry/nextjs";
-import { usePersistence } from "app/lib/persistence/context";
-import { getCoordinates, setCoordinates } from "app/lib/map_operations";
-import { CVertexId } from "app/lib/id";
+import { usePersistence } from "src/lib/persistence/context";
+import { getCoordinates, setCoordinates } from "src/lib/map_operations";
+import { CVertexId } from "src/lib/id";
 
 export default function PointGeometry({
   wrappedFeature,

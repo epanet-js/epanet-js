@@ -1,8 +1,8 @@
 import Head from "next/head";
 import * as P from "@radix-ui/react-popover";
-import type { PersistenceMetadataMemory } from "app/lib/persistence/ipersistence";
+import type { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import React from "react";
-import { formatTitle } from "app/lib/utils";
+import { formatTitle } from "src/lib/utils";
 
 export function MemoryInfo({
   metadata: _metadata,

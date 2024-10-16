@@ -4,10 +4,10 @@ import {
   removeCoincidents,
   rough,
   getInitialCtx,
-} from "app/lib/roughly_geojson";
+} from "src/lib/roughly_geojson";
 import { features } from "test/helpers";
 import { getIssues } from "@placemarkio/check-geojson";
-import { geometryTypes } from "app/lib/constants";
+import { geometryTypes } from "src/lib/constants";
 
 it("removeCoincidents", () => {
   const ctx = getInitialCtx({

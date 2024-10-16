@@ -2,12 +2,12 @@ import {
   FlatbushLike,
   generateFeaturesFlatbushInstance,
   generateVertexFlatbushInstance,
-} from "app/lib/generate_flatbush_instance";
-import { decodeId, encodeVertex } from "app/lib/id";
-import * as utils from "app/lib/map_component_utils";
+} from "src/lib/generate_flatbush_instance";
+import { decodeId, encodeVertex } from "src/lib/id";
+import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "types";
 import noop from "lodash/noop";
-import * as ops from "app/lib/map_operations";
+import * as ops from "src/lib/map_operations";
 import * as Sentry from "@sentry/nextjs";
 import {
   Mode,
@@ -18,13 +18,13 @@ import {
 import { useSetAtom } from "jotai";
 import { USelection } from "state";
 import { modeAtom } from "state/mode";
-import { useEndSnapshot, useStartSnapshot } from "app/lib/persistence/shared";
-import { filterLockedFeatures } from "app/lib/folder";
-import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "app/lib/constants";
-import { UIDMap } from "app/lib/id_mapper";
+import { useEndSnapshot, useStartSnapshot } from "src/lib/persistence/shared";
+import { filterLockedFeatures } from "src/lib/folder";
+import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
+import { UIDMap } from "src/lib/id_mapper";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
-import { useSpaceHeld } from "app/hooks/use_held";
+import { useSpaceHeld } from "src/hooks/use_held";
 
 export function useNoneHandlers({
   setFlatbushInstance,

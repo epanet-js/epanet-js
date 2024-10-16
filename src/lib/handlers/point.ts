@@ -4,7 +4,7 @@ import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "state/jotai";
 import * as Sentry from "@sentry/nextjs";
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
-import { CURSOR_DEFAULT } from "app/lib/constants";
+import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 
 export function usePointHandlers({

@@ -1,15 +1,15 @@
 import { LinkNone2Icon } from "@radix-ui/react-icons";
-import type { ActionProps } from "app/components/context_actions/action_item";
-import type { BooleanOp } from "app/lib/map_operations";
+import type { ActionProps } from "src/components/context_actions/action_item";
+import type { BooleanOp } from "src/lib/map_operations";
 import {
   ShapeIntersect16,
   ShapeUnite16,
   SendToBack16,
-} from "app/components/icons";
-import { mergeFeaturesMessage, mergeFeatures } from "app/lib/map_operations";
-import { lib } from "app/lib/worker";
-import { usePersistence } from "app/lib/persistence/context";
-import { newFeatureId } from "app/lib/id";
+} from "src/components/icons";
+import { mergeFeaturesMessage, mergeFeatures } from "src/lib/map_operations";
+import { lib } from "src/lib/worker";
+import { usePersistence } from "src/lib/persistence/context";
+import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { ActionItem } from "./action_item";
 import type { Action } from "./action_item";

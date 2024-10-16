@@ -1,11 +1,11 @@
 import type { Feature } from "types";
-import { parseBBOX, bboxToPolygon, getExtent, e6bbox } from "app/lib/geometry";
+import { parseBBOX, bboxToPolygon, getExtent, e6bbox } from "src/lib/geometry";
 import type { FileType, ImportOptions } from ".";
 import { okResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
-import readAsText from "app/lib/read_as_text";
-import { eitherToAsync } from "app/lib/utils";
+import type { ConvertError } from "src/lib/errors";
+import readAsText from "src/lib/read_as_text";
+import { eitherToAsync } from "src/lib/utils";
 import { Maybe } from "purify-ts/Maybe";
 
 export class CBBOX implements FileType {

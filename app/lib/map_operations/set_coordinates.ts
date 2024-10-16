@@ -1,9 +1,9 @@
 import type { Feature } from "types";
-import { idToJSONPointers } from "app/lib/id";
-import * as jsonpointer from "app/lib/pointer";
+import { idToJSONPointers } from "src/lib/id";
+import * as jsonpointer from "src/lib/pointer";
 import cloneDeep from "lodash/cloneDeep";
-import { getCircleProp, makeCircle } from "app/lib/circle";
-import { deletePropertyKey } from "app/lib/map_operations/delete_property_key";
+import { getCircleProp, makeCircle } from "src/lib/circle";
+import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
 
 export function setCoordinates({
   feature: featureInput,

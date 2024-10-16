@@ -5,11 +5,11 @@ import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "state/jotai";
 import { useContext, useState } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { toast } from "react-hot-toast";
-import { isRectangleNonzero } from "app/lib/geometry";
-import { MapContext } from "app/context/map_context";
+import { isRectangleNonzero } from "src/lib/geometry";
+import { MapContext } from "src/context/map_context";
 import { useSetAtom } from "jotai";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
-import { ICircleProp, makeCircle } from "app/lib/circle";
+import { ICircleProp, makeCircle } from "src/lib/circle";
 import { CIRCLE_TYPE } from "state/mode";
 
 function lngLatToPolygon(position: Position): Polygon {

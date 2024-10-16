@@ -1,4 +1,4 @@
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { FeatureCollection, Feature } from "types";
 import type {
   ExportOptions,
@@ -9,7 +9,7 @@ import type {
 } from ".";
 import { stringToBlob, ConvertResult, okResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
-import type { ConvertError } from "app/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 
 export class CCSV implements FileType {
   id = "csv" as const;
@@ -30,7 +30,7 @@ export class CCSV implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardCsv() {
         const { csvToGeoJSON } = await import(
-          "app/lib/convert/local/csv_to_geojson"
+          "src/lib/convert/local/csv_to_geojson"
         );
         const geojson = await csvToGeoJSON(text, options.csvOptions, progress);
         return okResult(geojson);
@@ -40,7 +40,7 @@ export class CCSV implements FileType {
   back({ geojson }: { geojson: FeatureCollection }, options: ExportOptions) {
     return EitherAsync<ConvertError, ExportResult>(async function backCsv() {
       const { geojsonToCSV } = await import(
-        "app/lib/convert/local/geojson_to_csv"
+        "src/lib/convert/local/geojson_to_csv"
       );
       return {
         blob: stringToBlob(geojsonToCSV(geojson, options)),
@@ -52,7 +52,7 @@ export class CCSV implements FileType {
     return EitherAsync<ConvertError, string>(
       async function featureToStringCsv() {
         const { geojsonToCSV } = await import(
-          "app/lib/convert/local/geojson_to_csv"
+          "src/lib/convert/local/geojson_to_csv"
         );
         return geojsonToCSV(
           {

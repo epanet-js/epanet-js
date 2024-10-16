@@ -1,14 +1,14 @@
 import Link from "next/link";
 import React, { memo } from "react";
-import { FileInfo } from "app/components/file_info";
+import { FileInfo } from "src/components/file_info";
 import {
   EnvelopeClosedIcon,
   GitHubLogoIcon,
   KeyboardIcon,
   ReaderIcon,
 } from "@radix-ui/react-icons";
-import { MemoryInfo } from "app/components/map_info/memory_info";
-import { usePersistence } from "app/lib/persistence/context";
+import { MemoryInfo } from "src/components/map_info/memory_info";
+import { usePersistence } from "src/lib/persistence/context";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, PlacemarkIcon, DDContent, StyledItem } from "./elements";
 import { dialogAtom } from "state/jotai";

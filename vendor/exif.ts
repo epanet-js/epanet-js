@@ -6,7 +6,7 @@
 import { Tags, StringValues } from "./exif_constants";
 import type { FeatureCollection } from "types";
 // import { IMAGE_SYM } from "lib/constants";
-import { ConvertError, PlacemarkError } from "app/lib/errors";
+import { ConvertError, PlacemarkError } from "src/lib/errors";
 import type { Either } from "purify-ts/Either";
 import { Left, Right } from "purify-ts/Either";
 import { EitherAsync } from "purify-ts/EitherAsync";

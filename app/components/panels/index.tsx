@@ -11,13 +11,13 @@ import { useHotkeys } from "integrations/hotkeys";
 import clsx from "clsx";
 
 const FeatureTable = dynamic(
-  () => import("app/components/panels/feature_table")
+  () => import("src/components/panels/feature_table")
 );
-import FeatureEditor from "app/components/panels/feature_editor";
-import { DefaultErrorBoundary } from "app/components/elements";
+import FeatureEditor from "src/components/panels/feature_editor";
+import { DefaultErrorBoundary } from "src/components/elements";
 import { FeatureEditorFolderInner } from "./feature_editor/feature_editor_folder";
 const SymbolizationEditor = dynamic(
-  () => import("app/components/panels/symbolization_editor")
+  () => import("src/components/panels/symbolization_editor")
 );
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 

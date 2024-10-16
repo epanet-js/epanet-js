@@ -1,9 +1,9 @@
 import type { ExportResult, FileType, ImportOptions } from ".";
 import { stringToBlob, RootResult, ConvertResult } from "./utils";
-import readAsText from "app/lib/read_as_text";
+import readAsText from "src/lib/read_as_text";
 import type { FeatureCollection } from "types";
-import { ConvertError, parseOrError } from "app/lib/errors";
-import type { PlacemarkError } from "app/lib/errors";
+import { ConvertError, parseOrError } from "src/lib/errors";
+import type { PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { Folder } from "@tmcw/togeojson";
 

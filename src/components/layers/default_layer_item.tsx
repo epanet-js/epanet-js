@@ -2,11 +2,11 @@ import {
   contentLike,
   menuItemLike,
   StyledTooltipArrow,
-} from "app/components/elements";
+} from "src/components/elements";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import clsx from "clsx";
 import { Thumbnail } from "./thumbnail";
-import { LayerConfigTemplate } from "app/lib/default_layers";
+import { LayerConfigTemplate } from "src/lib/default_layers";
 
 type T = LayerConfigTemplate;
 

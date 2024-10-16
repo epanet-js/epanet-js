@@ -4,13 +4,13 @@ import {
   getQItemNamePreview,
   qItemToFeature,
   qItemToPolygon,
-} from "app/lib/geocode";
+} from "src/lib/geocode";
 import { USelection } from "state";
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import * as Sentry from "@sentry/nextjs";
 import { match } from "ts-pattern";
 import { useAtom } from "jotai";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import {
   addMetadataWithGeocoderAtom,
   lastSearchResultAtom,

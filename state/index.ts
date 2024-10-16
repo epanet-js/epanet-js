@@ -1,4 +1,4 @@
-import { DEFAULT_MAP_BOUNDS } from "app/lib/constants";
+import { DEFAULT_MAP_BOUNDS } from "src/lib/constants";
 
 export const DEFAULT_MAP_CENTER: Pos2 = [
   (DEFAULT_MAP_BOUNDS[0][0] + DEFAULT_MAP_BOUNDS[1][0]) / 2,

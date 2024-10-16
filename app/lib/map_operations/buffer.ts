@@ -1,6 +1,6 @@
 import type { Feature } from "types";
-import type { BufferOptions } from "app/lib/buffer";
-import { lib } from "app/lib/worker";
+import type { BufferOptions } from "src/lib/buffer";
+import { lib } from "src/lib/worker";
 
 export async function buffer(feature: Feature, options: BufferOptions) {
   return lib.bufferFeature(feature, options);

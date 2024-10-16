@@ -1,11 +1,11 @@
-import { setCoordinates } from "app/lib/map_operations";
-import useResettable from "app/hooks/use_resettable";
-import { usePersistence } from "app/lib/persistence/context";
+import { setCoordinates } from "src/lib/map_operations";
+import useResettable from "src/hooks/use_resettable";
+import { usePersistence } from "src/lib/persistence/context";
 import * as Sentry from "@sentry/nextjs";
-import { LongitudeLatitudeInputs } from "app/components/longitude_latitude_inputs";
-import { PanelDetails } from "app/components/panel_details";
+import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
+import { PanelDetails } from "src/components/panel_details";
 import type { IWrappedFeature } from "types";
-import { getCoordinatesMaybe } from "app/lib/map_operations/get_coordinates";
+import { getCoordinatesMaybe } from "src/lib/map_operations/get_coordinates";
 
 export function FeatureEditorVertex({
   wrappedFeature,

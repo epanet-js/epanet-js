@@ -1,5 +1,5 @@
-import type { ShapefileGroup } from "app/lib/convert/shapefile";
-import { getExtension } from "app/lib/convert/utils";
+import type { ShapefileGroup } from "src/lib/convert/shapefile";
+import { getExtension } from "src/lib/convert/utils";
 import remove from "lodash/remove";
 
 export type FileGroups = Array<FileGroup | ShapefileGroup>;

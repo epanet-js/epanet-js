@@ -1,12 +1,12 @@
 "use client";
-import type PMap from "app/lib/pmap";
-import { MapComponent } from "app/components/map_component";
-import { MenuBarPlay } from "app/components/menu_bar";
-import Drop from "app/components/drop";
-import Modes from "app/components/modes";
-import { Dialogs } from "app/components/dialogs";
+import type PMap from "src/lib/pmap";
+import { MapComponent } from "src/components/map_component";
+import { MenuBarPlay } from "src/components/menu_bar";
+import Drop from "src/components/drop";
+import Modes from "src/components/modes";
+import { Dialogs } from "src/components/dialogs";
 import { CSS } from "@dnd-kit/utilities";
-import ContextActions from "app/components/context_actions";
+import ContextActions from "src/components/context_actions";
 import * as T from "@radix-ui/react-tooltip";
 import React, {
   Suspense,
@@ -22,12 +22,12 @@ import {
   Resizer,
   useBigScreen,
   useWindowResizeSplits,
-} from "app/components/resizer";
-import { BottomPanel, FullPanel, SidePanel } from "app/components/panels";
-import { Keybindings } from "app/components/keybindings";
-import { MapContext } from "app/context/map_context";
-import Notifications from "app/components/notifications";
-import { Legend } from "app/components/legend";
+} from "src/components/resizer";
+import { BottomPanel, FullPanel, SidePanel } from "src/components/panels";
+import { Keybindings } from "src/components/keybindings";
+import { MapContext } from "src/context/map_context";
+import Notifications from "src/components/notifications";
+import { Legend } from "src/components/legend";
 import { Visual } from "./visual";
 import { FeatureEditorFolder } from "./panels/feature_editor/feature_editor_folder";
 import { ErrorBoundary } from "@sentry/nextjs";
@@ -53,9 +53,9 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
 import { useAtomCallback } from "jotai/utils";
 import { useSearchParams } from "next/navigation";
-import { useImportFile, useImportString } from "app/hooks/use_import";
+import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
-import { DEFAULT_IMPORT_OPTIONS, detectType } from "app/lib/convert";
+import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";

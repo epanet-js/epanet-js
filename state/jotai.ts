@@ -10,18 +10,18 @@ import {
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "types";
-import type { MomentLog } from "app/lib/persistence/moment";
-import { CMomentLog } from "app/lib/persistence/moment";
+import type { MomentLog } from "src/lib/persistence/moment";
+import { CMomentLog } from "src/lib/persistence/moment";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "state/mode";
-import type { ExportOptions } from "app/lib/convert";
+import type { ExportOptions } from "src/lib/convert";
 import { focusAtom } from "jotai-optics";
 import { USelection } from "./uselection";
-import { shallowArrayEqual } from "app/lib/utils";
+import { shallowArrayEqual } from "src/lib/utils";
 import { atomWithMachine } from "jotai-xstate";
 import { createMachine } from "xstate";
-import { QItemAddable } from "app/lib/geocode";
-import { PersistenceMetadataMemory } from "app/lib/persistence/ipersistence";
-import { ScaleUnit } from "app/lib/constants";
+import { QItemAddable } from "src/lib/geocode";
+import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
+import { ScaleUnit } from "src/lib/constants";
 
 // TODO: make this specific
 type MapboxLayer = any;

@@ -4,17 +4,17 @@ import {
   styledSelect,
   StyledLabelSpan,
   TextWell,
-} from "app/components/elements";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
+} from "src/components/elements";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Field, Form, Formik } from "formik";
-import { buffer } from "app/lib/map_operations/buffer";
-import type { BufferOptions } from "app/lib/buffer";
-import { GROUPED_UNIT_OPTIONS } from "app/lib/constants";
-import { usePersistence } from "app/lib/persistence/context";
+import { buffer } from "src/lib/map_operations/buffer";
+import type { BufferOptions } from "src/lib/buffer";
+import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";
+import { usePersistence } from "src/lib/persistence/context";
 import { AllSidesIcon } from "@radix-ui/react-icons";
 import * as Sentry from "@sentry/nextjs";
-import { DialogHeader } from "app/components/dialog";
-import { UnitOptionsGroups } from "app/components/unit_select";
+import { DialogHeader } from "src/components/dialog";
+import { UnitOptionsGroups } from "src/components/unit_select";
 
 export default function BufferDialog({
   modal,

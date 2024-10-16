@@ -1,4 +1,4 @@
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import type { ISymbolizationRamp, ISymbolizationCategorical } from "types";
 import {
   Fragment,
@@ -7,7 +7,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { linearGradient } from "app/lib/color";
+import { linearGradient } from "src/lib/color";
 import last from "lodash/last";
 import { scaleUnitAtom, tabAtom, TabOption } from "state/jotai";
 import { GearIcon, Pencil2Icon } from "@radix-ui/react-icons";
@@ -19,9 +19,9 @@ import {
   styledSelect,
 } from "./elements";
 import { match } from "ts-pattern";
-import { MapContext } from "app/context/map_context";
+import { MapContext } from "src/context/map_context";
 import * as P from "@radix-ui/react-popover";
-import { SCALE_UNITS, ScaleUnit, zScaleUnit } from "app/lib/constants";
+import { SCALE_UNITS, ScaleUnit, zScaleUnit } from "src/lib/constants";
 import { useAtom, useSetAtom } from "jotai";
 import throttle from "lodash/throttle";
 

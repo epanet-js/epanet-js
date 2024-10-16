@@ -4,7 +4,7 @@ import {
   Cross1Icon,
 } from "@radix-ui/react-icons";
 import * as P from "@radix-ui/react-popover";
-import * as E from "app/components/elements";
+import * as E from "src/components/elements";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtomValue } from "jotai";
 import { selectedFeaturesAtom } from "state/jotai";
@@ -14,7 +14,7 @@ import { FeatureEditorGeometry } from "./panels/feature_editor/feature_editor_ge
 import { GeometryActions } from "./context_actions/geometry_actions";
 import { MultiActions } from "./context_actions/multi_actions";
 import { ShapeUnite16 } from "./icons";
-import { pluralize } from "app/lib/utils";
+import { pluralize } from "src/lib/utils";
 
 export function ToolbarTrigger({
   children,

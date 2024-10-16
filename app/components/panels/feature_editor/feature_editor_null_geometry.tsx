@@ -1,15 +1,15 @@
 import { memo } from "react";
 import type { IWrappedFeature } from "types";
 import { panelNullOpen } from "state/jotai";
-import { PanelDetailsCollapsible } from "app/components/panel_details";
+import { PanelDetailsCollapsible } from "src/components/panel_details";
 import {
   Button,
   StyledPopoverContent,
   TextWell,
-} from "app/components/elements";
+} from "src/components/elements";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import * as P from "@radix-ui/react-popover";
-import Modes from "app/components/modes";
+import Modes from "src/components/modes";
 
 export const FeatureEditorNullGeometry = memo(
   function FeatureEditorNullGeometryInner({

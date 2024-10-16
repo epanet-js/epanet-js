@@ -3,25 +3,25 @@ import {
   stringToGeoJSON,
   importToExportOptions,
   RawProgressCb,
-} from "app/lib/convert";
-import type { ConvertResult } from "app/lib/convert/utils";
-import type { ImportOptions } from "app/lib/convert";
+} from "src/lib/convert";
+import type { ConvertResult } from "src/lib/convert/utils";
+import type { ImportOptions } from "src/lib/convert";
 import { Data, dataAtom, fileInfoAtom } from "state/jotai";
 import { useSetAtom } from "jotai";
-import { lib } from "app/lib/worker";
+import { lib } from "src/lib/worker";
 import type { FileWithHandle } from "browser-fs-access";
-import { usePersistence } from "app/lib/persistence/context";
-import { newFeatureId } from "app/lib/id";
-import type { ShapefileGroup } from "app/lib/convert/shapefile";
-import { Shapefile } from "app/lib/convert/shapefile";
+import { usePersistence } from "src/lib/persistence/context";
+import { newFeatureId } from "src/lib/id";
+import type { ShapefileGroup } from "src/lib/convert/shapefile";
+import { Shapefile } from "src/lib/convert/shapefile";
 import { transfer } from "comlink";
-import { fMoment, Moment, MomentInput } from "app/lib/persistence/moment";
+import { fMoment, Moment, MomentInput } from "src/lib/persistence/moment";
 import { generateNKeysBetween } from "fractional-indexing";
 import { Folder, Root } from "@tmcw/togeojson";
 import { Feature, FeatureCollection, IFolder, IWrappedFeature } from "types";
 import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
-import { pluralize, truncate } from "app/lib/utils";
+import { pluralize, truncate } from "src/lib/utils";
 
 /**
  * Creates the _input_ to a transact() operation,

@@ -9,20 +9,20 @@ import type {
   Geometry,
   FeatureCollection as IFeatureCollection,
 } from "geojson";
-import type { FlatbushLike } from "app/lib/generate_flatbush_instance";
+import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
 import type { ModeWithOptions } from "state/mode";
 import type { Dispatch, SetStateAction } from "react";
-import type { IPersistence } from "app/lib/persistence/ipersistence";
+import type { IPersistence } from "src/lib/persistence/ipersistence";
 import type { Sel } from "state/jotai";
 import { JsonValue, SetOptional } from "type-fest";
-import { IDMap } from "app/lib/id_mapper";
-import { getFoldersInTree } from "app/lib/folder";
-import { CBColors } from "app/lib/colorbrewer";
-import { purple900 } from "app/lib/constants";
-import { safeParseMaybe } from "app/lib/utils";
+import { IDMap } from "src/lib/id_mapper";
+import { getFoldersInTree } from "src/lib/folder";
+import { CBColors } from "src/lib/colorbrewer";
+import { purple900 } from "src/lib/constants";
+import { safeParseMaybe } from "src/lib/utils";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
-import PMap from "app/lib/pmap";
+import PMap from "src/lib/pmap";
 
 export interface CoordProps {
   x: number;

@@ -1,14 +1,14 @@
 import React from "react";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 import type { IWrappedFeature } from "types";
-import { PanelDetailsCollapsible } from "app/components/panel_details";
+import { PanelDetailsCollapsible } from "src/components/panel_details";
 import { panelIdOpen } from "state/jotai";
 import {
   Button,
   inputClass,
   StyledField,
   StyledLabelSpan,
-} from "app/components/elements";
+} from "src/components/elements";
 import { Formik, Form } from "formik";
 import toast from "react-hot-toast";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";

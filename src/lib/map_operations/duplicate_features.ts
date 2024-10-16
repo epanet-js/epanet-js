@@ -1,9 +1,9 @@
 import type { IWrappedFeature } from "types";
-import { newFeatureId } from "app/lib/id";
+import { newFeatureId } from "src/lib/id";
 import { USelection } from "state/index";
 import type { Data, Sel } from "state/jotai";
-import { EMPTY_MOMENT, Moment } from "app/lib/persistence/moment";
-import { getFoldersInTree } from "app/lib/folder";
+import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
+import { getFoldersInTree } from "src/lib/folder";
 
 interface DuplicateResult {
   newSelection: Sel;

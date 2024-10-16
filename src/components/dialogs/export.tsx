@@ -7,26 +7,26 @@ import {
   FileType,
   ExportedData,
   DEFAULT_IMPORT_OPTIONS,
-} from "app/lib/convert";
-import { lib } from "app/lib/worker";
-import * as E from "app/components/elements";
+} from "src/lib/convert";
+import { lib } from "src/lib/worker";
+import * as E from "src/components/elements";
 import * as C from "@radix-ui/react-collapsible";
 import * as Sentry from "@sentry/nextjs";
 import toast from "react-hot-toast";
 import { DownloadIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
-import { DialogHeader } from "app/components/dialog";
-import SimpleDialogActions from "app/components/dialogs/simple_dialog_actions";
+import { DialogHeader } from "src/components/dialog";
+import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { dataAtom, fileInfoAtom } from "state/jotai";
-import { SelectFileType } from "app/components/fields";
-import { NarrowExport } from "app/components/narrow_export";
+import { SelectFileType } from "src/components/fields";
+import { NarrowExport } from "src/components/narrow_export";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   useFolderSummary,
   useRootItems,
-} from "app/components/panels/feature_editor/feature_editor_folder/math";
+} from "src/components/panels/feature_editor/feature_editor_folder/math";
 import type { Root } from "@tmcw/togeojson";
 import { FeatureMap } from "types";
-import { pluralize } from "app/lib/utils";
+import { pluralize } from "src/lib/utils";
 
 export function fallbackSave(result: ExportedData, type: FileType) {
   const a = document.createElement("a");

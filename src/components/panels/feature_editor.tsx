@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { FeatureEditorInner } from "./feature_editor/feature_editor_inner";
 import FeatureEditorMulti from "./feature_editor/feature_editor_multi";
 import React from "react";
-import { NothingSelected } from "app/components/nothing_selected";
+import { NothingSelected } from "src/components/nothing_selected";
 import { selectedFeaturesAtom } from "state/jotai";
 
 export default function FeatureEditor() {

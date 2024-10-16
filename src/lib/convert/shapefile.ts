@@ -1,7 +1,7 @@
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import type { FeatureCollection, GeometryCollection } from "types";
-import { parseOrError, PlacemarkError } from "app/lib/errors";
-import type { ConvertError } from "app/lib/errors";
+import { parseOrError, PlacemarkError } from "src/lib/errors";
+import type { ConvertError } from "src/lib/errors";
 import { getExtension, ConvertResult, okResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import groupBy from "lodash/groupBy";

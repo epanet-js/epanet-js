@@ -1,5 +1,5 @@
 import type { LngLat } from "mapbox-gl";
-import { env } from "app/lib/env_client";
+import { env } from "src/lib/env_client";
 import {
   bboxToPolygon,
   formatCoordinates,
@@ -14,8 +14,8 @@ import { z } from "zod";
 import { truncate } from "./utils";
 import { JsonObject } from "type-fest";
 import Fuse from "fuse.js";
-import { Action } from "app/components/context_actions/action_item";
-import { ContainerNode, LeafNode } from "app/lib/tree";
+import { Action } from "src/components/context_actions/action_item";
+import { ContainerNode, LeafNode } from "src/lib/tree";
 
 interface TreeFolder {
   folderId: any;

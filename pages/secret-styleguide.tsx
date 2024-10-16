@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { StyleGuide } from "app/components/style_guide";
+import { StyleGuide } from "src/components/style_guide";
 
 const SecretStyleGuide = () => {
   return (

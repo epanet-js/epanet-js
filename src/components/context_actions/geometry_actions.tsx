@@ -14,42 +14,42 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import type {
   Action,
   ActionProps,
-} from "app/components/context_actions/action_item";
-import { ToolbarTrigger } from "app/components/context_actions";
+} from "src/components/context_actions/action_item";
+import { ToolbarTrigger } from "src/components/context_actions";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import {
   TContent,
   StyledTooltipArrow,
   DDContent,
   B3Variant,
-} from "app/components/elements";
+} from "src/components/elements";
 import { dialogAtom } from "state/dialog_state";
-import { SingleActions } from "app/components/single_actions";
+import { SingleActions } from "src/components/single_actions";
 import { useSetAtom } from "jotai";
 import {
   GEOJSON_MULTI_GEOMETRY_TYPES,
   MULTI_TO_SINGULAR,
-} from "app/lib/constants";
+} from "src/lib/constants";
 import {
   canInnerRing,
   addInnerRing,
   CanInnerRingResult,
-} from "app/lib/map_operations";
-import { deleteFeatures } from "app/lib/map_operations/delete_features";
-import { duplicateFeatures } from "app/lib/map_operations/duplicate_features";
-import { usePersistence } from "app/lib/persistence/context";
-import { newFeatureId } from "app/lib/id";
+} from "src/lib/map_operations";
+import { deleteFeatures } from "src/lib/map_operations/delete_features";
+import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
+import { usePersistence } from "src/lib/persistence/context";
+import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { selectionAtom, dataAtom } from "state/jotai";
 import { Geometry, IFeature, IWrappedFeature, Polygon } from "types";
 import { ActionItem } from "./action_item";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { useZoomTo } from "app/hooks/use_zoom_to";
-import { drawArc } from "app/lib/map_operations/draw_arc";
-import { divideFeatures } from "app/lib/map_operations/divide_feature";
-import { drawCentroids } from "app/lib/map_operations/draw_centroids";
-import { drawLabelPoints } from "app/lib/map_operations/draw_label_points";
+import { useZoomTo } from "src/hooks/use_zoom_to";
+import { drawArc } from "src/lib/map_operations/draw_arc";
+import { divideFeatures } from "src/lib/map_operations/divide_feature";
+import { drawCentroids } from "src/lib/map_operations/draw_centroids";
+import { drawLabelPoints } from "src/lib/map_operations/draw_label_points";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[]

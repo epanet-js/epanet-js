@@ -1,19 +1,19 @@
 import { memo } from "react";
 import type { IWrappedFeature, Geometry } from "types";
-import { e6bbox, getExtent } from "app/lib/geometry";
+import { e6bbox, getExtent } from "src/lib/geometry";
 import {
   PolygonArea,
   PolygonAreaMulti,
-} from "app/components/panels/feature_editor/geometry/polygon_area";
+} from "src/components/panels/feature_editor/geometry/polygon_area";
 import {
   LineGeometry,
   LineGeometryMulti,
-} from "app/components/panels/feature_editor/geometry/line_geometry";
-import PointGeometry from "app/components/panels/feature_editor/geometry/point_geometry";
-import { GeometryCollectionEditor } from "app/components/panels/feature_editor/geometry/geometry_collection_editor";
-import { Input, StyledLabelSpan, TextWell } from "app/components/elements";
-import { countVertexes } from "app/lib/id";
-import { pluralize } from "app/lib/utils";
+} from "src/components/panels/feature_editor/geometry/line_geometry";
+import PointGeometry from "src/components/panels/feature_editor/geometry/point_geometry";
+import { GeometryCollectionEditor } from "src/components/panels/feature_editor/geometry/geometry_collection_editor";
+import { Input, StyledLabelSpan, TextWell } from "src/components/elements";
+import { countVertexes } from "src/lib/id";
+import { pluralize } from "src/lib/utils";
 import { GeometryTypesGrid } from "../feature_table/feature_table_stats";
 
 function Bbox({ geometry }: { geometry: Geometry }) {

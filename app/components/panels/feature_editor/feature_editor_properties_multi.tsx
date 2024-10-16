@@ -1,20 +1,20 @@
 import { useRef } from "react";
 import { NewRow } from "./new_row";
-import { cast } from "app/lib/cast";
-import { usePersistence } from "app/lib/persistence/context";
+import { cast } from "src/lib/cast";
+import { usePersistence } from "src/lib/persistence/context";
 import type { Feature, IWrappedFeature } from "types";
-import { PanelDetails } from "app/components/panel_details";
+import { PanelDetails } from "src/components/panel_details";
 import without from "lodash/without";
-import { extractMultiProperties } from "app/lib/multi_properties";
+import { extractMultiProperties } from "src/lib/multi_properties";
 import sortBy from "lodash/sortBy";
-import { updatePropertyValue } from "app/lib/map_operations/update_property_value";
-import { updatePropertyKey } from "app/lib/map_operations/update_property_key";
-import { deletePropertyKey } from "app/lib/map_operations/delete_property_key";
+import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
+import { updatePropertyKey } from "src/lib/map_operations/update_property_key";
+import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
 import type { JsonValue } from "type-fest";
 import { PropertyTableHead } from "./feature_editor_properties";
-import { pluralize } from "app/lib/utils";
+import { pluralize } from "src/lib/utils";
 import { PropertyRowMulti } from "./property_row";
-import { onArrow } from "app/lib/arrow_navigation";
+import { onArrow } from "src/lib/arrow_navigation";
 
 type Transformer = (arg0: Feature) => Feature;
 

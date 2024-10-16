@@ -1,6 +1,6 @@
 import { expect, vi, test } from "vitest";
 
-vi.mock("app/lib/env_client", () => {
+vi.mock("src/lib/env_client", () => {
   return {
     env: {
       NEXT_PUBLIC_GEOCODE_EARTH_TOKEN: "xxx",

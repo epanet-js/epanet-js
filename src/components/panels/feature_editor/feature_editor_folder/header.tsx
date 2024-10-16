@@ -5,13 +5,13 @@ import {
   StyledPopoverContent,
   styledSelect,
   TextWell,
-} from "app/components/elements";
+} from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
-import { extractPropertyKeys } from "app/lib/multi_properties";
+import { extractPropertyKeys } from "src/lib/multi_properties";
 import { FeatureMap } from "types";
 import { AddFolder } from "./add_folder";
 import { CaretDownIcon } from "@radix-ui/react-icons";
-import { usePersistence } from "app/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence/context";
 
 function PreviewProperty({ featureMap }: { featureMap: FeatureMap }) {
   const rep = usePersistence();
