@@ -1,4 +1,4 @@
-import { FeatureMap, FolderMap, IFolder, IWrappedFeature } from "types";
+import { FeatureMap, FolderMap, IFolder, IWrappedFeature } from "src/types";
 
 type FolderByFolderMap = Map<string | null, IFolder[]>;
 

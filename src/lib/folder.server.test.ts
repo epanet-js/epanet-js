@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { FolderMap } from "types";
+import { FolderMap } from "src/types";
 import {
   collectFoldersByFolder,
   filterLockedFeatures,

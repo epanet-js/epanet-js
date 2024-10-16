@@ -2,7 +2,7 @@ import { test, expect, describe, it } from "vitest";
 
 import { DEFAULT_IMPORT_OPTIONS } from ".";
 import { GeoJSON } from "./geojson";
-import { IFeature, Polygon } from "types";
+import { IFeature, Polygon } from "src/types";
 import { twoPoints, fcLineString } from "test/helpers";
 import { Polyline } from "./polyline";
 import { KML } from "./kml";

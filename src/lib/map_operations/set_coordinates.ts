@@ -1,4 +1,4 @@
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 import { idToJSONPointers } from "src/lib/id";
 import * as jsonpointer from "src/lib/pointer";
 import cloneDeep from "lodash/cloneDeep";

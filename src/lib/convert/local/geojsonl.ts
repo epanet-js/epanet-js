@@ -1,4 +1,4 @@
-import type { Feature, FeatureCollection } from "types";
+import type { Feature, FeatureCollection } from "src/types";
 import { ConvertError, parseOrError } from "src/lib/errors";
 import { Left, Right, Either } from "purify-ts/Either";
 import { rough } from "src/lib/roughly_geojson";

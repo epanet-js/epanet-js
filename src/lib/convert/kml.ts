@@ -1,6 +1,6 @@
 import { ConvertResult, toDom, stringToBlob } from "./utils";
 import readAsText from "src/lib/read_as_text";
-import type { FeatureCollection, FeatureMap, FolderMap } from "types";
+import type { FeatureCollection, FeatureMap, FolderMap } from "src/types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { ConvertError } from "src/lib/errors";

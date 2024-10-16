@@ -6,7 +6,7 @@ import { useContext, useState } from "react";
 import { truncate } from "src/lib/utils";
 import { Maybe, Nothing } from "purify-ts/Maybe";
 import { extendExtent, getExtent } from "src/lib/geometry";
-import { BBox } from "types";
+import { BBox } from "src/types";
 import { MapContext } from "src/context/map_context";
 import { LngLatBoundsLike } from "mapbox-gl";
 import addedFeaturesToast from "src/components/added_features_toast";

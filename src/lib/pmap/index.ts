@@ -29,7 +29,7 @@ import type {
   LayerConfigMap,
   IFeature,
   Point,
-} from "types";
+} from "src/types";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";

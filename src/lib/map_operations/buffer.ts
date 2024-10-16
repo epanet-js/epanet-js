@@ -1,4 +1,4 @@
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 import type { BufferOptions } from "src/lib/buffer";
 import { lib } from "src/lib/worker";
 

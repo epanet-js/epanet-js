@@ -12,7 +12,7 @@ import type {
   FeatureMap,
   IFolder,
   Feature,
-} from "types";
+} from "src/types";
 import Fs from "fs";
 import Path from "path";
 import { IDMap, UIDMap } from "src/lib/id_mapper";

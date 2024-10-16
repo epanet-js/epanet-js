@@ -7,7 +7,7 @@ import {
   Geometry,
   IFeature,
   IFeatureCollection,
-} from "types";
+} from "src/types";
 
 /**
  * The FlatGeobuf format doesn’t support null geometries.

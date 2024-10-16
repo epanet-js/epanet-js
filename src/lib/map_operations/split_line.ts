@@ -1,4 +1,4 @@
-import type { Feature, IFeature, LineString } from "types";
+import type { Feature, IFeature, LineString } from "src/types";
 import { Sel } from "src/state/jotai";
 
 /**

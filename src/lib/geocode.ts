@@ -9,7 +9,7 @@ import {
 import pick from "lodash/pick";
 import { Either, Left, Right } from "purify-ts/Either";
 import { ConvertError } from "./errors";
-import { IFeature, IFeatureCollection, IWrappedFeature, Point } from "types";
+import { IFeature, IFeatureCollection, IWrappedFeature, Point } from "src/types";
 import { z } from "zod";
 import { truncate } from "./utils";
 import { JsonObject } from "type-fest";

@@ -9,7 +9,7 @@ import type {
   MultiPolygon,
   MultiPoint,
   MultiLineString,
-} from "types";
+} from "src/types";
 
 export function mergeGeometryCollection(features: Feature[]): Feature {
   const newFeature: IFeature<GeometryCollection> = {

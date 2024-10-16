@@ -1,5 +1,5 @@
 import React from "react";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { useSetAtom } from "jotai";
 import { dialogAtom, panelRawOpen } from "src/state/jotai";
 import { Button, sharedOutline, TextWell } from "src/components/elements";

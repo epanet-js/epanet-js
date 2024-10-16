@@ -1,4 +1,4 @@
-import type { Feature, Position, IFeature, Point, MultiPoint } from "types";
+import type { Feature, Position, IFeature, Point, MultiPoint } from "src/types";
 import { coordEach } from "@turf/meta";
 import { AllGeoJSON } from "@turf/helpers";
 

@@ -2,7 +2,7 @@ import { useSetAtom } from "jotai";
 import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { cursorStyleAtom } from "src/state/jotai";
-import { Position } from "types";
+import { Position } from "src/types";
 
 export function lockDirection(lastCoord: Position, nextCoord: Position): Pos2 {
   // Use euclidean projected coordinates for this

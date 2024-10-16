@@ -9,7 +9,7 @@ import type {
   Polygon,
   GeometryCollection,
   Geometry,
-} from "types";
+} from "src/types";
 import * as jsonpointer from "src/lib/pointer";
 import {
   fcPoly,

@@ -4,7 +4,7 @@ import { CopyIcon } from "@radix-ui/react-icons";
 import { Formik, Form, Field } from "formik";
 import { COPIERS } from "src/lib/copiers";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
-import type { Geometry, IFeature, IWrappedFeature } from "types";
+import type { Geometry, IFeature, IWrappedFeature } from "src/types";
 import { Button, styledSelect } from "src/components/elements";
 import { writeToClipboard } from "src/lib/utils";
 import { panelExportOpen } from "src/state/jotai";

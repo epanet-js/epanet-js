@@ -1,4 +1,4 @@
-import type { Feature, FeatureMap, FolderMap } from "types";
+import type { Feature, FeatureMap, FolderMap } from "src/types";
 import { idToJSONPointers } from "src/lib/id";
 import { removeDegenerates } from "src/lib/geometry";
 import type { Operation } from "fast-json-patch";

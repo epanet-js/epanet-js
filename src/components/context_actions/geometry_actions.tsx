@@ -41,7 +41,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { selectionAtom, dataAtom } from "src/state/jotai";
-import { Geometry, IFeature, IWrappedFeature, Polygon } from "types";
+import { Geometry, IFeature, IWrappedFeature, Polygon } from "src/types";
 import { ActionItem } from "./action_item";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";

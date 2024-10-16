@@ -1,5 +1,5 @@
 import { KeyboardEventHandler } from "react";
-import { CoordProps } from "types";
+import { CoordProps } from "src/types";
 
 type FocusCoordinate = CoordProps & {
   inputLocation: "empty" | "start" | "end" | "middle";

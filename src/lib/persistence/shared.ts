@@ -4,7 +4,7 @@ import {
   IPresence,
   ILayerConfig,
   LayerConfigMap,
-} from "types";
+} from "src/types";
 import { fMoment, Moment, MomentInput, UMomentLog } from "./moment";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";

@@ -1,4 +1,4 @@
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 import { cast, recast } from "src/lib/cast";
 import type { JsonObject, JsonValue } from "type-fest";
 

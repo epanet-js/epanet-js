@@ -1,5 +1,5 @@
 import { union, intersection, difference, Geom } from "polygon-clipping";
-import type { Feature, Position, GeoJsonProperties } from "types";
+import type { Feature, Position, GeoJsonProperties } from "src/types";
 import { GeometryError } from "src/lib/errors";
 import { Either, Left, Right } from "purify-ts/Either";
 import * as Sentry from "@sentry/nextjs";

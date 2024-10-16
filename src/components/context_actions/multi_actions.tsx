@@ -13,7 +13,7 @@ import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { ActionItem } from "./action_item";
 import type { Action } from "./action_item";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import * as Sentry from "@sentry/nextjs";
 
 export function useMultiActions(

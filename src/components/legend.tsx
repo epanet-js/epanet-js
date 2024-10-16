@@ -1,5 +1,5 @@
 import { usePersistence } from "src/lib/persistence/context";
-import type { ISymbolizationRamp, ISymbolizationCategorical } from "types";
+import type { ISymbolizationRamp, ISymbolizationCategorical } from "src/types";
 import {
   Fragment,
   useContext,

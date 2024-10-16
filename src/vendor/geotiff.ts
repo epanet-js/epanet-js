@@ -1,4 +1,4 @@
-import type { FeatureCollection } from "types";
+import type { FeatureCollection } from "src/types";
 import { polygonFromPositions } from "src/lib/geometry";
 
 export async function getGeotiffExtent(

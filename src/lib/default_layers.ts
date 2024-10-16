@@ -1,5 +1,5 @@
 import { env } from "src/lib/env_client";
-import { ILayerConfig } from "types";
+import { ILayerConfig } from "src/types";
 
 const defaults = {
   type: "MAPBOX",

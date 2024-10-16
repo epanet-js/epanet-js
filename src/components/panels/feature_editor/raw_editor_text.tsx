@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useRef, useEffect, useState } from "react";
 import isEqual from "lodash/isEqual";
-import type { IWrappedFeature, Feature } from "types";
+import type { IWrappedFeature, Feature } from "src/types";
 import { EditorState, Transaction } from "@codemirror/state";
 import type { ViewUpdate } from "@codemirror/view";
 import { EditorView, drawSelection, keymap } from "@codemirror/view";

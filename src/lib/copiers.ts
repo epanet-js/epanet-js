@@ -1,4 +1,4 @@
-import type { IFeature } from "types";
+import type { IFeature } from "src/types";
 import { ConvertError } from "./errors";
 import type { PlacemarkError } from "./errors";
 import type { Either } from "purify-ts/Either";

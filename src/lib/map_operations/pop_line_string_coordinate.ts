@@ -1,4 +1,4 @@
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 
 export function popLineStringCoordinate(
   feature: Feature,

@@ -10,7 +10,7 @@ import {
   CommitIcon,
 } from "@radix-ui/react-icons";
 import type { ContextInfo } from "src/components/map_component";
-import type { IFeature, IWrappedFeature, LineString } from "types";
+import type { IFeature, IWrappedFeature, LineString } from "src/types";
 import { GeometryActions } from "src/components/context_actions/geometry_actions";
 import { CMContent, CMSubContent, CMItem, CMSubTriggerItem } from "./elements";
 import {

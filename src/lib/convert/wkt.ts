@@ -1,6 +1,6 @@
 import readAsText from "src/lib/read_as_text";
 import type { FileType } from ".";
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { ConvertResult } from "./utils";
 import { ConvertError } from "src/lib/errors";

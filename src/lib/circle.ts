@@ -2,7 +2,7 @@ import { Polygon } from "geojson";
 import clamp from "lodash/clamp";
 import { z } from "zod";
 import { CIRCLE_TYPE } from "src/state/mode";
-import { Feature } from "types";
+import { Feature } from "src/types";
 
 const D2R = Math.PI / 180;
 const MAXEXTENT = 20037508.342789244;

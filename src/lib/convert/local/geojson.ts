@@ -2,7 +2,7 @@ import { PLACEMARK_FOLDER_PROP, PLACEMARK_ID_PROP } from "src/lib/constants";
 import { e6feature, addBbox } from "src/lib/geometry";
 import { rewindFeature } from "@placemarkio/geojson-rewind";
 import cloneDeep from "lodash/cloneDeep";
-import { FeatureCollection, FeatureMap, IWrappedFeature } from "types";
+import { FeatureCollection, FeatureMap, IWrappedFeature } from "src/types";
 import { ExportOptions } from "..";
 
 export function wrappedFeatureToExportable(

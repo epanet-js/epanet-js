@@ -4,7 +4,7 @@ import noop from "lodash/noop";
 import type { EphemeralEditingStateLasso } from "src/state/jotai";
 import { modeAtom, ephemeralStateAtom, selectionAtom } from "src/state/jotai";
 import { USelection } from "src/state";
-import type { HandlerContext } from "types";
+import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/mode";
 import { toggle, toggleByValue } from "src/lib/utils";
 import { useCallback } from "react";

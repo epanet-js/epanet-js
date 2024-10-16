@@ -1,4 +1,4 @@
-import type { Feature, IFeature, Polygon } from "types";
+import type { Feature, IFeature, Polygon } from "src/types";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { difference, Geom } from "polygon-clipping";
 import { GeometryError } from "src/lib/errors";

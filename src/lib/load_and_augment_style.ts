@@ -6,7 +6,7 @@ import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
 } from "src/lib/constants";
-import type { ISymbolization, LayerConfigMap } from "types";
+import type { ISymbolization, LayerConfigMap } from "src/types";
 import {
   addMapboxStyle,
   addXYZStyle,

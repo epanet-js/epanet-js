@@ -1,4 +1,4 @@
-import type { Feature, Position } from "types";
+import type { Feature, Position } from "src/types";
 import * as jsonpointer from "src/lib/pointer";
 import { idToJSONPointers } from "src/lib/id";
 import { JsonValue } from "type-fest";

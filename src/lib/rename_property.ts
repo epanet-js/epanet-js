@@ -1,4 +1,4 @@
-import type { GeoJsonProperties } from "types";
+import type { GeoJsonProperties } from "src/types";
 
 // Rename a property in an object, but keep
 // properties in the same order, by generating

@@ -1,7 +1,7 @@
 import { expect, describe, it, test } from "vitest";
 
 import { fcLineString, fcMultiPoint, fcMultiPoly, fcPoly } from "test/helpers";
-import type { IFeature, GeometryCollection } from "types";
+import type { IFeature, GeometryCollection } from "src/types";
 import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
 import * as jsonpointer from "src/lib/pointer";
 import { Random, MersenneTwister19937 } from "random-js";

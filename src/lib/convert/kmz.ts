@@ -1,7 +1,7 @@
 import { ConvertResult, getExtension } from "./utils";
 import readAsText from "src/lib/read_as_text";
 import { ConvertError, PlacemarkError } from "src/lib/errors";
-import type { FeatureCollection, FeatureMap, FolderMap } from "types";
+import type { FeatureCollection, FeatureMap, FolderMap } from "src/types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { solveRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";

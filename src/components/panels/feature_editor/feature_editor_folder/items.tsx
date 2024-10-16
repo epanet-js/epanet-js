@@ -24,7 +24,7 @@ import {
   VisibilityToggleIcon,
 } from "src/components/elements";
 import { GeometryActions } from "src/components/context_actions/geometry_actions";
-import { IFolder, IWrappedFeature } from "types";
+import { IFolder, IWrappedFeature } from "src/types";
 import { useAtomCallback } from "jotai/utils";
 import { deleteFeatures } from "src/lib/map_operations/delete_features";
 import { memo, useCallback } from "react";

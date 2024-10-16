@@ -5,7 +5,7 @@ import {
   FeatureCollection,
   MultiPoint,
   MultiLineString,
-} from "types";
+} from "src/types";
 
 /**
  * Intended to be used to shrink geojson for

@@ -1,5 +1,5 @@
 import readAsText from "src/lib/read_as_text";
-import type { FeatureCollection, Feature } from "types";
+import type { FeatureCollection, Feature } from "src/types";
 import type {
   ExportOptions,
   ExportResult,

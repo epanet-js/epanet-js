@@ -1,6 +1,6 @@
 import React from "react";
 import { usePersistence } from "src/lib/persistence/context";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import { panelIdOpen } from "src/state/jotai";
 import {

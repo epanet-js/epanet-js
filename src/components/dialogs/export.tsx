@@ -25,7 +25,7 @@ import {
   useRootItems,
 } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import type { Root } from "@tmcw/togeojson";
-import { FeatureMap } from "types";
+import { FeatureMap } from "src/types";
 import { pluralize } from "src/lib/utils";
 
 export function fallbackSave(result: ExportedData, type: FileType) {

@@ -18,7 +18,7 @@ import { transfer } from "comlink";
 import { fMoment, Moment, MomentInput } from "src/lib/persistence/moment";
 import { generateNKeysBetween } from "fractional-indexing";
 import { Folder, Root } from "@tmcw/togeojson";
-import { Feature, FeatureCollection, IFolder, IWrappedFeature } from "types";
+import { Feature, FeatureCollection, IFolder, IWrappedFeature } from "src/types";
 import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
 import { pluralize, truncate } from "src/lib/utils";

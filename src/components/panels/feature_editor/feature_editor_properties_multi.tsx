@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { NewRow } from "./new_row";
 import { cast } from "src/lib/cast";
 import { usePersistence } from "src/lib/persistence/context";
-import type { Feature, IWrappedFeature } from "types";
+import type { Feature, IWrappedFeature } from "src/types";
 import { PanelDetails } from "src/components/panel_details";
 import without from "lodash/without";
 import { extractMultiProperties } from "src/lib/multi_properties";

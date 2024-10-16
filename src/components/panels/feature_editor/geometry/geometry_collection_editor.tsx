@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import type { IWrappedFeature, GeometryCollection } from "types";
+import type { IWrappedFeature, GeometryCollection } from "src/types";
 import { GeometryEditor } from "src/components/panels/feature_editor/feature_editor_geometry";
 import { pluralize } from "src/lib/utils";
 import { CrossCircledIcon } from "@radix-ui/react-icons";

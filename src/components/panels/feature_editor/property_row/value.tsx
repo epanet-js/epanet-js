@@ -47,7 +47,7 @@ import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { json } from "@codemirror/lang-json";
 import { placemarkTheme } from "src/lib/codemirror_theme";
 import clsx from "clsx";
-import { CoordProps } from "types";
+import { CoordProps } from "src/types";
 import { Field, Form, Formik } from "formik";
 import { parseOrError } from "src/lib/errors";
 import { dataAtom } from "src/state/jotai";

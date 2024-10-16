@@ -3,7 +3,7 @@ import type { FileType } from ".";
 import { toDom, okResult, ConvertResult } from "./utils";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { ConvertError } from "src/lib/errors";
-import { FeatureCollection } from "types";
+import { FeatureCollection } from "src/types";
 
 export class CTCX implements FileType {
   id = "tcx" as const;

@@ -6,7 +6,7 @@ import type {
   IWrappedFeature,
   IWrappedFeatureInput,
   LayerConfigMap,
-} from "types";
+} from "src/types";
 import once from "lodash/once";
 import type {
   IPersistence,

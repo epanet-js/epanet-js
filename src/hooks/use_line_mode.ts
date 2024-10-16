@@ -5,7 +5,7 @@ import last from "lodash/last";
 import { useCallback } from "react";
 import { selectionAtom, ephemeralStateAtom, dataAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
-import { Feature, IFeature, IWrappedFeature } from "types";
+import { Feature, IFeature, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { USelection } from "src/state";

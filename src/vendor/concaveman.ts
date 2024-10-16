@@ -4,7 +4,7 @@ import Queue from "./tinyqueue";
 import { GeometryError } from "src/lib/errors";
 import { orient2d } from "./orient2d";
 import { coordEach } from "@turf/meta";
-import type { IFeature, Polygon } from "types";
+import type { IFeature, Polygon } from "src/types";
 import { polygon } from "@turf/helpers";
 import type { Either } from "purify-ts/Either";
 import { Left, Right } from "purify-ts/Either";

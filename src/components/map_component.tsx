@@ -1,6 +1,6 @@
 import type { PMapHandlers } from "src/lib/pmap";
-import type { IWrappedFeature, HandlerContext, DragTarget } from "types";
-import { SYMBOLIZATION_NONE } from "types";
+import type { IWrappedFeature, HandlerContext, DragTarget } from "src/types";
+import { SYMBOLIZATION_NONE } from "src/types";
 import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
 import React, {
   useRef,

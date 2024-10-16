@@ -4,7 +4,7 @@ import { styledSelect } from "./elements";
 import type { Root } from "@tmcw/togeojson";
 import { useFolderSummary } from "./panels/feature_editor/feature_editor_folder/math";
 import { pluralize } from "src/lib/utils";
-import { FeatureMap } from "types";
+import { FeatureMap } from "src/types";
 
 export function NarrowExport({
   root,

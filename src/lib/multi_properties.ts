@@ -1,7 +1,7 @@
 import type { JsonValue } from "type-fest";
 import isEqual from "lodash/isEqual";
 import isObject from "lodash/isObject";
-import type { FeatureMap, IWrappedFeature } from "types";
+import type { FeatureMap, IWrappedFeature } from "src/types";
 
 /*
  * property -> { value: FeatureId[] }

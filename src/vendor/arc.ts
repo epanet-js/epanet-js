@@ -1,4 +1,4 @@
-import { Geometry } from "types";
+import { Geometry } from "src/types";
 
 const D2R = Math.PI / 180;
 const R2D = 180 / Math.PI;

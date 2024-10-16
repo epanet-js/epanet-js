@@ -15,7 +15,7 @@ import type {
   Polygon,
   BBox as TBBox,
   IWrappedFeature,
-} from "types";
+} from "src/types";
 import uniq from "lodash/uniq";
 import clamp from "lodash/clamp";
 import turfGetBbox from "@turf/bbox";

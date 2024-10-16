@@ -1,5 +1,5 @@
 import renameProperty from "src/lib/rename_property";
-import type { Feature } from "types";
+import type { Feature } from "src/types";
 
 export function updatePropertyKey(
   feature: Feature,

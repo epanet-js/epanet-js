@@ -3,7 +3,7 @@ import { PropertyRow, PropertyRowReadonly } from "./property_row";
 import { NewRow } from "./new_row";
 import { castExplicit, ExplicitCast } from "src/lib/cast";
 import { usePersistence } from "src/lib/persistence/context";
-import type { Feature, IWrappedFeature } from "types";
+import type { Feature, IWrappedFeature } from "src/types";
 import without from "lodash/without";
 import sortBy from "lodash/sortBy";
 import type { JsonValue } from "type-fest";

@@ -14,7 +14,7 @@ import {
   StyledPopoverArrow,
   StyledPopoverContent,
 } from "src/components/elements";
-import { CoordProps } from "types";
+import { CoordProps } from "src/types";
 import { coordPropsAttr } from "src/components/panels/feature_editor/property_row/value";
 
 type MultiValueProps = CoordProps & {

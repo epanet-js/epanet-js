@@ -2,7 +2,7 @@ import { atomWithReset } from "jotai/utils";
 import type { ConvertResult } from "src/lib/convert/utils";
 import type { FileGroups } from "src/lib/group_files";
 import type { SimplifySupportedGeometry } from "src/lib/map_operations/simplify";
-import type { IFeature, IWrappedFeature } from "types";
+import type { IFeature, IWrappedFeature } from "src/types";
 
 /**
  * Modal state, controlled by dragging and dropping,

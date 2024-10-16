@@ -1,4 +1,4 @@
-import type { ISymbolization } from "types";
+import type { ISymbolization } from "src/types";
 import type { MomentInput } from "./moment";
 import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";

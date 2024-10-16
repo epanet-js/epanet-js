@@ -1,4 +1,4 @@
-import type { IFeature, Feature, LineString } from "types";
+import type { IFeature, Feature, LineString } from "src/types";
 import type { EphemeralEditingStateLasso } from "src/state/jotai";
 
 export function makeRectangle(ephemeralState: EphemeralEditingStateLasso) {

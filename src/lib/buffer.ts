@@ -1,6 +1,6 @@
 import center from "@turf/center";
 import { BufferOp, GeoJSONReader, GeoJSONWriter } from "@placemarkio/turf-jsts";
-import { CoordinateHavers, IFeature, Position, Geometry } from "types";
+import { CoordinateHavers, IFeature, Position, Geometry } from "src/types";
 import type { AllGeoJSON, Units } from "@turf/helpers";
 import { geoAzimuthalEquidistant, GeoProjection } from "d3-geo";
 import { radiansToLength, lengthToRadians, earthRadius } from "@turf/helpers";

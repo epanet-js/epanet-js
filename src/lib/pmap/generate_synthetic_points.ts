@@ -11,7 +11,7 @@ import type {
   MultiLineString,
   Polygon,
   MultiPolygon,
-} from "types";
+} from "src/types";
 import { encodeVertex, encodeMidpoint } from "src/lib/id";
 import { match } from "ts-pattern";
 import { midpoint } from "src/lib/geometry";

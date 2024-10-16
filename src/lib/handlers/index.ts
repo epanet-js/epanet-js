@@ -1,4 +1,4 @@
-import type { HandlerContext } from "types";
+import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/jotai";
 import { useNoneHandlers } from "src/lib/handlers/none";
 import { useLassoHandlers } from "src/lib/handlers/lasso";

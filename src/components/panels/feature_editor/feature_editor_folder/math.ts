@@ -7,7 +7,7 @@ import {
   IWrappedFeature,
   FeatureMap,
   FolderMap,
-} from "types";
+} from "src/types";
 import type { Root, Folder as TFolder } from "@tmcw/togeojson";
 import { collectFoldersByFolder } from "src/lib/folder";
 import { Data, SelSingle } from "src/state/jotai";

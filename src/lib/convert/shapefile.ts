@@ -1,5 +1,5 @@
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
-import type { FeatureCollection, GeometryCollection } from "types";
+import type { FeatureCollection, GeometryCollection } from "src/types";
 import { parseOrError, PlacemarkError } from "src/lib/errors";
 import type { ConvertError } from "src/lib/errors";
 import { getExtension, ConvertResult, okResult } from "./utils";

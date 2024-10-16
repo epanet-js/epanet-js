@@ -1,5 +1,5 @@
 import useResettable from "src/hooks/use_resettable";
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
 import * as Sentry from "@sentry/nextjs";
 import { usePersistence } from "src/lib/persistence/context";

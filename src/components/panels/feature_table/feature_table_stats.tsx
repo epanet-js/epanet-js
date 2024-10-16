@@ -1,4 +1,4 @@
-import type { IWrappedFeature } from "types";
+import type { IWrappedFeature } from "src/types";
 import { formatCount, pluralize } from "src/lib/utils";
 import React, { useCallback, useMemo, useRef } from "react";
 import {

@@ -3,7 +3,7 @@ import { generateExclude } from "src/lib/folder";
 import { encodeId } from "src/lib/id";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { Data, PreviewProperty } from "src/state/jotai";
-import { Feature, ISymbolization } from "types";
+import { Feature, ISymbolization } from "src/types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";
 import { fixDegenerates } from "./merge_ephemeral_state";
 import { getKeepProperties, stripFeature } from "./strip_features";

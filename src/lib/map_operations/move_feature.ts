@@ -1,4 +1,4 @@
-import { Feature } from "types";
+import { Feature } from "src/types";
 import cloneDeep from "lodash/cloneDeep";
 import { coordEach } from "@turf/meta";
 import { AllGeoJSON } from "@turf/helpers";

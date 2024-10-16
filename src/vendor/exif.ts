@@ -4,7 +4,7 @@
  * MIT License (https://raw.githubusercontent.com/andrew-womeldorf/exif-js/master/LICENSE)
  */
 import { Tags, StringValues } from "./exif_constants";
-import type { FeatureCollection } from "types";
+import type { FeatureCollection } from "src/types";
 // import { IMAGE_SYM } from "lib/constants";
 import { ConvertError, PlacemarkError } from "src/lib/errors";
 import type { Either } from "purify-ts/Either";

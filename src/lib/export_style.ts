@@ -5,7 +5,7 @@ import {
   FILL_PAINT,
   LINE_PAINT,
 } from "src/lib/load_and_augment_style";
-import { ISymbolization } from "types";
+import { ISymbolization } from "src/types";
 
 export interface EOption {
   name: string;
