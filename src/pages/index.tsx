@@ -23,7 +23,7 @@ function ScratchpadInner() {
     <PersistenceContext.Provider value={new MemPersistence(idMap.current)}>
       <>
         <Head>
-          <title>EpanetApp</title>
+          <title>epanet-js</title>
         </Head>
         <Suspense fallback={null}>
           <PlacemarkPlay />
