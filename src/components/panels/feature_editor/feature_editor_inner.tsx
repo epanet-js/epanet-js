@@ -10,7 +10,6 @@ import { useAtomValue } from "jotai";
 import { USelection } from "src/state";
 import { FeatureEditorNullGeometry } from "./feature_editor_null_geometry";
 import { FeatureEditorCircle } from "./feature_editor_circle";
-import { FeatureEditorStyle } from "./feature_editor_style";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -36,10 +35,6 @@ export function FeatureEditorInner({
         <FeatureEditorCircle
           wrappedFeature={selectedFeature}
           key={`circle-${selectedFeature.id}`}
-        />
-        <FeatureEditorStyle
-          wrappedFeature={selectedFeature}
-          key={selectedFeature.id}
         />
         <FeatureEditorExport wrappedFeature={selectedFeature} />
         <FeatureEditorId wrappedFeature={selectedFeature} />
