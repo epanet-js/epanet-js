@@ -1,6 +1,5 @@
 # EpanetApp
 
-
 EpanetApp is a web application that makes [Epanet](https://www.epa.gov/water-research/epanet) accessable from the browser.
 
 ## Getting started
