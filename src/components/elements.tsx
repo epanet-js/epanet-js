@@ -796,7 +796,7 @@ export const MinimalHeaderLogoLink = () => {
       href="/"
       className="py-1 pl-1 pr-2
                       flex
-                      gap-x-2
+                      gap-x-1
                       items-center
                       dark:hover:bg-gray-700
                       focus-visible:ring-1 focus-visible:ring-purple-300
