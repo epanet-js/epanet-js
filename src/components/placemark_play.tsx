@@ -23,13 +23,12 @@ import {
   useBigScreen,
   useWindowResizeSplits,
 } from "src/components/resizer";
-import { BottomPanel, FullPanel, SidePanel } from "src/components/panels";
+import { BottomPanel, SidePanel } from "src/components/panels";
 import { Keybindings } from "src/components/keybindings";
 import { MapContext } from "src/context/map_context";
 import Notifications from "src/components/notifications";
 import { Legend } from "src/components/legend";
 import { Visual } from "./visual";
-import { FeatureEditorFolder } from "./panels/feature_editor/feature_editor_folder";
 import { ErrorBoundary } from "@sentry/nextjs";
 import {
   BoxModelIcon,
@@ -104,7 +103,7 @@ function UrlAPI() {
               string | undefined
             ];
 
-            let decoded = match(encoding)
+            const decoded = match(encoding)
               .with(undefined, () => decodeURIComponent(data))
               .with("base64", () => atob(data))
               .otherwise(() => {
@@ -216,11 +215,6 @@ export function PlacemarkPlay() {
             "flex flex-auto relative border-t border-gray-200 dark:border-gray-900"
           )}
         >
-          {layout === "HORIZONTAL" ? (
-            <FeatureEditorFolder />
-          ) : layout === "FLOATING" ? (
-            <FullPanel />
-          ) : null}
           <DndContext
             sensors={sensor}
             modifiers={[restrictToWindowEdges]}
