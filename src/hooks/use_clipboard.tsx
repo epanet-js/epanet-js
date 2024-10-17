@@ -133,9 +133,9 @@ export function useClipboard() {
           existingFolderId
         ).then((result) => {
           return result.caseOf({
-            Left(err) {
+            Left() {
               toast.error(
-                `Tried to import pasted GeoJSON, but: ${err.message}`
+                `Tried to import pasted GeoJSON, but got an error`
               );
               return Promise.resolve();
             },

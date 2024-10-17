@@ -45,9 +45,9 @@ export function ImportTextDialog({
           })
         )
       ).caseOf({
-        Left(e) {
+        Left() {
           helpers.setErrors({
-            type: e.message,
+            type: "Import error",
           });
         },
         Right() {
