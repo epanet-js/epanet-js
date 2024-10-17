@@ -391,7 +391,9 @@ export const MapComponent = memo(function MapComponent({
                     mode.mode === Mode.NONE ||
                     mode.mode === Mode.DRAW_POLYGON ||
                     mode.mode === Mode.DRAW_LINE,
-                  "placemark-cursor-point": mode.mode === Mode.DRAW_POINT,
+                  "placemark-cursor-point":
+                    mode.mode === Mode.DRAW_POINT ||
+                    mode.mode === Mode.DRAW_JUNCTION,
                   "placemark-cursor-crosshair":
                     mode.mode === Mode.DRAW_RECTANGLE ||
                     mode.mode === Mode.LASSO,
