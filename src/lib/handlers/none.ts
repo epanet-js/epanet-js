@@ -185,6 +185,7 @@ export function useNoneHandlers({
         });
         void startSnapshot(wrappedFeature);
         transact({
+          note: 'Splice a midpoint',
           putFeatures: [
             {
               ...wrappedFeature,
@@ -231,6 +232,7 @@ export function useNoneHandlers({
           const a = lastPoint.current;
           lastPoint.current = e.lngLat;
           return transact({
+            note: 'Rotate features',
             putFeatures: ops.rotateFeatures(
               dragTarget.map((uuid) => {
                 return featureMap.get(uuid)!;
@@ -245,6 +247,7 @@ export function useNoneHandlers({
           const dy = lastPoint.current.lat - e.lngLat.lat;
           lastPoint.current = e.lngLat;
           return transact({
+            note: 'Move features',
             putFeatures: dragTarget.map((uuid) => {
               const feature = featureMap.get(uuid)!;
               return {
@@ -287,6 +290,7 @@ export function useNoneHandlers({
             }
 
             return transact({
+              note: 'Move point',
               putFeatures: [
                 {
                   ...feature,
