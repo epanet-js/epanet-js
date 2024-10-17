@@ -50,7 +50,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           title="Home"
         >
           <SiteIcon className="w-8 h-8" />
-          EpanetApp
+          epanet-js
         </span>
         <FileInfo />
       </div>
