@@ -56,7 +56,7 @@ export const MenuBarPlay = memo(function MenuBar() {
       </div>
       <div className="flex items-center gap-x-2">
           <Link
-            href="https://github.com/Matrado/epanet-app"
+            href="https://github.com/matrado/epanet-app"
             className="text-purple-600 hover:text-purple-700 flex items-center gap-1 text-sm bg-purple-100 px-2 py-1 rounded"
           >
             <GitHubLogoIcon />

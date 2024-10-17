@@ -1,6 +1,6 @@
 # EpanetApp
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMatrado%2Fepanet-app&env=NEXT_PUBLIC_MAPBOX_TOKEN)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmatrado%2Fepanet-app&env=NEXT_PUBLIC_MAPBOX_TOKEN)
 
 EpanetApp is a web application that makes [Epanet](https://www.epa.gov/water-research/epanet) accessable from the browser.
 
