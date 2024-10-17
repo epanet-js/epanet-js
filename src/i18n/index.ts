@@ -1,9 +1,17 @@
-'use client'
 import { Translations } from './locales/locale'
-import * as enEN from './locales/en-EN'
+import * as en from './locales/en'
+import * as es  from './locales/es'
+
+const locales = {
+  'en': en,
+  'es': es
+}
+type Locale = keyof typeof locales
+const codes = Object.keys(locales) as Locale[]
 
 export const translate = (key: string): string => {
-  const translations = getTransaltions()
+  const locale = getLocale()
+  const translations = locales[locale].translations
 
   const text = translations[key as keyof Translations]
   if (!text) {
@@ -13,6 +21,10 @@ export const translate = (key: string): string => {
   return text || key
 }
 
-const getTransaltions = (): Translations  => {
-  return enEN.translations
+const getLocale = (): Locale => {
+  if (typeof window === "undefined") return 'en'
+
+  const language = navigator.language
+  const code = codes.find((code) => language === code || language.startsWith(`${code}-`))
+  return code || 'en'
 }
