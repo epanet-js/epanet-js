@@ -11,6 +11,7 @@ import { usePolygonHandlers } from "src/lib/handlers/polygon";
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
+    [Mode.DRAW_JUNCTION]: usePointHandlers(handlerContext),
     [Mode.DRAW_POINT]: usePointHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),

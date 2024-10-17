@@ -1,15 +1,10 @@
 import {
-  CaretDownIcon,
-  CheckIcon,
   CursorArrowIcon,
   DotFilledIcon,
   PlusIcon,
-  QuestionMarkCircledIcon,
-  SquareIcon,
+  CircleIcon,
 } from "@radix-ui/react-icons";
 import Line from "src/components/icons/line";
-import Polygon from "src/components/icons/polygon";
-import CircleIcon from "src/components/icons/circle";
 import {
   modeAtom,
   Mode,
@@ -17,7 +12,6 @@ import {
   ephemeralStateAtom,
   dataAtom,
   circleTypeAtom,
-  dialogAtom,
 } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
@@ -25,77 +19,6 @@ import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { useLineMode } from "src/hooks/use_line_mode";
 import { USelection } from "src/state";
 import { IWrappedFeature } from "src/types";
-import {
-  Button,
-  DDContent,
-  DDLabel,
-  DDSeparator,
-  StyledItem,
-} from "src/components/elements";
-import * as DD from "@radix-ui/react-dropdown-menu";
-import { CIRCLE_TYPE } from "src/state/mode";
-
-function CircleMenu() {
-  const [circleType, setCircleType] = useAtom(circleTypeAtom);
-  const setData = useSetAtom(dataAtom);
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const setDialogState = useSetAtom(dialogAtom);
-  const setMode = useSetAtom(modeAtom);
-
-  return (
-    <div className="z-50">
-      <DD.Root>
-        <DD.Trigger asChild>
-          <Button size="xxs" variant="quiet">
-            <CaretDownIcon />
-          </Button>
-        </DD.Trigger>
-        <DDContent>
-          <DDLabel>Circle type</DDLabel>
-          {[
-            CIRCLE_TYPE.MERCATOR,
-            CIRCLE_TYPE.GEODESIC,
-            CIRCLE_TYPE.DEGREES,
-          ].map((type) => (
-            <StyledItem
-              key={type}
-              onSelect={() => {
-                setCircleType(type);
-                setEphemeralState({ type: "none" });
-                setData((data) => {
-                  return {
-                    ...data,
-                    selection: USelection.selectionToFolder(data),
-                  };
-                });
-                setMode({
-                  mode: Mode.DRAW_CIRCLE,
-                  modeOptions: {
-                    multi: false,
-                    replaceGeometryForId: null,
-                    circleType: type,
-                  },
-                });
-              }}
-            >
-              <CheckIcon className={circleType === type ? "" : "opacity-0"} />
-              {type}
-            </StyledItem>
-          ))}
-          <DDSeparator />
-          <StyledItem
-            onSelect={() => {
-              setDialogState({ type: "circle_types" });
-            }}
-          >
-            <QuestionMarkCircledIcon className="h-3 w-3" />{" "}
-            <span className="text-xs">Help</span>
-          </StyledItem>
-        </DDContent>
-      </DD.Root>
-    </div>
-  );
-}
 
 const MODE_OPTIONS = [
   {
@@ -105,35 +28,23 @@ const MODE_OPTIONS = [
     Menu: null,
   },
   {
-    mode: Mode.DRAW_POINT,
+    mode: Mode.DRAW_JUNCTION,
     hotkey: "2",
+    Icon: CircleIcon,
+    Menu: null,
+  },
+  {
+    mode: Mode.DRAW_POINT,
+    hotkey: "3",
     Icon: DotFilledIcon,
     Menu: null,
   },
   {
     mode: Mode.DRAW_LINE,
-    hotkey: "3",
+    hotkey: "4",
     Icon: Line,
     Menu: null,
-  },
-  {
-    mode: Mode.DRAW_POLYGON,
-    hotkey: "4",
-    Icon: Polygon,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_RECTANGLE,
-    hotkey: "5",
-    Icon: SquareIcon,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_CIRCLE,
-    hotkey: "6",
-    Icon: CircleIcon,
-    Menu: CircleMenu,
-  },
+  }
 ] as const;
 
 export default memo(function Modes({
@@ -152,7 +63,7 @@ export default memo(function Modes({
       {MODE_OPTIONS.filter((mode) => {
         if (!replaceGeometryForId) return true;
         return mode.mode !== Mode.NONE;
-      }).map(({ mode, hotkey, Icon, Menu }, i) => {
+      }).map(({ mode, hotkey, Icon }, i) => {
         const menuAction = (
           <MenuAction
             role="radio"
@@ -191,14 +102,7 @@ export default memo(function Modes({
             ) : null}
           </MenuAction>
         );
-        return Menu ? (
-          <div key={mode} className="flex items-center">
-            {menuAction}
-            {<Menu />}
-          </div>
-        ) : (
-          menuAction
-        );
+        return menuAction
       })}
     </div>
   );
