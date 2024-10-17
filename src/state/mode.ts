@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import {translate} from "src/i18n";
+import {translate} from "src/infra/i18n";
 import { IWrappedFeature } from "src/types";
 
 /**
