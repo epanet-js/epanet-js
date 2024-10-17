@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import {translate} from "src/i18n";
 import { IWrappedFeature } from "src/types";
 
 /**
@@ -57,8 +58,8 @@ export const MODE_INFO: Record<
     label: string;
   }
 > = {
-  [Mode.NONE]: { label: "Select" },
-  [Mode.DRAW_JUNCTION]: { label: "Junction" },
+  [Mode.NONE]: { label: translate("select") },
+  [Mode.DRAW_JUNCTION]: { label: translate("junction") },
   [Mode.DRAW_POINT]: { label: "Point" },
   [Mode.DRAW_LINE]: { label: "Line" },
   [Mode.DRAW_RECTANGLE]: { label: "Rectangle" },
