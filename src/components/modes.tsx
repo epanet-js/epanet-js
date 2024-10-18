@@ -3,6 +3,7 @@ import {
   DotFilledIcon,
   PlusIcon,
   CircleIcon,
+  StretchHorizontallyIcon,
 } from "@radix-ui/react-icons";
 import Line from "src/components/icons/line";
 import {
@@ -34,14 +35,20 @@ const MODE_OPTIONS = [
     Menu: null,
   },
   {
-    mode: Mode.DRAW_POINT,
+    mode: Mode.DRAW_PIPE,
     hotkey: "3",
+    Icon: StretchHorizontallyIcon,
+    Menu: null,
+  },
+  {
+    mode: Mode.DRAW_POINT,
+    hotkey: "4",
     Icon: DotFilledIcon,
     Menu: null,
   },
   {
     mode: Mode.DRAW_LINE,
-    hotkey: "4",
+    hotkey: "5",
     Icon: Line,
     Menu: null,
   }
