@@ -1,6 +1,5 @@
 import {
   CursorArrowIcon,
-  DotFilledIcon,
   PlusIcon,
   CircleIcon,
   StretchHorizontallyIcon,
@@ -38,12 +37,6 @@ const MODE_OPTIONS = [
     mode: Mode.DRAW_PIPE,
     hotkey: "3",
     Icon: StretchHorizontallyIcon,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_POINT,
-    hotkey: "4",
-    Icon: DotFilledIcon,
     Menu: null,
   },
   {

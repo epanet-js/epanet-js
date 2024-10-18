@@ -65,8 +65,7 @@ export function ModeHints() {
       );
     }
     case Mode.LASSO:
-    case Mode.DRAW_POINT: {
-      // This one is pretty self-explanatory I think.
+    case Mode.DRAW_JUNCTION: {
       return null;
     }
     case Mode.DRAW_POLYGON: {
@@ -114,6 +113,17 @@ export function ModeHints() {
       );
     }
     case Mode.DRAW_LINE: {
+      return (
+        <ModeHint mode={mode.mode}>
+          {selection.type === "single" ? (
+            <>End a line by double-clicking or hitting Enter</>
+          ) : (
+            <>Click to start the line, then click to add each vertex</>
+          )}
+        </ModeHint>
+      );
+    }
+    case Mode.DRAW_PIPE: {
       return (
         <ModeHint mode={mode.mode}>
           {selection.type === "single" ? (
