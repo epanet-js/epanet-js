@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs'
 
 export const captureError = (error: Error) => {
-  captureError(error)
+  Sentry.captureException(error)
 }
 
 export const captureWarning = (message: string) => {
