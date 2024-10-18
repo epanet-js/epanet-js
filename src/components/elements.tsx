@@ -102,9 +102,9 @@ export function StyledDropOverlay({
 }
 
 type ErrorData = {
-  error: Error;
-  componentStack: string | null;
-  eventId: string | null;
+  error: unknown;
+  componentStack: string;
+  eventId: string;
   resetError(): void;
 };
 
