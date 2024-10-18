@@ -4,6 +4,8 @@ const basicAuthUser = process.env.BASIC_AUTH_USER || 'admin'
 const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'password'
 
 export function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.endsWith('js.map')) return NextResponse.next()
+
   const authHeader = request.headers.get('Authorization');
   if (!authHeader) {
     return new NextResponse('Authentication required', {
