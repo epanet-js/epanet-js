@@ -17,7 +17,7 @@ import {
   continueFeature,
   getContinuationDirection,
 } from "src/hooks/use_line_mode";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { usePersistence } from "src/lib/persistence/context";
 import { writeToClipboard } from "src/lib/utils";
 import { stringifyFeatures } from "src/hooks/use_clipboard";
@@ -82,7 +82,7 @@ function MaybeContinue({ contextInfo }: { contextInfo: ContextInfo }) {
               modeOptions: { reverse: direction === "reverse" },
             });
           })
-          .catch((e) => Sentry.captureException(e));
+          .catch((e) => captureError(e));
       }}
     >
       <CommitIcon />
@@ -140,7 +140,7 @@ export const MapContextMenu = memo(function MapContextMenu({
                             success: message,
                           })
                           .catch((e) => {
-                            Sentry.captureException(e);
+                            captureError(e);
                           });
                       }
                     );

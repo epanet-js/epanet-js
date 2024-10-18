@@ -3,7 +3,7 @@ import { useOpenFiles } from "src/hooks/use_open_files";
 import { useHotkeys } from "src/integrations/hotkeys";
 import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { dialogAtom } from "src/state/jotai";
 import toast from "react-hot-toast";
 
@@ -73,7 +73,7 @@ export function Keybindings() {
               type: "export",
             });
           });
-      })().catch((e) => Sentry.captureException(e));
+      })().catch((e) => captureError(e));
     },
     [setDialogState, saveNative]
   );
@@ -82,7 +82,7 @@ export function Keybindings() {
     "meta+o, Ctrl+o",
     (e) => {
       e.preventDefault();
-      openFiles().catch((e) => Sentry.captureException(e));
+      openFiles().catch((e) => captureError(e));
     },
     [openFiles]
   );

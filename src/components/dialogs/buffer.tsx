@@ -12,7 +12,7 @@ import type { BufferOptions } from "src/lib/buffer";
 import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";
 import { usePersistence } from "src/lib/persistence/context";
 import { AllSidesIcon } from "@radix-ui/react-icons";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { DialogHeader } from "src/components/dialog";
 import { UnitOptionsGroups } from "src/components/unit_select";
 
@@ -55,7 +55,7 @@ export default function BufferDialog({
               },
             ],
           })
-            .catch((e) => Sentry.captureException(e))
+            .catch((e) => captureError(e))
             .finally(() => {
               onClose();
             });

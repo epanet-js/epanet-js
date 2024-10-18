@@ -11,7 +11,7 @@ import {
 import { lib } from "src/lib/worker";
 import * as E from "src/components/elements";
 import * as C from "@radix-ui/react-collapsible";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
 import { DownloadIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
@@ -234,7 +234,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
             setFileInfo({ handle: newHandle, options: exportOptions });
           }
         } catch (e) {
-          Sentry.captureException(e);
+          captureError(e as Error);
         }
       } else {
         await fromGeoJSON(data, exportOptions)

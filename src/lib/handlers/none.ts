@@ -8,7 +8,6 @@ import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
 import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
-import * as Sentry from "@sentry/nextjs";
 import {
   Mode,
   ephemeralStateAtom,
@@ -25,6 +24,7 @@ import { UIDMap } from "src/lib/id_mapper";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { useSpaceHeld } from "src/hooks/use_held";
+import {captureError, captureWarning} from "src/infra/error-tracking";
 
 export function useNoneHandlers({
   setFlatbushInstance,
@@ -172,7 +172,7 @@ export function useNoneHandlers({
       const wrappedFeature = featureMap.get(selection.id);
 
       if (!wrappedFeature) {
-        Sentry.captureMessage("Unexpected missing wrapped feature");
+        captureWarning("Unexpected missing wrapped feature");
         return;
       }
 
@@ -196,7 +196,7 @@ export function useNoneHandlers({
           .then(() => {
             dragTargetRef.current = encodeVertex(id.featureId, id.vertex + 1);
           })
-          .catch((e) => Sentry.captureException(e));
+          .catch((e) => captureError(e));
 
         return;
       }

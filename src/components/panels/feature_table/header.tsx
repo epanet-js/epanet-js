@@ -6,7 +6,7 @@ import { virtualPositionTop } from "../feature_table";
 import * as E from "src/components/elements";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { useSetAtom } from "jotai";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { dataAtom, dialogAtom, virtualColumnsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
@@ -127,7 +127,7 @@ export const Header = memo(function Header({
             localOrder.current = without(localOrder.current, column);
             set(virtualColumnsAtom, []);
           })
-          .catch((e) => Sentry.captureException(e));
+          .catch((e) => captureError(e));
       },
       [column, localOrder, transact]
     )

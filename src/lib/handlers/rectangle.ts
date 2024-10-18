@@ -3,7 +3,7 @@ import { USelection } from "src/state";
 import type { HandlerContext, Position, IFeature, Polygon } from "src/types";
 import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "src/state/jotai";
 import { useContext, useState } from "react";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { toast } from "react-hot-toast";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { isRectangleNonzero } from "src/lib/geometry";
@@ -97,7 +97,7 @@ export function useRectangleHandlers({
         .then(() => {
           setSelection(USelection.single(id));
         })
-        .catch((e) => Sentry.captureEvent(e as Error));
+        .catch((e) => captureError(e as Error));
     },
     up: () => {
       dragTargetRef.current = null;

@@ -10,7 +10,7 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import * as S from "@radix-ui/react-switch";
-import * as Sentry from "@sentry/nextjs";
+import { ErrorBoundary, captureError } from "src/infra/error-tracking";
 import * as Select from "@radix-ui/react-select";
 import React from "react";
 import {
@@ -161,9 +161,9 @@ export function DefaultErrorBoundary({
   children,
 }: React.PropsWithChildren<unknown>) {
   return (
-    <Sentry.ErrorBoundary showDialog fallback={ErrorFallback}>
+    <ErrorBoundary showDialog fallback={ErrorFallback}>
       {children}
-    </Sentry.ErrorBoundary>
+    </ErrorBoundary>
   );
 }
 
@@ -465,7 +465,7 @@ export const StyledMenuLink = React.forwardRef(
               new KeyboardEvent("keydown", { key: "Escape" })
             );
           } catch (e) {
-            Sentry.captureException(e);
+            captureError(e as Error);
           }
         }}
       >
