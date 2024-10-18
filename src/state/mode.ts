@@ -9,6 +9,7 @@ export enum Mode {
   NONE = "NONE",
   LASSO = "LASSO",
   DRAW_JUNCTION = "DRAW_JUNCTION",
+  DRAW_PIPE = "DRAW_PIPE",
   DRAW_POINT = "DRAW_POINT",
   DRAW_LINE = "DRAW_LINE",
   DRAW_RECTANGLE = "DRAW_RECTANGLE",
@@ -60,6 +61,7 @@ export const MODE_INFO: Record<
 > = {
   [Mode.NONE]: { label: translate("select") },
   [Mode.DRAW_JUNCTION]: { label: translate("junction") },
+  [Mode.DRAW_PIPE]: { label: translate("pipe") },
   [Mode.DRAW_POINT]: { label: "Point" },
   [Mode.DRAW_LINE]: { label: "Line" },
   [Mode.DRAW_RECTANGLE]: { label: "Rectangle" },
