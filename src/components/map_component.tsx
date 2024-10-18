@@ -390,6 +390,7 @@ export const MapComponent = memo(function MapComponent({
                   "placemark-cursor-default":
                     mode.mode === Mode.NONE ||
                     mode.mode === Mode.DRAW_POLYGON ||
+                    mode.mode === Mode.DRAW_PIPE ||
                     mode.mode === Mode.DRAW_LINE,
                   "placemark-cursor-point":
                     mode.mode === Mode.DRAW_POINT ||
