@@ -1,6 +1,7 @@
 import { Translations } from './locales/locale'
 import * as en from './locales/en'
 import * as es  from './locales/es'
+import { captureError } from '../error-tracking'
 
 const locales = {
   'en': en,
@@ -15,7 +16,7 @@ export const translate = (key: string): string => {
 
   const text = translations[key as keyof Translations]
   if (!text) {
-    console.warn(`Missing translation for ${key}`)
+    captureError(new Error(`Missing translation for ${key}`))
   }
 
   return text || key
