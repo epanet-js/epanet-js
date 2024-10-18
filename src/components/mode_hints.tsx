@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import { hideHintsAtom, selectionAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
+import {translate} from "src/infra/i18n";
 
 function ModeHint({
   mode,
@@ -127,9 +128,9 @@ export function ModeHints() {
       return (
         <ModeHint mode={mode.mode}>
           {selection.type === "single" ? (
-            <>End a line by double-clicking or hitting Enter</>
+            <>{translate('hintPipeDrawEnd')}</>
           ) : (
-            <>Click to start the line, then click to add each vertex</>
+            <>{translate('hintPipeDrawStart')}</>
           )}
         </ModeHint>
       );
