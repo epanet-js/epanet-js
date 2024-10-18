@@ -393,7 +393,6 @@ export const MapComponent = memo(function MapComponent({
                     mode.mode === Mode.DRAW_PIPE ||
                     mode.mode === Mode.DRAW_LINE,
                   "placemark-cursor-point":
-                    mode.mode === Mode.DRAW_POINT ||
                     mode.mode === Mode.DRAW_JUNCTION,
                   "placemark-cursor-crosshair":
                     mode.mode === Mode.DRAW_RECTANGLE ||

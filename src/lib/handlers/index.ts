@@ -5,16 +5,15 @@ import { useLassoHandlers } from "src/lib/handlers/lasso";
 import { useRectangleHandlers } from "src/lib/handlers/rectangle";
 import { useCircleHandlers } from "src/lib/handlers/circle";
 import { useLineHandlers } from "src/lib/handlers/line";
-import { usePointHandlers } from "src/lib/handlers/point";
 import { useJunctionHandlers } from "src/lib/handlers/junction";
 import { usePolygonHandlers } from "src/lib/handlers/polygon";
+import {usePipeHandlers} from "./pipe";
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useJunctionHandlers(handlerContext),
-    [Mode.DRAW_PIPE]: useLineHandlers(handlerContext),
-    [Mode.DRAW_POINT]: usePointHandlers(handlerContext),
+    [Mode.DRAW_PIPE]: usePipeHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),
     [Mode.DRAW_RECTANGLE]: useRectangleHandlers(handlerContext),
