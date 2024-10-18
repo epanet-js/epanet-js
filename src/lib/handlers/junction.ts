@@ -1,12 +1,12 @@
 import { USelection } from "src/state";
 import type { HandlerContext, Point } from "src/types";
 import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
-import * as Sentry from "@sentry/nextjs";
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import {trackUserAction} from "src/infra/user-tracking";
+import {captureError} from "src/infra/error-tracking";
 
 export function useJunctionHandlers({
   dragTargetRef,
@@ -50,7 +50,7 @@ export function useJunctionHandlers({
             setSelection(USelection.single(id));
           }
         })
-        .catch((e) => Sentry.captureException(e));
+        .catch((e) => captureError(e));
     },
     move: noop,
     down: noop,

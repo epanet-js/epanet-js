@@ -1,7 +1,6 @@
 import { USelection } from "src/state";
 import type { HandlerContext, IFeature, LineString, Position } from "src/types";
 import { selectionAtom, modeAtom, Mode, cursorStyleAtom } from "src/state/jotai";
-import * as Sentry from "@sentry/nextjs";
 import * as utils from "src/lib/map_component_utils";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { useSetAtom } from "jotai";
@@ -10,6 +9,7 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
 import { lockDirection, useShiftHeld } from "src/hooks/use_held";
+import {captureError, captureWarning} from "src/infra/error-tracking";
 
 export function useLineHandlers({
   rep,
@@ -50,7 +50,7 @@ export function useLineHandlers({
         transact({
           note: "Drew a line",
           putFeatures: [putFeature],
-        }).catch((e) => Sentry.captureException(e));
+        }).catch((e) => captureError(e));
         setSelection(USelection.single(id));
       } else if (selection.type === "single") {
         /**
@@ -78,7 +78,7 @@ export function useLineHandlers({
             },
           ],
         })
-          .catch((e) => Sentry.captureException(e))
+          .catch((e) => captureError(e))
           .then(() => {
             // console.log("processed click");
           });
@@ -104,7 +104,7 @@ export function useLineHandlers({
       }
       const wrappedFeature = featureMap.get(selection.id);
       if (!wrappedFeature) {
-        Sentry.captureMessage("Unexpected missing wrapped feature");
+        captureWarning("Unexpected missing wrapped feature");
         return;
       }
       const feature = wrappedFeature.feature as IFeature<LineString>;
@@ -129,7 +129,7 @@ export function useLineHandlers({
         ],
         quiet: true,
       })
-        .catch((e) => Sentry.captureException(e))
+        .catch((e) => captureError(e))
         .then(() => {
           // console.log("processed move");
         });
@@ -197,7 +197,7 @@ export function useLineHandlers({
           },
         ],
         quiet: true,
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
     },
     enter() {
       setMode({ mode: Mode.NONE });
@@ -228,7 +228,7 @@ export function useLineHandlers({
             ),
           },
         ],
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
     },
   };
 

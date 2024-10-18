@@ -2,7 +2,6 @@ import { USelection } from "src/state";
 import type { HandlerContext, IFeature, Polygon } from "src/types";
 import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
 import * as utils from "src/lib/map_component_utils";
-import * as Sentry from "@sentry/nextjs";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { decodeId } from "src/lib/id";
 import { useSetAtom } from "jotai";
@@ -13,6 +12,7 @@ import { UIDMap } from "src/lib/id_mapper";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
 import { lockDirection, useShiftHeld } from "src/hooks/use_held";
+import {captureError} from "src/infra/error-tracking";
 
 export function usePolygonHandlers({
   rep,
@@ -58,7 +58,7 @@ export function usePolygonHandlers({
           .then(() => {
             setSelection(USelection.single(id));
           })
-          .catch((e) => Sentry.captureException(e));
+          .catch((e) => captureError(e));
         return;
       }
 
@@ -107,7 +107,7 @@ export function usePolygonHandlers({
           .then(() => {
             setMode({ mode: Mode.NONE });
           })
-          .catch((e) => Sentry.captureException(e));
+          .catch((e) => captureError(e));
         return;
       }
 
@@ -127,7 +127,7 @@ export function usePolygonHandlers({
           },
         ],
         note: "Added a vertex to a polygon",
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
       return;
     },
 
@@ -167,7 +167,7 @@ export function usePolygonHandlers({
           },
         ],
         quiet: true,
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
     },
     down: (e) => {
       if (e.type === "mousedown") {
@@ -231,7 +231,7 @@ export function usePolygonHandlers({
           },
         ],
         quiet: true,
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
     },
     enter() {
       if (selection.type !== "single") return;
@@ -246,7 +246,7 @@ export function usePolygonHandlers({
           },
         ],
         note: "Finished drawing a polygon",
-      }).catch((e) => Sentry.captureException(e));
+      }).catch((e) => captureError(e));
       setMode({ mode: Mode.NONE });
     },
   };

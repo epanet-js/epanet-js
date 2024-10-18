@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import type { CoordProps, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import { useZoomTo } from "src/hooks/use_zoom_to";
@@ -34,7 +34,7 @@ export const PropertyColumn = memo(function PropertyColumn({
           }),
         },
       ],
-    }).catch((e) => Sentry.captureException(e));
+    }).catch((e) => captureError(e));
   }
 
   return (

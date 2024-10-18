@@ -1,5 +1,5 @@
-import * as Sentry from "@sentry/nextjs";
 import { useHotkeys as rawUseHotkeys } from "react-hotkeys-hook";
+import {addToErrorLog} from "src/infra/error-tracking";
 
 type Params = Parameters<typeof rawUseHotkeys>;
 
@@ -11,7 +11,7 @@ export function useHotkeys(
 ) {
   const wrap: Params[1] = (...args) => {
     const message = typeof keys === "string" ? keys : keys.join(",");
-    Sentry.addBreadcrumb({
+    addToErrorLog({
       category: "keyboardshortcut",
       message,
       level: "info",

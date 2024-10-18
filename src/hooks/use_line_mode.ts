@@ -1,5 +1,4 @@
 import { LineString } from "@turf/helpers";
-import * as Sentry from "@sentry/nextjs";
 import { useAtomCallback } from "jotai/utils";
 import last from "lodash/last";
 import { useCallback } from "react";
@@ -9,6 +8,7 @@ import { Feature, IFeature, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { USelection } from "src/state";
+import {captureError} from "src/infra/error-tracking";
 
 export function getContinuationDirection(
   id: Id,
@@ -113,7 +113,7 @@ export function useLineMode() {
                   modeOptions: { reverse: direction === "reverse" },
                 });
               })
-              .catch((e) => Sentry.captureException(e));
+              .catch((e) => captureError(e));
             return;
           } else {
             justSwitch();

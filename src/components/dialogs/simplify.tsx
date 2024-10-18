@@ -5,7 +5,7 @@ import { Field, Form, Formik } from "formik";
 import { simplify } from "src/lib/map_operations/simplify";
 import { usePersistence } from "src/lib/persistence/context";
 import Line from "src/components/icons/line";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { DialogHeader } from "src/components/dialog";
 import { getExtent } from "src/lib/geometry";
 import { useAtom } from "jotai";
@@ -67,7 +67,7 @@ export default function SimplifyDialog({
             ],
             putFeatures,
           })
-            .catch((e) => Sentry.captureException(e))
+            .catch((e) => captureError(e))
             .finally(() => {
               onClose();
             });

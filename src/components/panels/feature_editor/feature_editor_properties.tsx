@@ -7,7 +7,7 @@ import type { Feature, IWrappedFeature } from "src/types";
 import without from "lodash/without";
 import sortBy from "lodash/sortBy";
 import type { JsonValue } from "type-fest";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
 import { updatePropertyKey } from "src/lib/map_operations/update_property_key";
 import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
@@ -141,20 +141,20 @@ function FeatureEditorPropertiesRaw({
 
   const updateValue = (key: string, value: JsonValue) => {
     updateFeature(updatePropertyValue(feature, { key, value })).catch((e) =>
-      Sentry.captureException(e)
+      captureError(e)
     );
   };
 
   const updateKey = (key: string, newKey: string) => {
     updateFeature(updatePropertyKey(feature, { key, newKey })).catch((e) =>
-      Sentry.captureException(e)
+      captureError(e)
     );
   };
 
   const deleteKey = (key: string) => {
     localOrder.current = without(localOrder.current, key);
     updateFeature(deletePropertyKey(feature, { key })).catch((e) =>
-      Sentry.captureException(e)
+      captureError(e)
     );
   };
 
@@ -164,7 +164,7 @@ function FeatureEditorPropertiesRaw({
     updateFeature({
       ...feature,
       properties,
-    }).catch((e) => Sentry.captureException(e));
+    }).catch((e) => captureError(e));
   };
 
   const addRow = (key: string, value: string) => {
@@ -172,7 +172,7 @@ function FeatureEditorPropertiesRaw({
     if (!localOrder.current.includes(key)) localOrder.current.push(key);
     updateFeature(newFeature)
       .then(() => {})
-      .catch((e) => Sentry.captureException(e));
+      .catch((e) => captureError(e));
   };
 
   const pairs = sortBy(

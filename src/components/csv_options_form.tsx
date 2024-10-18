@@ -13,7 +13,7 @@ import {
   styledSelect,
   TextWell,
 } from "./elements";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import type { WorkBook } from "xlsx";
 import { detectColumns } from "src/lib/convert/local/csv_to_geojson";
 import { InlineError } from "./inline_error";
@@ -377,7 +377,7 @@ export function CsvOptionsForm({
         setColumns(columns);
         setAutodetectedFields(setFieldValue, csvDetected);
       })
-      .catch((e) => Sentry.captureException(e));
+      .catch((e) => captureError(e));
   }, [file, delimiter, setFieldValue, noop]);
 
   if (noop) return null;
@@ -463,7 +463,7 @@ function XlsOptionsFormInner({
         setError(null);
       })
       .catch((e) => {
-        Sentry.captureException(e);
+        captureError(e);
         setError("Could not parse spreadsheet");
       });
   }, [file, setFieldValue, noop, xlsx]);

@@ -1,13 +1,13 @@
 import type { Options } from "react-hotkeys-hook";
 import { useHotkeys } from "src/integrations/hotkeys";
 import { dataAtom, selectionAtom } from "src/state/jotai";
-import * as Sentry from "@sentry/nextjs";
 import { usePersistence } from "src/lib/persistence/context";
 import { deleteFeatures } from "src/lib/map_operations/delete_features";
 import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/state";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
+import {captureError} from "src/infra/error-tracking";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -38,7 +38,7 @@ export function useMapKeybindings() {
     "meta+z, Ctrl+z",
     (e) => {
       e.preventDefault();
-      historyControl("undo").catch((e) => Sentry.captureException(e));
+      historyControl("undo").catch((e) => captureError(e));
       return false;
     },
     [historyControl]
@@ -47,7 +47,7 @@ export function useMapKeybindings() {
   useHotkeys(
     "meta+shift+z, Ctrl+shift+z",
     (_e: KeyboardEvent) => {
-      historyControl("redo").catch((e) => Sentry.captureException(e));
+      historyControl("redo").catch((e) => captureError(e));
     },
     [historyControl]
   );
@@ -134,7 +134,7 @@ export function useMapKeybindings() {
           const { newSelection, moment } = deleteFeatures(data);
           set(selectionAtom, newSelection);
           await transact(moment);
-        })().catch((e) => Sentry.captureException(e));
+        })().catch((e) => captureError(e));
         return false;
       },
       [transact]

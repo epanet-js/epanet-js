@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 import { ActionItem } from "./action_item";
 import type { Action } from "./action_item";
 import type { IWrappedFeature } from "src/types";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 
 export function useMultiActions(
   selectedWrappedFeatures: IWrappedFeature[]
@@ -41,7 +41,7 @@ export function useMultiActions(
         const work = lib.booleanFeatures(selectedFeatures, { op }).then((res) =>
           res.caseOf({
             Left(error) {
-              Sentry.captureException(error);
+              captureError(error);
               return Promise.reject(error.message);
             },
             Right(features) {

@@ -6,7 +6,7 @@ import {
   BorderDashedIcon,
   ValueNoneIcon,
 } from "@radix-ui/react-icons";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { useAtom, useSetAtom } from "jotai";
 import { bboxToPolygon, getExtent } from "src/lib/geometry";
 import {
@@ -118,7 +118,7 @@ export function useSingleActions(
                 feature: hull,
               },
             ],
-          }).catch((e) => Sentry.captureException(e));
+          }).catch((e) => captureError(e));
         },
       });
     },

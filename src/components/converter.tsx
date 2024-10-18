@@ -6,7 +6,7 @@ import {
   StyledLabelSpan,
   TextWell,
 } from "./elements";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { Formik, FormikHelpers, Form, ErrorMessage } from "formik";
 import {
   ImportOptions,
@@ -464,7 +464,7 @@ function Download() {
               fileName: exportedData.result.name,
               extensions: exportedData.extensions,
             }).catch((e) => {
-              Sentry.captureException(e);
+              captureError(e);
             });
           }}
         >

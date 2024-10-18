@@ -15,7 +15,7 @@ import React, {
 import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import {
   ephemeralStateAtom,
   modeAtom,
@@ -206,7 +206,7 @@ export const MapComponent = memo(function MapComponent({
           symbolization: symbolization || SYMBOLIZATION_NONE,
           previewProperty: label,
         })
-        .catch((e) => Sentry.captureException(e));
+        .catch((e) => captureError(e));
     },
     [map, folderMap, symbolization, data, layerConfigs, ephemeralState, label]
   );

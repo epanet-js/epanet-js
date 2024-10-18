@@ -1,7 +1,7 @@
 import { setCoordinates } from "src/lib/map_operations";
 import useResettable from "src/hooks/use_resettable";
 import { usePersistence } from "src/lib/persistence/context";
-import * as Sentry from "@sentry/nextjs";
+import { captureError } from "src/infra/error-tracking";
 import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
 import { PanelDetails } from "src/components/panel_details";
 import type { IWrappedFeature } from "src/types";
@@ -41,7 +41,7 @@ export function FeatureEditorVertex({
               }).feature,
             },
           ],
-        }).catch((e) => Sentry.captureException(e));
+        }).catch((e) => captureError(e));
       }
     },
   });
@@ -62,7 +62,7 @@ export function FeatureEditorVertex({
               }).feature,
             },
           ],
-        }).catch((e) => Sentry.captureException(e));
+        }).catch((e) => captureError(e));
       }
     },
   });
