@@ -1,5 +1,6 @@
 export const translations = {
   select: "Select",
-  junction: "Junction"
+  junction: "Junction",
+  pipe: "Pipe"
 }
 
