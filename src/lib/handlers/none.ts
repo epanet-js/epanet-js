@@ -162,7 +162,9 @@ export function useNoneHandlers({
             }),
             quiet: true,
           });
-      } else if (selection.type === "single") {
+      }
+
+      if (selection.type === "single") {
         // Otherwise, we are moving one vertex.
         const id = decodeId(dragTarget);
         switch (id.type) {
@@ -176,23 +178,11 @@ export function useNoneHandlers({
             if (!feature) return;
 
             const nextCoord = getMapCoord(e);
-            const { feature: newFeature, wasRectangle } = ops.setCoordinates({
+            const { feature: newFeature } = ops.setCoordinates({
               feature: feature.feature,
               position: nextCoord,
-              breakRectangle: e.originalEvent.metaKey,
               vertexId: id,
             });
-
-            if (wasRectangle && !mode?.modeOptions?.hasResizedRectangle) {
-              setMode((mode) => {
-                return {
-                  ...mode,
-                  modeOptions: {
-                    hasResizedRectangle: true,
-                  },
-                };
-              });
-            }
 
             return transact({
               note: 'Move point',
