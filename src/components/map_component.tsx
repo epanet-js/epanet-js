@@ -67,8 +67,19 @@ export interface ContextInfo {
 
 const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAP_HANLDERS=== "true"
 const noop = () => null
-// eslint-disable-next-line no-console
-const debug = isDebugOn ? (e: mapboxgl.MapboxEvent<any>, mode:Mode, selection: Sel, method: string) => console.log(`HANDLER: ${e.type}, ${mode}, ${JSON.stringify(selection)}, ${method}`) : noop
+const debug = isDebugOn ? (
+  e: mapboxgl.MapboxEvent<any>,
+  mode:Mode, selection: Sel,
+  dragTargetRef: MutableRefObject<DragTarget | null>,
+  method: string) => {
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify({
+      event: e.type,
+      mode,
+      selection,
+      dragTargetRef,
+      method
+  }))} : noop
 
 export const MapComponent = memo(function MapComponent({
   setMap,
@@ -260,15 +271,15 @@ export const MapComponent = memo(function MapComponent({
 
   const newHandlers: PMapHandlers = {
     onClick: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, 'click')
+      debug(e, mode.mode, selection, dragTargetRef, 'click')
       HANDLERS[mode.mode].click(e);
     },
     onMapMouseDown: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, 'onMapMouseDown')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseDown')
       HANDLERS[mode.mode].down(e);
     },
     onMapTouchStart: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, 'onMapTouchStart')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchStart')
       const handler = HANDLERS[mode.mode];
       if (handler.touchstart) {
         handler.touchstart(e);
@@ -277,11 +288,11 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapMouseUp: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, 'onMapMouseUp')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseUp')
       HANDLERS[mode.mode].up(e);
     },
     onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, 'onMapTouchEnd')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchEnd')
 
       const handler = HANDLERS[mode.mode];
       if (handler.touchend) {
@@ -291,7 +302,7 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapTouchMove: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, 'onMapTouchMove')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchMove')
 
       const handler = HANDLERS[mode.mode];
       if (handler.touchmove) {
@@ -301,7 +312,7 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapMouseMove: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, 'onMapMouseMove')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseMove')
 
       HANDLERS[mode.mode].move(e);
       const map = mapRef.current?.map;
@@ -312,15 +323,15 @@ export const MapComponent = memo(function MapComponent({
       };
     },
     onDoubleClick: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, 'doubleClick')
+      debug(e, mode.mode, selection, dragTargetRef, 'doubleClick')
 
       HANDLERS[mode.mode].double(e);
     },
     onMoveEnd(e: mapboxgl.MapboxEvent& mapboxgl.EventData) {
-      debug(e, mode.mode, selection, 'onMouseMoveEnd')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMouseMoveEnd')
     },
     onMove: throttle((e: mapboxgl.MapboxEvent & mapboxgl.EventData) => {
-      debug(e, mode.mode, selection, 'onMove')
+      debug(e, mode.mode, selection, dragTargetRef, 'onMove')
       const center = e.target.getCenter().toArray();
       const bounds = e.target.getBounds().toArray();
       return {

@@ -51,7 +51,6 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      console.log('DEPRECATED')
       lastPoint.current = e.lngLat;
 
       // If this is a right-click, ignore it. The context menu

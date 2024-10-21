@@ -157,9 +157,8 @@ export function useNoneHandlers({
 
       const dragTarget = dragTargetRef.current;
 
-      // Multiple items are selected. In this case,
-      // we can rotate with the alt key, or move features
-      // with just dragging. In order to get into this state
+      // Multiple items are selected.
+      // In order to get into this state
       // of being able to move multiple features, we needed
       // the space key held when the drag started.
       if (Array.isArray(dragTarget)) {
@@ -186,6 +185,7 @@ export function useNoneHandlers({
             break;
           }
           case "vertex": {
+            // junctions are also considered vertex at this point!!
             const feature = featureMap.get(selection.id);
             if (!feature) return;
 
