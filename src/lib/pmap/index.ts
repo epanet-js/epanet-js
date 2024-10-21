@@ -102,6 +102,11 @@ function mSetData(
   }
 }
 
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAPBOX_EVENTS === "true"
+const noop = () => null
+// eslint-disable-next-line no-console
+const debug = isDebugOn ? (e: mapboxgl.MapboxEvent<any>) => console.log(`MAPBOX_EVENT: ${e.type}`) : noop
+
 export default class PMap {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<PMapHandlers>;
@@ -204,42 +209,52 @@ export default class PMap {
    * Handler proxies --------------------------------------
    */
   onClick = (e: LayerScopedEvent) => {
+    debug(e)
     this.handlers.current.onClick(e);
   };
 
   onMapMouseDown = (e: LayerScopedEvent) => {
+    debug(e)
     this.handlers.current.onMapMouseDown(e);
   };
 
   onMapTouchStart = (e: mapboxgl.MapTouchEvent) => {
+    debug(e)
     this.handlers.current.onMapTouchStart(e);
   };
 
   onMapMouseUp = (e: LayerScopedEvent) => {
+    debug(e)
     this.handlers.current.onMapMouseUp(e);
   };
 
   onMoveEnd = (e: MoveEvent) => {
+    debug(e)
     this.handlers.current.onMoveEnd(e);
   };
 
   onMapTouchEnd = (e: mapboxgl.MapTouchEvent) => {
+    debug(e)
     this.handlers.current.onMapTouchEnd(e);
   };
 
   onMove = (e: MoveEvent) => {
+    debug(e)
     this.handlers.current.onMove(e);
   };
 
   onMapMouseMove = (e: mapboxgl.MapMouseEvent) => {
+    debug(e)
     this.handlers.current.onMapMouseMove(e);
   };
 
   onMapTouchMove = (e: mapboxgl.MapTouchEvent) => {
+    debug(e)
     this.handlers.current.onMapTouchMove(e);
   };
 
   onMapDoubleClick = (e: mapboxgl.MapMouseEvent) => {
+    debug(e)
     this.handlers.current.onDoubleClick(e);
   };
 
