@@ -1,8 +1,5 @@
-import {
-  FlatbushLike,
-  generateFeaturesFlatbushInstance,
-  generateVertexFlatbushInstance,
-} from "src/lib/generate_flatbush_instance";
+
+
 import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
@@ -18,9 +15,7 @@ import { useSetAtom } from "jotai";
 import { USelection } from "src/state";
 import { modeAtom } from "src/state/mode";
 import { useEndSnapshot, useStartSnapshot } from "src/lib/persistence/shared";
-import { filterLockedFeatures } from "src/lib/folder";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
-import { UIDMap } from "src/lib/id_mapper";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { useSpaceHeld } from "src/hooks/use_held";
@@ -56,66 +51,6 @@ export function useNoneHandlers({
       // If this is a right-click, ignore it. The context menu
       // will handle it.
       if ("button" in e.originalEvent && e.originalEvent.button === 2) {
-        return;
-      }
-
-      const { shiftKey } = e.originalEvent;
-
-      // Start a lasso operation:
-      // - Switch to lasso mode
-      // - Set the ephemeral state
-      // - Generate the index
-      // - Prevent this from being a drag
-      if (shiftKey) {
-        let index: undefined | FlatbushLike = undefined;
-
-        if (selection.type === "single") {
-          const feature = featureMap.get(selection.id);
-          if (!feature) return;
-          if (feature.feature.geometry?.type === "Point") {
-            // If you have a point selected, there's no point
-            // in selecting "vertexes" because it only has one.
-            // Instead, act as if you didn’t have a single
-            // feature selection.
-            index = generateFeaturesFlatbushInstance(
-              filterLockedFeatures({ featureMap, folderMap })
-            );
-          } else {
-            index = generateVertexFlatbushInstance(
-              feature,
-              UIDMap.getIntID(idMap, selection.id)
-            );
-          }
-        } else {
-          index = generateFeaturesFlatbushInstance(
-            filterLockedFeatures({ featureMap, folderMap })
-          );
-        }
-
-        if (index) {
-          setFlatbushInstance(index);
-          setMode({ mode: Mode.LASSO });
-          setEphemeralState({
-            type: "lasso",
-            box: [e.lngLat.toArray() as Pos2, e.lngLat.toArray() as Pos2],
-          });
-
-          if (selection.type === "multi") {
-            setSelection((selection) => {
-              if (selection.type !== "multi") {
-                return selection;
-              }
-              return {
-                type: "multi",
-                ids: selection.ids,
-                previousIds: selection.ids,
-              };
-            });
-          }
-        }
-        // // TODO
-        e.preventDefault();
-
         return;
       }
 
