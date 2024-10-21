@@ -14,7 +14,6 @@ import {
 import { useSetAtom } from "jotai";
 import { USelection } from "src/state";
 import { modeAtom } from "src/state/mode";
-import { useEndSnapshot, useStartSnapshot } from "src/lib/persistence/shared";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
@@ -38,8 +37,6 @@ export function useNoneHandlers({
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
-  const endSnapshot = useEndSnapshot();
-  const startSnapshot = useStartSnapshot();
   const lastPoint = useRef<mapboxgl.LngLat | null>(null);
   const spaceHeld = useSpaceHeld();
 
@@ -58,13 +55,6 @@ export function useNoneHandlers({
       if ((e.originalEvent.altKey || spaceHeld.current) && selectedIds.length) {
         // Maybe drag a whole feature
         dragTargetRef.current = selectedIds.slice();
-        void startSnapshot(
-          USelection.getSelectedFeatures({
-            selection,
-            featureMap,
-            folderMap,
-          })
-        );
         e.preventDefault();
         return;
       }
@@ -91,7 +81,6 @@ export function useNoneHandlers({
             selection.type === "single" &&
             selection.id !== wrappedFeature.id
           ) {
-            void startSnapshot(wrappedFeature);
             dragTargetRef.current = id;
             setSelection(USelection.single(wrappedFeature.id));
           }
@@ -118,7 +107,6 @@ export function useNoneHandlers({
           id,
           position: getMapCoord(e),
         });
-        void startSnapshot(wrappedFeature);
         transact({
           note: 'Splice a midpoint',
           putFeatures: [
@@ -136,13 +124,11 @@ export function useNoneHandlers({
         return;
       }
 
-      void startSnapshot(wrappedFeature);
       dragTargetRef.current = rawId;
       setCursor("pointer");
     },
     up: () => {
       dragTargetRef.current = null;
-      void endSnapshot();
       setCursor(CURSOR_DEFAULT);
     },
     move: (e) => {
