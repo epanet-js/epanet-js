@@ -228,21 +228,6 @@ export function useNoneHandlers({
       // of being able to move multiple features, we needed
       // the space key held when the drag started.
       if (Array.isArray(dragTarget)) {
-        if (e.originalEvent.altKey) {
-          const a = lastPoint.current;
-          lastPoint.current = e.lngLat;
-          return transact({
-            note: 'Rotate features',
-            putFeatures: ops.rotateFeatures(
-              dragTarget.map((uuid) => {
-                return featureMap.get(uuid)!;
-              }),
-              a,
-              e.lngLat
-            ),
-            quiet: true,
-          });
-        } else {
           const dx = lastPoint.current.lng - e.lngLat.lng;
           const dy = lastPoint.current.lat - e.lngLat.lat;
           lastPoint.current = e.lngLat;
@@ -257,7 +242,6 @@ export function useNoneHandlers({
             }),
             quiet: true,
           });
-        }
       } else if (selection.type === "single") {
         // Otherwise, we are moving one vertex.
         const id = decodeId(dragTarget);
