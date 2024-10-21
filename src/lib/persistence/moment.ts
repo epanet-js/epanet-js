@@ -35,6 +35,7 @@ export interface MomentInput {
   deleteFolders: IFolder["id"][];
   putLayerConfigs: ILayerConfig[];
   deleteLayerConfigs: ILayerConfig["id"][];
+  skipMomentLog?: boolean
 }
 
 /**
@@ -60,6 +61,7 @@ export const EMPTY_MOMENT: Moment = {
   putLayerConfigs: [],
   deleteLayerConfigs: [],
 };
+
 
 export interface MomentLog {
   undo: Moment[];
@@ -136,6 +138,14 @@ class CUMoment {
 
 export const UMoment = new CUMoment();
 
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MOMENT_LOG  === "true"
+const noop = () => null
+const consoleDebugger = (step: string, momentLog: MomentLog) => {
+  // eslint-disable-next-line no-console
+  console.log(`MOMENT_LOG@${step} ${JSON.stringify(momentLog)}`)
+}
+const debugMomentLog = isDebugOn ? consoleDebugger : noop
+
 class CUMomentLog {
   shallowCopy(oldLog: MomentLog): MomentLog {
     return {
@@ -154,10 +164,12 @@ class CUMomentLog {
   }
 
   popMoment(oldLog: Readonly<MomentLog>, n = 1) {
+    debugMomentLog('BEFORE_POP', oldLog)
     const momentLog = this.shallowCopy(oldLog);
     for (let i = 0; i < n; i++) {
       momentLog.undo.shift();
     }
+    debugMomentLog('AFTER_POP', momentLog)
     return momentLog;
   }
 
@@ -190,6 +202,8 @@ class CUMomentLog {
    * for a given transaction.
    */
   pushMoment(oldLog: MomentLog, moment: Moment): MomentLog {
+    debugMomentLog('BEFORE_PUSH', oldLog)
+
     if (UMoment.isEmpty(moment)) {
       return oldLog;
     }
@@ -200,6 +214,8 @@ class CUMomentLog {
       momentLog.redo = [];
     }
     momentLog.undo = [moment].concat(momentLog.undo).slice(0, HISTORY_LIMIT);
+
+    debugMomentLog('AFTER_PUSH', momentLog)
     return momentLog;
   }
 }
