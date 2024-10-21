@@ -7,7 +7,6 @@ import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
 import {
   Mode,
-  ephemeralStateAtom,
   selectionAtom,
   cursorStyleAtom,
 } from "src/state/jotai";
@@ -21,18 +20,15 @@ import { useSpaceHeld } from "src/hooks/use_held";
 import {captureError, captureWarning} from "src/infra/error-tracking";
 
 export function useNoneHandlers({
-  setFlatbushInstance,
   throttledMovePointer,
   dragTargetRef,
   selection,
   featureMap,
   idMap,
   folderMap,
-  mode,
   rep,
   pmap,
 }: HandlerContext): Handlers {
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
