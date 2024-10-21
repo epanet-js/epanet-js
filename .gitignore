@@ -64,3 +64,5 @@ lib-cov
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+*.patch
