@@ -122,10 +122,6 @@ export function useNoneHandlers({
       dragTargetRef.current = rawId;
       setCursor("pointer");
     },
-    up: () => {
-      dragTargetRef.current = null;
-      setCursor(CURSOR_DEFAULT);
-    },
     move: (e) => {
       if (dragTargetRef.current === null) {
         throttledMovePointer(e.point);
@@ -180,7 +176,7 @@ export function useNoneHandlers({
             });
 
             return transact({
-              note: 'Move point',
+              note: 'Drag point',
               putFeatures: [
                 {
                   ...feature,
@@ -194,6 +190,48 @@ export function useNoneHandlers({
           }
         }
       }
+    },
+    up: (e) => {
+      const dragTarget = dragTargetRef.current;
+
+      const resetDrag  = () => {
+        dragTargetRef.current = null;
+        setCursor(CURSOR_DEFAULT);
+      };
+
+      if (!dragTarget || selection.type !== "single") { return resetDrag() }
+
+      const isDraggingManyPoints = Array.isArray(dragTarget)
+      if (isDraggingManyPoints) { return resetDrag() }
+
+
+      const id = decodeId(dragTarget)
+      if (id.type !== "vertex") return resetDrag()
+
+      const wrappedFeature = featureMap.get(selection.id)
+      if (!wrappedFeature) return resetDrag()
+
+      const nextCoord = getMapCoord(e);
+      const { feature: newFeature } = ops.setCoordinates({
+        feature: wrappedFeature.feature,
+        position: nextCoord,
+        vertexId: id,
+      });
+
+
+      return transact({
+        note: 'Move point',
+        putFeatures: [
+          {
+            ...wrappedFeature,
+            feature: newFeature,
+          },
+        ],
+        quiet: true,
+      }).then(() => {
+        resetDrag()
+      }).catch((e) => captureError(e))
+
     },
     click: (e) => {
       // Get the fuzzy feature. This is a mapboxgl feature
@@ -247,8 +285,8 @@ export function useNoneHandlers({
       if (
         !(
           decodedId.type === "vertex" &&
-          feature.geometry.type === "LineString" &&
-          USelection.isVertexSelected(selection, id, decodedId)
+            feature.geometry.type === "LineString" &&
+            USelection.isVertexSelected(selection, id, decodedId)
         )
       ) {
         return;
