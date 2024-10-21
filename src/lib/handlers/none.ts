@@ -41,15 +41,14 @@ export function useNoneHandlers({
     down: (e) => {
       lastPoint.current = e.lngLat;
 
-      // If this is a right-click, ignore it. The context menu
-      // will handle it.
-      if ("button" in e.originalEvent && e.originalEvent.button === 2) {
+      const isRighClick = "button" in e.originalEvent && e.originalEvent.button === 2
+      if (isRighClick) {
         return;
       }
 
       const selectedIds = USelection.toIds(selection);
-      if ((e.originalEvent.altKey || spaceHeld.current) && selectedIds.length) {
-        // Maybe drag a whole feature
+      const isMovingManyPoints = (e.originalEvent.altKey || spaceHeld.current) && selectedIds.length
+      if (isMovingManyPoints) {
         dragTargetRef.current = selectedIds.slice();
         e.preventDefault();
         return;
