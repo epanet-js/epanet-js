@@ -49,6 +49,7 @@ import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
+import { isDebugOn } from "src/infra/debug-mode";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -65,7 +66,6 @@ export interface ContextInfo {
   position: Pos2;
 }
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAP_HANLDERS === "true";
 const noop = () => null;
 const debug = isDebugOn
   ? (
@@ -77,13 +77,13 @@ const debug = isDebugOn
     ) => {
       // eslint-disable-next-line no-console
       console.log(
-        JSON.stringify({
+        `MODE_HANLDER ${JSON.stringify({
           event: e.type,
           mode,
           selection,
           dragTargetRef,
           method,
-        }),
+        })}`,
       );
     }
   : noop;

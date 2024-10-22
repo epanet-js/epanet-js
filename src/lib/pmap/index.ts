@@ -40,6 +40,7 @@ import {
   ScatterplotLayer,
   GeoJsonLayer,
 } from "@deck.gl/layers/typed";
+import { isDebugOn } from "src/infra/debug-mode";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -106,7 +107,6 @@ function mSetData(
   }
 }
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MODE === "true";
 const noop = () => null;
 const debugEvent = isDebugOn
   ? (e: mapboxgl.MapboxEvent<any>) => {
@@ -408,7 +408,7 @@ export default class PMap {
       ],
     });
 
-    this.exposeOverlayInWindow();
+    if (isDebugOn) this.exposeOverlayInWindow();
 
     this.lastData = data;
     this.updateSelections(groups.selectionIds);

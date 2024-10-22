@@ -1,3 +1,4 @@
+import { isDebugOn } from "src/infra/debug-mode";
 import type {
   IFolder,
   IFolderInput,
@@ -137,7 +138,6 @@ class CUMoment {
 
 export const UMoment = new CUMoment();
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MOMENT_LOG === "true";
 const noop = () => null;
 const consoleDebugger = (step: string, momentLog: MomentLog) => {
   // eslint-disable-next-line no-console
