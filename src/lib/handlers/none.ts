@@ -53,6 +53,20 @@ export function useNoneHandlers({
     return features;
   };
 
+  const movePoint = (
+    featureId: IWrappedFeature["id"],
+    vertexId: VertexId,
+    position: Pos2,
+  ) => {
+    const wrappedFeature = featureMap.get(featureId)!;
+    const { feature: newFeature } = ops.setCoordinates({
+      feature: wrappedFeature.feature,
+      position: position,
+      vertexId: vertexId,
+    });
+    return { ...wrappedFeature, feature: newFeature };
+  };
+
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
@@ -149,8 +163,12 @@ export function useNoneHandlers({
         });
       };
 
-      if (dragTargetRef.current === null) {
+      const skipMove = () => {
         throttledMovePointer(e.point);
+      };
+
+      if (dragTargetRef.current === null || selection.type !== "single") {
+        skipMove();
         return;
       }
 
@@ -171,37 +189,12 @@ export function useNoneHandlers({
         return;
       }
 
-      if (selection.type === "single") {
-        // Otherwise, we are moving one vertex.
-        const id = decodeId(dragTarget);
-        switch (id.type) {
-          case "feature":
-          case "midpoint": {
-            break;
-          }
-          case "vertex": {
-            // junctions are also considered vertex at this point!!
-            const feature = featureMap.get(selection.id);
-            if (!feature) return;
-
-            const nextCoord = getMapCoord(e);
-            const { feature: newFeature } = ops.setCoordinates({
-              feature: feature.feature,
-              position: nextCoord,
-              vertexId: id,
-            });
-
-            updateDraggingState([
-              {
-                ...feature,
-                feature: newFeature,
-              },
-            ]);
-
-            break;
-          }
-        }
+      const id = decodeId(dragTarget);
+      if (id.type !== "vertex") {
+        return skipMove();
       }
+
+      updateDraggingState([movePoint(selection.id, id, getMapCoord(e))]);
     },
     up: (e) => {
       const dragTarget = dragTargetRef.current;
@@ -239,24 +232,9 @@ export function useNoneHandlers({
       const id = decodeId(dragTarget);
       if (id.type !== "vertex") return resetDrag();
 
-      const wrappedFeature = featureMap.get(selection.id);
-      if (!wrappedFeature) return resetDrag();
-
-      const nextCoord = getMapCoord(e);
-      const { feature: newFeature } = ops.setCoordinates({
-        feature: wrappedFeature.feature,
-        position: nextCoord,
-        vertexId: id,
-      });
-
       return transact({
         note: "Move point",
-        putFeatures: [
-          {
-            ...wrappedFeature,
-            feature: newFeature,
-          },
-        ],
+        putFeatures: [movePoint(selection.id, id, getMapCoord(e))],
         quiet: true,
       })
         .then(() => {
