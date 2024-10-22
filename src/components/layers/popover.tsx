@@ -389,7 +389,7 @@ function XYZLayer({
             loading: isEditing ? "Updating layer" : "Adding layer",
             success: isEditing ? "Updated layer" : "Added layer",
             error: "Error",
-          }
+          },
         );
         setMode("initial");
         if (onDone) {
@@ -589,7 +589,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { data: tilejson, isError } = reactUseQuery(
     layerConfig.url,
     async () => layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
-    { suspense: false, retry: false }
+    { suspense: false, retry: false },
   );
 
   const style = {
@@ -746,7 +746,7 @@ export function LayersPopover() {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -762,7 +762,7 @@ export function LayersPopover() {
       try {
         at = generateKeyBetween(
           ordered[idx - 1]?.at || null,
-          ordered[idx + 1]?.at || null
+          ordered[idx + 1]?.at || null,
         );
       } catch (e) {}
 

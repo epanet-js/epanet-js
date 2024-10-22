@@ -26,7 +26,7 @@ function Bbox({ geometry }: { geometry: Geometry }) {
         <Input type="text" readOnly value={e6bbox(bbox)} />
       </StyledLabelSpan>
     ),
-    null
+    null,
   );
 }
 

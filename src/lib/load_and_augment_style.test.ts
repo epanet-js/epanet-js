@@ -31,7 +31,7 @@ describe("makeLayers", () => {
       makeLayers({
         symbolization: NONE_NO_SIMPLESTYLE,
         previewProperty: NIL_PREVIEW,
-      })
+      }),
     ).toMatchSnapshot();
   });
   it("with preview property", () => {
@@ -151,6 +151,6 @@ test("loadAndAugmentStyle", async () => {
       ]),
       symbolization: NONE_NO_SIMPLESTYLE,
       previewProperty: NIL_PREVIEW,
-    })
+    }),
   ).resolves.toMatchSnapshot();
 });

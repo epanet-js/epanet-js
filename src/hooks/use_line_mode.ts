@@ -8,26 +8,26 @@ import { Feature, IFeature, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { USelection } from "src/state";
-import {captureError} from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 export function getContinuationDirection(
   id: Id,
-  feature: Feature
+  feature: Feature,
 ): "forward" | "reverse" | null {
   if (id.type !== "vertex" || feature.geometry?.type !== "LineString")
     return null;
   return id.vertex === feature.geometry.coordinates.length - 1
     ? "forward"
     : id.vertex === 0
-    ? "reverse"
-    : null;
+      ? "reverse"
+      : null;
 }
 
 type Direction = NonNullable<ReturnType<typeof getContinuationDirection>>;
 
 export function continueFeature(
   feature: IFeature<LineString>,
-  direction: Direction
+  direction: Direction,
 ) {
   return replaceCoordinates(
     feature,
@@ -35,7 +35,7 @@ export function continueFeature(
       ? feature.geometry.coordinates.concat([
           last(feature.geometry.coordinates)!,
         ])
-      : [feature.geometry.coordinates[0]].concat(feature.geometry.coordinates)
+      : [feature.geometry.coordinates[0]].concat(feature.geometry.coordinates),
   );
 }
 
@@ -58,7 +58,7 @@ export function useLineMode() {
         }: {
           event: Pick<React.MouseEvent, "shiftKey"> | undefined;
           replaceGeometryForId?: IWrappedFeature["id"] | null;
-        }
+        },
       ) => {
         const { featureMap, selection } = get(dataAtom);
 
@@ -95,7 +95,7 @@ export function useLineMode() {
           if (direction) {
             const newFeature = continueFeature(
               feature as IFeature<LineString>,
-              direction
+              direction,
             );
             transact({
               note: "Continued a line",
@@ -120,7 +120,7 @@ export function useLineMode() {
           }
         }
       },
-      [transact]
-    )
+      [transact],
+    ),
   );
 }

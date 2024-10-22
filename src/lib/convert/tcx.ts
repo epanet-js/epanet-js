@@ -18,11 +18,11 @@ export class CTCX implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardTcx() {
         const tcx = await import("@tmcw/togeojson").then(
-          (module) => module.tcx
+          (module) => module.tcx,
         );
         const geojson = tcx(await toDom(text));
         return okResult(geojson as FeatureCollection);
-      }
+      },
     );
   }
 }

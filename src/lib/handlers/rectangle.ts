@@ -1,7 +1,12 @@
 import noop from "lodash/noop";
 import { USelection } from "src/state";
 import type { HandlerContext, Position, IFeature, Polygon } from "src/types";
-import { cursorStyleAtom, Mode, modeAtom, selectionAtom } from "src/state/jotai";
+import {
+  cursorStyleAtom,
+  Mode,
+  modeAtom,
+  selectionAtom,
+} from "src/state/jotai";
 import { useContext, useState } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { toast } from "react-hot-toast";
@@ -122,7 +127,7 @@ export function useRectangleHandlers({
             selection,
             featureMap,
             folderMap,
-          })
+          }),
         );
       }
       setCursor("");

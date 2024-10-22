@@ -9,6 +9,7 @@ module.exports = {
       version: "detect",
     },
   },
+  extends: ["plugin:prettier/recommended"],
   // extends: [
   //   "blitz",
   //   "eslint:recommended",
@@ -23,7 +24,13 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: "module",
   },
-  plugins: ["react", "react-hooks", "@typescript-eslint", "unused-imports"],
+  plugins: [
+    "react",
+    "react-hooks",
+    "@typescript-eslint",
+    "unused-imports",
+    "prettier",
+  ],
   rules: {
     "react/react-in-jsx-scope": 0,
     "react/display-name": 0,

@@ -18,7 +18,7 @@ describe("splitFeatureGroups", () => {
         previewProperty: NIL_PREVIEW,
         lastSymbolization: null,
         idMap: UIDMap.empty(),
-      })
+      }),
     ).toMatchInlineSnapshot(`
       {
         "ephemeral": [],
@@ -42,7 +42,7 @@ describe("splitFeatureGroups", () => {
         previewProperty: NIL_PREVIEW,
         lastSymbolization: null,
         idMap,
-      })
+      }),
     ).toMatchInlineSnapshot(`
       {
         "ephemeral": [],
@@ -89,7 +89,7 @@ describe("splitFeatureGroups", () => {
         previewProperty: NIL_PREVIEW,
         lastSymbolization: null,
         idMap,
-      })
+      }),
     ).toMatchInlineSnapshot(`
       {
         "ephemeral": [

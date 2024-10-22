@@ -38,14 +38,14 @@ export default memo(function RowActions({
         const newIds = range(min(allIndexes)!, max(allIndexes)! + 1).map(
           (idx) => {
             return features[idx].id;
-          }
+          },
         );
 
         set(selectionAtom, USelection.fromIds(newIds));
         return;
       },
-      [features]
-    )
+      [features],
+    ),
   );
 
   return (
@@ -71,7 +71,7 @@ export default memo(function RowActions({
             return shiftClick(id);
           } else {
             setSelection((selection) =>
-              USelection.toggleSelectionId(selection, id)
+              USelection.toggleSelectionId(selection, id),
             );
           }
         }}

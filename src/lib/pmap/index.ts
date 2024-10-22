@@ -35,7 +35,11 @@ import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox/typed";
-import { PolygonLayer, ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers/typed";
+import {
+  PolygonLayer,
+  ScatterplotLayer,
+  GeoJsonLayer,
+} from "@deck.gl/layers/typed";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -83,7 +87,7 @@ function mSetData(
   source: mapboxgl.GeoJSONSource,
   newData: Feature[],
   _label: string,
-  force?: boolean
+  force?: boolean,
 ) {
   if (!shallowArrayEqual(lastValues.get(source), newData) || force) {
     source.setData({
@@ -102,12 +106,20 @@ function mSetData(
   }
 }
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MODE === "true"
-const noop = () => null
-// eslint-disable-next-line no-console
-const debugEvent = isDebugOn ? (e: mapboxgl.MapboxEvent<any>) => console.log(`MAPBOX_EVENT: ${e.type}`) : noop
-// eslint-disable-next-line no-console
-const debugEphemeralState = isDebugOn ? (s: EphemeralEditingState)  => console.log(`EPHEMERAL_STATE: ${JSON.stringify(s)})`) : noop
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MODE === "true";
+const noop = () => null;
+const debugEvent = isDebugOn
+  ? (e: mapboxgl.MapboxEvent<any>) => {
+      // eslint-disable-next-line no-console
+      console.log(`MAPBOX_EVENT: ${e.type}`);
+    }
+  : noop;
+const debugEphemeralState = isDebugOn
+  ? (s: EphemeralEditingState) => {
+      // eslint-disable-next-line no-console
+      console.log(`EPHEMERAL_STATE: ${JSON.stringify(s)})`);
+    }
+  : noop;
 
 export default class PMap {
   map: mapboxgl.Map;
@@ -167,13 +179,13 @@ export default class PMap {
           enableHighAccuracy: true,
         },
       }),
-      controlsCorner
+      controlsCorner,
     );
     map.addControl(new mapboxgl.NavigationControl({}), controlsCorner);
     map.addControl(
       new mapboxgl.AttributionControl({
         compact: true,
-      })
+      }),
     );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
     map.on("click", this.onClick);
@@ -211,52 +223,52 @@ export default class PMap {
    * Handler proxies --------------------------------------
    */
   onClick = (e: LayerScopedEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onClick(e);
   };
 
   onMapMouseDown = (e: LayerScopedEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapMouseDown(e);
   };
 
   onMapTouchStart = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapTouchStart(e);
   };
 
   onMapMouseUp = (e: LayerScopedEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapMouseUp(e);
   };
 
   onMoveEnd = (e: MoveEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMoveEnd(e);
   };
 
   onMapTouchEnd = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapTouchEnd(e);
   };
 
   onMove = (e: MoveEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMove(e);
   };
 
   onMapMouseMove = (e: mapboxgl.MapMouseEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapMouseMove(e);
   };
 
   onMapTouchMove = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onMapTouchMove(e);
   };
 
   onMapDoubleClick = (e: mapboxgl.MapMouseEvent) => {
-    debugEvent(e)
+    debugEvent(e);
     this.handlers.current.onDoubleClick(e);
   };
 
@@ -290,7 +302,7 @@ export default class PMap {
     force = false,
   }: {
     data: Data;
-    ephemeralState: EphemeralEditingState
+    ephemeralState: EphemeralEditingState;
     force?: boolean;
   }) {
     if (!(this.map && (this.map as any).style)) {
@@ -299,11 +311,11 @@ export default class PMap {
     }
 
     const featuresSource = this.map.getSource(
-      FEATURES_SOURCE_NAME
+      FEATURES_SOURCE_NAME,
     ) as mapboxgl.GeoJSONSource;
 
     const ephemeralSource = this.map.getSource(
-      EPHEMERAL_SOURCE_NAME
+      EPHEMERAL_SOURCE_NAME,
     ) as mapboxgl.GeoJSONSource;
 
     if (!featuresSource || !ephemeralSource) {
@@ -333,7 +345,7 @@ export default class PMap {
     mSetData(ephemeralSource, groups.ephemeral, "ephem");
     mSetData(featuresSource, groups.features, "features", force);
 
-    debugEphemeralState(ephemeralState)
+    debugEphemeralState(ephemeralState);
 
     this.overlay.setProps({
       layers: [
@@ -369,34 +381,34 @@ export default class PMap {
           },
         }),
         ephemeralState.type === "drag" &&
-        new GeoJsonLayer({
-          id: 'DRAG_LAYER',
-          data: ephemeralState.features.map((wrapped) => wrapped.feature),
-          visible: ephemeralState.type === "drag",
-          lineWidthUnits: "pixels",
-          getLineWidth: 1.5,
-          getPointRadius: 10,
-          pointRadiusUnits: "pixels"
-        }),
+          new GeoJsonLayer({
+            id: "DRAG_LAYER",
+            data: ephemeralState.features.map((wrapped) => wrapped.feature),
+            visible: ephemeralState.type === "drag",
+            lineWidthUnits: "pixels",
+            getLineWidth: 1.5,
+            getPointRadius: 10,
+            pointRadiusUnits: "pixels",
+          }),
 
         ephemeralState.type === "lasso" &&
-        new PolygonLayer<number[]>({
-          id: DECK_LASSO_ID,
-          data: [makeRectangle(ephemeralState)],
-          visible: ephemeralState.type === "lasso",
-          pickable: false,
-          stroked: true,
-          filled: true,
-          lineWidthUnits: "pixels",
-          getPolygon: (d) => d,
-          getFillColor: LASSO_YELLOW,
-          getLineColor: LASSO_DARK_YELLOW,
-          getLineWidth: 1,
-        }),
+          new PolygonLayer<number[]>({
+            id: DECK_LASSO_ID,
+            data: [makeRectangle(ephemeralState)],
+            visible: ephemeralState.type === "lasso",
+            pickable: false,
+            stroked: true,
+            filled: true,
+            lineWidthUnits: "pixels",
+            getPolygon: (d) => d,
+            getFillColor: LASSO_YELLOW,
+            getLineColor: LASSO_DARK_YELLOW,
+            getLineWidth: 1,
+          }),
       ],
     });
 
-    this.exposeOverlayInWindow()
+    this.exposeOverlayInWindow();
 
     this.lastData = data;
     this.updateSelections(groups.selectionIds);
@@ -467,7 +479,7 @@ export default class PMap {
           },
           {
             state: "selected",
-          }
+          },
         );
         tmpSet.delete(id);
         // adds++;
@@ -482,7 +494,7 @@ export default class PMap {
             source: FEATURES_SOURCE_NAME,
             id,
           },
-          "state"
+          "state",
         );
         // removes++;
       }
@@ -495,9 +507,9 @@ export default class PMap {
     this.lastSelectionIds = newSet;
   }
 
-  private exposeOverlayInWindow () {
-    if (typeof window === "undefined") return
+  private exposeOverlayInWindow() {
+    if (typeof window === "undefined") return;
 
-    (window as any).deck = this.overlay
+    (window as any).deck = this.overlay;
   }
 }

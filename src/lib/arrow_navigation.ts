@@ -80,7 +80,7 @@ export const onArrow: KeyboardEventHandler = (e) => {
     }
 
     const target = document.querySelector(
-      `[data-focus-x="${xy.x}"][data-focus-y="${xy.y}"]`
+      `[data-focus-x="${xy.x}"][data-focus-y="${xy.y}"]`,
     );
     if (target) {
       (target as HTMLElement).focus();

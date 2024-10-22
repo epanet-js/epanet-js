@@ -3,7 +3,7 @@ import { coordEach } from "@turf/meta";
 import { AllGeoJSON } from "@turf/helpers";
 
 export const geometryToPoints = (
-  feature: Feature
+  feature: Feature,
 ): IFeature<Point | MultiPoint> | null => {
   const { geometry } = feature;
 
@@ -16,7 +16,7 @@ export const geometryToPoints = (
     (coord) => {
       coordinates.push(coord);
     },
-    true
+    true,
   );
 
   if (coordinates.length === 0) return null;

@@ -137,7 +137,7 @@ async function importAndReproject(obj: Obj) {
 }
 
 function normalizeGeometryCollection(
-  geojson: FeatureCollection | GeometryCollection
+  geojson: FeatureCollection | GeometryCollection,
 ): FeatureCollection {
   /**
    * If there is no dbf associated, Mapshaper will produce a GeometryCollection
@@ -197,7 +197,7 @@ class CShapefile implements FileType {
         const geojson = await fromPromise(importAndReproject(obj));
 
         return okResult(normalizeGeometryCollection(geojson));
-      }
+      },
     );
   }
   forwardBinary(file: ArrayBuffer, _options?: ImportOptions) {
@@ -206,7 +206,7 @@ class CShapefile implements FileType {
         const unzipped = await unzip(file);
         const fileNames = Object.keys(unzipped);
         const byExt = groupBy(fileNames, (filename) =>
-          getExtension(filename).replace(/^\./, "")
+          getExtension(filename).replace(/^\./, ""),
         );
 
         const { shp = [], cpg = [], shx = [], prj = [], dbf = [] } = byExt;
@@ -238,7 +238,7 @@ class CShapefile implements FileType {
         const geojson = await fromPromise(importAndReproject(obj));
 
         return okResult(normalizeGeometryCollection(geojson));
-      }
+      },
     );
   }
   back({ geojson }: { geojson: FeatureCollection }, _options: ExportOptions) {
@@ -268,7 +268,7 @@ class CShapefile implements FileType {
           exported.map((e: any) => {
             // eslint-disable-next-line
             return [e.filename, asArray(e.content)];
-          })
+          }),
         );
 
         const zip = await new Promise<Uint8Array>((resolve, reject) => {
@@ -282,7 +282,7 @@ class CShapefile implements FileType {
           blob: new Blob([zip]),
           name: "shapefile.zip",
         };
-      }
+      },
     );
   }
 }

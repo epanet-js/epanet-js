@@ -10,7 +10,7 @@ import type {
 
 function polygonFromRings(
   feature: IFeature,
-  rings: Position[][]
+  rings: Position[][],
 ): IFeature<LineString | MultiLineString> {
   if (rings.length === 1) {
     return {
@@ -41,7 +41,7 @@ export const polygonToLine = (feature: IFeature<Polygon | MultiPolygon>) => {
         feature,
         feature.geometry.coordinates.flatMap((ring) => {
           return ring;
-        })
+        }),
       );
     })
     .exhaustive();

@@ -14,16 +14,11 @@ export interface ContainerNode<Container, Leaf> {
   children: Array<LeafNode<Leaf> | ContainerNode<Container, Leaf>>;
 }
 
-export type extractContainer<Type> = Type extends RootNode<
-  infer Container,
-  unknown
->
-  ? Container
-  : never;
+export type extractContainer<Type> =
+  Type extends RootNode<infer Container, unknown> ? Container : never;
 
-export type extractLeaf<Type> = Type extends RootNode<unknown, infer Leaf>
-  ? Leaf
-  : never;
+export type extractLeaf<Type> =
+  Type extends RootNode<unknown, infer Leaf> ? Leaf : never;
 
 function makeIndex<X>(items: X[], idMember: keyof X) {
   const m = new Map<null | string, X[]>();
@@ -39,7 +34,7 @@ function makeIndex<X>(items: X[], idMember: keyof X) {
 }
 
 export function collectChildren<Container, Leaf>(
-  container: RootNode<Container, Leaf> | ContainerNode<Container, Leaf>
+  container: RootNode<Container, Leaf> | ContainerNode<Container, Leaf>,
 ): Set<ContainerNode<Container, Leaf> | LeafNode<Leaf>> {
   const set = new Set<ContainerNode<Container, Leaf> | LeafNode<Leaf>>();
 
@@ -47,7 +42,7 @@ export function collectChildren<Container, Leaf>(
     node:
       | RootNode<Container, Leaf>
       | ContainerNode<Container, Leaf>
-      | LeafNode<Leaf>
+      | LeafNode<Leaf>,
   ) {
     if (node.type !== "root") {
       set.add(node);
@@ -71,7 +66,7 @@ export function collectChildren<Container, Leaf>(
 export function pullNode<Container, Leaf>(
   tree: RootNode<Container, Leaf>,
   idMember: keyof Container,
-  id: string
+  id: string,
 ) {
   type ChildType = LeafNode<Leaf> | ContainerNode<Container, Leaf>;
   type Path = ContainerNode<Container, Leaf>[];
@@ -83,7 +78,7 @@ export function pullNode<Container, Leaf>(
     node: ChildType,
     idMember: keyof Container,
     id: string,
-    _path: Path
+    _path: Path,
   ) {
     if (node.type === "container") {
       _path = _path.concat(node);
@@ -178,7 +173,7 @@ export function buildTree<Container, Leaf>({
           data: container,
           children: getChildren(container),
         };
-      }
+      },
     );
 
     return ([] as ChildType[]).concat(leafNodes).concat(containerNodes);

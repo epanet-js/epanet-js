@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/jotai";
 import { groupFiles } from "src/lib/group_files";
 import { useQuery } from "react-query";
-import {captureError} from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 export function useOpenFiles() {
   const setDialogState = useSetAtom(dialogAtom);

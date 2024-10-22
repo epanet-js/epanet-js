@@ -40,7 +40,7 @@ export function useZoomTo() {
           });
         });
       },
-      [map]
-    )
+      [map],
+    ),
   );
 }

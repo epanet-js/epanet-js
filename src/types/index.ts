@@ -138,7 +138,7 @@ export const UWrappedFeature = {
   filterMapByFolder(
     featureMap: FeatureMap,
     folderMap: FolderMap,
-    folderId: string | null
+    folderId: string | null,
   ): {
     filteredFeatures: FeatureMap;
     filteredFolders: FolderMap;
@@ -161,7 +161,7 @@ export const UWrappedFeature = {
     const filteredFolders = new Map(
       Array.from(folderMap.entries()).filter(([id]) => {
         return folderIds.has(id);
-      })
+      }),
     );
 
     filteredFolders.set(folderId, {
@@ -177,7 +177,7 @@ export const UWrappedFeature = {
   mapToFeatureCollection(
     featureMap: FeatureMap,
     folderMap: FolderMap,
-    folderId: string | null
+    folderId: string | null,
   ): FeatureCollection {
     const folderIds = folderId && getFoldersInTree(folderMap, folderId);
     const features: FeatureCollection["features"] = [];
@@ -226,7 +226,7 @@ const WrappedFeatureLocal = z.object({
             type: z.enum(["GeometryCollection"]),
             geometries: z.array(z.any()),
           }),
-        ])
+        ]),
       ),
       id: z.optional(z.union([z.string(), z.number()])),
       properties: z.nullable(z.object({}).passthrough()),
@@ -254,7 +254,7 @@ const SymbolizationCategorical = SymbolizationBaseInternal.extend({
       z.object({
         input: z.union([z.string(), z.number().int()]),
         output: z.string(),
-      })
+      }),
     )
     .min(1)
     .transform((stops) => {
@@ -308,7 +308,7 @@ export function tryUpgrading(symbolization: any): Maybe<ISymbolization> {
               output: p.max.output,
             },
           ],
-        })
+        }),
       );
     }
   }
@@ -352,7 +352,7 @@ const SymbolizationRamp = SymbolizationBaseInternal.extend({
       z.object({
         input: z.number(),
         output: z.string(),
-      })
+      }),
     )
     .transform((stops) => {
       return uniqueStops(stops).sort((a, b) => {

@@ -14,12 +14,12 @@ export class COSM implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardKML() {
         const osmtogeojson = await import("@placemarkio/osmtogeojson").then(
-          (m) => m.default
+          (m) => m.default,
         );
         const dom = await toDom(text);
         const geojson = osmtogeojson(dom);
         return okResult(geojson);
-      }
+      },
     );
   }
   forwardBinary(file: ArrayBuffer, _options: ImportOptions) {

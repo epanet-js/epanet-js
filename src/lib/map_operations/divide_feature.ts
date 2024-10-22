@@ -3,7 +3,7 @@ import { MomentInput } from "src/lib/persistence/moment";
 import type { Feature, IWrappedFeature } from "src/types";
 
 export function divideFeatures(
-  features: IWrappedFeature[]
+  features: IWrappedFeature[],
 ): Pick<MomentInput, "putFeatures" | "deleteFeatures"> {
   let putFeatures: MomentInput["putFeatures"] = [];
   const deleteFeatures: MomentInput["deleteFolders"] = [];
@@ -21,7 +21,7 @@ export function divideFeatures(
           folderId: feature.folderId,
           feature: newFeature,
         };
-      })
+      }),
     );
   }
 

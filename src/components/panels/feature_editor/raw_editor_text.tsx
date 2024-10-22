@@ -67,7 +67,7 @@ export const FeatureText = memo(function FeatureText({
           })
           .catch((e) => captureError(e));
       }),
-    [at, id, folderId, transact]
+    [at, id, folderId, transact],
   );
 
   useEffect(() => {

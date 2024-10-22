@@ -8,7 +8,7 @@ export function lockDirection(lastCoord: Position, nextCoord: Position): Pos2 {
   // Use euclidean projected coordinates for this
   const angleBetween = Math.atan2(
     lastCoord[1] - nextCoord[1],
-    lastCoord[0] - nextCoord[0]
+    lastCoord[0] - nextCoord[0],
   );
 
   if (
@@ -29,7 +29,7 @@ export function useShiftHeld() {
       shiftHeld.current = e.shiftKey;
     },
     { keydown: true, keyup: true },
-    []
+    [],
   );
 
   return shiftHeld;
@@ -46,7 +46,7 @@ export function useSpaceHeld() {
       spaceHeld.current = e.type === "keydown";
     },
     { keydown: true, keyup: true },
-    []
+    [],
   );
 
   return spaceHeld;

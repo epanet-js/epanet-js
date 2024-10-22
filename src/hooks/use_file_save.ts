@@ -26,7 +26,7 @@ export default function useFileSave() {
                     description: "Save file",
                   },
                   fileInfo.handle as unknown as FileSystemFileHandle,
-                  true
+                  true,
                 );
                 send("show");
                 if (newHandle) {
@@ -36,12 +36,12 @@ export default function useFileSave() {
                   });
                 }
                 return true;
-              })
+              }),
             );
-          }
+          },
         );
       },
-      [send]
-    )
+      [send],
+    ),
   );
 }

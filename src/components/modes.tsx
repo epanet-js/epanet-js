@@ -44,7 +44,7 @@ const MODE_OPTIONS = [
     hotkey: "5",
     Icon: Line,
     Menu: null,
-  }
+  },
 ] as const;
 
 export default memo(function Modes({
@@ -102,7 +102,7 @@ export default memo(function Modes({
             ) : null}
           </MenuAction>
         );
-        return menuAction
+        return menuAction;
       })}
     </div>
   );

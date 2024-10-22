@@ -11,13 +11,13 @@ import { useHotkeys } from "src/integrations/hotkeys";
 import clsx from "clsx";
 
 const FeatureTable = dynamic(
-  () => import("src/components/panels/feature_table")
+  () => import("src/components/panels/feature_table"),
 );
 import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { FeatureEditorFolderInner } from "./feature_editor/feature_editor_folder";
 const SymbolizationEditor = dynamic(
-  () => import("src/components/panels/symbolization_editor")
+  () => import("src/components/panels/symbolization_editor"),
 );
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 
@@ -49,7 +49,7 @@ function Tab({
           border-gray-200 dark:border-black
           text-gray-500 dark:text-gray-400
           hover:text-black dark:hover:text-gray-200
-          focus:text-black`
+          focus:text-black`,
       )}
       {...attributes}
     >
@@ -183,7 +183,7 @@ export const Panel = memo(function PanelInner({
     () => {
       setTab(nextTab(tabOrder, activeTab));
     },
-    [activeTab]
+    [activeTab],
   );
 
   useHotkeys(
@@ -191,7 +191,7 @@ export const Panel = memo(function PanelInner({
     () => {
       setTab(previousTab(tabOrder, activeTab));
     },
-    [activeTab]
+    [activeTab],
   );
 
   return (

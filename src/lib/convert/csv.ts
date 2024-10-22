@@ -20,7 +20,7 @@ export class CCSV implements FileType {
   forwardBinary(
     file: ArrayBuffer,
     options: ImportOptions,
-    progress: ProgressCb
+    progress: ProgressCb,
   ) {
     return readAsText(file).chain((text) => {
       return CSV.forwardString(text, options, progress);
@@ -34,7 +34,7 @@ export class CCSV implements FileType {
         );
         const geojson = await csvToGeoJSON(text, options.csvOptions, progress);
         return okResult(geojson);
-      }
+      },
     );
   }
   back({ geojson }: { geojson: FeatureCollection }, options: ExportOptions) {
@@ -59,9 +59,9 @@ export class CCSV implements FileType {
             type: "FeatureCollection",
             features: [feature],
           },
-          options
+          options,
         );
-      }
+      },
     );
   }
 }

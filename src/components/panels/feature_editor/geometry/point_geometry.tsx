@@ -20,7 +20,7 @@ export default function PointGeometry({
 
   const [longitude, latitude] = getCoordinates(
     wrappedFeature.feature,
-    vertexId
+    vertexId,
   );
 
   const longitudeProps = useResettable({

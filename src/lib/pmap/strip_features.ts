@@ -5,7 +5,7 @@ import { PreviewProperty } from "src/state/jotai";
 
 export function pick(
   properties: Feature["properties"],
-  propertyNames: readonly string[]
+  propertyNames: readonly string[],
 ) {
   // Bail if properties is null.
   if (!properties) return properties;
@@ -30,7 +30,7 @@ export function pick(
 export const stripFeatureExcept = function stripFeature(
   feature: IWrappedFeature,
   id: number,
-  properties: readonly string[]
+  properties: readonly string[],
 ): Feature {
   return {
     type: "Feature",
@@ -82,6 +82,6 @@ export const stripFeature = function ({
   return stripFeatureExcept(
     wrappedFeature,
     UIDMap.getIntID(idMap, wrappedFeature.id),
-    keepProperties
+    keepProperties,
   );
 };

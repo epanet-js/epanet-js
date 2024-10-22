@@ -16,7 +16,7 @@ export class CGeoTIFF implements FileType {
         const { getGeotiffExtent } = await import("src/vendor/geotiff");
         const extent = await getGeotiffExtent(file);
         return okResult(extent);
-      }
+      },
     );
   }
 }

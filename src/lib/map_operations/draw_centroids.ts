@@ -55,7 +55,7 @@ export function drawCentroids(wrappedFeatures: IWrappedFeature[]): {
         }
       }
       return [];
-    }
+    },
   );
 
   return {

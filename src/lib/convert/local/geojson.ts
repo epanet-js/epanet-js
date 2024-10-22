@@ -7,7 +7,7 @@ import { ExportOptions } from "..";
 
 export function wrappedFeatureToExportable(
   wrappedFeature: IWrappedFeature,
-  options: ExportOptions["geojsonOptions"]
+  options: ExportOptions["geojsonOptions"],
 ) {
   let feature = cloneDeep(wrappedFeature.feature);
   const { id, folderId } = wrappedFeature;
@@ -33,7 +33,7 @@ export function wrappedFeatureToExportable(
 
 export function wrappedFeaturesToFeatureCollection(
   wrappedFeatures: IWrappedFeature[],
-  options: ExportOptions["geojsonOptions"]
+  options: ExportOptions["geojsonOptions"],
 ) {
   const features = wrappedFeatures.map((wrappedFeature) => {
     return wrappedFeatureToExportable(wrappedFeature, options);
@@ -49,14 +49,14 @@ export function wrappedFeaturesToFeatureCollection(
 
 export function geojsonToString(
   featureMap: FeatureMap,
-  options: ExportOptions["geojsonOptions"]
+  options: ExportOptions["geojsonOptions"],
 ) {
   const featureCollection: FeatureCollection = {
     type: "FeatureCollection",
     features: Array.from(featureMap.values(), (wrappedFeature) => {
       return rewindFeature(
         wrappedFeatureToExportable(wrappedFeature, options),
-        options?.winding
+        options?.winding,
       );
     }),
   };

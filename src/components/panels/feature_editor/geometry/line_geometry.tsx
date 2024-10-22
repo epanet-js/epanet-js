@@ -19,7 +19,7 @@ export function LineGeometry({
     geometry as unknown as IFeature<LineString | MultiLineString>,
     {
       units: user.lengthUnits,
-    }
+    },
   );
 
   return <LengthDisplay label="Length in" length={length} />;
@@ -48,7 +48,7 @@ export function LineGeometryMulti({
         },
         {
           units: user.lengthUnits,
-        }
+        },
       );
     }
   }

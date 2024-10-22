@@ -22,7 +22,7 @@ type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
 export function wrappedFeaturesFromMapFeatures(
   clickedFeatures: mapboxgl.MapboxGeoJSONFeature[],
   featureMap: FeatureMap,
-  idMap: IDMap
+  idMap: IDMap,
 ) {
   const set = new Set<IWrappedFeature>();
   const ids: { id: Id; wrappedFeature: IWrappedFeature }[] = [];
@@ -61,7 +61,7 @@ export function newPolygonFromClickEvent(e: MouseOrTouchEvent): Polygon {
 
 export function isLassoTiny(
   ephemeralState: EphemeralEditingStateLasso,
-  map: mapboxgl.Map
+  map: mapboxgl.Map,
 ) {
   const tl = map.project(ephemeralState.box[0]);
   const br = map.project(ephemeralState.box[1]);
@@ -90,7 +90,7 @@ export function fuzzyClick(
     featureMap: FeatureMap;
     folderMap: FolderMap;
     pmap: PMap;
-  }
+  },
 ) {
   const map = e.target;
 

@@ -19,7 +19,7 @@ export function FeatureEditorVertex({
 
   const coordinatesMaybe = getCoordinatesMaybe(
     wrappedFeature.feature,
-    vertexId
+    vertexId,
   );
 
   const [longitude, latitude] = coordinatesMaybe.orDefault([0, 0]);

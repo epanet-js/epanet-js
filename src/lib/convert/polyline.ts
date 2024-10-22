@@ -1,5 +1,10 @@
 import readAsText from "src/lib/read_as_text";
-import type { Feature, FeatureCollection, IFeature, LineString } from "src/types";
+import type {
+  Feature,
+  FeatureCollection,
+  IFeature,
+  LineString,
+} from "src/types";
 import type { ExportOptions, ExportResult, FileType, ImportOptions } from ".";
 import { stringToBlob, ConvertResult, okResult } from "./utils";
 import { ConvertError } from "src/lib/errors";
@@ -31,7 +36,7 @@ export class CPolyline implements FileType {
             },
           ],
         });
-      }
+      },
     );
   }
   back({ geojson }: { geojson: FeatureCollection }, _options?: ExportOptions) {
@@ -44,14 +49,14 @@ export class CPolyline implements FileType {
 
       if (!lineStringFeature) {
         return throwE(
-          new ConvertError("Data does not contain a LineString to convert")
+          new ConvertError("Data does not contain a LineString to convert"),
         );
       }
 
       const polyline = await import("@placemarkio/polyline");
       return {
         blob: stringToBlob(
-          polyline.geoJSONToPolyline(lineStringFeature.geometry)
+          polyline.geoJSONToPolyline(lineStringFeature.geometry),
         ),
         name: "line.poly",
       };
@@ -64,11 +69,11 @@ export class CPolyline implements FileType {
         const { geometry } = feature;
         if (geometry?.type !== "LineString") {
           return throwE(
-            new ConvertError("Can only convert lines to polylines")
+            new ConvertError("Can only convert lines to polylines"),
           );
         }
         return polyline.geoJSONToPolyline(geometry);
-      }
+      },
     );
   }
 }

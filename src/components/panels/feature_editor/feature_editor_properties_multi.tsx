@@ -45,13 +45,13 @@ export function FeatureEditorPropertiesMulti({
       updatePropertyValue(feature, {
         key,
         value,
-      })
+      }),
     );
   };
 
   const updateKey = (key: string, newKey: string) => {
     void updateFeatures((feature) =>
-      updatePropertyKey(feature, { key, newKey })
+      updatePropertyKey(feature, { key, newKey }),
     );
   };
 
@@ -73,14 +73,14 @@ export function FeatureEditorPropertiesMulti({
 
   const addRow = (key: string, value: string) => {
     void updateFeatures((feature) =>
-      updatePropertyValue(feature, { key, value })
+      updatePropertyValue(feature, { key, value }),
     ).then(() => {
       if (!localOrder.current.includes(key)) localOrder.current.push(key);
     });
   };
 
   const pairs = sortBy(Array.from(propertyMap.entries()), ([key]) =>
-    localOrder.current.indexOf(key)
+    localOrder.current.indexOf(key),
   );
 
   return (

@@ -125,7 +125,7 @@ function getScale(
   map: mapboxgl.Map,
   options: {
     unit: ScaleUnit;
-  }
+  },
 ): {
   maxDistance: number;
   unit: string;
@@ -176,14 +176,14 @@ function getRoundNum(num: number) {
     d >= 10
       ? 10
       : d >= 5
-      ? 5
-      : d >= 3
-      ? 3
-      : d >= 2
-      ? 2
-      : d >= 1
-      ? 1
-      : getDecimalRoundNum(d);
+        ? 5
+        : d >= 3
+          ? 3
+          : d >= 2
+            ? 2
+            : d >= 1
+              ? 1
+              : getDecimalRoundNum(d);
 
   return pow10 * d;
 }
@@ -206,7 +206,7 @@ function ScaleControl() {
           setMeasurement(
             getScale(e.target, {
               unit: scaleUnit,
-            })
+            }),
           );
         });
       }, 50);
@@ -214,7 +214,7 @@ function ScaleControl() {
       setMeasurement(
         getScale(map.map, {
           unit: scaleUnit,
-        })
+        }),
       );
       return () => {
         if (map) {

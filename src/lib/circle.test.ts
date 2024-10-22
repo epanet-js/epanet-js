@@ -10,7 +10,7 @@ describe("makeCircleNative", () => {
         center: [0, 0],
         value: 10,
         type: CIRCLE_TYPE.DEGREES,
-      })
+      }),
     ).toMatchSnapshot();
   });
   it("geodesic", () => {
@@ -19,7 +19,7 @@ describe("makeCircleNative", () => {
         center: [0, 0],
         value: 10,
         type: CIRCLE_TYPE.GEODESIC,
-      })
+      }),
     ).toMatchSnapshot();
   });
   it("mercator", () => {

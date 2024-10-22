@@ -31,7 +31,7 @@ test("stripFeature", () => {
       wrappedFeature: wrappedFeatures[0],
       idMap,
       keepProperties: [],
-    })
+    }),
   ).toMatchInlineSnapshot(`
     {
       "geometry": {
@@ -62,7 +62,7 @@ test("stripFeature", () => {
       wrappedFeature: wrappedFeatures[0],
       idMap,
       keepProperties: ["x"],
-    })
+    }),
   ).toMatchInlineSnapshot(`
     {
       "geometry": {
@@ -95,7 +95,7 @@ test("stripFeature", () => {
       wrappedFeature: wrappedFeatures[0],
       idMap,
       keepProperties: SIMPLESTYLE_PROPERTIES.slice(),
-    })
+    }),
   ).toMatchInlineSnapshot(`
     {
       "geometry": {

@@ -67,7 +67,7 @@ export function ColorPopover({
         className={clsx(
           E.sharedOutline("default"),
           E.sharedPadding(_size),
-          "flex items-center w-full gap-x-2 font-mono dark:text-white"
+          "flex items-center w-full gap-x-2 font-mono dark:text-white",
         )}
       >
         <div

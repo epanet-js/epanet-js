@@ -82,7 +82,7 @@ export function splitFeatureGroups({
           wrappedFeature: feature,
           keepProperties,
           idMap,
-        })
+        }),
       );
     }
   }
@@ -109,7 +109,7 @@ export function splitFeatureGroups({
       return {
         synthetic: generateSyntheticPoints(
           selectedFeature,
-          UIDMap.getIntID(idMap, id)
+          UIDMap.getIntID(idMap, id),
         ),
         ephemeral: [fixDegenerates(selectedFeature)],
         features,
@@ -124,7 +124,7 @@ export function splitFeatureGroups({
       // Performance optimization: using .includes()
       // here with an array may be slow.
       const selectionIds = new Set<RawId>(
-        selection.ids.map((uuid) => UIDMap.getIntID(idMap, uuid))
+        selection.ids.map((uuid) => UIDMap.getIntID(idMap, uuid)),
       );
       return {
         synthetic: EMPTY_ARRAY,

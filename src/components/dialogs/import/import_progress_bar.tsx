@@ -3,11 +3,11 @@ import classed from "classed-components";
 import { Progress } from "src/lib/convert";
 
 const StyledProgress = classed(ProgressPrimitive.Root)(
-  `relative h-2 rounded-full overflow-hidden bg-gray-100`
+  `relative h-2 rounded-full overflow-hidden bg-gray-100`,
 );
 
 const StyledIndicator = classed(ProgressPrimitive.Indicator)(
-  `bg-purple-500 h-2 w-100 transition-transform`
+  `bg-purple-500 h-2 w-100 transition-transform`,
 );
 
 export function ImportProgressBar({ progress }: { progress: Progress | null }) {

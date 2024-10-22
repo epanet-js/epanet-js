@@ -28,7 +28,7 @@ export class CKML implements FileType {
           notes: [],
           root,
         };
-      }
+      },
     );
   }
   back(
@@ -41,7 +41,7 @@ export class CKML implements FileType {
       featureMap: FeatureMap;
       folderMap: FolderMap;
     },
-    _options: ExportOptions
+    _options: ExportOptions,
   ) {
     return EitherAsync<ConvertError, ExportResult>(async ({ throwE }) => {
       const { foldersToKML } = await import("@placemarkio/tokml");

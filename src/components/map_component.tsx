@@ -56,7 +56,7 @@ mapboxgl.setRTLTextPlugin(
   (_err) => {
     // console.error(err);
   },
-  true // Lazy load the plugin
+  true, // Lazy load the plugin
 );
 
 export interface ContextInfo {
@@ -65,21 +65,28 @@ export interface ContextInfo {
   position: Pos2;
 }
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAP_HANLDERS=== "true"
-const noop = () => null
-const debug = isDebugOn ? (
-  e: mapboxgl.MapboxEvent<any>,
-  mode:Mode, selection: Sel,
-  dragTargetRef: MutableRefObject<DragTarget | null>,
-  method: string) => {
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify({
-      event: e.type,
-      mode,
-      selection,
-      dragTargetRef,
-      method
-  }))} : noop
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAP_HANLDERS === "true";
+const noop = () => null;
+const debug = isDebugOn
+  ? (
+      e: mapboxgl.MapboxEvent<any>,
+      mode: Mode,
+      selection: Sel,
+      dragTargetRef: MutableRefObject<DragTarget | null>,
+      method: string,
+    ) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        JSON.stringify({
+          event: e.type,
+          mode,
+          selection,
+          dragTargetRef,
+          method,
+        }),
+      );
+    }
+  : noop;
 
 export const MapComponent = memo(function MapComponent({
   setMap,
@@ -141,7 +148,7 @@ export const MapComponent = memo(function MapComponent({
             updateMeta({
               layerId: null,
               defaultLayer: null,
-            })
+            }),
           ).then(() => {
             return transact({
               ...fMoment("Upgrade layers"),
@@ -161,7 +168,7 @@ export const MapComponent = memo(function MapComponent({
             loading: "Upgrading layers",
             success: "Upgraded layers",
             error: "Error migrating layers",
-          }
+          },
         )
         .catch((e) => {
           captureException(e);
@@ -225,7 +232,7 @@ export const MapComponent = memo(function MapComponent({
         })
         .catch((e) => captureError(e));
     },
-    [map, folderMap, symbolization, data, layerConfigs, ephemeralState, label]
+    [map, folderMap, symbolization, data, layerConfigs, ephemeralState, label],
   );
 
   const throttledMovePointer = useMemo(() => {
@@ -271,15 +278,15 @@ export const MapComponent = memo(function MapComponent({
 
   const newHandlers: PMapHandlers = {
     onClick: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'click')
+      debug(e, mode.mode, selection, dragTargetRef, "click");
       HANDLERS[mode.mode].click(e);
     },
     onMapMouseDown: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseDown')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapMouseDown");
       HANDLERS[mode.mode].down(e);
     },
     onMapTouchStart: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchStart')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapTouchStart");
       const handler = HANDLERS[mode.mode];
       if (handler.touchstart) {
         handler.touchstart(e);
@@ -288,11 +295,11 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapMouseUp: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseUp')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapMouseUp");
       HANDLERS[mode.mode].up(e);
     },
     onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchEnd')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapTouchEnd");
 
       const handler = HANDLERS[mode.mode];
       if (handler.touchend) {
@@ -302,7 +309,7 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapTouchMove: (e: mapboxgl.MapTouchEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapTouchMove')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapTouchMove");
 
       const handler = HANDLERS[mode.mode];
       if (handler.touchmove) {
@@ -312,7 +319,7 @@ export const MapComponent = memo(function MapComponent({
       }
     },
     onMapMouseMove: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMapMouseMove')
+      debug(e, mode.mode, selection, dragTargetRef, "onMapMouseMove");
 
       HANDLERS[mode.mode].move(e);
       const map = mapRef.current?.map;
@@ -323,15 +330,15 @@ export const MapComponent = memo(function MapComponent({
       };
     },
     onDoubleClick: (e: mapboxgl.MapMouseEvent) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'doubleClick')
+      debug(e, mode.mode, selection, dragTargetRef, "doubleClick");
 
       HANDLERS[mode.mode].double(e);
     },
-    onMoveEnd(e: mapboxgl.MapboxEvent& mapboxgl.EventData) {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMouseMoveEnd')
+    onMoveEnd(e: mapboxgl.MapboxEvent & mapboxgl.EventData) {
+      debug(e, mode.mode, selection, dragTargetRef, "onMouseMoveEnd");
     },
     onMove: throttle((e: mapboxgl.MapboxEvent & mapboxgl.EventData) => {
-      debug(e, mode.mode, selection, dragTargetRef, 'onMove')
+      debug(e, mode.mode, selection, dragTargetRef, "onMove");
       const center = e.target.getCenter().toArray();
       const bounds = e.target.getBounds().toArray();
       return {
@@ -347,7 +354,7 @@ export const MapComponent = memo(function MapComponent({
       HANDLERS[mode.mode].enter();
     },
     keybindingOptions,
-    [HANDLERS, mode]
+    [HANDLERS, mode],
   );
 
   mapHandlers.current = newHandlers;
@@ -363,7 +370,7 @@ export const MapComponent = memo(function MapComponent({
             [event.pageX - mapDivBox.left, event.pageY - mapDivBox.top],
             {
               layers: CLICKABLE_LAYERS,
-            }
+            },
           );
 
           const position = map.map
@@ -379,15 +386,15 @@ export const MapComponent = memo(function MapComponent({
             features: wrappedFeaturesFromMapFeatures(
               featureUnderMouse,
               featureMap,
-              rep.idMap
+              rep.idMap,
             ),
             position,
             selectedFeatures,
           });
         }
       },
-      [mapDivRef, rep]
-    )
+      [mapDivRef, rep],
+    ),
   );
 
   const onOpenChange = useCallback(
@@ -399,7 +406,7 @@ export const MapComponent = memo(function MapComponent({
         return contextInfo;
       });
     },
-    [setContextInfo]
+    [setContextInfo],
   );
 
   return (
@@ -416,12 +423,11 @@ export const MapComponent = memo(function MapComponent({
                     mode.mode === Mode.DRAW_POLYGON ||
                     mode.mode === Mode.DRAW_PIPE ||
                     mode.mode === Mode.DRAW_LINE,
-                  "placemark-cursor-point":
-                    mode.mode === Mode.DRAW_JUNCTION,
+                  "placemark-cursor-point": mode.mode === Mode.DRAW_JUNCTION,
                   "placemark-cursor-crosshair":
                     mode.mode === Mode.DRAW_RECTANGLE ||
                     mode.mode === Mode.LASSO,
-                }
+                },
           )}
           ref={mapDivRef}
           data-testid="map"

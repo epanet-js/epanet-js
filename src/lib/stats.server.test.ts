@@ -4,7 +4,7 @@ import { fcLineAndPoly, wrap } from "test/helpers";
 import { collectStatistics } from "./stats";
 
 test("collectStatistics", () => {
-  expect(collectStatistics([])).toMatchInlineSnapshot('[]');
+  expect(collectStatistics([])).toMatchInlineSnapshot("[]");
   expect(collectStatistics(wrap(fcLineAndPoly))).toMatchInlineSnapshot(`
     [
       {

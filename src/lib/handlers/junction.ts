@@ -1,12 +1,17 @@
 import { USelection } from "src/state";
 import type { HandlerContext, Point } from "src/types";
-import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
+import {
+  modeAtom,
+  Mode,
+  selectionAtom,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
-import {trackUserAction} from "src/infra/user-tracking";
-import {captureError} from "src/infra/error-tracking";
+import { trackUserAction } from "src/infra/user-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 export function useJunctionHandlers({
   dragTargetRef,
@@ -40,7 +45,7 @@ export function useJunctionHandlers({
 
       const id = putFeature.id;
 
-      trackUserAction('JUNCTION_ADDED')
+      trackUserAction("JUNCTION_ADDED");
       transact({
         note: "Draw junction",
         putFeatures: [putFeature],

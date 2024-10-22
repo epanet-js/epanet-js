@@ -21,7 +21,7 @@ export function useLassoHandlers({
     click: useAtomCallback(
       useCallback((_get, set) => {
         set(modeAtom, { mode: Mode.NONE });
-      }, [])
+      }, []),
     ),
     move: useAtomCallback(
       useCallback(
@@ -58,8 +58,8 @@ export function useLassoHandlers({
           }
           e.preventDefault();
         },
-        [flatbushInstance]
-      )
+        [flatbushInstance],
+      ),
     ),
     down: noop,
     up: useAtomCallback((get, set, e) => {
@@ -125,7 +125,7 @@ export function useLassoHandlers({
                 : {
                     type: "multi",
                     ids,
-                  }
+                  },
             );
           }
           break;

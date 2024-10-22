@@ -24,7 +24,7 @@ import { UIDMap } from "src/lib/id_mapper";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { useSpaceHeld } from "src/hooks/use_held";
-import {captureError, captureWarning} from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
   setFlatbushInstance,
@@ -78,17 +78,17 @@ export function useNoneHandlers({
             // Instead, act as if you didn’t have a single
             // feature selection.
             index = generateFeaturesFlatbushInstance(
-              filterLockedFeatures({ featureMap, folderMap })
+              filterLockedFeatures({ featureMap, folderMap }),
             );
           } else {
             index = generateVertexFlatbushInstance(
               feature,
-              UIDMap.getIntID(idMap, selection.id)
+              UIDMap.getIntID(idMap, selection.id),
             );
           }
         } else {
           index = generateFeaturesFlatbushInstance(
-            filterLockedFeatures({ featureMap, folderMap })
+            filterLockedFeatures({ featureMap, folderMap }),
           );
         }
 
@@ -128,7 +128,7 @@ export function useNoneHandlers({
             selection,
             featureMap,
             folderMap,
-          })
+          }),
         );
         e.preventDefault();
         return;
@@ -185,7 +185,7 @@ export function useNoneHandlers({
         });
         void startSnapshot(wrappedFeature);
         transact({
-          note: 'Splice a midpoint',
+          note: "Splice a midpoint",
           putFeatures: [
             {
               ...wrappedFeature,
@@ -228,20 +228,20 @@ export function useNoneHandlers({
       // of being able to move multiple features, we needed
       // the space key held when the drag started.
       if (Array.isArray(dragTarget)) {
-          const dx = lastPoint.current.lng - e.lngLat.lng;
-          const dy = lastPoint.current.lat - e.lngLat.lat;
-          lastPoint.current = e.lngLat;
-          return transact({
-            note: 'Move features',
-            putFeatures: dragTarget.map((uuid) => {
-              const feature = featureMap.get(uuid)!;
-              return {
-                ...feature,
-                feature: ops.moveFeature(feature.feature, dx, dy),
-              };
-            }),
-            quiet: true,
-          });
+        const dx = lastPoint.current.lng - e.lngLat.lng;
+        const dy = lastPoint.current.lat - e.lngLat.lat;
+        lastPoint.current = e.lngLat;
+        return transact({
+          note: "Move features",
+          putFeatures: dragTarget.map((uuid) => {
+            const feature = featureMap.get(uuid)!;
+            return {
+              ...feature,
+              feature: ops.moveFeature(feature.feature, dx, dy),
+            };
+          }),
+          quiet: true,
+        });
       } else if (selection.type === "single") {
         // Otherwise, we are moving one vertex.
         const id = decodeId(dragTarget);
@@ -274,7 +274,7 @@ export function useNoneHandlers({
             }
 
             return transact({
-              note: 'Move point',
+              note: "Move point",
               putFeatures: [
                 {
                   ...feature,

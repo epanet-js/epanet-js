@@ -139,7 +139,7 @@ describe("isRectangleNonzero", () => {
           ],
           type: "Polygon",
         },
-      })
+      }),
     ).toBeFalsy();
   });
   it("is true for a real rectangle", () => {
@@ -159,7 +159,7 @@ describe("isRectangleNonzero", () => {
           ],
           type: "Polygon",
         },
-      })
+      }),
     ).toBeTruthy();
     expect(
       isRectangleNonzero({
@@ -177,7 +177,7 @@ describe("isRectangleNonzero", () => {
           ],
           type: "Polygon",
         },
-      })
+      }),
     ).toBeTruthy();
   });
 });
@@ -194,17 +194,17 @@ describe("extent", () => {
   it("#addBbox", () => {
     expect(addBbox(fcLineString.features[0])).toHaveProperty(
       "bbox",
-      [0, 0, 2, 2]
+      [0, 0, 2, 2],
     );
   });
 
   it("#extendExtent", () => {
     expect(extendExtent(Nothing, getExtent(fcMultiPoint))).toEqual(
-      Just([0, 0, 1, 1])
+      Just([0, 0, 1, 1]),
     );
     expect(extendExtent(Nothing, Nothing)).toEqual(Nothing);
     expect(
-      extendExtent(getExtent(fcMultiPoint), getExtent(fcLineString))
+      extendExtent(getExtent(fcMultiPoint), getExtent(fcLineString)),
     ).toEqual(Just([0, 0, 2, 2]));
   });
 
@@ -220,7 +220,7 @@ describe("extent", () => {
             [1, 1],
           ],
         ],
-      })
+      }),
     ).toEqual(Just([0, 0, 1, 1]));
 
     expect(getExtent(fcLineString)).toEqual(Just([0, 0, 2, 2]));
@@ -240,7 +240,7 @@ describe("extent", () => {
             },
           },
         ],
-      })
+      }),
     ).toEqual(Just([0, 0, 0, 0]));
 
     expect(
@@ -248,7 +248,7 @@ describe("extent", () => {
         type: "Feature",
         properties: null,
         geometry: null,
-      })
+      }),
     ).toEqual(Nothing);
 
     expect(
@@ -259,7 +259,7 @@ describe("extent", () => {
           type: "Point",
           coordinates: [0, 0],
         },
-      })
+      }),
     ).toEqual(Just([0, 0, 0, 0]));
 
     expect(
@@ -271,21 +271,21 @@ describe("extent", () => {
             coordinates: [0, 0],
           },
         ],
-      })
+      }),
     ).toEqual(Just([0, 0, 0, 0]));
 
     expect(
       getExtent({
         type: "Point",
         coordinates: [0, 0],
-      })
+      }),
     ).toEqual(Just([0, 0, 0, 0]));
   });
 });
 
 test("bboxToPolygon", () => {
   expect(getExtent(bboxToPolygon([-2, -4, 2, 4]))).toEqual(
-    Just([-2, -4, 2, 4])
+    Just([-2, -4, 2, 4]),
   );
 });
 
@@ -308,7 +308,7 @@ describe("e6", () => {
       e6geojson({
         type: "Point",
         coordinates: [1 / 3, 1 / 3],
-      })
+      }),
     ).toEqual({
       type: "Point",
       coordinates: [0.333333, 0.333333],
@@ -318,7 +318,7 @@ describe("e6", () => {
       e6geojson({
         type: "MultiPoint",
         coordinates: [[1 / 3, 1 / 3]],
-      })
+      }),
     ).toEqual({
       type: "MultiPoint",
       coordinates: [[0.333333, 0.333333]],
@@ -339,7 +339,7 @@ describe("e6", () => {
       e6geojson({
         type: "GeometryCollection",
         geometries: [lsInput],
-      })
+      }),
     ).toEqual({
       type: "GeometryCollection",
       geometries: [lsOutput],
@@ -358,7 +358,7 @@ describe("e6", () => {
           type: "LineString",
           coordinates: lsCoordsIn,
         },
-      })
+      }),
     ).toEqual({
       type: "Feature",
       properties: null,
@@ -376,7 +376,7 @@ describe("e6", () => {
           type: "MultiLineString",
           coordinates: [lsCoordsIn],
         },
-      })
+      }),
     ).toEqual({
       type: "Feature",
       properties: null,
@@ -398,10 +398,10 @@ describe("removeDegenerates", () => {
     expect(removeDegenerates(g(fcMultiPoly))).toEqual(g(fcMultiPoly));
     expect(removeDegenerates(g(fcMultiPoint))).toEqual(g(fcMultiPoint));
     expect(removeDegenerates(g(fcMultiLineString))).toEqual(
-      g(fcMultiLineString)
+      g(fcMultiLineString),
     );
     expect(removeDegenerates(g(fcGeometryCollection))).toEqual(
-      g(fcGeometryCollection)
+      g(fcGeometryCollection),
     );
     expect(removeDegenerates(g(fcPoly))).toEqual(g(fcPoly));
     expect(removeDegenerates(point)).toEqual(point);
@@ -418,7 +418,7 @@ describe("removeDegenerates", () => {
         removeDegenerates({
           type,
           coordinates: [],
-        } as Geometry)
+        } as Geometry),
       ).toBeNull();
     }
 
@@ -426,35 +426,35 @@ describe("removeDegenerates", () => {
       removeDegenerates({
         type: "LineString",
         coordinates: [[0, 0]],
-      })
+      }),
     ).toBeNull();
 
     expect(
       removeDegenerates({
         type: "MultiLineString",
         coordinates: [],
-      })
+      }),
     ).toBeNull();
 
     expect(
       removeDegenerates({
         type: "MultiLineString",
         coordinates: [[[0, 0]]],
-      })
+      }),
     ).toBeNull();
 
     expect(
       removeDegenerates({
         type: "Polygon",
         coordinates: [[[0, 0]]],
-      })
+      }),
     ).toBeNull();
 
     expect(
       removeDegenerates({
         type: "GeometryCollection",
         geometries: [],
-      })
+      }),
     ).toBeNull();
   });
 });

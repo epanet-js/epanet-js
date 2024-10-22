@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import { hideHintsAtom, selectionAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import {translate} from "src/infra/i18n";
+import { translate } from "src/infra/i18n";
 
 function ModeHint({
   mode,
@@ -24,7 +24,7 @@ function ModeHint({
     <div
       className={clsx(
         "z-0 absolute top-2 left-2 px-2 text-sm flex gap-x-2 items-center dark:text-white",
-        contentLike
+        contentLike,
       )}
     >
       <InfoCircledIcon />
@@ -128,9 +128,9 @@ export function ModeHints() {
       return (
         <ModeHint mode={mode.mode}>
           {selection.type === "single" ? (
-            <>{translate('hintPipeDrawEnd')}</>
+            <>{translate("hintPipeDrawEnd")}</>
           ) : (
-            <>{translate('hintPipeDrawStart')}</>
+            <>{translate("hintPipeDrawStart")}</>
           )}
         </ModeHint>
       );

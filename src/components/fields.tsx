@@ -38,7 +38,7 @@ export function SelectFileTypeField({
               {label}
             </option>
           );
-        })
+        }),
       )}
     </Field>
   );

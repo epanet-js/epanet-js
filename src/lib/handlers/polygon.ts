@@ -1,6 +1,11 @@
 import { USelection } from "src/state";
 import type { HandlerContext, IFeature, Polygon } from "src/types";
-import { modeAtom, Mode, selectionAtom, cursorStyleAtom } from "src/state/jotai";
+import {
+  modeAtom,
+  Mode,
+  selectionAtom,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import * as utils from "src/lib/map_component_utils";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { decodeId } from "src/lib/id";
@@ -12,7 +17,7 @@ import { UIDMap } from "src/lib/id_mapper";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
 import { lockDirection, useShiftHeld } from "src/hooks/use_held";
-import {captureError} from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 export function usePolygonHandlers({
   rep,
@@ -218,7 +223,7 @@ export function usePolygonHandlers({
             selection,
             folderMap,
             featureMap,
-          })
+          }),
         );
       }
 

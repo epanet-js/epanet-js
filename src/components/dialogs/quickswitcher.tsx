@@ -92,7 +92,7 @@ export function QuickswitcherDialog({ onClose }: { onClose: () => void }) {
     {
       enabled: query.length > 2,
       keepPreviousData: true,
-    }
+    },
   );
 
   function goToFeature(item: QItem) {

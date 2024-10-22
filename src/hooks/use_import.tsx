@@ -18,7 +18,12 @@ import { transfer } from "comlink";
 import { fMoment, Moment, MomentInput } from "src/lib/persistence/moment";
 import { generateNKeysBetween } from "fractional-indexing";
 import { Folder, Root } from "@tmcw/togeojson";
-import { Feature, FeatureCollection, IFolder, IWrappedFeature } from "src/types";
+import {
+  Feature,
+  FeatureCollection,
+  IFolder,
+  IWrappedFeature,
+} from "src/types";
 import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
 import { pluralize, truncate } from "src/lib/utils";
@@ -39,7 +44,7 @@ function resultToTransact({
     string,
     {
       format: string;
-    }
+    },
   ];
   existingFolderId?: string | undefined;
 }): Partial<MomentInput> {
@@ -95,7 +100,7 @@ export function flattenRoot(
   root: Root | Folder,
   features: IWrappedFeature[],
   folders: IFolder[],
-  parentFolder: string | null
+  parentFolder: string | null,
 ): Pick<Moment, "note" | "putFolders" | "putFeatures"> {
   // TODO: find a start key here and use that as the start, not null.
   const ats = generateNKeysBetween(null, null, root.children.length);
@@ -149,7 +154,7 @@ export function useImportString() {
       options: ImportOptions,
       progress: RawProgressCb,
       name: string = "Imported text",
-      existingFolderId?: string
+      existingFolderId?: string,
     ) => {
       return (await stringToGeoJSON(text, options, Comlink.proxy(progress)))
         .map(async (result) => {
@@ -164,7 +169,7 @@ export function useImportString() {
                 },
               ],
               existingFolderId,
-            })
+            }),
           );
           return result;
         })
@@ -173,13 +178,13 @@ export function useImportString() {
           console.error(e);
         });
     },
-    [transact]
+    [transact],
   );
 }
 
 export function getTargetMap(
   { featureMap }: Pick<Data, "featureMap">,
-  joinTargetHeader: string
+  joinTargetHeader: string,
 ) {
   const targetMap = new Map<string, IWrappedFeature[]>();
   let sourceMissingFieldCount = 0;
@@ -206,7 +211,7 @@ function momentForJoin(
   features: Feature[],
   targetMap: ReturnType<typeof getTargetMap>["targetMap"],
   joinSourceHeader: string,
-  result: ConvertResult
+  result: ConvertResult,
 ) {
   const moment: MomentInput = {
     ...fMoment("Joined data"),
@@ -221,8 +226,8 @@ function momentForJoin(
     if (!target) {
       result.notes.push(
         `No feature on the map found for ${truncate(
-          joinSourceHeader
-        )} = "${truncate(String(value))}"`
+          joinSourceHeader,
+        )} = "${truncate(String(value))}"`,
       );
       continue;
     }
@@ -261,7 +266,7 @@ function useJoinFeatures() {
           options: ImportOptions;
           geojson: FeatureCollection;
           result: ConvertResult;
-        }
+        },
       ) => {
         const { features } = geojson;
         const { joinTargetHeader, joinSourceHeader } = options.csvOptions;
@@ -269,22 +274,22 @@ function useJoinFeatures() {
 
         const { targetMap, sourceMissingFieldCount } = getTargetMap(
           data,
-          joinTargetHeader
+          joinTargetHeader,
         );
 
         if (sourceMissingFieldCount > 0) {
           result.notes.push(
             `${pluralize(
               "feature",
-              sourceMissingFieldCount
-            )} in existing map data missing the join column.`
+              sourceMissingFieldCount,
+            )} in existing map data missing the join column.`,
           );
         }
 
         return momentForJoin(features, targetMap, joinSourceHeader, result);
       },
-      []
-    )
+      [],
+    ),
   );
 }
 
@@ -302,7 +307,7 @@ export function useImportFile() {
     async (
       file: FileWithHandle,
       options: ImportOptions,
-      progress: RawProgressCb
+      progress: RawProgressCb,
     ) => {
       const arrayBuffer = await file.arrayBuffer();
 
@@ -310,7 +315,7 @@ export function useImportFile() {
         await lib.fileToGeoJSON(
           transfer(arrayBuffer, [arrayBuffer]),
           options,
-          Comlink.proxy(progress)
+          Comlink.proxy(progress),
         )
       ).bimap(
         (err) => {
@@ -348,12 +353,12 @@ export function useImportFile() {
             await transact(moment);
             return result;
           }
-        }
+        },
       );
 
       return either;
     },
-    [setFileInfo, transact, joinFeatures]
+    [setFileInfo, transact, joinFeatures],
   );
 }
 
@@ -379,14 +384,14 @@ export function useImportShapefile() {
                   format: "shapefile",
                 },
               ],
-            })
+            }),
           );
           return result;
-        }
+        },
       );
 
       return either;
     },
-    [transact]
+    [transact],
   );
 }

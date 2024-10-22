@@ -2,11 +2,11 @@ import { union, intersection, difference, Geom } from "polygon-clipping";
 import type { Feature, Position, GeoJsonProperties } from "src/types";
 import { GeometryError } from "src/lib/errors";
 import { Either, Left, Right } from "purify-ts/Either";
-import {captureError} from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 function featureFromAccumulatorAndProperties(
   accumulator: Geom,
-  properties: GeoJsonProperties
+  properties: GeoJsonProperties,
 ): Feature {
   return {
     type: "Feature",
@@ -30,13 +30,13 @@ function applyOp(op: BooleanOp, features: Geom[]) {
   return op === "union"
     ? union(features[0], ...features.slice(1))
     : op === "intersection"
-    ? intersection(features[0], ...features.slice(1))
-    : difference(features[0], ...features.slice(1));
+      ? intersection(features[0], ...features.slice(1))
+      : difference(features[0], ...features.slice(1));
 }
 
 export function booleanFeatures(
   features: Feature[],
-  { op }: { op: BooleanOp }
+  { op }: { op: BooleanOp },
 ): Either<GeometryError, Feature[]> {
   if (features.length < 2)
     return Left(new GeometryError("At least 2 features should be selected"));

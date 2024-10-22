@@ -17,7 +17,7 @@ export interface FormProps<S extends z.ZodType<any, any>>
   track?: string;
   onSubmit: (
     values: z.infer<S>,
-    helpers: FormikHelpers<z.infer<S>>
+    helpers: FormikHelpers<z.infer<S>>,
   ) => Promise<void | OnSubmitResult>;
   initialValues?: FormikProps<z.infer<S>>["initialValues"];
 }

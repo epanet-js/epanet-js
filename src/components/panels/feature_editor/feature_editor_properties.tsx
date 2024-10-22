@@ -125,7 +125,7 @@ function FeatureEditorPropertiesRaw({
     Object.keys({
       ...(properties || {}),
       ...(showAll ? missingProperties || {} : []),
-    })
+    }),
   );
 
   function updateFeature(feature: Feature) {
@@ -141,20 +141,20 @@ function FeatureEditorPropertiesRaw({
 
   const updateValue = (key: string, value: JsonValue) => {
     updateFeature(updatePropertyValue(feature, { key, value })).catch((e) =>
-      captureError(e)
+      captureError(e),
     );
   };
 
   const updateKey = (key: string, newKey: string) => {
     updateFeature(updatePropertyKey(feature, { key, newKey })).catch((e) =>
-      captureError(e)
+      captureError(e),
     );
   };
 
   const deleteKey = (key: string) => {
     localOrder.current = without(localOrder.current, key);
     updateFeature(deletePropertyKey(feature, { key })).catch((e) =>
-      captureError(e)
+      captureError(e),
     );
   };
 
@@ -182,7 +182,7 @@ function FeatureEditorPropertiesRaw({
     }),
     ([key]) => {
       return localOrder.current.indexOf(key);
-    }
+    },
   );
 
   return (
@@ -227,7 +227,7 @@ export function FeatureEditorPropertiesReadonly({
   const localOrder = useRef<string[]>(
     Object.keys({
       ...(properties || {}),
-    })
+    }),
   );
 
   const pairs = sortBy(
@@ -236,7 +236,7 @@ export function FeatureEditorPropertiesReadonly({
     }),
     ([key]) => {
       return localOrder.current.indexOf(key);
-    }
+    },
   );
 
   return (

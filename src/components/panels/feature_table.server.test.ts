@@ -42,7 +42,7 @@ const featureMap = new Map(
         folderId: folderIds[i],
       },
     ];
-  })
+  }),
 );
 
 const wrappedFeatures = Array.from(featureMap.values());
@@ -68,7 +68,7 @@ describe("filterFeatures", () => {
         },
         columns,
         featureMap,
-      })
+      }),
     ).toEqual(wrappedFeatures);
   });
 
@@ -85,7 +85,7 @@ describe("filterFeatures", () => {
         },
         columns,
         featureMap,
-      })
+      }),
     ).toEqual([wrappedFeatures[1], wrappedFeatures[0]]);
   });
 
@@ -102,7 +102,7 @@ describe("filterFeatures", () => {
         },
         columns,
         featureMap,
-      })
+      }),
     ).toEqual([wrappedFeatures[2]]);
   });
 
@@ -119,7 +119,7 @@ describe("filterFeatures", () => {
         },
         columns,
         featureMap,
-      })
+      }),
     ).toEqual([wrappedFeatures[0]]);
   });
 
@@ -136,7 +136,7 @@ describe("filterFeatures", () => {
         },
         columns,
         featureMap,
-      })
+      }),
     ).toEqual([wrappedFeatures[0]]);
   });
 });

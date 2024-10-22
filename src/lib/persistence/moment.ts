@@ -35,7 +35,7 @@ export interface MomentInput {
   deleteFolders: IFolder["id"][];
   putLayerConfigs: ILayerConfig[];
   deleteLayerConfigs: ILayerConfig["id"][];
-  skipMomentLog?: boolean
+  skipMomentLog?: boolean;
 }
 
 /**
@@ -61,7 +61,6 @@ export const EMPTY_MOMENT: Moment = {
   putLayerConfigs: [],
   deleteLayerConfigs: [],
 };
-
 
 export interface MomentLog {
   undo: Moment[];
@@ -112,7 +111,7 @@ class CUMoment {
       dst.deleteFolders = dst.deleteFolders.concat(moment.deleteFolders);
       dst.putFolders = dst.putFolders.concat(moment.putFolders);
       dst.deleteLayerConfigs = dst.deleteLayerConfigs.concat(
-        moment.deleteLayerConfigs
+        moment.deleteLayerConfigs,
       );
       dst.putLayerConfigs = dst.putLayerConfigs.concat(moment.putLayerConfigs);
     }
@@ -138,13 +137,13 @@ class CUMoment {
 
 export const UMoment = new CUMoment();
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MOMENT_LOG  === "true"
-const noop = () => null
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MOMENT_LOG === "true";
+const noop = () => null;
 const consoleDebugger = (step: string, momentLog: MomentLog) => {
   // eslint-disable-next-line no-console
-  console.log(`MOMENT_LOG@${step} ${JSON.stringify(momentLog)}`)
-}
-const debugMomentLog = isDebugOn ? consoleDebugger : noop
+  console.log(`MOMENT_LOG@${step} ${JSON.stringify(momentLog)}`);
+};
+const debugMomentLog = isDebugOn ? consoleDebugger : noop;
 
 class CUMomentLog {
   shallowCopy(oldLog: MomentLog): MomentLog {
@@ -164,18 +163,18 @@ class CUMomentLog {
   }
 
   popMoment(oldLog: Readonly<MomentLog>, n = 1) {
-    debugMomentLog('BEFORE_POP', oldLog)
+    debugMomentLog("BEFORE_POP", oldLog);
     const momentLog = this.shallowCopy(oldLog);
     for (let i = 0; i < n; i++) {
       momentLog.undo.shift();
     }
-    debugMomentLog('AFTER_POP', momentLog)
+    debugMomentLog("AFTER_POP", momentLog);
     return momentLog;
   }
 
   startSnapshot(
     oldLog: Readonly<MomentLog>,
-    before: IWrappedFeature | IWrappedFeature[]
+    before: IWrappedFeature | IWrappedFeature[],
   ) {
     const momentLog = this.shallowCopy(oldLog);
     momentLog.paused = true;
@@ -202,7 +201,7 @@ class CUMomentLog {
    * for a given transaction.
    */
   pushMoment(oldLog: MomentLog, moment: Moment): MomentLog {
-    debugMomentLog('BEFORE_PUSH', oldLog)
+    debugMomentLog("BEFORE_PUSH", oldLog);
 
     if (UMoment.isEmpty(moment)) {
       return oldLog;
@@ -215,7 +214,7 @@ class CUMomentLog {
     }
     momentLog.undo = [moment].concat(momentLog.undo).slice(0, HISTORY_LIMIT);
 
-    debugMomentLog('AFTER_PUSH', momentLog)
+    debugMomentLog("AFTER_PUSH", momentLog);
     return momentLog;
   }
 }

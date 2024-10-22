@@ -13,7 +13,7 @@ export type OnDeleteKey = (key: string) => void;
 export type OnCast = (
   key: string,
   value: string,
-  castType: ExplicitCast
+  castType: ExplicitCast,
 ) => void;
 export type OnChangeKey = (key: string, newKey: string) => void;
 export type PropertyPair = [string, JsonValue | undefined];

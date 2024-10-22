@@ -112,7 +112,7 @@ export function ItemFolder({
         onClick={handleToggleExpanded}
         className={clsx(
           "opacity-0 group-hover:opacity-50",
-          folder.expanded ? "transform rotate-90" : ""
+          folder.expanded ? "transform rotate-90" : "",
         )}
       >
         <TriangleRightIcon className="w-4" />
@@ -173,7 +173,7 @@ export function ItemInner({
 
 function toggleFeatureVisibility(
   feature: IWrappedFeature,
-  force?: boolean
+  force?: boolean,
 ): IWrappedFeature {
   const newProperties = { ...feature.feature.properties } || {};
   const wasVisible =
@@ -239,7 +239,7 @@ export function ItemFeature({
     feature.folderId && USelection.isFolderSelected(sel, feature.folderId);
   const geometryLabel = feature.feature.geometry?.type || "Null geometry";
   const previewVal = limitPreviewValue(
-    (preview && feature.feature.properties?.[preview]) as JsonValue
+    (preview && feature.feature.properties?.[preview]) as JsonValue,
   );
   const transact = rep.useTransact();
 
@@ -255,7 +255,7 @@ export function ItemFeature({
             note: "Toggled a feature’s visibility",
             track: "feature-toggle-visibility",
             putFeatures: selectedFeatures.map((feature) =>
-              toggleFeatureVisibility(feature, force)
+              toggleFeatureVisibility(feature, force),
             ),
           });
         } else {
@@ -265,8 +265,8 @@ export function ItemFeature({
           });
         }
       },
-      [feature, transact]
-    )
+      [feature, transact],
+    ),
   );
 
   const selState = selected ? "direct" : folderSelected ? "secondary" : false;
@@ -430,7 +430,7 @@ export const SortableItem = memo(function SortableItem({
       className={clsx(
         isDragging ? "opacity-100" : "",
         highlight &&
-          "ring-2 ring-purple-500 ring-inset bg-opacity-20 bg-purple-300 dark:bg-purple-700"
+          "ring-2 ring-purple-500 ring-inset bg-opacity-20 bg-purple-300 dark:bg-purple-700",
       )}
     >
       {isDragging ? (
@@ -488,8 +488,8 @@ function FolderActions({ folder }: { folder: IFolder }) {
         set(selectionAtom, newSelection);
         return transact(moment);
       },
-      [transact, folder.id]
-    )
+      [transact, folder.id],
+    ),
   );
 
   const deleteFolder = useAtomCallback(
@@ -503,8 +503,8 @@ function FolderActions({ folder }: { folder: IFolder }) {
         set(selectionAtom, newSelection);
         return transact(moment);
       },
-      [transact, folder.id]
-    )
+      [transact, folder.id],
+    ),
   );
 
   const zoomToFolder = useAtomCallback(
@@ -530,8 +530,8 @@ function FolderActions({ folder }: { folder: IFolder }) {
           ids: zoomIds,
         });
       },
-      [folder.id, zoomTo]
-    )
+      [folder.id, zoomTo],
+    ),
   );
 
   return (
@@ -572,8 +572,8 @@ function sharedStyle({
     selected === "direct"
       ? "bg-opacity-40 bg-purple-300 dark:bg-purple-800"
       : selected === "secondary"
-      ? "bg-opacity-40 bg-purple-200 dark:bg-purple-700"
-      : `hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-200 dark:focus:bg-gray-700`,
-    overlay ? "px-4 rounded-sm ring-1 ring-gray-500 shadow-md opacity-60" : ""
+        ? "bg-opacity-40 bg-purple-200 dark:bg-purple-700"
+        : `hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-200 dark:focus:bg-gray-700`,
+    overlay ? "px-4 rounded-sm ring-1 ring-gray-500 shadow-md opacity-60" : "",
   );
 }

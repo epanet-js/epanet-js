@@ -27,7 +27,7 @@ test("bboxToQItem", () => {
 
 test("qItemToPolygon", () => {
   expect(
-    qItemToPolygon(coordFeature([1, 2]).unsafeCoerce())
+    qItemToPolygon(coordFeature([1, 2]).unsafeCoerce()),
   ).toMatchInlineSnapshot(`null`);
   expect(qItemToPolygon(bboxToQItem([1, 2, 5, 7]))).toMatchInlineSnapshot(`
     {
@@ -72,10 +72,10 @@ test("qItemToPolygon", () => {
 
 test("getQItemNamePreview", () => {
   expect(
-    getQItemNamePreview(coordFeature([1, 2]).unsafeCoerce())
+    getQItemNamePreview(coordFeature([1, 2]).unsafeCoerce()),
   ).toMatchInlineSnapshot(`"2N, 1E"`);
   expect(getQItemNamePreview(bboxToQItem([1, 2, 5, 7]))).toMatchInlineSnapshot(
-    `"1,2,5,7"`
+    `"1,2,5,7"`,
   );
 });
 

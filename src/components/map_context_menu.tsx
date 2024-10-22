@@ -142,7 +142,7 @@ export const MapContextMenu = memo(function MapContextMenu({
                           .catch((e) => {
                             captureError(e);
                           });
-                      }
+                      },
                     );
                   }}
                 >

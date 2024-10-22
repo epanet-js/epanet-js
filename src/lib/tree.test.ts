@@ -33,7 +33,7 @@ describe("buildTree", () => {
         containerParentMember: "parentId",
         leafs,
         leafParentMember: "parentId",
-      })
+      }),
     ).toMatchInlineSnapshot(`
       {
         "children": [

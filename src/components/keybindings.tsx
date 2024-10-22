@@ -20,7 +20,7 @@ export function Keybindings() {
       e.preventDefault();
       setDialogState({ type: "quickswitcher" });
     },
-    [setDialogState]
+    [setDialogState],
   );
 
   useHotkeys(
@@ -29,7 +29,7 @@ export function Keybindings() {
       e.preventDefault();
       setDialogState({ type: "quickswitcher" });
     },
-    [setDialogState]
+    [setDialogState],
   );
 
   useHotkeys(
@@ -41,7 +41,7 @@ export function Keybindings() {
         type: "export",
       });
     },
-    [setDialogState]
+    [setDialogState],
   );
 
   useHotkeys(
@@ -56,7 +56,7 @@ export function Keybindings() {
         };
       });
     },
-    [setDialogState]
+    [setDialogState],
   );
 
   useHotkeys(
@@ -75,7 +75,7 @@ export function Keybindings() {
           });
       })().catch((e) => captureError(e));
     },
-    [setDialogState, saveNative]
+    [setDialogState, saveNative],
   );
 
   useHotkeys(
@@ -84,7 +84,7 @@ export function Keybindings() {
       e.preventDefault();
       openFiles().catch((e) => captureError(e));
     },
-    [openFiles]
+    [openFiles],
   );
 
   return null;

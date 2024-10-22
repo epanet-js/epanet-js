@@ -58,7 +58,7 @@ class CTopoJSON implements FileType {
         } catch (e) {
           return throwE(new ConvertError("Could not read TopoJSON file"));
         }
-      }
+      },
     );
   }
   back({ geojson }: { geojson: FeatureCollection }) {
@@ -72,10 +72,10 @@ class CTopoJSON implements FileType {
           };
         } catch (e) {
           return throwE(
-            new ConvertError("Could not convert GeoJSON to TopoJSON")
+            new ConvertError("Could not convert GeoJSON to TopoJSON"),
           );
         }
-      }
+      },
     );
   }
 }

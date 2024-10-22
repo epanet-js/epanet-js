@@ -91,7 +91,7 @@ function UrlAPI() {
               url.pathname.split("/").pop() || "",
               {
                 type: res.headers.get("Content-Type") || "",
-              }
+              },
             );
             const options = (await detectType(file)).unsafeCoerce();
             doImportFile(file, options, () => {});
@@ -100,7 +100,7 @@ function UrlAPI() {
             const data = parts.join(",");
             const [type, encoding] = description.split(";", 2) as [
               string,
-              string | undefined
+              string | undefined,
             ];
 
             const decoded = match(encoding)
@@ -120,7 +120,7 @@ function UrlAPI() {
                 (...args) => {
                   // eslint-disable-next-line no-console
                   console.log(args);
-                }
+                },
               );
             } else {
               setDialogState({
@@ -130,12 +130,12 @@ function UrlAPI() {
             }
           } else {
             toast.error(
-              "Couldn’t handle this ?load argument - urls and data urls are supported"
+              "Couldn’t handle this ?load argument - urls and data urls are supported",
             );
           }
         } catch (e) {
           toast.error(
-            e instanceof Error ? e.message : "Failed to load data from URL"
+            e instanceof Error ? e.message : "Failed to load data from URL",
           );
         }
       })();
@@ -171,11 +171,11 @@ export function PlacemarkPlay() {
       activationConstraint: {
         distance: 2,
       },
-    })
+    }),
   );
 
   const [persistentTransform, setPersistentTransform] = useAtom(
-    persistentTransformAtom
+    persistentTransformAtom,
   );
 
   return (
@@ -212,7 +212,7 @@ export function PlacemarkPlay() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-            "flex flex-auto relative border-t border-gray-200 dark:border-gray-900"
+            "flex flex-auto relative border-t border-gray-200 dark:border-gray-900",
           )}
         >
           <DndContext
@@ -303,7 +303,7 @@ function DraggableMap({
        * Push UI to bottom right
        */
       set(persistentTransformAtom, transform);
-    }, [])
+    }, []),
   );
 
   return (
@@ -311,7 +311,7 @@ function DraggableMap({
       className={clsx(
         layout === "FLOATING"
           ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded border border-gray-500 shadow-lg"
-          : "relative flex-auto flex flex-col"
+          : "relative flex-auto flex flex-col",
       )}
       ref={(elem) => {
         setNodeRef(elem);
@@ -343,7 +343,7 @@ function DraggableMap({
             <button
               className={clsx(
                 "block p-2 bg-white rounded-l",
-                splits.layout === "AUTO" ? SELECTED : UNSELECTED
+                splits.layout === "AUTO" ? SELECTED : UNSELECTED,
               )}
               onClick={() => {
                 setSplits((splits) => {
@@ -368,7 +368,7 @@ function DraggableMap({
             <button
               className={clsx(
                 "block p-2 bg-white",
-                splits.layout === "FLOATING" ? SELECTED : UNSELECTED
+                splits.layout === "FLOATING" ? SELECTED : UNSELECTED,
               )}
               onClick={() => {
                 switchToFloating();
@@ -387,7 +387,7 @@ function DraggableMap({
             <button
               className={clsx(
                 "block p-2 bg-white rounded-r",
-                splits.layout === "VERTICAL" ? SELECTED : UNSELECTED
+                splits.layout === "VERTICAL" ? SELECTED : UNSELECTED,
               )}
               onClick={() => {
                 setSplits((splits) => {

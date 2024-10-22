@@ -7,7 +7,7 @@ import { IWrappedFeature } from "src/types";
 
 export function centroidFeature(
   wrappedFeature: IWrappedFeature,
-  coordinates: Pos2
+  coordinates: Pos2,
 ): MomentInput["putFeatures"][number] {
   return {
     id: newFeatureId(),
@@ -55,7 +55,7 @@ export function drawLabelPoints(wrappedFeatures: IWrappedFeature[]): {
         }
       }
       return [];
-    }
+    },
   );
 
   return {

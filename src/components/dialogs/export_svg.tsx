@@ -15,7 +15,12 @@ import * as geo from "d3-geo";
 import { SVGAttributes, useContext, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-import { FeatureCollection, IFeature, ISymbolization, LineString } from "src/types";
+import {
+  FeatureCollection,
+  IFeature,
+  ISymbolization,
+  LineString,
+} from "src/types";
 import { Field, Form, Formik } from "formik";
 import { useRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import { Root } from "@tmcw/togeojson";
@@ -241,7 +246,7 @@ export function ExportSVGDialog() {
     }
 
     const projection = PROJECTIONS.find(
-      (proj) => proj.id === config.projection
+      (proj) => proj.id === config.projection,
     );
 
     if (!projection) {
@@ -259,10 +264,10 @@ export function ExportSVGDialog() {
       config.extent === "Features"
         ? fc
         : config.extent === "World"
-        ? {
-            type: "Sphere",
-          }
-        : mapExtent
+          ? {
+              type: "Sphere",
+            }
+          : mapExtent,
     );
 
     const path = geo.geoPath(proj).pointRadius(config.pointRadius);
@@ -278,7 +283,7 @@ export function ExportSVGDialog() {
         path={path}
         config={config}
         symbolization={meta.symbolization}
-      />
+      />,
     );
     const svgStr = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">

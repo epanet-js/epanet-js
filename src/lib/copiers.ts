@@ -25,7 +25,7 @@ export const COPIERS: Record<
       const geometry = feature.geometry;
       if (geometry.type !== "Point") {
         return throwE(
-          new ConvertError("Only Point features can be copied as geohash")
+          new ConvertError("Only Point features can be copied as geohash"),
         );
       }
       const geohash = await import("src/vendor/geohash");

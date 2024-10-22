@@ -21,7 +21,7 @@ export class CGTFS implements FileType {
         const gtfs = await import("src/vendor/gtfs");
         const geojson = gtfs.GTFSLinesToGeoJSON(text);
         return okResult(geojson);
-      }
+      },
     );
   }
 }

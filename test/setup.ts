@@ -90,7 +90,7 @@ expect.extend({
                   "toEqualLeft",
                   undefined,
                   undefined,
-                  options
+                  options,
                 ) +
                 "\n\n" +
                 (diffString && diffString.includes("- Expect")
@@ -138,7 +138,7 @@ expect.extend({
                   "toEqualRight",
                   undefined,
                   undefined,
-                  options
+                  options,
                 ) +
                 "\n\n" +
                 (diffString && diffString.includes("- Expect")
@@ -209,9 +209,9 @@ if (
           JSON.parse(
             Fs.readFileSync(
               Path.join(__dirname, "../public/zip-lookup.json"),
-              "utf8"
-            )
-          )
+              "utf8",
+            ),
+          ),
         ),
     });
   };

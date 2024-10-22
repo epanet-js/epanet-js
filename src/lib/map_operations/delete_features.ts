@@ -4,7 +4,13 @@ import { removeDegenerates } from "src/lib/geometry";
 import type { Operation } from "fast-json-patch";
 import { applyPatch } from "fast-json-patch";
 import { USelection } from "src/state/index";
-import type { Data, Sel, SelFolder, SelMulti, SelSingle } from "src/state/jotai";
+import type {
+  Data,
+  Sel,
+  SelFolder,
+  SelMulti,
+  SelSingle,
+} from "src/state/jotai";
 import cloneDeep from "lodash/cloneDeep";
 import * as jsonpointer from "src/lib/pointer";
 import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
@@ -17,7 +23,7 @@ interface DeleteResult {
 
 export function removeCoordinatesVertex(
   id: VertexId,
-  feature: Feature
+  feature: Feature,
 ): Feature | null {
   const [pointer] = idToJSONPointers(id, feature);
   feature = jsonpointer.clone(feature, pointer);
@@ -48,7 +54,7 @@ function sortParts(parts: readonly VertexId[]): VertexId[] {
 function deleteFolder(
   selection: SelFolder,
   featureMap: FeatureMap,
-  folderMap: FolderMap
+  folderMap: FolderMap,
 ): DeleteResult {
   const folderId = selection.id;
 
@@ -73,7 +79,7 @@ function deleteFolder(
 
 function deleteSingleAndMulti(
   selection: SelSingle | SelMulti,
-  featureMap: FeatureMap
+  featureMap: FeatureMap,
 ): DeleteResult {
   // Delete vertexes in a feature
   if (selection.type === "single" && selection.parts.length) {

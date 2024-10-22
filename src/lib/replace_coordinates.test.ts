@@ -9,12 +9,12 @@ test("replaceCoordinates", () => {
     replaceCoordinates(fcLineString.features[0] as any, [
       [0, 0],
       [1, 1],
-    ])
+    ]),
   ).toHaveProperty(
     ["geometry", "coordinates"],
     [
       [0, 0],
       [1, 1],
-    ]
+    ],
   );
 });

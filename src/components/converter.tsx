@@ -55,19 +55,19 @@ type InputData =
     };
 
 async function getAndGroupFiles(
-  event: React.SyntheticEvent
+  event: React.SyntheticEvent,
 ): Promise<InputData> {
   const files =
     event.nativeEvent instanceof DragEvent &&
     event.nativeEvent.dataTransfer?.items
       ? await getFilesFromDataTransferItems(
-          event.nativeEvent.dataTransfer.items
+          event.nativeEvent.dataTransfer.items,
         )
       : null;
 
   if (!files?.length) {
     throw new Error(
-      `No files were found in that upload. Maybe it was an empty folder?`
+      `No files were found in that upload. Maybe it was an empty folder?`,
     );
   }
 
@@ -225,7 +225,7 @@ const createEditableMachine = () =>
           }
         },
       },
-    }
+    },
   );
 
 const editableMachineAtom = atomWithMachine((_get) => createEditableMachine());
@@ -237,7 +237,7 @@ type FormOptions = ImportOptions &
   };
 
 function convertResultToExportInput(
-  result: ConvertResult
+  result: ConvertResult,
 ): Pick<Data, "featureMap" | "folderMap"> {
   const featureMap: Data["featureMap"] = new Map();
   const folderMap: Data["folderMap"] = new Map();
@@ -298,8 +298,8 @@ function convert({
           await lib.fileToGeoJSON(
             transfer(arrayBuffer, [arrayBuffer]),
             values,
-            Comlink.proxy(() => {})
-          )
+            Comlink.proxy(() => {}),
+          ),
         );
         break;
       }
@@ -308,8 +308,8 @@ function convert({
           await stringToGeoJSON(
             values.text,
             values,
-            Comlink.proxy(() => {})
-          )
+            Comlink.proxy(() => {}),
+          ),
         );
       }
     }
@@ -320,7 +320,7 @@ function convert({
       await fromGeoJSON(toExport, {
         ...values,
         type: values.exportType,
-      })
+      }),
     );
 
     return exported;
@@ -352,7 +352,7 @@ function ConvertFile() {
     <Formik
       onSubmit={async function onSubmit(
         values: FormOptions,
-        helpers: FormikHelpers<FormOptions>
+        helpers: FormikHelpers<FormOptions>,
       ) {
         await convert({ inputData, values })
           .ifLeft((e) => {

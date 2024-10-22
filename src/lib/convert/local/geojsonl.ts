@@ -12,7 +12,7 @@ export function GeoJSONToGeoJSONL(geojson: FeatureCollection) {
 }
 
 export function GeoJSONLToGeoJSON(
-  geojsonl: string
+  geojsonl: string,
 ): Either<ConvertError, FeatureCollection> {
   try {
     let features: Feature[] = [];

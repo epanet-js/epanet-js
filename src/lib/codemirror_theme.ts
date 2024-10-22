@@ -106,7 +106,7 @@ export const placemarkBaseTheme = EditorView.theme(
       },
     },
   },
-  { dark: true }
+  { dark: true },
 );
 
 /// The highlighting style for code in the One Dark theme.

@@ -22,7 +22,7 @@ import {
 
 function checkReverse(f: Feature) {
   const ids = generateSyntheticPoints(f, 0).map(({ id }) =>
-    idToJSONPointers(decodeId(id as RawId) as VertexId | MidpointId, f)
+    idToJSONPointers(decodeId(id as RawId) as VertexId | MidpointId, f),
   );
   return {
     ids,
@@ -50,7 +50,7 @@ describe("generateSyntheticPoints", () => {
     expect(generated).toMatchSnapshot();
 
     expect(
-      generated.filter((f) => decodeId(f.id as RawId).type === "midpoint")
+      generated.filter((f) => decodeId(f.id as RawId).type === "midpoint"),
     ).toHaveLength(f.geometry.coordinates.length - 1);
 
     expect(checkReverse(f)).toMatchSnapshot();
@@ -61,7 +61,7 @@ describe("generateSyntheticPoints", () => {
     const generated = generateSyntheticPoints(f, 0);
 
     expect(
-      generated.filter((f) => decodeId(f.id as RawId).type === "midpoint")
+      generated.filter((f) => decodeId(f.id as RawId).type === "midpoint"),
     ).toHaveLength(f.geometry.coordinates[0].length - 1);
 
     expect(generated).toMatchSnapshot();

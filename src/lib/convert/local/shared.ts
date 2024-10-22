@@ -39,7 +39,7 @@ export const EnforcedLonLatOptions = z.object({
 
 export function getGeocodingURLSearch(
   row: JsonObject,
-  options: ImportOptions["csvOptions"]
+  options: ImportOptions["csvOptions"],
 ): string | null {
   const propertyName = options.geocodingHeaders.text;
   if (!propertyName) {
@@ -57,7 +57,7 @@ export function getGeocodingURLSearch(
 
 export function getGeocodingURLStructured(
   row: JsonObject,
-  options: ImportOptions["csvOptions"]
+  options: ImportOptions["csvOptions"],
 ): string | null {
   const params: Record<string, string> = {
     api_key: env.NEXT_PUBLIC_GEOCODE_EARTH_TOKEN,
@@ -74,7 +74,7 @@ export function getGeocodingURLStructured(
   }
   if (!hasHeader) {
     throw new Error(
-      "For structured geocoding, at least one column must be selected."
+      "For structured geocoding, at least one column must be selected.",
     );
   }
   const queryString = new URLSearchParams(params).toString();
@@ -83,7 +83,7 @@ export function getGeocodingURLStructured(
 
 export async function castRowGeocode(
   row: JsonObject,
-  options: ImportOptions["csvOptions"]
+  options: ImportOptions["csvOptions"],
 ): Promise<Feature> {
   const url =
     options.geocodingType === "search"
@@ -133,7 +133,7 @@ export async function castRowGeocode(
 export function castRowZip(
   row: JsonObject,
   zipDb: ZipDB,
-  options: z.infer<typeof EnforcedZipOptions>
+  options: z.infer<typeof EnforcedZipOptions>,
 ): Feature | null {
   const { zipHeader } = options;
   const zipValue = String(row[zipHeader]).padStart(5, "0");
@@ -160,14 +160,14 @@ function safeParse(value: JsonValue | undefined) {
 
 export function castRowWKT(
   parsedRow: JsonObject,
-  options: z.infer<typeof EnforcedWKTOptions>
+  options: z.infer<typeof EnforcedWKTOptions>,
 ): Feature | null {
   const { geometryHeader } = options;
   // Numbers.app doesn't prune columns without headers.
   delete parsedRow[""];
 
   return Maybe.fromNullable(
-    wktToGeoJSON(String(parsedRow[geometryHeader]))
+    wktToGeoJSON(String(parsedRow[geometryHeader])),
   ).mapOrDefault((geometry): Feature => {
     delete parsedRow[geometryHeader];
     return {
@@ -180,14 +180,14 @@ export function castRowWKT(
 
 export function castRowPolyline(
   parsedRow: JsonObject,
-  options: z.infer<typeof EnforcedWKTOptions>
+  options: z.infer<typeof EnforcedWKTOptions>,
 ): Feature | null {
   const { geometryHeader } = options;
   // Numbers.app doesn't prune columns without headers.
   delete parsedRow[""];
 
   return Either.encase(() =>
-    polylineToGeoJSON(String(parsedRow[geometryHeader]))
+    polylineToGeoJSON(String(parsedRow[geometryHeader])),
   ).caseOf({
     Left() {
       return null;
@@ -205,7 +205,7 @@ export function castRowPolyline(
 
 export function castRowGeoJSON(
   parsedRow: JsonObject,
-  options: z.infer<typeof EnforcedWKTOptions>
+  options: z.infer<typeof EnforcedWKTOptions>,
 ): Feature | null {
   const { geometryHeader } = options;
   // Numbers.app doesn't prune columns without headers.
@@ -231,7 +231,7 @@ export function castRowGeoJSON(
 
 export function castRowLonLat(
   parsedRow: JsonObject,
-  options: z.infer<typeof EnforcedLonLatOptions>
+  options: z.infer<typeof EnforcedLonLatOptions>,
 ): Feature | null {
   const { latitudeHeader, longitudeHeader } = options;
   const lon = safeParse(parsedRow[longitudeHeader]);

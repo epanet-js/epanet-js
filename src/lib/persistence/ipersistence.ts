@@ -35,7 +35,7 @@ export type MetaUpdatesInput = Omit<
 
 export type MetaPair = [
   PersistenceMetadata,
-  (updates: MetaUpdatesInput) => Promisable<void>
+  (updates: MetaUpdatesInput) => Promisable<void>,
 ];
 
 export interface IPersistence {
@@ -54,7 +54,7 @@ export interface IPersistence {
    * is quiet, the change is pushed onto the undo history.
    */
   useTransact(): (
-    moment: Partial<MomentInput> & TransactOptions
+    moment: Partial<MomentInput> & TransactOptions,
   ) => Promise<void>;
 
   /**

@@ -30,7 +30,7 @@ export function ImportURLDialog({ onClose }: { onClose: () => void }) {
             const buffer = await res.arrayBuffer();
             if (buffer.byteLength > MB_TO_BYTES * MB_LIMIT) {
               setFormError(
-                `Files over ${MB_LIMIT}MB are not supported for URL input.`
+                `Files over ${MB_LIMIT}MB are not supported for URL input.`,
               );
               return;
             }

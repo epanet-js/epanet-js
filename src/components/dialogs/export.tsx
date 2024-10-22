@@ -51,7 +51,7 @@ export function CSVOptions({
 }) {
   const folderSummary = useFolderSummary({ root, featureMap });
   const selectedFolder = folderSummary.find(
-    (folder) => folder.meta.id === (values.folderId || null)
+    (folder) => folder.meta.id === (values.folderId || null),
   );
 
   let omittedFeatureCount = 0;
@@ -197,7 +197,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
 
   async function onSubmit(
     exportOptions: ExportOptions,
-    helpers: FormikHelpers<ExportOptions>
+    helpers: FormikHelpers<ExportOptions>,
   ) {
     const { fileSave, supported } = await import("browser-fs-access");
 
@@ -228,7 +228,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
               description: "Save file",
               mimeTypes: ["application/octet-stream"],
             },
-            null
+            null,
           );
           if (newHandle) {
             setFileInfo({ handle: newHandle, options: exportOptions });

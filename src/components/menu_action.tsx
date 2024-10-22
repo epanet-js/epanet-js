@@ -36,7 +36,7 @@ export default function MenuAction({
     {
       enabled: !!hotkey && !noShift,
     },
-    [onClick]
+    [onClick],
   );
 
   useHotkeys(
@@ -48,7 +48,7 @@ export default function MenuAction({
     {
       enabled: !!hotkey,
     },
-    [onClick]
+    [onClick],
   );
 
   return (

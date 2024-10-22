@@ -39,7 +39,7 @@ import type { Action, ActionProps } from "./context_actions/action_item";
 import { ConvexIcon } from "./icons";
 
 export function useSingleActions(
-  selectedWrappedFeatures: IWrappedFeature[]
+  selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
   const transact = rep.useTransact();
@@ -76,7 +76,7 @@ export function useSingleActions(
   const simplifiableFeatures = selectedWrappedFeatures.filter(
     (wrappedFeature) => {
       return isFeatureSimplifiable(wrappedFeature);
-    }
+    },
   ) as IWrappedFeature<IFeature<SimplifySupportedGeometry>>[];
   const simplifyAction = {
     label: "Simplify",
@@ -101,7 +101,7 @@ export function useSingleActions(
     icon: <ConvexIcon />,
     onSelect: async function doConvexHull() {
       await makeConvexHull(
-        selectedWrappedFeatures.map((f) => f.feature)
+        selectedWrappedFeatures.map((f) => f.feature),
       ).caseOf({
         Left(error) {
           toast.error(error.message);
