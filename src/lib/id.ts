@@ -19,7 +19,7 @@ export function newFeatureId(): string {
  */
 export const nanoid = customAlphabet(
   "useandom26T198340PX75pxJACKVERYMINDBUSHWOLFGQZbfghjklqvwyzrict",
-  21
+  21,
 );
 
 const A = 1e9;
@@ -107,7 +107,7 @@ function patherPosition1(id: VertexId) {
 function patherPosition2(
   id: VertexId,
   coordinates: Position[][],
-  loop: boolean
+  loop: boolean,
 ): string[] {
   let start = 0;
   for (let i = 0; i < coordinates.length; i++) {
@@ -156,7 +156,7 @@ function patherCollection(id: VertexId, geometries: Geometry[]): string[] {
     if (id.vertex >= offset && id.vertex < offset + increment) {
       const prefix = `/${i}/coordinates`;
       return getPath(new CVertexId(id.featureId, id.vertex - offset), geom).map(
-        (path) => prefix + path
+        (path) => prefix + path,
       );
     }
     offset += increment;
@@ -170,7 +170,7 @@ export function countVertexes(geometry: Geometry) {
     .with(
       { type: "LineString" },
       { type: "MultiPoint" },
-      (geometry) => geometry.coordinates.length
+      (geometry) => geometry.coordinates.length,
     )
     .with({ type: "Polygon" }, (geometry) => {
       let count = 0;

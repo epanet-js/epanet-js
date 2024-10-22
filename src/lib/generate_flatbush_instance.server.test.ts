@@ -52,8 +52,8 @@ describe("generateVertexFlatbushInstance", () => {
           type: "single",
           id: "000000000000000000000",
           parts: [],
-        }
-      )
+        },
+      ),
     ).toEqual({
       type: "single",
       id: "000000000000000000000",
@@ -76,8 +76,8 @@ describe("generateVertexFlatbushInstance", () => {
           type: "single",
           id: "000000000000000000000",
           parts: [],
-        }
-      )
+        },
+      ),
     ).toHaveProperty("parts.length", 6);
   });
 });
@@ -101,8 +101,8 @@ describe("generateFeaturesFlatbushInstance", () => {
           [-180, -180],
           [180, 180],
         ],
-        SELECTION_NONE
-      )
+        SELECTION_NONE,
+      ),
     ).toEqual({
       ids: ["x0", "x1"],
       type: "multi",
@@ -135,8 +135,8 @@ describe("generateFeaturesFlatbushInstance", () => {
           [-180, -180],
           [180, 180],
         ],
-        SELECTION_NONE
-      )
+        SELECTION_NONE,
+      ),
     ).toEqual({
       id: "x",
       type: "single",
@@ -154,8 +154,8 @@ describe("generateFeaturesFlatbushInstance", () => {
           [10, 10],
           [11, 11],
         ],
-        SELECTION_NONE
-      )
+        SELECTION_NONE,
+      ),
     ).toEqual({
       type: "none",
     });
@@ -166,8 +166,8 @@ describe("generateFeaturesFlatbushInstance", () => {
           [20, 20],
           [21, 21],
         ],
-        SELECTION_NONE
-      )
+        SELECTION_NONE,
+      ),
     ).toEqual({
       id: "x",
       type: "single",

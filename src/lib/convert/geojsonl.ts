@@ -19,7 +19,7 @@ export class CGeoJSONL implements FileType {
       async function forwardGeoJSONL({ liftEither }) {
         const res = await liftEither(GeoJSONLToGeoJSON(text));
         return await liftEither(rough(res));
-      }
+      },
     );
   }
   forwardBinary(file: ArrayBuffer, _options: ImportOptions) {
@@ -32,7 +32,7 @@ export class CGeoJSONL implements FileType {
       Right({
         blob: stringToBlob(GeoJSONToGeoJSONL(geojson)),
         name: "features.geojsonl",
-      })
+      }),
     );
   }
   featureToString(geojson: Feature) {
@@ -41,8 +41,8 @@ export class CGeoJSONL implements FileType {
         GeoJSONToGeoJSONL({
           type: "FeatureCollection",
           features: [geojson],
-        })
-      )
+        }),
+      ),
     );
   }
 }

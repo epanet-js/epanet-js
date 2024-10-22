@@ -43,7 +43,7 @@ export default function BufferDialog({
                 ...wrappedFeature,
                 feature: await buffer(wrappedFeature.feature, options),
               };
-            })
+            }),
           );
           transact({
             note: "Buffered features",

@@ -19,7 +19,7 @@ test("getViablePropertiesForCategorical", () => {
     }
   `);
   expect(getViablePropertiesForCategorical(new Map())).toMatchInlineSnapshot(
-    `Map {}`
+    `Map {}`,
   );
 });
 

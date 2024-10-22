@@ -9,7 +9,12 @@ import {
 import pick from "lodash/pick";
 import { Either, Left, Right } from "purify-ts/Either";
 import { ConvertError } from "./errors";
-import { IFeature, IFeatureCollection, IWrappedFeature, Point } from "src/types";
+import {
+  IFeature,
+  IFeatureCollection,
+  IWrappedFeature,
+  Point,
+} from "src/types";
 import { z } from "zod";
 import { truncate } from "./utils";
 import { JsonObject } from "type-fest";
@@ -82,7 +87,7 @@ const zPoint: z.ZodType<Point> = z.lazy(() =>
   z.object({
     type: z.literal("Point"),
     coordinates: z.array(z.number()).min(2),
-  })
+  }),
 );
 
 const GeocoderFeature = z.object({
@@ -111,7 +116,7 @@ export const GeocodeEarthResult: z.ZodType<
  */
 export function coordFeature(
   pos: Pos2,
-  flip = false
+  flip = false,
 ): Either<ConvertError, QItemCoordinate> {
   if (flip) {
     pos = pos.slice().reverse() as Pos2;
@@ -158,7 +163,7 @@ function includeProperties(properties: JsonObject, includeData = false) {
 
 export function qItemToPolygon(
   item: QItemAddable,
-  includeData = false
+  includeData = false,
 ): IFeature | null {
   switch (item.type) {
     case "coordinate":
@@ -186,7 +191,7 @@ export function qItemToPolygon(
 
 export function qItemToFeature(
   item: QItemAddable,
-  includeData = false
+  includeData = false,
 ): IFeature {
   switch (item.type) {
     case "Feature": {
@@ -248,7 +253,7 @@ export function getActions(query: string, actions: Action[]): QItemAction[] {
 
 export function getFeatureItems(
   query: string,
-  searchIndex: SearchIndex
+  searchIndex: SearchIndex,
 ): QItemWrappedFeature[] {
   const results = searchIndex.search(query, {
     limit: 5,
@@ -315,7 +320,7 @@ export async function geocodeEarth({
       await fetch(`https://api.geocode.earth/v1/autocomplete?${queryString}`, {
         signal: signal || null,
       })
-    ).json()
+    ).json(),
   );
 
   return {

@@ -10,7 +10,7 @@ const warnOffline = once(() => {
 
 export async function addMapboxStyle(
   _base: mapboxgl.Style,
-  layer: ILayerConfig
+  layer: ILayerConfig,
 ): Promise<mapboxgl.Style> {
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
@@ -40,7 +40,7 @@ export async function addMapboxStyle(
 }
 
 export function paintLayoutFromRasterLayer(
-  layer: ILayerConfig
+  layer: ILayerConfig,
 ): Pick<mapboxgl.RasterLayer, "type" | "paint" | "layout"> {
   return {
     type: "raster",
@@ -56,7 +56,7 @@ export function paintLayoutFromRasterLayer(
 export async function addTileJSONStyle(
   style: mapboxgl.Style,
   layer: ILayerConfig,
-  id: number
+  id: number,
 ) {
   // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -84,7 +84,7 @@ export async function addTileJSONStyle(
     style.layers.push(newLayer);
   } catch (e) {
     toast.error(
-      "A TileJSON layer failed to load: the server it depends on may be down"
+      "A TileJSON layer failed to load: the server it depends on may be down",
     );
   }
   return style;
@@ -93,7 +93,7 @@ export async function addTileJSONStyle(
 export function addXYZStyle(
   style: mapboxgl.Style,
   layer: ILayerConfig,
-  id: number
+  id: number,
 ) {
   // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 

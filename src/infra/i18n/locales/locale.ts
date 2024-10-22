@@ -1,3 +1,3 @@
-import { translations } from './en'
+import { translations } from "./en";
 
-export type Translations = { [key in keyof typeof translations]: string }
+export type Translations = { [key in keyof typeof translations]: string };

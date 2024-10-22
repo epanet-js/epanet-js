@@ -1,6 +1,11 @@
 import { USelection } from "src/state";
 import type { HandlerContext, IFeature, LineString, Position } from "src/types";
-import { selectionAtom, modeAtom, Mode, cursorStyleAtom } from "src/state/jotai";
+import {
+  selectionAtom,
+  modeAtom,
+  Mode,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import * as utils from "src/lib/map_component_utils";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { useSetAtom } from "jotai";
@@ -9,7 +14,7 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
 import { lockDirection, useShiftHeld } from "src/hooks/use_held";
-import {captureError, captureWarning} from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 
 export function useLineHandlers({
   rep,
@@ -73,7 +78,7 @@ export function useLineHandlers({
                 feature,
                 modeOptions?.reverse
                   ? [position as Position].concat(feature.geometry.coordinates)
-                  : feature.geometry.coordinates.concat([position])
+                  : feature.geometry.coordinates.concat([position]),
               ),
             },
           ],
@@ -123,7 +128,7 @@ export function useLineHandlers({
               feature,
               modeOptions?.reverse
                 ? [nextCoord].concat(feature.geometry.coordinates.slice(1))
-                : feature.geometry.coordinates.slice(0, -1).concat([nextCoord])
+                : feature.geometry.coordinates.slice(0, -1).concat([nextCoord]),
             ),
           },
         ],
@@ -176,7 +181,7 @@ export function useLineHandlers({
             selection,
             folderMap,
             featureMap,
-          })
+          }),
         );
       }
       e.preventDefault();
@@ -186,7 +191,7 @@ export function useLineHandlers({
         feature,
         modeOptions?.reverse
           ? feature.geometry.coordinates.slice(2)
-          : feature.geometry.coordinates.slice(0, -2)
+          : feature.geometry.coordinates.slice(0, -2),
       );
       void popMoment(2);
       transact({
@@ -224,7 +229,7 @@ export function useLineHandlers({
                 ? mode.modeOptions?.reverse
                   ? feature.geometry.coordinates.slice(1)
                   : feature.geometry.coordinates.slice(0, -1)
-                : feature.geometry.coordinates
+                : feature.geometry.coordinates,
             ),
           },
         ],

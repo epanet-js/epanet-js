@@ -3,8 +3,8 @@ type Metadata = {
 };
 
 export const trackUserAction = (event: string, metadata: Metadata = {}) => {
-  if (process.env.NEXT_PUBLIC_SKIP_USER_TRACKING === "true") return
+  if (process.env.NEXT_PUBLIC_SKIP_USER_TRACKING === "true") return;
 
   // eslint-disable-next-line no-console
-  console.log(`USER_TRACKING: ${event}`, metadata)
-}
+  console.log(`USER_TRACKING: ${event}`, metadata);
+};

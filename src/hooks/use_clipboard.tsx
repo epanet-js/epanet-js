@@ -33,7 +33,7 @@ export function stringifyFeatures(selectedFeatures: IWrappedFeature[]): Maybe<{
     default: {
       return Maybe.of({
         data: JSON.stringify(
-          UWrappedFeature.toFeatureCollection(selectedFeatures)
+          UWrappedFeature.toFeatureCollection(selectedFeatures),
         ),
         message: "Copied features as GeoJSON",
       });
@@ -58,8 +58,8 @@ export function useClipboard() {
           e.clipboardData.setData(
             "text/plain",
             JSON.stringify(
-              UWrappedFeature.toFeatureCollection(selectedFeatures)
-            )
+              UWrappedFeature.toFeatureCollection(selectedFeatures),
+            ),
           );
           const { newSelection, moment } = deleteFeatures(get(dataAtom));
           set(selectionAtom, newSelection);
@@ -73,13 +73,13 @@ export function useClipboard() {
               loading: "Cutting features…",
               error: "Failed to cut features",
               success: "Cut features",
-            }
+            },
           );
           return;
         }
       },
-      [transact]
-    )
+      [transact],
+    ),
   );
 
   const onCopy = useAtomCallback(
@@ -94,7 +94,7 @@ export function useClipboard() {
         clipboardData.setData("text/plain", data);
         toast.success(message);
       });
-    }, [])
+    }, []),
   );
 
   const onPaste = useAtomCallback(
@@ -130,13 +130,11 @@ export function useClipboard() {
           },
           Comlink.proxy(() => {}),
           "Imported text",
-          existingFolderId
+          existingFolderId,
         ).then((result) => {
           return result.caseOf({
             Left() {
-              toast.error(
-                `Tried to import pasted GeoJSON, but got an error`
-              );
+              toast.error(`Tried to import pasted GeoJSON, but got an error`);
               return Promise.resolve();
             },
             Right: async (result) => {
@@ -147,8 +145,8 @@ export function useClipboard() {
           });
         });
       },
-      [importString, zoomTo]
-    )
+      [importString, zoomTo],
+    ),
   );
 
   useEffect(() => {

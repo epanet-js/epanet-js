@@ -8,7 +8,7 @@ import { USelection } from "src/state";
 import { Sel } from "src/state/jotai";
 
 export function drawArc(
-  features: IWrappedFeature[]
+  features: IWrappedFeature[],
 ): Either<GeometryError, { newSelection: Sel; moment: MomentInput }> {
   if (features.length !== 2) {
     return Left(new GeometryError("Two features required"));
@@ -24,13 +24,13 @@ export function drawArc(
 
   if (!(a?.type === "Point" && b?.type === "Point")) {
     return Left(
-      new GeometryError("Both geometries must be points to create an arc")
+      new GeometryError("Both geometries must be points to create an arc"),
     );
   }
   return Either.encase(() => {
     const arc = new GreatCircle(
       a.coordinates as Pos2,
-      b.coordinates as Pos2
+      b.coordinates as Pos2,
     ).arc(100);
     const id = newFeatureId();
     return {

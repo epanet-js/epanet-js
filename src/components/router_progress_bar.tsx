@@ -126,7 +126,7 @@ export function RouterProgressBar() {
       <div
         className={clsx(
           "fixed top-0 left-0 right-0",
-          show ? "opacity-100" : "opacity-0"
+          show ? "opacity-100" : "opacity-0",
         )}
       >
         {show ? (

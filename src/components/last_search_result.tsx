@@ -20,7 +20,7 @@ import { Feature } from "src/types";
 
 export function LastSearchResult() {
   const [addMetadataWithGeocoder, setAddMetadataWithGeocoder] = useAtom(
-    addMetadataWithGeocoderAtom
+    addMetadataWithGeocoderAtom,
   );
   const rep = usePersistence();
   const transact = rep.useTransact();

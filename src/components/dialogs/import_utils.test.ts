@@ -10,7 +10,7 @@ describe("flattenResult", () => {
         type: "geojson",
         geojson: fcLineString,
         notes: [],
-      })
+      }),
     ).toEqual(fcLineString);
   });
   it("#root", () => {
@@ -22,7 +22,7 @@ describe("flattenResult", () => {
           children: fcLineString.features,
         },
         notes: [],
-      })
+      }),
     ).toEqual(fcLineString);
   });
 });

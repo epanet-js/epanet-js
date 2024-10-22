@@ -26,7 +26,7 @@ export class CKMZ implements FileType {
         }
         const text = await liftEither(await readAsText(kmlFile[1]));
         return liftEither(await KML.forwardString(text));
-      }
+      },
     );
   }
   back(
@@ -39,7 +39,7 @@ export class CKMZ implements FileType {
       featureMap: FeatureMap;
       folderMap: FolderMap;
     },
-    _options: ExportOptions
+    _options: ExportOptions,
   ) {
     return EitherAsync<ConvertError, ExportResult>(async ({ throwE }) => {
       const { foldersToKML } = await import("@placemarkio/tokml");
@@ -56,7 +56,7 @@ export class CKMZ implements FileType {
             (err, res) => {
               if (err) return reject(err);
               resolve(res);
-            }
+            },
           );
         });
         return {

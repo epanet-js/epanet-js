@@ -10,7 +10,7 @@ test.skip("loads and displays simple dialog actions", async () => {
   render(
     <Formik initialValues={{}} onSubmit={() => {}}>
       <SimpleDialogActions action="Yeah" onClose={onClose} />
-    </Formik>
+    </Formik>,
   );
   await screen.findByText("Yeah");
   fireEvent.click(await screen.findByText("Cancel"));

@@ -17,7 +17,7 @@ import type { IWrappedFeature } from "src/types";
 import { captureError } from "src/infra/error-tracking";
 
 export function useMultiActions(
-  selectedWrappedFeatures: IWrappedFeature[]
+  selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
   const transact = rep.useTransact();
@@ -31,7 +31,7 @@ export function useMultiActions(
   function makeBooleanAction(
     op: BooleanOp,
     label: string,
-    icon: React.ReactNode
+    icon: React.ReactNode,
   ) {
     return {
       label,
@@ -58,7 +58,7 @@ export function useMultiActions(
                 }),
               });
             },
-          })
+          }),
         );
         return toast.promise(
           work,
@@ -71,7 +71,7 @@ export function useMultiActions(
             loading: { duration: Infinity },
             success: { duration: 2000 },
             error: { duration: 2000 },
-          }
+          },
         );
       },
     };

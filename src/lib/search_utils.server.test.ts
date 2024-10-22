@@ -14,6 +14,6 @@ test("getColumns", () => {
       featureMap: wrapMap(fcMultiPoint),
       folderId: null,
       virtualColumns: [],
-    })
+    }),
   ).toEqual(["x"]);
 });

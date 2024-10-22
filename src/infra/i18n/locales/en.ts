@@ -3,6 +3,5 @@ export const translations = {
   junction: "Junction",
   pipe: "Pipe",
   hintPipeDrawStart: "Click to start the pipe, then click to add each vertex.",
-  hintPipeDrawEnd: "End a pipe by double-clicking or hitting Enter."
-}
-
+  hintPipeDrawEnd: "End a pipe by double-clicking or hitting Enter.",
+};

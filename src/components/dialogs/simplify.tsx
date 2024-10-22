@@ -31,7 +31,7 @@ export default function SimplifyDialog({
       return (
         Math.max(
           Math.abs(extent[0] - extent[2]),
-          Math.abs(extent[1] - extent[3])
+          Math.abs(extent[1] - extent[3]),
         ) / 8
       );
     })

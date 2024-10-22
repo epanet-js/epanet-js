@@ -34,7 +34,7 @@ export class CWKT implements FileType {
         })
           .chainNullable((x) => x)
           .toEither(new ConvertError("Could not convert WKT"))
-          .chain((geojson) => rough(geojson))
+          .chain((geojson) => rough(geojson)),
       );
       return geojson;
     });
@@ -43,11 +43,11 @@ export class CWKT implements FileType {
     return EitherAsync<ConvertError, string>(
       async function featureToStringWkt() {
         const stringify = await import("betterknown").then(
-          (mod) => mod.geoJSONToWkt
+          (mod) => mod.geoJSONToWkt,
         );
         if (geojson.geometry === null) return "";
         return Maybe.fromNullable(stringify(geojson.geometry)).orDefault("");
-      }
+      },
     );
   }
 }

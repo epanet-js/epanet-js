@@ -97,7 +97,7 @@ export function collectStatistics(features: IWrappedFeature[]) {
       stats: {
         ...stats,
         strings: Array.from(stats.strings.entries()).sort(
-          (a, b) => b[1] - a[1]
+          (a, b) => b[1] - a[1],
         ),
       },
     };

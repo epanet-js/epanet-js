@@ -27,7 +27,7 @@ export class CBBOX implements FileType {
             },
           ],
         });
-      })
+      }),
     );
   }
   featureToString(feature: Feature) {

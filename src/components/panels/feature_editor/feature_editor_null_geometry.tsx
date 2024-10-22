@@ -37,5 +37,5 @@ export const FeatureEditorNullGeometry = memo(
         </div>
       </PanelDetailsCollapsible>
     );
-  }
+  },
 );

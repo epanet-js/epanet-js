@@ -76,19 +76,19 @@ export class MemPersistence implements IPersistence {
         this.putFeaturesInner(moment.putFeatures, ctx),
         this.putFoldersInner(moment.putFolders, ctx),
         this.putLayerConfigsInner(moment.putLayerConfigs, layerConfigMap),
-        this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap)
+        this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
       );
       set(dataAtom, {
         selection: ctx.selection,
         featureMap: new Map(
           Array.from(ctx.featureMap).sort((a, b) => {
             return sortAts(a[1], b[1]);
-          })
+          }),
         ),
         folderMap: new Map(
           Array.from(ctx.folderMap).sort((a, b) => {
             return sortAts(a[1], b[1]);
-          })
+          }),
         ),
       });
       if (moment.putLayerConfigs?.length || moment.deleteLayerConfigs?.length) {
@@ -97,12 +97,12 @@ export class MemPersistence implements IPersistence {
           new Map(
             Array.from(layerConfigMap).sort((a, b) => {
               return sortAts(a[1], b[1]);
-            })
-          )
+            }),
+          ),
         );
       }
       return reverse;
-    }, [])
+    }, []),
   );
 
   // eslint-disable-next-line
@@ -116,7 +116,7 @@ export class MemPersistence implements IPersistence {
         const result = this.apply(moment);
         set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
         return Promise.resolve();
-      }, [])
+      }, []),
     );
   }
 
@@ -168,7 +168,7 @@ export class MemPersistence implements IPersistence {
         momentLog[opposite] = [reverse].concat(momentLog[opposite]);
         set(momentLogAtom, momentLog);
         return Promise.resolve();
-      }, [])
+      }, []),
     );
   };
 
@@ -184,7 +184,7 @@ export class MemPersistence implements IPersistence {
    */
   private deleteFeaturesInner(
     features: readonly IWrappedFeature["id"][],
-    ctx: Data
+    ctx: Data,
   ) {
     const moment = momentForDeleteFeatures(features, ctx);
     for (const id of features) {
@@ -195,7 +195,7 @@ export class MemPersistence implements IPersistence {
 
   private deleteLayerConfigsInner(
     layerConfigs: readonly ILayerConfig["id"][],
-    layerConfigMap: LayerConfigMap
+    layerConfigMap: LayerConfigMap,
   ) {
     const moment = momentForDeleteLayerConfigs(layerConfigs, layerConfigMap);
     for (const id of layerConfigs) {
@@ -240,7 +240,7 @@ export class MemPersistence implements IPersistence {
   private putFeaturesInner(features: IWrappedFeatureInput[], ctx: Data) {
     const moment = fMoment("Put features");
     const ats = once(() =>
-      Array.from(ctx.featureMap.values(), (wrapped) => wrapped.at).sort()
+      Array.from(ctx.featureMap.values(), (wrapped) => wrapped.at).sort(),
     );
     const atsSet = once(() => new Set(ats()));
 
@@ -274,7 +274,7 @@ export class MemPersistence implements IPersistence {
 
   private putLayerConfigsInner(
     layerConfigs: ILayerConfig[],
-    layerConfigMap: LayerConfigMap
+    layerConfigMap: LayerConfigMap,
   ) {
     const moment = fMoment("Put layer configs");
 

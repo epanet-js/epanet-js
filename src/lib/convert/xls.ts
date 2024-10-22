@@ -17,7 +17,7 @@ export class CXLS implements FileType {
         );
         const geojson = await xlsxToGeoJSON(file, options.csvOptions);
         return okResult(geojson);
-      }
+      },
     );
   }
 }

@@ -4,7 +4,7 @@ import { VirtualItem } from "react-virtual";
  * Helper to create style for a virtual element.
  */
 export function virtualPosition(
-  virtualRow: VirtualItem
+  virtualRow: VirtualItem,
 ): NonNullable<React.HTMLAttributes<HTMLDivElement>["style"]> {
   return {
     position: "absolute",

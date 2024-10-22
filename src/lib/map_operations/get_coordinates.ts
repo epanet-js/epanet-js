@@ -24,7 +24,7 @@ export function getCoordinates(feature: Feature, id: VertexId): Position {
 
 export function getCoordinatesMaybe(
   feature: Feature,
-  id: VertexId
+  id: VertexId,
 ): Maybe<Position> {
   return Maybe.encase(() => getCoordinates(feature, id));
 }

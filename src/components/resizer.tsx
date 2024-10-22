@@ -1,7 +1,13 @@
 import { memo, useEffect, useRef } from "react";
 import * as T from "@radix-ui/react-tooltip";
 import { useSetAtom, useAtom } from "jotai";
-import { Side, splitsAtom, Splits, MIN_SPLITS, OTHER_SIDE } from "src/state/jotai";
+import {
+  Side,
+  splitsAtom,
+  Splits,
+  MIN_SPLITS,
+  OTHER_SIDE,
+} from "src/state/jotai";
 import { useMove } from "@react-aria/interactions";
 import { TContent } from "src/components/elements";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
@@ -66,7 +72,7 @@ export function useBigScreen() {
 export function solveSplits(
   splits: Splits,
   side: Side,
-  newValue: number
+  newValue: number,
 ): Splits {
   const otherSide = OTHER_SIDE[side];
   const windowWidth = window.innerWidth;
@@ -226,7 +232,7 @@ function PanelToggle({ side }: { side: Side }) {
           bg-white hover:bg-purple-100 border-gray-300
           dark:bg-gray-900 dark:text-white dark:hover:bg-purple-700 dark:border-white
           rounded
-        `
+        `,
         )}
       >
         {side === "right" ? <ChevronLeftIcon /> : <ChevronRightIcon />}

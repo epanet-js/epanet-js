@@ -20,12 +20,12 @@ export class CGPX implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardGpx() {
         const tcx = await import("@tmcw/togeojson").then(
-          (module) => module.gpx
+          (module) => module.gpx,
         );
         const dom = await toDom(text);
         const geojson = tcx(dom);
         return okResult(geojson as FeatureCollection);
-      }
+      },
     );
   }
 }

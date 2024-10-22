@@ -20,7 +20,7 @@ export const LabeledTextField = forwardRef<
 >(
   (
     { name, label, _size = "sm", outerProps, ...props }: LabeledTextFieldProps,
-    ref
+    ref,
   ) => {
     const [input] = useField(name);
     const { isSubmitting } = useFormikContext();
@@ -45,7 +45,7 @@ export const LabeledTextField = forwardRef<
         <ErrorMessage name={name} component={InlineError} />
       </div>
     );
-  }
+  },
 );
 
 export default LabeledTextField;

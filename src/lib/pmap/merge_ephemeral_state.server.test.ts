@@ -12,7 +12,7 @@ test("makeRectangle", () => {
       ],
 
       type: "lasso",
-    })
+    }),
   ).toMatchInlineSnapshot(`
     [
       0,
@@ -36,7 +36,7 @@ test("makeRectangle", () => {
 
 test("fixDegenerates", () => {
   expect(fixDegenerates(fcLineString.features[0])).toEqual(
-    fcLineString.features[0]
+    fcLineString.features[0],
   );
   expect(fixDegenerates(fcPoly.features[0])).toEqual(fcPoly.features[0]);
 });

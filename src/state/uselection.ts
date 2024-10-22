@@ -11,7 +11,7 @@ export const USelection = {
    * we can place a feature in that.
    */
   selectionToFolder(
-    data: Pick<Data, "selection" | "featureMap" | "folderMap">
+    data: Pick<Data, "selection" | "featureMap" | "folderMap">,
   ): Sel {
     const { selection } = data;
 
@@ -81,11 +81,11 @@ export const USelection = {
     return ids.length === 0
       ? { type: "none" }
       : ids.length === 1
-      ? this.single(ids[0])
-      : {
-          type: "multi",
-          ids,
-        };
+        ? this.single(ids[0])
+        : {
+            type: "multi",
+            ids,
+          };
   },
   /**
    * Get selected features of a single or multi selection.

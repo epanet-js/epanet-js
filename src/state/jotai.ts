@@ -77,11 +77,11 @@ export const selectedFeaturesAtom = selectAtom(
   (data) => {
     return USelection.getSelectedFeatures(data);
   },
-  shallowArrayEqual
+  shallowArrayEqual,
 );
 
 export const selectionAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("selection")
+  optic.prop("selection"),
 );
 
 /**
@@ -152,7 +152,7 @@ export const showPanelBottomAtom = atom<boolean>(true);
  */
 export const listModeAtom = atomWithStorage<"grid" | "list">(
   "listMode",
-  "grid"
+  "grid",
 );
 export const showAllAtom = atomWithStorage("showAll", true);
 export const panelIdOpen = atomWithStorage("panelIdOpen", false);
@@ -163,7 +163,7 @@ export const panelCircleOpen = atomWithStorage("panelCircleOpen", true);
 export const panelStyleOpen = atomWithStorage("panelStyleOpen", false);
 export const panelSymbolizationExportOpen = atomWithStorage(
   "panelSymbolizationExportOpen",
-  true
+  true,
 );
 export type PanelAtom = typeof panelIdOpen;
 
@@ -171,17 +171,17 @@ export const hideHintsAtom = atomWithStorage<Mode[]>("hideHints", []);
 
 export const scaleUnitAtom = atomWithStorage<ScaleUnit>(
   "scaleUnit",
-  "imperial"
+  "imperial",
 );
 
 export const showFolderTreeAtom = atomWithStorage<"hide" | "show">(
   "showFolderTree",
-  "hide"
+  "hide",
 );
 
 export const addMetadataWithGeocoderAtom = atomWithStorage(
   "addMetadataWithGeocoder",
-  false
+  false,
 );
 
 export const followPresenceAtom = atom<IPresence | null>(null);
@@ -271,8 +271,8 @@ export interface EphemeralEditingStateLasso {
 }
 
 export interface EphemeralDragState {
-  type: "drag",
-  features: IWrappedFeature[]
+  type: "drag";
+  features: IWrappedFeature[];
 }
 
 export const cursorStyleAtom = atom<React.CSSProperties["cursor"]>("default");
@@ -394,5 +394,5 @@ export const seenPlayModal = atomWithStorage<boolean>("seenPlayModal", false);
 
 export const circleTypeAtom = atomWithStorage<CIRCLE_TYPE>(
   "circleType",
-  CIRCLE_TYPE.MERCATOR
+  CIRCLE_TYPE.MERCATOR,
 );

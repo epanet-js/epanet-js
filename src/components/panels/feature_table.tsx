@@ -66,13 +66,13 @@ function clampColumnWidth(width: number, auto: boolean) {
   return clamp(
     width,
     NARROW_COLUMN_WIDTH,
-    auto ? AUTO_MAX_COLUMN_WIDTH : MAX_COLUMN_WIDTH
+    auto ? AUTO_MAX_COLUMN_WIDTH : MAX_COLUMN_WIDTH,
   );
 }
 
 function virtualPosition(
   virtualColumn: VirtualItem,
-  virtualRow: VirtualItem
+  virtualRow: VirtualItem,
 ): NonNullable<React.HTMLAttributes<HTMLDivElement>["style"]> {
   return {
     position: "absolute",
@@ -87,7 +87,7 @@ function virtualPosition(
 }
 
 export function virtualPositionTop(
-  virtualColumn: VirtualItem
+  virtualColumn: VirtualItem,
 ): NonNullable<React.HTMLAttributes<HTMLDivElement>["style"]> {
   return {
     width: `${virtualColumn.size}px`,
@@ -275,7 +275,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
         return newValue;
       });
     },
-    [data, columns]
+    [data, columns],
   );
 
   // Sort order! Same as in the feature properties pane.
@@ -284,7 +284,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
       sortBy(columns, (name) => {
         return localOrder.current.indexOf(name);
       }),
-    [columns]
+    [columns],
   );
 
   const features: IWrappedFeature[] = useMemo(() => {
@@ -311,7 +311,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [columnWidths]
+    [columnWidths],
   );
 
   /**
@@ -341,7 +341,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
         }),
         {
           align: "auto",
-        }
+        },
       );
     }
     lastSelectionId.current = selectionId;
@@ -356,7 +356,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
       newValue.set(column, {
         width: clampColumnWidth(
           (newValue.get(column)?.width || NARROW_COLUMN_WIDTH) + delta,
-          false
+          false,
         ),
       });
       return newValue;
@@ -372,7 +372,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
         folderId,
       }));
     },
-    [setFilter]
+    [setFilter],
   );
 
   const [statsOpen, setStatsOpen] = useState<boolean>(false);
@@ -390,7 +390,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
   const addColumnClass = clsx(
     headerBase,
     headerHoverClass,
-    `px-2 justify-center border-r border-l`
+    `px-2 justify-center border-r border-l`,
   );
   const headerClass = clsx(
     headerBase,
@@ -399,7 +399,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
     group justify-between
     gap-x-2
     w-full truncate
-    px-2 border-l`
+    px-2 border-l`,
   );
 
   return (
@@ -582,7 +582,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
                   onChange={(e) => {
                     if (e.target.checked) {
                       setSelection(
-                        USelection.fromIds(features.map((f) => f.id))
+                        USelection.fromIds(features.map((f) => f.id)),
                       );
                     } else {
                       setSelection(USelection.none());

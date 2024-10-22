@@ -29,7 +29,7 @@ export const ID_0 = tid(0);
 
 function loadFixture(path: string): FeatureCollection {
   return JSON.parse(
-    Fs.readFileSync(Path.join(__dirname, path), "utf8")
+    Fs.readFileSync(Path.join(__dirname, path), "utf8"),
   ) as FeatureCollection;
 }
 
@@ -53,7 +53,7 @@ export function wrap(fc: FeatureCollection): IWrappedFeature[] {
         folderId: null,
         feature: feature,
       };
-    })
+    }),
   ) as unknown as IWrappedFeature[];
 }
 
@@ -70,7 +70,7 @@ export function wrapMap(fc: FeatureCollection): FeatureMap {
           feature: feature,
         }),
       ];
-    })
+    }),
   ) as FeatureMap;
 }
 
@@ -90,7 +90,7 @@ export function wrapMapAndId(fc: FeatureCollection) {
       });
       wrappedFeatures.push(wrappedFeature);
       return [id, wrappedFeature];
-    })
+    }),
   );
   return { wrappedFeatures, idMap, featureMap };
 }
@@ -104,7 +104,7 @@ export function f(features: IFeature | IFeature[]): IFeatureCollection {
           ...feature,
           properties: Object.freeze(feature.properties),
         };
-      }
+      },
     ),
   }) as IFeatureCollection;
 }
@@ -357,7 +357,7 @@ export const fcGeometryCollection = f([
     geometry: {
       type: "GeometryCollection",
       geometries: twoPoints.features.map(
-        (feature) => feature.geometry as Point
+        (feature) => feature.geometry as Point,
       ),
     },
   },
@@ -465,7 +465,7 @@ export const features = [
 export const putPresenceContent = (
   id: number,
   userId: number,
-  wrappedFeatureCollectionId: string
+  wrappedFeatureCollectionId: string,
 ) => ({
   id,
   name: "putPresence",
@@ -488,7 +488,7 @@ export const putPresenceContent = (
 export const putFeaturesContent = (
   id: number,
   wrappedFeatureCollectionId: string,
-  featureId = "cf55b1a0-7561-11ec-91c4-2f6e209ecfb8"
+  featureId = "cf55b1a0-7561-11ec-91c4-2f6e209ecfb8",
 ) => ({
   id,
   name: "putFeatures",

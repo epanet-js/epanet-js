@@ -52,7 +52,7 @@ import { drawCentroids } from "src/lib/map_operations/draw_centroids";
 import { drawLabelPoints } from "src/lib/map_operations/draw_label_points";
 
 export function useActions(
-  selectedWrappedFeatures: IWrappedFeature[]
+  selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
   const transact = rep.useTransact();
@@ -82,7 +82,7 @@ export function useActions(
   const supportsCentroids = selectedFeatures.some(
     (feature) =>
       feature.geometry?.type &&
-      geometriesThatYieldCentroids.has(feature.geometry?.type)
+      geometriesThatYieldCentroids.has(feature.geometry?.type),
   );
 
   const onCentroid = useAtomCallback(
@@ -93,8 +93,8 @@ export function useActions(
         set(selectionAtom, newSelection);
         return transact(moment);
       },
-      [transact, selectedWrappedFeatures]
-    )
+      [transact, selectedWrappedFeatures],
+    ),
   );
 
   const addCentroidAction = {
@@ -109,13 +109,13 @@ export function useActions(
       // eslint-disable-next-line
       async (_get, set) => {
         const { newSelection, moment } = drawLabelPoints(
-          selectedWrappedFeatures
+          selectedWrappedFeatures,
         );
         set(selectionAtom, newSelection);
         return transact(moment);
       },
-      [transact, selectedWrappedFeatures]
-    )
+      [transact, selectedWrappedFeatures],
+    ),
   );
 
   const addLabelPointAction = {
@@ -139,8 +139,8 @@ export function useActions(
           },
         });
       },
-      [transact, selectedWrappedFeatures]
-    )
+      [transact, selectedWrappedFeatures],
+    ),
   );
 
   const drawArcAction = {
@@ -160,8 +160,8 @@ export function useActions(
         set(selectionAtom, newSelection);
         await transact(moment);
       },
-      [transact]
-    )
+      [transact],
+    ),
   );
 
   const duplicateFeaturesAction = {
@@ -179,8 +179,8 @@ export function useActions(
         set(selectionAtom, newSelection);
         await transact(moment);
       },
-      [transact]
-    )
+      [transact],
+    ),
   );
 
   const deleteFeaturesAction = {
@@ -207,7 +207,7 @@ export function useActions(
     onSelect: async function doAddInnerRing() {
       return await addInnerRing(
         selectedFeatures[0] as IFeature<Polygon>,
-        selectedFeatures[1] as IFeature<Polygon>
+        selectedFeatures[1] as IFeature<Polygon>,
       ).caseOf({
         Left(error) {
           return Promise.resolve(void toast.error(error.message));
@@ -238,7 +238,7 @@ export function useActions(
     applicable: selectedFeatures.some(
       (feature) =>
         feature.geometry !== null &&
-        GEOJSON_MULTI_GEOMETRY_TYPES.has(feature.geometry?.type)
+        GEOJSON_MULTI_GEOMETRY_TYPES.has(feature.geometry?.type),
     ),
     label:
       selectedFeatures.length === 1
@@ -250,7 +250,7 @@ export function useActions(
         : `Divide features`,
     onSelect: async function doDivide() {
       const { putFeatures, deleteFeatures } = divideFeatures(
-        selectedWrappedFeatures
+        selectedWrappedFeatures,
       );
       await transact({
         note: "Divided multi-features into single features",

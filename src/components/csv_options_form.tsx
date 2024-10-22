@@ -56,7 +56,7 @@ function KindSelector({ geocoder }: { geocoder: boolean }) {
  */
 function setAutodetectedFields(
   setFieldValue: FormikContextType<ImportOptions>["setFieldValue"],
-  detected: ReturnType<typeof detectColumns>
+  detected: ReturnType<typeof detectColumns>,
 ) {
   if (detected.kind) {
     setFieldValue("csvOptions.kind", detected.kind);
@@ -73,24 +73,24 @@ function setAutodetectedFields(
   // Single column
   setFieldValue(
     "csvOptions.geocodingHeaders.text",
-    detected.geocodingHeaders.text
+    detected.geocodingHeaders.text,
   );
   // Structured
   setFieldValue(
     "csvOptions.geocodingHeaders.address",
-    detected.geocodingHeaders.address
+    detected.geocodingHeaders.address,
   );
   setFieldValue(
     "csvOptions.geocodingHeaders.postalcode",
-    detected.geocodingHeaders.postalcode
+    detected.geocodingHeaders.postalcode,
   );
   setFieldValue(
     "csvOptions.geocodingHeaders.country",
-    detected.geocodingHeaders.country
+    detected.geocodingHeaders.country,
   );
   setFieldValue(
     "csvOptions.geocodingHeaders.locality",
-    detected.geocodingHeaders.locality
+    detected.geocodingHeaders.locality,
   );
 }
 
@@ -471,7 +471,7 @@ function XlsOptionsFormInner({
   useEffect(() => {
     if (noop || !doc) return;
     const output = xlsx.utils.sheet_to_json(
-      doc.Sheets[sheet]
+      doc.Sheets[sheet],
     ) as unknown as JsonObject[];
     if (!output[0]) {
       // console.error(output, sheet);

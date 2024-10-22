@@ -28,7 +28,7 @@ export function PanelDetails({
           {
             "px-3": variant === "default",
           },
-          `pb-3 contain-layout`
+          `pb-3 contain-layout`,
         )}
       >
         {children}

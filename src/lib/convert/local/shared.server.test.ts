@@ -23,10 +23,10 @@ test("getGeocodingURLSearch", () => {
           ...DEFAULT_IMPORT_OPTIONS.csvOptions.geocodingHeaders,
           text: "text",
         },
-      }
-    )
+      },
+    ),
   ).toMatchInlineSnapshot(
-    `"https://api.geocode.earth/v1/search?api_key=xxx&text=Foo"`
+    `"https://api.geocode.earth/v1/search?api_key=xxx&text=Foo"`,
   );
   expect(() =>
     getGeocodingURLSearch(
@@ -38,8 +38,8 @@ test("getGeocodingURLSearch", () => {
         geocodingHeaders: {
           ...DEFAULT_IMPORT_OPTIONS.csvOptions.geocodingHeaders,
         },
-      }
-    )
+      },
+    ),
   ).toThrowError();
 });
 
@@ -57,10 +57,10 @@ test("getGeocodingURLSearch", () => {
           address: "a",
           locality: "c",
         },
-      }
-    )
+      },
+    ),
   ).toMatchInlineSnapshot(
-    `"https://api.geocode.earth/v1/search/structured?api_key=xxx&address=Foo&locality=Bar"`
+    `"https://api.geocode.earth/v1/search/structured?api_key=xxx&address=Foo&locality=Bar"`,
   );
   expect(() =>
     getGeocodingURLStructured(
@@ -72,7 +72,7 @@ test("getGeocodingURLSearch", () => {
         geocodingHeaders: {
           ...DEFAULT_IMPORT_OPTIONS.csvOptions.geocodingHeaders,
         },
-      }
-    )
+      },
+    ),
   ).toThrowError();
 });

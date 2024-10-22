@@ -62,12 +62,12 @@ describe("map_operations", () => {
   describe("mergeFeaturesMessage", () => {
     it("Point", () => {
       expect(mergeFeaturesMessage(twoPoints.features)).toEqual(
-        "Merge into MultiPoint"
+        "Merge into MultiPoint",
       );
     });
     it("GeometryCollection", () => {
       expect(mergeFeaturesMessage(fcLineAndPoly.features)).toEqual(
-        "Merge into GeometryCollection"
+        "Merge into GeometryCollection",
       );
     });
   });
@@ -75,7 +75,7 @@ describe("map_operations", () => {
   describe("mergeFeatures", () => {
     it("Point", () => {
       expect(mergeFeatures(fcMultiPoint.features)).toEqual(
-        fcMultiPoint.features[0]
+        fcMultiPoint.features[0],
       );
 
       expect(mergeFeatures(twoPoints.features)).toEqual({
@@ -96,7 +96,7 @@ describe("map_operations", () => {
 
     it("Polygon", () => {
       expect(mergeFeatures(fcMultiPoly.features)).toEqual(
-        fcMultiPoly.features[0]
+        fcMultiPoly.features[0],
       );
       expect(mergeFeatures([...fcMultiPoly.features, ...fcPoly.features]))
         .toMatchInlineSnapshot(`
@@ -189,7 +189,7 @@ describe("map_operations", () => {
 
     it("LineString", () => {
       expect(mergeFeatures(fcMultiLineString.features)).toEqual(
-        fcMultiLineString.features[0]
+        fcMultiLineString.features[0],
       );
 
       expect(
@@ -212,7 +212,7 @@ describe("map_operations", () => {
               coordinates: [[1, 1]],
             },
           },
-        ])
+        ]),
       ).toEqual({
         type: "Feature",
         properties: {
@@ -227,11 +227,11 @@ describe("map_operations", () => {
 
     it("merge into GeometryCollection", () => {
       expect(mergeFeatures(fcGeometryCollection.features)).toEqual(
-        fcGeometryCollection.features[0]
+        fcGeometryCollection.features[0],
       );
       expect(mergeFeatures(fcLineAndPoly.features)).toHaveProperty(
         ["geometry", "type"],
-        "GeometryCollection"
+        "GeometryCollection",
       );
     });
   });
@@ -240,7 +240,7 @@ describe("map_operations", () => {
     const vertexFeatures = generateSyntheticPoints(feature, 0).filter(
       (feature) => {
         return decodeId(feature.id as RawId).type === "vertex";
-      }
+      },
     );
     if (vertexFeatures.length === 0) return null;
     return decodeId(engine.pick(vertexFeatures).id as RawId) as VertexId;
@@ -250,7 +250,7 @@ describe("map_operations", () => {
     const vertexFeatures = generateSyntheticPoints(feature, 0).filter(
       (feature) => {
         return decodeId(feature.id as RawId).type === "midpoint";
-      }
+      },
     );
     if (vertexFeatures.length === 0) return null;
     return decodeId(engine.pick(vertexFeatures).id as RawId) as MidpointId;
@@ -392,7 +392,7 @@ describe("map_operations", () => {
             vertex: 0,
           },
           position: [42, 20],
-        })
+        }),
       ).toHaveProperty(["geometry", "coordinates", "length"], 4);
     });
 
@@ -407,7 +407,7 @@ describe("map_operations", () => {
         fcGeometryCollection.features[0],
       ]) {
         const midpoints = generateSyntheticPoints(feature, 0).filter(
-          ({ id }) => decodeId(id as RawId).type === "midpoint"
+          ({ id }) => decodeId(id as RawId).type === "midpoint",
         );
         for (const mid of midpoints) {
           expect(
@@ -415,7 +415,7 @@ describe("map_operations", () => {
               feature,
               id: decodeId(mid.id as RawId) as MidpointId,
               position: [42, 20],
-            })
+            }),
           ).toBeTruthy();
         }
       }
@@ -431,7 +431,7 @@ describe("map_operations", () => {
             vertex: 0,
           },
           position: [42, 20],
-        })
+        }),
       ).toHaveProperty(["geometry", "coordinates", "0", "length"], 5);
     });
 
@@ -445,7 +445,7 @@ describe("map_operations", () => {
             vertex: 16,
           },
           position: [42, 20],
-        })
+        }),
       ).toHaveProperty(["geometry", "coordinates", "1", "length"], 9);
     });
 
@@ -459,7 +459,7 @@ describe("map_operations", () => {
             vertex: 0,
           },
           position: [42, 20],
-        })
+        }),
       ).toHaveProperty(["geometry", "coordinates", "0", "0", "length"], 5);
     });
   });
@@ -482,14 +482,14 @@ describe("map_operations", () => {
         properties: {},
       });
       expect(
-        makeConvexHull([fcMultiPoly.features[0]]).extract()
+        makeConvexHull([fcMultiPoly.features[0]]).extract(),
       ).toMatchSnapshot();
     });
     it("error", () => {
       expect(makeConvexHull([pointFeature])).toBeLeft();
       expect(makeConvexHull([pointFeature, pointFeature])).toBeLeft();
       expect(
-        makeConvexHull([pointFeature, pointFeature, pointFeature])
+        makeConvexHull([pointFeature, pointFeature, pointFeature]),
       ).toBeLeft();
     });
   });
@@ -591,8 +591,8 @@ describe("map_operations", () => {
           geometry: null,
           properties: {},
         },
-        { key: "x", value: "10" }
-      )
+        { key: "x", value: "10" },
+      ),
     ).toHaveProperty("properties", { x: 10 });
     expect(
       updatePropertyValue(
@@ -601,23 +601,23 @@ describe("map_operations", () => {
           geometry: null,
           properties: {},
         },
-        { key: "x", value: "true" }
-      )
+        { key: "x", value: "true" },
+      ),
     ).toHaveProperty("properties", { x: true });
     expect(
-      updatePropertyValue(fc.features[0], { key: "x", value: "hello" })
+      updatePropertyValue(fc.features[0], { key: "x", value: "hello" }),
     ).toHaveProperty("properties", { x: "hello" });
     expect(
-      updatePropertyValue(fc.features[0], { key: "x", value: "2" })
+      updatePropertyValue(fc.features[0], { key: "x", value: "2" }),
     ).toHaveProperty("properties", { x: 2 });
     expect(
-      updatePropertyValue(fc.features[0], { key: "x", value: { yes: 2 } })
+      updatePropertyValue(fc.features[0], { key: "x", value: { yes: 2 } }),
     ).toHaveProperty("properties", { x: { yes: 2 } });
     expect(
       updatePropertyValue(fc.features[0], {
         key: "x",
         value: "42",
-      })
+      }),
     ).toHaveProperty("properties", { x: 42 });
   });
 
@@ -643,14 +643,14 @@ describe("map_operations", () => {
           position: [42, 42],
           vertexId: { type: "vertex", featureId: 0, vertex: 1 },
           feature: fcLineString.features[0],
-        })
+        }),
       ).toHaveProperty(
         ["feature", "geometry", "coordinates"],
         [
           [0, 0],
           [42, 42],
           [2, 2],
-        ]
+        ],
       );
     });
 
@@ -665,7 +665,7 @@ describe("map_operations", () => {
         fcGeometryCollection.features[0],
       ]) {
         const vertexes = generateSyntheticPoints(feature, 0).filter(
-          ({ id }) => decodeId(id as RawId).type === "vertex"
+          ({ id }) => decodeId(id as RawId).type === "vertex",
         );
         for (const vert of vertexes) {
           expect(
@@ -673,7 +673,7 @@ describe("map_operations", () => {
               feature,
               vertexId: decodeId(vert.id as RawId) as VertexId,
               position: [2, 2],
-            })
+            }),
           ).toBeTruthy();
         }
       }
@@ -685,13 +685,13 @@ describe("map_operations", () => {
           position: [42, 42],
           vertexId: { type: "vertex", featureId: 0, vertex: 1 },
           feature: fcMultiPoint.features[0],
-        })
+        }),
       ).toHaveProperty(
         ["feature", "geometry", "coordinates"],
         [
           [0, 0],
           [42, 42],
-        ]
+        ],
       );
     });
 
@@ -717,7 +717,7 @@ describe("map_operations", () => {
             },
             properties: {},
           },
-        })
+        }),
       ).toMatchInlineSnapshot(`
         {
           "feature": {
@@ -778,7 +778,7 @@ describe("map_operations", () => {
             },
             properties: {},
           },
-        })
+        }),
       ).toMatchInlineSnapshot(`
         {
           "feature": {
@@ -824,7 +824,7 @@ describe("map_operations", () => {
           position: [42, 42],
           vertexId: { type: "vertex", featureId: 0, vertex: 1 },
           feature: fcPoly.features[0],
-        })
+        }),
       ).toHaveProperty(
         ["feature", "geometry", "coordinates"],
         [
@@ -834,7 +834,7 @@ describe("map_operations", () => {
             [2, 3],
             [0, 0],
           ],
-        ]
+        ],
       );
     });
   });
@@ -842,7 +842,7 @@ describe("map_operations", () => {
   it("deletePropertyKey", () => {
     expect(deletePropertyKey(fc.features[0], { key: "x" })).toHaveProperty(
       "properties",
-      {}
+      {},
     );
   });
 
@@ -858,7 +858,7 @@ describe("map_operations", () => {
           feature,
         },
       ];
-    })
+    }),
   );
 
   describe("duplicateFeatures", () => {
@@ -868,7 +868,7 @@ describe("map_operations", () => {
           featureMap,
           folderMap: new Map(),
           selection: SELECTION_NONE,
-        })
+        }),
       ).toEqual({
         moment: EMPTY_MOMENT,
         newSelection: USelection.none(),
@@ -916,24 +916,24 @@ describe("map_operations", () => {
   describe("popLineStringCoordinate", () => {
     it("Adding a coordinate", () => {
       expect(
-        popLineStringCoordinate(fcLineString.features[0], { reverse: false })
+        popLineStringCoordinate(fcLineString.features[0], { reverse: false }),
       ).toHaveProperty(
         ["geometry", "coordinates"],
         [
           [0, 0],
           [1, 1],
-        ]
+        ],
       );
     });
     it("reverse = true", () => {
       expect(
-        popLineStringCoordinate(fcLineString.features[0], { reverse: true })
+        popLineStringCoordinate(fcLineString.features[0], { reverse: true }),
       ).toHaveProperty(
         ["geometry", "coordinates"],
         [
           [1, 1],
           [2, 2],
-        ]
+        ],
       );
     });
   });
@@ -952,7 +952,7 @@ describe("map_operations", () => {
           featureMap,
           folderMap: new Map(),
           selection: SELECTION_NONE,
-        })
+        }),
       ).toEqual({
         moment: EMPTY_MOMENT,
         newSelection: USelection.none(),
@@ -969,7 +969,7 @@ describe("map_operations", () => {
             id: "300000",
             parts: [0 as unknown as VertexId],
           },
-        })
+        }),
       ).toEqual({
         moment: EMPTY_MOMENT,
         newSelection: USelection.none(),
@@ -985,7 +985,7 @@ describe("map_operations", () => {
             type: "multi",
             ids: ["0", "1"],
           },
-        })
+        }),
       ).toMatchInlineSnapshot(`
       {
         "moment": {
@@ -1016,7 +1016,7 @@ describe("map_operations", () => {
             type: "folder",
             id: "0",
           },
-        })
+        }),
       ).toMatchInlineSnapshot(`
       {
         "moment": {
@@ -1047,7 +1047,7 @@ describe("map_operations", () => {
             id: "0",
             parts: [],
           },
-        })
+        }),
       ).toHaveProperty("newSelection", USelection.none());
     });
 
@@ -1063,7 +1063,7 @@ describe("map_operations", () => {
             id: "0",
             parts: [vertexIds[0]],
           },
-        })
+        }),
       ).toHaveProperty("newSelection", USelection.single("0"));
     });
 
@@ -1079,7 +1079,7 @@ describe("map_operations", () => {
             id: "0",
             parts: [vertexIds[0], vertexIds[1]],
           },
-        })
+        }),
       ).toHaveProperty("newSelection", USelection.none());
     });
   });
@@ -1107,8 +1107,8 @@ describe("map_operations", () => {
         {
           lng: 12,
           lat: 10,
-        }
-      )
+        },
+      ),
     ).toMatchSnapshot();
 
     expect(
@@ -1121,8 +1121,8 @@ describe("map_operations", () => {
         {
           lng: 12,
           lat: 10,
-        }
-      )
+        },
+      ),
     ).toMatchSnapshot();
 
     expect(
@@ -1135,8 +1135,8 @@ describe("map_operations", () => {
         {
           lng: 12,
           lat: 10,
-        }
-      )
+        },
+      ),
     ).toMatchSnapshot();
   });
 
@@ -1164,7 +1164,7 @@ describe("map_operations", () => {
     it("invalid coordinate behavior", () => {
       expect(() => getCoordinates(fcPoly.features[0], vertex(100))).toThrow();
       expect(() =>
-        getCoordinates(fcLineString.features[0], vertex(100))
+        getCoordinates(fcLineString.features[0], vertex(100)),
       ).toThrow();
     });
   });
@@ -1179,13 +1179,13 @@ describe("map_operations", () => {
   describe("unionFeatures", () => {
     it("base case", () => {
       expect(
-        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract()
+        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract(),
       ).toBeTruthy();
       expect(
-        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract()
+        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract(),
       ).toHaveLength(1);
       expect(
-        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract()
+        booleanFeatures(fcTwoPoly.features, { op: "union" }).extract(),
       ).toHaveProperty(["0", "properties"], {
         hello: "World",
         x: 1,
@@ -1197,7 +1197,7 @@ describe("map_operations", () => {
         expect(() =>
           booleanFeatures(fs, {
             op: engine.pick(["union", "intersection", "difference"]),
-          })
+          }),
         ).not.toThrow();
       }
     });
@@ -1206,7 +1206,7 @@ describe("map_operations", () => {
   describe("updatePropertyKey", () => {
     it("updatePropertyKey", () => {
       expect(
-        updatePropertyKey(fc.features[0], { key: "x", newKey: "y" })
+        updatePropertyKey(fc.features[0], { key: "x", newKey: "y" }),
       ).toHaveProperty(["properties"], { y: 1 });
     });
   });
@@ -1229,7 +1229,7 @@ describe("map_operations", () => {
               ],
             ],
           },
-        })
+        }),
       ).toEqual({
         type: "Feature",
         properties: {
@@ -1267,7 +1267,7 @@ describe("map_operations", () => {
               ],
             ],
           },
-        })
+        }),
       ).toMatchInlineSnapshot(`
       {
         "geometry": {
@@ -1315,8 +1315,8 @@ describe("map_operations", () => {
             coordinates: [[[0, 0]]],
           },
         },
-        [24, 24]
-      )
+        [24, 24],
+      ),
     ).toEqual({
       type: "Feature",
       properties: {
@@ -1340,7 +1340,7 @@ describe("map_operations", () => {
         addLineStringCoordinate(fcLineString.features[0], {
           position: [1, 2],
           reverse: false,
-        })
+        }),
       ).toHaveProperty(
         ["geometry", "coordinates"],
         [
@@ -1348,7 +1348,7 @@ describe("map_operations", () => {
           [1, 1],
           [2, 2],
           [1, 2],
-        ]
+        ],
       );
     });
     it("unshift a coordinate to the front", () => {
@@ -1356,7 +1356,7 @@ describe("map_operations", () => {
         addLineStringCoordinate(fcLineString.features[0], {
           position: [1, 2],
           reverse: true,
-        })
+        }),
       ).toHaveProperty(
         ["geometry", "coordinates"],
         [
@@ -1364,7 +1364,7 @@ describe("map_operations", () => {
           [0, 0],
           [1, 1],
           [2, 2],
-        ]
+        ],
       );
     });
   });
@@ -1373,30 +1373,30 @@ describe("map_operations", () => {
     describe("canAddInnerRing", () => {
       it("throws if a polygon is not fully contained", () => {
         expect(canInnerRing(fcTwoPoly.features)).toEqual(
-          CanInnerRingResult.Yes
+          CanInnerRingResult.Yes,
         );
       });
     });
     describe("addInnerRing", () => {
       it("throws if a polygon is not fully contained", () => {
         expect(
-          addInnerRing(fcTwoPoly.features[0], fcTwoPoly.features[1])
+          addInnerRing(fcTwoPoly.features[0], fcTwoPoly.features[1]),
         ).toBeLeft();
       });
       it("combines polygons", () => {
         expect(
           addInnerRing(
             fcTwoPolyContainable.features[0],
-            fcTwoPolyContainable.features[1]
-          ).extract()
+            fcTwoPolyContainable.features[1],
+          ).extract(),
         ).toHaveProperty(["length"], 1);
       });
       it("combines polygons in reverse order", () => {
         expect(
           addInnerRing(
             fcTwoPolyContainable.features[1],
-            fcTwoPolyContainable.features[0]
-          ).extract()
+            fcTwoPolyContainable.features[0],
+          ).extract(),
         ).toHaveProperty(["length"], 1);
       });
     });

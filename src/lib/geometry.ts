@@ -50,7 +50,7 @@ export function formatCoordinates(pos: Pos2) {
 
 function trimAndSplitIntoNumbers(
   str: string,
-  len: number
+  len: number,
 ): Either<ConvertError, number[]> {
   const trimmed = str.trim().replace(/[^\-\d,.\s]/g, "");
   if (!trimmed) return Left(new ConvertError("Empty input"));
@@ -61,8 +61,8 @@ function trimAndSplitIntoNumbers(
   if (numbers.length !== len) {
     return Left(
       new ConvertError(
-        `Failed to parse: need ${len} valid numbers, found ${numbers.length}`
-      )
+        `Failed to parse: need ${len} valid numbers, found ${numbers.length}`,
+      ),
     );
   }
   return Right(numbers);
@@ -78,7 +78,7 @@ export function parseBBOX(str: string) {
 
 export function polygonCoordinatesFromPositions(
   a: Pos2,
-  b: Pos2
+  b: Pos2,
 ): Polygon["coordinates"] {
   return [[a, [a[0], b[1]], b, [b[0], a[1]], a]];
 }
@@ -157,7 +157,7 @@ export function extendExtent(a: Maybe<BBox>, b: Maybe<BBox>) {
           Math.min(y0, y00),
           Math.max(x1, x01),
           Math.max(y1, y01),
-        ])
+        ]),
       );
     }
   }
@@ -188,12 +188,12 @@ function limitExtent(box: Maybe<BBox>) {
         clamp(y0, -90, 90),
         clamp(x1, -180, 180),
         clamp(y1, -90, 90),
-      ] as BBox
+      ] as BBox,
   );
 }
 
 function normalizeInput(
-  input: GeoJSON | IWrappedFeature[] | Feature[]
+  input: GeoJSON | IWrappedFeature[] | Feature[],
 ): GeoJSON {
   if (Array.isArray(input)) {
     const wrapped = input.length !== 0 && "at" in input[0];
@@ -201,7 +201,7 @@ function normalizeInput(
       type: "FeatureCollection",
       features: wrapped
         ? (input as IWrappedFeature[]).map(
-            (wrappedFeature) => wrappedFeature.feature
+            (wrappedFeature) => wrappedFeature.feature,
           )
         : (input as Feature[]),
     };
@@ -238,8 +238,8 @@ function getExtentsForGeometry(geometry: Geometry): BBox[] {
           getBbox({
             type: "Polygon",
             coordinates,
-          })
-        )
+          }),
+        ),
       );
     }
     case "MultiLineString": {
@@ -248,8 +248,8 @@ function getExtentsForGeometry(geometry: Geometry): BBox[] {
           getBbox({
             type: "LineString",
             coordinates,
-          })
-        )
+          }),
+        ),
       );
     }
     case "GeometryCollection": {
@@ -260,7 +260,7 @@ function getExtentsForGeometry(geometry: Geometry): BBox[] {
 
 export function getExtent(
   input: GeoJSON | IWrappedFeature[] | Feature[],
-  noLimit?: boolean
+  noLimit?: boolean,
 ) {
   const geojson = normalizeInput(input);
   const box = getBbox(geojson);
@@ -303,7 +303,7 @@ export function bboxToPolygon(bbox: TBBox): Polygon {
  * without absolutely hitting them as features.
  */
 export function bufferPoint(
-  point: mapboxgl.Point
+  point: mapboxgl.Point,
 ): [mapboxgl.PointLike, mapboxgl.PointLike] {
   const ry = 10;
   const rx = ry;
@@ -333,7 +333,7 @@ function truncate3(geometry: MultiPolygon, e = 6): MultiPolygon {
   return {
     type: "MultiPolygon",
     coordinates: geometry.coordinates.map((shape) =>
-      shape.map((ring) => ring.map((position) => e6position(position, e)))
+      shape.map((ring) => ring.map((position) => e6position(position, e))),
     ),
   };
 }
@@ -342,7 +342,7 @@ function truncate2<T extends Polygon | MultiLineString>(geometry: T, e = 6): T {
   return {
     ...geometry,
     coordinates: geometry.coordinates.map((ring) =>
-      ring.map((position) => e6position(position, e))
+      ring.map((position) => e6position(position, e)),
     ),
   };
 }
@@ -351,7 +351,7 @@ function truncate1<T extends MultiPoint | LineString>(geometry: T, e = 6): T {
   return {
     ...geometry,
     coordinates: geometry.coordinates.map((position) =>
-      e6position(position, e)
+      e6position(position, e),
     ),
   };
 }
@@ -360,7 +360,7 @@ function truncateFC(geojson: FeatureCollection, e = 6): FeatureCollection {
   return {
     ...geojson,
     features: geojson.features.map((feature) =>
-      e6geojson(feature, e)
+      e6geojson(feature, e),
     ) as Feature[],
   };
 }
@@ -369,7 +369,7 @@ function truncateGC(geojson: GeometryCollection, e = 6): GeometryCollection {
   return {
     type: "GeometryCollection",
     geometries: geojson.geometries.map(
-      (geometry) => e6geojson(geometry, e) as Geometry
+      (geometry) => e6geojson(geometry, e) as Geometry,
     ),
   };
 }
@@ -426,7 +426,7 @@ function fixOuterRing(coordinates: Position[]) {
 }
 
 function degeneratePolygon(
-  coordinates: Polygon["coordinates"]
+  coordinates: Polygon["coordinates"],
 ): Polygon | LineString | null {
   if (coordinates.length === 0) return null;
   const [outer, ...innerRings] = coordinates;
@@ -458,7 +458,7 @@ export function removeDegenerates(geometry: Geometry): Geometry | null {
     }
     case "MultiLineString": {
       const coordinates = geometry.coordinates.filter(
-        (line) => line.length > 2
+        (line) => line.length > 2,
       );
       if (coordinates.length === 0) return null;
       return {

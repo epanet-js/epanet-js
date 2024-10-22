@@ -16,7 +16,7 @@ import {
  * This also serializes any complex properties
  */
 export function adjustForFgb(
-  geojson: FeatureCollection
+  geojson: FeatureCollection,
 ): IFeatureCollection<Geometry> {
   const features: IFeature<Geometry>[] = [];
 
@@ -36,7 +36,7 @@ export function adjustForFgb(
                 return [key, JSON.stringify(value)];
               }
               return [key, value];
-            })
+            }),
           )
         : null,
     });
@@ -59,10 +59,10 @@ export class CFlatGeobuf implements FileType {
       async function forwardFlatGeobuf() {
         const flatgeobuf = await import("flatgeobuf/lib/mjs/geojson");
         const res = flatgeobuf.deserialize(
-          new Uint8Array(file)
+          new Uint8Array(file),
         ) as FeatureCollection;
         return okResult(res);
-      }
+      },
     );
   }
   back({ geojson }: { geojson: FeatureCollection }, _options: ExportOptions) {
@@ -74,7 +74,7 @@ export class CFlatGeobuf implements FileType {
           blob: new Blob([res]),
           name: "features.fgb",
         };
-      }
+      },
     );
   }
 }

@@ -13,7 +13,7 @@ const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
   {
     ssr: false,
-  }
+  },
 );
 
 function ScratchpadInner() {
@@ -51,7 +51,7 @@ const Play = () => {
           id: layerId,
         },
       ],
-    ])
+    ]),
   );
 
   return (

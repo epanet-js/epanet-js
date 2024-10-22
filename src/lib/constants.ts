@@ -255,7 +255,7 @@ export const COORDINATE_ORDERS = {
 export const GEOJSON_TYPES: Set<string> = new Set(geojsonTypes);
 
 export const GEOJSON_MULTI_GEOMETRY_TYPES: Set<string> = new Set(
-  multiGeometryTypes
+  multiGeometryTypes,
 );
 
 export const DEFAULT_QUERY_OPTIONS = {

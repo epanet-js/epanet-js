@@ -112,7 +112,7 @@ export function moveAsRectangle({
 function lockDirection(
   targetCoord: Pos2 | undefined,
   reference: Pos2,
-  position: Pos2
+  position: Pos2,
 ) {
   if (!targetCoord) {
     return;

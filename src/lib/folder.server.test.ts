@@ -137,8 +137,8 @@ test("isFeatureLocked", () => {
         ...wrap(fcLineString)[0],
         folderId: id,
       },
-      nestedFolderMap
-    )
+      nestedFolderMap,
+    ),
   ).toBeTruthy();
   expect(
     isFeatureLocked(
@@ -146,21 +146,21 @@ test("isFeatureLocked", () => {
         ...wrap(fcLineString)[0],
         folderId: id1,
       },
-      nestedFolderMap
-    )
+      nestedFolderMap,
+    ),
   ).toBeTruthy();
 });
 
 test("filterLockedFeatures", () => {
   expect(
-    filterLockedFeatures({ featureMap: new Map(), folderMap: folders })
-  ).toMatchInlineSnapshot('[]');
+    filterLockedFeatures({ featureMap: new Map(), folderMap: folders }),
+  ).toMatchInlineSnapshot("[]");
 
   const wrappedLineString = wrap(fcLineString)[0];
   const featureMap = new Map([[wrappedLineString.id, wrappedLineString]]);
 
   expect(filterLockedFeatures({ featureMap, folderMap: folders })).toHaveLength(
-    1
+    1,
   );
 
   const featureMap2 = new Map([
@@ -174,7 +174,7 @@ test("filterLockedFeatures", () => {
   ]);
 
   expect(
-    filterLockedFeatures({ featureMap: featureMap2, folderMap: folders })
+    filterLockedFeatures({ featureMap: featureMap2, folderMap: folders }),
   ).toHaveLength(0);
 });
 

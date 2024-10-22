@@ -49,7 +49,7 @@ export function CastPropertyDialog({
         const properties = { ...oldProperties } as JsonObject;
         properties[modal.column] = castExplicit(
           properties[modal.column],
-          values.castTarget
+          values.castTarget,
         );
         const newFeature = {
           ...wrappedFeature.feature,

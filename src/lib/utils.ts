@@ -172,7 +172,7 @@ export function pluralize(
   word: string,
   count: number,
   inclusive = true,
-  irregular: string | undefined = undefined
+  irregular: string | undefined = undefined,
 ) {
   if (!irregular && word in IRREGS) irregular = IRREGS[word];
   const pluralized = count === 1 ? word : irregular ? irregular : word + "s";
@@ -263,7 +263,7 @@ export const formatCapitalize = (str: string) =>
   str.replace(/^\w/, (c) => c.toUpperCase());
 
 export function safeParseMaybe<T>(
-  parsed: SafeParseReturnType<unknown, T>
+  parsed: SafeParseReturnType<unknown, T>,
 ): Maybe<T> {
   if (parsed.success) {
     return Just(parsed.data);
@@ -286,7 +286,7 @@ export async function getTileJSON(url: string) {
 
 export async function get<T extends z.ZodType<unknown>>(
   url: string,
-  type: T
+  type: T,
 ): Promise<z.infer<T>> {
   const resp = await fetch(url);
   const json = await resp.json();

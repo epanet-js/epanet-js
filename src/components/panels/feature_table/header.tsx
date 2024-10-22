@@ -45,7 +45,7 @@ export function RenamePropertyDialog({
             properties: renameProperty(
               wrappedFeature.feature.properties,
               column,
-              values.renameTo
+              values.renameTo,
             ),
           },
         };
@@ -105,7 +105,7 @@ export const Header = memo(function Header({
       (get, set) => {
         if (
           !confirm(
-            "Are you sure you want to delete this property across all features?"
+            "Are you sure you want to delete this property across all features?",
           )
         )
           return;
@@ -120,7 +120,7 @@ export const Header = memo(function Header({
                   key: column,
                 }),
               };
-            }
+            },
           ),
         })
           .then(() => {
@@ -129,8 +129,8 @@ export const Header = memo(function Header({
           })
           .catch((e) => captureError(e));
       },
-      [column, localOrder, transact]
-    )
+      [column, localOrder, transact],
+    ),
   );
 
   const [renameOpen, setRenameOpen] = useState<boolean>(false);

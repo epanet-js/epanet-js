@@ -8,10 +8,12 @@ import { useCircleHandlers } from "src/lib/handlers/circle";
 import { useLineHandlers } from "src/lib/handlers/line";
 import { useJunctionHandlers } from "src/lib/handlers/junction";
 import { usePolygonHandlers } from "src/lib/handlers/polygon";
-import {usePipeHandlers} from "./pipe";
-import {isFeatureOn} from "src/infra/feature-flags";
+import { usePipeHandlers } from "./pipe";
+import { isFeatureOn } from "src/infra/feature-flags";
 
-const useNoneHandlers = isFeatureOn('deprecatedNone') ?  useNoneHanldersDepracated: useNoneHandlersNew
+const useNoneHandlers = isFeatureOn("deprecatedNone")
+  ? useNoneHanldersDepracated
+  : useNoneHandlersNew;
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {

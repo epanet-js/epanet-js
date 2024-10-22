@@ -1,5 +1,3 @@
-
-
 import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext, IWrappedFeature } from "src/types";
@@ -18,7 +16,7 @@ import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { useSpaceHeld } from "src/hooks/use_held";
-import {captureError, captureWarning} from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -43,13 +41,15 @@ export function useNoneHandlers({
     down: (e) => {
       lastPoint.current = e.lngLat;
 
-      const isRighClick = "button" in e.originalEvent && e.originalEvent.button === 2
+      const isRighClick =
+        "button" in e.originalEvent && e.originalEvent.button === 2;
       if (isRighClick) {
         return;
       }
 
       const selectedIds = USelection.toIds(selection);
-      const isMovingManyPoints = (e.originalEvent.altKey || spaceHeld.current) && selectedIds.length
+      const isMovingManyPoints =
+        (e.originalEvent.altKey || spaceHeld.current) && selectedIds.length;
       if (isMovingManyPoints) {
         dragTargetRef.current = selectedIds.slice();
         e.preventDefault();
@@ -105,7 +105,7 @@ export function useNoneHandlers({
           position: getMapCoord(e),
         });
         transact({
-          note: 'Splice a midpoint',
+          note: "Splice a midpoint",
           putFeatures: [
             {
               ...wrappedFeature,
@@ -125,12 +125,12 @@ export function useNoneHandlers({
       setCursor("pointer");
     },
     move: (e) => {
-      const updateDraggingState  = (features: IWrappedFeature[]) => {
+      const updateDraggingState = (features: IWrappedFeature[]) => {
         setEphemeralState({
-          type: 'drag',
+          type: "drag",
           features,
-        })
-      }
+        });
+      };
 
       if (dragTargetRef.current === null) {
         throttledMovePointer(e.point);
@@ -151,15 +151,15 @@ export function useNoneHandlers({
         const dx = lastPoint.current.lng - e.lngLat.lng;
         const dy = lastPoint.current.lat - e.lngLat.lat;
         lastPoint.current = e.lngLat;
-          const features = dragTarget.map((uuid) => {
-            const feature = featureMap.get(uuid)!;
-            return {
-              ...feature,
-              feature: ops.moveFeature(feature.feature, dx, dy),
-            };
-          })
+        const features = dragTarget.map((uuid) => {
+          const feature = featureMap.get(uuid)!;
+          return {
+            ...feature,
+            feature: ops.moveFeature(feature.feature, dx, dy),
+          };
+        });
         return transact({
-          note: 'Move features',
+          note: "Move features",
           putFeatures: features,
           quiet: true,
         });
@@ -170,7 +170,7 @@ export function useNoneHandlers({
         const id = decodeId(dragTarget);
         switch (id.type) {
           case "feature":
-            case "midpoint": {
+          case "midpoint": {
             break;
           }
           case "vertex": {
@@ -185,10 +185,12 @@ export function useNoneHandlers({
               vertexId: id,
             });
 
-            updateDraggingState([{
-              ...feature,
-              feature: newFeature,
-            }])
+            updateDraggingState([
+              {
+                ...feature,
+                feature: newFeature,
+              },
+            ]);
 
             break;
           }
@@ -198,34 +200,36 @@ export function useNoneHandlers({
     up: (e) => {
       const dragTarget = dragTargetRef.current;
 
-      const resetDrag  = () => {
+      const resetDrag = () => {
         dragTargetRef.current = null;
-        setEphemeralState({ type: 'none' })
+        setEphemeralState({ type: "none" });
         setCursor(CURSOR_DEFAULT);
       };
 
-      if (!dragTarget || selection.type !== "single") { return resetDrag() }
+      if (!dragTarget || selection.type !== "single") {
+        return resetDrag();
+      }
 
-      const isDraggingManyPoints = Array.isArray(dragTarget)
-      if (isDraggingManyPoints) { return resetDrag() }
+      const isDraggingManyPoints = Array.isArray(dragTarget);
+      if (isDraggingManyPoints) {
+        return resetDrag();
+      }
 
+      const id = decodeId(dragTarget);
+      if (id.type !== "vertex") return resetDrag();
 
-      const id = decodeId(dragTarget)
-      if (id.type !== "vertex") return resetDrag()
+      const wrappedFeature = featureMap.get(selection.id);
+      if (!wrappedFeature) return resetDrag();
 
-        const wrappedFeature = featureMap.get(selection.id)
-        if (!wrappedFeature) return resetDrag()
+      const nextCoord = getMapCoord(e);
+      const { feature: newFeature } = ops.setCoordinates({
+        feature: wrappedFeature.feature,
+        position: nextCoord,
+        vertexId: id,
+      });
 
-          const nextCoord = getMapCoord(e);
-          const { feature: newFeature } = ops.setCoordinates({
-            feature: wrappedFeature.feature,
-            position: nextCoord,
-            vertexId: id,
-          });
-
-
-          return transact({
-            note: 'Move point',
+      return transact({
+        note: "Move point",
         putFeatures: [
           {
             ...wrappedFeature,
@@ -233,10 +237,11 @@ export function useNoneHandlers({
           },
         ],
         quiet: true,
-      }).then(() => {
-        resetDrag()
-      }).catch((e) => captureError(e))
-
+      })
+        .then(() => {
+          resetDrag();
+        })
+        .catch((e) => captureError(e));
     },
     click: (e) => {
       // Get the fuzzy feature. This is a mapboxgl feature
@@ -290,19 +295,18 @@ export function useNoneHandlers({
       if (
         !(
           decodedId.type === "vertex" &&
-            feature.geometry.type === "LineString" &&
-            USelection.isVertexSelected(selection, id, decodedId)
+          feature.geometry.type === "LineString" &&
+          USelection.isVertexSelected(selection, id, decodedId)
         )
       ) {
         return;
       }
     },
     enter() {
-      setEphemeralState({ type: 'none' })
+      setEphemeralState({ type: "none" });
       setSelection(USelection.none());
     },
   };
 
   return handlers;
 }
-

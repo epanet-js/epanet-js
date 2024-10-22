@@ -31,7 +31,7 @@ export function trackMoment(partialMoment: Partial<MomentInput>) {
  */
 export function momentForDeleteFeatures(
   features: readonly IWrappedFeature["id"][],
-  { featureMap }: Data
+  { featureMap }: Data,
 ): Moment {
   const moment = fMoment("Update features");
   for (const id of features) {
@@ -45,7 +45,7 @@ export function momentForDeleteFeatures(
 
 export function momentForDeleteLayerConfigs(
   layerConfigs: readonly ILayerConfig["id"][],
-  layerConfigMap: LayerConfigMap
+  layerConfigMap: LayerConfigMap,
 ): Moment {
   const moment = fMoment("Update layers");
   for (const id of layerConfigs) {
@@ -68,7 +68,7 @@ export function momentForDeleteLayerConfigs(
  */
 export function momentForDeleteFolders(
   folders: readonly IFolder["id"][],
-  { folderMap }: Data
+  { folderMap }: Data,
 ): Moment {
   const moment = fMoment("Update folders");
   for (const id of folders) {
@@ -107,7 +107,7 @@ export function useEndSnapshot() {
   return useAtomCallback(
     useCallback((_get, set) => {
       set(momentLogAtom, (momentLog) => UMomentLog.endSnapshot(momentLog));
-    }, [])
+    }, []),
   );
 }
 
@@ -116,11 +116,11 @@ export function useStartSnapshot() {
     useCallback(
       (_get, set, feature: Parameters<typeof UMomentLog.startSnapshot>[1]) => {
         set(momentLogAtom, (momentLog) =>
-          UMomentLog.startSnapshot(momentLog, feature)
+          UMomentLog.startSnapshot(momentLog, feature),
         );
       },
-      []
-    )
+      [],
+    ),
   );
 }
 
@@ -143,7 +143,7 @@ export function usePopMoment() {
   return useAtomCallback(
     useCallback((_get, set, n: number) => {
       set(momentLogAtom, (momentLog) => UMomentLog.popMoment(momentLog, n));
-    }, [])
+    }, []),
   );
 }
 

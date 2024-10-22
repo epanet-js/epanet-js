@@ -16,7 +16,7 @@ type LL = Pick<LngLat, "lng" | "lat">;
 export function rotateFeatures(
   wrappedFeatures: IWrappedFeature[],
   a: LL | null,
-  b: LL
+  b: LL,
 ) {
   if (!a) return wrappedFeatures;
 
@@ -40,7 +40,7 @@ export function rotateFeatures(
             geometry.coordinates = pointRotate(
               geometry.coordinates as Point,
               angle,
-              centroid
+              centroid,
             );
             break;
           }
@@ -74,7 +74,7 @@ export function rotateFeatures(
             geometry.coordinates = lineRotate(
               geometry.coordinates as unknown as Line,
               angle,
-              centroid
+              centroid,
             );
             break;
           }

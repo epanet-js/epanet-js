@@ -25,7 +25,7 @@ export const FeatureEditorExport = memo(function FeatureEditorExport({
     async function onCopy(values: CopyForm) {
       if (lastFeature.current.feature.geometry === null) {
         return toast.error(
-          "Could not copy, because this feature has no geometry"
+          "Could not copy, because this feature has no geometry",
         );
       }
       await toast.promise(
@@ -33,17 +33,17 @@ export const FeatureEditorExport = memo(function FeatureEditorExport({
           COPIERS[values.format](lastFeature.current.feature as IFeature).then(
             (either) => {
               return either.unsafeCoerce();
-            }
-          )
+            },
+          ),
         ),
         {
           loading: "Copying…",
           success: "Copied",
           error: "Failed to copy. Try again?",
-        }
+        },
       );
     },
-    [lastFeature]
+    [lastFeature],
   );
 
   if (wrappedFeature.feature.geometry === null) return null;

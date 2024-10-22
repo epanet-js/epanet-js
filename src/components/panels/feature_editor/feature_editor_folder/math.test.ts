@@ -21,7 +21,7 @@ describe("getRequiredExpansionsFeature", () => {
         featureMap: m,
         folderMap: new Map(),
         selection,
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -35,7 +35,7 @@ describe("getRequiredExpansionsFeature", () => {
         featureMap: m,
         folderMap: new Map([[exampleFolder.id, exampleFolder]]),
         selection,
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -50,7 +50,7 @@ describe("getRequiredExpansionsFeature", () => {
         featureMap: m,
         folderMap: new Map([[collapsedFolder.id, collapsedFolder]]),
         selection,
-      })
+      }),
     ).toEqual([collapsedFolder]);
   });
 });

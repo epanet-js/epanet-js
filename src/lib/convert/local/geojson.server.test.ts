@@ -6,17 +6,17 @@ import { geojsonToString } from "./geojson";
 
 test("GeoJSON", () => {
   expect(
-    geojsonToString(new Map(), DEFAULT_EXPORT_OPTIONS.geojsonOptions)
+    geojsonToString(new Map(), DEFAULT_EXPORT_OPTIONS.geojsonOptions),
   ).toMatchInlineSnapshot(
-    `"{\\"type\\":\\"FeatureCollection\\",\\"features\\":[]}"`
+    `"{\\"type\\":\\"FeatureCollection\\",\\"features\\":[]}"`,
   );
 
   expect(
     geojsonToString(
       wrapMap(fcLineString),
-      DEFAULT_EXPORT_OPTIONS.geojsonOptions
-    )
+      DEFAULT_EXPORT_OPTIONS.geojsonOptions,
+    ),
   ).toMatchInlineSnapshot(
-    `"{\\"type\\":\\"FeatureCollection\\",\\"features\\":[{\\"type\\":\\"Feature\\",\\"properties\\":{\\"x\\":1},\\"geometry\\":{\\"type\\":\\"LineString\\",\\"coordinates\\":[[0,0],[1,1],[2,2]]}}]}"`
+    `"{\\"type\\":\\"FeatureCollection\\",\\"features\\":[{\\"type\\":\\"Feature\\",\\"properties\\":{\\"x\\":1},\\"geometry\\":{\\"type\\":\\"LineString\\",\\"coordinates\\":[[0,0],[1,1],[2,2]]}}]}"`,
   );
 });

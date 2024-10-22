@@ -36,7 +36,7 @@ export function exportStyle(symbolization: ISymbolization): EOption[] {
           },
         }),
         null,
-        2
+        2,
       ),
     },
     {

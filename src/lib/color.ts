@@ -33,7 +33,7 @@ export function linearGradient({
   const steps = colors.map((color, i) =>
     interpolate === "step"
       ? `${color} ${percent * i}%, ${color} ${percent * (i + 1)}%`
-      : `${color} ${percent * i}%`
+      : `${color} ${percent * i}%`,
   );
   return `linear-gradient(90deg, ${steps.join(",")}`;
 }

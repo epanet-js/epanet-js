@@ -19,7 +19,7 @@ export interface BufferOptions {
 
 export function bufferFeature(
   feature: IFeature<Geometry | null>,
-  options: BufferOptions
+  options: BufferOptions,
 ) {
   return {
     ...feature,
@@ -31,7 +31,7 @@ export function bufferFeature(
 
 function bufferGeometry(
   geometry: Geometry,
-  options: BufferOptions
+  options: BufferOptions,
 ): Geometry | null {
   if (geometry.type === "GeometryCollection") {
     const geometries: Geometry[] = [];
@@ -57,7 +57,7 @@ function bufferGeometry(
   const geom = reader.read(projected);
   const distance = radiansToLength(
     lengthToRadians(options.radius, options.units),
-    "meters"
+    "meters",
   );
   let buffered = BufferOp.bufferOp(geom, distance, options.quadrantSegments);
   const writer = new GeoJSONWriter();

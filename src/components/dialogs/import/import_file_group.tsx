@@ -69,7 +69,7 @@ export function ImportFileGroup({
     <Formik
       onSubmit={async function onSubmit(
         options: ImportOptions,
-        helpers: FormikHelpers<ImportOptions>
+        helpers: FormikHelpers<ImportOptions>,
       ) {
         try {
           // Don't show a toast if we're going to import

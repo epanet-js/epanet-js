@@ -13,7 +13,7 @@ export function updatePropertyValue(
   }: {
     key: string;
     value: JsonValue;
-  }
+  },
 ) {
   const { properties: oldProperties } = feature;
   const properties = { ...oldProperties } as JsonObject;

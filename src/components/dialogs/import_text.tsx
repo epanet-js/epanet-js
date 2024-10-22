@@ -32,7 +32,7 @@ export function ImportTextDialog({
 
   async function onSubmit(
     values: ImportOptionsWithText,
-    helpers: FormikHelpers<ImportOptionsWithText>
+    helpers: FormikHelpers<ImportOptionsWithText>,
   ) {
     try {
       const { text, ...options } = values;
@@ -42,7 +42,7 @@ export function ImportTextDialog({
           options,
           Comlink.proxy((newProgress) => {
             setProgress(newProgress);
-          })
+          }),
         )
       ).caseOf({
         Left() {

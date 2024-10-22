@@ -7,11 +7,11 @@ import "core-js/features/array/at";
 const RouterProgressBar = dynamic(
   () =>
     import("src/components/router_progress_bar").then(
-      (m) => m.RouterProgressBar
+      (m) => m.RouterProgressBar,
     ),
   {
     ssr: false,
-  }
+  },
 );
 
 const queryClient = new QueryClient();

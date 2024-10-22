@@ -7,11 +7,11 @@ import { Left, Right } from "purify-ts/Either";
 
 function featureContainsFeature(
   a: IFeature<Polygon>,
-  b: IFeature<Polygon>
+  b: IFeature<Polygon>,
 ): boolean {
   const res = difference(
     a.geometry.coordinates as Geom,
-    b.geometry.coordinates as Geom
+    b.geometry.coordinates as Geom,
   );
   return res.length === 0;
 }
@@ -36,7 +36,7 @@ export function canInnerRing(features: Feature[]): CanInnerRingResult {
 
 export function addInnerRing(
   aFeature: IFeature<Polygon>,
-  bFeature: IFeature<Polygon>
+  bFeature: IFeature<Polygon>,
 ): Either<GeometryError, Feature[]> {
   let outerFeature: IFeature<Polygon>;
   let innerFeature: IFeature<Polygon>;
@@ -55,7 +55,7 @@ export function addInnerRing(
 
   outerFeature = replaceCoordinates(
     outerFeature,
-    outerFeature.geometry.coordinates.concat([newInnerRing])
+    outerFeature.geometry.coordinates.concat([newInnerRing]),
   );
 
   if (outerFeature.properties !== null && innerFeature.properties !== null) {

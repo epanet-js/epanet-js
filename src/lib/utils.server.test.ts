@@ -52,11 +52,11 @@ test("localizeKeybinding", () => {
 test("formatRelative2", () => {
   const base = new Date("2000/2/2");
   expect(formatDateAgo(new Date(+base + 10000000), base)).toEqual(
-    "3 hours ago"
+    "3 hours ago",
   );
 
   expect(formatDateAgo(new Date(+base + 1000000000), base)).toEqual(
-    "2 weeks ago"
+    "2 weeks ago",
   );
 });
 
@@ -81,7 +81,7 @@ describe("toggleByValue", () => {
   });
   it("addition", () => {
     expect(
-      toggleByValue([{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }], { x: 1 })
+      toggleByValue([{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }], { x: 1 }),
     ).toEqual([{ x: 2 }, { x: 3 }, { x: 4 }]);
   });
 });

@@ -18,7 +18,7 @@ const StandaloneFormLayout = ({
           <div
             className={clsx(
               wide ? "max-w-2xl" : "max-w-sm",
-              "mx-auto px-8 md:px-0 pt-16 space-y-4"
+              "mx-auto px-8 md:px-0 pt-16 space-y-4",
             )}
           >
             <H1>{title}</H1>

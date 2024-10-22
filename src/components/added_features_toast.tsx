@@ -34,6 +34,6 @@ export default function addedFeaturesToast(result: ConvertResult) {
     },
     {
       duration: result.notes.length ? 10000 : 5000,
-    }
+    },
   );
 }

@@ -118,7 +118,7 @@ function AutoReset({
         "radius",
         type === CIRCLE_TYPE.GEODESIC
           ? convertLength(radius, "radians", "meters")
-          : radius
+          : radius,
       );
     }
   }, [setFieldValue, type, wrappedFeature]);
@@ -141,7 +141,7 @@ export function UnitSelectField() {
         const newValue = e.target.value as Units;
         setFieldValue(
           "radius",
-          convertLength(values.radius, values.units, newValue)
+          convertLength(values.radius, values.units, newValue),
         );
         setFieldValue("units", newValue);
       }}

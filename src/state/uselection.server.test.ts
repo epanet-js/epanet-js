@@ -32,7 +32,7 @@ describe("USelection", () => {
             vertex: 10,
           },
         ],
-      })
+      }),
     ).toEqual([
       {
         type: "vertex",
@@ -58,7 +58,7 @@ describe("USelection", () => {
             vertex: 0,
           },
         ],
-      })
+      }),
     ).toEqual(USelection.single("xxx"));
   });
   it("#single", () => {
@@ -87,8 +87,8 @@ describe("USelection", () => {
           type: "vertex",
           featureId: 0,
           vertex: 10,
-        }
-      )
+        },
+      ),
     ).toBeTruthy();
   });
   it("#fromIds", () => {
@@ -118,8 +118,8 @@ describe("USelection", () => {
       USelection.isVertexSelected(
         USelection.single("xxx"),
         "xxx",
-        new CVertexId(0, 0)
-      )
+        new CVertexId(0, 0),
+      ),
     ).toBeFalsy();
   });
   it("#folder", () => {
@@ -132,28 +132,28 @@ describe("USelection", () => {
   });
   it("#toggleSelectionId", () => {
     expect(USelection.toggleSelectionId(USelection.none(), "xxx")).toEqual(
-      USelection.single("xxx")
+      USelection.single("xxx"),
     );
     expect(
-      USelection.toggleSelectionId(USelection.single("xxx"), "xxx")
+      USelection.toggleSelectionId(USelection.single("xxx"), "xxx"),
     ).toEqual(USelection.none());
   });
   it("#toggleSingleSelectionId", () => {
     expect(
-      USelection.toggleSingleSelectionId(USelection.none(), "xxx")
+      USelection.toggleSingleSelectionId(USelection.none(), "xxx"),
     ).toEqual(USelection.single("xxx"));
     expect(
-      USelection.toggleSelectionId(USelection.single("xxx"), "xxx")
+      USelection.toggleSelectionId(USelection.single("xxx"), "xxx"),
     ).toEqual(USelection.none());
   });
 
   it("#isFolderSelected", () => {
     expect(USelection.isFolderSelected(USelection.none(), "xxx")).toBeFalsy();
     expect(
-      USelection.isFolderSelected(USelection.single("xxx"), "xxx")
+      USelection.isFolderSelected(USelection.single("xxx"), "xxx"),
     ).toBeFalsy();
     expect(
-      USelection.isFolderSelected(USelection.folder("xxx"), "xxx")
+      USelection.isFolderSelected(USelection.folder("xxx"), "xxx"),
     ).toBeTruthy();
   });
 
@@ -164,16 +164,16 @@ describe("USelection", () => {
         selection: USelection.none(),
         featureMap,
         folderMap,
-      })
+      }),
     ).toEqual([]);
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.fromIds(
-          [...featureMap.values()].map((f) => f.id)
+          [...featureMap.values()].map((f) => f.id),
         ),
         featureMap,
         folderMap,
-      })
+      }),
     ).toHaveLength(1);
 
     expect(
@@ -181,7 +181,7 @@ describe("USelection", () => {
         selection: USelection.folder("invalid"),
         featureMap,
         folderMap,
-      })
+      }),
     ).toHaveLength(0);
 
     const { featureMap: featureMap2 } = wrapMapAndId(fcLineString);
@@ -205,7 +205,7 @@ describe("USelection", () => {
             folderId: folder.id,
           },
         ];
-      })
+      }),
     );
 
     const folderMap2: FolderMap = new Map([["000", folder]]);
@@ -215,7 +215,7 @@ describe("USelection", () => {
         selection: USelection.folder("000"),
         featureMap: featureMap3,
         folderMap: folderMap2,
-      })
+      }),
     ).toHaveLength(1);
 
     expect(
@@ -223,16 +223,16 @@ describe("USelection", () => {
         selection: USelection.folder("000"),
         featureMap: featureMap3,
         folderMap: folderMap2,
-      })
+      }),
     ).toHaveLength(1);
   });
 
   it("#addSelectionId", () => {
     expect(USelection.addSelectionId(USelection.none(), "xxx")).toEqual(
-      USelection.single("xxx")
+      USelection.single("xxx"),
     );
     expect(USelection.addSelectionId(USelection.single("xxx"), "xxx")).toEqual(
-      USelection.single("xxx")
+      USelection.single("xxx"),
     );
   });
 
@@ -248,7 +248,7 @@ describe("USelection", () => {
           featureMap: new Map(),
           folderMap,
           selection: SELECTION_NONE,
-        })
+        }),
       ).toEqual(SELECTION_NONE);
     });
     it("folder selection", () => {
@@ -257,7 +257,7 @@ describe("USelection", () => {
           featureMap: new Map(),
           folderMap,
           selection: folderSelection,
-        })
+        }),
       ).toEqual(folderSelection);
     });
 
@@ -268,7 +268,7 @@ describe("USelection", () => {
           featureMap,
           folderMap,
           selection: USelection.single([...featureMap.values()][0].id),
-        })
+        }),
       ).toEqual(SELECTION_NONE);
     });
 
@@ -284,7 +284,7 @@ describe("USelection", () => {
           featureMap,
           folderMap,
           selection: USelection.single([...featureMap.values()][0].id),
-        })
+        }),
       ).toEqual({
         type: "folder",
         id: "xxx",

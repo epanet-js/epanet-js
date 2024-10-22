@@ -78,14 +78,14 @@ describe("syntheticIds", () => {
       },
     };
     const ids = generateSyntheticPoints(gc, 0).map((f) =>
-      decodeId(f.id as RawId)
+      decodeId(f.id as RawId),
     ) as VertexId[];
 
     expect(ids.map((id) => idToJSONPointers(id, gc))).toMatchSnapshot();
   });
   it("LineString", () => {
     const ids = generateSyntheticPoints(fcLineString.features[0], 0).map((f) =>
-      decodeId(f.id as RawId)
+      decodeId(f.id as RawId),
     ) as VertexId[];
 
     expect(idToJSONPointers(ids[0], fcLineString.features[0])).toEqual([
@@ -97,7 +97,7 @@ describe("syntheticIds", () => {
   });
   it("Polygon", () => {
     const ids = generateSyntheticPoints(fcPoly.features[0], 0).map((f) =>
-      decodeId(f.id as RawId)
+      decodeId(f.id as RawId),
     ) as VertexId[];
 
     expect(idToJSONPointers(ids[0], fcPoly.features[0])).toEqual([
@@ -107,7 +107,7 @@ describe("syntheticIds", () => {
   });
   it("MultiPolygon", () => {
     const ids = generateSyntheticPoints(fcMultiPoly.features[0], 0).map((f) =>
-      decodeId(f.id as RawId)
+      decodeId(f.id as RawId),
     ) as VertexId[];
     const [pointer] = idToJSONPointers(ids[4], fcMultiPoly.features[0]);
     expect(pointer).toEqual("/geometry/coordinates/0/0/2");

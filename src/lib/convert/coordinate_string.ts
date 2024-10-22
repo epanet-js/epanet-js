@@ -33,7 +33,7 @@ export class CCoordinateString implements FileType {
             },
           ],
         });
-      })
+      }),
     );
   }
   featureToString(feature: Feature) {
@@ -42,12 +42,12 @@ export class CCoordinateString implements FileType {
       if (geometry?.type !== "Point") {
         return throwE(
           new ConvertError(
-            "Only Point features can be copied as a coordinate string"
-          )
+            "Only Point features can be copied as a coordinate string",
+          ),
         );
       }
       return Promise.resolve(
-        e6position((feature.geometry as Point).coordinates).join(",")
+        e6position((feature.geometry as Point).coordinates).join(","),
       );
     });
   }

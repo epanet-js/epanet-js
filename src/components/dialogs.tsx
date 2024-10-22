@@ -28,7 +28,7 @@ const ExportSVGDialog = dynamic<{
     import("src/components/dialogs/export_svg").then((r) => r.ExportSVGDialog),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const ImportDialog = dynamic<{
@@ -51,7 +51,7 @@ const ImportURLDialog = dynamic<{
     import("src/components/dialogs/import_url").then((r) => r.ImportURLDialog),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const ImportExampleDialog = dynamic<{
@@ -59,11 +59,11 @@ const ImportExampleDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/import_example").then(
-      (r) => r.ImportExampleDialog
+      (r) => r.ImportExampleDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const ImportTextDialog = dynamic<{
@@ -72,21 +72,21 @@ const ImportTextDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/import_text").then(
-      (r) => r.ImportTextDialog
+      (r) => r.ImportTextDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const CircleTypesDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/circle_types").then(
-      (r) => r.CircleTypesDialog
+      (r) => r.CircleTypesDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const CheatsheetDialog = dynamic<Record<string, never>>(
@@ -94,7 +94,7 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const QuickswitcherDialog = dynamic<{
@@ -102,11 +102,11 @@ const QuickswitcherDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/quickswitcher").then(
-      (r) => r.QuickswitcherDialog
+      (r) => r.QuickswitcherDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const CastPropertyDialog = dynamic<{
@@ -115,11 +115,11 @@ const CastPropertyDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/cast_property").then(
-      (r) => r.CastPropertyDialog
+      (r) => r.CastPropertyDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const ExportCodeDialog = dynamic<{
@@ -127,11 +127,11 @@ const ExportCodeDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/export_code").then(
-      (r) => r.ExportCodeDialog
+      (r) => r.ExportCodeDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const ImportNotesDialog = dynamic<{
@@ -140,11 +140,11 @@ const ImportNotesDialog = dynamic<{
 }>(
   () =>
     import("src/components/dialogs/import_notes").then(
-      (r) => r.ImportNotesDialog
+      (r) => r.ImportNotesDialog,
     ),
   {
     loading: () => <Loading />,
-  }
+  },
 );
 
 const Simplify = dynamic<{

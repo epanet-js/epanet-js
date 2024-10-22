@@ -72,7 +72,7 @@ export function ImportDialog({
     <>
       <DialogHeader
         title={`Import ${truncate(
-          file.type === "file" ? file.file.name : "Shapefile"
+          file.type === "file" ? file.file.name : "Shapefile",
         )} ${progress}`}
         titleIcon={PlusCircledIcon}
       />

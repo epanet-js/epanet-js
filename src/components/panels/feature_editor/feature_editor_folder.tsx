@@ -64,7 +64,7 @@ export const closestVerticalCenter: CollisionDetection = ({
 
     if (rect) {
       const distBetween = Math.abs(
-        verticalCenterOfRectangle(rect) - centerRect
+        verticalCenterOfRectangle(rect) - centerRect,
       );
 
       if (!closest || distBetween < closest.data.value) {
@@ -105,7 +105,7 @@ export const customPointerWithin = (
     droppableRects,
     pointerCoordinates,
   }: Parameters<CollisionDetection>[0],
-  folderMap: FolderMap
+  folderMap: FolderMap,
 ): CollisionDescriptor[] | null => {
   if (!pointerCoordinates) {
     return null;
@@ -264,7 +264,7 @@ export function FeatureEditorFolderInner() {
       (index: number) => {
         return index === activeItemIndex ? 0 : LEFT_PANEL_ROW_HEIGHT;
       },
-      [activeItemIndex]
+      [activeItemIndex],
     ),
     overscan: 10,
   });
@@ -340,7 +340,7 @@ export function FeatureEditorFolderInner() {
       const closest = closestVerticalCenter(args);
       return closest;
     },
-    [folderMap, folderMap.version]
+    [folderMap, folderMap.version],
   );
 
   function resetState() {
@@ -361,7 +361,7 @@ export function FeatureEditorFolderInner() {
       !!(
         evt?.collisions?.length === 1 &&
         evt?.collisions?.[0].data?.dropIntoFolder
-      )
+      ),
     );
   }
 
@@ -372,7 +372,7 @@ export function FeatureEditorFolderInner() {
       !!(
         evt?.collisions?.length === 1 &&
         evt?.collisions?.[0].data?.dropIntoFolder
-      )
+      ),
     );
   }
 
@@ -413,7 +413,7 @@ export function FeatureEditorFolderInner() {
               const ats = generateNKeysBetween(
                 beforeAt,
                 afterAt,
-                wrappedFeatures.length
+                wrappedFeatures.length,
               );
               void transact({
                 note: "Changed the order of features",

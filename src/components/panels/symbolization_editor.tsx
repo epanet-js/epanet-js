@@ -107,7 +107,7 @@ export function getViablePropertiesForCategorical(featureMap: FeatureMap) {
   const categoryPropertyMap = new Map<string, Set<string | number>>();
   for (const wrappedFeature of featureMap.values()) {
     for (const [key, value] of Object.entries(
-      wrappedFeature.feature.properties || {}
+      wrappedFeature.feature.properties || {},
     )) {
       if (typeof value === "number" || typeof value === "string") {
         const oldValue = categoryPropertyMap.get(key);
@@ -136,7 +136,7 @@ export function getNumericPropertyMap(featureMap: FeatureMap) {
   const numericPropertyMap = new Map<string, number[]>();
   for (const wrappedFeature of featureMap.values()) {
     for (const [key, value] of Object.entries(
-      wrappedFeature.feature.properties || {}
+      wrappedFeature.feature.properties || {},
     )) {
       if (typeof value === "number") {
         const oldValue = numericPropertyMap.get(key);
@@ -318,7 +318,7 @@ function RampWizard() {
     <Formik<RampValues>
       onSubmit={async (values) => {
         const ramp = COLORBREWER_ALL.find(
-          (ramp) => ramp.name === values.rampName
+          (ramp) => ramp.name === values.rampName,
         )!;
         const dataValues = options.get(values.property)!;
         const colors = ramp.colors[values.classes]!;
@@ -368,7 +368,7 @@ function RampWizard() {
         await Promise.resolve(
           setMeta({
             symbolization: newSymbolization,
-          })
+          }),
         ).catch(() => {
           toast.error("Failed to generate ramp");
         });
@@ -533,7 +533,7 @@ function RampWizard() {
             await Promise.resolve(
               setMeta({
                 symbolization: values,
-              })
+              }),
             ).catch(() => {
               toast.error("Failed to generate ramp");
             });
@@ -652,7 +652,7 @@ function CategoryWizard() {
     <Formik<CategoricalValues>
       onSubmit={async (values) => {
         const ramp = COLORBREWER_ALL.find(
-          (ramp) => ramp.name === values.rampName
+          (ramp) => ramp.name === values.rampName,
         )!;
         const dataValues = Array.from(options.get(values.property) || []);
 
@@ -673,7 +673,7 @@ function CategoryWizard() {
         };
 
         await Promise.resolve(
-          setMeta({ symbolization: newSymbolization })
+          setMeta({ symbolization: newSymbolization }),
         ).catch(() => {
           toast.error("Failed to generate ramp");
         });
@@ -784,7 +784,7 @@ function CategoryWizard() {
             await Promise.resolve(
               setMeta({
                 symbolization: values,
-              })
+              }),
             ).catch(() => {
               toast.error("Failed to generate ramp");
             });
@@ -885,7 +885,7 @@ export function NoneSymbolization() {
             await Promise.resolve(
               setMeta({
                 symbolization: values,
-              })
+              }),
             ).catch((e) => {
               toast.error("Failed to generate");
               captureError(e);
@@ -1006,13 +1006,13 @@ export function SymbolizationEditor() {
                           simplestyle: true,
                           defaultColor: purple900,
                         },
-                      })
+                      }),
                     ),
                     {
                       loading: "Generating style…",
                       success: "Generated",
                       error: "Failed to generate style",
-                    }
+                    },
                   );
                 } else {
                   setRegenerate(true);

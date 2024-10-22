@@ -28,10 +28,10 @@ export class CGeoJSON implements FileType {
           rough(object, {
             // Default to true unless options are provided
             removeCoincidents: options?.removeCoincidents !== false,
-          })
+          }),
         );
         return geojson;
-      }
+      },
     );
   }
   back({ featureMap }: { featureMap: FeatureMap }, options: ExportOptions) {
@@ -39,7 +39,7 @@ export class CGeoJSON implements FileType {
       Right({
         blob: stringToBlob(geojsonToString(featureMap, options.geojsonOptions)),
         name: "features.geojson",
-      })
+      }),
     );
   }
 }

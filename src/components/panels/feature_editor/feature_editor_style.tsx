@@ -257,7 +257,7 @@ export function FeatureEditorStyle({
       <Formik<FormValues>
         onSubmit={(values) => {
           const properties: GeoJsonProperties = cloneDeep(
-            wrappedFeature.feature.properties || {}
+            wrappedFeature.feature.properties || {},
           );
 
           if (values.enableFill) {
@@ -380,7 +380,7 @@ export function FeatureEditorStyleMulti({
             track: "feature-update-style-multi",
             putFeatures: wrappedFeatures.map((wrappedFeature) => {
               const properties: GeoJsonProperties = cloneDeep(
-                wrappedFeature.feature.properties || {}
+                wrappedFeature.feature.properties || {},
               );
 
               if (values.enableFill) {

@@ -8,7 +8,7 @@ import { geoJSONToPolyline } from "@placemarkio/polyline";
 // TODO: what if the feature has latitude & longitude properties?
 export function geojsonToCSV(
   geojson: FeatureCollection,
-  options: ExportOptions
+  options: ExportOptions,
 ) {
   const rows = [];
 
