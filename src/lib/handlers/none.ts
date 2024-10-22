@@ -33,13 +33,13 @@ export function useNoneHandlers({
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
-  const lastPoint = useRef<mapboxgl.LngLat | null>(null);
+  const dragStartPoint = useRef<mapboxgl.LngLat | null>(null);
   const spaceHeld = useSpaceHeld();
 
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      lastPoint.current = e.lngLat;
+      dragStartPoint.current = e.lngLat;
 
       const isRighClick =
         "button" in e.originalEvent && e.originalEvent.button === 2;
@@ -137,20 +137,16 @@ export function useNoneHandlers({
         return;
       }
 
-      if (lastPoint.current === null) {
-        lastPoint.current = e.lngLat;
+      if (dragStartPoint.current === null) {
+        dragStartPoint.current = e.lngLat;
       }
 
       const dragTarget = dragTargetRef.current;
 
-      // Multiple items are selected.
-      // In order to get into this state
-      // of being able to move multiple features, we needed
-      // the space key held when the drag started.
-      if (Array.isArray(dragTarget)) {
-        const dx = lastPoint.current.lng - e.lngLat.lng;
-        const dy = lastPoint.current.lat - e.lngLat.lat;
-        lastPoint.current = e.lngLat;
+      const isDraggingManyPoints = Array.isArray(dragTarget);
+      if (isDraggingManyPoints) {
+        const dx = dragStartPoint.current.lng - e.lngLat.lng;
+        const dy = dragStartPoint.current.lat - e.lngLat.lat;
         const features = dragTarget.map((uuid) => {
           const feature = featureMap.get(uuid)!;
           return {
@@ -158,11 +154,8 @@ export function useNoneHandlers({
             feature: ops.moveFeature(feature.feature, dx, dy),
           };
         });
-        return transact({
-          note: "Move features",
-          putFeatures: features,
-          quiet: true,
-        });
+        updateDraggingState(features);
+        return;
       }
 
       if (selection.type === "single") {
@@ -202,16 +195,35 @@ export function useNoneHandlers({
 
       const resetDrag = () => {
         dragTargetRef.current = null;
+        dragStartPoint.current = null;
         setEphemeralState({ type: "none" });
         setCursor(CURSOR_DEFAULT);
       };
 
-      if (!dragTarget || selection.type !== "single") {
+      if (
+        !dragTarget ||
+        selection.type !== "single" ||
+        dragStartPoint.current === null
+      ) {
         return resetDrag();
       }
 
       const isDraggingManyPoints = Array.isArray(dragTarget);
       if (isDraggingManyPoints) {
+        const dx = dragStartPoint.current.lng - e.lngLat.lng;
+        const dy = dragStartPoint.current.lat - e.lngLat.lat;
+        const features = dragTarget.map((uuid) => {
+          const feature = featureMap.get(uuid)!;
+          return {
+            ...feature,
+            feature: ops.moveFeature(feature.feature, dx, dy),
+          };
+        });
+        transact({
+          note: "Move features",
+          putFeatures: features,
+          quiet: true,
+        });
         return resetDrag();
       }
 
