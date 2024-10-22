@@ -102,10 +102,12 @@ function mSetData(
   }
 }
 
-const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MAPBOX_EVENTS === "true"
+const isDebugOn = process.env.NEXT_PUBLIC_DEBUG_MODE === "true"
 const noop = () => null
 // eslint-disable-next-line no-console
-const debug = isDebugOn ? (e: mapboxgl.MapboxEvent<any>) => console.log(`MAPBOX_EVENT: ${e.type}`) : noop
+const debugEvent = isDebugOn ? (e: mapboxgl.MapboxEvent<any>) => console.log(`MAPBOX_EVENT: ${e.type}`) : noop
+// eslint-disable-next-line no-console
+const debugEphemeralState = isDebugOn ? (s: EphemeralEditingState)  => console.log(`EPHEMERAL_STATE: ${JSON.stringify(s)})`) : noop
 
 export default class PMap {
   map: mapboxgl.Map;
@@ -209,52 +211,52 @@ export default class PMap {
    * Handler proxies --------------------------------------
    */
   onClick = (e: LayerScopedEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onClick(e);
   };
 
   onMapMouseDown = (e: LayerScopedEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapMouseDown(e);
   };
 
   onMapTouchStart = (e: mapboxgl.MapTouchEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapTouchStart(e);
   };
 
   onMapMouseUp = (e: LayerScopedEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapMouseUp(e);
   };
 
   onMoveEnd = (e: MoveEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMoveEnd(e);
   };
 
   onMapTouchEnd = (e: mapboxgl.MapTouchEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapTouchEnd(e);
   };
 
   onMove = (e: MoveEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMove(e);
   };
 
   onMapMouseMove = (e: mapboxgl.MapMouseEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapMouseMove(e);
   };
 
   onMapTouchMove = (e: mapboxgl.MapTouchEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onMapTouchMove(e);
   };
 
   onMapDoubleClick = (e: mapboxgl.MapMouseEvent) => {
-    debug(e)
+    debugEvent(e)
     this.handlers.current.onDoubleClick(e);
   };
 
@@ -330,6 +332,8 @@ export default class PMap {
     // TODO: fix flash
     mSetData(ephemeralSource, groups.ephemeral, "ephem");
     mSetData(featuresSource, groups.features, "features", force);
+
+    debugEphemeralState(ephemeralState)
 
     this.overlay.setProps({
       layers: [
