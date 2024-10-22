@@ -35,7 +35,7 @@ import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox/typed";
-import { PolygonLayer, ScatterplotLayer } from "@deck.gl/layers/typed";
+import { PolygonLayer, ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers/typed";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -288,7 +288,7 @@ export default class PMap {
     force = false,
   }: {
     data: Data;
-    ephemeralState: EphemeralEditingState;
+    ephemeralState: EphemeralEditingState
     force?: boolean;
   }) {
     if (!(this.map && (this.map as any).style)) {
@@ -364,6 +364,16 @@ export default class PMap {
             return id % 2 === 0 ? 5 : 3.5;
           },
         }),
+        ephemeralState.type === "drag" &&
+        new GeoJsonLayer({
+          id: 'DRAG_LAYER',
+          data: ephemeralState.features.map((wrapped) => wrapped.feature),
+          visible: ephemeralState.type === "drag",
+          lineWidthUnits: "pixels",
+          getLineWidth: 1.5,
+          getPointRadius: 10,
+          pointRadiusUnits: "pixels"
+        }),
 
         ephemeralState.type === "lasso" &&
         new PolygonLayer<number[]>({
@@ -381,6 +391,8 @@ export default class PMap {
         }),
       ],
     });
+
+    this.exposeOverlayInWindow()
 
     this.lastData = data;
     this.updateSelections(groups.selectionIds);
@@ -477,5 +489,11 @@ export default class PMap {
     // }
 
     this.lastSelectionIds = newSet;
+  }
+
+  private exposeOverlayInWindow () {
+    if (typeof window === "undefined") return
+
+    (window as any).deck = this.overlay
   }
 }

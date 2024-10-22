@@ -7,6 +7,7 @@ import {
   FolderMap,
   IFolder,
   IPresence,
+  IWrappedFeature,
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "src/types";
@@ -269,10 +270,16 @@ export interface EphemeralEditingStateLasso {
   box: [Pos2, Pos2];
 }
 
+export interface EphemeralDragState {
+  type: "drag",
+  features: IWrappedFeature[]
+}
+
 export const cursorStyleAtom = atom<React.CSSProperties["cursor"]>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
+  | EphemeralDragState
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

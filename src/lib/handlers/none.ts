@@ -2,13 +2,14 @@
 
 import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
-import type { HandlerContext } from "src/types";
+import type { HandlerContext, IWrappedFeature } from "src/types";
 import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
 import {
   Mode,
   selectionAtom,
   cursorStyleAtom,
+  ephemeralStateAtom,
 } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { USelection } from "src/state";
@@ -31,6 +32,7 @@ export function useNoneHandlers({
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
   const setSelection = useSetAtom(selectionAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const lastPoint = useRef<mapboxgl.LngLat | null>(null);
@@ -123,6 +125,13 @@ export function useNoneHandlers({
       setCursor("pointer");
     },
     move: (e) => {
+      const updateDraggingState  = (features: IWrappedFeature[]) => {
+        setEphemeralState({
+          type: 'drag',
+          features,
+        })
+      }
+
       if (dragTargetRef.current === null) {
         throttledMovePointer(e.point);
         return;
@@ -139,20 +148,20 @@ export function useNoneHandlers({
       // of being able to move multiple features, we needed
       // the space key held when the drag started.
       if (Array.isArray(dragTarget)) {
-          const dx = lastPoint.current.lng - e.lngLat.lng;
-          const dy = lastPoint.current.lat - e.lngLat.lat;
-          lastPoint.current = e.lngLat;
-          return transact({
-            note: 'Move features',
-            putFeatures: dragTarget.map((uuid) => {
-              const feature = featureMap.get(uuid)!;
-              return {
-                ...feature,
-                feature: ops.moveFeature(feature.feature, dx, dy),
-              };
-            }),
-            quiet: true,
-          });
+        const dx = lastPoint.current.lng - e.lngLat.lng;
+        const dy = lastPoint.current.lat - e.lngLat.lat;
+        lastPoint.current = e.lngLat;
+        return transact({
+          note: 'Move features',
+          putFeatures: dragTarget.map((uuid) => {
+            const feature = featureMap.get(uuid)!;
+            return {
+              ...feature,
+              feature: ops.moveFeature(feature.feature, dx, dy),
+            };
+          }),
+          quiet: true,
+        });
       }
 
       if (selection.type === "single") {
@@ -160,7 +169,7 @@ export function useNoneHandlers({
         const id = decodeId(dragTarget);
         switch (id.type) {
           case "feature":
-          case "midpoint": {
+            case "midpoint": {
             break;
           }
           case "vertex": {
@@ -175,16 +184,10 @@ export function useNoneHandlers({
               vertexId: id,
             });
 
-            return transact({
-              note: 'Drag point',
-              putFeatures: [
-                {
-                  ...feature,
-                  feature: newFeature,
-                },
-              ],
-              quiet: true,
-            });
+            updateDraggingState([{
+              ...feature,
+              feature: newFeature,
+            }])
 
             break;
           }
@@ -196,6 +199,7 @@ export function useNoneHandlers({
 
       const resetDrag  = () => {
         dragTargetRef.current = null;
+        setEphemeralState({ type: 'none' })
         setCursor(CURSOR_DEFAULT);
       };
 
@@ -208,19 +212,19 @@ export function useNoneHandlers({
       const id = decodeId(dragTarget)
       if (id.type !== "vertex") return resetDrag()
 
-      const wrappedFeature = featureMap.get(selection.id)
-      if (!wrappedFeature) return resetDrag()
+        const wrappedFeature = featureMap.get(selection.id)
+        if (!wrappedFeature) return resetDrag()
 
-      const nextCoord = getMapCoord(e);
-      const { feature: newFeature } = ops.setCoordinates({
-        feature: wrappedFeature.feature,
-        position: nextCoord,
-        vertexId: id,
-      });
+          const nextCoord = getMapCoord(e);
+          const { feature: newFeature } = ops.setCoordinates({
+            feature: wrappedFeature.feature,
+            position: nextCoord,
+            vertexId: id,
+          });
 
 
-      return transact({
-        note: 'Move point',
+          return transact({
+            note: 'Move point',
         putFeatures: [
           {
             ...wrappedFeature,
@@ -299,3 +303,4 @@ export function useNoneHandlers({
 
   return handlers;
 }
+
