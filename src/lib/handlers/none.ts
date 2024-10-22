@@ -36,6 +36,23 @@ export function useNoneHandlers({
   const dragStartPoint = useRef<mapboxgl.LngLat | null>(null);
   const spaceHeld = useSpaceHeld();
 
+  const moveFeatures = (
+    ids: IWrappedFeature["id"][],
+    start: mapboxgl.LngLat,
+    end: mapboxgl.LngLat,
+  ) => {
+    const dx = start.lng - end.lng;
+    const dy = start.lat - end.lat;
+    const features = ids.map((uuid) => {
+      const feature = featureMap.get(uuid)!;
+      return {
+        ...feature,
+        feature: ops.moveFeature(feature.feature, dx, dy),
+      };
+    });
+    return features;
+  };
+
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
@@ -145,16 +162,12 @@ export function useNoneHandlers({
 
       const isDraggingManyPoints = Array.isArray(dragTarget);
       if (isDraggingManyPoints) {
-        const dx = dragStartPoint.current.lng - e.lngLat.lng;
-        const dy = dragStartPoint.current.lat - e.lngLat.lat;
-        const features = dragTarget.map((uuid) => {
-          const feature = featureMap.get(uuid)!;
-          return {
-            ...feature,
-            feature: ops.moveFeature(feature.feature, dx, dy),
-          };
-        });
-        updateDraggingState(features);
+        const updatedFeatures = moveFeatures(
+          dragTarget,
+          dragStartPoint.current,
+          e.lngLat,
+        );
+        updateDraggingState(updatedFeatures);
         return;
       }
 
@@ -210,18 +223,14 @@ export function useNoneHandlers({
 
       const isDraggingManyPoints = Array.isArray(dragTarget);
       if (isDraggingManyPoints) {
-        const dx = dragStartPoint.current.lng - e.lngLat.lng;
-        const dy = dragStartPoint.current.lat - e.lngLat.lat;
-        const features = dragTarget.map((uuid) => {
-          const feature = featureMap.get(uuid)!;
-          return {
-            ...feature,
-            feature: ops.moveFeature(feature.feature, dx, dy),
-          };
-        });
+        const updatedFeatures = moveFeatures(
+          dragTarget,
+          dragStartPoint.current,
+          e.lngLat,
+        );
         transact({
           note: "Move features",
-          putFeatures: features,
+          putFeatures: updatedFeatures,
           quiet: true,
         });
         return resetDrag();
