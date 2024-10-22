@@ -151,15 +151,16 @@ export function useNoneHandlers({
         const dx = lastPoint.current.lng - e.lngLat.lng;
         const dy = lastPoint.current.lat - e.lngLat.lat;
         lastPoint.current = e.lngLat;
-        return transact({
-          note: 'Move features',
-          putFeatures: dragTarget.map((uuid) => {
+          const features = dragTarget.map((uuid) => {
             const feature = featureMap.get(uuid)!;
             return {
               ...feature,
               feature: ops.moveFeature(feature.feature, dx, dy),
             };
-          }),
+          })
+        return transact({
+          note: 'Move features',
+          putFeatures: features,
           quiet: true,
         });
       }
@@ -297,6 +298,7 @@ export function useNoneHandlers({
       }
     },
     enter() {
+      setEphemeralState({ type: 'none' })
       setSelection(USelection.none());
     },
   };
