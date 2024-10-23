@@ -34,12 +34,8 @@ import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
-import { MapboxOverlay } from "@deck.gl/mapbox/typed";
-import {
-  PolygonLayer,
-  ScatterplotLayer,
-  GeoJsonLayer,
-} from "@deck.gl/layers/typed";
+import { MapboxOverlay } from "@deck.gl/mapbox";
+import { PolygonLayer, ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -383,7 +379,9 @@ export default class PMap {
         ephemeralState.type === "drag" &&
           new GeoJsonLayer({
             id: "DRAG_LAYER",
-            data: ephemeralState.features.map((wrapped) => wrapped.feature),
+            data: ephemeralState.features.map(
+              (wrapped) => wrapped.feature as IFeature,
+            ),
             visible: ephemeralState.type === "drag",
             lineWidthUnits: "pixels",
             getLineWidth: 1.5,
@@ -391,9 +389,11 @@ export default class PMap {
             pointRadiusUnits: "pixels",
           }),
         ephemeralState.type === "drawLine" &&
-          new GeoJsonLayer({
+          new GeoJsonLayer<Feature[]>({
             id: "DRAW_LINE",
-            data: ephemeralState.features.map((wrapped) => wrapped.feature),
+            data: ephemeralState.features.map(
+              (wrapped) => wrapped.feature as IFeature,
+            ),
             lineWidthUnits: "pixels",
             getLineWidth: 1.5,
             getPointRadius: 10,
