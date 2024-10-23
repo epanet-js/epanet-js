@@ -275,11 +275,17 @@ export interface EphemeralDragState {
   features: IWrappedFeature[];
 }
 
+export interface EphemeralDrawLine {
+  type: "drawLine";
+  features: IWrappedFeature[];
+}
+
 export const cursorStyleAtom = atom<React.CSSProperties["cursor"]>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
   | EphemeralDragState
+  | EphemeralDrawLine
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

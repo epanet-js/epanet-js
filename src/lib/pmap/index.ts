@@ -390,6 +390,15 @@ export default class PMap {
             getPointRadius: 10,
             pointRadiusUnits: "pixels",
           }),
+        ephemeralState.type === "drawLine" &&
+          new GeoJsonLayer({
+            id: "DRAW_LINE",
+            data: ephemeralState.features.map((wrapped) => wrapped.feature),
+            lineWidthUnits: "pixels",
+            getLineWidth: 1.5,
+            getPointRadius: 10,
+            pointRadiusUnits: "pixels",
+          }),
 
         ephemeralState.type === "lasso" &&
           new PolygonLayer<number[]>({
