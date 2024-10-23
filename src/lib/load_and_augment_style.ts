@@ -442,7 +442,7 @@ export function LINE_PAINT(
     "line-width": asNumberExpression({
       symbolization,
       part: "stroke-width",
-      defaultValue: 2,
+      defaultValue: 4,
     }),
     "line-color": handleSelected(
       asColorExpression({ symbolization, part: "stroke" }),
