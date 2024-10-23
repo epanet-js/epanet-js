@@ -45,7 +45,7 @@ export function useMapKeybindings() {
   );
 
   useHotkeys(
-    "meta+shift+z, Ctrl+shift+z",
+    "meta+y, Ctrl+y",
     (_e: KeyboardEvent) => {
       historyControl("redo").catch((e) => captureError(e));
     },
