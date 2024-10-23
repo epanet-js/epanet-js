@@ -77,7 +77,7 @@ const debug = isDebugOn
     ) => {
       // eslint-disable-next-line no-console
       console.log(
-        `MODE_HANLDER ${JSON.stringify({
+        `MODE_HANLDER@${method} ${JSON.stringify({
           event: e.type,
           mode,
           selection,
