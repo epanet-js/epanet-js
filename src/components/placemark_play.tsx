@@ -7,7 +7,6 @@ import Modes from "src/components/modes";
 import { Dialogs } from "src/components/dialogs";
 import { CSS } from "@dnd-kit/utilities";
 import ContextActions from "src/components/context_actions";
-import * as T from "@radix-ui/react-tooltip";
 import React, {
   Suspense,
   useCallback,
@@ -30,14 +29,8 @@ import Notifications from "src/components/notifications";
 import { Legend } from "src/components/legend";
 import { Visual } from "./visual";
 import { ErrorBoundary } from "@sentry/nextjs";
-import {
-  BoxModelIcon,
-  LayoutIcon,
-  MoveIcon,
-  UpdateIcon,
-  ViewHorizontalIcon,
-} from "@radix-ui/react-icons";
-import { Button, StyledTooltipArrow, TContent } from "./elements";
+import { MoveIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom, splitsAtom, tabAtom, TabOption } from "src/state/jotai";
 import clsx from "clsx";
