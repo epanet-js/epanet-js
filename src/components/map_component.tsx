@@ -421,10 +421,10 @@ export const MapComponent = memo(function MapComponent({
                   "placemark-cursor-default":
                     mode.mode === Mode.NONE ||
                     mode.mode === Mode.DRAW_POLYGON ||
-                    mode.mode === Mode.DRAW_PIPE ||
                     mode.mode === Mode.DRAW_LINE,
                   "placemark-cursor-point": mode.mode === Mode.DRAW_JUNCTION,
                   "placemark-cursor-crosshair":
+                    mode.mode === Mode.DRAW_PIPE ||
                     mode.mode === Mode.DRAW_RECTANGLE ||
                     mode.mode === Mode.LASSO,
                 },
