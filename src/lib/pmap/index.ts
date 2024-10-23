@@ -46,6 +46,7 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   dragRotate: false,
   attributionControl: false,
   fadeDuration: 0,
+  antialias: true,
 };
 
 const cursorSvg = (color: string) => {
@@ -396,12 +397,10 @@ export default class PMap {
               (wrapped) => wrapped.feature as IFeature,
             ),
             lineWidthUnits: "pixels",
-            getLineWidth: 3.5,
+            getLineWidth: 4,
             lineCapRounded: true,
             getDashArray: [4, 4],
-            extensions: [
-              new PathStyleExtension({ dash: true, highPrecisionDash: true }),
-            ],
+            extensions: [new PathStyleExtension({ dash: true })],
           }),
 
         ephemeralState.type === "lasso" &&
