@@ -148,6 +148,7 @@ export function usePipeHandlers({
           }
         }
 
+        resetDrawingState();
         drawingStart.current = clickPosition;
       }
     },

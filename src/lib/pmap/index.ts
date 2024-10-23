@@ -37,6 +37,7 @@ import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { PolygonLayer, ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
+import { PathStyleExtension } from "@deck.gl/extensions";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -389,15 +390,18 @@ export default class PMap {
             pointRadiusUnits: "pixels",
           }),
         ephemeralState.type === "drawLine" &&
-          new GeoJsonLayer<Feature[]>({
+          new GeoJsonLayer({
             id: "DRAW_LINE",
             data: ephemeralState.features.map(
               (wrapped) => wrapped.feature as IFeature,
             ),
             lineWidthUnits: "pixels",
-            getLineWidth: 1.5,
-            getPointRadius: 10,
-            pointRadiusUnits: "pixels",
+            getLineWidth: 3.5,
+            lineCapRounded: true,
+            getDashArray: [4, 4],
+            extensions: [
+              new PathStyleExtension({ dash: true, highPrecisionDash: true }),
+            ],
           }),
 
         ephemeralState.type === "lasso" &&
