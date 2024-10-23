@@ -1,7 +1,6 @@
 import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/jotai";
-import { useNoneHandlers as useNoneHandlersNew } from "src/lib/handlers/none";
-import { useNoneHandlers as useNoneHanldersDepracated } from "src/lib/handlers/none-deprecated";
+import { useNoneHandlers } from "src/lib/handlers/none";
 import { useLassoHandlers } from "src/lib/handlers/lasso";
 import { useRectangleHandlers } from "src/lib/handlers/rectangle";
 import { useCircleHandlers } from "src/lib/handlers/circle";
@@ -9,11 +8,6 @@ import { useLineHandlers } from "src/lib/handlers/line";
 import { useJunctionHandlers } from "src/lib/handlers/junction";
 import { usePolygonHandlers } from "src/lib/handlers/polygon";
 import { usePipeHandlers } from "./pipe";
-import { isFeatureOn } from "src/infra/feature-flags";
-
-const useNoneHandlers = isFeatureOn("deprecatedNone")
-  ? useNoneHanldersDepracated
-  : useNoneHandlersNew;
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
