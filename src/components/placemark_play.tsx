@@ -236,7 +236,6 @@ export function PlacemarkPlay() {
           {layout === "HORIZONTAL" ? (
             <>
               <SidePanel />
-              <Resizer side="left" />
               <Resizer side="right" />
             </>
           ) : layout === "VERTICAL" ? (
