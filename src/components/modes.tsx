@@ -4,7 +4,6 @@ import {
   CircleIcon,
   StretchHorizontallyIcon,
 } from "@radix-ui/react-icons";
-import Line from "src/components/icons/line";
 import {
   modeAtom,
   Mode,
@@ -16,7 +15,6 @@ import {
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { useLineMode } from "src/hooks/use_line_mode";
 import { USelection } from "src/state";
 import { IWrappedFeature } from "src/types";
 
@@ -39,12 +37,6 @@ const MODE_OPTIONS = [
     Icon: StretchHorizontallyIcon,
     Menu: null,
   },
-  {
-    mode: Mode.DRAW_LINE,
-    hotkey: "5",
-    Icon: Line,
-    Menu: null,
-  },
 ] as const;
 
 export default memo(function Modes({
@@ -55,7 +47,6 @@ export default memo(function Modes({
   const [{ mode: currentMode, modeOptions }, setMode] = useAtom(modeAtom);
   const setData = useSetAtom(dataAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const lineMode = useLineMode();
   const circleType = useAtomValue(circleTypeAtom);
 
   return (
@@ -72,28 +63,21 @@ export default memo(function Modes({
             hotkey={hotkey}
             label={MODE_INFO[mode].label}
             onClick={(e) => {
-              if (mode === Mode.DRAW_LINE) {
-                void lineMode({
-                  event: e,
+              setEphemeralState({ type: "none" });
+              setData((data) => {
+                return {
+                  ...data,
+                  selection: USelection.selectionToFolder(data),
+                };
+              });
+              setMode({
+                mode,
+                modeOptions: {
+                  multi: !!e?.shiftKey,
                   replaceGeometryForId,
-                });
-              } else {
-                setEphemeralState({ type: "none" });
-                setData((data) => {
-                  return {
-                    ...data,
-                    selection: USelection.selectionToFolder(data),
-                  };
-                });
-                setMode({
-                  mode,
-                  modeOptions: {
-                    multi: !!e?.shiftKey,
-                    replaceGeometryForId,
-                    circleType,
-                  },
-                });
-              }
+                  circleType,
+                },
+              });
             }}
           >
             <Icon />
