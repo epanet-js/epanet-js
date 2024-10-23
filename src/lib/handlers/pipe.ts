@@ -42,7 +42,7 @@ export function usePipeHandlers({
 
   const setDrawingState = (features: IWrappedFeature[]) => {
     setEphemeralState({
-      type: "drag",
+      type: "drawLine",
       features,
     });
   };
