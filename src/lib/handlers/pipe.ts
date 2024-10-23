@@ -16,12 +16,12 @@ import {
 } from "src/state/jotai";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import { useSetAtom } from "jotai";
-import { usePopMoment } from "src/lib/persistence/shared";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { newFeatureId } from "../id";
+import { isSamePosition } from "../geometry";
 
 export function usePipeHandlers({
   rep,
@@ -37,7 +37,6 @@ export function usePipeHandlers({
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
-  const popMoment = usePopMoment();
   const usingTouchEvents = useRef<boolean>(false);
   const drawingStart = useRef<Pos2 | null>(null);
 
@@ -73,15 +72,30 @@ export function usePipeHandlers({
     position: Pos2,
   ) => {
     const feature = wrappedFeature.feature as IFeature<LineString>;
+    const coordinates = feature.geometry.coordinates;
+
     return {
       ...wrappedFeature,
       feature: replaceCoordinates(
         feature,
         mode.modeOptions?.reverse
-          ? [position as Position].concat(feature.geometry.coordinates)
-          : feature.geometry.coordinates.concat([position]),
+          ? [position as Position].concat(coordinates)
+          : coordinates.concat([position]),
       ),
     };
+  };
+
+  const isAlreadyLastVertex = (
+    wrappedFeature: IWrappedFeature,
+    position: Pos2,
+  ) => {
+    const feature = wrappedFeature.feature as IFeature<LineString>;
+    const coordinates = feature.geometry.coordinates;
+    const lastPosition = mode.modeOptions?.reverse
+      ? coordinates[0]
+      : coordinates[coordinates.length - 1];
+
+    return isSamePosition(lastPosition, position);
   };
 
   const selectFeature = (feature: IWrappedFeature) => {
@@ -109,26 +123,30 @@ export function usePipeHandlers({
       }
 
       if (isAddingVertex && !!drawingStart.current) {
-        const clickPosition = getMapCoord(e);
-        let wrappedFeature = featureMap.get(selection.id);
+        const wrappedFeature = featureMap.get(selection.id);
 
         if (!wrappedFeature) {
-          wrappedFeature = createExtensionFeature(
+          const newFeature = createExtensionFeature(
             drawingStart.current,
             clickPosition,
           );
-          selectFeature(wrappedFeature);
+          selectFeature(newFeature);
+          transact({
+            note: "Created pipe",
+            putFeatures: [newFeature],
+          }).catch((e) => captureError(e));
+        } else {
+          if (!isAlreadyLastVertex(wrappedFeature, clickPosition)) {
+            const updatedLineString = extendLineString(
+              wrappedFeature,
+              clickPosition,
+            );
+            transact({
+              note: "Added pipe vertex",
+              putFeatures: [updatedLineString],
+            }).catch((e) => captureError(e));
+          }
         }
-
-        const updatedLineString = extendLineString(
-          wrappedFeature,
-          clickPosition,
-        );
-
-        transact({
-          note: "Added pipe vertex",
-          putFeatures: [updatedLineString],
-        }).catch((e) => captureError(e));
 
         drawingStart.current = clickPosition;
       }
@@ -168,9 +186,6 @@ export function usePipeHandlers({
       }
 
       resetDrawingState();
-
-      const extraForDoubleClick = 1;
-      popMoment(extraForDoubleClick);
     },
     enter() {
       setMode({ mode: Mode.NONE });

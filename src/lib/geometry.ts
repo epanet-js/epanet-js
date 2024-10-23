@@ -425,6 +425,10 @@ function fixOuterRing(coordinates: Position[]) {
   return coordinates;
 }
 
+export function isSamePosition(a: Position, b: Position) {
+  return isEqual(a, b);
+}
+
 function degeneratePolygon(
   coordinates: Polygon["coordinates"],
 ): Polygon | LineString | null {
