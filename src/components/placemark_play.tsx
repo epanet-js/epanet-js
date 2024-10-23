@@ -9,7 +9,6 @@ import { CSS } from "@dnd-kit/utilities";
 import ContextActions from "src/components/context_actions";
 import React, {
   Suspense,
-  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -32,7 +31,7 @@ import { ErrorBoundary } from "@sentry/nextjs";
 import { MoveIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, splitsAtom, tabAtom, TabOption } from "src/state/jotai";
+import { dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,
@@ -43,7 +42,6 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
-import { useAtomCallback } from "jotai/utils";
 import { useSearchParams } from "next/navigation";
 import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
@@ -259,44 +257,12 @@ function DraggableMap({
   layout: ResolvedLayout;
   persistentTransform: Transform;
 }) {
-  const [splits, setSplits] = useAtom(splitsAtom);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: "map",
   });
 
   useMapResize(containerRef.current, layout);
-
-  const SELECTED = "bg-gray-100 dark:bg-gray-700 dark:text-gray-100";
-  const UNSELECTED =
-    "dark:bg-black text-gray-300 dark:text-gray-500 hover:text-gray-400";
-
-  const switchToFloating = useAtomCallback(
-    useCallback((get, set) => {
-      set(splitsAtom, {
-        ...get(splitsAtom),
-        layout: "FLOATING",
-      });
-
-      set(tabAtom, TabOption.Table);
-
-      // Size - this is w-64
-      const SIZE = 256;
-      // Distance from screen edge
-      const MARGIN = 32;
-      // Height of the double header
-      const HEADER_HEIGHT = 48 * 2;
-      const transform: Transform = {
-        x: window.innerWidth - SIZE - MARGIN,
-        y: window.innerHeight - SIZE - MARGIN - HEADER_HEIGHT,
-      };
-
-      /**
-       * Push UI to bottom right
-       */
-      set(persistentTransformAtom, transform);
-    }, []),
-  );
 
   return (
     <div
