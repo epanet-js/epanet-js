@@ -12,7 +12,6 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -152,7 +151,7 @@ export function makeLayers({
       filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
       paint: LINE_PAINT(symbolization),
     },
-    isFeatureOn("FLAG_HALO") && {
+    {
       id: "LINE_HIGHLIGHTS_LAYER",
       type: "line",
       source: HIGHLIGHTS_SOURCE_NAME,
@@ -185,43 +184,22 @@ export function makeLayers({
       paint: LINE_PAINT(symbolization),
     },
 
-    ...(isFeatureOn("FLAG_HALO")
-      ? [
-          {
-            id: "POINTS_HIGHLIGHTS_LAYER",
-            type: "circle",
-            source: HIGHLIGHTS_SOURCE_NAME,
-            layout: CIRCLE_LAYOUT,
-            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-            paint: CIRCLE_PAINT_HALO(symbolization),
-          },
-          {
-            id: FEATURES_POINT_LAYER_NAME,
-            type: "circle",
-            source: FEATURES_SOURCE_NAME,
-            layout: CIRCLE_LAYOUT,
-            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-            paint: CIRCLE_PAINT(symbolization),
-          },
-        ]
-      : [
-          {
-            id: FEATURES_POINT_HALO_LAYER_NAME,
-            type: "circle",
-            source: FEATURES_SOURCE_NAME,
-            layout: CIRCLE_LAYOUT,
-            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-            paint: CIRCLE_PAINT(symbolization, true),
-          },
-          {
-            id: FEATURES_POINT_LAYER_NAME,
-            type: "circle",
-            source: FEATURES_SOURCE_NAME,
-            layout: CIRCLE_LAYOUT,
-            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-            paint: CIRCLE_PAINT(symbolization),
-          },
-        ]),
+    {
+      id: "POINTS_HIGHLIGHTS_LAYER",
+      type: "circle",
+      source: HIGHLIGHTS_SOURCE_NAME,
+      layout: CIRCLE_LAYOUT,
+      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+      paint: CIRCLE_PAINT_HALO(symbolization),
+    },
+    {
+      id: FEATURES_POINT_LAYER_NAME,
+      type: "circle",
+      source: FEATURES_SOURCE_NAME,
+      layout: CIRCLE_LAYOUT,
+      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+      paint: CIRCLE_PAINT(symbolization),
+    },
 
     ...(typeof previewProperty === "string"
       ? [
@@ -392,6 +370,7 @@ export function CIRCLE_PAINT(
       ],
     };
   }
+
   return {
     "circle-stroke-color": [
       "match",
@@ -400,10 +379,8 @@ export function CIRCLE_PAINT(
       LINE_COLORS_SELECTED,
       "white",
     ],
-    "circle-stroke-width": isFeatureOn("FLAG_HALO") ? 0 : 1,
-    "circle-radius": isFeatureOn("FLAG_HALO")
-      ? 6
-      : ["match", ["feature-state", "state"], "selected", 6, 4],
+    "circle-stroke-width": 0,
+    "circle-radius": 6,
     "circle-opacity": 1,
     "circle-color": [
       "match",

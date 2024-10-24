@@ -48,9 +48,7 @@ import { fMoment } from "src/lib/persistence/moment";
 import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
-import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { isDebugOn } from "src/infra/debug-mode";
-import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -244,24 +242,7 @@ export const MapComponent = memo(function MapComponent({
       });
       setCursor(features.length ? "pointer" : "");
     }
-    function fastMovePointerViaDeck(point: mapboxgl.Point) {
-      if (!map) return;
-      const features = map.map.queryRenderedFeatures(point, {
-        layers: CLICKABLE_LAYERS,
-      });
-      try {
-        const syntheticUnderCursor = map.overlay.pickObject({
-          ...point,
-          layerIds: [DECK_SYNTHETIC_ID],
-        });
-        setCursor(syntheticUnderCursor || features.length ? "move" : "");
-      } catch (e) {
-        // Deck can throw here if it's just been initialized
-        // or uninitialized.
-        // console.error(e);
-      }
-    }
-    return isFeatureOn("FLAG_HALO") ? fastMovePointer : fastMovePointerViaDeck;
+    return fastMovePointer;
   }, [map, setCursor]);
 
   const idMap = rep.idMap;
