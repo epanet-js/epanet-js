@@ -19,6 +19,10 @@ details > summary {
   list-style: none !important;
 }
 
+.placemark-cursor-pointer .mapboxgl-canvas-container {
+  cursor: pointer !important;
+}
+
 .placemark-cursor-default .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-default.svg"), auto !important;
 }

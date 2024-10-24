@@ -30,6 +30,7 @@ const CIRCLE_LAYOUT: mapboxgl.CircleLayout = {};
 
 export const FEATURES_SOURCE_NAME = "features";
 export const EPHEMERAL_SOURCE_NAME = "ephemeral";
+export const HIGHLIGHTS_SOURCE_NAME = "highlights";
 
 export const EPHEMERAL_LINE_LAYER_NAME = "ephemeral-line";
 export const EPHEMERAL_FILL_LAYER_NAME = "ephemeral-fill";
@@ -115,7 +116,7 @@ export function addEditingLayers({
 }) {
   style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[EPHEMERAL_SOURCE_NAME] = emptyGeoJSONSource;
-  style.sources["HIGHLIGHTS_SOURCE"] = emptyGeoJSONSource;
+  style.sources[HIGHLIGHTS_SOURCE_NAME] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -154,7 +155,7 @@ export function makeLayers({
     isFeatureOn("FLAG_HALO") && {
       id: "LINE_HIGHLIGHTS_LAYER",
       type: "line",
-      source: "HIGHLIGHTS_SOURCE",
+      source: HIGHLIGHTS_SOURCE_NAME,
       filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
       paint: LINE_PAINT_HALO(symbolization),
       layout: {
@@ -189,7 +190,7 @@ export function makeLayers({
           {
             id: "POINTS_HIGHLIGHTS_LAYER",
             type: "circle",
-            source: "HIGHLIGHTS_SOURCE",
+            source: HIGHLIGHTS_SOURCE_NAME,
             layout: CIRCLE_LAYOUT,
             filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
             paint: CIRCLE_PAINT_HALO(symbolization),
@@ -514,6 +515,8 @@ export const CONTENT_LAYERS = [
   FEATURES_POINT_LAYER_NAME,
   FEATURES_FILL_LAYER_NAME,
   FEATURES_LINE_LAYER_NAME,
+  "LINE_HIGHLIGHTS_LAYER",
+  "POINTS_HIGHLIGHTS_LAYER",
 ];
 
 export const CLICKABLE_LAYERS = CONTENT_LAYERS.concat([

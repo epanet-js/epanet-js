@@ -230,6 +230,15 @@ exports[`loadAndAugmentStyle 1`] = `
       "tolerance": 0,
       "type": "geojson",
     },
+    "highlights": {
+      "buffer": 512,
+      "data": {
+        "features": [],
+        "type": "FeatureCollection",
+      },
+      "tolerance": 0,
+      "type": "geojson",
+    },
     "placemarkInternalSource1": {
       "scheme": "tms",
       "tileSize": 256,
@@ -246,81 +255,81 @@ exports[`loadAndAugmentStyle 1`] = `
 
 exports[`makeLayers > categorical 1`] = `
 [
-  {
-    "name": "Mapbox GL Style: Line",
+{
+  "name": "Mapbox GL Style: Line",
     "value": "{
-  \\"line-opacity\\": 1,
-  \\"line-width\\": 2,
-  \\"line-color\\": [
-    \\"match\\",
+      \\"line-opacity\\": 1,
+      \\"line-width\\": 2,
+      \\"line-color\\": [
+        \\"match\\",
+      [
+        \\"get\\",
+      \\"foo\\"
+      ],
+      1,
+      \\"#fff000\\",
+      \\"#312E81\\"
+      ]
+    }",
+},
+{
+  "name": "Mapbox GL Style: Fill",
+  "value": "{
+    \\"fill-opacity\\": 0.3,
+    \\"fill-color\\": [
+      \\"match\\",
     [
       \\"get\\",
-      \\"foo\\"
+    \\"foo\\"
     ],
     1,
     \\"#fff000\\",
     \\"#312E81\\"
-  ]
-}",
-  },
-  {
-    "name": "Mapbox GL Style: Fill",
-    "value": "{
-  \\"fill-opacity\\": 0.3,
-  \\"fill-color\\": [
-    \\"match\\",
-    [
-      \\"get\\",
-      \\"foo\\"
-    ],
-    1,
-    \\"#fff000\\",
-    \\"#312E81\\"
-  ]
-}",
-  },
-  {
-    "name": "Mapbox GL Style: Circle",
-    "value": "{
-  \\"circle-stroke-color\\": [
-    \\"match\\",
+    ]
+  }",
+},
+{
+  "name": "Mapbox GL Style: Circle",
+  "value": "{
+    \\"circle-stroke-color\\": [
+      \\"match\\",
     [
       \\"feature-state\\",
-      \\"state\\"
+    \\"state\\"
     ],
     \\"selected\\",
     \\"#D6409F\\",
     \\"white\\"
-  ],
-  \\"circle-stroke-width\\": 1,
-  \\"circle-radius\\": [
-    \\"match\\",
+    ],
+    \\"circle-stroke-width\\": 1,
+    \\"circle-radius\\": [
+      \\"match\\",
     [
       \\"feature-state\\",
-      \\"state\\"
+    \\"state\\"
     ],
     \\"selected\\",
     6,
     4
-  ],
-  \\"circle-opacity\\": 1,
-  \\"circle-color\\": [
-    \\"match\\",
+    ],
+    \\"circle-opacity\\": 1,
+    \\"circle-color\\": [
+      \\"match\\",
     [
       \\"feature-state\\",
-      \\"state\\"
+    \\"state\\"
     ],
     \\"selected\\",
     \\"white\\",
     [
       \\"match\\",
-      [
-        \\"get\\",
-        \\"foo\\"
-      ],
-      1,
-      \\"#fff000\\",
-      \\"#312E81\\"
+    [
+      \\"get\\",
+    \\"foo\\"
+    ],
+    1,
+    \\"#fff000\\",
+    \\"#312E81\\"
     ]
   ]
 }",
@@ -1502,7 +1511,7 @@ exports[`makeLayers > ramp 2`] = `
       color = ramp[i + 1];
     }
   }
-  
+
   return {
     color: color || \\"#312E81\\",
     weight: 2,

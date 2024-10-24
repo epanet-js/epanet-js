@@ -50,6 +50,7 @@ import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { isDebugOn } from "src/infra/debug-mode";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -241,6 +242,13 @@ export const MapComponent = memo(function MapComponent({
       const features = map.map.queryRenderedFeatures(point, {
         layers: CLICKABLE_LAYERS,
       });
+      setCursor(features.length ? "pointer" : "");
+    }
+    function fastMovePointerViaDeck(point: mapboxgl.Point) {
+      if (!map) return;
+      const features = map.map.queryRenderedFeatures(point, {
+        layers: CLICKABLE_LAYERS,
+      });
       try {
         const syntheticUnderCursor = map.overlay.pickObject({
           ...point,
@@ -253,7 +261,7 @@ export const MapComponent = memo(function MapComponent({
         // console.error(e);
       }
     }
-    return fastMovePointer;
+    return isFeatureOn("FLAG_HALO") ? fastMovePointer : fastMovePointerViaDeck;
   }, [map, setCursor]);
 
   const idMap = rep.idMap;
@@ -409,26 +417,32 @@ export const MapComponent = memo(function MapComponent({
     [setContextInfo],
   );
 
+  const cursorStyle = useMemo(() => {
+    if (cursor === "move") return "cursor-move";
+    if (cursor === "pointer") return "placemark-cursor-pointer";
+
+    if (
+      mode.mode === Mode.NONE ||
+      mode.mode === Mode.DRAW_POLYGON ||
+      mode.mode === Mode.DRAW_LINE
+    )
+      return "placemark-cursor-default";
+
+    if (
+      mode.mode === Mode.DRAW_PIPE ||
+      mode.mode === Mode.DRAW_RECTANGLE ||
+      mode.mode === Mode.DRAW_JUNCTION ||
+      mode.mode === Mode.LASSO
+    )
+      return "placemark-cursor-crosshair";
+    return "auto";
+  }, [cursor, mode]);
+
   return (
     <CM.Root modal={false} onOpenChange={onOpenChange}>
       <CM.Trigger asChild onContextMenu={onContextMenu}>
         <div
-          className={clsx(
-            "top-0 bottom-0 left-0 right-0",
-            cursor === "move"
-              ? "cursor-move"
-              : {
-                  "placemark-cursor-default":
-                    mode.mode === Mode.NONE ||
-                    mode.mode === Mode.DRAW_POLYGON ||
-                    mode.mode === Mode.DRAW_LINE,
-                  "placemark-cursor-crosshair":
-                    mode.mode === Mode.DRAW_PIPE ||
-                    mode.mode === Mode.DRAW_RECTANGLE ||
-                    mode.mode === Mode.DRAW_JUNCTION ||
-                    mode.mode === Mode.LASSO,
-                },
-          )}
+          className={clsx("top-0 bottom-0 left-0 right-0", cursorStyle)}
           ref={mapDivRef}
           data-testid="map"
           style={{
