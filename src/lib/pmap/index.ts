@@ -1,4 +1,4 @@
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { GeoJSONSource } from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   EPHEMERAL_SOURCE_NAME,
@@ -38,6 +38,7 @@ import { MapboxOverlay } from "@deck.gl/mapbox";
 import { PolygonLayer, ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 import { PathStyleExtension } from "@deck.gl/extensions";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -316,6 +317,9 @@ export default class PMap {
       EPHEMERAL_SOURCE_NAME,
     ) as mapboxgl.GeoJSONSource;
 
+    const highlightsSource = isFeatureOn("FLAG_HALO")
+      ? (this.map.getSource("HIGHLIGHTS_SOURCE") as mapboxgl.GeoJSONSource)
+      : null;
     if (!featuresSource || !ephemeralSource) {
       // Set the lastFeatureList here
       // so that the setStyle method will
@@ -325,21 +329,33 @@ export default class PMap {
       return;
     }
 
+    const getSelectionFeatures = () => {
+      if (!isFeatureOn("FLAG_HALO")) return [];
+
+      const selection = data.selection;
+      if (selection.type !== "single") return [];
+
+      const id = selection.id;
+      const wrappedFeature = data.featureMap.get(id)!;
+      if (!wrappedFeature) return [];
+      return [wrappedFeature.feature];
+    };
+
     const groups = splitFeatureGroups({
       idMap: this.idMap,
       data,
       lastSymbolization: this.lastSymbolization,
       previewProperty: this.lastPreviewProperty,
     });
-
-    // console.log(
-    //   "in setData",
-    //   JSON.stringify({
-    //     newSelection,
-    //     outputIds: [...groups.selectionIds],
-    //   })
-    // );
-    // TODO: fix flash
+    if (isFeatureOn("FLAG_HALO")) {
+      const selectionFeatures = getSelectionFeatures();
+      console.log("SELECTION_FEATURES", selectionFeatures);
+      mSetData(
+        highlightsSource as GeoJSONSource,
+        selectionFeatures,
+        "highlights",
+      );
+    }
     mSetData(ephemeralSource, groups.ephemeral, "ephem");
     mSetData(featuresSource, groups.features, "features", force);
 
@@ -347,37 +363,38 @@ export default class PMap {
 
     this.overlay.setProps({
       layers: [
-        new ScatterplotLayer<IFeature<Point>>({
-          id: DECK_SYNTHETIC_ID,
+        !isFeatureOn("FLAG_HALO") &&
+          new ScatterplotLayer<IFeature<Point>>({
+            id: DECK_SYNTHETIC_ID,
 
-          radiusUnits: "pixels",
-          lineWidthUnits: "pixels",
+            radiusUnits: "pixels",
+            lineWidthUnits: "pixels",
 
-          pickable: true,
-          stroked: true,
-          filled: true,
+            pickable: true,
+            stroked: true,
+            filled: true,
 
-          data: groups.synthetic,
+            data: groups.synthetic,
 
-          getPosition: (d) => d.geometry.coordinates as [number, number],
-          getFillColor: (d) => {
-            return groups.selectionIds.has(d.id as RawId)
-              ? WHITE
-              : LINE_COLORS_SELECTED_RGB;
-          },
-          getLineColor: (d) => {
-            return groups.selectionIds.has(d.id as RawId)
-              ? LINE_COLORS_SELECTED_RGB
-              : WHITE;
-          },
-          getLineWidth: 1.5,
-          getRadius: (d) => {
-            const id = Number(d.id || 0);
-            const fp = d.properties?.fp;
-            if (fp) return 10;
-            return id % 2 === 0 ? 5 : 3.5;
-          },
-        }),
+            getPosition: (d) => d.geometry.coordinates as [number, number],
+            getFillColor: (d) => {
+              return groups.selectionIds.has(d.id as RawId)
+                ? WHITE
+                : LINE_COLORS_SELECTED_RGB;
+            },
+            getLineColor: (d) => {
+              return groups.selectionIds.has(d.id as RawId)
+                ? LINE_COLORS_SELECTED_RGB
+                : WHITE;
+            },
+            getLineWidth: 1.5,
+            getRadius: (d) => {
+              const id = Number(d.id || 0);
+              const fp = d.properties?.fp;
+              if (fp) return 10;
+              return id % 2 === 0 ? 5 : 3.5;
+            },
+          }),
         ephemeralState.type === "drag" &&
           new GeoJsonLayer({
             id: "DRAG_LAYER",
