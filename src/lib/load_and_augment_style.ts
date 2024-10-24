@@ -5,6 +5,7 @@ import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
+  POINT_COLORS_SELECTED,
 } from "src/lib/constants";
 import type { ISymbolization, LayerConfigMap } from "src/types";
 import {
@@ -156,7 +157,11 @@ export function makeLayers({
       type: "line",
       source: HIGHLIGHTS_SOURCE_NAME,
       filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
-      paint: LINE_PAINT_HALO(symbolization),
+      paint: {
+        "line-opacity": 1,
+        "line-width": 4,
+        "line-color": LINE_COLORS_SELECTED,
+      },
       layout: {
         "line-cap": "round",
         "line-join": "round",
@@ -183,15 +188,6 @@ export function makeLayers({
       ],
       paint: LINE_PAINT(symbolization),
     },
-
-    {
-      id: "POINTS_HIGHLIGHTS_LAYER",
-      type: "circle",
-      source: HIGHLIGHTS_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT_HALO(symbolization),
-    },
     {
       id: FEATURES_POINT_LAYER_NAME,
       type: "circle",
@@ -199,6 +195,19 @@ export function makeLayers({
       layout: CIRCLE_LAYOUT,
       filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
+    },
+    {
+      id: "POINTS_HIGHLIGHTS_LAYER",
+      type: "circle",
+      source: HIGHLIGHTS_SOURCE_NAME,
+      layout: CIRCLE_LAYOUT,
+      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+      paint: {
+        "circle-color": POINT_COLORS_SELECTED,
+        "circle-radius": 6,
+        "circle-stroke-width": 0,
+        "circle-opacity": 1,
+      },
     },
 
     ...(typeof previewProperty === "string"
@@ -395,17 +404,6 @@ export function CIRCLE_PAINT(
   };
 }
 
-export function CIRCLE_PAINT_HALO(
-  symbolization: ISymbolization,
-): mapboxgl.CirclePaint {
-  return {
-    "circle-stroke-color": asColorExpression({ symbolization, part: "stroke" }),
-    "circle-stroke-width": 1,
-    "circle-radius": 12,
-    "circle-opacity": 0,
-  };
-}
-
 /**
  * Optionally add a feature-state expression to emphasize this when
  * selected.
@@ -444,21 +442,6 @@ export function FILL_PAINT(
     }),
     "fill-color": handleSelected(
       asColorExpression({ symbolization, part: "fill" }),
-      exp,
-      LINE_COLORS_SELECTED,
-    ),
-  };
-}
-
-export function LINE_PAINT_HALO(
-  symbolization: ISymbolization,
-  exp = false,
-): mapboxgl.LinePaint {
-  return {
-    "line-gap-width": 12,
-    "line-width": 1,
-    "line-color": handleSelected(
-      asColorExpression({ symbolization, part: "stroke" }),
       exp,
       LINE_COLORS_SELECTED,
     ),
