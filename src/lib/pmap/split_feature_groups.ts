@@ -3,7 +3,7 @@ import { generateExclude } from "src/lib/folder";
 import { encodeId } from "src/lib/id";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { Data, PreviewProperty, Sel } from "src/state/jotai";
-import { Feature, ISymbolization, IWrappedFeature } from "src/types";
+import { Feature, ISymbolization } from "src/types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";
 import { fixDegenerates } from "./merge_ephemeral_state";
 import { getKeepProperties, stripFeature } from "./strip_features";
@@ -27,6 +27,7 @@ export const splitFeatureGroups = (
   });
   const { featureMap, selection } = data;
 
+  const selectionIds = toIdSet(selection);
   for (const feature of featureMap.values()) {
     if (feature.feature.properties?.visibility === false) {
       continue;
@@ -37,19 +38,16 @@ export const splitFeatureGroups = (
       idMap,
     });
     strippedFeatures.push(strippedFeature);
-    if (isSelected(selection, feature.id))
-      selectedFeatures.push(strippedFeature);
+    if (selectionIds.has(feature.id)) selectedFeatures.push(strippedFeature);
   }
   return { features: strippedFeatures, selectedFeatures: selectedFeatures };
 };
 
-const isSelected = (
-  selection: Sel,
-  featureId: IWrappedFeature["id"],
-): boolean => {
-  if (selection.type !== "single") return false;
+const toIdSet = (selection: Sel): Set<string> => {
+  if (selection.type === "single") return new Set([selection.id]);
+  if (selection.type === "multi") return new Set(selection.ids);
 
-  return selection.id === featureId;
+  return new Set([]);
 };
 
 /**
