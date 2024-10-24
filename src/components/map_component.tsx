@@ -237,7 +237,13 @@ export const MapComponent = memo(function MapComponent({
   const throttledMovePointer = useMemo(() => {
     function fastMovePointer(point: mapboxgl.Point) {
       if (!map) return;
-      const features = map.map.queryRenderedFeatures(point, {
+
+      const radius = 7;
+      const searchBox = [
+        [point.x - radius, point.y - radius],
+        [point.x + radius, point.y + radius],
+      ] as unknown as [mapboxgl.Point, mapboxgl.Point];
+      const features = map.map.queryRenderedFeatures(searchBox, {
         layers: CLICKABLE_LAYERS,
       });
       setCursor(features.length ? "pointer" : "");
