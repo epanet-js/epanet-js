@@ -2,6 +2,7 @@ import mapboxgl, { GeoJSONSource } from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   EPHEMERAL_SOURCE_NAME,
+  HIGHLIGHTS_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
 import type {
   EphemeralEditingState,
@@ -318,7 +319,7 @@ export default class PMap {
     ) as mapboxgl.GeoJSONSource;
 
     const highlightsSource = isFeatureOn("FLAG_HALO")
-      ? (this.map.getSource("HIGHLIGHTS_SOURCE") as mapboxgl.GeoJSONSource)
+      ? (this.map.getSource(HIGHLIGHTS_SOURCE_NAME) as mapboxgl.GeoJSONSource)
       : null;
     if (!featuresSource || !ephemeralSource) {
       // Set the lastFeatureList here

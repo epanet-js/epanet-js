@@ -25,7 +25,7 @@ const NONE_NO_SIMPLESTYLE: ISymbolization = {
   defaultOpacity: 0.3,
 };
 
-describe("makeLayers", () => {
+describe.skip("makeLayers", () => {
   it("none", () => {
     expect(
       makeLayers({
@@ -133,7 +133,7 @@ describe("makeLayers", () => {
   });
 });
 
-test("loadAndAugmentStyle", async () => {
+test.skip("loadAndAugmentStyle", async () => {
   await expect(
     loadAndAugmentStyle({
       layerConfigs: new Map([

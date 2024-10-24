@@ -399,7 +399,7 @@ export interface HandlerContext {
   flatbushInstance: FlatbushLike;
   dragTargetRef: React.MutableRefObject<DragTarget | null>;
   mode: ModeWithOptions;
-  throttledMovePointer: (arg0: mapboxgl.Point) => void;
+  throttledMovePointer: (e: mapboxgl.Point) => void;
   featureMap: FeatureMap;
   folderMap: FolderMap;
   idMap: IDMap;

@@ -280,7 +280,8 @@ export interface EphemeralDrawLine {
   features: IWrappedFeature[];
 }
 
-export const cursorStyleAtom = atom<React.CSSProperties["cursor"]>("default");
+export type CursorValue = React.CSSProperties["cursor"];
+export const cursorStyleAtom = atom<CursorValue>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
