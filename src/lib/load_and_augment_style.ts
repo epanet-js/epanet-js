@@ -157,6 +157,10 @@ export function makeLayers({
       source: "HIGHLIGHTS_SOURCE",
       filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
       paint: LINE_PAINT_HALO(symbolization),
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
     },
 
     {
