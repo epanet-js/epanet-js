@@ -2,19 +2,63 @@ import { emptySelection, EMPTY_ARRAY } from "src/lib/constants";
 import { generateExclude } from "src/lib/folder";
 import { encodeId } from "src/lib/id";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { Data, PreviewProperty } from "src/state/jotai";
-import { Feature, ISymbolization } from "src/types";
+import { Data, PreviewProperty, Sel } from "src/state/jotai";
+import { Feature, ISymbolization, IWrappedFeature } from "src/types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";
 import { fixDegenerates } from "./merge_ephemeral_state";
 import { getKeepProperties, stripFeature } from "./strip_features";
-import { isFeatureOn } from "src/infra/feature-flags";
+
+interface SplitGroups {
+  features: Feature[];
+  selectedFeatures: Feature[];
+}
+
+export const splitFeatureGroups = (
+  data: Data,
+  idMap: IDMap,
+  symbolization: ISymbolization | null,
+  previewProperty: PreviewProperty,
+): SplitGroups => {
+  const strippedFeatures = [];
+  const selectedFeatures = [];
+  const keepProperties = getKeepProperties({
+    symbolization,
+    previewProperty,
+  });
+  const { featureMap, selection } = data;
+
+  for (const feature of featureMap.values()) {
+    if (feature.feature.properties?.visibility === false) {
+      continue;
+    }
+    const strippedFeature = stripFeature({
+      wrappedFeature: feature,
+      keepProperties,
+      idMap,
+    });
+    strippedFeatures.push(strippedFeature);
+    if (isSelected(selection, feature.id))
+      selectedFeatures.push(strippedFeature);
+  }
+  return { features: strippedFeatures, selectedFeatures: selectedFeatures };
+};
+
+const isSelected = (
+  selection: Sel,
+  featureId: IWrappedFeature["id"],
+): boolean => {
+  if (selection.type !== "single") return false;
+
+  return selection.id === featureId;
+};
 
 /**
  * This is basically the "intermediate representation" before
  * features go to the map. The features here are as barebones
  * as they can be.
  */
-interface SplitGroups {
+
+interface SplitGroupsDeprecated {
   selectionIds: Set<RawId>;
   synthetic: Feature[];
   ephemeral: Feature[];
@@ -37,7 +81,7 @@ interface SplitGroups {
  * faster using memoization, or a micro-optimization of
  * how to create the stripped values.
  */
-export function splitFeatureGroups({
+export function splitFeatureGroupsDeprecated({
   data,
   lastSymbolization,
   idMap,
@@ -47,7 +91,7 @@ export function splitFeatureGroups({
   lastSymbolization: ISymbolization | null;
   idMap: IDMap;
   previewProperty: PreviewProperty;
-}): SplitGroups {
+}): SplitGroupsDeprecated {
   const { selection, folderMap, featureMap } = data;
 
   const features: Feature[] = [];
@@ -71,11 +115,7 @@ export function splitFeatureGroups({
     if (feature.feature.properties?.visibility === false) {
       continue;
     }
-    if (
-      !isFeatureOn("FLAG_HALO") &&
-      selection.type === "single" &&
-      feature.id === selection.id
-    ) {
+    if (selection.type === "single" && feature.id === selection.id) {
       selectedFeature = stripFeature({
         wrappedFeature: feature,
         keepProperties,
