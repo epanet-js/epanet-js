@@ -31,6 +31,7 @@ export const purple900 = "#312E81";
 export const LINE_COLORS_IDLE = "#8B5CF6";
 export const LINE_COLORS_IDLE_RGBA = hexToArray("#8B5CF6");
 
+export const POINT_COLORS_SELECTED = "#D6409F";
 export const LINE_COLORS_SELECTED = "#D6409F";
 export const LINE_COLORS_SELECTED_RGB = hexToArray("#D6409F");
 
