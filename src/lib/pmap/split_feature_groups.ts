@@ -7,6 +7,7 @@ import { Feature, ISymbolization } from "src/types";
 import { generateSyntheticPoints } from "./generate_synthetic_points";
 import { fixDegenerates } from "./merge_ephemeral_state";
 import { getKeepProperties, stripFeature } from "./strip_features";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 /**
  * This is basically the "intermediate representation" before
@@ -70,7 +71,11 @@ export function splitFeatureGroups({
     if (feature.feature.properties?.visibility === false) {
       continue;
     }
-    if (selection.type === "single" && feature.id === selection.id) {
+    if (
+      !isFeatureOn("FLAG_HALO") &&
+      selection.type === "single" &&
+      feature.id === selection.id
+    ) {
       selectedFeature = stripFeature({
         wrappedFeature: feature,
         keepProperties,

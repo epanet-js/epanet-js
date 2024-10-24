@@ -12,6 +12,7 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -39,7 +40,6 @@ export const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
 export const FEATURES_FILL_LABEL_LAYER_NAME = "features-fill-label";
 export const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
 export const FEATURES_LINE = "features-label";
-export const CURSORS_POINT_LAYER_NAME = "cursors-symbol";
 export const FEATURES_LINE_LAYER_NAME = "features-line";
 export const FEATURES_FILL_LAYER_NAME = "features-fill";
 
@@ -115,6 +115,7 @@ export function addEditingLayers({
 }) {
   style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[EPHEMERAL_SOURCE_NAME] = emptyGeoJSONSource;
+  style.sources["HIGHLIGHTS_SOURCE"] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -150,6 +151,13 @@ export function makeLayers({
       filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
       paint: LINE_PAINT(symbolization),
     },
+    isFeatureOn("FLAG_HALO") && {
+      id: "LINE_HIGHLIGHTS_LAYER",
+      type: "line",
+      source: "HIGHLIGHTS_SOURCE",
+      filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
+      paint: LINE_PAINT_HALO(symbolization),
+    },
 
     {
       id: EPHEMERAL_FILL_LAYER_NAME,
@@ -172,25 +180,43 @@ export function makeLayers({
       paint: LINE_PAINT(symbolization),
     },
 
-    // Real points, from the dataset.
-    {
-      id: FEATURES_POINT_HALO_LAYER_NAME,
-      type: "circle",
-      source: FEATURES_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT(symbolization, true),
-    },
-
-    // Real points, from the dataset.
-    {
-      id: FEATURES_POINT_LAYER_NAME,
-      type: "circle",
-      source: FEATURES_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT(symbolization),
-    },
+    ...(isFeatureOn("FLAG_HALO")
+      ? [
+          {
+            id: "POINTS_HIGHLIGHTS_LAYER",
+            type: "circle",
+            source: "HIGHLIGHTS_SOURCE",
+            layout: CIRCLE_LAYOUT,
+            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+            paint: CIRCLE_PAINT_HALO(symbolization),
+          },
+          {
+            id: FEATURES_POINT_LAYER_NAME,
+            type: "circle",
+            source: FEATURES_SOURCE_NAME,
+            layout: CIRCLE_LAYOUT,
+            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+            paint: CIRCLE_PAINT(symbolization),
+          },
+        ]
+      : [
+          {
+            id: FEATURES_POINT_HALO_LAYER_NAME,
+            type: "circle",
+            source: FEATURES_SOURCE_NAME,
+            layout: CIRCLE_LAYOUT,
+            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+            paint: CIRCLE_PAINT(symbolization, true),
+          },
+          {
+            id: FEATURES_POINT_LAYER_NAME,
+            type: "circle",
+            source: FEATURES_SOURCE_NAME,
+            layout: CIRCLE_LAYOUT,
+            filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+            paint: CIRCLE_PAINT(symbolization),
+          },
+        ]),
 
     ...(typeof previewProperty === "string"
       ? [
@@ -229,7 +255,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ];
+  ].filter((l) => !!l) as mapboxgl.AnyLayer[];
 }
 
 export function asNumberExpression({
@@ -369,8 +395,10 @@ export function CIRCLE_PAINT(
       LINE_COLORS_SELECTED,
       "white",
     ],
-    "circle-stroke-width": 1,
-    "circle-radius": ["match", ["feature-state", "state"], "selected", 6, 4],
+    "circle-stroke-width": isFeatureOn("FLAG_HALO") ? 0 : 1,
+    "circle-radius": isFeatureOn("FLAG_HALO")
+      ? 6
+      : ["match", ["feature-state", "state"], "selected", 6, 4],
     "circle-opacity": 1,
     "circle-color": [
       "match",
@@ -382,6 +410,17 @@ export function CIRCLE_PAINT(
         part: "stroke",
       }),
     ],
+  };
+}
+
+export function CIRCLE_PAINT_HALO(
+  symbolization: ISymbolization,
+): mapboxgl.CirclePaint {
+  return {
+    "circle-stroke-color": asColorExpression({ symbolization, part: "stroke" }),
+    "circle-stroke-width": 1,
+    "circle-radius": 12,
+    "circle-opacity": 0,
   };
 }
 
@@ -423,6 +462,21 @@ export function FILL_PAINT(
     }),
     "fill-color": handleSelected(
       asColorExpression({ symbolization, part: "fill" }),
+      exp,
+      LINE_COLORS_SELECTED,
+    ),
+  };
+}
+
+export function LINE_PAINT_HALO(
+  symbolization: ISymbolization,
+  exp = false,
+): mapboxgl.LinePaint {
+  return {
+    "line-gap-width": 12,
+    "line-width": 1,
+    "line-color": handleSelected(
+      asColorExpression({ symbolization, part: "stroke" }),
       exp,
       LINE_COLORS_SELECTED,
     ),
