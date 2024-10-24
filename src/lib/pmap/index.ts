@@ -24,7 +24,6 @@ import type {
   ISymbolization,
   LayerConfigMap,
   IFeature,
-  IWrappedFeature,
 } from "src/types";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { colorFromPresence } from "src/lib/color";
@@ -34,8 +33,7 @@ import { MapboxOverlay } from "@deck.gl/mapbox";
 import { PolygonLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 import { PathStyleExtension } from "@deck.gl/extensions";
-import { getKeepProperties, stripFeature } from "./strip_features";
-import {splitFeatureGroups} from "./split_feature_groups";
+import { splitFeatureGroups } from "./split_feature_groups";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
