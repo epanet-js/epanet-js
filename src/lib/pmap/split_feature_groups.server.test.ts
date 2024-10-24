@@ -4,12 +4,12 @@ import { UIDMap } from "src/lib/id_mapper";
 import { USelection } from "src/state";
 import { SELECTION_NONE } from "src/state/jotai";
 import { fcLineString, NIL_PREVIEW, wrapMapAndId } from "test/helpers";
-import { splitFeatureGroups } from "./split_feature_groups";
+import { splitFeatureGroupsDeprecated } from "./split_feature_groups";
 
-describe("splitFeatureGroups", () => {
+describe("splitFeatureGroupsDeprecated", () => {
   it("base case", () => {
     expect(
-      splitFeatureGroups({
+      splitFeatureGroupsDeprecated({
         data: {
           selection: SELECTION_NONE,
           featureMap: new Map(),
@@ -33,7 +33,7 @@ describe("splitFeatureGroups", () => {
     const { featureMap, idMap } = wrapMapAndId(fcLineString);
 
     expect(
-      splitFeatureGroups({
+      splitFeatureGroupsDeprecated({
         data: {
           selection: SELECTION_NONE,
           featureMap,
@@ -80,7 +80,7 @@ describe("splitFeatureGroups", () => {
     const { featureMap, idMap } = wrapMapAndId(fcLineString);
 
     expect(
-      splitFeatureGroups({
+      splitFeatureGroupsDeprecated({
         data: {
           selection: USelection.fromIds(["000000000000000000000"]),
           featureMap,
