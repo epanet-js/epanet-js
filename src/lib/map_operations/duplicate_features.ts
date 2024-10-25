@@ -1,6 +1,6 @@
 import type { IWrappedFeature } from "src/types";
 import { newFeatureId } from "src/lib/id";
-import { USelection } from "src/state/index";
+import { USelection } from "src/selection";
 import type { Data, Sel } from "src/state/jotai";
 import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
 import { getFoldersInTree } from "src/lib/folder";

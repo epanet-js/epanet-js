@@ -34,7 +34,7 @@ import {
   useFlattenedItems,
 } from "./feature_editor_folder/math";
 import isEqual from "lodash/isEqual";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { Coordinates, ClientRect } from "@dnd-kit/core/dist/types";
 import { LEFT_PANEL_ROW_HEIGHT } from "src/lib/constants";
 import { FolderMap } from "src/types";

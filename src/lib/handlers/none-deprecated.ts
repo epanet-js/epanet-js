@@ -15,7 +15,7 @@ import {
   cursorStyleAtom,
 } from "src/state/jotai";
 import { useSetAtom } from "jotai";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { modeAtom } from "src/state/mode";
 import { useEndSnapshot, useStartSnapshot } from "src/lib/persistence/shared";
 import { filterLockedFeatures } from "src/lib/folder";

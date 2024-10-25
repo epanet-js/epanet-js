@@ -3,7 +3,7 @@ import { idToJSONPointers } from "src/lib/id";
 import { removeDegenerates } from "src/lib/geometry";
 import type { Operation } from "fast-json-patch";
 import { applyPatch } from "fast-json-patch";
-import { USelection } from "src/state/index";
+import { USelection } from "src/selection";
 import type {
   Data,
   Sel,

@@ -1,6 +1,6 @@
 import { expect, describe, it, test } from "vitest";
 
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { exampleFolder, fcLineString, wrapMap } from "test/helpers";
 import { solveRootItems, getRequiredExpansionsFeature } from "./math";
 

@@ -10,7 +10,7 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { IPersistence } from "src/lib/persistence/ipersistence";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import { JsonValue } from "type-fest";
 import { CSS } from "@dnd-kit/utilities";

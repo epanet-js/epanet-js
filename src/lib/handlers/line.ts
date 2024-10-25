@@ -1,4 +1,4 @@
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import type { HandlerContext, IFeature, LineString, Position } from "src/types";
 import {
   selectionAtom,

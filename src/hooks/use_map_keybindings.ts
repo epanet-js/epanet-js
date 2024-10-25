@@ -4,7 +4,7 @@ import { dataAtom, selectionAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { deleteFeatures } from "src/lib/map_operations/delete_features";
 import { filterLockedFeatures } from "src/lib/folder";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { captureError } from "src/infra/error-tracking";

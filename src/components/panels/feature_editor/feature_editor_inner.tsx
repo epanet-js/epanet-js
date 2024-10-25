@@ -7,7 +7,7 @@ import { selectionAtom } from "src/state/jotai";
 import React from "react";
 import { RawEditor } from "./raw_editor";
 import { useAtomValue } from "jotai";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { FeatureEditorNullGeometry } from "./feature_editor_null_geometry";
 import { FeatureEditorCircle } from "./feature_editor_circle";
 

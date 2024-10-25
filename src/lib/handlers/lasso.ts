@@ -3,7 +3,7 @@ import * as utils from "src/lib/map_component_utils";
 import noop from "lodash/noop";
 import type { EphemeralEditingStateLasso } from "src/state/jotai";
 import { modeAtom, ephemeralStateAtom, selectionAtom } from "src/state/jotai";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/mode";
 import { toggle, toggleByValue } from "src/lib/utils";

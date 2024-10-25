@@ -1,7 +1,7 @@
 import { newFeatureId } from "src/lib/id";
 import polylabel from "polylabel";
 import { EMPTY_MOMENT, MomentInput } from "src/lib/persistence/moment";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { Sel } from "src/state/jotai";
 import { IWrappedFeature } from "src/types";
 

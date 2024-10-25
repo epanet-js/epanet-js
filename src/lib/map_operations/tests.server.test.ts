@@ -41,7 +41,7 @@ import {
 } from "src/lib/map_operations/delete_features";
 import { getIssues } from "@placemarkio/check-geojson";
 import { decodeId } from "src/lib/id";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import type { Feature, FeatureMap } from "src/types";
 import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { SELECTION_NONE } from "src/state/jotai";

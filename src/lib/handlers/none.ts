@@ -5,7 +5,7 @@ import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
 import { Mode, cursorStyleAtom, ephemeralStateAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { modeAtom } from "src/state/mode";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { getMapCoord } from "./utils";
