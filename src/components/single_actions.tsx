@@ -22,7 +22,7 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/jotai";
 import { dialogAtom } from "src/state/dialog_state";
 import type {

@@ -16,7 +16,7 @@ import { Loading } from "src/components/elements";
 import Fuse from "fuse.js";
 import { getColumns, getFn } from "src/lib/search_utils";
 import { useZoomTo } from "src/hooks/use_zoom_to";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { useActions } from "src/components/context_actions/geometry_actions";
 import { useMultiActions } from "src/components/context_actions/multi_actions";
 import { useSingleActions } from "src/components/single_actions";

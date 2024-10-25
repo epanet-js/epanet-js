@@ -1,5 +1,5 @@
 import noop from "lodash/noop";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import type { HandlerContext, Position, IFeature, Polygon } from "src/types";
 import {
   cursorStyleAtom,

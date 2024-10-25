@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest";
 
 import { UIDMap } from "src/lib/id_mapper";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { SELECTION_NONE } from "src/state/jotai";
 import { fcLineString, NIL_PREVIEW, wrapMapAndId } from "test/helpers";
 import { splitFeatureGroupsDeprecated } from "./split_feature_groups";

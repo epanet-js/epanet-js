@@ -7,7 +7,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import { Feature, IFeature, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import replaceCoordinates from "src/lib/replace_coordinates";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { captureError } from "src/infra/error-tracking";
 
 export function getContinuationDirection(

@@ -5,9 +5,4 @@ export const DEFAULT_MAP_CENTER: Pos2 = [
   (DEFAULT_MAP_BOUNDS[0][1] + DEFAULT_MAP_BOUNDS[1][1]) / 2,
 ];
 
-/**
- * Selection utilities
- */
-export { USelection } from "./uselection";
-
 export type { ModeOptions, ModeWithOptions } from "src/state/mode";

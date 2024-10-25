@@ -15,7 +15,7 @@ import {
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { IWrappedFeature } from "src/types";
 
 const MODE_OPTIONS = [

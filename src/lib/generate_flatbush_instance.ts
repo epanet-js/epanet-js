@@ -3,7 +3,7 @@ import type { IFeature, IWrappedFeature, Point } from "src/types";
 import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
 import { getExtents } from "src/lib/geometry";
 import uniq from "lodash/uniq";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { decodeId } from "./id";
 import { Sel } from "src/state/jotai";
 

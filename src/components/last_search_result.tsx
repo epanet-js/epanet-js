@@ -5,7 +5,7 @@ import {
   qItemToFeature,
   qItemToPolygon,
 } from "src/lib/geocode";
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import { newFeatureId } from "src/lib/id";
 import { captureError } from "src/infra/error-tracking";
 import { match } from "ts-pattern";

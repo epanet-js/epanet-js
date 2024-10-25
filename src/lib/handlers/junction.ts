@@ -1,4 +1,4 @@
-import { USelection } from "src/state";
+import { USelection } from "src/selection";
 import type { HandlerContext, Point } from "src/types";
 import {
   modeAtom,
