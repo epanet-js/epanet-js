@@ -15,7 +15,7 @@ import { modeAtom } from "src/state/mode";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
-import { useSpaceHeld } from "src/hooks/use_held";
+import { useShiftHeld, useSpaceHeld } from "src/hooks/use_held";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
@@ -35,6 +35,18 @@ export function useNoneHandlers({
   const transact = rep.useTransact();
   const dragStartPoint = useRef<mapboxgl.LngLat | null>(null);
   const spaceHeld = useSpaceHeld();
+  const shiftHeld = useShiftHeld();
+
+  const updateDraggingState = (features: IWrappedFeature[]) => {
+    setEphemeralState({
+      type: "drag",
+      features,
+    });
+  };
+
+  const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
+    throttledMovePointer(e.point);
+  };
 
   const moveFeatures = (
     ids: IWrappedFeature["id"][],
@@ -67,9 +79,32 @@ export function useNoneHandlers({
     return { ...wrappedFeature, feature: newFeature };
   };
 
+  const selectFeature = (featureId: IWrappedFeature["id"]) => {
+    setSelection(USelection.single(featureId));
+  };
+
+  const extendSelection = (featureId: IWrappedFeature["id"]) => {
+    setSelection(USelection.addSelectionId(selection, featureId));
+  };
+
+  const getClickedFeature = (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ) => {
+    const fuzzyResult = utils.fuzzyClick(e, {
+      idMap,
+      featureMap,
+      folderMap,
+      pmap,
+    });
+
+    return fuzzyResult;
+  };
+
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
+      if (!spaceHeld.current) return;
+
       dragStartPoint.current = e.lngLat;
 
       const isRighClick =
@@ -156,19 +191,10 @@ export function useNoneHandlers({
       setCursor("pointer");
     },
     move: (e) => {
-      const updateDraggingState = (features: IWrappedFeature[]) => {
-        setEphemeralState({
-          type: "drag",
-          features,
-        });
-      };
-
-      const skipMove = () => {
-        throttledMovePointer(e.point);
-      };
+      if (!spaceHeld.current) return skipMove(e);
 
       if (dragTargetRef.current === null || selection.type !== "single") {
-        skipMove();
+        skipMove(e);
         return;
       }
 
@@ -191,12 +217,13 @@ export function useNoneHandlers({
 
       const id = decodeId(dragTarget);
       if (id.type !== "vertex") {
-        return skipMove();
+        return skipMove(e);
       }
 
       updateDraggingState([movePoint(selection.id, id, getMapCoord(e))]);
     },
     up: (e) => {
+      if (!spaceHeld.current) return;
       const dragTarget = dragTargetRef.current;
 
       const resetDrag = () => {
@@ -243,62 +270,25 @@ export function useNoneHandlers({
         .catch((e) => captureError(e));
     },
     click: (e) => {
-      // Get the fuzzy feature. This is a mapboxgl feature
-      // with only an id.
-      const fuzzyResult = utils.fuzzyClick(e, {
-        idMap,
-        featureMap,
-        folderMap,
-        pmap,
-      });
+      const clickedFeature = getClickedFeature(e);
+      const isShiftHeld = shiftHeld.current;
 
-      // If there's a selection right now and someone clicked on
-      // bare map, clear the selection.
-      if (!fuzzyResult) {
+      if (!clickedFeature) {
+        if (isShiftHeld) return;
+
         setSelection(USelection.none());
         setMode({ mode: Mode.NONE });
         return;
       }
 
-      const { wrappedFeature, decodedId } = fuzzyResult;
+      const { wrappedFeature, decodedId } = clickedFeature;
 
-      const feature = wrappedFeature.feature;
-      // StringId
-      const id = wrappedFeature.id;
+      if (decodedId.type !== "feature") return;
 
-      switch (decodedId.type) {
-        case "feature": {
-          setSelection(USelection.single(id));
-          break;
-        }
-        case "vertex": {
-          setSelection({
-            type: "single",
-            parts: [decodedId],
-            id,
-          });
-          break;
-        }
-        case "midpoint": {
-          // Midpoint dragging is handled by the mousemove handler.
-          break;
-        }
-      }
-
-      if (feature.geometry === null) {
-        return;
-      }
-
-      // If someone clicked on the first or last vertex of
-      // a line, start drawing that line again.
-      if (
-        !(
-          decodedId.type === "vertex" &&
-          feature.geometry.type === "LineString" &&
-          USelection.isVertexSelected(selection, id, decodedId)
-        )
-      ) {
-        return;
+      if (isShiftHeld) {
+        extendSelection(wrappedFeature.id);
+      } else {
+        selectFeature(wrappedFeature.id);
       }
     },
     enter() {

@@ -78,6 +78,11 @@ const QRF_OPTIONS: Parameters<MapboxMap["queryRenderedFeatures"]>[1] = {
  * Select the feature under the cursor, or if there
  * is none, a feature within a fuzzy range of that cursor.
  */
+export type ClickedFeature = {
+  wrappedFeature: IWrappedFeature;
+  decodedId: Id;
+  id: RawId;
+};
 export function fuzzyClick(
   e: MouseOrTouchEvent,
   {
@@ -91,7 +96,7 @@ export function fuzzyClick(
     folderMap: FolderMap;
     pmap: PMap;
   },
-) {
+): ClickedFeature | null {
   const map = e.target;
 
   const ids: RawId[] = [];
