@@ -79,12 +79,20 @@ export function useNoneHandlers({
     return { ...wrappedFeature, feature: newFeature };
   };
 
-  const selectFeature = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.single(featureId));
+  const toggleSingleSelection = (featureId: IWrappedFeature["id"]) => {
+    setSelection(USelection.toggleSingleSelectionId(selection, featureId));
   };
 
   const extendSelection = (featureId: IWrappedFeature["id"]) => {
     setSelection(USelection.addSelectionId(selection, featureId));
+  };
+
+  const isSelected = (featureId: IWrappedFeature["id"]) => {
+    return USelection.isSelected(selection, featureId);
+  };
+
+  const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
+    setSelection(USelection.removeFeatureFromSelection(selection, featureId));
   };
 
   const getClickedFeature = (
@@ -272,6 +280,7 @@ export function useNoneHandlers({
     click: (e) => {
       const clickedFeature = getClickedFeature(e);
       const isShiftHeld = shiftHeld.current;
+      e.preventDefault();
 
       if (!clickedFeature) {
         if (isShiftHeld) return;
@@ -285,10 +294,16 @@ export function useNoneHandlers({
 
       if (decodedId.type !== "feature") return;
 
+      const id = wrappedFeature.id;
+
       if (isShiftHeld) {
-        extendSelection(wrappedFeature.id);
+        if (isSelected(id)) {
+          removeFromSelection(id);
+        } else {
+          extendSelection(id);
+        }
       } else {
-        selectFeature(wrappedFeature.id);
+        toggleSingleSelection(id);
       }
     },
     enter() {
