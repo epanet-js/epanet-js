@@ -20,14 +20,20 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { captureError } from "src/infra/error-tracking";
-import { newFeatureId } from "../id";
+import { decodeId, newFeatureId } from "../id";
 import { isSamePosition } from "../geometry";
+import { useKeyboardState } from "src/keyboard";
+import { CLICKABLE_LAYERS } from "../load_and_augment_style";
+import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
+import { UIDMap } from "../id_mapper";
 
 export function usePipeHandlers({
   rep,
   featureMap,
   folderMap,
   selection,
+  pmap,
+  idMap,
   mode,
   dragTargetRef,
 }: HandlerContext): Handlers {
@@ -40,6 +46,8 @@ export function usePipeHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const drawingStart = useRef<Pos2 | null>(null);
 
+  const { isShiftHeld } = useKeyboardState();
+
   const setDrawingState = (features: IWrappedFeature[]) => {
     setEphemeralState({
       type: "drawLine",
@@ -51,7 +59,7 @@ export function usePipeHandlers({
     setEphemeralState({ type: "none" });
   };
 
-  const createExtensionFeature = (start: Pos2, end: Pos2) => {
+  const createExtensionFeature = (start: Position, end: Position) => {
     return {
       id: newFeatureId(),
       feature: {
@@ -69,7 +77,7 @@ export function usePipeHandlers({
 
   const extendLineString = (
     wrappedFeature: IWrappedFeature,
-    position: Pos2,
+    position: Position,
   ) => {
     const feature = wrappedFeature.feature as IFeature<LineString>;
     const coordinates = feature.geometry.coordinates;
@@ -79,7 +87,7 @@ export function usePipeHandlers({
       feature: replaceCoordinates(
         feature,
         mode.modeOptions?.reverse
-          ? [position as Position].concat(coordinates)
+          ? [position].concat(coordinates)
           : coordinates.concat([position]),
       ),
     };
@@ -87,7 +95,7 @@ export function usePipeHandlers({
 
   const isAlreadyLastVertex = (
     wrappedFeature: IWrappedFeature,
-    position: Pos2,
+    position: Position,
   ) => {
     const feature = wrappedFeature.feature as IFeature<LineString>;
     const coordinates = feature.geometry.coordinates;
@@ -102,13 +110,54 @@ export function usePipeHandlers({
     setSelection(USelection.single(feature.id));
   };
 
+  const getNeighborCandidate = (point: mapboxgl.Point): string | null => {
+    const { x, y } = point;
+    const distance = 12;
+
+    const searchBox = [
+      [x - distance, y - distance] as PointLike,
+      [x + distance, y + distance] as PointLike,
+    ] as [PointLike, PointLike];
+
+    const pointFeatures = pmap.map.queryRenderedFeatures(searchBox, {
+      layers: CLICKABLE_LAYERS,
+    });
+    if (!pointFeatures.length) return null;
+
+    const id = pointFeatures[0].id;
+    const decodedId = decodeId(id as RawId);
+    const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
+
+    return uuid;
+  };
+
+  const getSnappingCoordinates = (
+    e: MapMouseEvent | MapTouchEvent,
+  ): Position => {
+    const cursorCoordinates = getMapCoord(e);
+
+    const featureId = getNeighborCandidate(e.point);
+    if (!featureId) return cursorCoordinates;
+
+    const wrappedFeature = featureMap.get(featureId);
+    if (!wrappedFeature) return cursorCoordinates;
+
+    const { feature } = wrappedFeature;
+    if (!feature.geometry || feature.geometry.type !== "Point")
+      return cursorCoordinates;
+
+    return feature.geometry.coordinates;
+  };
+
   const handlers: Handlers = {
     click: (e) => {
-      const clickPosition = getMapCoord(e);
-
       const isStarting =
         selection.type === "none" || selection.type === "folder";
       const isAddingVertex = selection.type === "single";
+
+      const clickPosition = isShiftHeld
+        ? getSnappingCoordinates(e)
+        : getMapCoord(e);
 
       if (isStarting) {
         const extensionFeature = createExtensionFeature(
@@ -116,7 +165,7 @@ export function usePipeHandlers({
           clickPosition,
         );
 
-        drawingStart.current = clickPosition;
+        drawingStart.current = clickPosition as [number, number];
         selectFeature(extensionFeature);
         setDrawingState([extensionFeature]);
         return;
@@ -149,7 +198,7 @@ export function usePipeHandlers({
         }
 
         resetDrawingState();
-        drawingStart.current = clickPosition;
+        drawingStart.current = clickPosition as [number, number];
       }
     },
     move: (e) => {
@@ -162,9 +211,13 @@ export function usePipeHandlers({
 
       if (!drawingStart.current) return;
 
+      const nextCoordinates = isShiftHeld
+        ? getSnappingCoordinates(e)
+        : getMapCoord(e);
+
       const extensionFeature = createExtensionFeature(
         drawingStart.current,
-        getMapCoord(e),
+        nextCoordinates,
       );
 
       setDrawingState([extensionFeature]);
