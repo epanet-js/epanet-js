@@ -1,7 +1,3 @@
-import { useSetAtom } from "jotai";
-import { useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
-import { cursorStyleAtom } from "src/state/jotai";
 import { Position } from "src/types";
 
 export function lockDirection(lastCoord: Position, nextCoord: Position): Pos2 {
@@ -18,36 +14,4 @@ export function lockDirection(lastCoord: Position, nextCoord: Position): Pos2 {
     return [nextCoord[0], lastCoord[1]];
   }
   return [lastCoord[0], nextCoord[1]];
-}
-
-export function useShiftHeld() {
-  const shiftHeld = useRef<boolean>(false);
-
-  useHotkeys(
-    "*",
-    (e) => {
-      shiftHeld.current = e.shiftKey;
-    },
-    { keydown: true, keyup: true },
-    [],
-  );
-
-  return shiftHeld;
-}
-
-export function useSpaceHeld() {
-  const spaceHeld = useRef<boolean>(false);
-  const setCursor = useSetAtom(cursorStyleAtom);
-
-  useHotkeys(
-    "Space",
-    (e) => {
-      setCursor(e.type === "keydown" ? "move" : "");
-      spaceHeld.current = e.type === "keydown";
-    },
-    { keydown: true, keyup: true },
-    [],
-  );
-
-  return spaceHeld;
 }

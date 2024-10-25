@@ -10,9 +10,9 @@ import { modeAtom } from "src/state/mode";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
-import { useShiftHeld, useSpaceHeld } from "src/hooks/use_held";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { useSelection } from "src/selection";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -33,12 +33,11 @@ export function useNoneHandlers({
     extendSelection,
     removeFromSelection,
   } = useSelection(selection);
+  const { isSpaceHeld, isShiftHeld } = useKeyboardState();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const dragStartPoint = useRef<mapboxgl.LngLat | null>(null);
-  const spaceHeld = useSpaceHeld();
-  const shiftHeld = useShiftHeld();
 
   const updateDraggingState = (features: IWrappedFeature[]) => {
     setEphemeralState({
@@ -98,7 +97,7 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (!spaceHeld.current) return;
+      if (!isSpaceHeld) return;
 
       dragStartPoint.current = e.lngLat;
 
@@ -110,7 +109,7 @@ export function useNoneHandlers({
 
       const selectedIds = USelection.toIds(selection);
       const isMovingManyPoints =
-        (e.originalEvent.altKey || spaceHeld.current) && selectedIds.length;
+        (e.originalEvent.altKey || isSpaceHeld) && selectedIds.length;
       if (isMovingManyPoints) {
         dragTargetRef.current = selectedIds.slice();
         e.preventDefault();
@@ -186,7 +185,7 @@ export function useNoneHandlers({
       setCursor("pointer");
     },
     move: (e) => {
-      if (!spaceHeld.current) return skipMove(e);
+      if (!isSpaceHeld) return skipMove(e);
 
       if (dragTargetRef.current === null || selection.type !== "single") {
         skipMove(e);
@@ -218,7 +217,7 @@ export function useNoneHandlers({
       updateDraggingState([movePoint(selection.id, id, getMapCoord(e))]);
     },
     up: (e) => {
-      if (!spaceHeld.current) return;
+      if (!isSpaceHeld) return;
       const dragTarget = dragTargetRef.current;
 
       const resetDrag = () => {
@@ -266,7 +265,6 @@ export function useNoneHandlers({
     },
     click: (e) => {
       const clickedFeature = getClickedFeature(e);
-      const isShiftHeld = shiftHeld.current;
       e.preventDefault();
 
       if (!clickedFeature) {
