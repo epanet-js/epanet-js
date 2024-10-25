@@ -3,12 +3,7 @@ import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext, IWrappedFeature } from "src/types";
 import noop from "lodash/noop";
 import * as ops from "src/lib/map_operations";
-import {
-  Mode,
-  selectionAtom,
-  cursorStyleAtom,
-  ephemeralStateAtom,
-} from "src/state/jotai";
+import { Mode, cursorStyleAtom, ephemeralStateAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { USelection } from "src/state";
 import { modeAtom } from "src/state/mode";
@@ -17,6 +12,7 @@ import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { useShiftHeld, useSpaceHeld } from "src/hooks/use_held";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { useSelection } from "src/selection";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -29,7 +25,14 @@ export function useNoneHandlers({
   pmap,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
-  const setSelection = useSetAtom(selectionAtom);
+  const {
+    setSelection,
+    clearSelection,
+    isSelected,
+    toggleSingleSelection,
+    extendSelection,
+    removeFromSelection,
+  } = useSelection(selection);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
@@ -77,22 +80,6 @@ export function useNoneHandlers({
       vertexId: vertexId,
     });
     return { ...wrappedFeature, feature: newFeature };
-  };
-
-  const toggleSingleSelection = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.toggleSingleSelectionId(selection, featureId));
-  };
-
-  const extendSelection = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.addSelectionId(selection, featureId));
-  };
-
-  const isSelected = (featureId: IWrappedFeature["id"]) => {
-    return USelection.isSelected(selection, featureId);
-  };
-
-  const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.removeFeatureFromSelection(selection, featureId));
   };
 
   const getClickedFeature = (
@@ -285,7 +272,7 @@ export function useNoneHandlers({
       if (!clickedFeature) {
         if (isShiftHeld) return;
 
-        setSelection(USelection.none());
+        clearSelection();
         setMode({ mode: Mode.NONE });
         return;
       }
@@ -308,7 +295,7 @@ export function useNoneHandlers({
     },
     enter() {
       setEphemeralState({ type: "none" });
-      setSelection(USelection.none());
+      clearSelection();
     },
   };
 
