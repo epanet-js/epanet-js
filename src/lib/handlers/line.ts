@@ -13,8 +13,9 @@ import { usePopMoment } from "src/lib/persistence/shared";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
-import { lockDirection, useShiftHeld } from "src/hooks/use_held";
+import { lockDirection } from "src/hooks/use_held";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { useKeyboardState } from "src/keyboard";
 
 export function useLineHandlers({
   rep,
@@ -31,7 +32,7 @@ export function useLineHandlers({
   const transact = rep.useTransact();
   const popMoment = usePopMoment();
   const usingTouchEvents = useRef<boolean>(false);
-  const shiftHeld = useShiftHeld();
+  const { isShiftHeld } = useKeyboardState();
 
   const handlers: Handlers = {
     click: (e) => {
@@ -116,7 +117,7 @@ export function useLineHandlers({
 
       let nextCoord = getMapCoord(e) as Position;
       const lastCoord = feature.geometry.coordinates.at(-2);
-      if (shiftHeld.current && lastCoord) {
+      if (isShiftHeld && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 

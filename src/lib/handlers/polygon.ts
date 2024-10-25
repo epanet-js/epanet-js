@@ -16,8 +16,9 @@ import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { UIDMap } from "src/lib/id_mapper";
 import { createOrUpdateFeature, getMapCoord } from "./utils";
 import { useRef } from "react";
-import { lockDirection, useShiftHeld } from "src/hooks/use_held";
+import { lockDirection } from "src/hooks/use_held";
 import { captureError } from "src/infra/error-tracking";
+import { useKeyboardState } from "src/keyboard";
 
 export function usePolygonHandlers({
   rep,
@@ -40,7 +41,7 @@ export function usePolygonHandlers({
    */
   const usingTouchEvents = useRef<boolean>(false);
 
-  const shiftHeld = useShiftHeld();
+  const { isShiftHeld } = useKeyboardState();
 
   const handlers: Handlers = {
     click: (e) => {
@@ -117,7 +118,7 @@ export function usePolygonHandlers({
       }
 
       const lastCoord = feature.geometry.coordinates[0].at(-3);
-      if (shiftHeld.current && lastCoord) {
+      if (isShiftHeld && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 
@@ -158,7 +159,7 @@ export function usePolygonHandlers({
       const feature = wrappedFeature.feature as IFeature<Polygon>;
 
       const lastCoord = feature.geometry.coordinates[0].at(-3);
-      if (shiftHeld.current && lastCoord) {
+      if (isShiftHeld && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 

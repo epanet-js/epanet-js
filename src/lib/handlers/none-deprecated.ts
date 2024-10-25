@@ -23,8 +23,8 @@ import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { UIDMap } from "src/lib/id_mapper";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
-import { useSpaceHeld } from "src/hooks/use_held";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { useKeyboardState } from "src/keyboard";
 
 export function useNoneHandlers({
   setFlatbushInstance,
@@ -46,7 +46,7 @@ export function useNoneHandlers({
   const endSnapshot = useEndSnapshot();
   const startSnapshot = useStartSnapshot();
   const lastPoint = useRef<mapboxgl.LngLat | null>(null);
-  const spaceHeld = useSpaceHeld();
+  const { isSpaceHeld } = useKeyboardState();
 
   const handlers: Handlers = {
     double: noop,
@@ -120,7 +120,7 @@ export function useNoneHandlers({
       }
 
       const selectedIds = USelection.toIds(selection);
-      if ((e.originalEvent.altKey || spaceHeld.current) && selectedIds.length) {
+      if ((e.originalEvent.altKey || isSpaceHeld) && selectedIds.length) {
         // Maybe drag a whole feature
         dragTargetRef.current = selectedIds.slice();
         void startSnapshot(
