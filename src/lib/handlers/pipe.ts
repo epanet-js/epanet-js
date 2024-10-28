@@ -180,6 +180,14 @@ export function usePipeHandlers({
     return feature.geometry.coordinates;
   };
 
+  const finish = () => {
+    resetDrawingState();
+    const { modeOptions } = mode;
+    if (modeOptions && modeOptions.multi) return;
+
+    setMode({ mode: Mode.NONE });
+  };
+
   const isSnapping = !isShiftHeld;
 
   const handlers: Handlers = {
@@ -232,9 +240,14 @@ export function usePipeHandlers({
             note: "Created pipe",
             putFeatures: newFeautures,
           }).catch((e) => captureError(e));
+
+          if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && snappingNode) {
+            finish();
+          }
         } else {
           if (!isAlreadyLastVertex(wrappedFeature, clickPosition)) {
             const newFeautures = [];
+            const deleteFeatures = [];
             if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
               const endJunction = createJunction(
                 clickPosition,
@@ -243,12 +256,23 @@ export function usePipeHandlers({
               endNodeId.current = endJunction.id;
               newFeautures.push(endJunction);
             }
+            if (
+              isFeatureOn("FLAG_AUTO_JUNCTIONS") &&
+              snappingNode &&
+              endNodeId.current
+            ) {
+              deleteFeatures.push(endNodeId.current);
+            }
             const updatedPipe = extendLineString(wrappedFeature, clickPosition);
             newFeautures.push(updatedPipe);
             transact({
               note: "Added pipe vertex",
               putFeatures: newFeautures,
+              deleteFeatures,
             }).catch((e) => captureError(e));
+            if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && snappingNode) {
+              finish();
+            }
           }
         }
 
