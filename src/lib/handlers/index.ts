@@ -8,18 +8,12 @@ import { useLineHandlers } from "src/lib/handlers/line";
 import { useJunctionHandlers } from "src/lib/handlers/junction";
 import { usePolygonHandlers } from "src/lib/handlers/polygon";
 import { usePipeHandlers } from "./pipe";
-import { usePipeHandlers as usePipeHandlersDeprecated } from "./pipe-deprecated";
-import { isFeatureOn } from "src/infra/feature-flags";
-
-const pipeHandlers = isFeatureOn("FLAG_AUTO_JUNCTIONS")
-  ? usePipeHandlers
-  : usePipeHandlersDeprecated;
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useJunctionHandlers(handlerContext),
-    [Mode.DRAW_PIPE]: pipeHandlers(handlerContext),
+    [Mode.DRAW_PIPE]: usePipeHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),
     [Mode.DRAW_RECTANGLE]: useRectangleHandlers(handlerContext),
