@@ -23,17 +23,20 @@ const MODE_OPTIONS = [
     mode: Mode.NONE,
     hotkey: "1",
     Icon: CursorArrowIcon,
+    alwaysMultiple: false,
     Menu: null,
   },
   {
     mode: Mode.DRAW_JUNCTION,
     hotkey: "2",
+    alwaysMultiple: true,
     Icon: CircleIcon,
     Menu: null,
   },
   {
     mode: Mode.DRAW_PIPE,
     hotkey: "3",
+    alwaysMultiple: true,
     Icon: StretchHorizontallyIcon,
     Menu: null,
   },
@@ -54,7 +57,7 @@ export default memo(function Modes({
       {MODE_OPTIONS.filter((mode) => {
         if (!replaceGeometryForId) return true;
         return mode.mode !== Mode.NONE;
-      }).map(({ mode, hotkey, Icon }, i) => {
+      }).map(({ mode, hotkey, alwaysMultiple, Icon }, i) => {
         const menuAction = (
           <MenuAction
             role="radio"
@@ -73,7 +76,7 @@ export default memo(function Modes({
               setMode({
                 mode,
                 modeOptions: {
-                  multi: !!e?.shiftKey,
+                  multi: alwaysMultiple || !!e?.shiftKey,
                   replaceGeometryForId,
                   circleType,
                 },
