@@ -159,7 +159,7 @@ export function usePipeHandlers({
           clickPosition,
         );
 
-        drawingStart.current = clickPosition as [number, number];
+        drawingStart.current = clickPosition as Pos2;
         selectFeature(extensionFeature.id);
         setDrawingState([extensionFeature]);
         return;
@@ -192,7 +192,7 @@ export function usePipeHandlers({
         }
 
         resetDrawingState();
-        drawingStart.current = clickPosition as [number, number];
+        drawingStart.current = clickPosition as Pos2;
       }
     },
     move: (e) => {
