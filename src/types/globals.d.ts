@@ -51,5 +51,5 @@ type Handlers = {
   touchend?: TouchHandler;
   up: BothHandler;
   double: BothHandler;
-  enter: () => Promisable<void>;
+  exit: () => Promisable<void>;
 };

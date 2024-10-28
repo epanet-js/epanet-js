@@ -346,7 +346,7 @@ export const MapComponent = memo(function MapComponent({
   useHotkeys(
     "Escape, Enter",
     () => {
-      HANDLERS[mode.mode].enter();
+      HANDLERS[mode.mode].exit();
     },
     keybindingOptions,
     [HANDLERS, mode],

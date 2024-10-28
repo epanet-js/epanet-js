@@ -291,7 +291,7 @@ export function useNoneHandlers({
         toggleSingleSelection(id);
       }
     },
-    enter() {
+    exit() {
       setEphemeralState({ type: "none" });
       clearSelection();
     },

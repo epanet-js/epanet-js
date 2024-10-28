@@ -132,7 +132,7 @@ export function useRectangleHandlers({
       }
       setCursor("");
     },
-    enter() {
+    exit() {
       setMode({ mode: Mode.NONE });
     },
     double: noop,

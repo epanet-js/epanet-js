@@ -348,7 +348,7 @@ export function useNoneHandlers({
         return;
       }
     },
-    enter() {
+    exit() {
       setSelection(USelection.none());
     },
   };
