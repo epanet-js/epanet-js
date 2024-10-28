@@ -178,14 +178,6 @@ export function usePipeHandlers({
     return feature.geometry.coordinates;
   };
 
-  const finish = () => {
-    resetDrawingState();
-    const { modeOptions } = mode;
-    if (modeOptions && modeOptions.multi) return;
-
-    setMode({ mode: Mode.NONE });
-  };
-
   const isSnapping = !isShiftHeld;
 
   const handlers: Handlers = {

@@ -13,19 +13,116 @@ import {
   ephemeralStateAtom,
 } from "src/state/jotai";
 import replaceCoordinates from "src/lib/replace_coordinates";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { useRef } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { decodeId, newFeatureId } from "../id";
-import { isSamePosition } from "../geometry";
 import { useKeyboardState } from "src/keyboard";
 import { FEATURES_POINT_LAYER_NAME } from "../load_and_augment_style";
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { UIDMap } from "../id_mapper";
 import { useSelection } from "src/selection";
-import { isFeatureOn } from "src/infra/feature-flags";
+
+const createLineString = (start: Position, end: Position) => {
+  return {
+    id: newFeatureId(),
+    feature: {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: [start, end],
+      },
+    } as Feature,
+    folderId: null,
+    at: "any",
+  };
+};
+
+const extendLineString = (
+  wrappedFeature: IWrappedFeature,
+  position: Position,
+) => {
+  const feature = wrappedFeature.feature as IFeature<LineString>;
+  const coordinates = feature.geometry.coordinates.slice(0, -1);
+
+  return {
+    ...wrappedFeature,
+    feature: replaceCoordinates(feature, coordinates.concat([position])),
+  };
+};
+
+const addVertexToLineString = (
+  wrappedFeature: IWrappedFeature,
+  position: Position,
+) => {
+  const feature = wrappedFeature.feature as IFeature<LineString>;
+  const coordinates = feature.geometry.coordinates;
+  return {
+    ...wrappedFeature,
+    feature: replaceCoordinates(feature, coordinates.concat([position])),
+  };
+};
+
+const useLineDrawingState = () => {
+  const startNodeRef = useRef<IWrappedFeature | null>(null);
+  const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
+
+  const startLineDrawing = (startNode: IWrappedFeature) => {
+    const geometry = startNode.feature.geometry;
+    if (!geometry || geometry.type !== "Point")
+      throw new Error("Invalid geometry");
+
+    const position = geometry.coordinates;
+    startNodeRef.current = startNode;
+    const line = createLineString(position, position);
+    setEphemeralState({
+      type: "drawLine",
+      line,
+    });
+    return line.id;
+  };
+
+  const extendLine = (position: Position) => {
+    setEphemeralState((prev) => {
+      return {
+        type: "drawLine",
+        line:
+          prev.type === "drawLine"
+            ? extendLineString(prev.line, position)
+            : createLineString(position, position),
+      };
+    });
+  };
+
+  const addVertex = (position: Position) => {
+    setEphemeralState((prev) => {
+      return {
+        type: "drawLine",
+        line:
+          prev.type === "drawLine"
+            ? addVertexToLineString(prev.line, position)
+            : createLineString(position, position),
+      };
+    });
+  };
+
+  const resetDrawing = () => {
+    startNodeRef.current = null;
+    setEphemeralState({ type: "none" });
+  };
+
+  return {
+    startLineDrawing,
+    addVertex,
+    extendLine,
+    resetDrawing,
+    startNode: startNodeRef.current,
+    line: state.type === "drawLine" ? state.line : null,
+  };
+};
 
 export function usePipeHandlers({
   rep,
@@ -36,49 +133,21 @@ export function usePipeHandlers({
   mode,
   dragTargetRef,
 }: HandlerContext): Handlers {
-  const multi = mode.modeOptions?.multi;
   const { selectFeature } = useSelection(selection);
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
-  const drawingStart = useRef<Pos2 | null>(null);
-
-  const startNode = useRef<{ isNew: boolean; node: IWrappedFeature | null }>({
-    isNew: false,
-    node: null,
-  });
-  const endNodeId = useRef<IWrappedFeature["id"] | undefined>(undefined);
+  const {
+    startLineDrawing,
+    extendLine,
+    resetDrawing,
+    startNode,
+    line,
+    addVertex,
+  } = useLineDrawingState();
 
   const { isShiftHeld } = useKeyboardState();
-
-  const setDrawingState = (line: IWrappedFeature) => {
-    setEphemeralState({
-      type: "drawLine",
-      line,
-    });
-  };
-
-  const resetDrawingState = () => {
-    setEphemeralState({ type: "none" });
-  };
-
-  const createExtensionFeature = (start: Position, end: Position) => {
-    return {
-      id: newFeatureId(),
-      feature: {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "LineString",
-          coordinates: [start, end],
-        },
-      } as Feature,
-      folderId: null,
-      at: "any",
-    };
-  };
 
   const createJunction = (position: Position, id = newFeatureId()) => {
     return {
@@ -94,37 +163,6 @@ export function usePipeHandlers({
       folderId: null,
       at: "any",
     };
-  };
-
-  const extendLineString = (
-    wrappedFeature: IWrappedFeature,
-    position: Position,
-  ) => {
-    const feature = wrappedFeature.feature as IFeature<LineString>;
-    const coordinates = feature.geometry.coordinates;
-
-    return {
-      ...wrappedFeature,
-      feature: replaceCoordinates(
-        feature,
-        mode.modeOptions?.reverse
-          ? [position].concat(coordinates)
-          : coordinates.concat([position]),
-      ),
-    };
-  };
-
-  const isAlreadyLastVertex = (
-    wrappedFeature: IWrappedFeature,
-    position: Position,
-  ) => {
-    const feature = wrappedFeature.feature as IFeature<LineString>;
-    const coordinates = feature.geometry.coordinates;
-    const lastPosition = mode.modeOptions?.reverse
-      ? coordinates[0]
-      : coordinates[coordinates.length - 1];
-
-    return isSamePosition(lastPosition, position);
   };
 
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
@@ -186,7 +224,7 @@ export function usePipeHandlers({
   };
 
   const finish = () => {
-    resetDrawingState();
+    resetDrawing();
     const { modeOptions } = mode;
     if (modeOptions && modeOptions.multi) return;
 
@@ -197,136 +235,75 @@ export function usePipeHandlers({
 
   const handlers: Handlers = {
     click: (e) => {
-      const isStarting =
-        selection.type === "none" || selection.type === "folder";
-      const isAddingVertex = selection.type === "single";
-
       const snappingNode = isSnapping ? getSnappingNode(e) : null;
       const clickPosition = snappingNode
         ? getPointCoordinates(snappingNode)
         : getMapCoord(e);
 
-      if (isStarting) {
-        startNode.current = {
-          isNew: !snappingNode,
-          node: snappingNode ? snappingNode : createJunction(clickPosition),
-        };
-        const extensionFeature = createExtensionFeature(
-          clickPosition,
-          clickPosition,
-        );
+      if (!line) {
+        const startNode = snappingNode
+          ? snappingNode
+          : createJunction(clickPosition);
+        const id = startLineDrawing(startNode);
 
-        drawingStart.current = clickPosition as Pos2;
-        selectFeature(extensionFeature.id);
-        setDrawingState(extensionFeature);
+        selectFeature(id);
         return;
       }
 
-      if (isAddingVertex && !!drawingStart.current) {
-        const wrappedFeature = featureMap.get(selection.id);
+      if (!!snappingNode && !!line && !!startNode) {
+        const newFeautures = [
+          startNode,
+          line,
+          snappingNode,
+        ] as IWrappedFeature[];
 
-        if (!wrappedFeature) {
-          const newFeautures = [];
-          if (
-            isFeatureOn("FLAG_AUTO_JUNCTIONS") &&
-            startNode.current.isNew &&
-            startNode.current.node
-          ) {
-            newFeautures.push(startNode.current.node);
-          }
-          if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
-            const endJunction = createJunction(clickPosition);
-            endNodeId.current = endJunction.id;
-            newFeautures.push(endJunction);
-          }
-          const pipe = createExtensionFeature(
-            drawingStart.current,
-            clickPosition,
-          );
-          newFeautures.push(pipe);
-          selectFeature(pipe.id);
-          transact({
-            note: "Created pipe",
-            putFeatures: newFeautures,
-          }).catch((e) => captureError(e));
-
-          if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && snappingNode) {
-            finish();
-          }
-        } else {
-          if (!isAlreadyLastVertex(wrappedFeature, clickPosition)) {
-            const newFeautures = [];
-            const deleteFeatures = [];
-            if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
-              const endJunction = createJunction(
-                clickPosition,
-                endNodeId.current,
-              );
-              endNodeId.current = endJunction.id;
-              newFeautures.push(endJunction);
-            }
-            if (
-              isFeatureOn("FLAG_AUTO_JUNCTIONS") &&
-              snappingNode &&
-              endNodeId.current
-            ) {
-              deleteFeatures.push(endNodeId.current);
-            }
-            const updatedPipe = extendLineString(wrappedFeature, clickPosition);
-            newFeautures.push(updatedPipe);
-            transact({
-              note: "Added pipe vertex",
-              putFeatures: newFeautures,
-              deleteFeatures,
-            }).catch((e) => captureError(e));
-            if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && snappingNode) {
-              finish();
-            }
-          }
-        }
-
-        resetDrawingState();
-        drawingStart.current = clickPosition as Pos2;
+        transact({
+          note: "Created pipe",
+          putFeatures: newFeautures,
+        }).catch((e) => captureError(e));
+        finish();
+        return;
       }
+
+      addVertex(clickPosition);
     },
     move: (e) => {
-      if (selection.type !== "single") return;
+      if (!line) return;
 
       const isApplePencil = e.type === "mousemove" && usingTouchEvents.current;
       if (isApplePencil) {
         return;
       }
 
-      if (!drawingStart.current) return;
-
       const nextCoordinates = isShiftHeld
         ? getMapCoord(e)
         : getSnappingCoordinates(e);
 
-      const extensionFeature = createExtensionFeature(
-        drawingStart.current,
-        nextCoordinates,
-      );
-
-      setDrawingState(extensionFeature);
+      extendLine(nextCoordinates);
     },
     double: (e) => {
-      if (selection?.type !== "single") return;
-
       e.preventDefault();
 
-      if (!multi) {
-        setMode({ mode: Mode.NONE });
-      }
+      if (!line || !line.feature.geometry) return;
 
-      resetDrawingState();
+      const geometry = line.feature.geometry as LineString;
+      const lastVertex = geometry.coordinates.at(-1);
+      if (!lastVertex) return;
+
+      const endJunction = createJunction(lastVertex);
+
+      const newFeautures = [startNode, line, endJunction] as IWrappedFeature[];
+
+      transact({
+        note: "Created pipe",
+        putFeatures: newFeautures,
+      }).catch((e) => captureError(e));
+
+      finish();
     },
     exit() {
+      resetDrawing();
       setMode({ mode: Mode.NONE });
-
-      if (selection.type !== "single") return;
-
-      resetDrawingState();
     },
     touchstart: (e) => {
       usingTouchEvents.current = true;
