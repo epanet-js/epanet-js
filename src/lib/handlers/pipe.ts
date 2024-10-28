@@ -156,8 +156,8 @@ export function usePipeHandlers({
       const isAddingVertex = selection.type === "single";
 
       const clickPosition = isShiftHeld
-        ? getSnappingCoordinates(e)
-        : getMapCoord(e);
+        ? getMapCoord(e)
+        : getSnappingCoordinates(e);
 
       if (isStarting) {
         const extensionFeature = createExtensionFeature(
@@ -212,8 +212,8 @@ export function usePipeHandlers({
       if (!drawingStart.current) return;
 
       const nextCoordinates = isShiftHeld
-        ? getSnappingCoordinates(e)
-        : getMapCoord(e);
+        ? getMapCoord(e)
+        : getSnappingCoordinates(e);
 
       const extensionFeature = createExtensionFeature(
         drawingStart.current,
