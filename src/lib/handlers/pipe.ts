@@ -1,4 +1,3 @@
-import { USelection } from "src/selection";
 import type {
   Feature,
   HandlerContext,
@@ -8,7 +7,6 @@ import type {
   Position,
 } from "src/types";
 import {
-  selectionAtom,
   modeAtom,
   Mode,
   cursorStyleAtom,
@@ -26,11 +24,11 @@ import { useKeyboardState } from "src/keyboard";
 import { CLICKABLE_LAYERS } from "../load_and_augment_style";
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { UIDMap } from "../id_mapper";
+import { useSelection } from "src/selection";
 
 export function usePipeHandlers({
   rep,
   featureMap,
-  folderMap,
   selection,
   pmap,
   idMap,
@@ -38,7 +36,7 @@ export function usePipeHandlers({
   dragTargetRef,
 }: HandlerContext): Handlers {
   const multi = mode.modeOptions?.multi;
-  const setSelection = useSetAtom(selectionAtom);
+  const { selectFeature } = useSelection(selection);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
@@ -106,10 +104,6 @@ export function usePipeHandlers({
     return isSamePosition(lastPosition, position);
   };
 
-  const selectFeature = (feature: IWrappedFeature) => {
-    setSelection(USelection.single(feature.id));
-  };
-
   const getNeighborCandidate = (point: mapboxgl.Point): string | null => {
     const { x, y } = point;
     const distance = 12;
@@ -166,7 +160,7 @@ export function usePipeHandlers({
         );
 
         drawingStart.current = clickPosition as [number, number];
-        selectFeature(extensionFeature);
+        selectFeature(extensionFeature.id);
         setDrawingState([extensionFeature]);
         return;
       }
@@ -179,7 +173,7 @@ export function usePipeHandlers({
             drawingStart.current,
             clickPosition,
           );
-          selectFeature(newFeature);
+          selectFeature(newFeature.id);
           transact({
             note: "Created pipe",
             putFeatures: [newFeature],
@@ -229,14 +223,6 @@ export function usePipeHandlers({
 
       if (!multi) {
         setMode({ mode: Mode.NONE });
-      } else {
-        setSelection(
-          USelection.selectionToFolder({
-            selection,
-            folderMap,
-            featureMap,
-          }),
-        );
       }
 
       resetDrawingState();

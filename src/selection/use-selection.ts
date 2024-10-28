@@ -18,6 +18,10 @@ export const useSelection = (selection: Sel) => {
     return USelection.isSelected(selection, featureId);
   };
 
+  const selectFeature = (featureId: IWrappedFeature["id"]) => {
+    setSelection(USelection.single(featureId));
+  };
+
   const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
     setSelection(USelection.removeFeatureFromSelection(selection, featureId));
   };
@@ -33,5 +37,6 @@ export const useSelection = (selection: Sel) => {
     extendSelection,
     isSelected,
     removeFromSelection,
+    selectFeature,
   };
 };
