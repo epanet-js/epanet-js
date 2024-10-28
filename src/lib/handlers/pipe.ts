@@ -44,6 +44,11 @@ export function usePipeHandlers({
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
   const drawingStart = useRef<Pos2 | null>(null);
+
+  const startNode = useRef<{ isNew: boolean; node: IWrappedFeature | null }>({
+    isNew: false,
+    node: null,
+  });
   const endNodeId = useRef<IWrappedFeature["id"] | undefined>(undefined);
 
   const { isShiftHeld } = useKeyboardState();
@@ -202,13 +207,10 @@ export function usePipeHandlers({
         : getMapCoord(e);
 
       if (isStarting) {
-        if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
-          const startJunction = createJunction(clickPosition);
-          transact({
-            note: "Create start junction",
-            putFeatures: [startJunction],
-          }).catch((e) => captureError(e));
-        }
+        startNode.current = {
+          isNew: !snappingNode,
+          node: snappingNode ? snappingNode : createJunction(clickPosition),
+        };
         const extensionFeature = createExtensionFeature(
           clickPosition,
           clickPosition,
@@ -225,6 +227,13 @@ export function usePipeHandlers({
 
         if (!wrappedFeature) {
           const newFeautures = [];
+          if (
+            isFeatureOn("FLAG_AUTO_JUNCTIONS") &&
+            startNode.current.isNew &&
+            startNode.current.node
+          ) {
+            newFeautures.push(startNode.current.node);
+          }
           if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
             const endJunction = createJunction(clickPosition);
             endNodeId.current = endJunction.id;
