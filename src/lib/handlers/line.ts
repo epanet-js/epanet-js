@@ -205,7 +205,7 @@ export function useLineHandlers({
         quiet: true,
       }).catch((e) => captureError(e));
     },
-    enter() {
+    exit() {
       setMode({ mode: Mode.NONE });
       if (selection.type !== "single") return;
 

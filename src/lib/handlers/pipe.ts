@@ -227,7 +227,7 @@ export function usePipeHandlers({
 
       resetDrawingState();
     },
-    enter() {
+    exit() {
       setMode({ mode: Mode.NONE });
 
       if (selection.type !== "single") return;

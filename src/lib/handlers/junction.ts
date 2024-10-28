@@ -64,7 +64,7 @@ export function useJunctionHandlers({
       setCursor(CURSOR_DEFAULT);
     },
     double: noop,
-    enter() {
+    exit() {
       setMode({ mode: Mode.NONE });
     },
   };

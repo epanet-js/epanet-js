@@ -131,7 +131,7 @@ export function useCircleHandlers({
       }
       setCursor("");
     },
-    enter() {
+    exit() {
       setMode({ mode: Mode.NONE });
     },
     double: noop,

@@ -133,6 +133,6 @@ export function useLassoHandlers({
       }
     }),
     double: noop,
-    enter() {},
+    exit() {},
   };
 }

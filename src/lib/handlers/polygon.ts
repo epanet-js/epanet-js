@@ -239,7 +239,7 @@ export function usePolygonHandlers({
         quiet: true,
       }).catch((e) => captureError(e));
     },
-    enter() {
+    exit() {
       if (selection.type !== "single") return;
       const selected = featureMap.get(selection.id);
       if (!selected) return;
