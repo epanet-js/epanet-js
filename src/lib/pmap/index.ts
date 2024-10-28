@@ -348,9 +348,7 @@ export default class PMap {
         ephemeralState.type === "drawLine" &&
           new GeoJsonLayer({
             id: "DRAW_LINE",
-            data: ephemeralState.features.map(
-              (wrapped) => wrapped.feature as IFeature,
-            ),
+            data: [ephemeralState.line.feature as IFeature],
             lineWidthUnits: "pixels",
             getLineWidth: 4,
             lineCapRounded: true,

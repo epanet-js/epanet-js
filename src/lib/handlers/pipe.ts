@@ -53,10 +53,10 @@ export function usePipeHandlers({
 
   const { isShiftHeld } = useKeyboardState();
 
-  const setDrawingState = (features: IWrappedFeature[]) => {
+  const setDrawingState = (line: IWrappedFeature) => {
     setEphemeralState({
       type: "drawLine",
-      features,
+      line,
     });
   };
 
@@ -218,7 +218,7 @@ export function usePipeHandlers({
 
         drawingStart.current = clickPosition as Pos2;
         selectFeature(extensionFeature.id);
-        setDrawingState([extensionFeature]);
+        setDrawingState(extensionFeature);
         return;
       }
 
@@ -308,7 +308,7 @@ export function usePipeHandlers({
         nextCoordinates,
       );
 
-      setDrawingState([extensionFeature]);
+      setDrawingState(extensionFeature);
     },
     double: (e) => {
       if (selection?.type !== "single") return;

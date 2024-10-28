@@ -277,7 +277,7 @@ export interface EphemeralDragState {
 
 export interface EphemeralDrawLine {
   type: "drawLine";
-  features: IWrappedFeature[];
+  line: IWrappedFeature;
 }
 
 export type CursorValue = React.CSSProperties["cursor"];
