@@ -21,10 +21,11 @@ import { captureError } from "src/infra/error-tracking";
 import { decodeId, newFeatureId } from "../id";
 import { isSamePosition } from "../geometry";
 import { useKeyboardState } from "src/keyboard";
-import { CLICKABLE_LAYERS } from "../load_and_augment_style";
+import { FEATURES_POINT_LAYER_NAME } from "../load_and_augment_style";
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { UIDMap } from "../id_mapper";
 import { useSelection } from "src/selection";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function usePipeHandlers({
   rep,
@@ -43,6 +44,7 @@ export function usePipeHandlers({
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
   const drawingStart = useRef<Pos2 | null>(null);
+  const endNodeId = useRef<IWrappedFeature["id"] | undefined>(undefined);
 
   const { isShiftHeld } = useKeyboardState();
 
@@ -66,6 +68,22 @@ export function usePipeHandlers({
         geometry: {
           type: "LineString",
           coordinates: [start, end],
+        },
+      } as Feature,
+      folderId: null,
+      at: "any",
+    };
+  };
+
+  const createJunction = (position: Position, id = newFeatureId()) => {
+    return {
+      id,
+      feature: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Point",
+          coordinates: position,
         },
       } as Feature,
       folderId: null,
@@ -104,7 +122,7 @@ export function usePipeHandlers({
     return isSamePosition(lastPosition, position);
   };
 
-  const getNeighborCandidate = (point: mapboxgl.Point): string | null => {
+  const getNeighborPoint = (point: mapboxgl.Point): string | null => {
     const { x, y } = point;
     const distance = 12;
 
@@ -114,7 +132,7 @@ export function usePipeHandlers({
     ] as [PointLike, PointLike];
 
     const pointFeatures = pmap.map.queryRenderedFeatures(searchBox, {
-      layers: CLICKABLE_LAYERS,
+      layers: [FEATURES_POINT_LAYER_NAME],
     });
     if (!pointFeatures.length) return null;
 
@@ -125,12 +143,22 @@ export function usePipeHandlers({
     return uuid;
   };
 
+  const getSnappingNode = (
+    e: MapMouseEvent | MapTouchEvent,
+  ): IWrappedFeature | null => {
+    const featureId = getNeighborPoint(e.point);
+    if (!featureId) return null;
+
+    const wrappedFeature = featureMap.get(featureId);
+    return wrappedFeature || null;
+  };
+
   const getSnappingCoordinates = (
     e: MapMouseEvent | MapTouchEvent,
   ): Position => {
     const cursorCoordinates = getMapCoord(e);
 
-    const featureId = getNeighborCandidate(e.point);
+    const featureId = getNeighborPoint(e.point);
     if (!featureId) return cursorCoordinates;
 
     const wrappedFeature = featureMap.get(featureId);
@@ -143,17 +171,36 @@ export function usePipeHandlers({
     return feature.geometry.coordinates;
   };
 
+  const getPointCoordinates = (wrappedFeature: IWrappedFeature): Position => {
+    const { feature } = wrappedFeature;
+    if (!feature || !feature.geometry || feature.geometry.type !== "Point") {
+      throw new Error("Feature is not a valid point");
+    }
+
+    return feature.geometry.coordinates;
+  };
+
+  const isSnapping = !isShiftHeld;
+
   const handlers: Handlers = {
     click: (e) => {
       const isStarting =
         selection.type === "none" || selection.type === "folder";
       const isAddingVertex = selection.type === "single";
 
-      const clickPosition = isShiftHeld
-        ? getMapCoord(e)
-        : getSnappingCoordinates(e);
+      const snappingNode = isSnapping ? getSnappingNode(e) : null;
+      const clickPosition = snappingNode
+        ? getPointCoordinates(snappingNode)
+        : getMapCoord(e);
 
       if (isStarting) {
+        if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
+          const startJunction = createJunction(clickPosition);
+          transact({
+            note: "Create start junction",
+            putFeatures: [startJunction],
+          }).catch((e) => captureError(e));
+        }
         const extensionFeature = createExtensionFeature(
           clickPosition,
           clickPosition,
@@ -169,24 +216,38 @@ export function usePipeHandlers({
         const wrappedFeature = featureMap.get(selection.id);
 
         if (!wrappedFeature) {
-          const newFeature = createExtensionFeature(
+          const newFeautures = [];
+          if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
+            const endJunction = createJunction(clickPosition);
+            endNodeId.current = endJunction.id;
+            newFeautures.push(endJunction);
+          }
+          const pipe = createExtensionFeature(
             drawingStart.current,
             clickPosition,
           );
-          selectFeature(newFeature.id);
+          newFeautures.push(pipe);
+          selectFeature(pipe.id);
           transact({
             note: "Created pipe",
-            putFeatures: [newFeature],
+            putFeatures: newFeautures,
           }).catch((e) => captureError(e));
         } else {
           if (!isAlreadyLastVertex(wrappedFeature, clickPosition)) {
-            const updatedLineString = extendLineString(
-              wrappedFeature,
-              clickPosition,
-            );
+            const newFeautures = [];
+            if (isFeatureOn("FLAG_AUTO_JUNCTIONS") && !snappingNode) {
+              const endJunction = createJunction(
+                clickPosition,
+                endNodeId.current,
+              );
+              endNodeId.current = endJunction.id;
+              newFeautures.push(endJunction);
+            }
+            const updatedPipe = extendLineString(wrappedFeature, clickPosition);
+            newFeautures.push(updatedPipe);
             transact({
               note: "Added pipe vertex",
-              putFeatures: [updatedLineString],
+              putFeatures: newFeautures,
             }).catch((e) => captureError(e));
           }
         }
