@@ -24,6 +24,7 @@ import { FEATURES_POINT_LAYER_NAME } from "../load_and_augment_style";
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { UIDMap } from "../id_mapper";
 import { useSelection } from "src/selection";
+import measureLength from "@turf/length";
 
 const createLineString = (start: Position, end: Position) => {
   return {
@@ -230,6 +231,20 @@ export function usePipeHandlers({
     setMode({ mode: Mode.NONE });
   };
 
+  const createPipe = (
+    startNode: IWrappedFeature,
+    line: IWrappedFeature,
+    endNode: IWrappedFeature,
+  ) => {
+    const length = measureLength(line.feature);
+    if (!length) return;
+
+    transact({
+      note: "Created pipe",
+      putFeatures: [startNode, line, endNode],
+    }).catch((e) => captureError(e));
+  };
+
   const isSnapping = !isShiftHeld;
 
   const handlers: Handlers = {
@@ -258,33 +273,14 @@ export function usePipeHandlers({
       }
 
       if (!!snappingNode && !!line && !!startNode) {
-        const newFeautures = [
-          startNode,
-          line,
-          snappingNode,
-        ] as IWrappedFeature[];
-
-        transact({
-          note: "Created pipe",
-          putFeatures: newFeautures,
-        }).catch((e) => captureError(e));
-
+        createPipe(startNode, line, snappingNode);
         isControlHeld() ? startLineDrawing(snappingNode) : finish();
         return;
       }
 
-      if (isControlHeld() && !!line) {
+      if (isControlHeld() && !!startNode && !!line) {
         const endJunction = createJunction(clickPosition);
-        const newFeautures = [
-          startNode,
-          line,
-          endJunction,
-        ] as IWrappedFeature[];
-
-        transact({
-          note: "Created pipe",
-          putFeatures: newFeautures,
-        }).catch((e) => captureError(e));
+        createPipe(startNode, line, endJunction);
         startLineDrawing(endJunction);
       } else {
         addVertex(clickPosition);
@@ -307,7 +303,7 @@ export function usePipeHandlers({
     double: (e) => {
       e.preventDefault();
 
-      if (!line || !line.feature.geometry) return;
+      if (!startNode || !line || !line.feature.geometry) return;
 
       const geometry = line.feature.geometry as LineString;
       const lastVertex = geometry.coordinates.at(-1);
@@ -315,13 +311,7 @@ export function usePipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      const newFeautures = [startNode, line, endJunction] as IWrappedFeature[];
-
-      transact({
-        note: "Created pipe",
-        putFeatures: newFeautures,
-      }).catch((e) => captureError(e));
-
+      createPipe(startNode, line, endJunction);
       finish();
     },
     exit() {
