@@ -7,13 +7,13 @@ import { useCircleHandlers } from "src/lib/handlers/circle";
 import { useLineHandlers } from "src/lib/handlers/line";
 import { useJunctionHandlers } from "src/lib/handlers/junction";
 import { usePolygonHandlers } from "src/lib/handlers/polygon";
-import { usePipeHandlers } from "./pipe";
+import { useDrawPipeHandlers } from "./draw-pipe";
 
 export function useHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useJunctionHandlers(handlerContext),
-    [Mode.DRAW_PIPE]: usePipeHandlers(handlerContext),
+    [Mode.DRAW_PIPE]: useDrawPipeHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),
     [Mode.DRAW_RECTANGLE]: useRectangleHandlers(handlerContext),
