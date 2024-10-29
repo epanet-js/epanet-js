@@ -24,7 +24,6 @@ import {
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
-import { isSamePosition } from "src/lib/geometry";
 
 export function useDrawPipeHandlers({
   rep,
@@ -152,14 +151,7 @@ export function useDrawPipeHandlers({
       setDrawing({
         startNode: drawing.startNode,
         line: extendLink(drawing.line as Pipe, nextCoordinates),
-        snappingCandidate:
-          snappingCoordinates &&
-          !isSamePosition(
-            getNodeCoordinates(drawing.startNode),
-            snappingCoordinates,
-          )
-            ? snappingCoordinates
-            : null,
+        snappingCandidate: snappingCoordinates,
       });
     },
     double: (e) => {
