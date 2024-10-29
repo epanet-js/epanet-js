@@ -146,7 +146,7 @@ export function usePipeHandlers({
     addVertex,
   } = useLineDrawingState();
 
-  const { isShiftHeld } = useKeyboardState();
+  const { isShiftHeld, isControlHeld } = useKeyboardState();
 
   const createJunction = (position: Position, id = newFeatureId()) => {
     return {
@@ -243,6 +243,14 @@ export function usePipeHandlers({
         const startNode = snappingNode
           ? snappingNode
           : createJunction(clickPosition);
+
+        if (isControlHeld() && !snappingNode) {
+          transact({
+            note: "Create junction",
+            putFeatures: [startNode],
+          });
+        }
+
         const id = startLineDrawing(startNode);
 
         selectFeature(id);
@@ -260,11 +268,27 @@ export function usePipeHandlers({
           note: "Created pipe",
           putFeatures: newFeautures,
         }).catch((e) => captureError(e));
-        finish();
+
+        isControlHeld() ? startLineDrawing(snappingNode) : finish();
         return;
       }
 
-      addVertex(clickPosition);
+      if (isControlHeld() && !!line) {
+        const endJunction = createJunction(clickPosition);
+        const newFeautures = [
+          startNode,
+          line,
+          endJunction,
+        ] as IWrappedFeature[];
+
+        transact({
+          note: "Created pipe",
+          putFeatures: newFeautures,
+        }).catch((e) => captureError(e));
+        startLineDrawing(endJunction);
+      } else {
+        addVertex(clickPosition);
+      }
     },
     move: (e) => {
       if (!line) return;

@@ -4,6 +4,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 export function useKeyboardState() {
   const shiftHeld = useRef<boolean>(false);
   const spaceHeld = useRef<boolean>(false);
+  const controlHeld = useRef<boolean>(false);
 
   useHotkeys(
     "*",
@@ -23,5 +24,22 @@ export function useKeyboardState() {
     [],
   );
 
-  return { isShiftHeld: shiftHeld.current, isSpaceHeld: spaceHeld.current };
+  useHotkeys(
+    "Ctrl",
+    (e) => {
+      controlHeld.current = e.ctrlKey;
+    },
+    { keydown: true, keyup: true },
+    [],
+  );
+
+  const isControlHeld = () => {
+    return controlHeld.current;
+  };
+
+  return {
+    isShiftHeld: shiftHeld.current,
+    isSpaceHeld: spaceHeld.current,
+    isControlHeld,
+  };
 }
