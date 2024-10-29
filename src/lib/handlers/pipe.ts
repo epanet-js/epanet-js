@@ -67,6 +67,15 @@ const addVertexToLineString = (
   };
 };
 
+type NullDrawing = { isNull: true };
+type DrawingState =
+  | {
+      isNull: false;
+      startNode: IWrappedFeature;
+      line: IWrappedFeature;
+    }
+  | NullDrawing;
+
 const useLineDrawingState = () => {
   const startNodeRef = useRef<IWrappedFeature | null>(null);
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -115,13 +124,17 @@ const useLineDrawingState = () => {
     setEphemeralState({ type: "none" });
   };
 
+  const drawingState: DrawingState =
+    startNodeRef.current && state.type === "drawLine"
+      ? { isNull: false, startNode: startNodeRef.current, line: state.line }
+      : { isNull: true };
+
   return {
     startLineDrawing,
     addVertex,
     extendLine,
     resetDrawing,
-    startNode: startNodeRef.current,
-    line: state.type === "drawLine" ? state.line : null,
+    drawing: drawingState,
   };
 };
 
@@ -138,14 +151,8 @@ export function usePipeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
-  const {
-    startLineDrawing,
-    extendLine,
-    resetDrawing,
-    startNode,
-    line,
-    addVertex,
-  } = useLineDrawingState();
+  const { startLineDrawing, extendLine, resetDrawing, addVertex, drawing } =
+    useLineDrawingState();
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
@@ -254,7 +261,7 @@ export function usePipeHandlers({
         ? getPointCoordinates(snappingNode)
         : getMapCoord(e);
 
-      if (!line) {
+      if (drawing.isNull) {
         const startNode = snappingNode
           ? snappingNode
           : createJunction(clickPosition);
@@ -272,22 +279,22 @@ export function usePipeHandlers({
         return;
       }
 
-      if (!!snappingNode && !!line && !!startNode) {
-        createPipe(startNode, line, snappingNode);
+      if (!!snappingNode) {
+        createPipe(drawing.startNode, drawing.line, snappingNode);
         isControlHeld() ? startLineDrawing(snappingNode) : finish();
         return;
       }
 
-      if (isControlHeld() && !!startNode && !!line) {
+      if (isControlHeld()) {
         const endJunction = createJunction(clickPosition);
-        createPipe(startNode, line, endJunction);
+        createPipe(drawing.startNode, drawing.line, endJunction);
         startLineDrawing(endJunction);
       } else {
         addVertex(clickPosition);
       }
     },
     move: (e) => {
-      if (!line) return;
+      if (drawing.isNull) return;
 
       const isApplePencil = e.type === "mousemove" && usingTouchEvents.current;
       if (isApplePencil) {
@@ -303,8 +310,10 @@ export function usePipeHandlers({
     double: (e) => {
       e.preventDefault();
 
-      if (!startNode || !line || !line.feature.geometry) return;
+      if (drawing.isNull) return;
 
+      const { startNode, line } = drawing;
+      if (!line.feature.geometry) return;
       const geometry = line.feature.geometry as LineString;
       const lastVertex = geometry.coordinates.at(-1);
       if (!lastVertex) return;
