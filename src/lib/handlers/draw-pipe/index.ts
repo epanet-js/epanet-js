@@ -24,6 +24,7 @@ import {
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
+import { isSamePosition } from "src/lib/geometry";
 
 export function useDrawPipeHandlers({
   rep,
@@ -38,7 +39,8 @@ export function useDrawPipeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
-  const { resetDrawing, drawing, setDrawing } = useDrawingState();
+  const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
+    useDrawingState();
   const { getSnappingNode, getSnappingCoordinates } = useSnapping(
     pmap,
     idMap,
@@ -50,6 +52,7 @@ export function useDrawPipeHandlers({
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = getNodeCoordinates(startNode);
     const pipe = createPipe([coordinates, coordinates]);
+    selectFeature(pipe.id);
 
     setDrawing({
       startNode,
@@ -58,21 +61,13 @@ export function useDrawPipeHandlers({
     return pipe.id;
   };
 
-  const extendPipe = (coordinates: Position) => {
-    if (drawing.isNull) return;
-
-    setDrawing({
-      startNode: drawing.startNode,
-      line: extendLink(drawing.line as Pipe, coordinates),
-    });
-  };
-
   const addVertex = (coordinates: Position) => {
     if (drawing.isNull) return;
 
     setDrawing({
       startNode: drawing.startNode,
       line: addVertexToLink(drawing.line as Pipe, coordinates),
+      snappingCandidate: null,
     });
   };
 
@@ -127,7 +122,7 @@ export function useDrawPipeHandlers({
 
       if (!!snappingNode) {
         submitPipe(drawing.startNode, drawing.line, snappingNode);
-        isControlHeld() ? startDrawing(snappingNode) : finish();
+        isControlHeld() ? startDrawing(snappingNode) : resetDrawing();
         return;
       }
 
@@ -140,18 +135,32 @@ export function useDrawPipeHandlers({
       }
     },
     move: (e) => {
-      if (drawing.isNull) return;
-
       const isApplePencil = e.type === "mousemove" && usingTouchEvents.current;
       if (isApplePencil) {
         return;
       }
 
-      const nextCoordinates = isShiftHeld
-        ? getMapCoord(e)
-        : getSnappingCoordinates(e);
+      const snappingCoordinates = isSnapping ? getSnappingCoordinates(e) : null;
 
-      extendPipe(nextCoordinates);
+      if (drawing.isNull) {
+        setSnappingCandidate(snappingCoordinates);
+        return;
+      }
+
+      const nextCoordinates = snappingCoordinates || getMapCoord(e);
+
+      setDrawing({
+        startNode: drawing.startNode,
+        line: extendLink(drawing.line as Pipe, nextCoordinates),
+        snappingCandidate:
+          snappingCoordinates &&
+          !isSamePosition(
+            getNodeCoordinates(drawing.startNode),
+            snappingCoordinates,
+          )
+            ? snappingCoordinates
+            : null,
+      });
     },
     double: (e) => {
       e.preventDefault();

@@ -1,15 +1,16 @@
 import { useAtom } from "jotai";
 import { useRef } from "react";
-import { NodeAsset } from "src/hydraulics/assets";
+import { NodeAsset, createPipe } from "src/hydraulics/assets";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { IWrappedFeature } from "src/types";
+import { IWrappedFeature, Position } from "src/types";
 
-type NullDrawing = { isNull: true };
+type NullDrawing = { isNull: true; snappingCandidate?: Position };
 type DrawingState =
   | {
       isNull: false;
       startNode: NodeAsset;
       line: IWrappedFeature;
+      snappingCandidate?: Position;
     }
   | NullDrawing;
 
@@ -27,17 +28,30 @@ export const useDrawingState = () => {
       ? { isNull: false, startNode: startNodeRef.current, line: state.line }
       : { isNull: true };
 
+  const setSnappingCandidate = (snappingCandidate: Position | null) => {
+    setEphemeralState((prev) => {
+      return {
+        type: "drawLine",
+        line: prev.type === "drawLine" ? prev.line : createPipe([]),
+        snappingCandidate,
+      };
+    });
+  };
+
   const setDrawing = ({
     startNode,
     line,
+    snappingCandidate,
   }: {
     startNode: NodeAsset;
     line: IWrappedFeature;
+    snappingCandidate?: Position | null;
   }) => {
     startNodeRef.current = startNode;
     setEphemeralState({
       type: "drawLine",
       line: line,
+      snappingCandidate: snappingCandidate || null,
     });
   };
 
@@ -45,5 +59,6 @@ export const useDrawingState = () => {
     resetDrawing,
     setDrawing,
     drawing: drawingState,
+    setSnappingCandidate,
   };
 };

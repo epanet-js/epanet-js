@@ -9,6 +9,7 @@ import {
   IPresence,
   IWrappedFeature,
   LayerConfigMap,
+  Position,
   SYMBOLIZATION_NONE,
 } from "src/types";
 import type { MomentLog } from "src/lib/persistence/moment";
@@ -278,6 +279,7 @@ export interface EphemeralDragState {
 export interface EphemeralDrawLine {
   type: "drawLine";
   line: IWrappedFeature;
+  snappingCandidate: Position | null;
 }
 
 export type CursorValue = React.CSSProperties["cursor"];
