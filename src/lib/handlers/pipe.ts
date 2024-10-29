@@ -25,6 +25,7 @@ import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { UIDMap } from "../id_mapper";
 import { useSelection } from "src/selection";
 import measureLength from "@turf/length";
+import { NodeAsset, createJunction } from "src/hydraulics/assets";
 
 const createLineString = (start: Position, end: Position) => {
   return {
@@ -71,53 +72,14 @@ type NullDrawing = { isNull: true };
 type DrawingState =
   | {
       isNull: false;
-      startNode: IWrappedFeature;
+      startNode: NodeAsset;
       line: IWrappedFeature;
     }
   | NullDrawing;
 
 const useLineDrawingState = () => {
-  const startNodeRef = useRef<IWrappedFeature | null>(null);
+  const startNodeRef = useRef<NodeAsset | null>(null);
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
-
-  const startLineDrawing = (startNode: IWrappedFeature) => {
-    const geometry = startNode.feature.geometry;
-    if (!geometry || geometry.type !== "Point")
-      throw new Error("Invalid geometry");
-
-    const position = geometry.coordinates;
-    startNodeRef.current = startNode;
-    const line = createLineString(position, position);
-    setEphemeralState({
-      type: "drawLine",
-      line,
-    });
-    return line.id;
-  };
-
-  const extendLine = (position: Position) => {
-    setEphemeralState((prev) => {
-      return {
-        type: "drawLine",
-        line:
-          prev.type === "drawLine"
-            ? extendLineString(prev.line, position)
-            : createLineString(position, position),
-      };
-    });
-  };
-
-  const addVertex = (position: Position) => {
-    setEphemeralState((prev) => {
-      return {
-        type: "drawLine",
-        line:
-          prev.type === "drawLine"
-            ? addVertexToLineString(prev.line, position)
-            : createLineString(position, position),
-      };
-    });
-  };
 
   const resetDrawing = () => {
     startNodeRef.current = null;
@@ -129,11 +91,23 @@ const useLineDrawingState = () => {
       ? { isNull: false, startNode: startNodeRef.current, line: state.line }
       : { isNull: true };
 
+  const setDrawing = ({
+    startNode,
+    line,
+  }: {
+    startNode: NodeAsset;
+    line: IWrappedFeature;
+  }) => {
+    startNodeRef.current = startNode;
+    setEphemeralState({
+      type: "drawLine",
+      line: line,
+    });
+  };
+
   return {
-    startLineDrawing,
-    addVertex,
-    extendLine,
     resetDrawing,
+    setDrawing,
     drawing: drawingState,
   };
 };
@@ -151,25 +125,37 @@ export function usePipeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
-  const { startLineDrawing, extendLine, resetDrawing, addVertex, drawing } =
-    useLineDrawingState();
+  const { resetDrawing, drawing, setDrawing } = useLineDrawingState();
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
-  const createJunction = (position: Position, id = newFeatureId()) => {
-    return {
-      id,
-      feature: {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "Point",
-          coordinates: position,
-        },
-      } as Feature,
-      folderId: null,
-      at: "any",
-    };
+  const startDrawing = (startNode: NodeAsset) => {
+    const coordinates = startNode.feature.geometry.coordinates;
+    const pipe = createLineString(coordinates, coordinates);
+
+    setDrawing({
+      startNode,
+      line: pipe,
+    });
+    return pipe.id;
+  };
+
+  const extendPipe = (coordinates: Position) => {
+    if (drawing.isNull) return;
+
+    setDrawing({
+      startNode: drawing.startNode,
+      line: extendLineString(drawing.line, coordinates),
+    });
+  };
+
+  const addVertex = (coordinates: Position) => {
+    if (drawing.isNull) return;
+
+    setDrawing({
+      startNode: drawing.startNode,
+      line: addVertexToLineString(drawing.line, coordinates),
+    });
   };
 
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
@@ -195,12 +181,17 @@ export function usePipeHandlers({
 
   const getSnappingNode = (
     e: MapMouseEvent | MapTouchEvent,
-  ): IWrappedFeature | null => {
+  ): NodeAsset | null => {
     const featureId = getNeighborPoint(e.point);
     if (!featureId) return null;
 
     const wrappedFeature = featureMap.get(featureId);
-    return wrappedFeature || null;
+    if (!wrappedFeature) return null;
+
+    const geometry = wrappedFeature.feature.geometry;
+    if (!geometry || geometry.type !== "Point") return null;
+
+    return wrappedFeature as NodeAsset;
   };
 
   const getSnappingCoordinates = (
@@ -238,10 +229,10 @@ export function usePipeHandlers({
     setMode({ mode: Mode.NONE });
   };
 
-  const createPipe = (
-    startNode: IWrappedFeature,
+  const submitPipe = (
+    startNode: NodeAsset,
     line: IWrappedFeature,
-    endNode: IWrappedFeature,
+    endNode: NodeAsset,
   ) => {
     const length = measureLength(line.feature);
     if (!length) return;
@@ -273,22 +264,22 @@ export function usePipeHandlers({
           });
         }
 
-        const id = startLineDrawing(startNode);
+        const pipeId = startDrawing(startNode);
+        selectFeature(pipeId);
 
-        selectFeature(id);
         return;
       }
 
       if (!!snappingNode) {
-        createPipe(drawing.startNode, drawing.line, snappingNode);
-        isControlHeld() ? startLineDrawing(snappingNode) : finish();
+        submitPipe(drawing.startNode, drawing.line, snappingNode);
+        isControlHeld() ? startDrawing(snappingNode) : finish();
         return;
       }
 
       if (isControlHeld()) {
         const endJunction = createJunction(clickPosition);
-        createPipe(drawing.startNode, drawing.line, endJunction);
-        startLineDrawing(endJunction);
+        submitPipe(drawing.startNode, drawing.line, endJunction);
+        startDrawing(endJunction);
       } else {
         addVertex(clickPosition);
       }
@@ -305,7 +296,7 @@ export function usePipeHandlers({
         ? getMapCoord(e)
         : getSnappingCoordinates(e);
 
-      extendLine(nextCoordinates);
+      extendPipe(nextCoordinates);
     },
     double: (e) => {
       e.preventDefault();
@@ -320,7 +311,7 @@ export function usePipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      createPipe(startNode, line, endJunction);
+      submitPipe(startNode, line, endJunction);
       finish();
     },
     exit() {
