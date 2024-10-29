@@ -5,7 +5,6 @@ import { FeatureMap, Position } from "src/types";
 import { FEATURES_POINT_LAYER_NAME } from "../../load_and_augment_style";
 import { decodeId } from "src/lib/id";
 import { NodeAsset } from "src/hydraulics/assets";
-import { getMapCoord } from "../utils";
 
 export const useSnapping = (
   pmap: PMap,
@@ -50,18 +49,15 @@ export const useSnapping = (
 
   const getSnappingCoordinates = (
     e: MapMouseEvent | MapTouchEvent,
-  ): Position => {
-    const cursorCoordinates = getMapCoord(e);
-
+  ): Position | null => {
     const featureId = getNeighborPoint(e.point);
-    if (!featureId) return cursorCoordinates;
+    if (!featureId) return null;
 
     const wrappedFeature = featureMap.get(featureId);
-    if (!wrappedFeature) return cursorCoordinates;
+    if (!wrappedFeature) return null;
 
     const { feature } = wrappedFeature;
-    if (!feature.geometry || feature.geometry.type !== "Point")
-      return cursorCoordinates;
+    if (!feature.geometry || feature.geometry.type !== "Point") return null;
 
     return feature.geometry.coordinates;
   };
