@@ -48,7 +48,7 @@ export function useDrawPipeHandlers({
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
   const startDrawing = (startNode: NodeAsset) => {
-    const coordinates = startNode.feature.geometry.coordinates;
+    const coordinates = getNodeCoordinates(startNode);
     const pipe = createPipe([coordinates, coordinates]);
 
     setDrawing({
