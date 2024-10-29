@@ -131,7 +131,6 @@ export function usePipeHandlers({
   pmap,
   idMap,
   mode,
-  dragTargetRef,
 }: HandlerContext): Handlers {
   const { selectFeature } = useSelection(selection);
   const setMode = useSetAtom(modeAtom);
@@ -324,7 +323,6 @@ export function usePipeHandlers({
       }
     },
     up() {
-      dragTargetRef.current = null;
       setCursor(CURSOR_DEFAULT);
     },
   };
