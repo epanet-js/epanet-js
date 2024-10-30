@@ -1,28 +1,36 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { Position } from "geojson";
-import { Pipe } from "src/hydraulics/assets";
+import { NodeAsset, Pipe } from "src/hydraulics/assets";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
-  pipe: Pipe;
+  pipe?: Pipe;
+  startNode?: NodeAsset;
   snappingCandidate: Position | null;
 }
 
 export const buildLayers = (state: EphemeralDrawPipe) => {
+  const geojsonFeatures = [];
+  if (state.startNode) geojsonFeatures.push(state.startNode.feature);
+  if (state.pipe) geojsonFeatures.push(state.pipe.feature);
+
   return [
     new GeoJsonLayer({
-      id: "DRAW_LINE",
-      data: [state.pipe.feature],
+      id: "DRAW_PIPE_GEOJSON",
+      data: geojsonFeatures,
       lineWidthUnits: "pixels",
+      pointRadiusUnits: "pixels",
       getLineWidth: 4,
+      getFillColor: [255, 255, 255],
+      getPointRadius: 4,
       lineCapRounded: true,
       getDashArray: [4, 4],
       extensions: [new PathStyleExtension({ dash: true })],
     }),
     state.snappingCandidate &&
       new ScatterplotLayer({
-        id: "SNAPPING_CANDIDATE",
+        id: "DRAW_PIPE_SNAPPING_CANDIDATE",
         data: [state.snappingCandidate],
         getPosition: (d) => d,
         getRadius: 10,
