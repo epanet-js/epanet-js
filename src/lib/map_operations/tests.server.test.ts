@@ -55,6 +55,7 @@ import { makeConvexHull } from "./make_convex_hull";
 import { spliceNewVertex } from "./splice_new_vertex";
 import { splitLine } from "./split_line";
 import { mergeFeatures, mergeFeaturesMessage } from "./merge_features";
+import { Topology } from "src/hydraulics/topology";
 
 const engine = new Random(MersenneTwister19937.seed(1));
 
@@ -866,6 +867,7 @@ describe("map_operations", () => {
       expect(
         duplicateFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: SELECTION_NONE,
         }),
@@ -878,6 +880,7 @@ describe("map_operations", () => {
     it("deleting multiple features", () => {
       const multiDuplicate = duplicateFeatures({
         featureMap,
+        topology: new Topology(),
         folderMap: new Map(),
         selection: {
           type: "multi",
@@ -890,6 +893,7 @@ describe("map_operations", () => {
     it("deleting a folder", () => {
       const res = duplicateFeatures({
         featureMap,
+        topology: new Topology(),
         folderMap: new Map([
           [
             "0",
@@ -950,6 +954,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: SELECTION_NONE,
         }),
@@ -963,6 +968,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "single",
@@ -980,6 +986,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "multi",
@@ -1011,6 +1018,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "folder",
@@ -1041,6 +1049,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "single",
@@ -1057,6 +1066,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "single",
@@ -1073,6 +1083,7 @@ describe("map_operations", () => {
       expect(
         deleteFeatures({
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
           selection: {
             type: "single",

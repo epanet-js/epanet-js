@@ -5,6 +5,7 @@ import { USelection } from "src/selection";
 import { SELECTION_NONE } from "src/state/jotai";
 import { fcLineString, NIL_PREVIEW, wrapMapAndId } from "test/helpers";
 import { splitFeatureGroupsDeprecated } from "./split_feature_groups";
+import { Topology } from "src/hydraulics/topology";
 
 describe("splitFeatureGroupsDeprecated", () => {
   it("base case", () => {
@@ -12,6 +13,7 @@ describe("splitFeatureGroupsDeprecated", () => {
       splitFeatureGroupsDeprecated({
         data: {
           selection: SELECTION_NONE,
+          topology: new Topology(),
           featureMap: new Map(),
           folderMap: new Map(),
         },
@@ -37,6 +39,7 @@ describe("splitFeatureGroupsDeprecated", () => {
         data: {
           selection: SELECTION_NONE,
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
         },
         previewProperty: NIL_PREVIEW,
@@ -84,6 +87,7 @@ describe("splitFeatureGroupsDeprecated", () => {
         data: {
           selection: USelection.fromIds(["000000000000000000000"]),
           featureMap,
+          topology: new Topology(),
           folderMap: new Map(),
         },
         previewProperty: NIL_PREVIEW,
