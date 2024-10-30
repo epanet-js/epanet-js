@@ -9,8 +9,9 @@ import {
   Position,
 } from "src/types";
 import { JsonValue } from "type-fest";
+import cloneDeep from "lodash/cloneDeep";
 
-type StrictProperties = { [name: string]: JsonValue } | null;
+type StrictProperties = { [name: string]: JsonValue };
 type PointFeature = IFeature<Point, StrictProperties>;
 type LineStringFeature = IFeature<LineString, StrictProperties>;
 
@@ -55,29 +56,48 @@ export const createPipe = (coordinates: Position[]): Pipe => {
   };
 };
 
-export const extendLink = (link: LinkAsset, position: Position) => {
+export const extendLink = (link: LinkAsset, position: Position): LinkAsset => {
   const feature = link.feature;
   const coordinates = feature.geometry.coordinates.slice(0, -1);
 
   return {
     ...link,
-    feature: replaceCoordinates(feature, coordinates.concat([position])),
+    feature: replaceCoordinates(
+      feature,
+      coordinates.concat([position]),
+    ) as LineStringFeature,
   };
 };
 
-export const addVertexToLink = (link: LinkAsset, position: Position) => {
+export const addVertexToLink = (
+  link: LinkAsset,
+  position: Position,
+): LinkAsset => {
   const feature = link.feature;
   const coordinates = feature.geometry.coordinates;
 
   return {
     ...link,
-    feature: replaceCoordinates(feature, coordinates.concat([position])),
+    feature: replaceCoordinates(
+      feature,
+      coordinates.concat([position]),
+    ) as LineStringFeature,
   };
 };
 
 export const isLinkStart = (link: LinkAsset, position: Position) => {
   const coordinates = getLinkCoordinates(link);
   return isSamePosition(coordinates[0], position) && coordinates.length == 2;
+};
+
+export const attachConnections = (
+  link: LinkAsset,
+  startNodeId: string,
+  endNodeId: string,
+) => {
+  const newLink = cloneDeep(link);
+  newLink.feature.properties.connections = [startNodeId, endNodeId];
+  return newLink;
 };
 
 export const getLinkCoordinates = (link: LinkAsset): Position[] => {
