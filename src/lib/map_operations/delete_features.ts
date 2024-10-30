@@ -15,6 +15,8 @@ import cloneDeep from "lodash/cloneDeep";
 import * as jsonpointer from "src/lib/pointer";
 import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
 import { getFoldersInTree } from "src/lib/folder";
+import { Topology } from "src/hydraulics/topology";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 interface DeleteResult {
   newSelection: Sel;
@@ -80,6 +82,7 @@ function deleteFolder(
 function deleteSingleAndMulti(
   selection: SelSingle | SelMulti,
   featureMap: FeatureMap,
+  topology: Topology,
 ): DeleteResult {
   // Delete vertexes in a feature
   if (selection.type === "single" && selection.parts.length) {
@@ -129,15 +132,33 @@ function deleteSingleAndMulti(
     };
   }
 
-  // Delete features
-  return {
-    newSelection: USelection.none(),
-    moment: {
-      ...EMPTY_MOMENT,
-      note: "Deleted features",
-      deleteFeatures: ids.slice(),
-    },
-  };
+  if (isFeatureOn("FLAG_DELETE_NODES")) {
+    const affectedIds = new Set(ids);
+    ids.forEach((id) => {
+      const maybeNodeId = id;
+      topology.getLinks(maybeNodeId).forEach((linkId) => {
+        affectedIds.add(linkId);
+      });
+    });
+
+    return {
+      newSelection: USelection.none(),
+      moment: {
+        ...EMPTY_MOMENT,
+        note: "Deleted features",
+        deleteFeatures: Array.from(affectedIds),
+      },
+    };
+  } else {
+    return {
+      newSelection: USelection.none(),
+      moment: {
+        ...EMPTY_MOMENT,
+        note: "Deleted features",
+        deleteFeatures: ids.slice(),
+      },
+    };
+  }
 }
 
 /**
@@ -145,6 +166,7 @@ function deleteSingleAndMulti(
  */
 export function deleteFeatures({
   featureMap,
+  topology,
   selection,
   folderMap,
 }: Data): DeleteResult {
@@ -162,7 +184,7 @@ export function deleteFeatures({
     }
     case "multi":
     case "single": {
-      return deleteSingleAndMulti(selection, featureMap);
+      return deleteSingleAndMulti(selection, featureMap, topology);
     }
   }
 }
