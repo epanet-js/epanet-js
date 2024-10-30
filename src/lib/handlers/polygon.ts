@@ -118,7 +118,7 @@ export function usePolygonHandlers({
       }
 
       const lastCoord = feature.geometry.coordinates[0].at(-3);
-      if (isShiftHeld && lastCoord) {
+      if (isShiftHeld() && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 
@@ -159,7 +159,7 @@ export function usePolygonHandlers({
       const feature = wrappedFeature.feature as IFeature<Polygon>;
 
       const lastCoord = feature.geometry.coordinates[0].at(-3);
-      if (isShiftHeld && lastCoord) {
+      if (isShiftHeld() && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 

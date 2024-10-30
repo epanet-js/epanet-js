@@ -33,13 +33,13 @@ export function useKeyboardState() {
     [],
   );
 
-  const isControlHeld = () => {
-    return controlHeld.current;
-  };
+  const isControlHeld = () => controlHeld.current;
+  const isSpaceHeld = () => spaceHeld.current;
+  const isShiftHeld = () => shiftHeld.current;
 
   return {
-    isShiftHeld: shiftHeld.current,
-    isSpaceHeld: spaceHeld.current,
+    isShiftHeld,
+    isSpaceHeld,
     isControlHeld,
   };
 }
