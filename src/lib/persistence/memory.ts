@@ -80,6 +80,7 @@ export class MemPersistence implements IPersistence {
       );
       set(dataAtom, {
         selection: ctx.selection,
+        topology: ctx.topology,
         featureMap: new Map(
           Array.from(ctx.featureMap).sort((a, b) => {
             return sortAts(a[1], b[1]);

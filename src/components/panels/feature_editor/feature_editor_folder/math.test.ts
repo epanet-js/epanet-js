@@ -3,6 +3,7 @@ import { expect, describe, it, test } from "vitest";
 import { USelection } from "src/selection";
 import { exampleFolder, fcLineString, wrapMap } from "test/helpers";
 import { solveRootItems, getRequiredExpansionsFeature } from "./math";
+import { Topology } from "src/hydraulics/topology";
 
 test("solveRootItems", () => {
   expect(solveRootItems(new Map(), new Map())).toEqual({
@@ -19,6 +20,7 @@ describe("getRequiredExpansionsFeature", () => {
     expect(
       getRequiredExpansionsFeature(selection, {
         featureMap: m,
+        topology: new Topology(),
         folderMap: new Map(),
         selection,
       }),
@@ -33,6 +35,7 @@ describe("getRequiredExpansionsFeature", () => {
     expect(
       getRequiredExpansionsFeature(selection, {
         featureMap: m,
+        topology: new Topology(),
         folderMap: new Map([[exampleFolder.id, exampleFolder]]),
         selection,
       }),
@@ -48,6 +51,7 @@ describe("getRequiredExpansionsFeature", () => {
     expect(
       getRequiredExpansionsFeature(selection, {
         featureMap: m,
+        topology: new Topology(),
         folderMap: new Map([[collapsedFolder.id, collapsedFolder]]),
         selection,
       }),
