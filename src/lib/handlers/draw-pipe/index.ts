@@ -21,6 +21,7 @@ import {
   createPipe,
   extendLink,
   getNodeCoordinates,
+  isLinkStart,
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
@@ -148,10 +149,14 @@ export function useDrawPipeHandlers({
 
       const nextCoordinates = snappingCoordinates || getMapCoord(e);
 
+      const isPipeStart =
+        snappingCoordinates &&
+        isLinkStart(drawing.line as Pipe, snappingCoordinates);
+
       setDrawing({
         startNode: drawing.startNode,
         line: extendLink(drawing.line as Pipe, nextCoordinates),
-        snappingCandidate: snappingCoordinates,
+        snappingCandidate: !isPipeStart ? snappingCoordinates : null,
       });
     },
     double: (e) => {
