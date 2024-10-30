@@ -11,11 +11,16 @@ import { useAtomCallback } from "jotai/utils";
 import { useAtomValue } from "jotai";
 import { Data, dataAtom, momentLogAtom, presencesAtom } from "src/state/jotai";
 import { EMPTY_ARRAY } from "src/lib/constants";
+import { isDebugOn } from "src/infra/debug-mode";
 
 // This  used to send to posthog, but now could be removed
 // or wired into your own product analytics.
 export function trackMoment(partialMoment: Partial<MomentInput>) {
   const { track } = partialMoment;
+  if (isDebugOn) {
+    // eslint-disable-next-line no-console
+    console.log("TRANSACT", JSON.stringify(partialMoment));
+  }
   if (track) {
     delete partialMoment.track;
   }
