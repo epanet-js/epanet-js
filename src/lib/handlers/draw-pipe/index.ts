@@ -32,7 +32,6 @@ export function useDrawPipeHandlers({
   selection,
   pmap,
   idMap,
-  mode,
 }: HandlerContext): Handlers {
   const { selectFeature } = useSelection(selection);
   const setMode = useSetAtom(modeAtom);
@@ -69,14 +68,6 @@ export function useDrawPipeHandlers({
       line: addVertexToLink(drawing.line as Pipe, coordinates),
       snappingCandidate: null,
     });
-  };
-
-  const finish = () => {
-    resetDrawing();
-    const { modeOptions } = mode;
-    if (modeOptions && modeOptions.multi) return;
-
-    setMode({ mode: Mode.NONE });
   };
 
   const submitPipe = (
@@ -173,7 +164,7 @@ export function useDrawPipeHandlers({
       const endJunction = createJunction(lastVertex);
 
       submitPipe(startNode, line, endJunction);
-      finish();
+      resetDrawing();
     },
     exit() {
       resetDrawing();
