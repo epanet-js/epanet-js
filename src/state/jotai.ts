@@ -9,7 +9,6 @@ import {
   IPresence,
   IWrappedFeature,
   LayerConfigMap,
-  Position,
   SYMBOLIZATION_NONE,
 } from "src/types";
 import type { MomentLog } from "src/lib/persistence/moment";
@@ -24,6 +23,7 @@ import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
+import { EphemeralDrawPipe } from "src/lib/handlers/draw-pipe/ephemeral-state";
 
 // TODO: make this specific
 type MapboxLayer = any;
@@ -276,19 +276,13 @@ export interface EphemeralDragState {
   features: IWrappedFeature[];
 }
 
-export interface EphemeralDrawLine {
-  type: "drawLine";
-  line: IWrappedFeature;
-  snappingCandidate: Position | null;
-}
-
 export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
   | EphemeralDragState
-  | EphemeralDrawLine
+  | EphemeralDrawPipe
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

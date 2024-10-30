@@ -1,9 +1,4 @@
-import type {
-  HandlerContext,
-  IWrappedFeature,
-  LineString,
-  Position,
-} from "src/types";
+import type { HandlerContext, Position } from "src/types";
 import { modeAtom, Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
@@ -55,7 +50,7 @@ export function useDrawPipeHandlers({
 
     setDrawing({
       startNode,
-      line: pipe,
+      pipe,
     });
     return pipe.id;
   };
@@ -65,22 +60,18 @@ export function useDrawPipeHandlers({
 
     setDrawing({
       startNode: drawing.startNode,
-      line: addVertexToLink(drawing.line as Pipe, coordinates),
+      pipe: addVertexToLink(drawing.pipe, coordinates),
       snappingCandidate: null,
     });
   };
 
-  const submitPipe = (
-    startNode: NodeAsset,
-    line: IWrappedFeature,
-    endNode: NodeAsset,
-  ) => {
-    const length = measureLength(line.feature);
+  const submitPipe = (startNode: NodeAsset, pipe: Pipe, endNode: NodeAsset) => {
+    const length = measureLength(pipe.feature);
     if (!length) return;
 
     transact({
       note: "Created pipe",
-      putFeatures: [startNode, line, endNode],
+      putFeatures: [startNode, pipe, endNode],
     }).catch((e) => captureError(e));
   };
 
@@ -112,14 +103,14 @@ export function useDrawPipeHandlers({
       }
 
       if (!!snappingNode) {
-        submitPipe(drawing.startNode, drawing.line, snappingNode);
+        submitPipe(drawing.startNode, drawing.pipe, snappingNode);
         isControlHeld() ? startDrawing(snappingNode) : resetDrawing();
         return;
       }
 
       if (isControlHeld()) {
         const endJunction = createJunction(clickPosition);
-        submitPipe(drawing.startNode, drawing.line, endJunction);
+        submitPipe(drawing.startNode, drawing.pipe, endJunction);
         startDrawing(endJunction);
       } else {
         addVertex(clickPosition);
@@ -141,12 +132,11 @@ export function useDrawPipeHandlers({
       const nextCoordinates = snappingCoordinates || getMapCoord(e);
 
       const isPipeStart =
-        snappingCoordinates &&
-        isLinkStart(drawing.line as Pipe, snappingCoordinates);
+        snappingCoordinates && isLinkStart(drawing.pipe, snappingCoordinates);
 
       setDrawing({
         startNode: drawing.startNode,
-        line: extendLink(drawing.line as Pipe, nextCoordinates),
+        pipe: extendLink(drawing.pipe, nextCoordinates),
         snappingCandidate: !isPipeStart ? snappingCoordinates : null,
       });
     },
@@ -155,15 +145,15 @@ export function useDrawPipeHandlers({
 
       if (drawing.isNull) return;
 
-      const { startNode, line } = drawing;
-      if (!line.feature.geometry) return;
-      const geometry = line.feature.geometry as LineString;
+      const { startNode, pipe } = drawing;
+      if (!pipe.feature.geometry) return;
+      const geometry = pipe.feature.geometry;
       const lastVertex = geometry.coordinates.at(-1);
       if (!lastVertex) return;
 
       const endJunction = createJunction(lastVertex);
 
-      submitPipe(startNode, line, endJunction);
+      submitPipe(startNode, pipe, endJunction);
       resetDrawing();
     },
     exit() {
