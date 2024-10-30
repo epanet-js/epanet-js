@@ -23,4 +23,14 @@ describe("Topology", () => {
     expect(topology.getLinks("B")).toEqual([]);
     expect(topology.getLinks("A")).toEqual([]);
   });
+
+  it("does not crash when removing missing node", () => {
+    const topology = new Topology();
+
+    topology.addLink("link1", "A", "B");
+
+    topology.removeNode("C");
+
+    expect(topology.getLinks("A")).toEqual(["link1"]);
+  });
 });
