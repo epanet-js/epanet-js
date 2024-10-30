@@ -28,15 +28,20 @@ export const useDrawingState = () => {
       ? {
           isNull: false,
           startNode: startNodeRef.current,
-          pipe: state.pipe,
+          pipe: state.pipe || createPipe([]),
         }
       : { isNull: true };
 
   const setSnappingCandidate = (snappingCandidate: Position | null) => {
     setEphemeralState((prev) => {
+      if (prev.type !== "drawPipe")
+        return {
+          type: "drawPipe",
+          snappingCandidate,
+        };
+
       return {
-        type: "drawPipe",
-        pipe: prev.type === "drawPipe" ? prev.pipe : createPipe([]),
+        ...prev,
         snappingCandidate,
       };
     });
@@ -55,6 +60,7 @@ export const useDrawingState = () => {
     setEphemeralState({
       type: "drawPipe",
       pipe,
+      startNode,
       snappingCandidate: snappingCandidate || null,
     });
   };
