@@ -117,7 +117,7 @@ export function useLineHandlers({
 
       let nextCoord = getMapCoord(e) as Position;
       const lastCoord = feature.geometry.coordinates.at(-2);
-      if (isShiftHeld && lastCoord) {
+      if (isShiftHeld() && lastCoord) {
         nextCoord = lockDirection(lastCoord, nextCoord);
       }
 

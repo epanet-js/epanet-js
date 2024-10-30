@@ -120,7 +120,7 @@ export function useNoneHandlers({
       }
 
       const selectedIds = USelection.toIds(selection);
-      if ((e.originalEvent.altKey || isSpaceHeld) && selectedIds.length) {
+      if ((e.originalEvent.altKey || isSpaceHeld()) && selectedIds.length) {
         // Maybe drag a whole feature
         dragTargetRef.current = selectedIds.slice();
         void startSnapshot(

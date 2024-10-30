@@ -75,11 +75,12 @@ export function useDrawPipeHandlers({
     }).catch((e) => captureError(e));
   };
 
-  const isSnapping = !isShiftHeld;
+  const isSnapping = () => !isShiftHeld();
+  const isEndAndContinueOn = isControlHeld;
 
   const handlers: Handlers = {
     click: (e) => {
-      const snappingNode = isSnapping ? getSnappingNode(e) : null;
+      const snappingNode = isSnapping() ? getSnappingNode(e) : null;
       const clickPosition = snappingNode
         ? getNodeCoordinates(snappingNode)
         : getMapCoord(e);
@@ -89,7 +90,7 @@ export function useDrawPipeHandlers({
           ? snappingNode
           : createJunction(clickPosition);
 
-        if (isControlHeld() && !snappingNode) {
+        if (isEndAndContinueOn() && !snappingNode) {
           transact({
             note: "Create junction",
             putFeatures: [startNode],
@@ -104,11 +105,11 @@ export function useDrawPipeHandlers({
 
       if (!!snappingNode) {
         submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-        isControlHeld() ? startDrawing(snappingNode) : resetDrawing();
+        isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
         return;
       }
 
-      if (isControlHeld()) {
+      if (isEndAndContinueOn()) {
         const endJunction = createJunction(clickPosition);
         submitPipe(drawing.startNode, drawing.pipe, endJunction);
         startDrawing(endJunction);
@@ -122,7 +123,9 @@ export function useDrawPipeHandlers({
         return;
       }
 
-      const snappingCoordinates = isSnapping ? getSnappingCoordinates(e) : null;
+      const snappingCoordinates = isSnapping()
+        ? getSnappingCoordinates(e)
+        : null;
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCoordinates);

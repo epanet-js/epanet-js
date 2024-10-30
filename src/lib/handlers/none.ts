@@ -33,7 +33,7 @@ export function useNoneHandlers({
     extendSelection,
     removeFromSelection,
   } = useSelection(selection);
-  const { isSpaceHeld, isShiftHeld } = useKeyboardState();
+  const { isShiftHeld } = useKeyboardState();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
@@ -94,11 +94,11 @@ export function useNoneHandlers({
     return fuzzyResult;
   };
 
+  const isMovingEnabled = false;
+
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (!isSpaceHeld) return;
-
       dragStartPoint.current = e.lngLat;
 
       const isRighClick =
@@ -106,10 +106,11 @@ export function useNoneHandlers({
       if (isRighClick) {
         return;
       }
+      if (!isMovingEnabled) return;
 
       const selectedIds = USelection.toIds(selection);
       const isMovingManyPoints =
-        (e.originalEvent.altKey || isSpaceHeld) && selectedIds.length;
+        (e.originalEvent.altKey || isMovingEnabled) && selectedIds.length;
       if (isMovingManyPoints) {
         dragTargetRef.current = selectedIds.slice();
         e.preventDefault();
@@ -185,7 +186,7 @@ export function useNoneHandlers({
       setCursor("pointer");
     },
     move: (e) => {
-      if (!isSpaceHeld) return skipMove(e);
+      if (!isMovingEnabled) return skipMove(e);
 
       if (dragTargetRef.current === null || selection.type !== "single") {
         skipMove(e);
@@ -217,7 +218,7 @@ export function useNoneHandlers({
       updateDraggingState([movePoint(selection.id, id, getMapCoord(e))]);
     },
     up: (e) => {
-      if (!isSpaceHeld) return;
+      if (!isMovingEnabled) return;
       const dragTarget = dragTargetRef.current;
 
       const resetDrag = () => {
@@ -268,7 +269,7 @@ export function useNoneHandlers({
       e.preventDefault();
 
       if (!clickedFeature) {
-        if (isShiftHeld) return;
+        if (isShiftHeld()) return;
 
         clearSelection();
         setMode({ mode: Mode.NONE });
@@ -281,7 +282,7 @@ export function useNoneHandlers({
 
       const id = wrappedFeature.id;
 
-      if (isShiftHeld) {
+      if (isShiftHeld()) {
         if (isSelected(id)) {
           removeFromSelection(id);
         } else {
