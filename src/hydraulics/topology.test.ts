@@ -1,0 +1,26 @@
+import { expect, describe, it } from "vitest";
+import { Topology } from "./topology";
+
+describe("Topology", () => {
+  it("provides links connected to a node", () => {
+    const topology = new Topology();
+
+    topology.addLink("link1", "A", "B");
+    topology.addLink("link2", "B", "C");
+
+    expect(topology.getLinks("A")).toEqual(["link1"]);
+    expect(topology.getLinks("B")).toEqual(["link1", "link2"]);
+    expect(topology.getLinks("C")).toEqual(["link2"]);
+  });
+
+  it("removes links when removing nodes", () => {
+    const topology = new Topology();
+
+    topology.addLink("link1", "A", "B");
+
+    topology.removeNode("A");
+
+    expect(topology.getLinks("B")).toEqual([]);
+    expect(topology.getLinks("A")).toEqual([]);
+  });
+});

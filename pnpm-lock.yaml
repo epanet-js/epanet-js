@@ -326,6 +326,9 @@ importers:
       next:
         specifier: ^14.2.15
         version: 14.2.15(@babel/core@7.24.6)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      ngraph.graph:
+        specifier: ^20.0.1
+        version: 20.0.1
       nodemailer:
         specifier: ~6.9.13
         version: 6.9.13
@@ -4727,6 +4730,12 @@ packages:
         optional: true
       sass:
         optional: true
+
+  ngraph.events@1.2.2:
+    resolution: {integrity: sha512-JsUbEOzANskax+WSYiAPETemLWYXmixuPAlmZmhIbIj6FH/WDgEGCGnRwUQBK0GjOnVm8Ui+e5IJ+5VZ4e32eQ==}
+
+  ngraph.graph@20.0.1:
+    resolution: {integrity: sha512-VFsQ+EMkT+7lcJO1QP8Ik3w64WbHJl27Q53EO9hiFU9CRyxJ8HfcXtfWz/U8okuoYKDctbciL6pX3vG5dt1rYA==}
 
   nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
@@ -11137,6 +11146,12 @@ snapshots:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
+
+  ngraph.events@1.2.2: {}
+
+  ngraph.graph@20.0.1:
+    dependencies:
+      ngraph.events: 1.2.2
 
   nice-try@1.0.5: {}
 
