@@ -40,6 +40,7 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -190,6 +191,10 @@ export class MemPersistence implements IPersistence {
     const moment = momentForDeleteFeatures(features, ctx);
     for (const id of features) {
       ctx.featureMap.delete(id);
+      if (isFeatureOn("FLAG_DELETE_NODES")) {
+        const maybeNodeId = id;
+        ctx.topology.removeNode(maybeNodeId);
+      }
     }
     return moment;
   }
@@ -267,6 +272,16 @@ export class MemPersistence implements IPersistence {
         }
       }
       ctx.featureMap.set(inputFeature.id, inputFeature as IWrappedFeature);
+      if (isFeatureOn("FLAG_DELETE_NODES")) {
+        if (
+          inputFeature.feature.properties &&
+          inputFeature.feature.properties.connections
+        ) {
+          const [nodeStartId, nodeEndId] = inputFeature.feature.properties
+            .connections as string[];
+          ctx.topology.addLink(inputFeature.id, nodeStartId, nodeEndId);
+        }
+      }
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
 
