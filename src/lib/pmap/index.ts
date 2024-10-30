@@ -30,10 +30,10 @@ import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { PolygonLayer, GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { PolygonLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
-import { PathStyleExtension } from "@deck.gl/extensions";
 import { splitFeatureGroups } from "./split_feature_groups";
+import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -346,29 +346,7 @@ export default class PMap {
             pointRadiusUnits: "pixels",
           }),
         ephemeralState.type === "drawPipe" &&
-          new GeoJsonLayer({
-            id: "DRAW_LINE",
-            data: [ephemeralState.pipe.feature as IFeature],
-            lineWidthUnits: "pixels",
-            getLineWidth: 4,
-            lineCapRounded: true,
-            getDashArray: [4, 4],
-            extensions: [new PathStyleExtension({ dash: true })],
-          }),
-        ephemeralState.type === "drawPipe" &&
-          ephemeralState.snappingCandidate &&
-          new ScatterplotLayer({
-            id: "SNAPPING_CANDIDATE",
-            data: [ephemeralState.snappingCandidate],
-            getPosition: (d) => d,
-            getRadius: 10,
-            radiusUnits: "pixels",
-            stroked: true,
-            getFillColor: [255, 140, 0, 100],
-            getLineColor: [0, 0, 0],
-            getLineWidth: 1,
-            lineWidthUnits: "pixels",
-          }),
+          buildDrawPipeLayers(ephemeralState),
 
         ephemeralState.type === "lasso" &&
           new PolygonLayer<number[]>({
