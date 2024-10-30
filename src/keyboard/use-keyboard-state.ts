@@ -27,7 +27,7 @@ export function useKeyboardState() {
   useHotkeys(
     "meta, Ctrl",
     (e) => {
-      controlHeld.current = e.ctrlKey;
+      controlHeld.current = e.ctrlKey || e.metaKey;
     },
     { keydown: true, keyup: true },
     [],
