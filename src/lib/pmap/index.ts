@@ -345,17 +345,17 @@ export default class PMap {
             getPointRadius: 10,
             pointRadiusUnits: "pixels",
           }),
-        ephemeralState.type === "drawLine" &&
+        ephemeralState.type === "drawPipe" &&
           new GeoJsonLayer({
             id: "DRAW_LINE",
-            data: [ephemeralState.line.feature as IFeature],
+            data: [ephemeralState.pipe.feature as IFeature],
             lineWidthUnits: "pixels",
             getLineWidth: 4,
             lineCapRounded: true,
             getDashArray: [4, 4],
             extensions: [new PathStyleExtension({ dash: true })],
           }),
-        ephemeralState.type === "drawLine" &&
+        ephemeralState.type === "drawPipe" &&
           ephemeralState.snappingCandidate &&
           new ScatterplotLayer({
             id: "SNAPPING_CANDIDATE",
