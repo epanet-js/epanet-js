@@ -1,7 +1,11 @@
 import { AssetId } from "../assets";
 import { ModelOperation } from "../model-operation";
 
-export const deleteAssets: ModelOperation<{ assetIds: readonly AssetId[] }> = (
+type InputData = {
+  assetIds: readonly AssetId[];
+};
+
+export const deleteAssets: ModelOperation<InputData> = (
   { topology },
   { assetIds },
 ) => {

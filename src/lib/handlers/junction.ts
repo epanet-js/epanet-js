@@ -1,5 +1,5 @@
 import { USelection } from "src/selection";
-import type { HandlerContext, Point } from "src/types";
+import type { HandlerContext } from "src/types";
 import {
   modeAtom,
   Mode,
@@ -9,21 +9,21 @@ import {
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
-import { createOrUpdateFeature, getMapCoord } from "./utils";
-import { trackUserAction } from "src/infra/user-tracking";
+import { getMapCoord } from "./utils";
 import { captureError } from "src/infra/error-tracking";
+import { addJunction } from "src/hydraulics/model-operations";
+import { createJunction } from "src/hydraulics/assets";
 
 export function useJunctionHandlers({
   dragTargetRef,
   mode,
-  selection,
-  featureMapDeprecated,
+  hydraulicModel,
   rep,
 }: HandlerContext): Handlers {
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
   const multi = mode.modeOptions?.multi;
   return {
     click: (e) => {
@@ -31,25 +31,13 @@ export function useJunctionHandlers({
         setMode({ mode: Mode.NONE });
       }
 
-      const point: Point = {
-        type: "Point",
-        coordinates: getMapCoord(e),
-      };
+      const clickPosition = getMapCoord(e);
+      const junction = createJunction(clickPosition);
 
-      const putFeature = createOrUpdateFeature({
-        mode,
-        selection,
-        featureMapDeprecated,
-        geometry: point,
-      });
+      const id = junction.id;
 
-      const id = putFeature.id;
-
-      trackUserAction("JUNCTION_ADDED");
-      transact({
-        note: "Draw junction",
-        putFeatures: [putFeature],
-      })
+      const moment = addJunction(hydraulicModel, { junction });
+      transact(moment)
         .then(() => {
           if (!multi) {
             setSelection(USelection.single(id));
