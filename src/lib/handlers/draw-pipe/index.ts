@@ -12,7 +12,6 @@ import {
   NodeAsset,
   Pipe,
   addVertexToLink,
-  attachConnections,
   createJunction,
   createPipe,
   extendLink,
@@ -21,10 +20,11 @@ import {
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
+import { addPipe } from "src/hydraulics/model-operations";
 
 export function useDrawPipeHandlers({
   rep,
-  featureMapDeprecated,
+  hydraulicModel,
   selection,
   pmap,
   idMap,
@@ -32,14 +32,14 @@ export function useDrawPipeHandlers({
   const { selectFeature } = useSelection(selection);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState();
   const { getSnappingNode, getSnappingCoordinates } = useSnapping(
     pmap,
     idMap,
-    featureMapDeprecated,
+    hydraulicModel.assets,
   );
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
@@ -70,14 +70,9 @@ export function useDrawPipeHandlers({
     const length = measureLength(pipe.feature);
     if (!length) return;
 
-    transact({
-      note: "Created pipe",
-      putFeatures: [
-        startNode,
-        attachConnections(pipe, startNode.id, endNode.id),
-        endNode,
-      ],
-    }).catch((e) => captureError(e));
+    const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
+
+    transact(moment).catch((e) => captureError(e));
   };
 
   const isSnapping = () => !isShiftHeld();
@@ -94,13 +89,6 @@ export function useDrawPipeHandlers({
         const startNode = snappingNode
           ? snappingNode
           : createJunction(clickPosition);
-
-        if (isEndAndContinueOn() && !snappingNode) {
-          transact({
-            note: "Create junction",
-            putFeatures: [startNode],
-          });
-        }
 
         const pipeId = startDrawing(startNode);
         selectFeature(pipeId);

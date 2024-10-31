@@ -23,6 +23,7 @@ import { safeParseMaybe } from "src/lib/utils";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
 import PMap from "src/lib/pmap";
+import { HydraulicModel } from "src/hydraulics/hydraulic-model";
 
 export interface CoordProps {
   x: number;
@@ -401,6 +402,7 @@ export interface HandlerContext {
   mode: ModeWithOptions;
   throttledMovePointer: (e: mapboxgl.Point) => void;
   featureMapDeprecated: FeatureMap;
+  hydraulicModel: HydraulicModel;
   folderMap: FolderMap;
   idMap: IDMap;
   rep: IPersistence;

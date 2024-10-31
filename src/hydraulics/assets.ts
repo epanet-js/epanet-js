@@ -2,6 +2,7 @@ import { isSamePosition } from "src/lib/geometry";
 import { newFeatureId } from "src/lib/id";
 import replaceCoordinates from "src/lib/replace_coordinates";
 import {
+  FeatureMap,
   IFeature,
   IWrappedFeature,
   LineString,
@@ -27,6 +28,7 @@ export type NodeAsset = Junction;
 export type LinkAsset = Pipe;
 export type AssetId = StringId;
 export type Asset = NodeAsset | LinkAsset;
+export type AssetsMap = FeatureMap;
 
 export const createJunction = (
   position: Position,

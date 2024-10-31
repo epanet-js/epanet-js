@@ -14,5 +14,5 @@ export const deleteAssets: ModelOperation<{ assetIds: readonly AssetId[] }> = (
     });
   });
 
-  return { name: "Delete assets", deleteAssets: Array.from(affectedIds) };
+  return { note: "Delete assets", deleteAssets: Array.from(affectedIds) };
 };

@@ -1,16 +1,12 @@
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import PMap from "src/lib/pmap";
-import { FeatureMap, Position } from "src/types";
+import { Position } from "src/types";
 import { FEATURES_POINT_LAYER_NAME } from "../../load_and_augment_style";
 import { decodeId } from "src/lib/id";
-import { NodeAsset } from "src/hydraulics/assets";
+import { AssetsMap, NodeAsset } from "src/hydraulics/assets";
 
-export const useSnapping = (
-  pmap: PMap,
-  idMap: IDMap,
-  featureMapDeprecated: FeatureMap,
-) => {
+export const useSnapping = (pmap: PMap, idMap: IDMap, assetsMap: AssetsMap) => {
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
     const { x, y } = point;
     const distance = 12;
@@ -38,7 +34,7 @@ export const useSnapping = (
     const featureId = getNeighborPoint(e.point);
     if (!featureId) return null;
 
-    const wrappedFeature = featureMapDeprecated.get(featureId);
+    const wrappedFeature = assetsMap.get(featureId);
     if (!wrappedFeature) return null;
 
     const geometry = wrappedFeature.feature.geometry;
@@ -53,7 +49,7 @@ export const useSnapping = (
     const featureId = getNeighborPoint(e.point);
     if (!featureId) return null;
 
-    const wrappedFeature = featureMapDeprecated.get(featureId);
+    const wrappedFeature = assetsMap.get(featureId);
     if (!wrappedFeature) return null;
 
     const { feature } = wrappedFeature;
