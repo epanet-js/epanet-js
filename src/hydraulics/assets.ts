@@ -11,15 +11,21 @@ import {
 import { JsonValue } from "type-fest";
 import cloneDeep from "lodash/cloneDeep";
 
-type StrictProperties = { [name: string]: JsonValue };
-type PointFeature = IFeature<Point, StrictProperties>;
-type LineStringFeature = IFeature<LineString, StrictProperties>;
+type LinkConnections = [start: string, end: string];
 
-export type Junction = IWrappedFeature<PointFeature>;
-export type Pipe = IWrappedFeature<LineStringFeature>;
+type StrictProperties = { [name: string]: JsonValue };
+type NodeFeature = IFeature<Point, StrictProperties>;
+type LinkFeature = IFeature<
+  LineString,
+  StrictProperties & { connections: LinkConnections }
+>;
+
+export type Junction = IWrappedFeature<NodeFeature>;
+export type Pipe = IWrappedFeature<LinkFeature>;
 
 export type NodeAsset = Junction;
 export type LinkAsset = Pipe;
+export type Asset = NodeAsset | LinkAsset;
 
 export const createJunction = (
   position: Position,
@@ -41,11 +47,15 @@ export const createJunction = (
 };
 
 export const createPipe = (coordinates: Position[]): Pipe => {
+  const nullConnections = ["", ""] as LinkConnections;
+
   return {
     id: newFeatureId(),
     feature: {
       type: "Feature",
-      properties: {},
+      properties: {
+        connections: nullConnections,
+      },
       geometry: {
         type: "LineString",
         coordinates: coordinates,
@@ -65,7 +75,7 @@ export const extendLink = (link: LinkAsset, position: Position): LinkAsset => {
     feature: replaceCoordinates(
       feature,
       coordinates.concat([position]),
-    ) as LineStringFeature,
+    ) as LinkFeature,
   };
 };
 
@@ -81,13 +91,17 @@ export const addVertexToLink = (
     feature: replaceCoordinates(
       feature,
       coordinates.concat([position]),
-    ) as LineStringFeature,
+    ) as LinkFeature,
   };
 };
 
 export const isLinkStart = (link: LinkAsset, position: Position) => {
   const coordinates = getLinkCoordinates(link);
   return isSamePosition(coordinates[0], position) && coordinates.length == 2;
+};
+
+export const isLink = (candidate: Asset) => {
+  return candidate.feature.geometry.type === "LineString";
 };
 
 export const attachConnections = (
@@ -103,10 +117,16 @@ export const attachConnections = (
 export const getLinkCoordinates = (link: LinkAsset): Position[] => {
   const { feature } = link;
   if (!feature || !feature.geometry || feature.geometry.type !== "LineString") {
-    throw new Error("Feature is not a valid point");
+    throw new Error("Feature is not a valid link");
   }
 
   return feature.geometry.coordinates;
+};
+
+export const getAssetConnections = (asset: Asset): LinkConnections | null => {
+  if (!isLink(asset)) return null;
+
+  return (asset as LinkAsset).feature.properties.connections;
 };
 
 export const getNodeCoordinates = (node: NodeAsset): Position => {
