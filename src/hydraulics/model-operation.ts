@@ -1,11 +1,5 @@
-import { FeatureMap } from "src/types";
-import { Topology } from "./topology";
 import { AssetId } from "./assets";
-
-type HydraulicModel = {
-  assets: FeatureMap;
-  topology: Topology;
-};
+import { HydraulicModel } from "./hydraulic-model";
 
 export type ModelMoment = {
   name: string;

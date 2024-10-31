@@ -24,7 +24,10 @@ import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
 import { EphemeralDrawPipe } from "src/lib/handlers/draw-pipe/ephemeral-state";
-import { Topology } from "src/hydraulics/topology";
+import {
+  HydraulicModel,
+  nullHydraulicModel,
+} from "src/hydraulics/hydraulic-model";
 
 // TODO: make this specific
 type MapboxLayer = any;
@@ -58,20 +61,21 @@ export type PreviewProperty = PersistenceMetadataMemory["label"];
 export interface Data {
   folderMap: FolderMap;
   featureMap: FeatureMap;
-  topology: Topology;
   selection: Sel;
+  hydraulicModel: HydraulicModel;
 }
 
 /**
  * Derived list of folders
  */
+const featureMap = new Map();
 export const dataAtom = atom<Data>({
-  featureMap: new Map(),
+  featureMap: featureMap,
   folderMap: new Map(),
-  topology: new Topology(),
   selection: {
     type: "none",
   },
+  hydraulicModel: nullHydraulicModel(featureMap),
 });
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
