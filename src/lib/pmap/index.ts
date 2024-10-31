@@ -11,7 +11,6 @@ import type {
 } from "src/state/jotai";
 import {
   CURSOR_DEFAULT,
-  DEFAULT_MAP_BOUNDS,
   emptySelection,
   LASSO_YELLOW,
   LASSO_DARK_YELLOW,
@@ -148,14 +147,15 @@ export default class PMap {
     controlsCorner?: Parameters<mapboxgl.Map["addControl"]>[1];
   }) {
     this.idMap = idMap;
-    const positionOptions = {
-      bounds: DEFAULT_MAP_BOUNDS as mapboxgl.LngLatBoundsLike,
+    const defaultStart = {
+      center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
+      zoom: 15.5,
     };
 
     const map = new mapboxgl.Map({
       container: element,
       ...MAP_OPTIONS,
-      ...positionOptions,
+      ...defaultStart,
     });
 
     this.overlay = new MapboxOverlay({
