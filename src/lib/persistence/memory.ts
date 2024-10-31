@@ -58,20 +58,8 @@ export class MemPersistence implements IPersistence {
   // eslint-disable-next-line
   private applyDeprecated = useAtomCallback(
     useCallback((get, set, moment: MomentInput) => {
-      let ctx = get(dataAtom);
+      const ctx = get(dataAtom);
       const layerConfigMap = get(layerConfigAtom);
-      if (!ctx.featureMap.size) {
-        ctx = {
-          ...ctx,
-          featureMap: new Map(),
-        };
-      }
-      if (!ctx.folderMap.size) {
-        ctx = {
-          ...ctx,
-          folderMap: new Map(),
-        };
-      }
       const reverse = UMoment.merge(
         fMoment(moment.note || `Reverse`),
         this.deleteFeaturesInner(moment.deleteFeatures, ctx),
@@ -81,14 +69,19 @@ export class MemPersistence implements IPersistence {
         this.putLayerConfigsInner(moment.putLayerConfigs, layerConfigMap),
         this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
       );
+
+      const updatedFeatures = new Map(
+        Array.from(ctx.featureMap).sort((a, b) => {
+          return sortAts(a[1], b[1]);
+        }),
+      );
       set(dataAtom, {
         selection: ctx.selection,
-        topology: ctx.topology,
-        featureMap: new Map(
-          Array.from(ctx.featureMap).sort((a, b) => {
-            return sortAts(a[1], b[1]);
-          }),
-        ),
+        hydraulicModel: {
+          ...ctx.hydraulicModel,
+          assets: updatedFeatures,
+        },
+        featureMap: updatedFeatures,
         folderMap: new Map(
           Array.from(ctx.folderMap).sort((a, b) => {
             return sortAts(a[1], b[1]);
@@ -208,10 +201,11 @@ export class MemPersistence implements IPersistence {
     ctx: Data,
   ) {
     const moment = momentForDeleteFeatures(features, ctx);
+    const { hydraulicModel } = ctx;
     for (const id of features) {
-      ctx.featureMap.delete(id);
+      hydraulicModel.assets.delete(id);
       const maybeNodeId = id;
-      ctx.topology.removeNode(maybeNodeId);
+      hydraulicModel.topology.removeNode(maybeNodeId);
     }
     return moment;
   }
@@ -288,11 +282,20 @@ export class MemPersistence implements IPersistence {
           inputFeature.at = generateKeyBetween(null, ats()[0]);
         }
       }
-      ctx.featureMap.set(inputFeature.id, inputFeature as IWrappedFeature);
+
+      const { hydraulicModel } = ctx;
+      hydraulicModel.assets.set(
+        inputFeature.id,
+        inputFeature as IWrappedFeature,
+      );
 
       const connections = getAssetConnections(inputFeature as Asset);
       connections &&
-        ctx.topology.addLink(inputFeature.id, connections[0], connections[1]);
+        hydraulicModel.topology.addLink(
+          inputFeature.id,
+          connections[0],
+          connections[1],
+        );
 
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }

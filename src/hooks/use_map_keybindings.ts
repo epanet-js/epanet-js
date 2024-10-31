@@ -132,13 +132,12 @@ export function useMapKeybindings() {
         const data = get(dataAtom);
         set(selectionAtom, USelection.none());
         (async () => {
-          const hydraulicModel = {
-            assets: data.featureMap,
-            topology: data.topology,
-          };
+          const { hydraulicModel, selection } = data;
+
           const moment = deleteAssets(hydraulicModel, {
-            assetIds: USelection.toIds(data.selection),
+            assetIds: USelection.toIds(selection),
           });
+
           await transact(moment);
         })().catch((e) => captureError(e));
         return false;
