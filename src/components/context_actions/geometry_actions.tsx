@@ -34,9 +34,9 @@ import {
   canInnerRing,
   addInnerRing,
   CanInnerRingResult,
-} from "src/lib/map_operations";
-import { deleteFeatures } from "src/lib/map_operations/delete_features";
-import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
+} from "src/lib/map_operations_deprecated";
+import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
+import { duplicateFeatures } from "src/lib/map_operations_deprecated/duplicate_features";
 import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
@@ -46,10 +46,10 @@ import { ActionItem } from "./action_item";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use_zoom_to";
-import { drawArc } from "src/lib/map_operations/draw_arc";
-import { divideFeatures } from "src/lib/map_operations/divide_feature";
-import { drawCentroids } from "src/lib/map_operations/draw_centroids";
-import { drawLabelPoints } from "src/lib/map_operations/draw_label_points";
+import { drawArc } from "src/lib/map_operations_deprecated/draw_arc";
+import { divideFeatures } from "src/lib/map_operations_deprecated/divide_feature";
+import { drawCentroids } from "src/lib/map_operations_deprecated/draw_centroids";
+import { drawLabelPoints } from "src/lib/map_operations_deprecated/draw_label_points";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],

@@ -9,7 +9,7 @@ import { useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { dataAtom, dialogAtom, virtualColumnsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
+import { deletePropertyKey } from "src/lib/map_operations_deprecated/delete_property_key";
 import without from "lodash/without";
 import { useAtomCallback } from "jotai/utils";
 import { useFeatureMap } from "src/lib/persistence/shared";

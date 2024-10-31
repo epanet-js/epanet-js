@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`map_operations > makeConvexHull > success 1`] = `
+exports[`map_operations_deprecated > makeConvexHull > success 1`] = `
 {
   "geometry": {
     "coordinates": [
@@ -30,7 +30,7 @@ exports[`map_operations > makeConvexHull > success 1`] = `
 }
 `;
 
-exports[`map_operations > rotateFeatures 1`] = `
+exports[`map_operations_deprecated > rotateFeatures 1`] = `
 [
   {
     "at": "0",
@@ -64,7 +64,7 @@ exports[`map_operations > rotateFeatures 1`] = `
 ]
 `;
 
-exports[`map_operations > rotateFeatures 2`] = `
+exports[`map_operations_deprecated > rotateFeatures 2`] = `
 [
   {
     "at": "0",
@@ -94,7 +94,7 @@ exports[`map_operations > rotateFeatures 2`] = `
 ]
 `;
 
-exports[`map_operations > rotateFeatures 3`] = `
+exports[`map_operations_deprecated > rotateFeatures 3`] = `
 [
   {
     "at": "0",

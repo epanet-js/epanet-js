@@ -2,7 +2,7 @@ import type { DialogStateSimplify } from "src/state/dialog_state";
 import { FieldCheckbox, StyledLabelSpan } from "src/components/elements";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Field, Form, Formik } from "formik";
-import { simplify } from "src/lib/map_operations/simplify";
+import { simplify } from "src/lib/map_operations_deprecated/simplify";
 import { usePersistence } from "src/lib/persistence/context";
 import Line from "src/components/icons/line";
 import { captureError } from "src/infra/error-tracking";

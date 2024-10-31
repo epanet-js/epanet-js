@@ -7,7 +7,7 @@ import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
 import noop from "lodash/noop";
-import * as ops from "src/lib/map_operations";
+import * as ops from "src/lib/map_operations_deprecated";
 import {
   Mode,
   ephemeralStateAtom,

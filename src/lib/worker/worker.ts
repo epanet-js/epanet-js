@@ -3,7 +3,7 @@ import { fromGeoJSON, fileToGeoJSON } from "src/lib/convert";
 import * as Comlink from "comlink";
 import { EitherHandler } from "./shared";
 import { bufferFeature } from "src/lib/buffer";
-import { booleanFeatures } from "src/lib/map_operations/boolean_features";
+import { booleanFeatures } from "src/lib/map_operations_deprecated/boolean_features";
 
 const lib = {
   getIssues,

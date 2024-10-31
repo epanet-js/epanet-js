@@ -8,9 +8,9 @@ import without from "lodash/without";
 import sortBy from "lodash/sortBy";
 import type { JsonValue } from "type-fest";
 import { captureError } from "src/infra/error-tracking";
-import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
-import { updatePropertyKey } from "src/lib/map_operations/update_property_key";
-import { deletePropertyKey } from "src/lib/map_operations/delete_property_key";
+import { updatePropertyValue } from "src/lib/map_operations_deprecated/update_property_value";
+import { updatePropertyKey } from "src/lib/map_operations_deprecated/update_property_key";
+import { deletePropertyKey } from "src/lib/map_operations_deprecated/delete_property_key";
 import type { IPersistence } from "src/lib/persistence/ipersistence";
 import {
   styledCheckbox,

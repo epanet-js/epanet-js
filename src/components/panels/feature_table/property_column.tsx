@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { updatePropertyValue } from "src/lib/map_operations/update_property_value";
+import { updatePropertyValue } from "src/lib/map_operations_deprecated/update_property_value";
 import { captureError } from "src/infra/error-tracking";
 import type { CoordProps, IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";

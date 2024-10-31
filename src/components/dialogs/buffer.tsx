@@ -7,7 +7,7 @@ import {
 } from "src/components/elements";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Field, Form, Formik } from "formik";
-import { buffer } from "src/lib/map_operations/buffer";
+import { buffer } from "src/lib/map_operations_deprecated/buffer";
 import type { BufferOptions } from "src/lib/buffer";
 import { GROUPED_UNIT_OPTIONS } from "src/lib/constants";
 import { usePersistence } from "src/lib/persistence/context";
