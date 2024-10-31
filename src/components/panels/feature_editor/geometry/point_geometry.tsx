@@ -17,7 +17,7 @@ export default function PointGeometry({
   vertexId?: VertexId;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   const vertexId = explicitVertexId || new CVertexId(0, 0);
 

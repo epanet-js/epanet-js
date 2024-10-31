@@ -23,7 +23,7 @@ export function LastSearchResult() {
     addMetadataWithGeocoderAtom,
   );
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [lastSearchResult, setLastSearchResult] = useAtom(lastSearchResultAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
 

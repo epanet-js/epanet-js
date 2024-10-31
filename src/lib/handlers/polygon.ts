@@ -35,7 +35,7 @@ export function usePolygonHandlers({
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const popMoment = usePopMoment();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   /**
    * Workarounds for Apple Pencil (same as in line drawing)
    */

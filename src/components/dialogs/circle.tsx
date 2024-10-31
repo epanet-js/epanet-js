@@ -30,7 +30,7 @@ export function CircleDialog({
   onClose: () => void;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const { position } = modal;
   const zoomTo = useZoomTo();
   const setDialogState = useSetAtom(dialogAtom);

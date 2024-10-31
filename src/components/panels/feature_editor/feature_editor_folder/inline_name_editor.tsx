@@ -16,7 +16,7 @@ export function InlineNameEditor({
   rep: IPersistence;
   // count: number;
 }) {
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [editing, setEditing] = useState<boolean>(false);
 
   async function onSubmit(values: RenameForm) {

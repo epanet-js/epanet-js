@@ -44,7 +44,7 @@ export function ItemFolder({
   item: FlattenedFolder;
   overlay: boolean;
 }) {
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const { depth } = item;
   const [sel, setSelection] = useAtom(selectionAtom);
   const folder = item.data;
@@ -240,7 +240,7 @@ export function ItemFeature({
   const previewVal = limitPreviewValue(
     (preview && feature.feature.properties?.[preview]) as JsonValue,
   );
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   const handleToggleVisibility = useAtomCallback(
     useCallback(
@@ -473,7 +473,7 @@ export const SortableItem = memo(function SortableItem({
 
 function FolderActions({ folder }: { folder: IFolder }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const zoomTo = useZoomTo();
 
   const duplicateFolder = useAtomCallback(

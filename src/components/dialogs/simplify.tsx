@@ -21,7 +21,7 @@ export default function SimplifyDialog({
 }) {
   const [selection, setSelection] = useAtom(selectionAtom);
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   const { features } = modal;
 

@@ -32,7 +32,7 @@ export function useDrawPipeHandlers({
   const { selectFeature } = useSelection(selection);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const usingTouchEvents = useRef<boolean>(false);
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState();

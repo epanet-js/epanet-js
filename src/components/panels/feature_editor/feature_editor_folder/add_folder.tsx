@@ -17,7 +17,7 @@ import { useSetAtom } from "jotai";
 
 export function AddFolder() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const setSelection = useSetAtom(selectionAtom);
   const [open, setOpen] = useState<boolean>(false);
   return (

@@ -108,7 +108,7 @@ export class MemPersistence implements IPersistence {
   );
 
   // eslint-disable-next-line
-  useTransact() {
+  useTransactDeprecated() {
     // eslint-disable-next-line
     return useAtomCallback(
       // eslint-disable-next-line

@@ -53,7 +53,7 @@ export interface IPersistence {
    * and it'll implement it. Unless you specify that the change
    * is quiet, the change is pushed onto the undo history.
    */
-  useTransact(): (
+  useTransactDeprecated(): (
     moment: Partial<MomentInput> & TransactOptions,
   ) => Promise<void>;
 

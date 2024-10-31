@@ -209,7 +209,7 @@ export function FeatureEditorFolderInner() {
   const { featureMap, folderMap, selection } = data;
   const rep = usePersistence();
   const [meta] = rep.useMetadata();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const [dropIntoFolder, setDropIntoFolder] = useState<boolean>(false);

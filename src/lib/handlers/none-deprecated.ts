@@ -42,7 +42,7 @@ export function useNoneHandlers({
   const setMode = useSetAtom(modeAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const endSnapshot = useEndSnapshot();
   const startSnapshot = useStartSnapshot();
   const lastPoint = useRef<mapboxgl.LngLat | null>(null);

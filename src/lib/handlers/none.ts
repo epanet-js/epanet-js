@@ -36,7 +36,7 @@ export function useNoneHandlers({
   const { isShiftHeld } = useKeyboardState();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const dragStartPoint = useRef<mapboxgl.LngLat | null>(null);
 
   const updateDraggingState = (features: IWrappedFeature[]) => {

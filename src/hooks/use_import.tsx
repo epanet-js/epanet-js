@@ -142,7 +142,7 @@ export function flattenRoot(
 
 export function useImportString() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   return useCallback(
     /**
@@ -296,7 +296,7 @@ function useJoinFeatures() {
 export function useImportFile() {
   const rep = usePersistence();
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const joinFeatures = useJoinFeatures();
 
   return useCallback(
@@ -364,7 +364,7 @@ export function useImportFile() {
 
 export function useImportShapefile() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   return useCallback(
     /**

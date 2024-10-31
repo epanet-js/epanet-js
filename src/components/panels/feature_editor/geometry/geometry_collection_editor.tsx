@@ -20,7 +20,7 @@ export function GeometryCollectionEditor({
   wrappedFeature: IWrappedFeature;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const map = useContext(MapContext);
   let vertexId = new CVertexId(0, 0);
   return (

@@ -55,7 +55,7 @@ export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const selectedFeatures = selectedWrappedFeatures.map((f) => f.feature);
   const canInnerRingResult = canInnerRing(selectedFeatures);
   const setDialogState = useSetAtom(dialogAtom);

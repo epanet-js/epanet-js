@@ -24,7 +24,7 @@ export default function BufferDialog({
   onClose: () => void;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const { features } = modal;
 
   return (

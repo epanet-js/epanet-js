@@ -243,7 +243,7 @@ export function FeatureEditorStyle({
   wrappedFeature: IWrappedFeature;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [meta] = rep.useMetadata();
 
   const properties = wrappedFeature.feature.properties;
@@ -335,7 +335,7 @@ export function FeatureEditorStyleMulti({
   wrappedFeatures: IWrappedFeature[];
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [meta] = rep.useMetadata();
 
   const uniformValues = useMemo(() => {

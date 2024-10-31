@@ -42,7 +42,7 @@ export function useSingleActions(
   selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [selection, setSelection] = useAtom(selectionAtom);
   const setDialogState = useSetAtom(dialogAtom);
 

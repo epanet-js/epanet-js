@@ -38,7 +38,7 @@ export function CastPropertyDialog({
   modal: ModalStateCastProperty;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const featureMap = useFeatureMap();
 
   const onSubmit = async (values: CastFormValues) => {
