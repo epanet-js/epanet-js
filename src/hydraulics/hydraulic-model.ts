@@ -1,8 +1,9 @@
 import { FeatureMap } from "src/types";
 import { Topology } from "./topology";
+import { AssetsMap } from "./assets";
 
 export type HydraulicModel = {
-  assets: FeatureMap;
+  assets: AssetsMap;
   topology: Topology;
 };
 

@@ -93,7 +93,7 @@ export const MapComponent = memo(function MapComponent({
 }) {
   const data = useAtomValue(dataAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
-  const { featureMapDeprecated, folderMap } = data;
+  const { featureMapDeprecated, folderMap, hydraulicModel } = data;
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
@@ -258,6 +258,7 @@ export const MapComponent = memo(function MapComponent({
     mode,
     dragTargetRef,
     featureMapDeprecated,
+    hydraulicModel,
     folderMap,
     idMap,
     selection,

@@ -110,8 +110,9 @@ export class MemPersistence implements IPersistence {
         trackMoment(moment);
         const result = this.apply({
           ...EMPTY_MOMENT,
-          note: moment.name,
-          deleteFeatures: moment.deleteAssets,
+          note: moment.note,
+          deleteFeatures: moment.deleteAssets || [],
+          putFeatures: moment.putAssets || [],
         });
         set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
         return Promise.resolve();
