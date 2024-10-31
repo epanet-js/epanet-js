@@ -25,6 +25,7 @@ export type Pipe = IWrappedFeature<LinkFeature>;
 
 export type NodeAsset = Junction;
 export type LinkAsset = Pipe;
+export type AssetId = StringId;
 export type Asset = NodeAsset | LinkAsset;
 
 export const createJunction = (
