@@ -1,15 +1,4 @@
-import {
-  MixIcon,
-  LinkBreak2Icon,
-  MaskOnIcon,
-  AllSidesIcon,
-  TrashIcon,
-  Crosshair1Icon,
-  CopyIcon,
-  GlobeIcon,
-  DotIcon,
-  TextIcon,
-} from "@radix-ui/react-icons";
+import { MixIcon, TrashIcon, Crosshair1Icon } from "@radix-ui/react-icons";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type {
   Action,
@@ -23,153 +12,22 @@ import {
   DDContent,
   B3Variant,
 } from "src/components/elements";
-import { dialogAtom } from "src/state/dialog_state";
 import { SingleActions } from "src/components/single_actions";
-import { useSetAtom } from "jotai";
-import {
-  GEOJSON_MULTI_GEOMETRY_TYPES,
-  MULTI_TO_SINGULAR,
-} from "src/lib/constants";
-import {
-  canInnerRing,
-  addInnerRing,
-  CanInnerRingResult,
-} from "src/lib/map_operations_deprecated";
 import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
-import { duplicateFeatures } from "src/lib/map_operations_deprecated/duplicate_features";
 import { usePersistence } from "src/lib/persistence/context";
-import { newFeatureId } from "src/lib/id";
-import toast from "react-hot-toast";
 import { selectionAtom, dataAtom } from "src/state/jotai";
-import { Geometry, IFeature, IWrappedFeature, Polygon } from "src/types";
 import { ActionItem } from "./action_item";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use_zoom_to";
-import { drawArc } from "src/lib/map_operations_deprecated/draw_arc";
-import { divideFeatures } from "src/lib/map_operations_deprecated/divide_feature";
-import { drawCentroids } from "src/lib/map_operations_deprecated/draw_centroids";
-import { drawLabelPoints } from "src/lib/map_operations_deprecated/draw_label_points";
+import { IWrappedFeature } from "src/types";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
-  const transact = rep.useTransactDeprecated();
-  const selectedFeatures = selectedWrappedFeatures.map((f) => f.feature);
-  const canInnerRingResult = canInnerRing(selectedFeatures);
-  const setDialogState = useSetAtom(dialogAtom);
+  const transactDeprecated = rep.useTransactDeprecated();
   const zoomTo = useZoomTo();
-
-  const bufferFeaturesAction = {
-    label: "Buffer",
-    applicable: true,
-    icon: <AllSidesIcon />,
-    onSelect: function doBufferFeatures() {
-      setDialogState({
-        type: "buffer",
-        features: selectedWrappedFeatures,
-      });
-      return Promise.resolve();
-    },
-  };
-
-  const geometriesThatYieldCentroids = new Set<Geometry["type"]>([
-    "Polygon",
-    "MultiPolygon",
-  ]);
-
-  const supportsCentroids = selectedFeatures.some(
-    (feature) =>
-      feature.geometry?.type &&
-      geometriesThatYieldCentroids.has(feature.geometry?.type),
-  );
-
-  const onCentroid = useAtomCallback(
-    useCallback(
-      // eslint-disable-next-line
-      async (_get, set) => {
-        const { newSelection, moment } = drawCentroids(selectedWrappedFeatures);
-        set(selectionAtom, newSelection);
-        return transact(moment);
-      },
-      [transact, selectedWrappedFeatures],
-    ),
-  );
-
-  const addCentroidAction = {
-    label: "Create centroids",
-    applicable: supportsCentroids,
-    icon: <DotIcon />,
-    onSelect: onCentroid,
-  };
-
-  const onLabelPoint = useAtomCallback(
-    useCallback(
-      // eslint-disable-next-line
-      async (_get, set) => {
-        const { newSelection, moment } = drawLabelPoints(
-          selectedWrappedFeatures,
-        );
-        set(selectionAtom, newSelection);
-        return transact(moment);
-      },
-      [transact, selectedWrappedFeatures],
-    ),
-  );
-
-  const addLabelPointAction = {
-    label: "Create label points",
-    applicable: supportsCentroids,
-    icon: <TextIcon />,
-    onSelect: onLabelPoint,
-  };
-
-  const onArc = useAtomCallback(
-    useCallback(
-      // eslint-disable-next-line
-      async (_get, set) => {
-        return drawArc(selectedWrappedFeatures).caseOf({
-          Left(e) {
-            toast.error(e.message);
-          },
-          Right({ newSelection, moment }) {
-            set(selectionAtom, newSelection);
-            return transact(moment);
-          },
-        });
-      },
-      [transact, selectedWrappedFeatures],
-    ),
-  );
-
-  const drawArcAction = {
-    label: "Draw great arc",
-    applicable:
-      selectedFeatures.length === 2 &&
-      selectedFeatures.every((feature) => feature.geometry?.type === "Point"),
-    icon: <GlobeIcon />,
-    onSelect: onArc,
-  };
-
-  const onDuplicate = useAtomCallback(
-    useCallback(
-      async (get, set) => {
-        const data = get(dataAtom);
-        const { newSelection, moment } = duplicateFeatures(data);
-        set(selectionAtom, newSelection);
-        await transact(moment);
-      },
-      [transact],
-    ),
-  );
-
-  const duplicateFeaturesAction = {
-    label: "Duplicate features",
-    applicable: true,
-    icon: <CopyIcon />,
-    onSelect: onDuplicate,
-  };
 
   const onDelete = useAtomCallback(
     useCallback(
@@ -177,9 +35,9 @@ export function useActions(
         const data = get(dataAtom);
         const { newSelection, moment } = deleteFeatures(data);
         set(selectionAtom, newSelection);
-        await transact(moment);
+        await transactDeprecated(moment);
       },
-      [transact],
+      [transactDeprecated],
     ),
   );
 
@@ -200,78 +58,7 @@ export function useActions(
     },
   };
 
-  const innerRingAction = {
-    icon: <MaskOnIcon />,
-    applicable: canInnerRingResult === CanInnerRingResult.Yes,
-    label: "Add inner ring to polygon",
-    onSelect: async function doAddInnerRing() {
-      return await addInnerRing(
-        selectedFeatures[0] as IFeature<Polygon>,
-        selectedFeatures[1] as IFeature<Polygon>,
-      ).caseOf({
-        Left(error) {
-          return Promise.resolve(void toast.error(error.message));
-        },
-        Right(features) {
-          return transact({
-            note: "Added an innner ring to a polygon",
-            track: "operation-add-polygon-inner-ring",
-            deleteFeatures: [
-              selectedWrappedFeatures[0].id,
-              selectedWrappedFeatures[1].id,
-            ],
-            putFeatures: features.map((feature) => {
-              return {
-                id: newFeatureId(),
-                folderId: selectedWrappedFeatures[0].folderId,
-                feature,
-              };
-            }),
-          });
-        },
-      });
-    },
-  };
-
-  const divideAction = {
-    icon: <LinkBreak2Icon />,
-    applicable: selectedFeatures.some(
-      (feature) =>
-        feature.geometry !== null &&
-        GEOJSON_MULTI_GEOMETRY_TYPES.has(feature.geometry?.type),
-    ),
-    label:
-      selectedFeatures.length === 1
-        ? selectedFeatures[0]?.geometry?.type === "GeometryCollection"
-          ? "Split GeometryCollection"
-          : `Divide into ${MULTI_TO_SINGULAR[
-              selectedFeatures[0]?.geometry?.type || "LineString"
-            ]!}s`
-        : `Divide features`,
-    onSelect: async function doDivide() {
-      const { putFeatures, deleteFeatures } = divideFeatures(
-        selectedWrappedFeatures,
-      );
-      await transact({
-        note: "Divided multi-features into single features",
-        track: "operation-divide-multi-features",
-        deleteFeatures,
-        putFeatures,
-      });
-    },
-  };
-
-  return [
-    zoomToAction,
-    divideAction,
-    innerRingAction,
-    bufferFeaturesAction,
-    duplicateFeaturesAction,
-    drawArcAction,
-    deleteFeaturesAction,
-    addCentroidAction,
-    addLabelPointAction,
-  ];
+  return [zoomToAction, deleteFeaturesAction];
 }
 
 export function GeometryActions({
