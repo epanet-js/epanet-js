@@ -12,10 +12,11 @@ import { useAtomValue } from "jotai";
 import { Data, dataAtom, momentLogAtom, presencesAtom } from "src/state/jotai";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { isDebugOn } from "src/infra/debug-mode";
+import { ModelMoment } from "src/hydraulics/model-operation";
 
 // This  used to send to posthog, but now could be removed
 // or wired into your own product analytics.
-export function trackMoment(partialMoment: Partial<MomentInput>) {
+export function trackMomentDeprecated(partialMoment: Partial<MomentInput>) {
   const { track } = partialMoment;
   if (isDebugOn) {
     // eslint-disable-next-line no-console
@@ -26,6 +27,12 @@ export function trackMoment(partialMoment: Partial<MomentInput>) {
   }
 }
 
+export function trackMoment(moment: ModelMoment) {
+  if (isDebugOn) {
+    // eslint-disable-next-line no-console
+    console.log("TRANSACT", JSON.stringify(moment));
+  }
+}
 /**
  * Same as momentForDeleteFolders but for features:
  * create an undelete operation.

@@ -7,7 +7,7 @@ type HydraulicModel = {
   topology: Topology;
 };
 
-type ModelMoment = {
+export type ModelMoment = {
   name: string;
   deleteAssets: AssetId[];
 };
