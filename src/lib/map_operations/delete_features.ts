@@ -16,7 +16,6 @@ import * as jsonpointer from "src/lib/pointer";
 import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
 import { getFoldersInTree } from "src/lib/folder";
 import { Topology } from "src/hydraulics/topology";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 interface DeleteResult {
   newSelection: Sel;
@@ -132,33 +131,22 @@ function deleteSingleAndMulti(
     };
   }
 
-  if (isFeatureOn("FLAG_DELETE_NODES")) {
-    const affectedIds = new Set(ids);
-    ids.forEach((id) => {
-      const maybeNodeId = id;
-      topology.getLinks(maybeNodeId).forEach((linkId) => {
-        affectedIds.add(linkId);
-      });
+  const affectedIds = new Set(ids);
+  ids.forEach((id) => {
+    const maybeNodeId = id;
+    topology.getLinks(maybeNodeId).forEach((linkId) => {
+      affectedIds.add(linkId);
     });
+  });
 
-    return {
-      newSelection: USelection.none(),
-      moment: {
-        ...EMPTY_MOMENT,
-        note: "Deleted features",
-        deleteFeatures: Array.from(affectedIds),
-      },
-    };
-  } else {
-    return {
-      newSelection: USelection.none(),
-      moment: {
-        ...EMPTY_MOMENT,
-        note: "Deleted features",
-        deleteFeatures: ids.slice(),
-      },
-    };
-  }
+  return {
+    newSelection: USelection.none(),
+    moment: {
+      ...EMPTY_MOMENT,
+      note: "Deleted features",
+      deleteFeatures: Array.from(affectedIds),
+    },
+  };
 }
 
 /**
