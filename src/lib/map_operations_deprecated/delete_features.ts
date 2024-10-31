@@ -16,6 +16,7 @@ import * as jsonpointer from "src/lib/pointer";
 import { EMPTY_MOMENT, Moment } from "src/lib/persistence/moment";
 import { getFoldersInTree } from "src/lib/folder";
 import { Topology } from "src/hydraulics/topology";
+import { deleteAssets } from "src/hydraulics/model-operations";
 
 interface DeleteResult {
   newSelection: Sel;
@@ -131,20 +132,14 @@ function deleteSingleAndMulti(
     };
   }
 
-  const affectedIds = new Set(ids);
-  ids.forEach((id) => {
-    const maybeNodeId = id;
-    topology.getLinks(maybeNodeId).forEach((linkId) => {
-      affectedIds.add(linkId);
-    });
-  });
-
+  const model = { assets: featureMap, topology };
+  const moment = deleteAssets(model, { assetIds: ids });
   return {
     newSelection: USelection.none(),
     moment: {
       ...EMPTY_MOMENT,
-      note: "Deleted features",
-      deleteFeatures: Array.from(affectedIds),
+      note: moment.name,
+      deleteFeatures: moment.deleteAssets,
     },
   };
 }
