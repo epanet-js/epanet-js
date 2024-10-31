@@ -41,6 +41,7 @@ import {
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { Asset, getAssetConnections } from "src/hydraulics/assets";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -272,16 +273,13 @@ export class MemPersistence implements IPersistence {
         }
       }
       ctx.featureMap.set(inputFeature.id, inputFeature as IWrappedFeature);
+
       if (isFeatureOn("FLAG_DELETE_NODES")) {
-        if (
-          inputFeature.feature.properties &&
-          inputFeature.feature.properties.connections
-        ) {
-          const [nodeStartId, nodeEndId] = inputFeature.feature.properties
-            .connections as string[];
-          ctx.topology.addLink(inputFeature.id, nodeStartId, nodeEndId);
-        }
+        const connections = getAssetConnections(inputFeature as Asset);
+        connections &&
+          ctx.topology.addLink(inputFeature.id, connections[0], connections[1]);
       }
+
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
 
