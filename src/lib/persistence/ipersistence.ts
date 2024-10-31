@@ -3,6 +3,7 @@ import type { MomentInput } from "./moment";
 import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
+import { ModelMoment } from "src/hydraulics/model-operation";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
@@ -46,6 +47,8 @@ export interface IPersistence {
   useLastPresence(): null;
 
   useHistoryControl(): (direction: "undo" | "redo") => Promise<void>;
+
+  useTransact(): (moment: ModelMoment) => Promise<void>;
 
   /**
    * The main method for making changes to the map: give this

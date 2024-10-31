@@ -37,10 +37,12 @@ import {
   momentForDeleteFolders,
   momentForDeleteLayerConfigs,
   trackMoment,
+  trackMomentDeprecated,
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
 import { Asset, getAssetConnections } from "src/hydraulics/assets";
+import { ModelMoment } from "src/hydraulics/model-operation";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -54,7 +56,7 @@ export class MemPersistence implements IPersistence {
    * we need to write to the moment log and to features.
    */
   // eslint-disable-next-line
-  private apply = useAtomCallback(
+  private applyDeprecated = useAtomCallback(
     useCallback((get, set, moment: MomentInput) => {
       let ctx = get(dataAtom);
       const layerConfigMap = get(layerConfigAtom);
@@ -107,15 +109,32 @@ export class MemPersistence implements IPersistence {
     }, []),
   );
 
+  useTransact() {
+    // eslint-disable-next-line
+    return useAtomCallback(
+      // eslint-disable-next-line
+      useCallback((get, set, moment: ModelMoment) => {
+        trackMoment(moment);
+        const result = this.applyDeprecated({
+          ...EMPTY_MOMENT,
+          note: moment.name,
+          deleteFeatures: moment.deleteAssets,
+        });
+        set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
+        return Promise.resolve();
+      }, []),
+    );
+  }
+
   // eslint-disable-next-line
   useTransactDeprecated() {
     // eslint-disable-next-line
     return useAtomCallback(
       // eslint-disable-next-line
       useCallback((get, set, partialMoment: Partial<MomentInput>) => {
-        trackMoment(partialMoment);
+        trackMomentDeprecated(partialMoment);
         const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
-        const result = this.apply(moment);
+        const result = this.applyDeprecated(moment);
         set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
         return Promise.resolve();
       }, []),
@@ -156,7 +175,7 @@ export class MemPersistence implements IPersistence {
           // Nothing to undo
           return Promise.resolve();
         }
-        const reverse = this.apply(moment);
+        const reverse = this.applyDeprecated(moment);
         if (UMoment.isEmpty(reverse)) {
           // console.error(
           //   "[SKIPPING] Got an empty reverse, forward: ",
