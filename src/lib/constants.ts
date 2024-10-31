@@ -225,7 +225,7 @@ export const geojsonTypes: GeoJSONTypeList = [
 export const EMPTY_ARRAY: any[] = [];
 
 export const DEFAULT_MAP_BOUNDS = [
-  [-4.4039374, 55.9215236],
+  [-4.4029364, 55.9180236],
   [-4.3650026, 55.9112635],
 ] as const;
 
