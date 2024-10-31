@@ -276,8 +276,8 @@ function HeaderSelectionsAddresses({
 }
 
 function JoinSettings({ columns }: { columns: Columns }) {
-  const featureMap = useAtomValue(dataAtom).featureMap;
-  const propertyKeys = extractPropertyKeys(featureMap);
+  const featureMapDeprecated = useAtomValue(dataAtom).featureMapDeprecated;
+  const propertyKeys = extractPropertyKeys(featureMapDeprecated);
   return (
     <>
       <SelectHeader

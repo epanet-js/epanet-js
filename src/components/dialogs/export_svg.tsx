@@ -206,7 +206,7 @@ export function ExportSVGDialog() {
   const map = useContext(MapContext);
   const rep = usePersistence();
   const [meta] = rep.useMetadata();
-  const { featureMap } = data;
+  const { featureMapDeprecated } = data;
   const root = useRootItems(data);
   const [config, setConfig] = useState<Config>({
     padding: 10,
@@ -234,7 +234,7 @@ export function ExportSVGDialog() {
 
   const path = useMemo(() => {
     const fc: FeatureCollection = { type: "FeatureCollection", features: [] };
-    for (const { feature } of featureMap.values()) {
+    for (const { feature } of featureMapDeprecated.values()) {
       const geometry = feature.geometry;
       if (!geometry) continue;
       const rewound = rewindGeometry(geometry, true);
@@ -273,7 +273,7 @@ export function ExportSVGDialog() {
     const path = geo.geoPath(proj).pointRadius(config.pointRadius);
 
     return path;
-  }, [featureMap, featureMap.version, config, mapExtent]);
+  }, [featureMapDeprecated, featureMapDeprecated.version, config, mapExtent]);
 
   async function onExport() {
     const { fileSave } = await import("browser-fs-access");

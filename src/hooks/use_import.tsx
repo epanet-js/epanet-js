@@ -183,13 +183,13 @@ export function useImportString() {
 }
 
 export function getTargetMap(
-  { featureMap }: Pick<Data, "featureMap">,
+  { featureMapDeprecated }: Pick<Data, "featureMapDeprecated">,
   joinTargetHeader: string,
 ) {
   const targetMap = new Map<string, IWrappedFeature[]>();
   let sourceMissingFieldCount = 0;
 
-  for (const wrappedFeature of featureMap.values()) {
+  for (const wrappedFeature of featureMapDeprecated.values()) {
     const value = wrappedFeature.feature.properties?.[joinTargetHeader];
     if (value !== undefined) {
       const valueStr = String(value);

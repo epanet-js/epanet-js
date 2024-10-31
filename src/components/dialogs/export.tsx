@@ -42,14 +42,14 @@ export function fallbackSave(result: ExportedData, type: FileType) {
 
 export function CSVOptions({
   root,
-  featureMap,
+  featureMapDeprecated,
   values,
 }: {
   root: Root;
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
   values: ExportOptions;
 }) {
-  const folderSummary = useFolderSummary({ root, featureMap });
+  const folderSummary = useFolderSummary({ root, featureMapDeprecated });
   const selectedFolder = folderSummary.find(
     (folder) => folder.meta.id === (values.folderId || null),
   );
@@ -275,13 +275,16 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
             <Form>
               <div>
                 <div className="space-y-4">
-                  <NarrowExport root={root} featureMap={data.featureMap} />
+                  <NarrowExport
+                    root={root}
+                    featureMapDeprecated={data.featureMapDeprecated}
+                  />
                   <SelectFileType exportable />
                   {values.type === "geojson" ? <GeoJSONOptions /> : null}
                   {values.type === "csv" ? (
                     <CSVOptions
                       root={root}
-                      featureMap={data.featureMap}
+                      featureMapDeprecated={data.featureMapDeprecated}
                       values={values}
                     />
                   ) : null}

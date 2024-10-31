@@ -48,12 +48,12 @@ export function wrappedFeaturesToFeatureCollection(
 }
 
 export function geojsonToString(
-  featureMap: FeatureMap,
+  featureMapDeprecated: FeatureMap,
   options: ExportOptions["geojsonOptions"],
 ) {
   const featureCollection: FeatureCollection = {
     type: "FeatureCollection",
-    features: Array.from(featureMap.values(), (wrappedFeature) => {
+    features: Array.from(featureMapDeprecated.values(), (wrappedFeature) => {
       return rewindFeature(
         wrappedFeatureToExportable(wrappedFeature, options),
         options?.winding,

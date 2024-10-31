@@ -11,7 +11,7 @@ test("getFn", () => {
 test("getColumns", () => {
   expect(
     getColumns({
-      featureMap: wrapMap(fcMultiPoint),
+      featureMapDeprecated: wrapMap(fcMultiPoint),
       folderId: null,
       virtualColumns: [],
     }),

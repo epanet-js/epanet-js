@@ -8,13 +8,14 @@ import { twoPoints, wrapMap } from "test/helpers";
 import { getTargetMap } from "./use_import";
 
 test("getTargetMap", () => {
-  expect(getTargetMap({ featureMap: new Map() }, "x")).toMatchInlineSnapshot(`
+  expect(getTargetMap({ featureMapDeprecated: new Map() }, "x"))
+    .toMatchInlineSnapshot(`
     {
       "sourceMissingFieldCount": 0,
       "targetMap": Map {},
     }
   `);
-  expect(getTargetMap({ featureMap: wrapMap(twoPoints) }, "b"))
+  expect(getTargetMap({ featureMapDeprecated: wrapMap(twoPoints) }, "b"))
     .toMatchInlineSnapshot(`
       {
         "sourceMissingFieldCount": 1,

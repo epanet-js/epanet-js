@@ -11,7 +11,7 @@ export const USelection = {
    * we can place a feature in that.
    */
   selectionToFolder(
-    data: Pick<Data, "selection" | "featureMap" | "folderMap">,
+    data: Pick<Data, "selection" | "featureMapDeprecated" | "folderMap">,
   ): Sel {
     const { selection } = data;
 
@@ -92,9 +92,12 @@ export const USelection = {
    */
   getSelectedFeatures({
     selection,
-    featureMap,
+    featureMapDeprecated,
     folderMap,
-  }: Pick<Data, "selection" | "featureMap" | "folderMap">): IWrappedFeature[] {
+  }: Pick<
+    Data,
+    "selection" | "featureMapDeprecated" | "folderMap"
+  >): IWrappedFeature[] {
     switch (selection.type) {
       case "none": {
         return EMPTY_ARRAY as IWrappedFeature[];
@@ -102,7 +105,7 @@ export const USelection = {
       case "folder": {
         const folders = getFoldersInTree(folderMap, selection.id);
         const features: IWrappedFeature[] = [];
-        for (const feature of featureMap.values()) {
+        for (const feature of featureMapDeprecated.values()) {
           if (feature.folderId && folders.has(feature.folderId)) {
             features.push(feature);
           }
@@ -112,7 +115,7 @@ export const USelection = {
       default: {
         const features: IWrappedFeature[] = [];
         for (const id of this.toIds(selection)) {
-          const feature = featureMap.get(id);
+          const feature = featureMapDeprecated.get(id);
           if (feature) features.push(feature);
         }
         return features;

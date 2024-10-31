@@ -42,7 +42,7 @@ const POI_ZOOM = 16;
 export function QuickswitcherDialog({ onClose }: { onClose: () => void }) {
   const map = useContext(MapContext);
   const data = useAtomValue(dataAtom);
-  const { featureMap } = data;
+  const { featureMapDeprecated } = data;
   const zoomTo = useZoomTo();
 
   const setSelection = useSetAtom(selectionAtom);
@@ -59,11 +59,11 @@ export function QuickswitcherDialog({ onClose }: { onClose: () => void }) {
 
   const searchIndex = useMemo(() => {
     const columns = getColumns({
-      featureMap,
+      featureMapDeprecated,
       folderId: null,
       virtualColumns: [],
     });
-    return new Fuse(Array.from(featureMap.values()), {
+    return new Fuse(Array.from(featureMapDeprecated.values()), {
       keys: columns,
       isCaseSensitive: false,
       includeMatches: true,
@@ -71,7 +71,7 @@ export function QuickswitcherDialog({ onClose }: { onClose: () => void }) {
       threshold: 0.2,
       ignoreLocation: true,
     });
-  }, [featureMap]);
+  }, [featureMapDeprecated]);
 
   const {
     data: list,

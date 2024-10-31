@@ -17,7 +17,7 @@ export function useJunctionHandlers({
   dragTargetRef,
   mode,
   selection,
-  featureMap,
+  featureMapDeprecated,
   rep,
 }: HandlerContext): Handlers {
   const setSelection = useSetAtom(selectionAtom);
@@ -39,7 +39,7 @@ export function useJunctionHandlers({
       const putFeature = createOrUpdateFeature({
         mode,
         selection,
-        featureMap,
+        featureMapDeprecated,
         geometry: point,
       });
 

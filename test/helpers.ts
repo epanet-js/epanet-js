@@ -77,7 +77,7 @@ export function wrapMap(fc: FeatureCollection): FeatureMap {
 export function wrapMapAndId(fc: FeatureCollection) {
   const idMap: IDMap = UIDMap.empty();
   const wrappedFeatures: IWrappedFeature[] = [];
-  const featureMap: FeatureMap = new Map(
+  const featureMapDeprecated: FeatureMap = new Map(
     fc.features.map((feature, i) => {
       const id = i.toString(16).padStart(21, "0");
       UIDMap.pushUUID(idMap, id);
@@ -92,7 +92,7 @@ export function wrapMapAndId(fc: FeatureCollection) {
       return [id, wrappedFeature];
     }),
   );
-  return { wrappedFeatures, idMap, featureMap };
+  return { wrappedFeatures, idMap, featureMapDeprecated };
 }
 
 export function f(features: IFeature | IFeature[]): IFeatureCollection {

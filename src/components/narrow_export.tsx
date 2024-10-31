@@ -8,12 +8,12 @@ import { FeatureMap } from "src/types";
 
 export function NarrowExport({
   root,
-  featureMap,
+  featureMapDeprecated,
 }: {
   root: Root;
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
 }) {
-  const folderSummary = useFolderSummary({ root, featureMap });
+  const folderSummary = useFolderSummary({ root, featureMapDeprecated });
   return (
     <>
       <label className="block pt-2 space-y-2">

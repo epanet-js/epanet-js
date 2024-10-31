@@ -15,19 +15,19 @@ export function getFn(obj: IWrappedFeature, path: string | string[]) {
 type FolderId = IFolder["id"];
 
 interface ColumnsArgs {
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
   folderId: FolderId | null;
   virtualColumns: VirtualColumns;
 }
 
 export function getColumns({
-  featureMap,
+  featureMapDeprecated,
   folderId,
   virtualColumns,
 }: ColumnsArgs) {
   const columns = new Set<string>();
 
-  for (const { feature, folderId: id } of featureMap.values()) {
+  for (const { feature, folderId: id } of featureMapDeprecated.values()) {
     if (folderId === null || folderId === id) {
       if (feature.properties === null) continue;
       for (const name in feature.properties) {
@@ -51,15 +51,20 @@ export function getColumns({
  * even if the displayed features don't contain them.
  */
 export function useColumns({
-  featureMap,
+  featureMapDeprecated,
   folderId,
   virtualColumns,
 }: ColumnsArgs) {
   return useMemo(() => {
     return getColumns({
-      featureMap,
+      featureMapDeprecated,
       folderId,
       virtualColumns,
     });
-  }, [featureMap, featureMap.version, folderId, virtualColumns]);
+  }, [
+    featureMapDeprecated,
+    featureMapDeprecated.version,
+    folderId,
+    virtualColumns,
+  ]);
 }

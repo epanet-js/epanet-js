@@ -9,7 +9,7 @@ const folderId2 = "00000000-0000-0000-0000-000000000001";
 const columns = ["name", "description"];
 
 const folderIds = [folderId1, folderId2, null];
-const featureMap = new Map(
+const featureMapDeprecated = new Map(
   [
     ...wrapMap({
       type: "FeatureCollection",
@@ -45,12 +45,12 @@ const featureMap = new Map(
   }),
 );
 
-const wrappedFeatures = Array.from(featureMap.values());
+const wrappedFeatures = Array.from(featureMapDeprecated.values());
 
 test("measureColumn", () => {
-  expect(measureColumn("name", featureMap)).toEqual(140);
-  expect(measureColumn("description", featureMap)).toEqual(140);
-  expect(measureColumn("baz", featureMap)).toEqual(64);
+  expect(measureColumn("name", featureMapDeprecated)).toEqual(140);
+  expect(measureColumn("description", featureMapDeprecated)).toEqual(140);
+  expect(measureColumn("baz", featureMapDeprecated)).toEqual(64);
   expect(measureColumn("baz", new Map())).toEqual(64);
 });
 
@@ -67,7 +67,7 @@ describe("filterFeatures", () => {
           exact: false,
         },
         columns,
-        featureMap,
+        featureMapDeprecated,
       }),
     ).toEqual(wrappedFeatures);
   });
@@ -84,7 +84,7 @@ describe("filterFeatures", () => {
           exact: false,
         },
         columns,
-        featureMap,
+        featureMapDeprecated,
       }),
     ).toEqual([wrappedFeatures[1], wrappedFeatures[0]]);
   });
@@ -101,7 +101,7 @@ describe("filterFeatures", () => {
           exact: false,
         },
         columns,
-        featureMap,
+        featureMapDeprecated,
       }),
     ).toEqual([wrappedFeatures[2]]);
   });
@@ -118,7 +118,7 @@ describe("filterFeatures", () => {
           exact: false,
         },
         columns,
-        featureMap,
+        featureMapDeprecated,
       }),
     ).toEqual([wrappedFeatures[0]]);
   });
@@ -135,7 +135,7 @@ describe("filterFeatures", () => {
           exact: false,
         },
         columns,
-        featureMap,
+        featureMapDeprecated,
       }),
     ).toEqual([wrappedFeatures[0]]);
   });

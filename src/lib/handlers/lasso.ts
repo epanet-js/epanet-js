@@ -11,7 +11,7 @@ import { useCallback } from "react";
 
 export function useLassoHandlers({
   flatbushInstance,
-  featureMap,
+  featureMapDeprecated,
   idMap,
   folderMap,
   selection,
@@ -81,7 +81,7 @@ export function useLassoHandlers({
       // From here on out we assume that this was a shift-click.
       const fuzzyResult = utils.fuzzyClick(e, {
         idMap,
-        featureMap,
+        featureMapDeprecated,
         folderMap,
         pmap,
       });

@@ -98,13 +98,13 @@ function FeatureEditorPropertiesRaw({
   rep: IPersistence;
   showAll: boolean;
 }) {
-  const { featureMap } = useAtomValue(dataAtom);
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
   const { feature } = wrappedFeature;
   const {
     feature: { properties },
   } = wrappedFeature;
 
-  const propertyKeys = extractPropertyKeys(featureMap);
+  const propertyKeys = extractPropertyKeys(featureMapDeprecated);
 
   const missingProperties = useMemo(() => {
     const missing: { [key: string]: undefined } = {};

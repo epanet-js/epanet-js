@@ -25,10 +25,10 @@ export const splitFeatureGroups = (
     symbolization,
     previewProperty,
   });
-  const { featureMap, selection } = data;
+  const { featureMapDeprecated, selection } = data;
 
   const selectionIds = toIdSet(selection);
-  for (const feature of featureMap.values()) {
+  for (const feature of featureMapDeprecated.values()) {
     if (feature.feature.properties?.visibility === false) {
       continue;
     }
@@ -90,7 +90,7 @@ export function splitFeatureGroupsDeprecated({
   idMap: IDMap;
   previewProperty: PreviewProperty;
 }): SplitGroupsDeprecated {
-  const { selection, folderMap, featureMap } = data;
+  const { selection, folderMap, featureMapDeprecated } = data;
 
   const features: Feature[] = [];
   let selectedFeature: Feature | null = null;
@@ -104,7 +104,7 @@ export function splitFeatureGroupsDeprecated({
     previewProperty,
   });
 
-  for (const feature of featureMap.values()) {
+  for (const feature of featureMapDeprecated.values()) {
     // exclude.size here is an attempt at micro-optimization,
     // saving the .has if there is no exclusion
     if (feature.folderId && exclude.size && exclude.has(feature.folderId)) {

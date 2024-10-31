@@ -103,17 +103,17 @@ export function isFeatureLocked(
 }
 
 export function filterLockedFeatures({
-  featureMap,
+  featureMapDeprecated,
   folderMap,
 }: {
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
   folderMap: FolderMap;
 }) {
   const lockedSet = generateLockedSet(folderMap);
   const exclude = generateExclude(folderMap);
 
   const features: IWrappedFeature[] = [];
-  for (const feature of featureMap.values()) {
+  for (const feature of featureMapDeprecated.values()) {
     if (feature.feature.properties?.visibility === false) {
       continue;
     }

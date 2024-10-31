@@ -34,10 +34,15 @@ export class CGeoJSON implements FileType {
       },
     );
   }
-  back({ featureMap }: { featureMap: FeatureMap }, options: ExportOptions) {
+  back(
+    { featureMapDeprecated }: { featureMapDeprecated: FeatureMap },
+    options: ExportOptions,
+  ) {
     return EitherAsync.liftEither(
       Right({
-        blob: stringToBlob(geojsonToString(featureMap, options.geojsonOptions)),
+        blob: stringToBlob(
+          geojsonToString(featureMapDeprecated, options.geojsonOptions),
+        ),
         name: "features.geojson",
       }),
     );

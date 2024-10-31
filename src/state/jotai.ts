@@ -60,7 +60,7 @@ export type PreviewProperty = PersistenceMetadataMemory["label"];
  */
 export interface Data {
   folderMap: FolderMap;
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap; //Use hydraulicModel.assets instead
   selection: Sel;
   hydraulicModel: HydraulicModel;
 }
@@ -68,14 +68,14 @@ export interface Data {
 /**
  * Derived list of folders
  */
-const featureMap = new Map();
+const assetsMap = new Map();
 export const dataAtom = atom<Data>({
-  featureMap: featureMap,
+  featureMapDeprecated: assetsMap,
   folderMap: new Map(),
   selection: {
     type: "none",
   },
-  hydraulicModel: nullHydraulicModel(featureMap),
+  hydraulicModel: nullHydraulicModel(assetsMap),
 });
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());

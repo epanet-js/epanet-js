@@ -16,21 +16,21 @@ export function getMapCoord(
 
 export function createOrUpdateFeature({
   mode,
-  featureMap,
+  featureMapDeprecated,
   geometry,
   selection,
   properties = {},
 }: {
   selection: Sel;
   mode: ModeWithOptions;
-  featureMap: Data["featureMap"];
+  featureMapDeprecated: Data["featureMapDeprecated"];
   geometry: Geometry;
   properties?: GeoJsonProperties;
 }): PutFeature {
   const id = newFeatureId();
   const replaceGeometryForId = mode.modeOptions?.replaceGeometryForId;
   const wrappedFeature =
-    replaceGeometryForId && featureMap.get(replaceGeometryForId);
+    replaceGeometryForId && featureMapDeprecated.get(replaceGeometryForId);
 
   if (wrappedFeature) {
     const p: PutFeature = {
