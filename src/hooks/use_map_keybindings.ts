@@ -2,12 +2,12 @@ import type { Options } from "react-hotkeys-hook";
 import { useHotkeys } from "src/integrations/hotkeys";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
 import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/selection";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { captureError } from "src/infra/error-tracking";
+import { deleteAssets } from "src/hydraulics/model-operations";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -32,7 +32,8 @@ function shouldControlTree(e: Event) {
 export function useMapKeybindings() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
-  const transact = rep.useTransactDeprecated();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
 
   useHotkeys(
     "meta+z, Ctrl+z",
@@ -63,7 +64,7 @@ export function useMapKeybindings() {
         if (folderId) {
           const folder = data.folderMap.get(folderId);
           if (folder) {
-            void transact({
+            void transactDeprecated({
               note: "Toggled a folder",
               putFolders: [
                 {
@@ -77,7 +78,7 @@ export function useMapKeybindings() {
           set(selectionAtom, USelection.selectionToFolder(data));
         }
       },
-      [transact],
+      [transactDeprecated],
     ),
   );
 
@@ -131,8 +132,13 @@ export function useMapKeybindings() {
         const data = get(dataAtom);
         set(selectionAtom, USelection.none());
         (async () => {
-          const { newSelection, moment } = deleteFeatures(data);
-          set(selectionAtom, newSelection);
+          const hydraulicModel = {
+            assets: data.featureMap,
+            topology: data.topology,
+          };
+          const moment = deleteAssets(hydraulicModel, {
+            assetIds: USelection.toIds(data.selection),
+          });
           await transact(moment);
         })().catch((e) => captureError(e));
         return false;

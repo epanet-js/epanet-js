@@ -13,7 +13,6 @@ import {
   B3Variant,
 } from "src/components/elements";
 import { SingleActions } from "src/components/single_actions";
-import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
 import { usePersistence } from "src/lib/persistence/context";
 import { selectionAtom, dataAtom } from "src/state/jotai";
 import { ActionItem } from "./action_item";
@@ -21,27 +20,35 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use_zoom_to";
 import { IWrappedFeature } from "src/types";
+import { USelection } from "src/selection";
+import { deleteAssets } from "src/hydraulics/model-operations";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
   const zoomTo = useZoomTo();
 
   const onDelete = useAtomCallback(
     useCallback(
       async (get, set) => {
         const data = get(dataAtom);
-        const { newSelection, moment } = deleteFeatures(data);
-        set(selectionAtom, newSelection);
-        await transactDeprecated(moment);
+        set(selectionAtom, USelection.none());
+        const hydraulicModel = {
+          assets: data.featureMap,
+          topology: data.topology,
+        };
+        const moment = deleteAssets(hydraulicModel, {
+          assetIds: USelection.toIds(data.selection),
+        });
+        await transact(moment);
       },
-      [transactDeprecated],
+      [transact],
     ),
   );
 
-  const deleteFeaturesAction = {
+  const deleteAssetsAction = {
     label: "Delete features",
     variant: "destructive" as B3Variant,
     applicable: true,
@@ -58,7 +65,7 @@ export function useActions(
     },
   };
 
-  return [zoomToAction, deleteFeaturesAction];
+  return [zoomToAction, deleteAssetsAction];
 }
 
 export function GeometryActions({
