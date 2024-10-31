@@ -26,7 +26,6 @@ import {
 import { GeometryActions } from "src/components/context_actions/geometry_actions";
 import { IFolder, IWrappedFeature } from "src/types";
 import { useAtomCallback } from "jotai/utils";
-import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
 import { memo, useCallback } from "react";
 import { collectFoldersByFolder, collectDescendents } from "src/lib/folder";
 import { useZoomTo } from "src/hooks/use_zoom_to";
@@ -492,21 +491,6 @@ function FolderActions({ folder }: { folder: IFolder }) {
     ),
   );
 
-  const deleteFolder = useAtomCallback(
-    useCallback(
-      (get, set) => {
-        const data = get(dataAtom);
-        const { newSelection, moment } = deleteFeatures({
-          ...data,
-          selection: USelection.folder(folder.id),
-        });
-        set(selectionAtom, newSelection);
-        return transact(moment);
-      },
-      [transact, folder.id],
-    ),
-  );
-
   const zoomToFolder = useAtomCallback(
     useCallback(
       (get) => {
@@ -545,7 +529,7 @@ function FolderActions({ folder }: { folder: IFolder }) {
         Zoom to
       </CMItem>
       <DDSeparator />
-      <CMItem onSelect={deleteFolder} variant="destructive">
+      <CMItem onSelect={() => null} variant="destructive">
         Delete
       </CMItem>
     </>
