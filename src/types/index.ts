@@ -136,7 +136,7 @@ export type IFolderInput = SetOptional<IFolder, "at">;
  */
 export const UWrappedFeature = {
   filterMapByFolder(
-    featureMap: FeatureMap,
+    featureMapDeprecated: FeatureMap,
     folderMap: FolderMap,
     folderId: string | null,
   ): {
@@ -145,14 +145,14 @@ export const UWrappedFeature = {
   } {
     if (!folderId) {
       return {
-        filteredFeatures: featureMap,
+        filteredFeatures: featureMapDeprecated,
         filteredFolders: folderMap,
       };
     }
 
     const filteredFeatures: FeatureMap = new Map();
     const folderIds = getFoldersInTree(folderMap, folderId);
-    for (const wrappedFeature of featureMap.values()) {
+    for (const wrappedFeature of featureMapDeprecated.values()) {
       if (wrappedFeature.folderId && folderIds.has(wrappedFeature.folderId)) {
         filteredFeatures.set(wrappedFeature.id, wrappedFeature);
       }
@@ -175,13 +175,13 @@ export const UWrappedFeature = {
     };
   },
   mapToFeatureCollection(
-    featureMap: FeatureMap,
+    featureMapDeprecated: FeatureMap,
     folderMap: FolderMap,
     folderId: string | null,
   ): FeatureCollection {
     const folderIds = folderId && getFoldersInTree(folderMap, folderId);
     const features: FeatureCollection["features"] = [];
-    for (const wrappedFeature of featureMap.values()) {
+    for (const wrappedFeature of featureMapDeprecated.values()) {
       if (
         !folderIds ||
         (wrappedFeature.folderId && folderIds.has(wrappedFeature.folderId))
@@ -400,7 +400,7 @@ export interface HandlerContext {
   dragTargetRef: React.MutableRefObject<DragTarget | null>;
   mode: ModeWithOptions;
   throttledMovePointer: (e: mapboxgl.Point) => void;
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
   folderMap: FolderMap;
   idMap: IDMap;
   rep: IPersistence;

@@ -18,7 +18,7 @@ export function useNoneHandlers({
   throttledMovePointer,
   dragTargetRef,
   selection,
-  featureMap,
+  featureMapDeprecated,
   idMap,
   folderMap,
   rep,
@@ -58,7 +58,7 @@ export function useNoneHandlers({
     const dx = start.lng - end.lng;
     const dy = start.lat - end.lat;
     const features = ids.map((uuid) => {
-      const feature = featureMap.get(uuid)!;
+      const feature = featureMapDeprecated.get(uuid)!;
       return {
         ...feature,
         feature: ops.moveFeature(feature.feature, dx, dy),
@@ -72,7 +72,7 @@ export function useNoneHandlers({
     vertexId: VertexId,
     position: Pos2,
   ) => {
-    const wrappedFeature = featureMap.get(featureId)!;
+    const wrappedFeature = featureMapDeprecated.get(featureId)!;
     const { feature: newFeature } = ops.setCoordinates({
       feature: wrappedFeature.feature,
       position: position,
@@ -86,7 +86,7 @@ export function useNoneHandlers({
   ) => {
     const fuzzyResult = utils.fuzzyClick(e, {
       idMap,
-      featureMap,
+      featureMapDeprecated,
       folderMap,
       pmap,
     });
@@ -128,7 +128,7 @@ export function useNoneHandlers({
       if (!feature?.object || selection.type !== "single") {
         const fuzzyResult = utils.fuzzyClick(e, {
           idMap,
-          featureMap,
+          featureMapDeprecated,
           folderMap,
           pmap,
         });
@@ -151,7 +151,7 @@ export function useNoneHandlers({
 
       const rawId = feature.object.id as RawId;
       const id = decodeId(rawId);
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
 
       if (!wrappedFeature) {
         captureWarning("Unexpected missing wrapped feature");

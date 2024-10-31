@@ -206,7 +206,7 @@ function findAfterAt({
 
 export function FeatureEditorFolderInner() {
   const data = useAtomValue(dataAtom);
-  const { featureMap, folderMap, selection } = data;
+  const { featureMapDeprecated, folderMap, selection } = data;
   const rep = usePersistence();
   const [meta] = rep.useMetadata();
   const transact = rep.useTransactDeprecated();
@@ -468,7 +468,7 @@ export function FeatureEditorFolderInner() {
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
-      <FeatureEditorFolderHeader featureMap={featureMap} />
+      <FeatureEditorFolderHeader featureMapDeprecated={featureMapDeprecated} />
       <SortableContext items={tree} strategy={verticalListSortingStrategy}>
         <div
           ref={parentRef}

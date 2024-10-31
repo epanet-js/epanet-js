@@ -34,11 +34,11 @@ export class CKML implements FileType {
   back(
     {
       geojson: _ignore,
-      featureMap,
+      featureMapDeprecated,
       folderMap,
     }: {
       geojson: FeatureCollection;
-      featureMap: FeatureMap;
+      featureMapDeprecated: FeatureMap;
       folderMap: FolderMap;
     },
     _options: ExportOptions,
@@ -46,7 +46,7 @@ export class CKML implements FileType {
     return EitherAsync<ConvertError, ExportResult>(async ({ throwE }) => {
       const { foldersToKML } = await import("@placemarkio/tokml");
       try {
-        const root = solveRootItems(featureMap, folderMap);
+        const root = solveRootItems(featureMapDeprecated, folderMap);
         return {
           blob: stringToBlob(foldersToKML(root)),
           name: "features.kml",

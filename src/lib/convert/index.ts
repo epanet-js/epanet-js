@@ -232,7 +232,7 @@ export interface FileType {
   back?: (
     inputs: {
       geojson: FeatureCollection;
-      featureMap: FeatureMap;
+      featureMapDeprecated: FeatureMap;
       folderMap: FolderMap;
     },
     options: ExportOptions,
@@ -356,7 +356,7 @@ export function importToExportOptions(
  * the results of any format.
  */
 export function fromGeoJSON(
-  { featureMap, folderMap }: SetOptional<Data, "selection">,
+  { featureMapDeprecated, folderMap }: SetOptional<Data, "selection">,
   exportOptions: ExportOptions,
 ) {
   return EitherAsync<ConvertError, ExportedData>(
@@ -368,7 +368,7 @@ export function fromGeoJSON(
 
       const { filteredFeatures, filteredFolders } =
         UWrappedFeature.filterMapByFolder(
-          featureMap,
+          featureMapDeprecated,
           folderMap,
           exportOptions.folderId,
         );
@@ -379,7 +379,11 @@ export function fromGeoJSON(
 
       const result = await fromPromise(
         type.back(
-          { geojson, featureMap: filteredFeatures, folderMap: filteredFolders },
+          {
+            geojson,
+            featureMapDeprecated: filteredFeatures,
+            folderMap: filteredFolders,
+          },
           exportOptions,
         ),
       );

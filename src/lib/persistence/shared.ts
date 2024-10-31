@@ -43,11 +43,11 @@ export function trackMoment(moment: ModelMoment) {
  */
 export function momentForDeleteFeatures(
   features: readonly IWrappedFeature["id"][],
-  { featureMap }: Data,
+  { featureMapDeprecated }: Data,
 ): Moment {
   const moment = fMoment("Update features");
   for (const id of features) {
-    const feature = featureMap.get(id);
+    const feature = featureMapDeprecated.get(id);
     if (feature) {
       moment.putFeatures.push(feature);
     }
@@ -110,7 +110,7 @@ function getLastAtInMap(map: Map<unknown, IFolder | IWrappedFeature>): string {
  * @returns the last at, or a0
  */
 export function getFreshAt(ctx: Data): string {
-  const a = getLastAtInMap(ctx.featureMap);
+  const a = getLastAtInMap(ctx.featureMapDeprecated);
   const b = getLastAtInMap(ctx.folderMap);
   return a > b ? a : b;
 }
@@ -166,7 +166,7 @@ export function usePopMoment() {
  * @returns map of folders
  */
 export function useFeatureMap(): Map<string, IWrappedFeature> {
-  return useAtomValue(dataAtom).featureMap;
+  return useAtomValue(dataAtom).featureMapDeprecated;
 }
 
 /**

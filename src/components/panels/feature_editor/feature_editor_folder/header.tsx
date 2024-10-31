@@ -13,10 +13,14 @@ import { AddFolder } from "./add_folder";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import { usePersistence } from "src/lib/persistence/context";
 
-function PreviewProperty({ featureMap }: { featureMap: FeatureMap }) {
+function PreviewProperty({
+  featureMapDeprecated,
+}: {
+  featureMapDeprecated: FeatureMap;
+}) {
   const rep = usePersistence();
   const [meta, setMeta] = rep.useMetadata();
-  const propertyKeys = extractPropertyKeys(featureMap);
+  const propertyKeys = extractPropertyKeys(featureMapDeprecated);
   return (
     <div className="space-y-2">
       <StyledLabelSpan>Label property</StyledLabelSpan>
@@ -45,9 +49,9 @@ function PreviewProperty({ featureMap }: { featureMap: FeatureMap }) {
 }
 
 export function FeatureEditorFolderHeader({
-  featureMap,
+  featureMapDeprecated,
 }: {
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
 }) {
   const rep = usePersistence();
   const [meta] = rep.useMetadata();
@@ -62,7 +66,7 @@ export function FeatureEditorFolderHeader({
         </P.Trigger>
         <StyledPopoverContent align="end">
           <StyledPopoverArrow />
-          <PreviewProperty featureMap={featureMap} />
+          <PreviewProperty featureMapDeprecated={featureMapDeprecated} />
         </StyledPopoverContent>
       </P.Root>
       <AddFolder />

@@ -21,14 +21,14 @@ type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
 
 export function wrappedFeaturesFromMapFeatures(
   clickedFeatures: mapboxgl.MapboxGeoJSONFeature[],
-  featureMap: FeatureMap,
+  featureMapDeprecated: FeatureMap,
   idMap: IDMap,
 ) {
   const set = new Set<IWrappedFeature>();
   const ids: { id: Id; wrappedFeature: IWrappedFeature }[] = [];
   for (const feature of clickedFeatures) {
     const uuid = UIDMap.getUUID(idMap, feature.id as RawId);
-    const f = featureMap.get(uuid);
+    const f = featureMapDeprecated.get(uuid);
     if (f) {
       set.add(f);
       ids.push({ id: decodeId(feature.id as RawId), wrappedFeature: f });
@@ -87,12 +87,12 @@ export function fuzzyClick(
   e: MouseOrTouchEvent,
   {
     idMap,
-    featureMap,
+    featureMapDeprecated,
     folderMap,
     pmap,
   }: {
     idMap: IDMap;
-    featureMap: FeatureMap;
+    featureMapDeprecated: FeatureMap;
     folderMap: FolderMap;
     pmap: PMap;
   },
@@ -140,7 +140,7 @@ export function fuzzyClick(
   for (const id of ids) {
     const decodedId = decodeId(id);
     const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
-    const wrappedFeature = featureMap.get(uuid);
+    const wrappedFeature = featureMapDeprecated.get(uuid);
     if (wrappedFeature && !isFeatureLocked(wrappedFeature, folderMap)) {
       results.push({ wrappedFeature, decodedId, id });
     }

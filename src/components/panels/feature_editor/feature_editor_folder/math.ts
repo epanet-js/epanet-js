@@ -65,9 +65,9 @@ function featureToFlat(
 /**
  * Index a list of features by their parent folder.
  */
-function collectFeaturesByFolder(featureMap: FeatureMap) {
+function collectFeaturesByFolder(featureMapDeprecated: FeatureMap) {
   const featuresByFolder = new Map<string | null, IWrappedFeature[]>();
-  for (const feature of featureMap.values()) {
+  for (const feature of featureMapDeprecated.values()) {
     const group = featuresByFolder.get(feature.folderId) || [];
     group.push(feature);
     featuresByFolder.set(feature.folderId, group);
@@ -76,10 +76,10 @@ function collectFeaturesByFolder(featureMap: FeatureMap) {
 }
 
 export function solveRootItems(
-  featureMap: FeatureMap,
+  featureMapDeprecated: FeatureMap,
   folderMap: FolderMap,
 ): Root {
-  const featuresByFolder = collectFeaturesByFolder(featureMap);
+  const featuresByFolder = collectFeaturesByFolder(featureMapDeprecated);
   const foldersByFolder = collectFoldersByFolder(folderMap);
 
   function getChildren(folderId: string | null): Array<TFolder | Feature> {
@@ -131,14 +131,19 @@ export function solveRootItems(
  */
 export function useRootItems({
   folderMap,
-  featureMap,
+  featureMapDeprecated,
 }: {
   folderMap: FolderMap;
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
 }): Root {
   return useMemo(() => {
-    return solveRootItems(featureMap, folderMap);
-  }, [featureMap, featureMap.version, folderMap, folderMap.version]);
+    return solveRootItems(featureMapDeprecated, folderMap);
+  }, [
+    featureMapDeprecated,
+    featureMapDeprecated.version,
+    folderMap,
+    folderMap.version,
+  ]);
 }
 
 /**
@@ -240,7 +245,7 @@ export function useFlattenedItems({
   activeId: UniqueIdentifier | null;
 }) {
   return useMemo(() => {
-    const featuresByFolder = collectFeaturesByFolder(data.featureMap);
+    const featuresByFolder = collectFeaturesByFolder(data.featureMapDeprecated);
     const foldersByFolder = collectFoldersByFolder(data.folderMap);
 
     return getLevel(null, 0, featuresByFolder, foldersByFolder, activeId);
@@ -253,21 +258,21 @@ export function useFlattenedItems({
  * This assumes you've used useRootItems already.
  */
 export function useFolderSummary({
-  featureMap,
+  featureMapDeprecated,
   root,
 }: {
-  featureMap: FeatureMap;
+  featureMapDeprecated: FeatureMap;
   root: Root;
 }): TFolder[] {
   return useMemo(() => {
     const items: TFolder[] = [
       {
         type: "folder",
-        children: Array.from(featureMap.values()).map(
+        children: Array.from(featureMapDeprecated.values()).map(
           (wrappedFeature) => wrappedFeature.feature,
         ),
         meta: {
-          count: featureMap.size,
+          count: featureMapDeprecated.size,
           id: null,
           name: "All",
         },
@@ -304,7 +309,7 @@ export function useFolderSummary({
     }
 
     return items;
-  }, [root, featureMap]);
+  }, [root, featureMapDeprecated]);
 }
 
 /**
@@ -435,7 +440,7 @@ export function getRequiredExpansionsFeature(
   data: Data,
 ): Expansions {
   const expansions: Expansions = [];
-  const feature = data.featureMap.get(selection.id);
+  const feature = data.featureMapDeprecated.get(selection.id);
   if (!feature) return expansions;
 
   let folderId = feature.folderId;

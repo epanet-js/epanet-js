@@ -32,11 +32,11 @@ export class CKMZ implements FileType {
   back(
     {
       geojson: _ignore,
-      featureMap,
+      featureMapDeprecated,
       folderMap,
     }: {
       geojson: FeatureCollection;
-      featureMap: FeatureMap;
+      featureMapDeprecated: FeatureMap;
       folderMap: FolderMap;
     },
     _options: ExportOptions,
@@ -44,7 +44,7 @@ export class CKMZ implements FileType {
     return EitherAsync<ConvertError, ExportResult>(async ({ throwE }) => {
       const { foldersToKML } = await import("@placemarkio/tokml");
       try {
-        const root = solveRootItems(featureMap, folderMap);
+        const root = solveRootItems(featureMapDeprecated, folderMap);
         const fflate = await import("fflate");
         const str = foldersToKML(root);
         const encoded = new TextEncoder().encode(str);

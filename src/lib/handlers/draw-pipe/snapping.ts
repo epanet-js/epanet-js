@@ -9,7 +9,7 @@ import { NodeAsset } from "src/hydraulics/assets";
 export const useSnapping = (
   pmap: PMap,
   idMap: IDMap,
-  featureMap: FeatureMap,
+  featureMapDeprecated: FeatureMap,
 ) => {
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
     const { x, y } = point;
@@ -38,7 +38,7 @@ export const useSnapping = (
     const featureId = getNeighborPoint(e.point);
     if (!featureId) return null;
 
-    const wrappedFeature = featureMap.get(featureId);
+    const wrappedFeature = featureMapDeprecated.get(featureId);
     if (!wrappedFeature) return null;
 
     const geometry = wrappedFeature.feature.geometry;
@@ -53,7 +53,7 @@ export const useSnapping = (
     const featureId = getNeighborPoint(e.point);
     if (!featureId) return null;
 
-    const wrappedFeature = featureMap.get(featureId);
+    const wrappedFeature = featureMapDeprecated.get(featureId);
     if (!wrappedFeature) return null;
 
     const { feature } = wrappedFeature;

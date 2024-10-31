@@ -19,7 +19,7 @@ import { useKeyboardState } from "src/keyboard";
 
 export function useLineHandlers({
   rep,
-  featureMap,
+  featureMapDeprecated,
   folderMap,
   selection,
   mode,
@@ -48,7 +48,7 @@ export function useLineHandlers({
         const putFeature = createOrUpdateFeature({
           mode,
           selection,
-          featureMap,
+          featureMapDeprecated,
           geometry: lineString,
         });
 
@@ -64,7 +64,7 @@ export function useLineHandlers({
          * onto it.
          */
         const position = getMapCoord(e);
-        const wrappedFeature = featureMap.get(selection.id);
+        const wrappedFeature = featureMapDeprecated.get(selection.id);
         if (!wrappedFeature) {
           setSelection(USelection.none());
           return;
@@ -108,7 +108,7 @@ export function useLineHandlers({
       if (e.type === "mousemove" && usingTouchEvents.current) {
         return;
       }
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (!wrappedFeature) {
         captureWarning("Unexpected missing wrapped feature");
         return;
@@ -169,7 +169,7 @@ export function useLineHandlers({
 
       // Assuming that browser are following standard event order
       // of two clicks & a dblclick, the second point should be dropped.
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (!wrappedFeature) {
         setSelection(USelection.none());
         return;
@@ -181,7 +181,7 @@ export function useLineHandlers({
           USelection.selectionToFolder({
             selection,
             folderMap,
-            featureMap,
+            featureMapDeprecated,
           }),
         );
       }
@@ -211,7 +211,7 @@ export function useLineHandlers({
 
       // From here on out, we're re-entering this line mode. There's
       // already a line on the map, and we are continuing it.
-      const selected = featureMap.get(selection.id);
+      const selected = featureMapDeprecated.get(selection.id);
 
       if (!selected) {
         setSelection(USelection.none());

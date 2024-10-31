@@ -153,17 +153,22 @@ test("isFeatureLocked", () => {
 
 test("filterLockedFeatures", () => {
   expect(
-    filterLockedFeatures({ featureMap: new Map(), folderMap: folders }),
+    filterLockedFeatures({
+      featureMapDeprecated: new Map(),
+      folderMap: folders,
+    }),
   ).toMatchInlineSnapshot("[]");
 
   const wrappedLineString = wrap(fcLineString)[0];
-  const featureMap = new Map([[wrappedLineString.id, wrappedLineString]]);
+  const featureMapDeprecated = new Map([
+    [wrappedLineString.id, wrappedLineString],
+  ]);
 
-  expect(filterLockedFeatures({ featureMap, folderMap: folders })).toHaveLength(
-    1,
-  );
+  expect(
+    filterLockedFeatures({ featureMapDeprecated, folderMap: folders }),
+  ).toHaveLength(1);
 
-  const featureMap2 = new Map([
+  const featureMapDeprecated2 = new Map([
     [
       wrappedLineString.id,
       {
@@ -174,7 +179,10 @@ test("filterLockedFeatures", () => {
   ]);
 
   expect(
-    filterLockedFeatures({ featureMap: featureMap2, folderMap: folders }),
+    filterLockedFeatures({
+      featureMapDeprecated: featureMapDeprecated2,
+      folderMap: folders,
+    }),
   ).toHaveLength(0);
 });
 

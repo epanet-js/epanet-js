@@ -27,7 +27,7 @@ function lngLatToPolygon(position: Position): Polygon {
 export function useCircleHandlers({
   dragTargetRef,
   selection,
-  featureMap,
+  featureMapDeprecated,
   folderMap,
   mode,
   rep,
@@ -44,7 +44,7 @@ export function useCircleHandlers({
     move: (e) => {
       if (selection?.type !== "single" || !center || !pmap) return;
 
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
 
       if (wrappedFeature) {
         const feature = wrappedFeature.feature as IFeature<Polygon>;
@@ -85,7 +85,7 @@ export function useCircleHandlers({
 
       const putFeature = createOrUpdateFeature({
         geometry: polygon,
-        featureMap,
+        featureMapDeprecated,
         selection,
         mode,
         properties,
@@ -105,7 +105,7 @@ export function useCircleHandlers({
     up: () => {
       dragTargetRef.current = null;
       if (selection?.type !== "single") return;
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (wrappedFeature) {
         const feature = wrappedFeature.feature as IFeature<Polygon>;
         if (!isRectangleNonzero(feature)) {
@@ -124,7 +124,7 @@ export function useCircleHandlers({
         setSelection(
           USelection.selectionToFolder({
             selection,
-            featureMap,
+            featureMapDeprecated,
             folderMap,
           }),
         );

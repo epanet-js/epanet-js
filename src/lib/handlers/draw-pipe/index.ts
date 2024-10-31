@@ -24,7 +24,7 @@ import { useDrawingState } from "./drawing-state";
 
 export function useDrawPipeHandlers({
   rep,
-  featureMap,
+  featureMapDeprecated,
   selection,
   pmap,
   idMap,
@@ -39,7 +39,7 @@ export function useDrawPipeHandlers({
   const { getSnappingNode, getSnappingCoordinates } = useSnapping(
     pmap,
     idMap,
-    featureMap,
+    featureMapDeprecated,
   );
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();

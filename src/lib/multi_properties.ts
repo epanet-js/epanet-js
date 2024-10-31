@@ -15,10 +15,12 @@ export type MultiPair = [string, SubMap];
  * A much simpler, faster version of 'extract multiProperties'.
  * Just gives you keps.
  */
-export function extractPropertyKeys(featureMap: FeatureMap): string[] {
+export function extractPropertyKeys(
+  featureMapDeprecated: FeatureMap,
+): string[] {
   const keys = new Set<string>();
 
-  for (const feature of featureMap.values()) {
+  for (const feature of featureMapDeprecated.values()) {
     if (!feature.feature.properties) continue;
     // performance sensitive here.
     for (const key in feature.feature.properties) {

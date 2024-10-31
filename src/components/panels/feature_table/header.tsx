@@ -31,25 +31,28 @@ export function RenamePropertyDialog({
 }) {
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
-  const featureMap = useFeatureMap();
+  const featureMapDeprecated = useFeatureMap();
 
   const onSubmit = async (values: RenameFormValues) => {
     await transact({
       note: "Renamed a property",
       track: "property-rename",
-      putFeatures: Array.from(featureMap.values(), (wrappedFeature) => {
-        return {
-          ...wrappedFeature,
-          feature: {
-            ...wrappedFeature.feature,
-            properties: renameProperty(
-              wrappedFeature.feature.properties,
-              column,
-              values.renameTo,
-            ),
-          },
-        };
-      }),
+      putFeatures: Array.from(
+        featureMapDeprecated.values(),
+        (wrappedFeature) => {
+          return {
+            ...wrappedFeature,
+            feature: {
+              ...wrappedFeature.feature,
+              properties: renameProperty(
+                wrappedFeature.feature.properties,
+                column,
+                values.renameTo,
+              ),
+            },
+          };
+        },
+      ),
     });
     for (let i = 0; i < localOrder.current.length; i++) {
       if (localOrder.current[i] === column) {
@@ -112,7 +115,7 @@ export const Header = memo(function Header({
         transact({
           note: "Deleted a property from all features",
           putFeatures: Array.from(
-            get(dataAtom).featureMap.values(),
+            get(dataAtom).featureMapDeprecated.values(),
             (wrappedFeature) => {
               return {
                 ...wrappedFeature,

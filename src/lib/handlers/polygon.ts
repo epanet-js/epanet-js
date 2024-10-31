@@ -25,7 +25,7 @@ export function usePolygonHandlers({
   mode,
   selection,
   idMap,
-  featureMap,
+  featureMapDeprecated,
   folderMap,
   dragTargetRef,
   pmap,
@@ -51,7 +51,7 @@ export function usePolygonHandlers({
       if (selection.type !== "single") {
         const polygon = utils.newPolygonFromClickEvent(e);
         const putFeature = createOrUpdateFeature({
-          featureMap,
+          featureMapDeprecated,
           geometry: polygon,
           mode,
           selection,
@@ -73,7 +73,7 @@ export function usePolygonHandlers({
         layerIds: [DECK_SYNTHETIC_ID],
       });
 
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
 
       if (!wrappedFeature) {
         setSelection(USelection.none());
@@ -149,7 +149,7 @@ export function usePolygonHandlers({
 
       let nextCoord = getMapCoord(e);
 
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
 
       if (!wrappedFeature) {
         setSelection(USelection.none());
@@ -206,7 +206,7 @@ export function usePolygonHandlers({
       if (selection?.type !== "single") return;
       e.preventDefault();
 
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (!wrappedFeature) {
         setSelection(USelection.none());
         return;
@@ -223,7 +223,7 @@ export function usePolygonHandlers({
           USelection.selectionToFolder({
             selection,
             folderMap,
-            featureMap,
+            featureMapDeprecated,
           }),
         );
       }
@@ -241,7 +241,7 @@ export function usePolygonHandlers({
     },
     exit() {
       if (selection.type !== "single") return;
-      const selected = featureMap.get(selection.id);
+      const selected = featureMapDeprecated.get(selection.id);
       if (!selected) return;
 
       transact({

@@ -39,27 +39,30 @@ export function CastPropertyDialog({
 }) {
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
-  const featureMap = useFeatureMap();
+  const featureMapDeprecated = useFeatureMap();
 
   const onSubmit = async (values: CastFormValues) => {
     await transact({
       track: "feature-cast-property",
-      putFeatures: Array.from(featureMap.values(), (wrappedFeature) => {
-        const oldProperties = wrappedFeature.feature.properties;
-        const properties = { ...oldProperties } as JsonObject;
-        properties[modal.column] = castExplicit(
-          properties[modal.column],
-          values.castTarget,
-        );
-        const newFeature = {
-          ...wrappedFeature.feature,
-          properties,
-        };
-        return {
-          ...wrappedFeature,
-          feature: newFeature,
-        };
-      }),
+      putFeatures: Array.from(
+        featureMapDeprecated.values(),
+        (wrappedFeature) => {
+          const oldProperties = wrappedFeature.feature.properties;
+          const properties = { ...oldProperties } as JsonObject;
+          properties[modal.column] = castExplicit(
+            properties[modal.column],
+            values.castTarget,
+          );
+          const newFeature = {
+            ...wrappedFeature.feature,
+            properties,
+          };
+          return {
+            ...wrappedFeature,
+            feature: newFeature,
+          };
+        },
+      ),
     });
     onClose();
   };

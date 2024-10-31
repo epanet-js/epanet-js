@@ -54,7 +54,7 @@ function duplicateFolder(data: Data, folderId: string): DuplicateResult {
 
   const putFeatures: Moment["putFeatures"] = [];
 
-  for (const feature of data.featureMap.values()) {
+  for (const feature of data.featureMapDeprecated.values()) {
     if (feature.folderId && folders.has(feature.folderId)) {
       putFeatures.push({
         ...feature,

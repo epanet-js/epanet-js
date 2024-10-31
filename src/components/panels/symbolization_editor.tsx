@@ -103,9 +103,11 @@ function InterpolateOption() {
   );
 }
 
-export function getViablePropertiesForCategorical(featureMap: FeatureMap) {
+export function getViablePropertiesForCategorical(
+  featureMapDeprecated: FeatureMap,
+) {
   const categoryPropertyMap = new Map<string, Set<string | number>>();
-  for (const wrappedFeature of featureMap.values()) {
+  for (const wrappedFeature of featureMapDeprecated.values()) {
     for (const [key, value] of Object.entries(
       wrappedFeature.feature.properties || {},
     )) {
@@ -126,15 +128,15 @@ export function getViablePropertiesForCategorical(featureMap: FeatureMap) {
 /**
  * Find properties that have categorical values.
  */
-function useViablePropertiesForCategorical(featureMap: FeatureMap) {
+function useViablePropertiesForCategorical(featureMapDeprecated: FeatureMap) {
   return useMemo(() => {
-    return getViablePropertiesForCategorical(featureMap);
-  }, [featureMap, featureMap.version]);
+    return getViablePropertiesForCategorical(featureMapDeprecated);
+  }, [featureMapDeprecated, featureMapDeprecated.version]);
 }
 
-export function getNumericPropertyMap(featureMap: FeatureMap) {
+export function getNumericPropertyMap(featureMapDeprecated: FeatureMap) {
   const numericPropertyMap = new Map<string, number[]>();
-  for (const wrappedFeature of featureMap.values()) {
+  for (const wrappedFeature of featureMapDeprecated.values()) {
     for (const [key, value] of Object.entries(
       wrappedFeature.feature.properties || {},
     )) {
@@ -158,10 +160,10 @@ export function getNumericPropertyMap(featureMap: FeatureMap) {
 /**
  * Find properties that have numeric values.
  */
-function useViablePropertiesForRamp(featureMap: FeatureMap) {
+function useViablePropertiesForRamp(featureMapDeprecated: FeatureMap) {
   return useMemo(() => {
-    return getNumericPropertyMap(featureMap);
-  }, [featureMap, featureMap.version]);
+    return getNumericPropertyMap(featureMapDeprecated);
+  }, [featureMapDeprecated, featureMapDeprecated.version]);
 }
 
 /**
@@ -309,8 +311,8 @@ function RampChoices({
 function RampWizard() {
   const rep = usePersistence();
   const [meta, setMeta] = rep.useMetadata();
-  const { featureMap } = useAtomValue(dataAtom);
-  const options = useViablePropertiesForRamp(featureMap);
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
+  const options = useViablePropertiesForRamp(featureMapDeprecated);
   const [regenerate, setRegenerate] = useAtom(regenerateAtom);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -642,8 +644,8 @@ function RampWizard() {
 
 function CategoryWizard() {
   const rep = usePersistence();
-  const { featureMap } = useAtomValue(dataAtom);
-  const options = useViablePropertiesForCategorical(featureMap);
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
+  const options = useViablePropertiesForCategorical(featureMapDeprecated);
   const [meta, setMeta] = rep.useMetadata();
   const [regenerate, setRegenerate] = useAtom(regenerateAtom);
   const [formError, setFormError] = useState<string | null>(null);

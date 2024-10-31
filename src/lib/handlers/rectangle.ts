@@ -26,7 +26,7 @@ function lngLatToPolygon(position: Position): Polygon {
 export function useRectangleHandlers({
   dragTargetRef,
   selection,
-  featureMap,
+  featureMapDeprecated,
   folderMap,
   mode,
   rep,
@@ -44,7 +44,7 @@ export function useRectangleHandlers({
       if (selection?.type !== "single" || !firstCorner || !pmap) return;
       const shiftKey = e.originalEvent.shiftKey;
 
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (wrappedFeature) {
         const feature = wrappedFeature.feature as IFeature<Polygon>;
         const point = {
@@ -88,7 +88,7 @@ export function useRectangleHandlers({
 
       const putFeature = createOrUpdateFeature({
         geometry: polygon,
-        featureMap,
+        featureMapDeprecated,
         selection,
         mode,
       });
@@ -107,7 +107,7 @@ export function useRectangleHandlers({
     up: () => {
       dragTargetRef.current = null;
       if (selection?.type !== "single") return;
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
       if (wrappedFeature) {
         const feature = wrappedFeature.feature as IFeature<Polygon>;
         if (!isRectangleNonzero(feature)) {
@@ -125,7 +125,7 @@ export function useRectangleHandlers({
         setSelection(
           USelection.selectionToFolder({
             selection,
-            featureMap,
+            featureMapDeprecated,
             folderMap,
           }),
         );

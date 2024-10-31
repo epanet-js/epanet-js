@@ -309,7 +309,11 @@ describe("convert", () => {
       expect(
         (
           await KML.back(
-            { geojson: twoPoints, featureMap: new Map(), folderMap: new Map() },
+            {
+              geojson: twoPoints,
+              featureMapDeprecated: new Map(),
+              folderMap: new Map(),
+            },
             {
               type: "csv",
               folderId: null,
@@ -402,7 +406,7 @@ describe("convert", () => {
         (
           await GeoJSON.back(
             {
-              featureMap: new Map(),
+              featureMapDeprecated: new Map(),
             },
             {
               type: "geojson",

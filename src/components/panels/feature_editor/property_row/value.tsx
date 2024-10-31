@@ -781,7 +781,7 @@ function TextEditor({
   onChangeValue: OnChangeValue;
   readOnly?: boolean;
 } & CoordProps) {
-  const { featureMap } = useAtomValue(dataAtom);
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dirty, setDirty] = useState<boolean>(false);
 
@@ -813,7 +813,7 @@ function TextEditor({
 
     const currentValue = valueProps.value;
 
-    for (const { feature } of featureMap.values()) {
+    for (const { feature } of featureMapDeprecated.values()) {
       const value = feature.properties?.[key];
       if (
         value !== currentValue &&
@@ -840,8 +840,8 @@ function TextEditor({
   }, [
     pair,
     valueProps.value,
-    featureMap,
-    featureMap.version,
+    featureMapDeprecated,
+    featureMapDeprecated.version,
     enableProperties,
   ]);
 

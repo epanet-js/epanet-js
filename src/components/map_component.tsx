@@ -93,7 +93,7 @@ export const MapComponent = memo(function MapComponent({
 }) {
   const data = useAtomValue(dataAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
-  const { featureMap, folderMap } = data;
+  const { featureMapDeprecated, folderMap } = data;
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
@@ -257,7 +257,7 @@ export const MapComponent = memo(function MapComponent({
     throttledMovePointer,
     mode,
     dragTargetRef,
-    featureMap,
+    featureMapDeprecated,
     folderMap,
     idMap,
     selection,
@@ -355,7 +355,7 @@ export const MapComponent = memo(function MapComponent({
   const onContextMenu = useAtomCallback(
     useCallback(
       (get, _set, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        const { featureMap } = get(dataAtom);
+        const { featureMapDeprecated } = get(dataAtom);
         const mapDivBox = mapDivRef.current?.getBoundingClientRect();
         const map = mapRef.current;
         if (mapDivBox && map) {
@@ -378,7 +378,7 @@ export const MapComponent = memo(function MapComponent({
           setContextInfo({
             features: wrappedFeaturesFromMapFeatures(
               featureUnderMouse,
-              featureMap,
+              featureMapDeprecated,
               rep.idMap,
             ),
             position,

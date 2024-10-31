@@ -60,7 +60,7 @@ export function useLineMode() {
           replaceGeometryForId?: IWrappedFeature["id"] | null;
         },
       ) => {
-        const { featureMap, selection } = get(dataAtom);
+        const { featureMapDeprecated, selection } = get(dataAtom);
 
         // Just switch to line mode, don't continue a line!
         function justSwitch() {
@@ -85,7 +85,7 @@ export function useLineMode() {
         }
 
         const decodedId = selection.parts[0];
-        const wrappedFeature = featureMap.get(selection.id);
+        const wrappedFeature = featureMapDeprecated.get(selection.id);
         if (wrappedFeature) {
           const { feature } = wrappedFeature;
           if (feature.geometry?.type !== "LineString") {

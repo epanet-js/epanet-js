@@ -129,11 +129,14 @@ function HeaderResizer({
   );
 }
 
-export function measureColumn(column: string, featureMap: Data["featureMap"]) {
+export function measureColumn(
+  column: string,
+  featureMapDeprecated: Data["featureMapDeprecated"],
+) {
   let maxLength = column.length + 2;
   let measured = 0;
 
-  for (const { feature } of featureMap.values()) {
+  for (const { feature } of featureMapDeprecated.values()) {
     const value = feature.properties?.[column];
     if (typeof value === "string") {
       if (value.length > maxLength) {
@@ -151,11 +154,11 @@ export function measureColumn(column: string, featureMap: Data["featureMap"]) {
 }
 
 export function filterFeatures({
-  featureMap,
+  featureMapDeprecated,
   filter,
   columns,
 }: {
-  featureMap: Data["featureMap"];
+  featureMapDeprecated: Data["featureMapDeprecated"];
   filter: FilterOptions;
   columns: string[];
 }): IWrappedFeature[] {
@@ -165,12 +168,12 @@ export function filterFeatures({
   const hasFolder = folderId !== null;
 
   if (!(hasSearch || hasGeometryType || hasFolder)) {
-    return Array.from(featureMap.values());
+    return Array.from(featureMapDeprecated.values());
   }
 
   const results = [];
 
-  for (const wrappedFeature of featureMap.values()) {
+  for (const wrappedFeature of featureMapDeprecated.values()) {
     const { feature } = wrappedFeature;
     const geometry = feature.geometry;
     const geometryTypeMatch =
@@ -198,7 +201,7 @@ export function filterFeatures({
 }
 
 export function FeatureTableInner({ data }: { data: Data }) {
-  const { featureMap, folderMap } = data;
+  const { featureMapDeprecated, folderMap } = data;
   const panelWidth = useAtomValue(splitsAtom).right;
   const panelIsWide = panelWidth > 300;
 
@@ -241,7 +244,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
   }, [_filter, folderMap]);
 
   let columns = useColumns({
-    featureMap,
+    featureMapDeprecated,
     folderId: filter.folderId,
     virtualColumns,
   });
@@ -266,7 +269,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
 
         for (const column of columns) {
           if (oldValue.has(column)) continue;
-          const measurement = measureColumn(column, data.featureMap);
+          const measurement = measureColumn(column, data.featureMapDeprecated);
           newValue.set(column, {
             width: measurement,
           });
@@ -291,7 +294,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
     const features = filterFeatures({
       filter,
       columns,
-      featureMap: data.featureMap,
+      featureMapDeprecated: data.featureMapDeprecated,
     });
     return features;
   }, [filter, columns, data]);
@@ -711,7 +714,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
 
 export default function FeatureTable() {
   const data = useAtomValue(dataAtom);
-  if (data.featureMap.size === 0) {
+  if (data.featureMapDeprecated.size === 0) {
     return <TableEmptyState />;
   }
   return <FeatureTableInner data={data} />;

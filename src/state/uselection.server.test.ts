@@ -158,20 +158,20 @@ describe("USelection", () => {
   });
 
   it("#getSelectedFeatures", () => {
-    const { featureMap } = wrapMapAndId(fcLineString);
+    const { featureMapDeprecated } = wrapMapAndId(fcLineString);
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.none(),
-        featureMap,
+        featureMapDeprecated,
         folderMap,
       }),
     ).toEqual([]);
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.fromIds(
-          [...featureMap.values()].map((f) => f.id),
+          [...featureMapDeprecated.values()].map((f) => f.id),
         ),
-        featureMap,
+        featureMapDeprecated,
         folderMap,
       }),
     ).toHaveLength(1);
@@ -179,12 +179,13 @@ describe("USelection", () => {
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.folder("invalid"),
-        featureMap,
+        featureMapDeprecated,
         folderMap,
       }),
     ).toHaveLength(0);
 
-    const { featureMap: featureMap2 } = wrapMapAndId(fcLineString);
+    const { featureMapDeprecated: featureMapDeprecated2 } =
+      wrapMapAndId(fcLineString);
 
     const folder: IFolder = {
       id: "000",
@@ -196,8 +197,8 @@ describe("USelection", () => {
       visibility: true,
     };
 
-    const featureMap3 = new Map(
-      Array.from(featureMap2.entries(), ([key, feature]) => {
+    const featureMapDeprecated3 = new Map(
+      Array.from(featureMapDeprecated2.entries(), ([key, feature]) => {
         return [
           key,
           {
@@ -213,7 +214,7 @@ describe("USelection", () => {
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.folder("000"),
-        featureMap: featureMap3,
+        featureMapDeprecated: featureMapDeprecated3,
         folderMap: folderMap2,
       }),
     ).toHaveLength(1);
@@ -221,7 +222,7 @@ describe("USelection", () => {
     expect(
       USelection.getSelectedFeatures({
         selection: USelection.folder("000"),
-        featureMap: featureMap3,
+        featureMapDeprecated: featureMapDeprecated3,
         folderMap: folderMap2,
       }),
     ).toHaveLength(1);
@@ -245,7 +246,7 @@ describe("USelection", () => {
     it("none", () => {
       expect(
         USelection.selectionToFolder({
-          featureMap: new Map(),
+          featureMapDeprecated: new Map(),
           folderMap,
           selection: SELECTION_NONE,
         }),
@@ -254,7 +255,7 @@ describe("USelection", () => {
     it("folder selection", () => {
       expect(
         USelection.selectionToFolder({
-          featureMap: new Map(),
+          featureMapDeprecated: new Map(),
           folderMap,
           selection: folderSelection,
         }),
@@ -262,28 +263,32 @@ describe("USelection", () => {
     });
 
     it("feature without folder", () => {
-      const { featureMap } = wrapMapAndId(fcLineString);
+      const { featureMapDeprecated } = wrapMapAndId(fcLineString);
       expect(
         USelection.selectionToFolder({
-          featureMap,
+          featureMapDeprecated,
           folderMap,
-          selection: USelection.single([...featureMap.values()][0].id),
+          selection: USelection.single(
+            [...featureMapDeprecated.values()][0].id,
+          ),
         }),
       ).toEqual(SELECTION_NONE);
     });
 
     it("feature with folder", () => {
-      const { featureMap } = wrapMapAndId(fcLineString);
-      const id = [...featureMap.keys()][0];
-      featureMap.set(id, {
-        ...featureMap.get(id)!,
+      const { featureMapDeprecated } = wrapMapAndId(fcLineString);
+      const id = [...featureMapDeprecated.keys()][0];
+      featureMapDeprecated.set(id, {
+        ...featureMapDeprecated.get(id)!,
         folderId: "xxx",
       });
       expect(
         USelection.selectionToFolder({
-          featureMap,
+          featureMapDeprecated,
           folderMap,
-          selection: USelection.single([...featureMap.values()][0].id),
+          selection: USelection.single(
+            [...featureMapDeprecated.values()][0].id,
+          ),
         }),
       ).toEqual({
         type: "folder",

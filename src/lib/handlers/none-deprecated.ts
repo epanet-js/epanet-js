@@ -31,7 +31,7 @@ export function useNoneHandlers({
   throttledMovePointer,
   dragTargetRef,
   selection,
-  featureMap,
+  featureMapDeprecated,
   idMap,
   folderMap,
   mode,
@@ -70,7 +70,7 @@ export function useNoneHandlers({
         let index: undefined | FlatbushLike = undefined;
 
         if (selection.type === "single") {
-          const feature = featureMap.get(selection.id);
+          const feature = featureMapDeprecated.get(selection.id);
           if (!feature) return;
           if (feature.feature.geometry?.type === "Point") {
             // If you have a point selected, there's no point
@@ -78,7 +78,7 @@ export function useNoneHandlers({
             // Instead, act as if you didn’t have a single
             // feature selection.
             index = generateFeaturesFlatbushInstance(
-              filterLockedFeatures({ featureMap, folderMap }),
+              filterLockedFeatures({ featureMapDeprecated, folderMap }),
             );
           } else {
             index = generateVertexFlatbushInstance(
@@ -88,7 +88,7 @@ export function useNoneHandlers({
           }
         } else {
           index = generateFeaturesFlatbushInstance(
-            filterLockedFeatures({ featureMap, folderMap }),
+            filterLockedFeatures({ featureMapDeprecated, folderMap }),
           );
         }
 
@@ -126,7 +126,7 @@ export function useNoneHandlers({
         void startSnapshot(
           USelection.getSelectedFeatures({
             selection,
-            featureMap,
+            featureMapDeprecated,
             folderMap,
           }),
         );
@@ -145,7 +145,7 @@ export function useNoneHandlers({
       if (!feature?.object || selection.type !== "single") {
         const fuzzyResult = utils.fuzzyClick(e, {
           idMap,
-          featureMap,
+          featureMapDeprecated,
           folderMap,
           pmap,
         });
@@ -169,7 +169,7 @@ export function useNoneHandlers({
 
       const rawId = feature.object.id as RawId;
       const id = decodeId(rawId);
-      const wrappedFeature = featureMap.get(selection.id);
+      const wrappedFeature = featureMapDeprecated.get(selection.id);
 
       if (!wrappedFeature) {
         captureWarning("Unexpected missing wrapped feature");
@@ -234,7 +234,7 @@ export function useNoneHandlers({
         return transact({
           note: "Move features",
           putFeatures: dragTarget.map((uuid) => {
-            const feature = featureMap.get(uuid)!;
+            const feature = featureMapDeprecated.get(uuid)!;
             return {
               ...feature,
               feature: ops.moveFeature(feature.feature, dx, dy),
@@ -251,7 +251,7 @@ export function useNoneHandlers({
             break;
           }
           case "vertex": {
-            const feature = featureMap.get(selection.id);
+            const feature = featureMapDeprecated.get(selection.id);
             if (!feature) return;
 
             const nextCoord = getMapCoord(e);
@@ -294,7 +294,7 @@ export function useNoneHandlers({
       // with only an id.
       const fuzzyResult = utils.fuzzyClick(e, {
         idMap,
-        featureMap,
+        featureMapDeprecated,
         folderMap,
         pmap,
       });
