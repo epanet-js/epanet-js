@@ -40,7 +40,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/integrations/hotkeys";
 import { keybindingOptions } from "src/hooks/use_map_keybindings";
-import { useClipboard } from "src/hooks/use_clipboard";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "./last_search_result";
 import { ModeHints } from "./mode_hints";
@@ -134,7 +133,6 @@ export const MapComponent = memo(function MapComponent({
   const { label, symbolization } = meta;
 
   const currentLayer = meta.layer;
-  useClipboard();
 
   // Only run this effect once.
   const migrated = useRef<boolean>(false);
