@@ -11,7 +11,7 @@ import replaceCoordinates from "src/lib/replace_coordinates";
 import { decodeId } from "src/lib/id";
 import { useSetAtom } from "jotai";
 import { usePopMoment } from "src/lib/persistence/shared";
-import { closePolygon } from "src/lib/map_operations";
+import { closePolygon } from "src/lib/map_operations_deprecated";
 import { CURSOR_DEFAULT, DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { UIDMap } from "src/lib/id_mapper";
 import { createOrUpdateFeature, getMapCoord } from "./utils";

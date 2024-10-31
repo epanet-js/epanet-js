@@ -14,11 +14,11 @@ import {
   polygonToLine,
   geometryToPoints,
   splitLine,
-} from "src/lib/map_operations";
+} from "src/lib/map_operations_deprecated";
 import {
   isFeatureSimplifiable,
   SimplifySupportedGeometry,
-} from "src/lib/map_operations/simplify";
+} from "src/lib/map_operations_deprecated/simplify";
 import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";

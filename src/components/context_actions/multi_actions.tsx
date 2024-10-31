@@ -1,12 +1,15 @@
 import { LinkNone2Icon } from "@radix-ui/react-icons";
 import type { ActionProps } from "src/components/context_actions/action_item";
-import type { BooleanOp } from "src/lib/map_operations";
+import type { BooleanOp } from "src/lib/map_operations_deprecated";
 import {
   ShapeIntersect16,
   ShapeUnite16,
   SendToBack16,
 } from "src/components/icons";
-import { mergeFeaturesMessage, mergeFeatures } from "src/lib/map_operations";
+import {
+  mergeFeaturesMessage,
+  mergeFeatures,
+} from "src/lib/map_operations_deprecated";
 import { lib } from "src/lib/worker";
 import { usePersistence } from "src/lib/persistence/context";
 import { newFeatureId } from "src/lib/id";

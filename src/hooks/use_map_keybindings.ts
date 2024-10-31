@@ -2,7 +2,7 @@ import type { Options } from "react-hotkeys-hook";
 import { useHotkeys } from "src/integrations/hotkeys";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import { deleteFeatures } from "src/lib/map_operations/delete_features";
+import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
 import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/selection";
 import { useCallback } from "react";

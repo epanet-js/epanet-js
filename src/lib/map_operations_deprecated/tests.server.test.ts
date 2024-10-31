@@ -38,7 +38,7 @@ import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points"
 import {
   deleteFeatures,
   removeCoordinatesVertex,
-} from "src/lib/map_operations/delete_features";
+} from "src/lib/map_operations_deprecated/delete_features";
 import { getIssues } from "@placemarkio/check-geojson";
 import { decodeId } from "src/lib/id";
 import { USelection } from "src/selection";
@@ -46,7 +46,7 @@ import type { Feature, FeatureMap } from "src/types";
 import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { SELECTION_NONE } from "src/state/jotai";
 import { popLineStringCoordinate } from "./pop_line_string_coordinate";
-import { duplicateFeatures } from "src/lib/map_operations/duplicate_features";
+import { duplicateFeatures } from "src/lib/map_operations_deprecated/duplicate_features";
 import { deletePropertyKey } from "./delete_property_key";
 import { setCoordinates } from "./set_coordinates";
 import { updatePropertyValue } from "./update_property_value";
@@ -59,7 +59,7 @@ import { Topology } from "src/hydraulics/topology";
 
 const engine = new Random(MersenneTwister19937.seed(1));
 
-describe("map_operations", () => {
+describe("map_operations_deprecated", () => {
   describe("mergeFeaturesMessage", () => {
     it("Point", () => {
       expect(mergeFeaturesMessage(twoPoints.features)).toEqual(

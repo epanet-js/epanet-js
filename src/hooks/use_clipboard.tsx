@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { useAtomCallback } from "jotai/utils";
 import * as Comlink from "comlink";
 import { usePersistence } from "src/lib/persistence/context";
-import { deleteFeatures } from "src/lib/map_operations/delete_features";
+import { deleteFeatures } from "src/lib/map_operations_deprecated/delete_features";
 import { useZoomTo } from "./use_zoom_to";
 import { getExtent } from "src/lib/geometry";
 import { flattenResult } from "src/components/dialogs/import_utils";

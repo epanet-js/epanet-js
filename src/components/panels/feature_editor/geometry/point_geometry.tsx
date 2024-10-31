@@ -3,7 +3,10 @@ import type { IWrappedFeature } from "src/types";
 import { LongitudeLatitudeInputs } from "src/components/longitude_latitude_inputs";
 import { captureError } from "src/infra/error-tracking";
 import { usePersistence } from "src/lib/persistence/context";
-import { getCoordinates, setCoordinates } from "src/lib/map_operations";
+import {
+  getCoordinates,
+  setCoordinates,
+} from "src/lib/map_operations_deprecated";
 import { CVertexId } from "src/lib/id";
 
 export default function PointGeometry({

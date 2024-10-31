@@ -2,7 +2,7 @@ import { decodeId, encodeVertex } from "src/lib/id";
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext, IWrappedFeature } from "src/types";
 import noop from "lodash/noop";
-import * as ops from "src/lib/map_operations";
+import * as ops from "src/lib/map_operations_deprecated";
 import { Mode, cursorStyleAtom, ephemeralStateAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { USelection } from "src/selection";
