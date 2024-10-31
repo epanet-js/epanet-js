@@ -15,7 +15,7 @@ export function FeatureEditorVertex({
   vertexId: VertexId;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   const coordinatesMaybe = getCoordinatesMaybe(
     wrappedFeature.feature,

@@ -23,7 +23,7 @@ export function useMultiActions(
   selectedWrappedFeatures: IWrappedFeature[],
 ): Action[] {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   if (selectedWrappedFeatures.length === 0) {
     return [];

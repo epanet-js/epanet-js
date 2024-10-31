@@ -29,7 +29,7 @@ export function useLineHandlers({
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const popMoment = usePopMoment();
   const usingTouchEvents = useRef<boolean>(false);
   const { isShiftHeld } = useKeyboardState();

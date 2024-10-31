@@ -37,7 +37,7 @@ export function useCircleHandlers({
   const setMode = useSetAtom(modeAtom);
   const pmap = useContext(MapContext);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [center, setCenter] = useState<Pos2 | null>(null);
   return {
     click: noop,

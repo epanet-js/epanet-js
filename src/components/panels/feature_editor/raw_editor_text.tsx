@@ -29,7 +29,7 @@ export const FeatureText = memo(function FeatureText({
   feature: IWrappedFeature;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const { at, id, folderId } = feature;
   const [editor, setEditor] = useState<EditorView | null>(null);
   const mountPointRef = useRef<HTMLDivElement | null>(null);

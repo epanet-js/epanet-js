@@ -19,7 +19,7 @@ export function FeatureEditorId({
   wrappedFeature: IWrappedFeature;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   return (
     <PanelDetailsCollapsible title="ID" atom={panelIdOpen}>

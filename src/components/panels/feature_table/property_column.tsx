@@ -18,7 +18,7 @@ export const PropertyColumn = memo(function PropertyColumn({
 } & CoordProps) {
   const zoomTo = useZoomTo();
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   let value = feature.feature.properties?.[column];
   if (value === undefined || value === null) value = "";
 

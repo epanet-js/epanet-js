@@ -55,7 +55,7 @@ function getContinuation(contextInfo: ContextInfo) {
 
 function MaybeContinue({ contextInfo }: { contextInfo: ContextInfo }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const continuation = getContinuation(contextInfo);

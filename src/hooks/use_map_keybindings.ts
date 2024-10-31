@@ -32,7 +32,7 @@ function shouldControlTree(e: Event) {
 export function useMapKeybindings() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   useHotkeys(
     "meta+z, Ctrl+z",

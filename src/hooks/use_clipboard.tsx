@@ -43,7 +43,7 @@ export function stringifyFeatures(selectedFeatures: IWrappedFeature[]): Maybe<{
 
 export function useClipboard() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const importString = useImportString();
   const zoomTo = useZoomTo();
 

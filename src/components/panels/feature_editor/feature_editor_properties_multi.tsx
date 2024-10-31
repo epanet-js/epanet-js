@@ -25,7 +25,7 @@ export function FeatureEditorPropertiesMulti({
 }) {
   const propertyMap = extractMultiProperties(selectedFeatures);
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
 
   function updateFeatures(transformer: Transformer) {

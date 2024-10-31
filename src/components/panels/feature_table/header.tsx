@@ -30,7 +30,7 @@ export function RenamePropertyDialog({
   localOrder: React.MutableRefObject<string[]>;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const featureMap = useFeatureMap();
 
   const onSubmit = async (values: RenameFormValues) => {
@@ -96,7 +96,7 @@ export const Header = memo(function Header({
   statsOpen: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const setDialogState = useSetAtom(dialogAtom);
   const setVirtualColumns = useSetAtom(virtualColumnsAtom);
 

@@ -119,7 +119,7 @@ function FeatureEditorPropertiesRaw({
     return missing;
   }, [properties, propertyKeys]);
 
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   const localOrder = useRef<string[]>(
     Object.keys({

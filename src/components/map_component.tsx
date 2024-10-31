@@ -127,7 +127,7 @@ export const MapComponent = memo(function MapComponent({
   // Context
   const map = useContext(MapContext);
 
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   // Queries
   const [meta, updateMeta] = rep.useMetadata();

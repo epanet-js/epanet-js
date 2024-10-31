@@ -45,7 +45,7 @@ export function continueFeature(
  */
 export function useLineMode() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
 
   return useAtomCallback(
     useCallback(

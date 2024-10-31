@@ -21,7 +21,7 @@ export function FeatureEditorCircle({
   wrappedFeature: IWrappedFeature;
 }) {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const prop = getCircleProp(wrappedFeature.feature);
   const radius = getCircleRadius(wrappedFeature.feature);
   if (!prop || !radius) return null;

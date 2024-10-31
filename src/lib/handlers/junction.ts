@@ -23,7 +23,7 @@ export function useJunctionHandlers({
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const multi = mode.modeOptions?.multi;
   return {
     click: (e) => {

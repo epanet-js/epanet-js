@@ -172,7 +172,7 @@ function MapboxLayer({
 }) {
   const setMode = useSetAtom(layerModeAtom);
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
@@ -267,7 +267,7 @@ function TileJSONLayer({
 }) {
   const setMode = useSetAtom(layerModeAtom);
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
@@ -356,7 +356,7 @@ function XYZLayer({
 }) {
   const setMode = useSetAtom(layerModeAtom);
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
   const isEditing = !!layer;
@@ -459,7 +459,7 @@ function AnyLayer({
 
 function AddLayer() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -583,7 +583,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
     useSortable({ id: layerConfig.id });
   const zoomTo = useZoomTo();
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [editing, setEditing] = useState<boolean>(false);
 
   const { data: tilejson, isError } = reactUseQuery(
@@ -738,7 +738,7 @@ export { FORM_ERROR } from "src/core/components/Form";
 
 export function LayersPopover() {
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
 

@@ -36,7 +36,7 @@ export function useRectangleHandlers({
   const setMode = useSetAtom(modeAtom);
   const pmap = useContext(MapContext);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const transact = rep.useTransact();
+  const transact = rep.useTransactDeprecated();
   const [firstCorner, setFirstCorner] = useState<mapboxgl.Point | null>(null);
   return {
     click: noop,
