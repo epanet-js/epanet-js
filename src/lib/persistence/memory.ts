@@ -40,7 +40,6 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { Asset, getAssetConnections } from "src/hydraulics/assets";
 
 export class MemPersistence implements IPersistence {
@@ -192,10 +191,8 @@ export class MemPersistence implements IPersistence {
     const moment = momentForDeleteFeatures(features, ctx);
     for (const id of features) {
       ctx.featureMap.delete(id);
-      if (isFeatureOn("FLAG_DELETE_NODES")) {
-        const maybeNodeId = id;
-        ctx.topology.removeNode(maybeNodeId);
-      }
+      const maybeNodeId = id;
+      ctx.topology.removeNode(maybeNodeId);
     }
     return moment;
   }
@@ -274,11 +271,9 @@ export class MemPersistence implements IPersistence {
       }
       ctx.featureMap.set(inputFeature.id, inputFeature as IWrappedFeature);
 
-      if (isFeatureOn("FLAG_DELETE_NODES")) {
-        const connections = getAssetConnections(inputFeature as Asset);
-        connections &&
-          ctx.topology.addLink(inputFeature.id, connections[0], connections[1]);
-      }
+      const connections = getAssetConnections(inputFeature as Asset);
+      connections &&
+        ctx.topology.addLink(inputFeature.id, connections[0], connections[1]);
 
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }

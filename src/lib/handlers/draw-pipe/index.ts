@@ -21,7 +21,6 @@ import {
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -75,9 +74,7 @@ export function useDrawPipeHandlers({
       note: "Created pipe",
       putFeatures: [
         startNode,
-        isFeatureOn("FLAG_DELETE_NODES")
-          ? attachConnections(pipe, startNode.id, endNode.id)
-          : pipe,
+        attachConnections(pipe, startNode.id, endNode.id),
         endNode,
       ],
     }).catch((e) => captureError(e));
