@@ -147,7 +147,7 @@ function deleteSingleAndMulti(
 /**
  * Delete any number (including 0) of features
  */
-export function deleteFeatures({
+export function deleteFeaturesDeprecated({
   featureMap,
   topology,
   selection,

@@ -20,7 +20,7 @@ export function trackMomentDeprecated(partialMoment: Partial<MomentInput>) {
   const { track } = partialMoment;
   if (isDebugOn) {
     // eslint-disable-next-line no-console
-    console.log("TRANSACT", JSON.stringify(partialMoment));
+    console.log("TRANSACT_DEPRECATED", JSON.stringify(partialMoment));
   }
   if (track) {
     delete partialMoment.track;

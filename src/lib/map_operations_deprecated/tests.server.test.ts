@@ -36,7 +36,7 @@ import { getCoordinates, getCoordinatesMaybe } from "./get_coordinates";
 import { rotateFeatures } from "./rotate_features";
 import { generateSyntheticPoints } from "src/lib/pmap/generate_synthetic_points";
 import {
-  deleteFeatures,
+  deleteFeaturesDeprecated as deleteFeatures,
   removeCoordinatesVertex,
 } from "src/lib/map_operations_deprecated/delete_features";
 import { getIssues } from "@placemarkio/check-geojson";
