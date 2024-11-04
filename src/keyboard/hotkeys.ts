@@ -1,10 +1,35 @@
+import Mousetrap from "mousetrap";
+import { useEffect } from "react";
 import { useHotkeys as rawUseHotkeys } from "react-hotkeys-hook";
 import { isDebugOn } from "src/infra/debug-mode";
 import { addToErrorLog } from "src/infra/error-tracking";
 
 type Params = Parameters<typeof rawUseHotkeys>;
 
-export function useHotkeys(
+type DependencyList = ReadonlyArray<unknown>;
+
+export const useHotkeys = (
+  keys: string | string[],
+  fn: (e: Event) => void,
+  dependencyList: DependencyList,
+  label: string,
+) => {
+  useEffect(() => {
+    if (isDebugOn) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `HOTKEYS_BIND binding to ${JSON.stringify(keys)} operation ${label}`,
+      );
+    }
+
+    Mousetrap.bind(keys, fn);
+    return () => {
+      Mousetrap.unbind(keys);
+    };
+  }, dependencyList);
+};
+
+export function useHotkeysDeprecated(
   keys: Params[0],
   fn: Params[1],
   a: Params[2],

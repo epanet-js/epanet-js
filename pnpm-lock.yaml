@@ -311,6 +311,9 @@ importers:
       memoize-one:
         specifier: ^6.0.0
         version: 6.0.0
+      mousetrap:
+        specifier: ^1.6.5
+        version: 1.6.5
       mproj:
         specifier: ^0.0.35
         version: 0.0.35
@@ -480,6 +483,9 @@ importers:
       '@types/mapbox-gl':
         specifier: ^3.1.0
         version: 3.1.0
+      '@types/mousetrap':
+        specifier: ^1.6.15
+        version: 1.6.15
       '@types/node':
         specifier: ^20.12.12
         version: 20.12.12
@@ -2507,6 +2513,9 @@ packages:
 
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
+
+  '@types/mousetrap@1.6.15':
+    resolution: {integrity: sha512-qL0hyIMNPow317QWW/63RvL1x5MVMV+Ru3NaY9f/CuEpCqrmb7WeuK2071ZY5hczOnm38qExWM2i2WtkXLSqFw==}
 
   '@types/mysql@2.15.26':
     resolution: {integrity: sha512-DSLCOXhkvfS5WNNPbfn2KdICAmk8lLc+/PNvnPnF7gOdMZCxopXduqv0OQ13y/yA/zXTSikZZqVgybUxOEg6YQ==}
@@ -4580,6 +4589,9 @@ packages:
 
   module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
+
+  mousetrap@1.6.5:
+    resolution: {integrity: sha512-QNo4kEepaIBwiT8CDhP98umTetp+JNfQYBWvC1pc6/OAibuXtRcxZ58Qz8skvEHYvURne/7R8T5VoOI7rDsEUA==}
 
   mproj@0.0.35:
     resolution: {integrity: sha512-xqO9BXjTezwyPFbAShWRkYZ98DD9wWOyr86WX6miWq3brBNGypsErMmobpUx3G45SrfvyJ5jI997Zw0qr7Ko7A==}
@@ -8478,6 +8490,8 @@ snapshots:
 
   '@types/minimatch@3.0.5': {}
 
+  '@types/mousetrap@1.6.15': {}
+
   '@types/mysql@2.15.26':
     dependencies:
       '@types/node': 20.12.12
@@ -10862,6 +10876,8 @@ snapshots:
       ufo: 1.5.3
 
   module-details-from-path@1.0.3: {}
+
+  mousetrap@1.6.5: {}
 
   mproj@0.0.35:
     dependencies:

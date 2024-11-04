@@ -1,13 +1,13 @@
 import { useRef } from "react";
-import { useHotkeys } from "./hotkeys";
+import { useHotkeysDeprecated } from "./hotkeys";
 
 export function useKeyboardState() {
   const shiftHeld = useRef<boolean>(false);
   const spaceHeld = useRef<boolean>(false);
   const controlHeld = useRef<boolean>(false);
 
-  useHotkeys(
-    "*",
+  useHotkeysDeprecated(
+    "shift",
     (e) => {
       shiftHeld.current = e.shiftKey;
     },
@@ -15,7 +15,7 @@ export function useKeyboardState() {
     [],
   );
 
-  useHotkeys(
+  useHotkeysDeprecated(
     "Space",
     (e) => {
       spaceHeld.current = e.type === "keydown";
@@ -24,7 +24,7 @@ export function useKeyboardState() {
     [],
   );
 
-  useHotkeys(
+  useHotkeysDeprecated(
     "meta, Ctrl",
     (e) => {
       controlHeld.current = e.ctrlKey || e.metaKey;

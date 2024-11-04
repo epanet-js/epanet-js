@@ -10,7 +10,6 @@ export default function MenuAction({
   role = undefined,
   label,
   hotkey,
-  noShift = false,
 }: {
   selected?: boolean;
   onClick: (e?: Pick<React.MouseEvent, "shiftKey">) => void;
@@ -19,36 +18,15 @@ export default function MenuAction({
   role?: React.HTMLAttributes<HTMLButtonElement>["role"];
   label: string;
   hotkey?: string;
-  /**
-   * If this menu action already has a shifted version
-   * and shouldn't get an automatic 'shift' edition.
-   */
-  noShift?: boolean;
 }) {
-  useHotkeys(
-    `Shift+${hotkey || ""}`,
-    (e) => {
-      e.preventDefault();
-      onClick({
-        shiftKey: true,
-      });
-    },
-    {
-      enabled: !!hotkey && !noShift,
-    },
-    [onClick],
-  );
-
   useHotkeys(
     hotkey || "noop",
     (e) => {
       e.preventDefault();
       onClick();
     },
-    {
-      enabled: !!hotkey,
-    },
     [onClick],
+    `SET MODE ${label}`,
   );
 
   return (

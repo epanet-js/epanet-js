@@ -21,89 +21,28 @@ export const keybindingOptions: Options = {
   },
 };
 
-function shouldControlTree(e: Event) {
-  return (
-    "target" in e &&
-    e.target instanceof HTMLElement &&
-    e.target.closest('[data-keybinding-scope="editor_folder"]')
-  );
-}
-
 export function useMapKeybindings() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
-  const transactDeprecated = rep.useTransactDeprecated();
   const transact = rep.useTransact();
 
   useHotkeys(
-    "meta+z, Ctrl+z",
-    (e) => {
-      e.preventDefault();
+    ["command+z", "ctrl+z"],
+    () => {
       historyControl("undo").catch((e) => captureError(e));
-      return false;
     },
     [historyControl],
+    "UNDO",
   );
 
   useHotkeys(
-    "meta+y, Ctrl+y",
-    (_e: KeyboardEvent) => {
+    ["command+y", "ctrl+y"],
+    (e) => {
       historyControl("redo").catch((e) => captureError(e));
+      e.preventDefault();
     },
     [historyControl],
-  );
-
-  const maybeToggleFolder = useAtomCallback(
-    useCallback(
-      (get, set, expanded: boolean) => {
-        const data = get(dataAtom);
-        const { selection } = data;
-
-        const folderId = USelection.folderId(selection);
-
-        if (folderId) {
-          const folder = data.folderMap.get(folderId);
-          if (folder) {
-            void transactDeprecated({
-              note: "Toggled a folder",
-              putFolders: [
-                {
-                  ...folder,
-                  expanded,
-                },
-              ],
-            });
-          }
-        } else if (!expanded) {
-          set(selectionAtom, USelection.selectionToFolder(data));
-        }
-      },
-      [transactDeprecated],
-    ),
-  );
-
-  useHotkeys(
-    "arrowright",
-    (e) => {
-      if (shouldControlTree(e)) {
-        e.preventDefault();
-        void maybeToggleFolder(true);
-      }
-    },
-    keybindingOptions,
-    [maybeToggleFolder],
-  );
-
-  useHotkeys(
-    "arrowleft",
-    (e) => {
-      if (shouldControlTree(e)) {
-        e.preventDefault();
-        void maybeToggleFolder(false);
-      }
-    },
-    keybindingOptions,
-    [maybeToggleFolder],
+    "REDO",
   );
 
   const onSelectAll = useAtomCallback(
@@ -117,13 +56,13 @@ export function useMapKeybindings() {
   );
 
   useHotkeys(
-    "meta+a, Ctrl+a",
+    ["command+a", "ctrl+a"],
     (e) => {
       e.preventDefault();
       void onSelectAll();
     },
-    keybindingOptions,
     [onSelectAll],
+    "SELECT_ALL",
   );
 
   const onDelete = useAtomCallback(
@@ -147,12 +86,15 @@ export function useMapKeybindings() {
   );
 
   useHotkeys(
-    "Backspace, delete",
+    ["backspace", "del"],
     (e) => {
+      if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
+        return;
+
       e.preventDefault();
       void onDelete();
     },
-    keybindingOptions,
     [onDelete],
+    "DELETE",
   );
 }
