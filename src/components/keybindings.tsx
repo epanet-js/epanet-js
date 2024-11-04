@@ -1,6 +1,6 @@
 import { useMapKeybindings } from "src/hooks/use_map_keybindings";
 import { useOpenFiles } from "src/hooks/use_open_files";
-import { useHotkeys } from "src/integrations/hotkeys";
+import { useHotkeys } from "src/keyboard/hotkeys";
 import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
