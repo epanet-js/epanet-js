@@ -38,7 +38,7 @@ import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
-import { useHotkeys } from "src/integrations/hotkeys";
+import { useHotkeys } from "src/keyboard/hotkeys";
 import { keybindingOptions } from "src/hooks/use_map_keybindings";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "./last_search_result";

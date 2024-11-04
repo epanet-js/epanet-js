@@ -1,5 +1,5 @@
 import type { Options } from "react-hotkeys-hook";
-import { useHotkeys } from "src/integrations/hotkeys";
+import { useHotkeys } from "src/keyboard/hotkeys";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { filterLockedFeatures } from "src/lib/folder";
