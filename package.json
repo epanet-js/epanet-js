@@ -43,8 +43,6 @@
     "@logtail/node": "^0.4.21",
     "@logtail/types": "^0.4.20",
     "@next/env": "^14.2.3",
-    "@octokit/core": "^4.2.4",
-    "@octokit/oauth-app": "^4.2.4",
     "@placemarkio/check-geojson": "0.1.12",
     "@placemarkio/flat-drop-files": "^1.0.2",
     "@placemarkio/geojson-rewind": "^1.0.2",
