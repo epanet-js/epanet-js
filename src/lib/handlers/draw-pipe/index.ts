@@ -62,7 +62,7 @@ export function useDrawPipeHandlers({
     setDrawing({
       startNode: drawing.startNode,
       pipe: addVertexToLink(drawing.pipe, coordinates),
-      snappingCandidate: null,
+      snappingCoordinates: null,
     });
   };
 
@@ -133,7 +133,7 @@ export function useDrawPipeHandlers({
       setDrawing({
         startNode: drawing.startNode,
         pipe: extendLink(drawing.pipe, nextCoordinates),
-        snappingCandidate: !isPipeStart ? snappingCoordinates : null,
+        snappingCoordinates: !isPipeStart ? snappingCoordinates : null,
       });
     },
     double: (e) => {
