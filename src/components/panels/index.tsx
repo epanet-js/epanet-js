@@ -7,7 +7,6 @@ import {
   splitsAtom,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
-import { useHotkeys } from "src/keyboard/hotkeys";
 import clsx from "clsx";
 
 const FeatureTable = dynamic(
@@ -56,17 +55,6 @@ function Tab({
       {label}
     </button>
   );
-}
-
-function previousTab(TAB_ORDER: TabOption[], activeTab: TabOption): TabOption {
-  let nextTab = TAB_ORDER.indexOf(activeTab) - 1;
-  if (nextTab < 0) nextTab = TAB_ORDER.length - 1;
-  return TAB_ORDER[nextTab];
-}
-
-function nextTab(TAB_ORDER: TabOption[], activeTab: TabOption): TabOption {
-  const nextTab = (TAB_ORDER.indexOf(activeTab) + 1) % TAB_ORDER.length;
-  return TAB_ORDER[nextTab];
 }
 
 const ActiveTab = memo(function ActiveTab({
@@ -177,22 +165,6 @@ export const Panel = memo(function PanelInner({
   showSymbolization?: boolean;
 }) {
   const [activeTab, setTab] = useAtom(tabAtom);
-
-  useHotkeys(
-    "]",
-    () => {
-      setTab(nextTab(tabOrder, activeTab));
-    },
-    [activeTab],
-  );
-
-  useHotkeys(
-    "[",
-    () => {
-      setTab(previousTab(tabOrder, activeTab));
-    },
-    [activeTab],
-  );
 
   return (
     <div className="absolute inset-0 flex flex-col">

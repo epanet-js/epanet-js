@@ -21,19 +21,21 @@ export function Keybindings() {
       setDialogState({ type: "quickswitcher" });
     },
     [setDialogState],
+    "QUICK SWITCH",
   );
 
   useHotkeys(
-    "meta+k, Ctrl+k",
+    ["command+k", "ctrl+k"],
     (e) => {
       e.preventDefault();
       setDialogState({ type: "quickswitcher" });
     },
     [setDialogState],
+    "QUICK SWITCH",
   );
 
   useHotkeys(
-    "meta+shift+s, Ctrl+shift+s",
+    ["command+shift+s", "ctrl+shift+s"],
     (e) => {
       // Don't type a / in the input.
       e.preventDefault();
@@ -42,10 +44,11 @@ export function Keybindings() {
       });
     },
     [setDialogState],
+    "EXPORT",
   );
 
   useHotkeys(
-    "Shift+/",
+    ["shift+/"],
     (e) => {
       // Don't type a / in the input.
       e.preventDefault();
@@ -57,10 +60,11 @@ export function Keybindings() {
       });
     },
     [setDialogState],
+    "CHEATSHEET",
   );
 
   useHotkeys(
-    "meta+s, Ctrl+s",
+    ["command+s", "ctrl+s"],
     (e) => {
       e.preventDefault();
       (async () => {
@@ -76,15 +80,17 @@ export function Keybindings() {
       })().catch((e) => captureError(e));
     },
     [setDialogState, saveNative],
+    "SAVE",
   );
 
   useHotkeys(
-    "meta+o, Ctrl+o",
+    ["command+o", "ctrl+o"],
     (e) => {
       e.preventDefault();
       openFiles().catch((e) => captureError(e));
     },
     [openFiles],
+    "OPEN",
   );
 
   return null;
