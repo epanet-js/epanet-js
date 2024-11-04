@@ -3,33 +3,30 @@ import { DialogHeader } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
 import { getIsMac, localizeKeybinding } from "src/lib/utils";
 import React, { Fragment } from "react";
+import { translate } from "src/infra/i18n";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
 const BINDINGS = {
-  "?": "Help",
-  "1": "Select",
-  "2": "Draw point",
-  "3": "Draw line",
-  "4": "Draw polygon",
-  "5": "Draw rectangle",
-  Esc: "Exit drawing / clear selection",
-  "]": "Next panel",
-  "[": "Previous panel",
-  [SEARCH_KEYBINDING]: "Search",
-  "Command+o": "Open",
-  "Command+s": "Save",
-  "Command+a": "Select all",
-  "Command+z": "Undo",
-  "Command+y": "Redo",
+  "?": translate("help"),
+  "1": translate("select"),
+  "2": translate("junction"),
+  "3": translate("pipe"),
+  Esc: `${translate("exit")} / ${translate("clearSelection")}`,
+  "Command+a": translate("selectAll"),
+  "Command+z": translate("undo"),
+  "Command+y": translate("redo"),
 };
 
 export function CheatsheetDialog() {
   const isMac = getIsMac();
   return (
     <>
-      <DialogHeader title="Cheatsheet" titleIcon={QuestionMarkCircledIcon} />
-      <div className="font-bold pb-2">Keyboard shortcuts</div>
+      <DialogHeader
+        title={translate("cheatsheet")}
+        titleIcon={QuestionMarkCircledIcon}
+      />
+      <div className="font-bold pb-2">{translate("keyboardShortcuts")}</div>
       <div className="p-1 pb-10">
         <div
           className="grid gap-x-3 gap-y-2"

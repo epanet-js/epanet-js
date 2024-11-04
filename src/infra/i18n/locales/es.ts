@@ -7,4 +7,12 @@ export const translations: Translations = {
   hintPipeDrawStart:
     "Haz click para empezar un tubería, después haz click para añadir vértices.",
   hintPipeDrawEnd: "Finaliza una tubería con doble click o apretando Enter.",
+  keyboardShortcuts: "Atajos de teclado",
+  help: "Ayuda",
+  exit: "Terminar",
+  clearSelection: "Borrar selección",
+  selectAll: "Seleccionar todo",
+  undo: "Deshacer",
+  redo: "Rehacer",
+  cheatsheet: "Guía rápida",
 };

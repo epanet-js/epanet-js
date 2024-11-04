@@ -4,4 +4,12 @@ export const translations = {
   pipe: "Pipe",
   hintPipeDrawStart: "Click to start the pipe, then click to add each vertex.",
   hintPipeDrawEnd: "End a pipe by double-clicking or hitting Enter.",
+  keyboardShortcuts: "Keyboard shortcuts",
+  help: "Help",
+  exit: "Exit",
+  clearSelection: "Clear selection",
+  selectAll: "Select all",
+  undo: "Undo",
+  redo: "Redo",
+  cheatsheet: "Cheatsheet",
 };
