@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import { useHotkeys } from "./hotkeys";
 
 export function useKeyboardState() {
   const shiftHeld = useRef<boolean>(false);
