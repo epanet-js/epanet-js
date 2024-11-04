@@ -75,12 +75,6 @@ export const getIsMac = once((): boolean => {
   }
 });
 
-export const MAC_CMD_SYMBOL = "⌘";
-
-export function localizeKeybinding(keys: string, isMac: boolean): string {
-  return keys.replace("Command", isMac ? MAC_CMD_SYMBOL : "Ctrl");
-}
-
 type ClipboardInput = Promisable<string>;
 
 async function writeToClipboardItem(input: ClipboardInput) {

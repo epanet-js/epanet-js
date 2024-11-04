@@ -5,13 +5,12 @@ import { dialogAtom } from "src/state/jotai";
 import * as T from "@radix-ui/react-tooltip";
 import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";
-import { getIsMac, localizeKeybinding } from "src/lib/utils";
 import { SEARCH_KEYBINDING } from "./dialogs/cheatsheet";
 import { LayersPopover } from "./layers/popover";
+import { localizeKeybinding } from "src/infra/i18n";
 
 export const Visual = memo(function Visual() {
   const setDialogState = useSetAtom(dialogAtom);
-  const isMac = getIsMac();
   return (
     <div className="flex items-center">
       <div className="block h-10 w-10 p-1 flex items-stretch">
@@ -30,9 +29,7 @@ export const Visual = memo(function Visual() {
           <E.TContent>
             <div className="flex items-center gap-x-2">
               Search{" "}
-              <E.Keycap>
-                {localizeKeybinding(SEARCH_KEYBINDING, isMac)}
-              </E.Keycap>
+              <E.Keycap>{localizeKeybinding(SEARCH_KEYBINDING)}</E.Keycap>
             </div>
           </E.TContent>
         </T.Root>
