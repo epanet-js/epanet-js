@@ -40,7 +40,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       getFillColor: [255, 255, 255],
       getPointRadius: 4,
       lineCapRounded: true,
-      getDashArray: [4, 4],
+      getDashArray: [3, 3],
       extensions: [new PathStyleExtension({ dash: true })],
     }),
   ];
