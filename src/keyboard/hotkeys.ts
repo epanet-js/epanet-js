@@ -1,4 +1,5 @@
 import { useHotkeys as rawUseHotkeys } from "react-hotkeys-hook";
+import { isDebugOn } from "src/infra/debug-mode";
 import { addToErrorLog } from "src/infra/error-tracking";
 
 type Params = Parameters<typeof rawUseHotkeys>;
@@ -16,7 +17,16 @@ export function useHotkeys(
       message,
       level: "info",
     });
+    if (isDebugOn) {
+      // eslint-disable-next-line
+    console.log("HOTKEYS_CALL", keys, a, b);
+    }
     return fn(...args);
   };
+
+  if (isDebugOn) {
+    // eslint-disable-next-line
+    console.log("HOTKEYS_REGISTER", keys, a, b);
+  }
   return rawUseHotkeys(keys, wrap, a, b);
 }
