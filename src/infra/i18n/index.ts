@@ -22,6 +22,8 @@ export const translate = (key: string): string => {
   return text || key;
 };
 
+export { localizeKeybinding } from "./mac";
+
 const getLocale = (): Locale => {
   if (typeof window === "undefined") return "en";
 

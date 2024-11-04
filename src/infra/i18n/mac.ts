@@ -2,8 +2,11 @@ import once from "lodash/once";
 
 export const cmdSymbol = "⌘";
 
-export function localizeKeybinding(keys: string): string {
-  return keys.replace("Command", getIsMac() ? cmdSymbol : "Ctrl");
+export function localizeKeybinding(
+  keys: string,
+  isMac: boolean = getIsMac(),
+): string {
+  return keys.replace("Command", isMac ? cmdSymbol : "Ctrl");
 }
 
 const getIsMac = once((): boolean => {

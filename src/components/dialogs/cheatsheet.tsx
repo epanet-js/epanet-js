@@ -1,9 +1,8 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
-import { getIsMac, localizeKeybinding } from "src/lib/utils";
 import React, { Fragment } from "react";
-import { translate } from "src/infra/i18n";
+import { localizeKeybinding, translate } from "src/infra/i18n";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -19,7 +18,6 @@ const BINDINGS = {
 };
 
 export function CheatsheetDialog() {
-  const isMac = getIsMac();
   return (
     <>
       <DialogHeader
@@ -37,7 +35,7 @@ export function CheatsheetDialog() {
           {Object.entries(BINDINGS).map(([key, description]) => (
             <Fragment key={key}>
               <div className="">
-                <Keycap>{localizeKeybinding(key, isMac)}</Keycap>
+                <Keycap>{localizeKeybinding(key)}</Keycap>
               </div>
               <div>{description}</div>
             </Fragment>

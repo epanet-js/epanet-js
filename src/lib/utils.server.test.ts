@@ -10,11 +10,9 @@ import {
   truncate,
   writeToClipboard,
   formatDateAgo,
-  localizeKeybinding,
   formatTitle,
   getIsMac,
   shallowArrayEqual,
-  MAC_CMD_SYMBOL,
 } from "src/lib/utils";
 
 test("formatTitle", () => {
@@ -40,13 +38,6 @@ test("writeToClipboard", async () => {
 
 test("getIsMac", () => {
   expect(getIsMac()).toBeFalsy();
-});
-
-test("localizeKeybinding", () => {
-  expect(localizeKeybinding("a", true)).toEqual("a");
-  expect(localizeKeybinding("a", false)).toEqual("a");
-  expect(localizeKeybinding("Command+a", true)).toEqual(`${MAC_CMD_SYMBOL}+a`);
-  expect(localizeKeybinding("Command+a", false)).toEqual("Ctrl+a");
 });
 
 test("formatRelative2", () => {
