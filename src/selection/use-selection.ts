@@ -30,6 +30,8 @@ export const useSelection = (selection: Sel) => {
     setSelection(USelection.none());
   };
 
+  const getSelectionIds = () => USelection.toIds(selection);
+
   return {
     setSelection,
     clearSelection,
@@ -38,5 +40,6 @@ export const useSelection = (selection: Sel) => {
     isSelected,
     removeFromSelection,
     selectFeature,
+    getSelectionIds,
   };
 };
