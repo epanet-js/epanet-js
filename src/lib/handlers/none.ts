@@ -122,6 +122,7 @@ export function useNoneHandlers({
       });
       transact(moment).then(() => {
         resetMove();
+        clearSelection();
       });
     },
     click: (e) => {
