@@ -13,7 +13,7 @@ import {
   isLink,
   updateNodeCoordinates,
 } from "src/hydraulics/assets";
-import { moveNode } from "src/hydraulics/model-operations/move-node";
+import { moveNode } from "src/hydraulics/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export type EphemeralMoveAssets = {
