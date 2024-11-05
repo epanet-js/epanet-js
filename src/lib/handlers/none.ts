@@ -1,8 +1,8 @@
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
 import noop from "lodash/noop";
-import { Mode, cursorStyleAtom, ephemeralStateAtom } from "src/state/jotai";
-import { useAtom, useSetAtom } from "jotai";
+import { Mode, cursorStyleAtom } from "src/state/jotai";
+import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "./utils";
 import { useSelection } from "src/selection";
@@ -10,51 +10,12 @@ import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import {
   Asset,
   NodeAsset,
+  getNodeCoordinates,
   isLink,
-  updateNodeCoordinates,
 } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
-
-export type EphemeralMoveAssets = {
-  type: "moveAssets";
-  oldAssets: Asset[];
-  targetAssets: Asset[];
-};
-
-const useMoveState = () => {
-  const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
-
-  const startMove = (startAssets: Asset[]) => {
-    setEphemeralState({
-      type: "moveAssets",
-      oldAssets: startAssets,
-      targetAssets: startAssets,
-    });
-  };
-
-  const updateMove = (targetAssets: Asset[]) => {
-    if (state.type !== "moveAssets") {
-      return startMove(targetAssets);
-    }
-
-    setEphemeralState((prev) => ({
-      ...prev,
-      targetAssets,
-    }));
-  };
-
-  const resetMove = () => {
-    setEphemeralState({ type: "none" });
-  };
-
-  return {
-    startMove,
-    updateMove,
-    resetMove,
-    isMoving: state.type === "moveAssets",
-  };
-};
+import { useMoveState } from "./default/move-state";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -114,7 +75,11 @@ export function useNoneHandlers({
       const asset = hydraulicModel.assets.get(assetId);
       if (!asset || isLink(asset as Asset)) return;
 
-      startMove([asset as Asset]);
+      const { putAssets } = moveNode(hydraulicModel, {
+        nodeId: asset.id,
+        newCoordinates: getNodeCoordinates(asset as NodeAsset),
+      });
+      putAssets && startMove(putAssets);
       setCursor("move");
     },
     move: (e) => {
@@ -122,7 +87,7 @@ export function useNoneHandlers({
       if (
         selection.type !== "single" ||
         !isMoving ||
-        !isFeatureOn("FLAG_MOVE_NODE")
+        !isFeatureOn("FLAG_MOVE")
       ) {
         return skipMove(e);
       }
@@ -132,11 +97,11 @@ export function useNoneHandlers({
       if (!asset || isLink(asset)) return;
 
       const newCoordinates = getMapCoord(e);
-      const updatedAsset = updateNodeCoordinates(
-        asset as NodeAsset,
+      const { putAssets } = moveNode(hydraulicModel, {
+        nodeId: asset.id,
         newCoordinates,
-      );
-      updateMove([updatedAsset]);
+      });
+      putAssets && updateMove(putAssets);
     },
     up: (e) => {
       e.preventDefault();
@@ -155,8 +120,9 @@ export function useNoneHandlers({
         nodeId: assetId,
         newCoordinates,
       });
-      transact(moment);
-      resetMove();
+      transact(moment).then(() => {
+        resetMove();
+      });
     },
     click: (e) => {
       const clickedFeature = getClickedFeature(e);

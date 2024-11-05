@@ -28,7 +28,7 @@ import {
   HydraulicModel,
   nullHydraulicModel,
 } from "src/hydraulics/hydraulic-model";
-import { EphemeralMoveAssets } from "src/lib/handlers/none";
+import { EphemeralMoveAssets } from "src/lib/handlers/default/move-state";
 
 // TODO: make this specific
 type MapboxLayer = any;
