@@ -15,6 +15,7 @@ import {
 import { moveNode } from "src/hydraulics/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useMoveState } from "./default/move-state";
+import noop from "lodash/noop";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -58,9 +59,7 @@ export function useNoneHandlers({
   };
 
   const handlers: Handlers = {
-    double: (e) => {
-      e.preventDefault();
-    },
+    double: noop,
     down: (e) => {
       if (selection.type !== "single" || !isFeatureOn("FLAG_MOVE")) {
         return skipMove(e);

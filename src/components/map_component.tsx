@@ -326,6 +326,7 @@ export const MapComponent = memo(function MapComponent({
       debug(e, mode.mode, selection, dragTargetRef, "doubleClick");
 
       HANDLERS[mode.mode].double(e);
+      e.preventDefault();
     },
     onMoveEnd(e: mapboxgl.MapboxEvent & mapboxgl.EventData) {
       debug(e, mode.mode, selection, dragTargetRef, "onMouseMoveEnd");
