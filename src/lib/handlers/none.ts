@@ -1,6 +1,5 @@
 import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
-import noop from "lodash/noop";
 import { Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
@@ -59,7 +58,9 @@ export function useNoneHandlers({
   };
 
   const handlers: Handlers = {
-    double: noop,
+    double: (e) => {
+      e.preventDefault();
+    },
     down: (e) => {
       if (selection.type !== "single" || !isFeatureOn("FLAG_MOVE")) {
         return skipMove(e);
