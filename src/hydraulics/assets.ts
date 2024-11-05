@@ -49,11 +49,14 @@ export const createJunction = (
   };
 };
 
-export const createPipe = (coordinates: Position[] = []): Pipe => {
+export const createPipe = (
+  coordinates: Position[] = [],
+  id = newFeatureId(),
+): Pipe => {
   const nullConnections = ["", ""] as LinkConnections;
 
   return {
-    id: newFeatureId(),
+    id,
     feature: {
       type: "Feature",
       properties: {
