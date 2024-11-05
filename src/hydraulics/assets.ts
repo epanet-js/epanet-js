@@ -192,3 +192,7 @@ export const updateMatchingEndpoints = (
   }
   return updateLinkCoordinates(link, newLinkCoordinates);
 };
+
+export const getLinkConnections = (link: LinkAsset): LinkConnections => {
+  return link.feature.properties.connections;
+};
