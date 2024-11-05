@@ -83,6 +83,7 @@
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",
     "@turf/center": "^6.5.0",
+    "@turf/distance": "^7.1.0",
     "@turf/helpers": "^6.5.0",
     "@turf/length": "^6.5.0",
     "@turf/meta": "^6.5.0",
