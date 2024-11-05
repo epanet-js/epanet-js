@@ -77,7 +77,6 @@ export function useNoneHandlers({
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
   const { startMove, updateMove, resetMove, isMoving } = useMoveState();
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
 
@@ -101,12 +100,17 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      e.preventDefault();
-      if (selection.type !== "single" || !isFeatureOn("FLAG_MOVE"))
+      if (selection.type !== "single" || !isFeatureOn("FLAG_MOVE")) {
         return skipMove(e);
+      }
 
       const [assetId] = getSelectionIds();
+      const clickedFeature = getClickedFeature(e);
+      if (!clickedFeature || clickedFeature.wrappedFeature.id !== assetId) {
+        return;
+      }
 
+      e.preventDefault();
       const asset = hydraulicModel.assets.get(assetId);
       if (!asset || isLink(asset as Asset)) return;
 
@@ -119,9 +123,9 @@ export function useNoneHandlers({
         selection.type !== "single" ||
         !isMoving ||
         !isFeatureOn("FLAG_MOVE_NODE")
-      )
+      ) {
         return skipMove(e);
-
+      }
       const [assetId] = getSelectionIds();
 
       const asset = hydraulicModel.assets.get(assetId) as Asset;
@@ -136,8 +140,13 @@ export function useNoneHandlers({
     },
     up: (e) => {
       e.preventDefault();
-      if (selection.type !== "single" || !isMoving || !isFeatureOn("FLAG_MOVE"))
+      if (
+        selection.type !== "single" ||
+        !isMoving ||
+        !isFeatureOn("FLAG_MOVE")
+      ) {
         return skipMove(e);
+      }
 
       const [assetId] = getSelectionIds();
 
@@ -148,7 +157,6 @@ export function useNoneHandlers({
       });
       transact(moment);
       resetMove();
-      clearSelection();
     },
     click: (e) => {
       const clickedFeature = getClickedFeature(e);
@@ -179,7 +187,7 @@ export function useNoneHandlers({
       }
     },
     exit() {
-      setEphemeralState({ type: "none" });
+      resetMove();
       clearSelection();
     },
   };
