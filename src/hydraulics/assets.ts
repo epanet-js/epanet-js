@@ -140,3 +140,19 @@ export const getNodeCoordinates = (node: NodeAsset): Position => {
 
   return feature.geometry.coordinates;
 };
+
+export const updateNodeCoordinates = (
+  node: NodeAsset,
+  newCoordinates: Position,
+): NodeAsset => {
+  return {
+    ...node,
+    feature: {
+      ...node.feature,
+      geometry: {
+        type: "Point",
+        coordinates: newCoordinates,
+      },
+    },
+  };
+};

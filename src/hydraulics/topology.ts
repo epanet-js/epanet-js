@@ -10,7 +10,7 @@ export class Topology {
     this.graph.addLink(startNodeId, endNodeId, { id: linkId });
   }
 
-  getLinks(nodeId: string) {
+  getLinks(nodeId: string): string[] {
     const links = this.graph.getLinks(nodeId);
     return Array.from(links || []).map((link) => link.data.id);
   }

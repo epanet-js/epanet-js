@@ -28,6 +28,7 @@ import {
   HydraulicModel,
   nullHydraulicModel,
 } from "src/hydraulics/hydraulic-model";
+import { EphemeralMoveAssets } from "src/lib/handlers/none";
 
 // TODO: make this specific
 type MapboxLayer = any;
@@ -290,6 +291,7 @@ export type EphemeralEditingState =
   | EphemeralEditingStateLasso
   | EphemeralDragState
   | EphemeralDrawPipe
+  | EphemeralMoveAssets
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
