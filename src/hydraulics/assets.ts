@@ -49,7 +49,7 @@ export const createJunction = (
   };
 };
 
-export const createPipe = (coordinates: Position[]): Pipe => {
+export const createPipe = (coordinates: Position[] = []): Pipe => {
   const nullConnections = ["", ""] as LinkConnections;
 
   return {
@@ -155,4 +155,37 @@ export const updateNodeCoordinates = (
       },
     },
   };
+};
+
+export const updateLinkCoordinates = (
+  link: LinkAsset,
+  newCoordinates: Position[],
+): LinkAsset => {
+  return {
+    ...link,
+    feature: {
+      ...link.feature,
+      geometry: {
+        type: "LineString",
+        coordinates: newCoordinates,
+      },
+    },
+  };
+};
+
+export const updateMatchingEndpoints = (
+  link: LinkAsset,
+  matchingCoordinates: Position,
+  newCoordinates: Position,
+) => {
+  const linkCoordinates = getLinkCoordinates(link);
+
+  const newLinkCoordinates = [...linkCoordinates];
+  if (isSamePosition(matchingCoordinates, linkCoordinates[0])) {
+    newLinkCoordinates[0] = newCoordinates;
+  }
+  if (isSamePosition(matchingCoordinates, linkCoordinates.at(-1) as Position)) {
+    newLinkCoordinates[newLinkCoordinates.length - 1] = newCoordinates;
+  }
+  return updateLinkCoordinates(link, newLinkCoordinates);
 };
