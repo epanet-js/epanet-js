@@ -20,7 +20,6 @@ import noop from "lodash/noop";
 export function useNoneHandlers({
   throttledMovePointer,
   selection,
-  featureMapDeprecated,
   idMap,
   folderMap,
   rep,
@@ -50,7 +49,7 @@ export function useNoneHandlers({
   ) => {
     const fuzzyResult = utils.fuzzyClick(e, {
       idMap,
-      featureMapDeprecated,
+      featureMapDeprecated: hydraulicModel.assets,
       folderMap,
       pmap,
     });
