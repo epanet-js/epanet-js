@@ -18,7 +18,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       data: oldFeatures,
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
-      getLineWidth: 4,
+      getLineWidth: 5,
       getFillColor: [180, 180, 180],
       getLineColor: [180, 180, 180],
       getPointRadius: 4,
