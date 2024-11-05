@@ -43,6 +43,7 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   attributionControl: false,
   fadeDuration: 0,
   antialias: true,
+  doubleClickZoom: false,
 };
 
 const cursorSvg = (color: string) => {
