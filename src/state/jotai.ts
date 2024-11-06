@@ -289,7 +289,6 @@ export const cursorStyleAtom = atom<CursorValue>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
-  | EphemeralDragState
   | EphemeralDrawPipe
   | EphemeralMoveAssets
   | { type: "none" };
