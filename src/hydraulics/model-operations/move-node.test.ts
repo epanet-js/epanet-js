@@ -21,8 +21,7 @@ describe("moveNode", () => {
       newCoordinates,
     });
 
-    if (!putAssets) throw new Error(`Put assets is empty`);
-    const updatedNode = putAssets[0] as NodeAsset;
+    const updatedNode = putAssets![0] as NodeAsset;
     expect(updatedNode.id).toEqual(nodeId);
     expect(getNodeCoordinates(updatedNode)).toEqual(newCoordinates);
   });
@@ -43,16 +42,14 @@ describe("moveNode", () => {
       newCoordinates,
     });
 
-    if (!putAssets) throw new Error(`Put assets is empty`);
-
-    expect(putAssets.length).toEqual(3);
-    const updatedNode = putAssets[0] as NodeAsset;
+    expect(putAssets!.length).toEqual(3);
+    const updatedNode = putAssets![0] as NodeAsset;
     expect(updatedNode.id).toEqual(nodeId);
     expect(getNodeCoordinates(updatedNode)).toEqual(newCoordinates);
 
-    const updatedAB = putAssets[1] as LinkAsset;
+    const updatedAB = putAssets![1] as LinkAsset;
     expect(getLinkCoordinates(updatedAB)).toEqual([[10, 10], newCoordinates]);
-    const updatedBC = putAssets[2] as LinkAsset;
+    const updatedBC = putAssets![2] as LinkAsset;
     expect(getLinkCoordinates(updatedBC)).toEqual([newCoordinates, [30, 30]]);
   });
 });
