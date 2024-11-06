@@ -15,7 +15,6 @@ import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
 
 export function useJunctionHandlers({
-  dragTargetRef,
   mode,
   hydraulicModel,
   rep,
@@ -48,7 +47,6 @@ export function useJunctionHandlers({
     move: noop,
     down: noop,
     up() {
-      dragTargetRef.current = null;
       setCursor(CURSOR_DEFAULT);
     },
     double: noop,
