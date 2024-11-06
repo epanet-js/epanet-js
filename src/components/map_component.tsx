@@ -48,6 +48,7 @@ import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { isDebugOn } from "src/infra/debug-mode";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { monitorFrequency } from "src/infra/monitor-frequency";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -214,6 +215,7 @@ export const MapComponent = memo(function MapComponent({
         return;
       }
 
+      monitorFrequency("SET_MAP_DATA", { limit: 4, intervalMs: 1000 });
       map.setOnlyData(data);
       map
         .setStyle({
