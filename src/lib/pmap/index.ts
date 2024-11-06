@@ -32,7 +32,7 @@ import { PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 import { splitFeatureGroups } from "./split_feature_groups";
 import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
-import { buildLayers as buildMoveAssetsLayers } from "../handlers/default/move-state";
+import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-state";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
