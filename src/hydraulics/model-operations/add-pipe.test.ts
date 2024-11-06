@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { addPipe } from "./add-pipe";
 import {
   LinkAsset,
-  NodeAsset,
+  createJunction,
   createPipe,
   getLinkConnections,
   getLinkCoordinates,
@@ -11,13 +11,9 @@ import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 
 describe("addPipe", () => {
   it("updates connections", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A", [10, 10])
-      .aNode("B", [30, 30])
-      .build();
-
-    const startNode = hydraulicModel.assets.get("A") as NodeAsset;
-    const endNode = hydraulicModel.assets.get("B") as NodeAsset;
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = createJunction([10, 10], "A");
+    const endNode = createJunction([30, 30], "B");
 
     const pipe = createPipe(
       [
@@ -40,13 +36,9 @@ describe("addPipe", () => {
   });
 
   it("removes redundant vertices", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A", [10, 10])
-      .aNode("B", [30, 30])
-      .build();
-
-    const startNode = hydraulicModel.assets.get("A") as NodeAsset;
-    const endNode = hydraulicModel.assets.get("B") as NodeAsset;
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = createJunction([10, 10], "A");
+    const endNode = createJunction([30, 30], "B");
 
     const pipe = createPipe(
       [
@@ -55,6 +47,7 @@ describe("addPipe", () => {
         [20, 20],
         [25, 25],
         [25, 25 + 1e-10],
+        [25 + 1e-10, 25],
         [30, 30],
         [30, 30],
       ],
@@ -74,6 +67,35 @@ describe("addPipe", () => {
       [20, 20],
       [25, 25],
       [30, 30],
+    ]);
+  });
+
+  it("ensures connectivity with the link endpoints", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = createJunction([10, 10]);
+    const endNode = createJunction([20, 20]);
+    const pipe = createPipe(
+      [
+        [10, 11],
+        [15, 15],
+        [19 + 1e-10, 20],
+        [19, 20],
+      ],
+      "PIPE",
+    );
+
+    const { putAssets } = addPipe(hydraulicModel, {
+      startNode,
+      endNode,
+      pipe,
+    });
+
+    if (!putAssets) throw new Error(`Put assets is empty`);
+    expect(putAssets[0].id).toEqual("PIPE");
+    expect(getLinkCoordinates(putAssets[0] as LinkAsset)).toEqual([
+      [10, 10],
+      [15, 15],
+      [20, 20],
     ]);
   });
 });

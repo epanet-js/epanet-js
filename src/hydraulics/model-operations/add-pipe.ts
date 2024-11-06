@@ -4,6 +4,7 @@ import {
   Pipe,
   attachConnections,
   getLinkCoordinates,
+  getNodeCoordinates,
   updateLinkCoordinates,
 } from "../assets";
 import distance from "@turf/distance";
@@ -22,10 +23,23 @@ export const addPipe: ModelOperation<InputData> = (
 ) => {
   let pipeReady = attachConnections(pipe, startNode.id, endNode.id);
   pipeReady = removeRedundantVertices(pipeReady);
+  pipeReady = forceSpatialConnectivity(pipeReady, startNode, endNode);
   return {
     note: "Add pipe",
     putAssets: [pipeReady, startNode, endNode],
   };
+};
+
+const forceSpatialConnectivity = (
+  link: LinkAsset,
+  startNode: NodeAsset,
+  endNode: NodeAsset,
+) => {
+  const newCoordinates = [...getLinkCoordinates(link)];
+  newCoordinates[0] = getNodeCoordinates(startNode);
+  newCoordinates[newCoordinates.length - 1] = getNodeCoordinates(endNode);
+
+  return updateLinkCoordinates(link, newCoordinates);
 };
 
 const removeRedundantVertices = (link: LinkAsset): LinkAsset => {
@@ -44,7 +58,7 @@ const removeRedundantVertices = (link: LinkAsset): LinkAsset => {
 };
 
 const isAlmostTheSamePoint = (a: Position, b: Position) => {
-  const minResolutionInMeters = 0.1;
+  const minResolutionInMeters = 1;
   const distanceInMeters = distance(a, b) * 1000;
   return distanceInMeters <= minResolutionInMeters;
 };
