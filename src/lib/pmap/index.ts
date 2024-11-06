@@ -22,14 +22,13 @@ import type {
   IFeatureCollection,
   ISymbolization,
   LayerConfigMap,
-  IFeature,
 } from "src/types";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { PolygonLayer, GeoJsonLayer } from "@deck.gl/layers";
+import { PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 import { splitFeatureGroups } from "./split_feature_groups";
 import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
@@ -335,18 +334,6 @@ export default class PMap {
 
     this.overlay.setProps({
       layers: [
-        ephemeralState.type === "drag" &&
-          new GeoJsonLayer({
-            id: "DRAG_LAYER",
-            data: ephemeralState.features.map(
-              (wrapped) => wrapped.feature as IFeature,
-            ),
-            visible: ephemeralState.type === "drag",
-            lineWidthUnits: "pixels",
-            getLineWidth: 1.5,
-            getPointRadius: 10,
-            pointRadiusUnits: "pixels",
-          }),
         ephemeralState.type === "drawPipe" &&
           buildDrawPipeLayers(ephemeralState),
         ephemeralState.type === "moveAssets" &&
