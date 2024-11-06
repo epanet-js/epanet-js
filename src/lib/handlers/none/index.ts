@@ -3,7 +3,7 @@ import type { HandlerContext } from "src/types";
 import { Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
-import { getMapCoord } from "./utils";
+import { getMapCoord } from "src/lib/handlers/utils";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import {
@@ -14,7 +14,7 @@ import {
 } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useMoveState } from "./default/move-state";
+import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 
 export function useNoneHandlers({

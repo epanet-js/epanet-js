@@ -1,6 +1,6 @@
 import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/jotai";
-import { useNoneHandlers } from "src/lib/handlers/none";
+import { useNoneHandlers } from "./none";
 import { useLassoHandlers } from "src/lib/handlers/lasso";
 import { useRectangleHandlers } from "src/lib/handlers/rectangle";
 import { useCircleHandlers } from "src/lib/handlers/circle";
