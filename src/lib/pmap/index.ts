@@ -15,6 +15,7 @@ import {
   LASSO_YELLOW,
   LASSO_DARK_YELLOW,
   DECK_LASSO_ID,
+  LINE_COLORS_SELECTED_RGB,
 } from "src/lib/constants";
 import type {
   Feature,
@@ -22,17 +23,19 @@ import type {
   IFeatureCollection,
   ISymbolization,
   LayerConfigMap,
+  IFeature,
 } from "src/types";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { colorFromPresence } from "src/lib/color";
 import { IDMap } from "src/lib/id_mapper";
 import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { PolygonLayer } from "@deck.gl/layers";
+import { GeoJsonLayer, PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
 import { splitFeatureGroups } from "./split_feature_groups";
 import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-state";
+import { USelection } from "src/selection";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -114,6 +117,28 @@ const debugEphemeralState = isDebugOn
       console.log(`EPHEMERAL_STATE: ${JSON.stringify(s)})`);
     }
   : noop;
+
+const buildSelectedAssetsLayers = (data: Data) => {
+  const selectedFeatures = USelection.getSelectedFeatures({
+    selection: data.selection,
+    featureMapDeprecated: data.hydraulicModel.assets,
+    folderMap: data.folderMap,
+  });
+
+  return [
+    new GeoJsonLayer({
+      id: "SELECTED_ASSETS",
+      data: selectedFeatures.map((f) => f.feature as IFeature),
+      lineWidthUnits: "pixels",
+      pointRadiusUnits: "pixels",
+      getLineWidth: 4,
+      getFillColor: LINE_COLORS_SELECTED_RGB,
+      getLineColor: LINE_COLORS_SELECTED_RGB,
+      getPointRadius: 4,
+      lineCapRounded: true,
+    }),
+  ];
+};
 
 export default class PMap {
   map: mapboxgl.Map;
@@ -297,11 +322,7 @@ export default class PMap {
       FEATURES_SOURCE_NAME,
     ) as mapboxgl.GeoJSONSource;
 
-    const highlightsSource = this.map.getSource(
-      HIGHLIGHTS_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
-
-    if (!featuresSource || !highlightsSource) {
+    if (!featuresSource) {
       // Set the lastFeatureList here
       // so that the setStyle method will
       // add it again. This happens when the map
@@ -316,7 +337,6 @@ export default class PMap {
       this.lastPreviewProperty,
     );
     mSetData(featuresSource, groups.features, "features", false);
-    mSetData(highlightsSource, groups.selectedFeatures, "highlights");
 
     this.lastData = data;
   }
@@ -324,6 +344,9 @@ export default class PMap {
   setEphemeralState(ephemeralState: EphemeralEditingState) {
     this.overlay.setProps({
       layers: [
+        ephemeralState.type === "none" &&
+          this.lastData &&
+          buildSelectedAssetsLayers(this.lastData),
         ephemeralState.type === "drawPipe" &&
           buildDrawPipeLayers(ephemeralState),
         ephemeralState.type === "moveAssets" &&

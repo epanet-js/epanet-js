@@ -242,7 +242,7 @@ export const MapComponent = memo(function MapComponent({
         map.setEphemeralState(ephemeralState);
       }, delay);
     },
-    [map, ephemeralState],
+    [map, ephemeralState, data.selection],
   );
 
   useEffect(
