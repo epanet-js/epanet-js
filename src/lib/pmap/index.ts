@@ -287,11 +287,74 @@ export default class PMap {
     }
   }
 
+  setOnlyData(data: Data) {
+    if (!(this.map && (this.map as any).style)) {
+      this.lastData = data;
+      return;
+    }
+
+    const featuresSource = this.map.getSource(
+      FEATURES_SOURCE_NAME,
+    ) as mapboxgl.GeoJSONSource;
+
+    const highlightsSource = this.map.getSource(
+      HIGHLIGHTS_SOURCE_NAME,
+    ) as mapboxgl.GeoJSONSource;
+
+    if (!featuresSource || !highlightsSource) {
+      // Set the lastFeatureList here
+      // so that the setStyle method will
+      // add it again. This happens when the map
+      // is initially loaded.
+      this.lastData = data;
+      return;
+    }
+    const groups = splitFeatureGroups(
+      data,
+      this.idMap,
+      this.lastSymbolization,
+      this.lastPreviewProperty,
+    );
+    mSetData(featuresSource, groups.features, "features", false);
+    mSetData(highlightsSource, groups.selectedFeatures, "highlights");
+
+    this.lastData = data;
+    //this.updateSelections(groups.selectionIds);
+  }
+
+  setEphemeralState(ephemeralState: EphemeralEditingState) {
+    this.overlay.setProps({
+      layers: [
+        ephemeralState.type === "drawPipe" &&
+          buildDrawPipeLayers(ephemeralState),
+        ephemeralState.type === "moveAssets" &&
+          buildMoveAssetsLayers(ephemeralState),
+
+        ephemeralState.type === "lasso" &&
+          new PolygonLayer<number[]>({
+            id: DECK_LASSO_ID,
+            data: [makeRectangle(ephemeralState)],
+            visible: ephemeralState.type === "lasso",
+            pickable: false,
+            stroked: true,
+            filled: true,
+            lineWidthUnits: "pixels",
+            getPolygon: (d) => d,
+            getFillColor: LASSO_YELLOW,
+            getLineColor: LASSO_DARK_YELLOW,
+            getLineWidth: 1,
+          }),
+      ],
+    });
+    if (isDebugOn) this.exposeOverlayInWindow();
+    this.lastEphemeralState = ephemeralState;
+  }
+
   /**
    * The central hard method, trying to optimize feature updates
    * on the map.
    */
-  setData({
+  setDataDeprecated({
     data,
     ephemeralState,
     force = false,
@@ -399,7 +462,7 @@ export default class PMap {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     if (this.lastData) {
-      this.setData({
+      this.setDataDeprecated({
         data: this.lastData,
         ephemeralState: this.lastEphemeralState,
         force: true,
