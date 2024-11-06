@@ -30,9 +30,8 @@ describe("addPipe", () => {
       pipe,
     });
 
-    if (!putAssets) throw new Error(`Put assets is empty`);
-    expect(putAssets[0].id).toEqual("PIPE");
-    expect(getLinkConnections(putAssets[0] as LinkAsset)).toEqual(["A", "B"]);
+    expect(putAssets![0].id).toEqual("PIPE");
+    expect(getLinkConnections(putAssets![0] as LinkAsset)).toEqual(["A", "B"]);
   });
 
   it("removes redundant vertices", () => {
@@ -60,9 +59,8 @@ describe("addPipe", () => {
       pipe,
     });
 
-    if (!putAssets) throw new Error(`Put assets is empty`);
-    expect(putAssets[0].id).toEqual("PIPE");
-    expect(getLinkCoordinates(putAssets[0] as LinkAsset)).toEqual([
+    expect(putAssets![0].id).toEqual("PIPE");
+    expect(getLinkCoordinates(putAssets![0] as LinkAsset)).toEqual([
       [10, 10],
       [20, 20],
       [25, 25],
@@ -90,9 +88,8 @@ describe("addPipe", () => {
       pipe,
     });
 
-    if (!putAssets) throw new Error(`Put assets is empty`);
-    expect(putAssets[0].id).toEqual("PIPE");
-    expect(getLinkCoordinates(putAssets[0] as LinkAsset)).toEqual([
+    expect(putAssets![0].id).toEqual("PIPE");
+    expect(getLinkCoordinates(putAssets![0] as LinkAsset)).toEqual([
       [10, 10],
       [15, 15],
       [20, 20],
