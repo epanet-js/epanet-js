@@ -47,6 +47,7 @@ import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { isDebugOn } from "src/infra/debug-mode";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -207,7 +208,37 @@ export const MapComponent = memo(function MapComponent({
   }, [mapRef, mapDivRef, setMap]);
 
   useEffect(
+    function updateAssetsAndStylesInMap() {
+      if (!isFeatureOn("FLAG_MAP_PRO")) return;
+      if (!map?.map) {
+        return;
+      }
+
+      map.setOnlyData(data);
+      map
+        .setStyle({
+          layerConfigs,
+          symbolization: symbolization || SYMBOLIZATION_NONE,
+          previewProperty: label,
+        })
+        .catch((e) => captureError(e));
+    },
+    [map, folderMap, symbolization, data, layerConfigs, label],
+  );
+
+  useEffect(
+    function updateEphemeralStateInMap() {
+      if (!isFeatureOn("FLAG_MAP_PRO")) return;
+      if (!map?.map) return;
+
+      map.setEphemeralState(ephemeralState);
+    },
+    [map, ephemeralState],
+  );
+
+  useEffect(
     function mapSetDataMethods() {
+      if (isFeatureOn("FLAG_MAP_PRO")) return;
       if (!map?.map) {
         return;
       }
@@ -216,7 +247,7 @@ export const MapComponent = memo(function MapComponent({
       // really often without performance issues because these inputs
       // stay the same and the functions skip if they're given the same input.
       // Ordering here, though, is tricky.
-      map.setData({
+      map.setDataDeprecated({
         data,
         ephemeralState,
       });
