@@ -6,12 +6,7 @@ import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/lib/handlers/utils";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
-import {
-  Asset,
-  NodeAsset,
-  getNodeCoordinates,
-  isLink,
-} from "src/hydraulics/assets";
+import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useMoveState } from "./move-state";
@@ -72,7 +67,7 @@ export function useNoneHandlers({
 
       e.preventDefault();
       const asset = hydraulicModel.assets.get(assetId);
-      if (!asset || isLink(asset as Asset)) return;
+      if (!asset || isLink(asset)) return;
 
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
@@ -92,7 +87,7 @@ export function useNoneHandlers({
       }
       const [assetId] = getSelectionIds();
 
-      const asset = hydraulicModel.assets.get(assetId) as Asset;
+      const asset = hydraulicModel.assets.get(assetId);
       if (!asset || isLink(asset)) return;
 
       const newCoordinates = getMapCoord(e);
