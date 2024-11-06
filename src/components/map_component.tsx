@@ -208,12 +208,14 @@ export const MapComponent = memo(function MapComponent({
     // eslint-disable-next-line
   }, [mapRef, mapDivRef, setMap]);
 
+  const dataUpdateInProgress = useRef(false);
+
   useEffect(
     function updateAssetsAndStylesInMap() {
       if (!isFeatureOn("FLAG_MAP_PRO")) return;
-      if (!map?.map) {
-        return;
-      }
+      if (!map?.map) return;
+
+      dataUpdateInProgress.current = true;
 
       monitorFrequency("SET_MAP_DATA", { limit: 4, intervalMs: 1000 });
       map.setOnlyData(data);
@@ -224,6 +226,7 @@ export const MapComponent = memo(function MapComponent({
           previewProperty: label,
         })
         .catch((e) => captureError(e));
+      setTimeout(() => (dataUpdateInProgress.current = false));
     },
     [map, folderMap, symbolization, data, layerConfigs, label],
   );
@@ -233,7 +236,11 @@ export const MapComponent = memo(function MapComponent({
       if (!isFeatureOn("FLAG_MAP_PRO")) return;
       if (!map?.map) return;
 
-      map.setEphemeralState(ephemeralState);
+      const delay = dataUpdateInProgress.current ? 100 : 0;
+
+      setTimeout(() => {
+        map.setEphemeralState(ephemeralState);
+      }, delay);
     },
     [map, ephemeralState],
   );

@@ -319,7 +319,6 @@ export default class PMap {
     mSetData(highlightsSource, groups.selectedFeatures, "highlights");
 
     this.lastData = data;
-    //this.updateSelections(groups.selectionIds);
   }
 
   setEphemeralState(ephemeralState: EphemeralEditingState) {
