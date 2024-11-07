@@ -116,7 +116,7 @@ export function useNoneHandlers({
       });
       transact(moment).then(() => {
         resetMove();
-        clearSelection();
+        if (!isFeatureOn("FLAG_MAP_PRO")) clearSelection();
       });
     },
     click: (e) => {
