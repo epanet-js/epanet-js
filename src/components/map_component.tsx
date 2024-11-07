@@ -224,8 +224,32 @@ export const MapComponent = memo(function MapComponent({
 
   const dataUpdateInProgress = useRef(false);
 
+  const updateEphemeralStateInMap = useAtomCallback(
+    useCallback(
+      (get) => {
+        if (!map?.map) return;
+        const ephemeralState = get(ephemeralStateAtom);
+
+        map.setEphemeralState(ephemeralState);
+      },
+      [map],
+    ),
+  );
+
+  const updateSelectionInMap = useAtomCallback(
+    useCallback(
+      (get) => {
+        if (!map?.map) return;
+        const { selection } = get(dataAtom);
+
+        map.setOnlySelection(selection);
+      },
+      [map],
+    ),
+  );
+
   useEffect(
-    function updateAssetsAndStylesInMap() {
+    function expensiveDataUpdate() {
       if (!isFeatureOn("FLAG_MAP_PRO")) return;
       if (!map?.map) return;
 
@@ -240,27 +264,46 @@ export const MapComponent = memo(function MapComponent({
           previewProperty: label,
         })
         .catch((e) => captureError(e));
-      setTimeout(() => (dataUpdateInProgress.current = false));
-    },
-    [map, folderMap, symbolization, data, layerConfigs, label],
-  );
-
-  useEffect(
-    function updateEphemeralStateInMap() {
-      if (!isFeatureOn("FLAG_MAP_PRO")) return;
-      if (!map?.map) return;
-
-      const delay = dataUpdateInProgress.current ? 100 : 0;
-
       setTimeout(() => {
-        map.setEphemeralState(ephemeralState);
-      }, delay);
+        dataUpdateInProgress.current = false;
+        updateSelectionInMap();
+        updateEphemeralStateInMap();
+      }, 200);
     },
-    [map, ephemeralState, data.selection],
+    [
+      map,
+      folderMap,
+      symbolization,
+      data,
+      layerConfigs,
+      label,
+      updateSelectionInMap,
+      updateEphemeralStateInMap,
+    ],
   );
 
   useEffect(
-    function mapSetDataMethods() {
+    function onEphemeralStateChange() {
+      if (!isFeatureOn("FLAG_MAP_PRO")) return;
+      if (dataUpdateInProgress.current) return;
+
+      updateEphemeralStateInMap();
+    },
+    [ephemeralState, updateEphemeralStateInMap],
+  );
+
+  useEffect(
+    function onSelectionChange() {
+      if (!isFeatureOn("FLAG_MAP_PRO")) return;
+      if (dataUpdateInProgress.current) return;
+
+      updateSelectionInMap();
+    },
+    [data.selection, updateSelectionInMap],
+  );
+
+  useEffect(
+    function mapSetDataMethodsDeprecated() {
       if (isFeatureOn("FLAG_MAP_PRO")) return;
       if (!map?.map) {
         return;
