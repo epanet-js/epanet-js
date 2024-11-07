@@ -67,13 +67,21 @@ export function useDrawPipeHandlers({
     });
   };
 
-  const submitPipe = (startNode: NodeAsset, pipe: Pipe, endNode: NodeAsset) => {
-    const length = measureLength(pipe.feature);
-    if (!length) return;
+  const submitPipe = async (
+    startNode: NodeAsset,
+    pipe: Pipe,
+    endNode: NodeAsset,
+  ) => {
+    try {
+      const length = measureLength(pipe.feature);
+      if (!length) return;
 
-    const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
+      const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
 
-    transact(moment).catch((e) => captureError(e));
+      await transact(moment);
+    } catch (e) {
+      captureError(e as Error);
+    }
   };
 
   const isSnapping = () => !isShiftHeld();
@@ -98,15 +106,17 @@ export function useDrawPipeHandlers({
       }
 
       if (!!snappingNode) {
-        submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-        isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+        submitPipe(drawing.startNode, drawing.pipe, snappingNode).then(() => {
+          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+        });
         return;
       }
 
       if (isEndAndContinueOn()) {
         const endJunction = createJunction(clickPosition);
-        submitPipe(drawing.startNode, drawing.pipe, endJunction);
-        startDrawing(endJunction);
+        submitPipe(drawing.startNode, drawing.pipe, endJunction).then(() => {
+          startDrawing(endJunction);
+        });
       } else {
         addVertex(clickPosition);
       }
@@ -150,8 +160,9 @@ export function useDrawPipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      submitPipe(startNode, pipe, endJunction);
-      resetDrawing();
+      submitPipe(startNode, pipe, endJunction).then(() => {
+        resetDrawing();
+      });
     },
     exit() {
       resetDrawing();
