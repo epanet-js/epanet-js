@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, createStore } from "jotai";
 import { atomWithStorage, selectAtom } from "jotai/utils";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
@@ -29,6 +29,8 @@ import {
   nullHydraulicModel,
 } from "src/hydraulics/hydraulic-model";
 import { EphemeralMoveAssets } from "src/lib/handlers/none/move-state";
+
+export type Store = ReturnType<typeof createStore>;
 
 // TODO: make this specific
 type MapboxLayer = any;
