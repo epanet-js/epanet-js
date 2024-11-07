@@ -395,7 +395,7 @@ export function CIRCLE_PAINT(
       "match",
       ["feature-state", "state"],
       "selected",
-      "white",
+      LINE_COLORS_SELECTED,
       asColorExpression({
         symbolization,
         part: "stroke",
