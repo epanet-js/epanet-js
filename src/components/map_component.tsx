@@ -25,6 +25,7 @@ import {
   cursorStyleAtom,
   layerConfigAtom,
   Sel,
+  Data,
 } from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
 import PMap from "src/lib/pmap";
@@ -64,6 +65,11 @@ export interface ContextInfo {
   selectedFeatures: IWrappedFeature[];
   position: Pos2;
 }
+const exposeDataInWindow = (data: Data) => {
+  if (typeof window === "undefined") return;
+
+  (window as any).appData = data;
+};
 
 const noop = () => null;
 const debug = isDebugOn
@@ -93,6 +99,8 @@ export const MapComponent = memo(function MapComponent({
   setMap: (arg0: PMap | null) => void;
 }) {
   const data = useAtomValue(dataAtom);
+  if (isDebugOn) exposeDataInWindow(data);
+
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { featureMapDeprecated, folderMap, hydraulicModel } = data;
   // State
