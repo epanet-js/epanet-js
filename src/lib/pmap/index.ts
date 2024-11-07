@@ -34,6 +34,8 @@ import { splitFeatureGroups } from "./split_feature_groups";
 import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-state";
 import { USelection } from "src/selection";
+import { AssetsMap } from "src/hydraulics/assets";
+import { getKeepProperties, stripFeature } from "./strip_features";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -54,6 +56,31 @@ const cursorSvg = (color: string) => {
 </svg>
 `;
   return div;
+};
+
+export const buildOptimizedAssetsSource = (
+  assets: AssetsMap,
+  idMap: IDMap,
+  symbolization: ISymbolization | null,
+  previewProperty: PreviewProperty,
+): Feature[] => {
+  const strippedFeatures = [];
+  const keepProperties = getKeepProperties({
+    symbolization,
+    previewProperty,
+  });
+  for (const feature of assets.values()) {
+    if (feature.feature.properties?.visibility === false) {
+      continue;
+    }
+    const strippedFeature = stripFeature({
+      wrappedFeature: feature,
+      keepProperties,
+      idMap,
+    });
+    strippedFeatures.push(strippedFeature);
+  }
+  return strippedFeatures;
 };
 
 type ClickEvent = mapboxgl.MapMouseEvent & mapboxgl.EventData;
@@ -290,34 +317,26 @@ export default class PMap {
     }
   }
 
-  setOnlyData(data: Data) {
+  setOnlyData(assets: AssetsMap) {
     if (!(this.map && (this.map as any).style)) {
-      this.lastData = data;
       return;
     }
+    //eslint-disable-next-line
+    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
+
 
     const featuresSource = this.map.getSource(
       FEATURES_SOURCE_NAME,
     ) as mapboxgl.GeoJSONSource;
+    if (!featuresSource) return;
 
-    if (!featuresSource) {
-      // Set the lastFeatureList here
-      // so that the setStyle method will
-      // add it again. This happens when the map
-      // is initially loaded.
-      this.lastData = data;
-      return;
-    }
-    const groups = splitFeatureGroups(
-      data,
+    const strippedFeatures = buildOptimizedAssetsSource(
+      assets,
       this.idMap,
       this.lastSymbolization,
       this.lastPreviewProperty,
     );
-    mSetData(featuresSource, groups.features, "features", false);
-
-    this.lastData = data;
-    this.setOnlySelection(data.selection);
+    mSetData(featuresSource, strippedFeatures, "features", false);
   }
 
   setOnlySelection(selection: Sel) {
@@ -355,7 +374,6 @@ export default class PMap {
       ],
     });
     if (isDebugOn) this.exposeOverlayInWindow();
-    this.lastEphemeralState = ephemeralState;
   }
 
   /**
