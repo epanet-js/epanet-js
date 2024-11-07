@@ -1,3 +1,4 @@
+import { FeatureMap } from "src/types";
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets";
 
@@ -6,9 +7,7 @@ export type HydraulicModel = {
   topology: Topology;
 };
 
-export { AssetsMap };
-
-export const nullHydraulicModel = (assets: AssetsMap): HydraulicModel => {
+export const nullHydraulicModel = (assets: FeatureMap): HydraulicModel => {
   return {
     assets,
     topology: new Topology(),

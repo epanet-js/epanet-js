@@ -41,7 +41,7 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { Asset, AssetsMap, getAssetConnections } from "src/hydraulics/assets";
+import { Asset, getAssetConnections } from "src/hydraulics/assets";
 import { ModelMoment } from "src/hydraulics/model-operation";
 
 export class MemPersistence implements IPersistence {
@@ -70,8 +70,8 @@ export class MemPersistence implements IPersistence {
         this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
       );
 
-      const updatedFeatures = new AssetsMap(
-        Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
+      const updatedFeatures = new Map(
+        Array.from(ctx.featureMapDeprecated).sort((a, b) => {
           return sortAts(a[1], b[1]);
         }),
       );
@@ -288,7 +288,10 @@ export class MemPersistence implements IPersistence {
       }
 
       const { hydraulicModel } = ctx;
-      hydraulicModel.assets.set(inputFeature.id, inputFeature as Asset);
+      hydraulicModel.assets.set(
+        inputFeature.id,
+        inputFeature as IWrappedFeature,
+      );
 
       const connections = getAssetConnections(inputFeature as Asset);
       connections &&
