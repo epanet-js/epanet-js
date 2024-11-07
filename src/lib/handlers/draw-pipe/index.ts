@@ -21,6 +21,7 @@ import {
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -47,7 +48,7 @@ export function useDrawPipeHandlers({
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = getNodeCoordinates(startNode);
     const pipe = createPipe([coordinates, coordinates]);
-    selectFeature(pipe.id);
+    if (!isFeatureOn("FLAG_MAP_PRO")) selectFeature(pipe.id);
 
     setDrawing({
       startNode,
@@ -91,7 +92,7 @@ export function useDrawPipeHandlers({
           : createJunction(clickPosition);
 
         const pipeId = startDrawing(startNode);
-        selectFeature(pipeId);
+        if (!isFeatureOn("FLAG_MAP_PRO")) selectFeature(pipeId);
 
         return;
       }
