@@ -91,7 +91,9 @@ function mSetData(
       features: newData,
     } as IFeatureCollection);
     lastValues.set(source, newData);
+    return true;
   } else {
+    return false;
     // console.log(
     //   "Skipped update",
     //   _label,
@@ -315,9 +317,13 @@ export default class PMap {
     mSetData(featuresSource, groups.features, "features", false);
 
     this.lastData = data;
+    this.setOnlySelection(data.selection);
+  }
+
+  setOnlySelection(selection: Sel) {
     this.updateSelections(
       new Set(
-        USelection.toIds(data.selection).map((uuid) =>
+        USelection.toIds(selection).map((uuid) =>
           UIDMap.getIntID(this.idMap, uuid),
         ),
       ),

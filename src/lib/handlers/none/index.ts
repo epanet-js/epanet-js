@@ -127,6 +127,7 @@ export function useNoneHandlers({
         if (isShiftHeld()) return;
 
         clearSelection();
+        resetMove();
         setMode({ mode: Mode.NONE });
         return;
       }
