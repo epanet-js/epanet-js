@@ -47,7 +47,7 @@ import { fMoment } from "src/lib/persistence/moment";
 import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
-import { isDebugOn } from "src/infra/debug-mode";
+import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { monitorFrequency } from "src/infra/monitor-frequency";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -99,7 +99,7 @@ export const MapComponent = memo(function MapComponent({
   setMap: (arg0: PMap | null) => void;
 }) {
   const data = useAtomValue(dataAtom);
-  if (isDebugOn) exposeDataInWindow(data);
+  if (isDebugAppStateOn) exposeDataInWindow(data);
 
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { featureMapDeprecated, folderMap, hydraulicModel } = data;
