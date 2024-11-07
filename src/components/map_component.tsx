@@ -26,6 +26,7 @@ import {
   layerConfigAtom,
   Sel,
   Data,
+  EphemeralEditingState,
 } from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
 import PMap from "src/lib/pmap";
@@ -65,10 +66,14 @@ export interface ContextInfo {
   selectedFeatures: IWrappedFeature[];
   position: Pos2;
 }
-const exposeDataInWindow = (data: Data) => {
+const exposeAppStateInWindow = (
+  data: Data,
+  ephemeralState: EphemeralEditingState,
+) => {
   if (typeof window === "undefined") return;
 
   (window as any).appData = data;
+  (window as any).appEphemeralState = ephemeralState;
 };
 
 const noop = () => null;
@@ -99,7 +104,9 @@ export const MapComponent = memo(function MapComponent({
   setMap: (arg0: PMap | null) => void;
 }) {
   const data = useAtomValue(dataAtom);
-  if (isDebugAppStateOn) exposeDataInWindow(data);
+  const ephemeralState = useAtomValue(ephemeralStateAtom);
+
+  if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { featureMapDeprecated, folderMap, hydraulicModel } = data;
@@ -120,7 +127,6 @@ export const MapComponent = memo(function MapComponent({
 
   // Atom state
   const selection = data.selection;
-  const ephemeralState = useAtomValue(ephemeralStateAtom);
   const mode = useAtomValue(modeAtom);
   const [cursor, setCursor] = useAtom(cursorStyleAtom);
 
