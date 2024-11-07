@@ -257,13 +257,6 @@ export const MapComponent = memo(function MapComponent({
 
       monitorFrequency("SET_MAP_DATA", { limit: 4, intervalMs: 1000 });
       map.setOnlyData(data);
-      map
-        .setStyle({
-          layerConfigs,
-          symbolization: symbolization || SYMBOLIZATION_NONE,
-          previewProperty: label,
-        })
-        .catch((e) => captureError(e));
       setTimeout(() => {
         dataUpdateInProgress.current = false;
         updateSelectionInMap();
