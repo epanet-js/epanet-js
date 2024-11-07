@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import type {
   IFolder,
   IFolderInput,
@@ -22,14 +21,13 @@ import {
   MomentInput,
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
-import { useAtom } from "jotai";
-import { useAtomCallback } from "jotai/utils";
 import {
   Data,
   dataAtom,
   momentLogAtom,
   layerConfigAtom,
   memoryMetaAtom,
+  Store,
 } from "src/state/jotai";
 import {
   getFreshAt,
@@ -46,8 +44,10 @@ import { ModelMoment } from "src/hydraulics/model-operation";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
-  constructor(idMap: IDMap) {
+  private store: Store;
+  constructor(idMap: IDMap, store: Store) {
     this.idMap = idMap;
+    this.store = store;
   }
   putPresence = async () => {};
 
@@ -55,84 +55,78 @@ export class MemPersistence implements IPersistence {
    * This could and should be improved. It does do some weird stuff:
    * we need to write to the moment log and to features.
    */
-  // eslint-disable-next-line
-  private apply = useAtomCallback(
-    useCallback((get, set, moment: MomentInput) => {
-      const ctx = get(dataAtom);
-      const layerConfigMap = get(layerConfigAtom);
-      const reverse = UMoment.merge(
-        fMoment(moment.note || `Reverse`),
-        this.deleteFeaturesInner(moment.deleteFeatures, ctx),
-        this.deleteFoldersInner(moment.deleteFolders, ctx),
-        this.putFeaturesInner(moment.putFeatures, ctx),
-        this.putFoldersInner(moment.putFolders, ctx),
-        this.putLayerConfigsInner(moment.putLayerConfigs, layerConfigMap),
-        this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
-      );
+  private apply(moment: MomentInput) {
+    const ctx = this.store.get(dataAtom);
+    const layerConfigMap = this.store.get(layerConfigAtom);
+    const reverse = UMoment.merge(
+      fMoment(moment.note || `Reverse`),
+      this.deleteFeaturesInner(moment.deleteFeatures, ctx),
+      this.deleteFoldersInner(moment.deleteFolders, ctx),
+      this.putFeaturesInner(moment.putFeatures, ctx),
+      this.putFoldersInner(moment.putFolders, ctx),
+      this.putLayerConfigsInner(moment.putLayerConfigs, layerConfigMap),
+      this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
+    );
 
-      const updatedFeatures = new AssetsMap(
-        Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
+    const updatedFeatures = new AssetsMap(
+      Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
+        return sortAts(a[1], b[1]);
+      }),
+    );
+    this.store.set(dataAtom, {
+      selection: ctx.selection,
+      hydraulicModel: {
+        ...ctx.hydraulicModel,
+        assets: updatedFeatures,
+      },
+      featureMapDeprecated: updatedFeatures,
+      folderMap: new Map(
+        Array.from(ctx.folderMap).sort((a, b) => {
           return sortAts(a[1], b[1]);
         }),
-      );
-      set(dataAtom, {
-        selection: ctx.selection,
-        hydraulicModel: {
-          ...ctx.hydraulicModel,
-          assets: updatedFeatures,
-        },
-        featureMapDeprecated: updatedFeatures,
-        folderMap: new Map(
-          Array.from(ctx.folderMap).sort((a, b) => {
+      ),
+    });
+    if (moment.putLayerConfigs?.length || moment.deleteLayerConfigs?.length) {
+      this.store.set(
+        layerConfigAtom,
+        new Map(
+          Array.from(layerConfigMap).sort((a, b) => {
             return sortAts(a[1], b[1]);
           }),
         ),
-      });
-      if (moment.putLayerConfigs?.length || moment.deleteLayerConfigs?.length) {
-        set(
-          layerConfigAtom,
-          new Map(
-            Array.from(layerConfigMap).sort((a, b) => {
-              return sortAts(a[1], b[1]);
-            }),
-          ),
-        );
-      }
-      return reverse;
-    }, []),
-  );
-
-  useTransact() {
-    // eslint-disable-next-line
-    return useAtomCallback(
-      // eslint-disable-next-line
-      useCallback((get, set, moment: ModelMoment) => {
-        trackMoment(moment);
-        const result = this.apply({
-          ...EMPTY_MOMENT,
-          note: moment.note,
-          deleteFeatures: moment.deleteAssets || [],
-          putFeatures: moment.putAssets || [],
-        });
-        set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
-        return Promise.resolve();
-      }, []),
-    );
+      );
+    }
+    return reverse;
   }
 
-  // eslint-disable-next-line
+  useTransact() {
+    return (moment: ModelMoment) => {
+      trackMoment(moment);
+      const result = this.apply({
+        ...EMPTY_MOMENT,
+        note: moment.note,
+        deleteFeatures: moment.deleteAssets || [],
+        putFeatures: moment.putAssets || [],
+      });
+      this.store.set(
+        momentLogAtom,
+        UMomentLog.pushMoment(this.store.get(momentLogAtom), result),
+      );
+      return Promise.resolve();
+    };
+  }
+
   useTransactDeprecated() {
-    // eslint-disable-next-line
-    return useAtomCallback(
-      // eslint-disable-next-line
-      useCallback((get, set, partialMoment: Partial<MomentInput>) => {
-        trackMomentDeprecated(partialMoment);
-        const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
-        const result = this.apply(moment);
-        set(momentLogAtom, UMomentLog.pushMoment(get(momentLogAtom), result));
-        return Promise.resolve();
-      }, []),
-    );
+    return (partialMoment: Partial<MomentInput>) => {
+      trackMomentDeprecated(partialMoment);
+      const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
+      const result = this.apply(moment);
+      this.store.set(
+        momentLogAtom,
+        UMomentLog.pushMoment(this.store.get(momentLogAtom), result),
+      );
+      return Promise.resolve();
+    };
   }
 
   useLastPresence() {
@@ -140,15 +134,14 @@ export class MemPersistence implements IPersistence {
   }
 
   useMetadata(): MetaPair {
-    // eslint-disable-next-line
-    const [meta, setMeta] = useAtom(memoryMetaAtom);
+    const meta = this.store.get(memoryMetaAtom);
     return [
       {
         type: "memory",
         ...meta,
       },
       (updates: MetaUpdatesInput) => {
-        setMeta((meta) => {
+        this.store.set(memoryMetaAtom, (meta) => {
           return {
             ...meta,
             ...updates,
@@ -159,33 +152,30 @@ export class MemPersistence implements IPersistence {
     ];
   }
 
-  // eslint-disable-next-line
-  useHistoryControl = () => {
-    return useAtomCallback(
-      useCallback((get, set, direction: "undo" | "redo") => {
-        const momentLog = UMomentLog.shallowCopy(get(momentLogAtom));
-        const moment = momentLog[direction].shift();
-        if (!moment) {
-          // Nothing to undo
-          return Promise.resolve();
-        }
-        const reverse = this.apply(moment);
-        if (UMoment.isEmpty(reverse)) {
-          // console.error(
-          //   "[SKIPPING] Got an empty reverse, forward: ",
-          //   moment,
-          //   " reverse: ",
-          //   reverse
-          // );
-          return Promise.resolve();
-        }
-        const opposite = OPPOSITE[direction];
-        momentLog[opposite] = [reverse].concat(momentLog[opposite]);
-        set(momentLogAtom, momentLog);
+  useHistoryControl() {
+    return (direction: "undo" | "redo") => {
+      const momentLog = UMomentLog.shallowCopy(this.store.get(momentLogAtom));
+      const moment = momentLog[direction].shift();
+      if (!moment) {
+        // Nothing to undo
         return Promise.resolve();
-      }, []),
-    );
-  };
+      }
+      const reverse = this.apply(moment);
+      if (UMoment.isEmpty(reverse)) {
+        // console.error(
+        //   "[SKIPPING] Got an empty reverse, forward: ",
+        //   moment,
+        //   " reverse: ",
+        //   reverse
+        // );
+        return Promise.resolve();
+      }
+      const opposite = OPPOSITE[direction];
+      momentLog[opposite] = [reverse].concat(momentLog[opposite]);
+      this.store.set(momentLogAtom, momentLog);
+      return Promise.resolve();
+    };
+  }
 
   // PRIVATE --------------------------------------------
   //
