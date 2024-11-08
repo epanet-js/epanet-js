@@ -1,5 +1,4 @@
 import { useAtom } from "jotai";
-import { useRef } from "react";
 import {
   LinkAsset,
   NodeAsset,
@@ -21,19 +20,17 @@ type DrawingState =
   | NullDrawing;
 
 export const useDrawingState = () => {
-  const startNodeRef = useRef<NodeAsset | null>(null);
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
 
   const resetDrawing = () => {
-    startNodeRef.current = null;
     setEphemeralState({ type: "none" });
   };
 
   const drawingState: DrawingState =
-    startNodeRef.current && state.type === "drawPipe"
+    state.type === "drawPipe" && state.startNode
       ? {
           isNull: false,
-          startNode: startNodeRef.current,
+          startNode: state.startNode,
           snappingCandidate: state.snappingCandidate || null,
           pipe: state.pipe || createPipe([]),
         }
@@ -67,7 +64,6 @@ export const useDrawingState = () => {
     pipe: Pipe;
     snappingCoordinates?: Position | null;
   }) => {
-    startNodeRef.current = startNode;
     setEphemeralState({
       type: "drawPipe",
       pipe,

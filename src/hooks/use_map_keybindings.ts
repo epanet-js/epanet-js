@@ -1,6 +1,12 @@
 import type { Options } from "react-hotkeys-hook";
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import {
+  Mode,
+  dataAtom,
+  ephemeralStateAtom,
+  modeAtom,
+  selectionAtom,
+} from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/selection";
@@ -8,6 +14,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { captureError } from "src/infra/error-tracking";
 import { deleteAssets } from "src/hydraulics/model-operations";
+import { useSetAtom } from "jotai";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -24,12 +31,16 @@ export const keybindingOptions: Options = {
 export function useMapKeybindings() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const setMode = useSetAtom(modeAtom);
   const transact = rep.useTransact();
 
   useHotkeys(
     ["command+z", "ctrl+z"],
     () => {
       historyControl("undo").catch((e) => captureError(e));
+      setEphemeralState({ type: "none" });
+      setMode({ mode: Mode.NONE });
     },
     [historyControl],
     "UNDO",
@@ -39,6 +50,8 @@ export function useMapKeybindings() {
     ["command+y", "ctrl+y"],
     (e) => {
       historyControl("redo").catch((e) => captureError(e));
+      setEphemeralState({ type: "none" });
+      setMode({ mode: Mode.NONE });
       e.preventDefault();
     },
     [historyControl],
