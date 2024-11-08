@@ -256,19 +256,23 @@ export const MapComponent = memo(function MapComponent({
       dataUpdateInProgress.current = true;
 
       monitorFrequency("SET_MAP_DATA", { limit: 4, intervalMs: 1000 });
-      map
-        .setOnlyStyle({
-          layerConfigs,
-          symbolization: symbolization || SYMBOLIZATION_NONE,
-          previewProperty: label,
-        })
-        .then(() => {
-          map.setOnlyData(data.hydraulicModel.assets).then(() => {
-            updateSelectionInMap();
-            updateEphemeralStateInMap();
-            dataUpdateInProgress.current = false;
+      //eslint-disable-next-line @typescript-eslint/no-floating-promises
+      (async () => {
+        try {
+          await map.setOnlyStyle({
+            layerConfigs,
+            symbolization: symbolization || SYMBOLIZATION_NONE,
+            previewProperty: label,
           });
-        });
+          await map.setOnlyData(data.hydraulicModel.assets);
+        } catch (error) {
+          captureError(error as Error);
+        } finally {
+          updateSelectionInMap();
+          updateEphemeralStateInMap();
+          dataUpdateInProgress.current = false;
+        }
+      })();
     },
     [
       map,
