@@ -36,6 +36,7 @@ import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-stat
 import { USelection } from "src/selection";
 import { AssetsMap } from "src/hydraulics/assets";
 import { getKeepProperties, stripFeature } from "./strip_features";
+import { captureWarning } from "src/infra/error-tracking";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -343,18 +344,30 @@ export default class PMap {
     });
 
     return new Promise((resolve) => {
-      this.map.once("style.load", resolve);
+      const styleTimeout = 2000;
+      const timeout = setTimeout(() => {
+        captureWarning(
+          `Timeout: Mapbox style.load took more than ${styleTimeout}`,
+        );
+        resolve();
+      }, styleTimeout);
+
+      this.map.once("style.load", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
 
       this.map.setStyle(style);
     });
   }
 
   setOnlyData(assets: AssetsMap): Promise<void> {
+    //eslint-disable-next-line
+    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
+
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
     }
-    //eslint-disable-next-line
-    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
 
     const featuresSource = this.map.getSource(
       FEATURES_SOURCE_NAME,
@@ -369,7 +382,14 @@ export default class PMap {
     );
 
     return new Promise((resolve) => {
+      const idleTimeoutMs = 2000;
+      const timeout = setTimeout(() => {
+        captureWarning(`Timeout: Mapbox idle took more than ${idleTimeoutMs}`);
+        resolve();
+      }, idleTimeoutMs);
+
       this.map.once("idle", () => {
+        clearTimeout(timeout);
         resolve();
       });
       mSetData(featuresSource, strippedFeatures, "features", false);
