@@ -3,7 +3,7 @@ import createGraph, { Graph } from "ngraph.graph";
 export class Topology {
   private graph: Graph<string>;
   constructor() {
-    this.graph = createGraph({ multigraph: false });
+    this.graph = createGraph({ multigraph: true });
   }
 
   addLink(linkId: string, startNodeId: string, endNodeId: string) {

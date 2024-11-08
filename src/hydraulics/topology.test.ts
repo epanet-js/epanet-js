@@ -33,4 +33,13 @@ describe("Topology", () => {
 
     expect(topology.getLinks("A")).toEqual(["link1"]);
   });
+
+  it("allows two links with same start and end", () => {
+    const topology = new Topology();
+
+    topology.addLink("link1", "A", "B");
+    topology.addLink("link2", "A", "B");
+
+    expect(topology.getLinks("A")).toEqual(["link1", "link2"]);
+  });
 });
