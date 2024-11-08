@@ -317,26 +317,32 @@ export default class PMap {
     }
   }
 
-  setOnlyData(assets: AssetsMap) {
+  setOnlyData(assets: AssetsMap): Promise<void> {
     if (!(this.map && (this.map as any).style)) {
-      return;
+      return Promise.resolve();
     }
     //eslint-disable-next-line
     if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
 
 
-    const featuresSource = this.map.getSource(
-      FEATURES_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
-    if (!featuresSource) return;
+    return new Promise((resolve) => {
+      this.map.once("idle", () => {
+        resolve();
+      });
 
-    const strippedFeatures = buildOptimizedAssetsSource(
-      assets,
-      this.idMap,
-      this.lastSymbolization,
-      this.lastPreviewProperty,
-    );
-    mSetData(featuresSource, strippedFeatures, "features", false);
+      const featuresSource = this.map.getSource(
+        FEATURES_SOURCE_NAME,
+      ) as mapboxgl.GeoJSONSource;
+      if (!featuresSource) return resolve();
+
+      const strippedFeatures = buildOptimizedAssetsSource(
+        assets,
+        this.idMap,
+        this.lastSymbolization,
+        this.lastPreviewProperty,
+      );
+      mSetData(featuresSource, strippedFeatures, "features", false);
+    });
   }
 
   setOnlySelection(selection: Sel) {
