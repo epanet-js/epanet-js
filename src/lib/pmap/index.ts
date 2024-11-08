@@ -356,23 +356,22 @@ export default class PMap {
     //eslint-disable-next-line
     if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
 
+    const featuresSource = this.map.getSource(
+      FEATURES_SOURCE_NAME,
+    ) as mapboxgl.GeoJSONSource;
+    if (!featuresSource) return Promise.resolve();
+
+    const strippedFeatures = buildOptimizedAssetsSource(
+      assets,
+      this.idMap,
+      this.lastSymbolization,
+      this.lastPreviewProperty,
+    );
 
     return new Promise((resolve) => {
       this.map.once("idle", () => {
         resolve();
       });
-
-      const featuresSource = this.map.getSource(
-        FEATURES_SOURCE_NAME,
-      ) as mapboxgl.GeoJSONSource;
-      if (!featuresSource) return resolve();
-
-      const strippedFeatures = buildOptimizedAssetsSource(
-        assets,
-        this.idMap,
-        this.lastSymbolization,
-        this.lastPreviewProperty,
-      );
       mSetData(featuresSource, strippedFeatures, "features", false);
     });
   }
