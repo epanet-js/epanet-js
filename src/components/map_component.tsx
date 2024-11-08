@@ -15,7 +15,6 @@ import React, {
 import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
-import { captureError } from "src/infra/error-tracking";
 import {
   ephemeralStateAtom,
   modeAtom,
@@ -49,8 +48,8 @@ import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { monitorFrequency } from "src/infra/monitor-frequency";
+import { captureError } from "src/infra/error-tracking";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -250,7 +249,6 @@ export const MapComponent = memo(function MapComponent({
 
   useEffect(
     function expensiveDataUpdate() {
-      if (!isFeatureOn("FLAG_MAP_PRO")) return;
       if (!map?.map) return;
 
       dataUpdateInProgress.current = true;
@@ -263,12 +261,16 @@ export const MapComponent = memo(function MapComponent({
           previewProperty: label,
         })
         .then(() => {
-          map.setOnlyData(data.hydraulicModel.assets).then(() => {
-            updateSelectionInMap();
-            updateEphemeralStateInMap();
-            dataUpdateInProgress.current = false;
-          });
-        });
+          map
+            .setOnlyData(data.hydraulicModel.assets)
+            .then(() => {
+              updateSelectionInMap();
+              updateEphemeralStateInMap();
+              dataUpdateInProgress.current = false;
+            })
+            .catch((e) => captureError(e));
+        })
+        .catch((e) => captureError(e));
     },
     [
       map,
@@ -283,7 +285,6 @@ export const MapComponent = memo(function MapComponent({
 
   useEffect(
     function onEphemeralStateChange() {
-      if (!isFeatureOn("FLAG_MAP_PRO")) return;
       if (dataUpdateInProgress.current) return;
 
       updateEphemeralStateInMap();
@@ -293,38 +294,11 @@ export const MapComponent = memo(function MapComponent({
 
   useEffect(
     function onSelectionChange() {
-      if (!isFeatureOn("FLAG_MAP_PRO")) return;
       if (dataUpdateInProgress.current) return;
 
       updateSelectionInMap();
     },
     [data.selection, updateSelectionInMap],
-  );
-
-  useEffect(
-    function mapSetDataMethodsDeprecated() {
-      if (isFeatureOn("FLAG_MAP_PRO")) return;
-      if (!map?.map) {
-        return;
-      }
-
-      // These are all, hopefully, things that we can call
-      // really often without performance issues because these inputs
-      // stay the same and the functions skip if they're given the same input.
-      // Ordering here, though, is tricky.
-      map.setDataDeprecated({
-        data,
-        ephemeralState,
-      });
-      map
-        .setStyle({
-          layerConfigs,
-          symbolization: symbolization || SYMBOLIZATION_NONE,
-          previewProperty: label,
-        })
-        .catch((e) => captureError(e));
-    },
-    [map, folderMap, symbolization, data, layerConfigs, ephemeralState, label],
   );
 
   const throttledMovePointer = useMemo(() => {
