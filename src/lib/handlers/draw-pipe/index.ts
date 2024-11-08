@@ -6,7 +6,6 @@ import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard";
-import { useSelection } from "src/selection";
 import measureLength from "@turf/length";
 import {
   NodeAsset,
@@ -21,16 +20,13 @@ import {
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
   hydraulicModel,
-  selection,
   pmap,
   idMap,
 }: HandlerContext): Handlers {
-  const { selectFeature } = useSelection(selection);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
@@ -48,7 +44,6 @@ export function useDrawPipeHandlers({
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = getNodeCoordinates(startNode);
     const pipe = createPipe([coordinates, coordinates]);
-    if (!isFeatureOn("FLAG_MAP_PRO")) selectFeature(pipe.id);
 
     setDrawing({
       startNode,
@@ -99,24 +94,27 @@ export function useDrawPipeHandlers({
           ? snappingNode
           : createJunction(clickPosition);
 
-        const pipeId = startDrawing(startNode);
-        if (!isFeatureOn("FLAG_MAP_PRO")) selectFeature(pipeId);
+        startDrawing(startNode);
 
         return;
       }
 
       if (!!snappingNode) {
-        submitPipe(drawing.startNode, drawing.pipe, snappingNode).then(() => {
-          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-        });
+        submitPipe(drawing.startNode, drawing.pipe, snappingNode)
+          .then(() => {
+            isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+          })
+          .catch((e) => captureError(e));
         return;
       }
 
       if (isEndAndContinueOn()) {
         const endJunction = createJunction(clickPosition);
-        submitPipe(drawing.startNode, drawing.pipe, endJunction).then(() => {
-          startDrawing(endJunction);
-        });
+        submitPipe(drawing.startNode, drawing.pipe, endJunction)
+          .then(() => {
+            startDrawing(endJunction);
+          })
+          .catch((e) => captureError(e));
       } else {
         addVertex(clickPosition);
       }
@@ -160,9 +158,11 @@ export function useDrawPipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      submitPipe(startNode, pipe, endJunction).then(() => {
-        resetDrawing();
-      });
+      submitPipe(startNode, pipe, endJunction)
+        .then(() => {
+          resetDrawing();
+        })
+        .catch((e) => captureError(e));
     },
     exit() {
       resetDrawing();
