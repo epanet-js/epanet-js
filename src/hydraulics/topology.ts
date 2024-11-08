@@ -1,4 +1,4 @@
-import createGraph, { Graph } from "ngraph.graph";
+import createGraph, { Graph, Link } from "ngraph.graph";
 
 export class Topology {
   private graph: Graph<string>;
@@ -12,7 +12,7 @@ export class Topology {
 
   getLinks(nodeId: string): string[] {
     const links = this.graph.getLinks(nodeId);
-    return Array.from(links || []).map((link) => link.data.id);
+    return Array.from(links || []).map((link: Link) => link.data.id as string);
   }
 
   removeNode(nodeId: string) {

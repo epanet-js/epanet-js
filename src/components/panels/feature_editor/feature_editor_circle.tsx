@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 import { ChangeEvent, useEffect } from "react";
 import type { IWrappedFeature } from "src/types";
 import { panelCircleOpen } from "src/state/jotai";

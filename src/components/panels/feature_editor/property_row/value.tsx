@@ -181,10 +181,10 @@ function triggerStyle(even: boolean) {
     rounded-sm`;
 }
 
-const StyledTabTrigger = classed(Tabs.Trigger)(`px-2 py-1 text-xs 
+const StyledTabTrigger = classed(Tabs.Trigger)(`px-2 py-1 text-xs
   bg-gray-100
   data-state-active:bg-gray-300
-  dark:bg-gray-800 
+  dark:bg-gray-800
   dark:data-state-active:bg-gray-500 rounded`);
 
 export enum EditorTab {
@@ -837,13 +837,7 @@ function TextEditor({
       .map((a) => a[0]);
 
     return head;
-  }, [
-    pair,
-    valueProps.value,
-    featureMapDeprecated,
-    featureMapDeprecated.version,
-    enableProperties,
-  ]);
+  }, [pair, valueProps.value, featureMapDeprecated, enableProperties]);
 
   const showOptions = enableProperties && topProperties.length > 0;
 

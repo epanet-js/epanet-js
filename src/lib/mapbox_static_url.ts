@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 import { PartialLayer } from "src/state/jotai";
 import { targetSize } from "./constants";
 

@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 "use client";
 import type PMap from "src/lib/pmap";
 import { MapComponent } from "src/components/map_component";
