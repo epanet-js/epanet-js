@@ -22,5 +22,6 @@ export const useHotkeys = (
     return () => {
       Mousetrap.unbind(keys);
     };
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencyList);
 };

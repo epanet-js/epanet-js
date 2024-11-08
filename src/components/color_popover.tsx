@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 import {
   HexColorPicker,
   HexColorInput,

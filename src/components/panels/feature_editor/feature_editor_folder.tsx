@@ -340,7 +340,7 @@ export function FeatureEditorFolderInner() {
       const closest = closestVerticalCenter(args);
       return closest;
     },
-    [folderMap, folderMap.version],
+    [folderMap],
   );
 
   function resetState() {

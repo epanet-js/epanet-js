@@ -138,12 +138,7 @@ export function useRootItems({
 }): Root {
   return useMemo(() => {
     return solveRootItems(featureMapDeprecated, folderMap);
-  }, [
-    featureMapDeprecated,
-    featureMapDeprecated.version,
-    folderMap,
-    folderMap.version,
-  ]);
+  }, [featureMapDeprecated, folderMap]);
 }
 
 /**

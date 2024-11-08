@@ -131,7 +131,7 @@ export function getViablePropertiesForCategorical(
 function useViablePropertiesForCategorical(featureMapDeprecated: FeatureMap) {
   return useMemo(() => {
     return getViablePropertiesForCategorical(featureMapDeprecated);
-  }, [featureMapDeprecated, featureMapDeprecated.version]);
+  }, [featureMapDeprecated]);
 }
 
 export function getNumericPropertyMap(featureMapDeprecated: FeatureMap) {
@@ -163,7 +163,7 @@ export function getNumericPropertyMap(featureMapDeprecated: FeatureMap) {
 function useViablePropertiesForRamp(featureMapDeprecated: FeatureMap) {
   return useMemo(() => {
     return getNumericPropertyMap(featureMapDeprecated);
-  }, [featureMapDeprecated, featureMapDeprecated.version]);
+  }, [featureMapDeprecated]);
 }
 
 /**

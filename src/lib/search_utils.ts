@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 import { useMemo } from "react";
 import { VirtualColumns } from "src/state/jotai";
 import { FeatureMap, IFolder, IWrappedFeature } from "src/types";

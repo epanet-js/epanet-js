@@ -273,7 +273,7 @@ export function ExportSVGDialog() {
     const path = geo.geoPath(proj).pointRadius(config.pointRadius);
 
     return path;
-  }, [featureMapDeprecated, featureMapDeprecated.version, config, mapExtent]);
+  }, [featureMapDeprecated, config, mapExtent]);
 
   async function onExport() {
     const { fileSave } = await import("browser-fs-access");

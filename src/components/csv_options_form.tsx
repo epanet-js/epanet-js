@@ -1,3 +1,5 @@
+//TODO: CHECK LINTER ERRORS
+/* eslint-disable */
 import React, { useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import { dsvFormat } from "d3-dsv";

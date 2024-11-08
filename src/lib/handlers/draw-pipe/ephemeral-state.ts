@@ -22,7 +22,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       new ScatterplotLayer({
         id: "DRAW_PIPE_SNAPPING_CANDIDATE",
         data: [getNodeCoordinates(state.snappingCandidate)],
-        getPosition: (d) => d,
+        getPosition: <T>(d: T) => d,
         getRadius: 10,
         radiusUnits: "pixels",
         stroked: true,
