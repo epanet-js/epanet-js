@@ -317,6 +317,38 @@ export default class PMap {
     }
   }
 
+  async setOnlyStyle({
+    layerConfigs,
+    symbolization,
+    previewProperty,
+  }: {
+    layerConfigs: LayerConfigMap;
+    symbolization: ISymbolization;
+    previewProperty: PreviewProperty;
+  }): Promise<void> {
+    if (
+      layerConfigs === this.lastLayer &&
+      symbolization === this.lastSymbolization &&
+      previewProperty === this.lastPreviewProperty
+    ) {
+      return;
+    }
+    this.lastLayer = layerConfigs;
+    this.lastSymbolization = symbolization;
+    this.lastPreviewProperty = previewProperty;
+    const style = await loadAndAugmentStyle({
+      layerConfigs,
+      symbolization,
+      previewProperty,
+    });
+
+    return new Promise((resolve) => {
+      this.map.once("style.load", resolve);
+
+      this.map.setStyle(style);
+    });
+  }
+
   setOnlyData(assets: AssetsMap): Promise<void> {
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
