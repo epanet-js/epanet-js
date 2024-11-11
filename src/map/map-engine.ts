@@ -1,6 +1,7 @@
 import mapboxgl from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
+  IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
 import type {
   EphemeralEditingState,
@@ -35,6 +36,7 @@ import { USelection } from "src/selection";
 import { AssetsMap } from "src/hydraulics/assets";
 import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { captureWarning } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -459,29 +461,33 @@ export class MapEngine {
     if (!this.map || !(this.map as any).style) return;
     const oldSet = this.lastSelectionIds;
     const tmpSet = new Set(newSet);
-    // let adds = 0;
-    // let removes = 0;
 
-    // In new set, but not in old set: add to selection
     for (const id of tmpSet) {
       if (!oldSet.has(id)) {
-        // If this selection id is a base feature, make all of its
-        // vertexes visible
         this.map.setFeatureState(
           {
             source: FEATURES_SOURCE_NAME,
             id,
           },
           {
-            state: "selected",
+            selected: "true",
           },
         );
+        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+          this.map.setFeatureState(
+            {
+              source: IMPORTED_FEATURES_SOURCE_NAME,
+              id,
+            },
+            {
+              selected: "true",
+            },
+          );
+        }
         tmpSet.delete(id);
-        // adds++;
       }
     }
 
-    // In old set, but not in new set: remove from selection
     for (const id of oldSet) {
       if (!tmpSet.has(id)) {
         this.map.removeFeatureState(
@@ -489,15 +495,19 @@ export class MapEngine {
             source: FEATURES_SOURCE_NAME,
             id,
           },
-          "state",
+          "selected",
         );
-        // removes++;
+        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+          this.map.removeFeatureState(
+            {
+              source: IMPORTED_FEATURES_SOURCE_NAME,
+              id,
+            },
+            "selected",
+          );
+        }
       }
     }
-
-    // if (adds || removes) {
-    //   console.log("adds", adds, "removes", removes);
-    // }
 
     this.lastSelectionIds = newSet;
   }

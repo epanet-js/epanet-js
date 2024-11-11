@@ -394,8 +394,8 @@ export function CIRCLE_PAINT(
     return {
       "circle-color": [
         "match",
-        ["feature-state", "state"],
-        "selected",
+        ["feature-state", "selected"],
+        "true",
         "white",
         asColorExpression({
           symbolization,
@@ -404,8 +404,8 @@ export function CIRCLE_PAINT(
       ],
       "circle-radius": [
         "match",
-        ["feature-state", "state"],
-        "selected",
+        ["feature-state", "selected"],
+        "true",
         6 + r,
         4 + r,
       ],
@@ -415,8 +415,8 @@ export function CIRCLE_PAINT(
   return {
     "circle-stroke-color": [
       "match",
-      ["feature-state", "state"],
-      "selected",
+      ["feature-state", "selected"],
+      "true",
       LINE_COLORS_SELECTED,
       "white",
     ],
@@ -425,8 +425,8 @@ export function CIRCLE_PAINT(
     "circle-opacity": 1,
     "circle-color": [
       "match",
-      ["feature-state", "state"],
-      "selected",
+      ["feature-state", "selected"],
+      "true",
       LINE_COLORS_SELECTED,
       asColorExpression({
         symbolization,
@@ -452,8 +452,8 @@ function handleSelected(
     ? expression
     : ([
         "match",
-        ["feature-state", "state"],
-        "selected",
+        ["feature-state", "selected"],
+        "true",
         selected,
         expression,
       ] as mapboxgl.Expression);
