@@ -3,7 +3,7 @@ import type { HandlerContext } from "src/types";
 import { Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
-import { getMapCoord } from "src/lib/handlers/utils";
+import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";

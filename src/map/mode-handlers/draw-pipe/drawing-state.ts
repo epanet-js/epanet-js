@@ -6,7 +6,7 @@ import {
   createJunction,
   createPipe,
 } from "src/hydraulics/assets";
-import { ephemeralStateAtom } from "src/state/jotai";
+import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 import { Position } from "src/types";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
@@ -37,7 +37,7 @@ export const useDrawingState = () => {
       : { isNull: true, snappingCandidate: null };
 
   const setSnappingCandidate = (snappingCoordinates: Position | null) => {
-    setEphemeralState((prev) => {
+    setEphemeralState((prev: EphemeralEditingState) => {
       if (prev.type !== "drawPipe")
         return {
           type: "drawPipe",

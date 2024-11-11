@@ -1,4 +1,4 @@
 import { createContext } from "react";
-import type PMap from "src/lib/pmap";
+import { MapEngine } from "src/map/map-engine";
 
-export const MapContext = createContext<PMap | null>(null);
+export const MapContext = createContext<MapEngine | null>(null);

@@ -23,12 +23,12 @@ import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
-import { EphemeralDrawPipe } from "src/lib/handlers/draw-pipe/ephemeral-state";
+import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-state";
 import {
   HydraulicModel,
   nullHydraulicModel,
 } from "src/hydraulics/hydraulic-model";
-import { EphemeralMoveAssets } from "src/lib/handlers/none/move-state";
+import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 
 export type Store = ReturnType<typeof createStore>;
 
