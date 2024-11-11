@@ -1,7 +1,6 @@
 import mapboxgl from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
-  HIGHLIGHTS_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
 import type {
   EphemeralEditingState,
@@ -30,7 +29,6 @@ import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
-import { splitFeatureGroups } from "./split_feature_groups";
 import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-state";
 import { USelection } from "src/selection";
@@ -137,12 +135,6 @@ const debugEvent = isDebugOn
   ? (e: mapboxgl.MapboxEvent<any>) => {
       // eslint-disable-next-line no-console
       console.log(`MAPBOX_EVENT: ${e.type}`);
-    }
-  : noop;
-const debugEphemeralState = isDebugOn
-  ? (s: EphemeralEditingState) => {
-      // eslint-disable-next-line no-console
-      console.log(`EPHEMERAL_STATE: ${JSON.stringify(s)})`);
     }
   : noop;
 
@@ -433,125 +425,8 @@ export default class PMap {
     if (isDebugOn) this.exposeOverlayInWindow();
   }
 
-  /**
-   * The central hard method, trying to optimize feature updates
-   * on the map.
-   */
-  setDataDeprecated({
-    data,
-    ephemeralState,
-    force = false,
-  }: {
-    data: Data;
-    ephemeralState: EphemeralEditingState;
-    force?: boolean;
-  }) {
-    if (!(this.map && (this.map as any).style)) {
-      this.lastData = data;
-      return;
-    }
-
-    const featuresSource = this.map.getSource(
-      FEATURES_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
-
-    const highlightsSource = this.map.getSource(
-      HIGHLIGHTS_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
-
-    if (!featuresSource || !highlightsSource) {
-      // Set the lastFeatureList here
-      // so that the setStyle method will
-      // add it again. This happens when the map
-      // is initially loaded.
-      this.lastData = data;
-      return;
-    }
-    const groups = splitFeatureGroups(
-      data,
-      this.idMap,
-      this.lastSymbolization,
-      this.lastPreviewProperty,
-    );
-    mSetData(featuresSource, groups.features, "features", force);
-    mSetData(highlightsSource, groups.selectedFeatures, "highlights");
-
-    debugEphemeralState(ephemeralState);
-
-    this.overlay.setProps({
-      layers: [
-        ephemeralState.type === "drawPipe" &&
-          buildDrawPipeLayers(ephemeralState),
-        ephemeralState.type === "moveAssets" &&
-          buildMoveAssetsLayers(ephemeralState),
-
-        ephemeralState.type === "lasso" &&
-          new PolygonLayer<number[]>({
-            id: DECK_LASSO_ID,
-            data: [makeRectangle(ephemeralState)],
-            visible: ephemeralState.type === "lasso",
-            pickable: false,
-            stroked: true,
-            filled: true,
-            lineWidthUnits: "pixels",
-            getPolygon: (d) => d,
-            getFillColor: LASSO_YELLOW,
-            getLineColor: LASSO_DARK_YELLOW,
-            getLineWidth: 1,
-          }),
-      ],
-    });
-
-    if (isDebugOn) this.exposeOverlayInWindow();
-
-    this.lastData = data;
-    //this.updateSelections(groups.selectionIds);
-    this.lastEphemeralState = ephemeralState;
-  }
-
   remove() {
     this.map.remove();
-  }
-
-  // Use { diff: false } to force a style load: otherwise
-  // if we switch from a style to itself, we don't get
-  // a style.load event.
-  async setStyleDeprecated({
-    layerConfigs,
-    symbolization,
-    previewProperty,
-  }: {
-    layerConfigs: LayerConfigMap;
-    symbolization: ISymbolization;
-    previewProperty: PreviewProperty;
-  }) {
-    if (
-      layerConfigs === this.lastLayer &&
-      symbolization === this.lastSymbolization &&
-      previewProperty === this.lastPreviewProperty
-    ) {
-      return;
-    }
-    this.lastLayer = layerConfigs;
-    this.lastSymbolization = symbolization;
-    this.lastPreviewProperty = previewProperty;
-    const style = await loadAndAugmentStyle({
-      layerConfigs,
-      symbolization,
-      previewProperty,
-    });
-    this.map.setStyle(style);
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    if (this.lastData) {
-      this.setDataDeprecated({
-        data: this.lastData,
-        ephemeralState: this.lastEphemeralState,
-        force: true,
-      });
-      this.lastSelection = { type: "none" };
-    }
   }
 
   private updateSelections(newSet: Set<RawId>) {
