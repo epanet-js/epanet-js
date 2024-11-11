@@ -9,10 +9,14 @@ import {
   ClipboardCopyIcon,
   CommitIcon,
 } from "@radix-ui/react-icons";
-import type { ContextInfo } from "src/components/map_component";
 import type { IFeature, IWrappedFeature, LineString } from "src/types";
 import { GeometryActions } from "src/components/context_actions/geometry_actions";
-import { CMContent, CMSubContent, CMItem, CMSubTriggerItem } from "./elements";
+import {
+  CMContent,
+  CMSubContent,
+  CMItem,
+  CMSubTriggerItem,
+} from "src/components/elements";
 import {
   continueFeature,
   getContinuationDirection,
@@ -22,6 +26,13 @@ import { usePersistence } from "src/lib/persistence/context";
 import { writeToClipboard } from "src/lib/utils";
 import { stringifyFeatures } from "src/hooks/use_clipboard";
 import toast from "react-hot-toast";
+import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
+
+export interface ContextInfo {
+  features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;
+  selectedFeatures: IWrappedFeature[];
+  position: Pos2;
+}
 
 function FeatureItem({ feature }: { feature: IWrappedFeature }) {
   const setSelection = useSetAtom(selectionAtom);

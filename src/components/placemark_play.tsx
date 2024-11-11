@@ -2,7 +2,7 @@
 /* eslint-disable */
 "use client";
 import type PMap from "src/lib/pmap";
-import { MapComponent } from "src/components/map_component";
+import { MapCanvas } from "src/map/MapCanvas";
 import { MenuBarPlay } from "src/components/menu_bar";
 import Drop from "src/components/drop";
 import Modes from "src/components/modes";
@@ -289,7 +289,7 @@ function DraggableMap({
       }
     >
       <div className="flex-auto relative">
-        <MapComponent setMap={setMap} />
+        <MapCanvas setMap={setMap} />
       </div>
       {layout === "FLOATING" ? null : <Legend />}
       {layout === "FLOATING" ? (

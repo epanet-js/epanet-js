@@ -1,5 +1,5 @@
 import type { PMapHandlers } from "src/lib/pmap";
-import type { IWrappedFeature, HandlerContext, DragTarget } from "src/types";
+import type { HandlerContext, DragTarget } from "src/types";
 import { SYMBOLIZATION_NONE } from "src/types";
 import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
 import React, {
@@ -34,7 +34,7 @@ import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
 import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { env } from "src/lib/env_client";
-import { MapContextMenu } from "src/components/map_context_menu";
+import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
 import { useHandlers } from "src/lib/handlers/index";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -42,8 +42,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
-import { LastSearchResult } from "./last_search_result";
-import { ModeHints } from "./mode_hints";
+import { LastSearchResult } from "src/components/last_search_result";
+import { ModeHints } from "src/components/mode_hints";
 import { fMoment } from "src/lib/persistence/moment";
 import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
@@ -60,11 +60,6 @@ mapboxgl.setRTLTextPlugin(
   true, // Lazy load the plugin
 );
 
-export interface ContextInfo {
-  features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;
-  selectedFeatures: IWrappedFeature[];
-  position: Pos2;
-}
 const exposeAppStateInWindow = (
   data: Data,
   ephemeralState: EphemeralEditingState,
@@ -97,7 +92,7 @@ const debug = isDebugOn
     }
   : noop;
 
-export const MapComponent = memo(function MapComponent({
+export const MapCanvas = memo(function MapCanvas({
   setMap,
 }: {
   setMap: (arg0: PMap | null) => void;
