@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { AssetId, AssetsMap } from "src/hydraulics/assets";
-import { IDMap } from "src/lib/id_mapper";
+import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { dataAtom, momentLogAtom } from "src/state/jotai";
 import { buildOptimizedAssetsSource } from "./map-engine";
 import { focusAtom } from "jotai-optics";
@@ -29,10 +29,7 @@ const areSameImportMoments = (a: Moment[], b: Moment[]): boolean => {
   return a.length === b.length;
 };
 
-const getAssetsFromMoments = (
-  moments: Moment[],
-  assets: AssetsMap,
-): AssetsMap => {
+const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
     moment.deleteFeatures.forEach((assetId) => {
@@ -40,14 +37,17 @@ const getAssetsFromMoments = (
     });
     moment.putFeatures.forEach((asset) => assetIds.add(asset.id));
   });
+  return assetIds;
+};
 
+const filterAssets = (assets: AssetsMap, assetIds: Set<AssetId>): AssetsMap => {
   const resultAssets = new AssetsMap();
-  assetIds.forEach((assetId) => {
+  for (const assetId of assetIds) {
     const asset = assets.get(assetId);
-    if (!asset) return;
+    if (!asset) continue;
 
     resultAssets.set(asset.id, asset);
-  });
+  }
   return resultAssets;
 };
 
@@ -68,10 +68,8 @@ export const useMapState = (idMap: IDMap) => {
       return importState.current.features;
     }
 
-    const importedAssets = getAssetsFromMoments(
-      importMoments,
-      getCurrentAssets(),
-    );
+    const importedAssetIds = getAssetIdsInMoments(importMoments);
+    const importedAssets = filterAssets(getCurrentAssets(), importedAssetIds);
 
     const noSymbolization = null;
     const noPreviewProperty = "";
@@ -88,12 +86,11 @@ export const useMapState = (idMap: IDMap) => {
     return features;
   }, [momentLog, getCurrentAssets, idMap]);
 
-  const editionFeatures = useMemo(() => {
+  const { editionAssetIds, editionFeatures } = useMemo(() => {
     const editionMoments = filterEditionMoments(momentLog);
-    const editedAssets = getAssetsFromMoments(
-      editionMoments,
-      getCurrentAssets(),
-    );
+    const editionAssetIds = getAssetIdsInMoments(editionMoments);
+    const editedAssets = filterAssets(getCurrentAssets(), editionAssetIds);
+
     const noSymbolization = null;
     const noPreviewProperty = "";
     const features = buildOptimizedAssetsSource(
@@ -102,8 +99,18 @@ export const useMapState = (idMap: IDMap) => {
       noSymbolization,
       noPreviewProperty,
     );
-    return features;
+    return { editionAssetIds, editionFeatures: features };
   }, [momentLog, getCurrentAssets, idMap]);
 
-  return { importedFeatures, editionFeatures };
+  const hiddenImportedFeatures = useMemo(() => {
+    return Array.from(editionAssetIds).map((uuid) =>
+      UIDMap.getIntID(idMap, uuid),
+    );
+  }, [editionAssetIds, idMap]);
+
+  return {
+    importedFeatures,
+    editionFeatures,
+    hiddenImportedFeatures,
+  };
 };

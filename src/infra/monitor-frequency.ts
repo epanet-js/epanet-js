@@ -1,3 +1,4 @@
+import { isDebugOn } from "./debug-mode";
 import { captureWarning } from "./error-tracking";
 
 type MonitorOptions = {
@@ -16,6 +17,9 @@ export const monitorFrequency = (
   }
 
   const monitor = monitors[name];
+
+  //eslint-disable-next-line
+  if (isDebugOn) console.log(`Monitor: ${name} called`);
 
   const now = Date.now();
   monitor.calls.push(now);
