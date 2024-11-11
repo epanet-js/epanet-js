@@ -8,7 +8,6 @@ import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 
@@ -55,7 +54,7 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (selection.type !== "single" || !isFeatureOn("FLAG_MOVE")) {
+      if (selection.type !== "single") {
         return skipMove(e);
       }
 
@@ -78,11 +77,7 @@ export function useNoneHandlers({
     },
     move: (e) => {
       e.preventDefault();
-      if (
-        selection.type !== "single" ||
-        !isMoving ||
-        !isFeatureOn("FLAG_MOVE")
-      ) {
+      if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
       const [assetId] = getSelectionIds();
@@ -99,11 +94,7 @@ export function useNoneHandlers({
     },
     up: (e) => {
       e.preventDefault();
-      if (
-        selection.type !== "single" ||
-        !isMoving ||
-        !isFeatureOn("FLAG_MOVE")
-      ) {
+      if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
 
