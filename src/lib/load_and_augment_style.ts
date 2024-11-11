@@ -28,6 +28,7 @@ function getEmptyStyle() {
 
 const CIRCLE_LAYOUT: mapboxgl.CircleLayout = {};
 
+export const IMPORTED_FEATURES_SOURCE_NAME = "imported-features";
 export const FEATURES_SOURCE_NAME = "features";
 export const EPHEMERAL_SOURCE_NAME = "ephemeral";
 export const HIGHLIGHTS_SOURCE_NAME = "highlights";
@@ -43,6 +44,9 @@ export const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
 export const FEATURES_LINE = "features-label";
 export const FEATURES_LINE_LAYER_NAME = "features-line";
 export const FEATURES_FILL_LAYER_NAME = "features-fill";
+export const IMPORTED_FEATURES_FILL_LAYER_NAME = "imported-features-fill";
+export const IMPORTED_FEATURES_LINE_LAYER_NAME = "imported-features-line";
+export const IMPORTED_FEATURES_POINT_LAYER_NAME = "imported-features-symbol";
 
 const emptyGeoJSONSource = {
   type: "geojson",
@@ -59,8 +63,15 @@ export const CONTENT_LAYER_FILTERS: {
     ["==", "$type", "LineString"],
     ["==", "$type", "Polygon"],
   ],
+  [IMPORTED_FEATURES_LINE_LAYER_NAME]: [
+    "any",
+    ["==", "$type", "LineString"],
+    ["==", "$type", "Polygon"],
+  ],
   [FEATURES_FILL_LAYER_NAME]: ["==", "$type", "Polygon"],
+  [IMPORTED_FEATURES_FILL_LAYER_NAME]: ["==", "$type", "Polygon"],
   [FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
+  [IMPORTED_FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
 };
 
 function addPreviewFilter(
@@ -114,6 +125,7 @@ export function addEditingLayers({
   symbolization: ISymbolization;
   previewProperty: PreviewProperty;
 }) {
+  style.sources[IMPORTED_FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[EPHEMERAL_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[HIGHLIGHTS_SOURCE_NAME] = emptyGeoJSONSource;
@@ -135,7 +147,13 @@ export function makeLayers({
   previewProperty: PreviewProperty;
 }): mapboxgl.AnyLayer[] {
   return [
-    // Real polygons, from the dataset.
+    {
+      id: IMPORTED_FEATURES_FILL_LAYER_NAME,
+      type: "fill",
+      source: IMPORTED_FEATURES_SOURCE_NAME,
+      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_FILL_LAYER_NAME],
+      paint: FILL_PAINT(symbolization),
+    },
     {
       id: FEATURES_FILL_LAYER_NAME,
       type: "fill",
@@ -143,8 +161,14 @@ export function makeLayers({
       filter: CONTENT_LAYER_FILTERS[FEATURES_FILL_LAYER_NAME],
       paint: FILL_PAINT(symbolization),
     },
+    {
+      id: IMPORTED_FEATURES_LINE_LAYER_NAME,
+      type: "line",
+      source: IMPORTED_FEATURES_SOURCE_NAME,
+      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_LINE_LAYER_NAME],
+      paint: LINE_PAINT(symbolization),
+    },
 
-    // Real lines, from the dataset.
     {
       id: FEATURES_LINE_LAYER_NAME,
       type: "line",
@@ -187,6 +211,14 @@ export function makeLayers({
         ["==", "$type", "Polygon"],
       ],
       paint: LINE_PAINT(symbolization),
+    },
+    {
+      id: IMPORTED_FEATURES_POINT_LAYER_NAME,
+      type: "circle",
+      source: IMPORTED_FEATURES_SOURCE_NAME,
+      layout: CIRCLE_LAYOUT,
+      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_POINT_LAYER_NAME],
+      paint: CIRCLE_PAINT(symbolization),
     },
     {
       id: FEATURES_POINT_LAYER_NAME,
@@ -473,8 +505,11 @@ export function LINE_PAINT(
 
 export const CONTENT_LAYERS = [
   FEATURES_POINT_LAYER_NAME,
+  IMPORTED_FEATURES_POINT_LAYER_NAME,
   FEATURES_FILL_LAYER_NAME,
+  IMPORTED_FEATURES_FILL_LAYER_NAME,
   FEATURES_LINE_LAYER_NAME,
+  IMPORTED_FEATURES_LINE_LAYER_NAME,
   "LINE_HIGHLIGHTS_LAYER",
   "POINTS_HIGHLIGHTS_LAYER",
 ];
