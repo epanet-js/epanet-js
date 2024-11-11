@@ -5,7 +5,6 @@ import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
-  POINT_COLORS_SELECTED,
 } from "src/lib/constants";
 import type { ISymbolization, LayerConfigMap } from "src/types";
 import {
@@ -13,6 +12,7 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -31,7 +31,6 @@ const CIRCLE_LAYOUT: mapboxgl.CircleLayout = {};
 export const IMPORTED_FEATURES_SOURCE_NAME = "imported-features";
 export const FEATURES_SOURCE_NAME = "features";
 export const EPHEMERAL_SOURCE_NAME = "ephemeral";
-export const HIGHLIGHTS_SOURCE_NAME = "highlights";
 
 export const EPHEMERAL_LINE_LAYER_NAME = "ephemeral-line";
 export const EPHEMERAL_FILL_LAYER_NAME = "ephemeral-fill";
@@ -128,7 +127,6 @@ export function addEditingLayers({
   style.sources[IMPORTED_FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[EPHEMERAL_SOURCE_NAME] = emptyGeoJSONSource;
-  style.sources[HIGHLIGHTS_SOURCE_NAME] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -177,22 +175,6 @@ export function makeLayers({
       paint: LINE_PAINT(symbolization),
     },
     {
-      id: "LINE_HIGHLIGHTS_LAYER",
-      type: "line",
-      source: HIGHLIGHTS_SOURCE_NAME,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
-      paint: {
-        "line-opacity": 1,
-        "line-width": 4,
-        "line-color": LINE_COLORS_SELECTED,
-      },
-      layout: {
-        "line-cap": "round",
-        "line-join": "round",
-      },
-    },
-
-    {
       id: EPHEMERAL_FILL_LAYER_NAME,
       type: "fill",
       source: EPHEMERAL_SOURCE_NAME,
@@ -227,19 +209,6 @@ export function makeLayers({
       layout: CIRCLE_LAYOUT,
       filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
-    },
-    {
-      id: "POINTS_HIGHLIGHTS_LAYER",
-      type: "circle",
-      source: HIGHLIGHTS_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: {
-        "circle-color": POINT_COLORS_SELECTED,
-        "circle-radius": 6,
-        "circle-stroke-width": 0,
-        "circle-opacity": 1,
-      },
     },
 
     ...(typeof previewProperty === "string"
@@ -289,7 +258,7 @@ export function asNumberExpression({
 }: {
   symbolization: ISymbolization;
   defaultValue?: number;
-  part: "stroke-width" | "fill-opacity" | "stroke-opacity";
+  part: "stroke-width" | "fill-opacity" | "stroke-opacity" | "circle-opacity";
 }): mapboxgl.Expression | number {
   if (symbolization.simplestyle) {
     return ["coalesce", ["get", part], defaultValue];
@@ -387,27 +356,37 @@ function LABEL_LAYOUT(
 
 export function CIRCLE_PAINT(
   symbolization: ISymbolization,
-  halo = false,
 ): mapboxgl.CirclePaint {
-  const r = halo ? 2 : 0;
-  if (halo) {
+  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
     return {
+      "circle-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hidden"], false],
+        0,
+        asNumberExpression({
+          symbolization,
+          part: "circle-opacity",
+          defaultValue: 1,
+        }),
+      ],
+      "circle-stroke-color": [
+        "match",
+        ["feature-state", "selected"],
+        "true",
+        LINE_COLORS_SELECTED,
+        "white",
+      ],
+      "circle-stroke-width": 0,
+      "circle-radius": 6,
       "circle-color": [
         "match",
         ["feature-state", "selected"],
         "true",
-        "white",
+        LINE_COLORS_SELECTED,
         asColorExpression({
           symbolization,
           part: "stroke",
         }),
-      ],
-      "circle-radius": [
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        6 + r,
-        4 + r,
       ],
     };
   }
@@ -436,13 +415,6 @@ export function CIRCLE_PAINT(
   };
 }
 
-/**
- * Optionally add a feature-state expression to emphasize this when
- * selected.
- *
- * @param exp: Whether this is exporting, which case omit the selected
- * expression.
- */
 function handleSelected(
   expression: mapboxgl.Expression | string,
   exp = false,
@@ -463,6 +435,29 @@ export function FILL_PAINT(
   symbolization: ISymbolization,
   exp = false,
 ): mapboxgl.FillPaint {
+  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+    return {
+      "fill-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hidden"], false],
+        0,
+        asNumberExpression({
+          symbolization,
+          part: "fill-opacity",
+          defaultValue:
+            typeof symbolization.defaultOpacity === "number"
+              ? symbolization.defaultOpacity
+              : 0.3,
+        }),
+      ],
+      "fill-color": handleSelected(
+        asColorExpression({ symbolization, part: "fill" }),
+        exp,
+        LINE_COLORS_SELECTED,
+      ),
+    };
+  }
+
   return {
     "fill-opacity": asNumberExpression({
       symbolization,
@@ -484,6 +479,31 @@ export function LINE_PAINT(
   symbolization: ISymbolization,
   exp = false,
 ): mapboxgl.LinePaint {
+  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+    return {
+      "line-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hidden"], false],
+        0,
+        asNumberExpression({
+          symbolization,
+          part: "stroke-opacity",
+          defaultValue: 1,
+        }),
+      ],
+      "line-width": asNumberExpression({
+        symbolization,
+        part: "stroke-width",
+        defaultValue: 4,
+      }),
+      "line-color": handleSelected(
+        asColorExpression({ symbolization, part: "stroke" }),
+        exp,
+        LINE_COLORS_SELECTED,
+      ),
+    };
+  }
+
   return {
     "line-opacity": asNumberExpression({
       symbolization,
@@ -510,8 +530,6 @@ export const CONTENT_LAYERS = [
   IMPORTED_FEATURES_FILL_LAYER_NAME,
   FEATURES_LINE_LAYER_NAME,
   IMPORTED_FEATURES_LINE_LAYER_NAME,
-  "LINE_HIGHLIGHTS_LAYER",
-  "POINTS_HIGHLIGHTS_LAYER",
 ];
 
 export const CLICKABLE_LAYERS = CONTENT_LAYERS.concat([

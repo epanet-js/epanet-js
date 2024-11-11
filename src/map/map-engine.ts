@@ -381,6 +381,22 @@ export class MapEngine {
     });
   }
 
+  hideFeatures(sourceName: string, featureIds: RawId[]): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    for (const featureId of featureIds) {
+      this.map.setFeatureState(
+        {
+          source: sourceName,
+          id: featureId,
+        },
+        {
+          hidden: true,
+        },
+      );
+    }
+  }
+
   setOnlyData(assets: AssetsMap): Promise<void> {
     //eslint-disable-next-line
     if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
@@ -450,7 +466,6 @@ export class MapEngine {
           }),
       ],
     });
-    if (isDebugOn) this.exposeOverlayInWindow();
   }
 
   remove() {
@@ -510,11 +525,5 @@ export class MapEngine {
     }
 
     this.lastSelectionIds = newSet;
-  }
-
-  private exposeOverlayInWindow() {
-    if (typeof window === "undefined") return;
-
-    (window as any).deck = this.overlay;
   }
 }

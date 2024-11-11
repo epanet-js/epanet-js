@@ -24,7 +24,7 @@ export function exportStyle(symbolization: ISymbolization): EOption[] {
     },
     {
       name: "Mapbox GL Style: Circle",
-      value: JSON.stringify(CIRCLE_PAINT(symbolization, false), null, 2),
+      value: JSON.stringify(CIRCLE_PAINT(symbolization), null, 2),
     },
     {
       name: "Mapbox GL Expression",
