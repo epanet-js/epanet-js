@@ -238,7 +238,7 @@ export default class PMap {
     this.lastPreviewProperty = null;
     this.handlers = handlers;
     this.map = map;
-    void this.setStyle({
+    void this.setOnlyStyle({
       layerConfigs,
       symbolization,
       previewProperty: previewProperty,
@@ -516,7 +516,7 @@ export default class PMap {
   // Use { diff: false } to force a style load: otherwise
   // if we switch from a style to itself, we don't get
   // a style.load event.
-  async setStyle({
+  async setStyleDeprecated({
     layerConfigs,
     symbolization,
     previewProperty,
