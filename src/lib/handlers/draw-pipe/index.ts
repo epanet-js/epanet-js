@@ -100,17 +100,21 @@ export function useDrawPipeHandlers({
       }
 
       if (!!snappingNode) {
-        submitPipe(drawing.startNode, drawing.pipe, snappingNode).then(() => {
-          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-        });
+        submitPipe(drawing.startNode, drawing.pipe, snappingNode)
+          .then(() => {
+            isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+          })
+          .catch((e) => captureError(e));
         return;
       }
 
       if (isEndAndContinueOn()) {
         const endJunction = createJunction(clickPosition);
-        submitPipe(drawing.startNode, drawing.pipe, endJunction).then(() => {
-          startDrawing(endJunction);
-        });
+        submitPipe(drawing.startNode, drawing.pipe, endJunction)
+          .then(() => {
+            startDrawing(endJunction);
+          })
+          .catch((e) => captureError(e));
       } else {
         addVertex(clickPosition);
       }
@@ -154,9 +158,11 @@ export function useDrawPipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      submitPipe(startNode, pipe, endJunction).then(() => {
-        resetDrawing();
-      });
+      submitPipe(startNode, pipe, endJunction)
+        .then(() => {
+          resetDrawing();
+        })
+        .catch((e) => captureError(e));
     },
     exit() {
       resetDrawing();
