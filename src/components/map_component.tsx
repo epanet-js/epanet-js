@@ -321,7 +321,7 @@ export const MapComponent = memo(function MapComponent({
         ephemeralState,
       });
       map
-        .setStyle({
+        .setStyleDeprecated({
           layerConfigs,
           symbolization: symbolization || SYMBOLIZATION_NONE,
           previewProperty: label,
