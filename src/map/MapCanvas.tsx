@@ -31,7 +31,10 @@ import { MapContext } from "src/context/map_context";
 import { MapEngine, MapHandlers } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
-import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
+import {
+  CLICKABLE_LAYERS,
+  FEATURES_SOURCE_NAME,
+} from "src/lib/load_and_augment_style";
 import { env } from "src/lib/env_client";
 import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
 import { useModeHandlers } from "./mode-handlers";
@@ -49,6 +52,8 @@ import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { monitorFrequency } from "src/infra/monitor-frequency";
+import { editionsSourceAtom } from "./state";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -96,6 +101,10 @@ export const MapCanvas = memo(function MapCanvas({
 }: {
   setMap: (arg0: MapEngine | null) => void;
 }) {
+  const rep = usePersistence();
+  const editionsSource = useAtomValue(
+    useMemo(() => editionsSourceAtom(rep.idMap), [rep.idMap]),
+  );
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
 
@@ -115,8 +124,6 @@ export const MapCanvas = memo(function MapCanvas({
     cursorLatitude: 0,
     cursorLongitude: 0,
   });
-
-  const rep = usePersistence();
 
   // Atom state
   const selection = data.selection;
@@ -243,8 +250,41 @@ export const MapCanvas = memo(function MapCanvas({
   );
 
   useEffect(
+    function editionsSourceUpdate() {
+      if (!map?.map) return;
+      if (!isFeatureOn("FLAG_SPLIT_SOURCES")) return;
+
+      dataUpdateInProgress.current = true;
+
+      monitorFrequency("SET_MAP_EDITIONS_SOURCE", {
+        limit: 10,
+        intervalMs: 1000,
+      });
+      //eslint-disable-next-line @typescript-eslint/no-floating-promises
+      (async () => {
+        try {
+          await map.setOnlyStyle({
+            layerConfigs,
+            symbolization: symbolization || SYMBOLIZATION_NONE,
+            previewProperty: label,
+          });
+          await map.setSource(FEATURES_SOURCE_NAME, editionsSource);
+        } catch (error) {
+          captureError(error as Error);
+        } finally {
+          updateSelectionInMap();
+          updateEphemeralStateInMap();
+          dataUpdateInProgress.current = false;
+        }
+      })();
+    },
+    [editionsSource, layerConfigs, symbolization, label],
+  );
+
+  useEffect(
     function expensiveDataUpdate() {
       if (!map?.map) return;
+      if (isFeatureOn("FLAG_SPLIT_SOURCES")) return;
 
       dataUpdateInProgress.current = true;
 

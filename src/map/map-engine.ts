@@ -353,6 +353,32 @@ export class MapEngine {
     });
   }
 
+  setSource(name: string, sourceFeatures: Feature[]): Promise<void> {
+    //eslint-disable-next-line
+    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE', name)
+
+    if (!(this.map && (this.map as any).style)) {
+      return Promise.resolve();
+    }
+
+    const featuresSource = this.map.getSource(name) as mapboxgl.GeoJSONSource;
+    if (!featuresSource) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      const idleTimeoutMs = 2000;
+      const timeout = setTimeout(() => {
+        captureWarning(`Timeout: Mapbox idle took more than ${idleTimeoutMs}`);
+        resolve();
+      }, idleTimeoutMs);
+
+      this.map.once("idle", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      mSetData(featuresSource, sourceFeatures, "features", false);
+    });
+  }
+
   setOnlyData(assets: AssetsMap): Promise<void> {
     //eslint-disable-next-line
     if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
