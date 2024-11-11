@@ -86,7 +86,7 @@ export const useMapState = (idMap: IDMap) => {
       features: features as Feature[],
     };
     return features;
-  }, [momentLog, getCurrentAssets]);
+  }, [momentLog, getCurrentAssets, idMap]);
 
   const editionFeatures = useMemo(() => {
     const editionMoments = filterEditionMoments(momentLog);
@@ -103,7 +103,7 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     return features;
-  }, [momentLog, getCurrentAssets]);
+  }, [momentLog, getCurrentAssets, idMap]);
 
   return { importedFeatures, editionFeatures };
 };
