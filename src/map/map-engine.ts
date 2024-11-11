@@ -29,11 +29,11 @@ import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
-import { buildLayers as buildDrawPipeLayers } from "../handlers/draw-pipe/ephemeral-state";
-import { buildLayers as buildMoveAssetsLayers } from "../handlers/none/move-state";
+import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
+import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
 import { USelection } from "src/selection";
 import { AssetsMap } from "src/hydraulics/assets";
-import { getKeepProperties, stripFeature } from "./strip_features";
+import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { captureWarning } from "src/infra/error-tracking";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -85,7 +85,7 @@ export const buildOptimizedAssetsSource = (
 type ClickEvent = mapboxgl.MapMouseEvent & mapboxgl.EventData;
 type MoveEvent = mapboxgl.MapboxEvent & mapboxgl.EventData;
 
-export type PMapHandlers = {
+export type MapHandlers = {
   onClick: (e: ClickEvent) => void;
   onDoubleClick: (e: ClickEvent) => void;
   onMapMouseUp: (e: mapboxgl.MapMouseEvent) => void;
@@ -138,9 +138,9 @@ const debugEvent = isDebugOn
     }
   : noop;
 
-export default class PMap {
+export class MapEngine {
   map: mapboxgl.Map;
-  handlers: React.MutableRefObject<PMapHandlers>;
+  handlers: React.MutableRefObject<MapHandlers>;
   idMap: IDMap;
 
   lastSelection: Sel;
@@ -164,7 +164,7 @@ export default class PMap {
   }: {
     element: HTMLDivElement;
     layerConfigs: LayerConfigMap;
-    handlers: React.MutableRefObject<PMapHandlers>;
+    handlers: React.MutableRefObject<MapHandlers>;
     symbolization: ISymbolization;
     previewProperty: PreviewProperty;
     idMap: IDMap;

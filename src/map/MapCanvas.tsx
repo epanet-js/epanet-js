@@ -1,4 +1,3 @@
-import type { PMapHandlers } from "src/lib/pmap";
 import type { HandlerContext, DragTarget } from "src/types";
 import { SYMBOLIZATION_NONE } from "src/types";
 import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
@@ -29,13 +28,13 @@ import {
   EphemeralEditingState,
 } from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
-import PMap from "src/lib/pmap";
+import { MapEngine, MapHandlers } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
 import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { env } from "src/lib/env_client";
 import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
-import { useHandlers } from "src/lib/handlers/index";
+import { useModeHandlers } from "./mode-handlers";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePersistence } from "src/lib/persistence/context";
@@ -95,7 +94,7 @@ const debug = isDebugOn
 export const MapCanvas = memo(function MapCanvas({
   setMap,
 }: {
-  setMap: (arg0: PMap | null) => void;
+  setMap: (arg0: MapEngine | null) => void;
 }) {
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
@@ -125,12 +124,13 @@ export const MapCanvas = memo(function MapCanvas({
   const [cursor, setCursor] = useAtom(cursorStyleAtom);
 
   // Refs
-  const mapRef: React.MutableRefObject<PMap | null> = useRef<PMap>(null);
+  const mapRef: React.MutableRefObject<MapEngine | null> =
+    useRef<MapEngine>(null);
   const mapDivRef = useRef<HTMLDivElement>(null);
 
   const dragTargetRef: React.MutableRefObject<DragTarget | null> =
     useRef<DragTarget>(null);
-  const mapHandlers = useRef<PMapHandlers>();
+  const mapHandlers = useRef<MapHandlers>();
 
   // Context
   const map = useContext(MapContext);
@@ -195,10 +195,10 @@ export const MapCanvas = memo(function MapCanvas({
     if (!mapDivRef.current || !mapHandlers) return;
 
     // This part is not time-sensitive.
-    mapRef.current = new PMap({
+    mapRef.current = new MapEngine({
       element: mapDivRef.current,
       layerConfigs,
-      handlers: mapHandlers as MutableRefObject<PMapHandlers>,
+      handlers: mapHandlers as MutableRefObject<MapHandlers>,
       symbolization: symbolization || SYMBOLIZATION_NONE,
       previewProperty: label,
       idMap: idMap,
@@ -330,11 +330,11 @@ export const MapCanvas = memo(function MapCanvas({
     rep,
   };
 
-  const HANDLERS = useHandlers(handlerContext);
+  const HANDLERS = useModeHandlers(handlerContext);
 
   // const log = false;
 
-  const newHandlers: PMapHandlers = {
+  const newHandlers: MapHandlers = {
     onClick: (e: mapboxgl.MapMouseEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "click");
       HANDLERS[mode.mode].click(e);

@@ -13,8 +13,8 @@ import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";
 import { IDMap, UIDMap } from "./id_mapper";
-import { getMapCoord } from "./handlers/utils";
-import PMap from "src/lib/pmap";
+import { getMapCoord } from "src/map/map-event";
+import { MapEngine } from "src/map/map-engine";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 
 type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
@@ -94,7 +94,7 @@ export function fuzzyClick(
     idMap: IDMap;
     featureMapDeprecated: FeatureMap;
     folderMap: FolderMap;
-    pmap: PMap;
+    pmap: MapEngine;
   },
 ): ClickedFeature | null {
   const map = e.target;

@@ -1,7 +1,7 @@
 //TODO: CHECK LINTER ERRORS
 /* eslint-disable */
 "use client";
-import type PMap from "src/lib/pmap";
+import type { MapEngine } from 'src/map/map-engine'
 import { MapCanvas } from "src/map/MapCanvas";
 import { MenuBarPlay } from "src/components/menu_bar";
 import Drop from "src/components/drop";
@@ -139,7 +139,7 @@ function UrlAPI() {
 }
 
 export function PlacemarkPlay() {
-  const [map, setMap] = useState<PMap | null>(null);
+  const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const splits = useAtomValue(splitsAtom);
   const isBigScreen = useBigScreen();
@@ -255,7 +255,7 @@ function DraggableMap({
   layout,
   persistentTransform,
 }: {
-  setMap: (arg0: PMap | null) => void;
+  setMap: (arg0:  MapEngine | null) => void;
   layout: ResolvedLayout;
   persistentTransform: Transform;
 }) {

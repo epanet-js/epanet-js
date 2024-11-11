@@ -1,15 +1,15 @@
 import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/jotai";
 import { useNoneHandlers } from "./none";
-import { useLassoHandlers } from "src/lib/handlers/lasso";
-import { useRectangleHandlers } from "src/lib/handlers/rectangle";
-import { useCircleHandlers } from "src/lib/handlers/circle";
-import { useLineHandlers } from "src/lib/handlers/line";
-import { useJunctionHandlers } from "src/lib/handlers/junction";
-import { usePolygonHandlers } from "src/lib/handlers/polygon";
+import { useLassoHandlers } from "./lasso";
+import { useRectangleHandlers } from "./rectangle";
+import { useCircleHandlers } from "./circle";
+import { useLineHandlers } from "./line";
+import { useJunctionHandlers } from "./junction";
+import { usePolygonHandlers } from "./polygon";
 import { useDrawPipeHandlers } from "./draw-pipe";
 
-export function useHandlers(handlerContext: HandlerContext) {
+export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useJunctionHandlers(handlerContext),

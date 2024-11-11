@@ -1,12 +1,16 @@
 import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import PMap from "src/lib/pmap";
+import type { MapEngine } from "src/map/map-engine";
 import { Position } from "src/types";
-import { FEATURES_POINT_LAYER_NAME } from "../../load_and_augment_style";
+import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, NodeAsset } from "src/hydraulics/assets";
 
-export const useSnapping = (pmap: PMap, idMap: IDMap, assetsMap: AssetsMap) => {
+export const useSnapping = (
+  map: MapEngine,
+  idMap: IDMap,
+  assetsMap: AssetsMap,
+) => {
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
     const { x, y } = point;
     const distance = 12;
@@ -16,7 +20,7 @@ export const useSnapping = (pmap: PMap, idMap: IDMap, assetsMap: AssetsMap) => {
       [x + distance, y + distance] as PointLike,
     ] as [PointLike, PointLike];
 
-    const pointFeatures = pmap.map.queryRenderedFeatures(searchBox, {
+    const pointFeatures = map.map.queryRenderedFeatures(searchBox, {
       layers: [FEATURES_POINT_LAYER_NAME],
     });
     if (!pointFeatures.length) return null;
