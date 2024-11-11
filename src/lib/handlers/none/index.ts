@@ -10,6 +10,7 @@ import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
+import { captureError } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -105,10 +106,12 @@ export function useNoneHandlers({
         nodeId: assetId,
         newCoordinates,
       });
-      transact(moment).then(() => {
-        resetMove();
-        clearSelection();
-      });
+      transact(moment)
+        .then(() => {
+          resetMove();
+          clearSelection();
+        })
+        .catch((e) => captureError(e));
     },
     click: (e) => {
       const clickedFeature = getClickedFeature(e);
