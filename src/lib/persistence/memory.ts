@@ -101,16 +101,19 @@ export class MemPersistence implements IPersistence {
 
   useTransact() {
     return (moment: ModelMoment) => {
+      const momentLog = this.store.get(momentLogAtom);
       trackMoment(moment);
-      const result = this.apply({
+      const fullMoment = {
         ...EMPTY_MOMENT,
         note: moment.note,
         deleteFeatures: moment.deleteAssets || [],
         putFeatures: moment.putAssets || [],
-      });
+      };
+
+      const result = this.apply(fullMoment);
       this.store.set(
         momentLogAtom,
-        UMomentLog.pushMoment(this.store.get(momentLogAtom), result),
+        UMomentLog.pushMomentDeprecated(momentLog, result),
       );
       return Promise.resolve();
     };
@@ -123,7 +126,7 @@ export class MemPersistence implements IPersistence {
       const result = this.apply(moment);
       this.store.set(
         momentLogAtom,
-        UMomentLog.pushMoment(this.store.get(momentLogAtom), result),
+        UMomentLog.pushMomentDeprecated(this.store.get(momentLogAtom), result),
       );
       return Promise.resolve();
     };
