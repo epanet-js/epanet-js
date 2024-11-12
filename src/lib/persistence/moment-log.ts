@@ -58,13 +58,41 @@ export class MomentLog {
     return this.pointer;
   }
 
-  searchLast(conditionFn: (moment: Moment) => boolean): number {
+  fetchUpToAndIncluding(pointer: number): Moment[] {
+    const result = [];
+    let i = 0;
+    while (i <= pointer && i <= this.pointer) {
+      result.push(this.history[i].forward);
+      i++;
+    }
+    return result;
+  }
+
+  fetchAfter(pointer: number): Moment[] {
+    const result = [];
+    let i = pointer + 1;
+    while (i <= this.pointer) {
+      result.push(this.history[i].forward);
+      i++;
+    }
+    return result;
+  }
+
+  fetchAll(): Moment[] {
+    const result = [];
+    for (let i = 0; i <= this.pointer; i++) {
+      result.push(this.history[i].forward);
+    }
+    return result;
+  }
+
+  searchLast(conditionFn: (moment: Moment) => boolean): number | null {
     for (let i = this.pointer; i >= 0; i--) {
       if (conditionFn(this.history[i].forward) === true) {
         return i;
       }
     }
-    return 0;
+    return null;
   }
 
   *[Symbol.iterator]() {

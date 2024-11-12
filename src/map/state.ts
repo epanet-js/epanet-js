@@ -8,30 +8,13 @@ import { useCallback, useMemo, useRef } from "react";
 import { Moment } from "src/lib/persistence/moment";
 import { Feature } from "geojson";
 import { useAtomCallback } from "jotai/utils";
-import { MomentLog } from "src/lib/persistence/moment-log";
 
 const assetsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("hydraulicModel").prop("assets"),
 );
 
-const filterImportMoments = (momentLog: MomentLog) => {
-  const result = [];
-  for (const { moment } of momentLog) {
-    if (moment.note && moment.note.startsWith("Import")) {
-      result.push(moment);
-    }
-  }
-  return result;
-};
-
-const filterEditionMoments = (momentLog: MomentLog) => {
-  const result = [];
-  for (const { moment } of momentLog) {
-    if (!moment.note || !moment.note.startsWith("Import")) {
-      result.push(moment);
-    }
-  }
-  return result;
+const isImportMoment = (moment: Moment) => {
+  return !!moment.note && moment.note.startsWith("Import");
 };
 
 const areSameImportMoments = (a: Moment[], b: Moment[]): boolean => {
@@ -70,10 +53,23 @@ export const useMapState = (idMap: IDMap) => {
   const getCurrentAssets = useAtomCallback(
     useCallback((get) => get(assetsAtom), []),
   );
-  const momentLogPointer = momentLog.getPointer();
+  const lastMomentPointer = momentLog.getPointer();
+
+  const importPointer = useMemo(() => {
+    return momentLog.searchLast(isImportMoment);
+  }, [momentLog, lastMomentPointer]);
 
   const importedFeatures = useMemo(() => {
-    const importMoments = filterImportMoments(momentLog);
+    if (importPointer === null) {
+      const noFeatures: Feature[] = [];
+      importState.current = {
+        moments: [],
+        features: noFeatures,
+      };
+      return noFeatures;
+    }
+
+    const importMoments = momentLog.fetchUpToAndIncluding(importPointer);
     if (areSameImportMoments(importState.current.moments, importMoments)) {
       return importState.current.features;
     }
@@ -94,10 +90,14 @@ export const useMapState = (idMap: IDMap) => {
       features: features as Feature[],
     };
     return features;
-  }, [momentLog, momentLogPointer, getCurrentAssets, idMap]);
+  }, [momentLog, importPointer, getCurrentAssets, idMap]);
 
   const { editionAssetIds, editionFeatures } = useMemo(() => {
-    const editionMoments = filterEditionMoments(momentLog);
+    const editionMoments =
+      importPointer === null
+        ? momentLog.fetchAll()
+        : momentLog.fetchAfter(importPointer);
+
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(getCurrentAssets(), editionAssetIds);
 
@@ -110,7 +110,7 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     return { editionAssetIds, editionFeatures: features };
-  }, [momentLog, momentLogPointer, getCurrentAssets, idMap]);
+  }, [momentLog, lastMomentPointer, importPointer, getCurrentAssets, idMap]);
 
   const hiddenImportedFeatures = useMemo(() => {
     return Array.from(editionAssetIds).map((uuid) =>
