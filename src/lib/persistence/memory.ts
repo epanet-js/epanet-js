@@ -326,6 +326,7 @@ export class MemPersistence implements IPersistence {
         lastAt = at;
         inputFeature.at = at;
       }
+
       if (oldVersion) {
         reverseMoment.putFeatures.push(oldVersion);
       } else {
@@ -338,16 +339,21 @@ export class MemPersistence implements IPersistence {
         }
       }
 
-      const { hydraulicModel } = ctx;
-      hydraulicModel.assets.set(inputFeature.id, inputFeature as Asset);
+      const {
+        hydraulicModel: { assets, topology },
+      } = ctx;
+      assets.set(inputFeature.id, inputFeature as Asset);
+
+      if (oldVersion && topology.hasLink(oldVersion.id)) {
+        const oldConnections = getAssetConnections(oldVersion as Asset);
+
+        oldConnections && topology.removeLink(oldVersion.id);
+      }
 
       const connections = getAssetConnections(inputFeature as Asset);
+
       connections &&
-        hydraulicModel.topology.addLink(
-          inputFeature.id,
-          connections[0],
-          connections[1],
-        );
+        topology.addLink(inputFeature.id, connections[0], connections[1]);
 
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
