@@ -381,6 +381,20 @@ export class MapEngine {
     });
   }
 
+  showFeatures(sourceName: string, featureIds: RawId[]): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    for (const featureId of featureIds) {
+      this.map.removeFeatureState(
+        {
+          source: sourceName,
+          id: featureId,
+        },
+        "hidden",
+      );
+    }
+  }
+
   hideFeatures(sourceName: string, featureIds: RawId[]): void {
     if (!this.map || !(this.map as any).style) return;
 

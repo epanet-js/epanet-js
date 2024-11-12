@@ -17,10 +17,6 @@ const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
 };
 
-const areSameImportMoments = (a: Moment[], b: Moment[]): boolean => {
-  return a.length === b.length;
-};
-
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -46,34 +42,34 @@ const filterAssets = (assets: AssetsMap, assetIds: Set<AssetId>): AssetsMap => {
 export const useMapState = (idMap: IDMap) => {
   const momentLog = useAtomValue(momentLogAtom);
   const importState = useRef<{
-    moments: Moment[];
+    pointer: number | null;
     features: Feature[];
-  }>({ moments: [], features: [] });
+  }>({ pointer: null, features: [] });
 
   const getCurrentAssets = useAtomCallback(
     useCallback((get) => get(assetsAtom), []),
   );
   const lastMomentPointer = momentLog.getPointer();
 
-  const importPointer = useMemo(() => {
+  const lastImportPointer = useMemo(() => {
     return momentLog.searchLast(isImportMoment);
   }, [momentLog, lastMomentPointer]);
 
   const importedFeatures = useMemo(() => {
-    if (importPointer === null) {
+    if (lastImportPointer === null) {
       const noFeatures: Feature[] = [];
       importState.current = {
-        moments: [],
+        pointer: null,
         features: noFeatures,
       };
       return noFeatures;
     }
 
-    const importMoments = momentLog.fetchUpToAndIncluding(importPointer);
-    if (areSameImportMoments(importState.current.moments, importMoments)) {
+    if (lastImportPointer === importState.current.pointer) {
       return importState.current.features;
     }
 
+    const importMoments = momentLog.fetchUpToAndIncluding(lastImportPointer);
     const importedAssetIds = getAssetIdsInMoments(importMoments);
     const importedAssets = filterAssets(getCurrentAssets(), importedAssetIds);
 
@@ -86,17 +82,17 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     importState.current = {
-      moments: importMoments,
+      pointer: lastImportPointer,
       features: features as Feature[],
     };
     return features;
-  }, [momentLog, importPointer, getCurrentAssets, idMap]);
+  }, [momentLog, lastImportPointer, getCurrentAssets, idMap]);
 
   const { editionAssetIds, editionFeatures } = useMemo(() => {
     const editionMoments =
-      importPointer === null
+      lastImportPointer === null
         ? momentLog.fetchAll()
-        : momentLog.fetchAfter(importPointer);
+        : momentLog.fetchAfter(lastImportPointer);
 
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(getCurrentAssets(), editionAssetIds);
@@ -110,7 +106,30 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     return { editionAssetIds, editionFeatures: features };
-  }, [momentLog, lastMomentPointer, importPointer, getCurrentAssets, idMap]);
+  }, [
+    momentLog,
+    lastMomentPointer,
+    lastImportPointer,
+    getCurrentAssets,
+    idMap,
+  ]);
+
+  const hiddenFeatures = useRef<RawId[]>([]);
+
+  const visibilityChanges = useMemo(() => {
+    const lastHiddenFeatures = hiddenFeatures.current;
+
+    const newHiddenFeatures = Array.from(editionAssetIds).map((uuid) =>
+      UIDMap.getIntID(idMap, uuid),
+    );
+    const newShownFeatures = lastHiddenFeatures.filter(
+      (intId) => !editionAssetIds.has(UIDMap.getUUID(idMap, intId)),
+    );
+
+    hiddenFeatures.current = newHiddenFeatures;
+
+    return { show: newShownFeatures, hide: newHiddenFeatures };
+  }, [lastImportPointer, editionAssetIds, idMap]);
 
   const hiddenImportedFeatures = useMemo(() => {
     return Array.from(editionAssetIds).map((uuid) =>
@@ -122,5 +141,6 @@ export const useMapState = (idMap: IDMap) => {
     importedFeatures,
     editionFeatures,
     hiddenImportedFeatures,
+    visibilityChanges,
   };
 };
