@@ -63,7 +63,8 @@ export const EMPTY_MOMENT: Moment = {
   deleteLayerConfigs: [],
 };
 
-export interface MomentLog {
+export interface IMomentLog {
+  history: Moment[];
   undo: Moment[];
   redo: Moment[];
   paused: boolean;
@@ -71,16 +72,13 @@ export interface MomentLog {
 
 const HISTORY_LIMIT = 100;
 
-export class CMomentLog implements MomentLog {
-  /**
-   * Undo operations, in order from
-   * most to least recent. undo[0] is
-   * the last thing that was done.
-   */
+export class CMomentLog implements IMomentLog {
+  history: Moment[];
   undo: Moment[];
   redo: Moment[];
   paused: boolean;
   constructor() {
+    this.history = [];
     this.undo = [];
     this.redo = [];
     this.paused = false;
@@ -139,41 +137,32 @@ class CUMoment {
 export const UMoment = new CUMoment();
 
 const noop = () => null;
-const consoleDebugger = (step: string, momentLog: MomentLog) => {
+const consoleDebugger = (step: string, momentLog: IMomentLog) => {
   // eslint-disable-next-line no-console
   console.log(`MOMENT_LOG@${step} ${JSON.stringify(momentLog)}`);
 };
 const debugMomentLog = isDebugOn ? consoleDebugger : noop;
 
 class CUMomentLog {
-  shallowCopy(oldLog: MomentLog): MomentLog {
+  shallowCopy(oldLog: IMomentLog): IMomentLog {
     return {
+      history: oldLog.history.slice(),
       undo: oldLog.undo.slice(),
       redo: oldLog.redo.slice(),
       paused: oldLog.paused,
     };
   }
 
-  hasUndo(log: Readonly<MomentLog>) {
+  hasUndo(log: Readonly<IMomentLog>) {
     return log.undo.length > 0;
   }
 
-  hasRedo(log: Readonly<MomentLog>) {
+  hasRedo(log: Readonly<IMomentLog>) {
     return log.redo.length > 0;
   }
 
-  popMoment(oldLog: Readonly<MomentLog>, n = 1) {
-    debugMomentLog("BEFORE_POP", oldLog);
-    const momentLog = this.shallowCopy(oldLog);
-    for (let i = 0; i < n; i++) {
-      momentLog.undo.shift();
-    }
-    debugMomentLog("AFTER_POP", momentLog);
-    return momentLog;
-  }
-
   startSnapshot(
-    oldLog: Readonly<MomentLog>,
+    oldLog: Readonly<IMomentLog>,
     before: IWrappedFeature | IWrappedFeature[],
   ) {
     const momentLog = this.shallowCopy(oldLog);
@@ -190,20 +179,16 @@ class CUMomentLog {
     return momentLog;
   }
 
-  endSnapshot(oldLog: MomentLog) {
+  endSnapshot(oldLog: IMomentLog) {
     const momentLog = this.shallowCopy(oldLog);
     momentLog.paused = false;
     return momentLog;
   }
 
-  /**
-   * Record the 'reverse' state
-   * for a given transaction.
-   */
-  pushMomentDeprecated(oldLog: MomentLog, moment: Moment): MomentLog {
+  pushMomentDeprecated(oldLog: IMomentLog, reverseMoment: Moment): IMomentLog {
     debugMomentLog("BEFORE_PUSH", oldLog);
 
-    if (UMoment.isEmpty(moment)) {
+    if (UMoment.isEmpty(reverseMoment)) {
       return oldLog;
     }
     const momentLog = this.shallowCopy(oldLog);
@@ -212,9 +197,21 @@ class CUMomentLog {
     if (momentLog.redo.length) {
       momentLog.redo = [];
     }
-    momentLog.undo = [moment].concat(momentLog.undo).slice(0, HISTORY_LIMIT);
+    momentLog.undo = [reverseMoment]
+      .concat(momentLog.undo)
+      .slice(0, HISTORY_LIMIT);
 
     debugMomentLog("AFTER_PUSH", momentLog);
+    return momentLog;
+  }
+
+  popMoment(oldLog: Readonly<IMomentLog>, n = 1) {
+    debugMomentLog("BEFORE_POP", oldLog);
+    const momentLog = this.shallowCopy(oldLog);
+    for (let i = 0; i < n; i++) {
+      momentLog.undo.shift();
+    }
+    debugMomentLog("AFTER_POP", momentLog);
     return momentLog;
   }
 }

@@ -5,7 +5,7 @@ import { dataAtom, momentLogAtom } from "src/state/jotai";
 import { buildOptimizedAssetsSource } from "./map-engine";
 import { focusAtom } from "jotai-optics";
 import { useCallback, useMemo, useRef } from "react";
-import { Moment, MomentLog } from "src/lib/persistence/moment";
+import { Moment, IMomentLog } from "src/lib/persistence/moment";
 import { Feature } from "geojson";
 import { useAtomCallback } from "jotai/utils";
 
@@ -13,13 +13,13 @@ const assetsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("hydraulicModel").prop("assets"),
 );
 
-const filterImportMoments = (momentLog: MomentLog) => {
+const filterImportMoments = (momentLog: IMomentLog) => {
   return momentLog.undo.filter(
     (moment) => moment.note && moment.note.startsWith("Import"),
   );
 };
 
-const filterEditionMoments = (momentLog: MomentLog) => {
+const filterEditionMoments = (momentLog: IMomentLog) => {
   return momentLog.undo.filter(
     (moment) => !moment.note || !moment.note.startsWith("Import"),
   );
