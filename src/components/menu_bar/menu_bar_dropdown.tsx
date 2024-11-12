@@ -1,4 +1,8 @@
-import { dialogAtom, momentLogAtomDeprecated } from "src/state/jotai";
+import {
+  dialogAtom,
+  momentLogAtom,
+  momentLogAtomDeprecated,
+} from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useOpenFiles } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -12,10 +16,50 @@ import {
   DDSeparator,
   DDSubTriggerItem,
 } from "src/components/elements";
-import React from "react";
+import React, { useMemo } from "react";
 import { usePersistence } from "src/lib/persistence/context";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 function UndoList() {
+  const rep = usePersistence();
+  const historyControl = rep.useHistoryControl();
+  const momentLog = useAtomValue(momentLogAtom);
+
+  const MomentsList = useMemo(() => {
+    const List = [];
+    for (const { moment, offset, position } of momentLog) {
+      List.push(
+        <StyledItem
+          key={position}
+          onSelect={async (_e) => {
+            for (let j = 0; j < Math.abs(offset); j++) {
+              offset > 0
+                ? await historyControl("undo")
+                : await historyControl("redo");
+            }
+          }}
+        >
+          <ArrowRightIcon className="opacity-0" />
+          {moment.note || ""}
+        </StyledItem>,
+      );
+      if (offset === 0)
+        List.push(
+          <DDLabel key="current-state">
+            <div className="flex items-center gap-x-2">
+              <ArrowRightIcon />
+              Current state
+            </div>
+          </DDLabel>,
+        );
+    }
+    return List;
+  }, [momentLog]);
+
+  return <DDSubContent>{MomentsList}</DDSubContent>;
+}
+
+function UndoListDeprecated() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
   const momentLog = useAtomValue(momentLogAtomDeprecated);
@@ -142,7 +186,8 @@ export function MenuBarDropdown() {
                 <div className="flex-auto" />
                 <CaretRightIcon />
               </DDSubTriggerItem>
-              <UndoList />
+              {!isFeatureOn("FLAG_SPLIT_SOURCES") && <UndoListDeprecated />}
+              {isFeatureOn("FLAG_SPLIT_SOURCES") && <UndoList />}
             </DD.Sub>
           </DDContent>
         </DD.Portal>

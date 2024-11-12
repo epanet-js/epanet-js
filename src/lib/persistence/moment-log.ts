@@ -3,8 +3,8 @@ import { Moment } from "./moment";
 type Action = { forward: Moment; reverse: Moment };
 
 export class MomentLog {
-  private history: Action[];
-  private pointer: number;
+  protected history: Action[];
+  protected pointer: number;
 
   constructor() {
     this.history = [];
@@ -52,5 +52,16 @@ export class MomentLog {
     if (!action) return null;
 
     return action.forward;
+  }
+
+  getPointer(): Readonly<number> {
+    return this.pointer;
+  }
+
+  *[Symbol.iterator]() {
+    for (const [position, action] of this.history.entries()) {
+      const offset = this.pointer - Number(position);
+      yield { moment: action.forward, position, offset };
+    }
   }
 }

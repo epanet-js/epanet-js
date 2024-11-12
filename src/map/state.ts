@@ -1,28 +1,37 @@
 import { useAtomValue } from "jotai";
 import { AssetId, AssetsMap } from "src/hydraulics/assets";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { dataAtom, momentLogAtomDeprecated } from "src/state/jotai";
+import { dataAtom, momentLogAtom } from "src/state/jotai";
 import { buildOptimizedAssetsSource } from "./map-engine";
 import { focusAtom } from "jotai-optics";
 import { useCallback, useMemo, useRef } from "react";
-import { Moment, IMomentLog } from "src/lib/persistence/moment";
+import { Moment } from "src/lib/persistence/moment";
 import { Feature } from "geojson";
 import { useAtomCallback } from "jotai/utils";
+import { MomentLog } from "src/lib/persistence/moment-log";
 
 const assetsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("hydraulicModel").prop("assets"),
 );
 
-const filterImportMoments = (momentLog: IMomentLog) => {
-  return momentLog.undo.filter(
-    (moment) => moment.note && moment.note.startsWith("Import"),
-  );
+const filterImportMoments = (momentLog: MomentLog) => {
+  const result = [];
+  for (const { moment } of momentLog) {
+    if (moment.note && moment.note.startsWith("Import")) {
+      result.push(moment);
+    }
+  }
+  return result;
 };
 
-const filterEditionMoments = (momentLog: IMomentLog) => {
-  return momentLog.undo.filter(
-    (moment) => !moment.note || !moment.note.startsWith("Import"),
-  );
+const filterEditionMoments = (momentLog: MomentLog) => {
+  const result = [];
+  for (const { moment } of momentLog) {
+    if (!moment.note || !moment.note.startsWith("Import")) {
+      result.push(moment);
+    }
+  }
+  return result;
 };
 
 const areSameImportMoments = (a: Moment[], b: Moment[]): boolean => {
@@ -52,7 +61,7 @@ const filterAssets = (assets: AssetsMap, assetIds: Set<AssetId>): AssetsMap => {
 };
 
 export const useMapState = (idMap: IDMap) => {
-  const momentLog = useAtomValue(momentLogAtomDeprecated);
+  const momentLog = useAtomValue(momentLogAtom);
   const importState = useRef<{
     moments: Moment[];
     features: Feature[];
@@ -84,7 +93,7 @@ export const useMapState = (idMap: IDMap) => {
       features: features as Feature[],
     };
     return features;
-  }, [momentLog, getCurrentAssets, idMap]);
+  }, [momentLog.getPointer(), getCurrentAssets, idMap]);
 
   const { editionAssetIds, editionFeatures } = useMemo(() => {
     const editionMoments = filterEditionMoments(momentLog);
@@ -100,7 +109,7 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     return { editionAssetIds, editionFeatures: features };
-  }, [momentLog, getCurrentAssets, idMap]);
+  }, [momentLog.getPointer(), getCurrentAssets, idMap]);
 
   const hiddenImportedFeatures = useMemo(() => {
     return Array.from(editionAssetIds).map((uuid) =>

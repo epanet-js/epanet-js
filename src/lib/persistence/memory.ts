@@ -19,6 +19,7 @@ import {
   OPPOSITE,
   EMPTY_MOMENT,
   MomentInput,
+  Moment,
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import {
@@ -28,6 +29,7 @@ import {
   layerConfigAtom,
   memoryMetaAtom,
   Store,
+  momentLogAtom,
 } from "src/state/jotai";
 import {
   getFreshAt,
@@ -41,6 +43,7 @@ import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
 import { Asset, AssetsMap, getAssetConnections } from "src/hydraulics/assets";
 import { ModelMoment } from "src/hydraulics/model-operation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -53,37 +56,68 @@ export class MemPersistence implements IPersistence {
 
   useTransact() {
     return (moment: ModelMoment) => {
-      const momentLog = this.store.get(momentLogAtomDeprecated);
-      trackMoment(moment);
-      const forwardMoment = {
-        ...EMPTY_MOMENT,
-        note: moment.note,
-        deleteFeatures: moment.deleteAssets || [],
-        putFeatures: moment.putAssets || [],
-      };
+      if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+        const momentLog = this.store.get(momentLogAtom);
+        trackMoment(moment);
+        const forwardMoment = {
+          ...EMPTY_MOMENT,
+          note: moment.note,
+          deleteFeatures: moment.deleteAssets || [],
+          putFeatures: moment.putAssets || [],
+        };
 
-      const reverseMoment = this.apply(forwardMoment);
-      this.store.set(
-        momentLogAtomDeprecated,
-        UMomentLog.pushMomentDeprecated(momentLog, reverseMoment),
-      );
-      return Promise.resolve();
+        const reverseMoment = this.apply(forwardMoment);
+
+        momentLog.append(forwardMoment, reverseMoment);
+
+        this.store.set(momentLogAtom, momentLog);
+        return Promise.resolve();
+      } else {
+        const momentLog = this.store.get(momentLogAtomDeprecated);
+        trackMoment(moment);
+        const forwardMoment = {
+          ...EMPTY_MOMENT,
+          note: moment.note,
+          deleteFeatures: moment.deleteAssets || [],
+          putFeatures: moment.putAssets || [],
+        };
+
+        const reverseMoment = this.apply(forwardMoment);
+        this.store.set(
+          momentLogAtomDeprecated,
+          UMomentLog.pushMomentDeprecated(momentLog, reverseMoment),
+        );
+        return Promise.resolve();
+      }
     };
   }
 
   useTransactDeprecated() {
     return (partialMoment: Partial<MomentInput>) => {
-      trackMomentDeprecated(partialMoment);
-      const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
-      const result = this.apply(moment);
-      this.store.set(
-        momentLogAtomDeprecated,
-        UMomentLog.pushMomentDeprecated(
-          this.store.get(momentLogAtomDeprecated),
-          result,
-        ),
-      );
-      return Promise.resolve();
+      if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+        const momentLog = this.store.get(momentLogAtom);
+        trackMomentDeprecated(partialMoment);
+        const forwardMoment: MomentInput = {
+          ...EMPTY_MOMENT,
+          ...partialMoment,
+        };
+        const reverseMoment = this.apply(forwardMoment);
+        momentLog.append(forwardMoment as Moment, reverseMoment);
+        this.store.set(momentLogAtom, momentLog);
+        return Promise.resolve();
+      } else {
+        trackMomentDeprecated(partialMoment);
+        const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
+        const result = this.apply(moment);
+        this.store.set(
+          momentLogAtomDeprecated,
+          UMomentLog.pushMomentDeprecated(
+            this.store.get(momentLogAtomDeprecated),
+            result,
+          ),
+        );
+        return Promise.resolve();
+      }
     };
   }
 
@@ -112,28 +146,42 @@ export class MemPersistence implements IPersistence {
 
   useHistoryControl() {
     return (direction: "undo" | "redo") => {
-      const momentLog = UMomentLog.shallowCopy(
-        this.store.get(momentLogAtomDeprecated),
-      );
-      const moment = momentLog[direction].shift();
-      if (!moment) {
-        // Nothing to undo
+      if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+        const isUndo = direction === "undo";
+        const momentLog = this.store.get(momentLogAtom);
+        const moment = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
+        if (!moment) return Promise.resolve();
+
+        this.apply(moment);
+
+        isUndo ? momentLog.undo() : momentLog.redo();
+
+        this.store.set(momentLogAtom, momentLog);
+        return Promise.resolve();
+      } else {
+        const momentLog = UMomentLog.shallowCopy(
+          this.store.get(momentLogAtomDeprecated),
+        );
+        const moment = momentLog[direction].shift();
+        if (!moment) {
+          // Nothing to undo
+          return Promise.resolve();
+        }
+        const reverse = this.apply(moment);
+        if (UMoment.isEmpty(reverse)) {
+          // console.error(
+          //   "[SKIPPING] Got an empty reverse, forward: ",
+          //   moment,
+          //   " reverse: ",
+          //   reverse
+          // );
+          return Promise.resolve();
+        }
+        const opposite = OPPOSITE[direction];
+        momentLog[opposite] = [reverse].concat(momentLog[opposite]);
+        this.store.set(momentLogAtomDeprecated, momentLog);
         return Promise.resolve();
       }
-      const reverse = this.apply(moment);
-      if (UMoment.isEmpty(reverse)) {
-        // console.error(
-        //   "[SKIPPING] Got an empty reverse, forward: ",
-        //   moment,
-        //   " reverse: ",
-        //   reverse
-        // );
-        return Promise.resolve();
-      }
-      const opposite = OPPOSITE[direction];
-      momentLog[opposite] = [reverse].concat(momentLog[opposite]);
-      this.store.set(momentLogAtomDeprecated, momentLog);
-      return Promise.resolve();
     };
   }
   /**

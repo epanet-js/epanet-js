@@ -29,6 +29,7 @@ import {
   nullHydraulicModel,
 } from "src/hydraulics/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
+import { MomentLog } from "src/lib/persistence/moment-log";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -219,6 +220,8 @@ export type PartialLayer = SetOptional<MapboxLayer, "createdById">;
  * editing this document.
  */
 export const momentLogAtomDeprecated = atom<IMomentLog>(new CMomentLog());
+
+export const momentLogAtom = atom<MomentLog>(new MomentLog());
 
 // ----------------------------------------------------------------------------
 /**
