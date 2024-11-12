@@ -70,6 +70,7 @@ export const useMapState = (idMap: IDMap) => {
   const getCurrentAssets = useAtomCallback(
     useCallback((get) => get(assetsAtom), []),
   );
+  const momentLogPointer = momentLog.getPointer();
 
   const importedFeatures = useMemo(() => {
     const importMoments = filterImportMoments(momentLog);
@@ -93,7 +94,7 @@ export const useMapState = (idMap: IDMap) => {
       features: features as Feature[],
     };
     return features;
-  }, [momentLog.getPointer(), getCurrentAssets, idMap]);
+  }, [momentLog, momentLogPointer, getCurrentAssets, idMap]);
 
   const { editionAssetIds, editionFeatures } = useMemo(() => {
     const editionMoments = filterEditionMoments(momentLog);
@@ -109,7 +110,7 @@ export const useMapState = (idMap: IDMap) => {
       noPreviewProperty,
     );
     return { editionAssetIds, editionFeatures: features };
-  }, [momentLog.getPointer(), getCurrentAssets, idMap]);
+  }, [momentLog, momentLogPointer, getCurrentAssets, idMap]);
 
   const hiddenImportedFeatures = useMemo(() => {
     return Array.from(editionAssetIds).map((uuid) =>
