@@ -256,8 +256,8 @@ export class MemPersistence implements IPersistence {
     const { hydraulicModel } = ctx;
     for (const id of features) {
       hydraulicModel.assets.delete(id);
-      const maybeNodeId = id;
-      hydraulicModel.topology.removeNode(maybeNodeId);
+      hydraulicModel.topology.removeNode(id);
+      hydraulicModel.topology.removeLink(id);
     }
     return moment;
   }
