@@ -51,69 +51,21 @@ export class MemPersistence implements IPersistence {
   }
   putPresence = async () => {};
 
-  /**
-   * This could and should be improved. It does do some weird stuff:
-   * we need to write to the moment log and to features.
-   */
-  private apply(moment: MomentInput) {
-    const ctx = this.store.get(dataAtom);
-    const layerConfigMap = this.store.get(layerConfigAtom);
-    const reverse = UMoment.merge(
-      fMoment(moment.note || `Reverse`),
-      this.deleteFeaturesInner(moment.deleteFeatures, ctx),
-      this.deleteFoldersInner(moment.deleteFolders, ctx),
-      this.putFeaturesInner(moment.putFeatures, ctx),
-      this.putFoldersInner(moment.putFolders, ctx),
-      this.putLayerConfigsInner(moment.putLayerConfigs, layerConfigMap),
-      this.deleteLayerConfigsInner(moment.deleteLayerConfigs, layerConfigMap),
-    );
-
-    const updatedFeatures = new AssetsMap(
-      Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
-        return sortAts(a[1], b[1]);
-      }),
-    );
-    this.store.set(dataAtom, {
-      selection: ctx.selection,
-      hydraulicModel: {
-        ...ctx.hydraulicModel,
-        assets: updatedFeatures,
-      },
-      featureMapDeprecated: updatedFeatures,
-      folderMap: new Map(
-        Array.from(ctx.folderMap).sort((a, b) => {
-          return sortAts(a[1], b[1]);
-        }),
-      ),
-    });
-    if (moment.putLayerConfigs?.length || moment.deleteLayerConfigs?.length) {
-      this.store.set(
-        layerConfigAtom,
-        new Map(
-          Array.from(layerConfigMap).sort((a, b) => {
-            return sortAts(a[1], b[1]);
-          }),
-        ),
-      );
-    }
-    return reverse;
-  }
-
   useTransact() {
     return (moment: ModelMoment) => {
       const momentLog = this.store.get(momentLogAtom);
       trackMoment(moment);
-      const fullMoment = {
+      const forwardMoment = {
         ...EMPTY_MOMENT,
         note: moment.note,
         deleteFeatures: moment.deleteAssets || [],
         putFeatures: moment.putAssets || [],
       };
 
-      const result = this.apply(fullMoment);
+      const reverseMoment = this.apply(forwardMoment);
       this.store.set(
         momentLogAtom,
-        UMomentLog.pushMomentDeprecated(momentLog, result),
+        UMomentLog.pushMomentDeprecated(momentLog, reverseMoment),
       );
       return Promise.resolve();
     };
@@ -178,6 +130,59 @@ export class MemPersistence implements IPersistence {
       this.store.set(momentLogAtom, momentLog);
       return Promise.resolve();
     };
+  }
+  /**
+   * This could and should be improved. It does do some weird stuff:
+   * we need to write to the moment log and to features.
+   */
+  private apply(forwardMoment: MomentInput) {
+    const ctx = this.store.get(dataAtom);
+    const layerConfigMap = this.store.get(layerConfigAtom);
+    const reverseMoment = UMoment.merge(
+      fMoment(forwardMoment.note || `Reverse`),
+      this.deleteFeaturesInner(forwardMoment.deleteFeatures, ctx),
+      this.deleteFoldersInner(forwardMoment.deleteFolders, ctx),
+      this.putFeaturesInner(forwardMoment.putFeatures, ctx),
+      this.putFoldersInner(forwardMoment.putFolders, ctx),
+      this.putLayerConfigsInner(forwardMoment.putLayerConfigs, layerConfigMap),
+      this.deleteLayerConfigsInner(
+        forwardMoment.deleteLayerConfigs,
+        layerConfigMap,
+      ),
+    );
+
+    const updatedFeatures = new AssetsMap(
+      Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
+        return sortAts(a[1], b[1]);
+      }),
+    );
+    this.store.set(dataAtom, {
+      selection: ctx.selection,
+      hydraulicModel: {
+        ...ctx.hydraulicModel,
+        assets: updatedFeatures,
+      },
+      featureMapDeprecated: updatedFeatures,
+      folderMap: new Map(
+        Array.from(ctx.folderMap).sort((a, b) => {
+          return sortAts(a[1], b[1]);
+        }),
+      ),
+    });
+    if (
+      forwardMoment.putLayerConfigs?.length ||
+      forwardMoment.deleteLayerConfigs?.length
+    ) {
+      this.store.set(
+        layerConfigAtom,
+        new Map(
+          Array.from(layerConfigMap).sort((a, b) => {
+            return sortAts(a[1], b[1]);
+          }),
+        ),
+      );
+    }
+    return reverseMoment;
   }
 
   // PRIVATE --------------------------------------------
@@ -249,7 +254,7 @@ export class MemPersistence implements IPersistence {
   }
 
   private putFeaturesInner(features: IWrappedFeatureInput[], ctx: Data) {
-    const moment = fMoment("Put features");
+    const reverseMoment = fMoment("Put features");
     const ats = once(() =>
       Array.from(
         ctx.featureMapDeprecated.values(),
@@ -269,9 +274,9 @@ export class MemPersistence implements IPersistence {
         inputFeature.at = at;
       }
       if (oldVersion) {
-        moment.putFeatures.push(oldVersion);
+        reverseMoment.putFeatures.push(oldVersion);
       } else {
-        moment.deleteFeatures.push(inputFeature.id);
+        reverseMoment.deleteFeatures.push(inputFeature.id);
         // If we're inserting a new feature but its
         // at value is already in the set, find it a
         // new value at the start
@@ -294,7 +299,7 @@ export class MemPersistence implements IPersistence {
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
 
-    return moment;
+    return reverseMoment;
   }
 
   private putLayerConfigsInner(

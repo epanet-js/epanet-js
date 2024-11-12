@@ -11,7 +11,7 @@ import {
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "src/types";
-import type { MomentLog } from "src/lib/persistence/moment";
+import type { IMomentLog } from "src/lib/persistence/moment";
 import { CMomentLog } from "src/lib/persistence/moment";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/lib/convert";
@@ -218,7 +218,7 @@ export type PartialLayer = SetOptional<MapboxLayer, "createdById">;
  * of undo/redo history, which is only relevant to the user
  * editing this document.
  */
-export const momentLogAtom = atom<MomentLog>(new CMomentLog());
+export const momentLogAtom = atom<IMomentLog>(new CMomentLog());
 
 // ----------------------------------------------------------------------------
 /**
