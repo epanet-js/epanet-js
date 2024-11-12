@@ -64,7 +64,6 @@ export const EMPTY_MOMENT: Moment = {
 };
 
 export interface IMomentLog {
-  history: Moment[];
   undo: Moment[];
   redo: Moment[];
   paused: boolean;
@@ -73,12 +72,10 @@ export interface IMomentLog {
 const HISTORY_LIMIT = 100;
 
 export class CMomentLog implements IMomentLog {
-  history: Moment[];
   undo: Moment[];
   redo: Moment[];
   paused: boolean;
   constructor() {
-    this.history = [];
     this.undo = [];
     this.redo = [];
     this.paused = false;
@@ -146,7 +143,6 @@ const debugMomentLog = isDebugOn ? consoleDebugger : noop;
 class CUMomentLog {
   shallowCopy(oldLog: IMomentLog): IMomentLog {
     return {
-      history: oldLog.history.slice(),
       undo: oldLog.undo.slice(),
       redo: oldLog.redo.slice(),
       paused: oldLog.paused,
