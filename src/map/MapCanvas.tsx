@@ -103,8 +103,9 @@ export const MapCanvas = memo(function MapCanvas({
   setMap: (arg0: MapEngine | null) => void;
 }) {
   const rep = usePersistence();
-  const { importedFeatures, hiddenImportedFeatures, editionFeatures } =
-    useMapState(rep.idMap);
+  const { importedFeatures, editionFeatures, visibilityChanges } = useMapState(
+    rep.idMap,
+  );
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
 
@@ -300,9 +301,13 @@ export const MapCanvas = memo(function MapCanvas({
             previewProperty: label,
           });
           await map.setSource(FEATURES_SOURCE_NAME, editionFeatures);
+          map.showFeatures(
+            IMPORTED_FEATURES_SOURCE_NAME,
+            visibilityChanges.show,
+          );
           map.hideFeatures(
             IMPORTED_FEATURES_SOURCE_NAME,
-            hiddenImportedFeatures,
+            visibilityChanges.hide,
           );
         } catch (error) {
           captureError(error as Error);
@@ -315,7 +320,7 @@ export const MapCanvas = memo(function MapCanvas({
     },
     [
       editionFeatures,
-      hiddenImportedFeatures,
+      visibilityChanges,
       map,
       updateEphemeralStateInMap,
       updateSelectionInMap,
