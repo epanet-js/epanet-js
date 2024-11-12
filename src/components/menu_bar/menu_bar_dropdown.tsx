@@ -1,4 +1,4 @@
-import { dialogAtom, momentLogAtom } from "src/state/jotai";
+import { dialogAtom, momentLogAtomDeprecated } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useOpenFiles } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -18,7 +18,7 @@ import { usePersistence } from "src/lib/persistence/context";
 function UndoList() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
-  const momentLog = useAtomValue(momentLogAtom);
+  const momentLog = useAtomValue(momentLogAtomDeprecated);
   return (
     <DDSubContent>
       {momentLog.undo

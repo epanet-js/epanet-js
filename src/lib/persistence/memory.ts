@@ -24,7 +24,7 @@ import { generateKeyBetween } from "fractional-indexing";
 import {
   Data,
   dataAtom,
-  momentLogAtom,
+  momentLogAtomDeprecated,
   layerConfigAtom,
   memoryMetaAtom,
   Store,
@@ -53,7 +53,7 @@ export class MemPersistence implements IPersistence {
 
   useTransact() {
     return (moment: ModelMoment) => {
-      const momentLog = this.store.get(momentLogAtom);
+      const momentLog = this.store.get(momentLogAtomDeprecated);
       trackMoment(moment);
       const forwardMoment = {
         ...EMPTY_MOMENT,
@@ -64,7 +64,7 @@ export class MemPersistence implements IPersistence {
 
       const reverseMoment = this.apply(forwardMoment);
       this.store.set(
-        momentLogAtom,
+        momentLogAtomDeprecated,
         UMomentLog.pushMomentDeprecated(momentLog, reverseMoment),
       );
       return Promise.resolve();
@@ -77,8 +77,11 @@ export class MemPersistence implements IPersistence {
       const moment: MomentInput = { ...EMPTY_MOMENT, ...partialMoment };
       const result = this.apply(moment);
       this.store.set(
-        momentLogAtom,
-        UMomentLog.pushMomentDeprecated(this.store.get(momentLogAtom), result),
+        momentLogAtomDeprecated,
+        UMomentLog.pushMomentDeprecated(
+          this.store.get(momentLogAtomDeprecated),
+          result,
+        ),
       );
       return Promise.resolve();
     };
@@ -109,7 +112,9 @@ export class MemPersistence implements IPersistence {
 
   useHistoryControl() {
     return (direction: "undo" | "redo") => {
-      const momentLog = UMomentLog.shallowCopy(this.store.get(momentLogAtom));
+      const momentLog = UMomentLog.shallowCopy(
+        this.store.get(momentLogAtomDeprecated),
+      );
       const moment = momentLog[direction].shift();
       if (!moment) {
         // Nothing to undo
@@ -127,7 +132,7 @@ export class MemPersistence implements IPersistence {
       }
       const opposite = OPPOSITE[direction];
       momentLog[opposite] = [reverse].concat(momentLog[opposite]);
-      this.store.set(momentLogAtom, momentLog);
+      this.store.set(momentLogAtomDeprecated, momentLog);
       return Promise.resolve();
     };
   }
