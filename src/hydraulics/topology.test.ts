@@ -61,18 +61,19 @@ describe("Topology", () => {
     expect(topology.getLinks("A")).toEqual(["link1"]);
   });
 
-  it("can remove a link by link data", () => {
+  it("can remove a link by link id", () => {
     const topology = new Topology();
 
     topology.addLink("link1", "A", "B");
     topology.addLink("link2", "A", "B");
 
     topology.removeLink("link1");
-
     expect(topology.getLinks("A")).toEqual(["link2"]);
 
     topology.removeLink("link2");
+    expect(topology.getLinks("A")).toEqual([]);
 
+    topology.removeLink("link2");
     expect(topology.getLinks("A")).toEqual([]);
   });
 });
