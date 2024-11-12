@@ -58,6 +58,15 @@ export class MomentLog {
     return this.pointer;
   }
 
+  searchLast(conditionFn: (moment: Moment) => boolean): number {
+    for (let i = this.pointer; i >= 0; i--) {
+      if (conditionFn(this.history[i].forward) === true) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   *[Symbol.iterator]() {
     for (const [position, action] of this.history.entries()) {
       const offset = this.pointer - Number(position);
