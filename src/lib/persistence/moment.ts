@@ -200,7 +200,7 @@ class CUMomentLog {
    * Record the 'reverse' state
    * for a given transaction.
    */
-  pushMoment(oldLog: MomentLog, moment: Moment): MomentLog {
+  pushMomentDeprecated(oldLog: MomentLog, moment: Moment): MomentLog {
     debugMomentLog("BEFORE_PUSH", oldLog);
 
     if (UMoment.isEmpty(moment)) {

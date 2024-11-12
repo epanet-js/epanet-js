@@ -35,13 +35,13 @@ describe("UMoment", () => {
 });
 
 describe("UMomentLog", () => {
-  describe("#pushMoment", () => {
+  describe("#pushMomentDeprecated", () => {
     it("pushing a valid moment", () => {
       const log = new CMomentLog();
       const a = fMoment("This is the note");
       a.deleteFeatures.push("yyyy");
 
-      const newLog = UMomentLog.pushMoment(log, a);
+      const newLog = UMomentLog.pushMomentDeprecated(log, a);
       expect(newLog).toHaveProperty(["undo", "length"], 1);
       expect(newLog).toHaveProperty(["redo", "length"], 0);
 
@@ -52,7 +52,7 @@ describe("UMomentLog", () => {
       const log = new CMomentLog();
       const a = fMoment("This is the note");
       a.deleteFeatures.push("yyyy");
-      const logA = UMomentLog.pushMoment(log, a);
+      const logA = UMomentLog.pushMomentDeprecated(log, a);
       const logB = UMomentLog.popMoment(logA, 1);
       expect(logA.undo).toHaveLength(1);
       expect(logB.undo).toEqual([]);
@@ -61,7 +61,7 @@ describe("UMomentLog", () => {
       const log = new CMomentLog();
       const a = fMoment("This is the note");
 
-      const newLog = UMomentLog.pushMoment(log, a);
+      const newLog = UMomentLog.pushMomentDeprecated(log, a);
       expect(newLog).toHaveProperty(["undo", "length"], 0);
       expect(newLog).toHaveProperty(["redo", "length"], 0);
     });
