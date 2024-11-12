@@ -54,7 +54,7 @@ function UndoList() {
         );
     }
     return List;
-  }, [momentLog]);
+  }, [momentLog, historyControl]);
 
   return <DDSubContent>{MomentsList}</DDSubContent>;
 }
