@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { AssetId, AssetsMap } from "src/hydraulics/assets";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { dataAtom, momentLogAtom } from "src/state/jotai";
+import { dataAtom, momentLogAtomDeprecated } from "src/state/jotai";
 import { buildOptimizedAssetsSource } from "./map-engine";
 import { focusAtom } from "jotai-optics";
 import { useCallback, useMemo, useRef } from "react";
@@ -52,7 +52,7 @@ const filterAssets = (assets: AssetsMap, assetIds: Set<AssetId>): AssetsMap => {
 };
 
 export const useMapState = (idMap: IDMap) => {
-  const momentLog = useAtomValue(momentLogAtom);
+  const momentLog = useAtomValue(momentLogAtomDeprecated);
   const importState = useRef<{
     moments: Moment[];
     features: Feature[];

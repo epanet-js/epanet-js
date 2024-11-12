@@ -218,7 +218,7 @@ export type PartialLayer = SetOptional<MapboxLayer, "createdById">;
  * of undo/redo history, which is only relevant to the user
  * editing this document.
  */
-export const momentLogAtom = atom<IMomentLog>(new CMomentLog());
+export const momentLogAtomDeprecated = atom<IMomentLog>(new CMomentLog());
 
 // ----------------------------------------------------------------------------
 /**

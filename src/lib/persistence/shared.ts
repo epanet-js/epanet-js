@@ -9,7 +9,12 @@ import { fMoment, Moment, MomentInput, UMomentLog } from "./moment";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { useAtomValue } from "jotai";
-import { Data, dataAtom, momentLogAtom, presencesAtom } from "src/state/jotai";
+import {
+  Data,
+  dataAtom,
+  momentLogAtomDeprecated,
+  presencesAtom,
+} from "src/state/jotai";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ModelMoment } from "src/hydraulics/model-operation";
@@ -118,7 +123,9 @@ export function getFreshAt(ctx: Data): string {
 export function useEndSnapshot() {
   return useAtomCallback(
     useCallback((_get, set) => {
-      set(momentLogAtom, (momentLog) => UMomentLog.endSnapshot(momentLog));
+      set(momentLogAtomDeprecated, (momentLog) =>
+        UMomentLog.endSnapshot(momentLog),
+      );
     }, []),
   );
 }
@@ -127,7 +134,7 @@ export function useStartSnapshot() {
   return useAtomCallback(
     useCallback(
       (_get, set, feature: Parameters<typeof UMomentLog.startSnapshot>[1]) => {
-        set(momentLogAtom, (momentLog) =>
+        set(momentLogAtomDeprecated, (momentLog) =>
           UMomentLog.startSnapshot(momentLog, feature),
         );
       },
@@ -154,7 +161,9 @@ export function usePresences(userId: number | undefined): IPresence[] {
 export function usePopMoment() {
   return useAtomCallback(
     useCallback((_get, set, n: number) => {
-      set(momentLogAtom, (momentLog) => UMomentLog.popMoment(momentLog, n));
+      set(momentLogAtomDeprecated, (momentLog) =>
+        UMomentLog.popMoment(momentLog, n),
+      );
     }, []),
   );
 }
