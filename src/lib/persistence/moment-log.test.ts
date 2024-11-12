@@ -113,6 +113,55 @@ describe("MomentLog", () => {
     expect(momentLog.searchLast(matchConditionFn)).toEqual(3);
   });
 
+  it("can filter up to and including pointer", () => {
+    const momentLog = new MomentLog();
+
+    const firstAction = anAction("FIRST");
+    momentLog.append(firstAction.forward, firstAction.reverse);
+
+    const secondAction = anAction("SECOND");
+    momentLog.append(secondAction.forward, secondAction.reverse);
+
+    const thirdAction = anAction("THIRD");
+    momentLog.append(thirdAction.forward, thirdAction.reverse);
+
+    momentLog.undo();
+
+    expect(momentLog.fetchUpToAndIncluding(1)).toHaveLength(2);
+    expect(momentLog.fetchUpToAndIncluding(10)).toHaveLength(2);
+
+    momentLog.redo();
+
+    expect(momentLog.fetchUpToAndIncluding(10)).toHaveLength(3);
+    expect(momentLog.fetchUpToAndIncluding(1)).toHaveLength(2);
+
+    expect(momentLog.fetchUpToAndIncluding(0)).toHaveLength(1);
+  });
+
+  it("can filter from exclusive pointer", () => {
+    const momentLog = new MomentLog();
+
+    const firstAction = anAction("FIRST");
+    momentLog.append(firstAction.forward, firstAction.reverse);
+
+    const secondAction = anAction("SECOND");
+    momentLog.append(secondAction.forward, secondAction.reverse);
+
+    const thirdAction = anAction("THIRD");
+    momentLog.append(thirdAction.forward, thirdAction.reverse);
+
+    momentLog.undo();
+
+    expect(momentLog.fetchAfter(1)).toHaveLength(0);
+
+    momentLog.redo();
+
+    expect(momentLog.fetchAfter(1)).toHaveLength(1);
+
+    expect(momentLog.fetchAfter(10)).toHaveLength(0);
+    expect(momentLog.fetchAfter(0)).toHaveLength(2);
+  });
+
   const anAction = (name = "ANY_ACTION") => {
     return {
       forward: aMoment(name + "_forward"),
