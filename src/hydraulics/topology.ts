@@ -15,7 +15,7 @@ export class Topology {
     this.graph = createGraph({ multigraph: true });
     this.linksMap = new Map();
 
-    this.graph.on("changed", (changes) => {
+    this.graph.on("changed", (changes: GraphChange[]) => {
       changes.forEach((change: GraphChange) => {
         if (change.changeType === "remove" && change.link) {
           this.linksMap.delete(change.link.data.id);
