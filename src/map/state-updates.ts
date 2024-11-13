@@ -8,6 +8,7 @@ import {
   dataAtom,
   ephemeralStateAtom,
   layerConfigAtom,
+  memoryMetaAtom,
   momentLogAtom,
   selectionAtom,
 } from "src/state/jotai";
@@ -16,7 +17,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { focusAtom } from "jotai-optics";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import {
+import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
@@ -91,8 +92,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const rep = usePersistence();
   const idMap = rep.idMap;
-  const [meta] = rep.useMetadata();
-  const { label, symbolization } = meta;
+  const { symbolization, label } = useAtomValue(memoryMetaAtom);
   const stylesConfig: StylesConfig = useMemo(
     () => ({
       symbolization: symbolization || SYMBOLIZATION_NONE,
@@ -105,6 +105,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const editionsPointer = useRef<number>(0);
   const lastEphemeralSync = useRef<EphemeralEditingState>();
   const lastSelectionSync = useRef<Sel>();
+  const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
   const lastHiddenFeatures = useRef<RawId[]>([]);
 
@@ -112,7 +113,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (!isFeatureOn("FLAG_SPLIT_SOURCES")) return;
     if (!map) return;
 
-    if (importPointer.current !== latestImportPointer) {
+    const hasStyleRefresh = lastStylesSync.current !== stylesConfig;
+
+    if (hasStyleRefresh) {
+      lastStylesSync.current = stylesConfig;
+      await updateLayerStyles(map, stylesConfig);
+    }
+
+    if (importPointer.current !== latestImportPointer || hasStyleRefresh) {
       importPointer.current = latestImportPointer;
       isUpdatingSources.current = true;
 
@@ -128,7 +136,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       isUpdatingSources.current = false;
     }
 
-    if (latestChangePointer !== editionsPointer.current) {
+    if (latestChangePointer !== editionsPointer.current || hasStyleRefresh) {
       editionsPointer.current = latestChangePointer;
       isUpdatingSources.current = true;
 
@@ -180,6 +188,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   return { isUpdatingSources: isUpdatingSources.current };
 };
 
+const updateLayerStyles = withInstrumentation(
+  async (map: MapEngine, styles: StylesConfig) => {
+    const style = await loadAndAugmentStyle(styles);
+    await map.setStyle(style);
+  },
+  { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
+);
+
 const updateImportSource = withInstrumentation(
   async (
     map: MapEngine,
@@ -203,7 +219,6 @@ const updateImportSource = withInstrumentation(
       styles.symbolization,
       styles.previewProperty,
     );
-    await map.setOnlyStyle(styles);
     await map.setSource(IMPORTED_FEATURES_SOURCE_NAME, features);
   },
   {
@@ -237,7 +252,6 @@ const updateEditionsSource = withInstrumentation(
       styles.symbolization,
       styles.previewProperty,
     );
-    await map.setOnlyStyle(styles);
     await map.setSource(FEATURES_SOURCE_NAME, features);
 
     return editionAssetIds;
