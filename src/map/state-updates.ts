@@ -23,7 +23,6 @@ import {
 import { AssetId, AssetsMap } from "src/hydraulics/assets";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { monitorFrequency } from "src/infra/monitor-frequency";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
 import { PolygonLayer } from "@deck.gl/layers";
@@ -215,37 +214,39 @@ const updateImportSource = withInstrumentation(
   },
 );
 
-const updateEditionsSource = async (
-  map: MapEngine,
-  momentLog: MomentLog,
-  latestImportPointer: number | null,
-  assets: AssetsMap,
-  idMap: IDMap,
-  styles: StylesConfig,
-): Promise<Set<AssetId>> => {
-  monitorFrequency("SET_MAP_EDITIONS_SOURCE", {
-    limit: 10,
-    intervalMs: 1000,
-  });
-  const editionMoments =
-    latestImportPointer === null
-      ? momentLog.fetchAll()
-      : momentLog.fetchAfter(latestImportPointer);
+const updateEditionsSource = withInstrumentation(
+  async (
+    map: MapEngine,
+    momentLog: MomentLog,
+    latestImportPointer: number | null,
+    assets: AssetsMap,
+    idMap: IDMap,
+    styles: StylesConfig,
+  ): Promise<Set<AssetId>> => {
+    const editionMoments =
+      latestImportPointer === null
+        ? momentLog.fetchAll()
+        : momentLog.fetchAfter(latestImportPointer);
 
-  const editionAssetIds = getAssetIdsInMoments(editionMoments);
-  const editedAssets = filterAssets(assets, editionAssetIds);
+    const editionAssetIds = getAssetIdsInMoments(editionMoments);
+    const editedAssets = filterAssets(assets, editionAssetIds);
 
-  const features = buildOptimizedAssetsSource(
-    editedAssets,
-    idMap,
-    styles.symbolization,
-    styles.previewProperty,
-  );
-  await map.setOnlyStyle(styles);
-  await map.setSource(FEATURES_SOURCE_NAME, features);
+    const features = buildOptimizedAssetsSource(
+      editedAssets,
+      idMap,
+      styles.symbolization,
+      styles.previewProperty,
+    );
+    await map.setOnlyStyle(styles);
+    await map.setSource(FEATURES_SOURCE_NAME, features);
 
-  return editionAssetIds;
-};
+    return editionAssetIds;
+  },
+  {
+    name: "MAP_STATE_UPDATE_EDITIONS_SOURCE",
+    maxDurationMs: 200,
+  },
+);
 
 const updateVisibilityFeatureState = (
   map: MapEngine,

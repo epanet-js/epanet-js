@@ -42,9 +42,10 @@ const checkDuration = (settings: Settings, start: number) => {
     captureWarning(
       `${settings.name} over threshold ${thresholdMs.toFixed(2)} ms: Execution time: ${duration.toFixed(2)} ms`,
     );
-  } else if (isDebugOn) {
+  }
+  if (isDebugOn) {
     //eslint-disable-next-line
-    console.log(`${name} Execution time: ${duration} ms`);
+    console.log(`${settings.name} execution time: ${duration.toFixed(2)} ms`);
   }
 };
 
