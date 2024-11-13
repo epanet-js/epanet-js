@@ -112,10 +112,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (!isFeatureOn("FLAG_SPLIT_SOURCES")) return;
     if (!map) return;
 
-    if (
-      latestImportPointer !== null &&
-      importPointer.current !== latestImportPointer
-    ) {
+    if (importPointer.current !== latestImportPointer) {
       importPointer.current = latestImportPointer;
       isUpdatingSources.current = true;
 
@@ -186,7 +183,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 const updateImportSource = async (
   map: MapEngine,
   momentLog: MomentLog,
-  latestImportPointer: number,
+  latestImportPointer: number | null,
   assets: AssetsMap,
   idMap: IDMap,
   styles: StylesConfig,
@@ -195,7 +192,11 @@ const updateImportSource = async (
     limit: 10,
     intervalMs: 1000,
   });
-  const importMoments = momentLog.fetchUpToAndIncluding(latestImportPointer);
+  const importMoments =
+    latestImportPointer === null
+      ? []
+      : momentLog.fetchUpToAndIncluding(latestImportPointer);
+
   const importedAssetIds = getAssetIdsInMoments(importMoments);
   const importedAssets = filterAssets(assets, importedAssetIds);
 
@@ -227,11 +228,6 @@ const updateEditionsSource = async (
       : momentLog.fetchAfter(latestImportPointer);
 
   const editionAssetIds = getAssetIdsInMoments(editionMoments);
-  if (!editionAssetIds.size) {
-    map.removeSource(FEATURES_SOURCE_NAME);
-    return editionAssetIds;
-  }
-
   const editedAssets = filterAssets(assets, editionAssetIds);
 
   const features = buildOptimizedAssetsSource(
