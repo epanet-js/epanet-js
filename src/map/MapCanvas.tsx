@@ -26,6 +26,7 @@ import {
   Sel,
   Data,
   EphemeralEditingState,
+  memoryMetaAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
 import { MapEngine, MapHandlers } from "./map-engine";
@@ -142,7 +143,8 @@ export const MapCanvas = memo(function MapCanvas({
 
   // Queries
   const [meta, updateMeta] = rep.useMetadata();
-  const { label, symbolization } = meta;
+  const { label } = meta;
+  const { symbolization } = useAtomValue(memoryMetaAtom);
 
   const currentLayer = meta.layer;
 
