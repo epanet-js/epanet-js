@@ -207,7 +207,7 @@ const updateImportSource = withInstrumentation(
     await map.setSource(IMPORTED_FEATURES_SOURCE_NAME, features);
   },
   {
-    name: "MAP_STATE_UPDATE_IMPORT_SOURCE",
+    name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
     maxDurationMs: 10000,
     maxCalls: 10,
     callsIntervalMs: 1000,
@@ -243,56 +243,62 @@ const updateEditionsSource = withInstrumentation(
     return editionAssetIds;
   },
   {
-    name: "MAP_STATE_UPDATE_EDITIONS_SOURCE",
-    maxDurationMs: 200,
+    name: "MAP_STATE:UPDATE_EDITIONS_SOURCE",
+    maxDurationMs: 100,
   },
 );
 
-const updateVisibilityFeatureState = (
-  map: MapEngine,
-  lastHiddenFeatures: RawId[],
-  editedAssetIds: Set<AssetId>,
-  idMap: IDMap,
-): RawId[] => {
-  const newHiddenFeatures = Array.from(editedAssetIds).map((uuid) =>
-    UIDMap.getIntID(idMap, uuid),
-  );
-  const newShownFeatures = lastHiddenFeatures.filter(
-    (intId) => !editedAssetIds.has(UIDMap.getUUID(idMap, intId)),
-  );
-  map.showFeatures(IMPORTED_FEATURES_SOURCE_NAME, newShownFeatures);
-  map.hideFeatures(IMPORTED_FEATURES_SOURCE_NAME, newHiddenFeatures);
+const updateVisibilityFeatureState = withInstrumentation(
+  (
+    map: MapEngine,
+    lastHiddenFeatures: RawId[],
+    editedAssetIds: Set<AssetId>,
+    idMap: IDMap,
+  ): RawId[] => {
+    const newHiddenFeatures = Array.from(editedAssetIds).map((uuid) =>
+      UIDMap.getIntID(idMap, uuid),
+    );
+    const newShownFeatures = lastHiddenFeatures.filter(
+      (intId) => !editedAssetIds.has(UIDMap.getUUID(idMap, intId)),
+    );
+    map.showFeatures(IMPORTED_FEATURES_SOURCE_NAME, newShownFeatures);
+    map.hideFeatures(IMPORTED_FEATURES_SOURCE_NAME, newHiddenFeatures);
 
-  return newHiddenFeatures;
-};
+    return newHiddenFeatures;
+  },
+  { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
+);
 
-const updateEphemeralStateOvelay = (
-  map: MapEngine,
-  ephemeralState: EphemeralEditingState,
-) => {
-  const layers = [
-    ephemeralState.type === "drawPipe" && buildDrawPipeLayers(ephemeralState),
-    ephemeralState.type === "moveAssets" &&
-      buildMoveAssetsLayers(ephemeralState),
+const updateEphemeralStateOvelay = withInstrumentation(
+  (map: MapEngine, ephemeralState: EphemeralEditingState) => {
+    const layers = [
+      ephemeralState.type === "drawPipe" && buildDrawPipeLayers(ephemeralState),
+      ephemeralState.type === "moveAssets" &&
+        buildMoveAssetsLayers(ephemeralState),
 
-    ephemeralState.type === "lasso" &&
-      new PolygonLayer<number[]>({
-        id: DECK_LASSO_ID,
-        data: [makeRectangle(ephemeralState)],
-        visible: ephemeralState.type === "lasso",
-        pickable: false,
-        stroked: true,
-        filled: true,
-        lineWidthUnits: "pixels",
-        getPolygon: (d) => d,
-        getFillColor: LASSO_YELLOW,
-        getLineColor: LASSO_DARK_YELLOW,
-        getLineWidth: 1,
-      }),
-  ];
-  map.setOverlay(layers);
-};
+      ephemeralState.type === "lasso" &&
+        new PolygonLayer<number[]>({
+          id: DECK_LASSO_ID,
+          data: [makeRectangle(ephemeralState)],
+          visible: ephemeralState.type === "lasso",
+          pickable: false,
+          stroked: true,
+          filled: true,
+          lineWidthUnits: "pixels",
+          getPolygon: (d) => d,
+          getFillColor: LASSO_YELLOW,
+          getLineColor: LASSO_DARK_YELLOW,
+          getLineWidth: 1,
+        }),
+    ];
+    map.setOverlay(layers);
+  },
+  { name: "MAP_STATE:UPDATE_OVERLAYS", maxDurationMs: 100 },
+);
 
-const updateSelectionFeatureState = (map: MapEngine, selection: Sel) => {
-  map.setOnlySelection(selection);
-};
+const updateSelectionFeatureState = withInstrumentation(
+  (map: MapEngine, selection: Sel) => {
+    map.setOnlySelection(selection);
+  },
+  { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
+);
