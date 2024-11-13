@@ -37,6 +37,7 @@ import { AssetsMap } from "src/hydraulics/assets";
 import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { captureWarning } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { LayersList } from "@deck.gl/core";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -381,6 +382,12 @@ export class MapEngine {
     });
   }
 
+  removeSource(name: string) {
+    if (!this.map.getSource(name)) return;
+
+    this.map.removeSource(name);
+  }
+
   showFeatures(sourceName: string, featureIds: RawId[]): void {
     if (!this.map || !(this.map as any).style) return;
 
@@ -480,6 +487,10 @@ export class MapEngine {
           }),
       ],
     });
+  }
+
+  setOverlay(layers: LayersList) {
+    this.overlay.setProps({ layers });
   }
 
   remove() {
