@@ -315,7 +315,8 @@ export const MapCanvas = memo(function MapCanvas({
       const features = map.map.queryRenderedFeatures(searchBox, {
         layers: CLICKABLE_LAYERS,
       });
-      setCursor(features.length ? "pointer" : "");
+      const visibleFeatures = features.filter((f) => !f.state.hidden);
+      setCursor(visibleFeatures.length ? "pointer" : "");
     }
     return fastMovePointer;
   }, [map, setCursor]);
