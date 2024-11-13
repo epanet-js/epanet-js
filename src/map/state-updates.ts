@@ -33,6 +33,7 @@ import {
   LASSO_YELLOW,
 } from "src/lib/constants";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
+import { captureError } from "src/infra/error-tracking";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -177,7 +178,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     selection,
   ]);
 
-  doUpdates();
+  doUpdates().catch((e) => captureError(e));
 
   return { isUpdatingSources: isUpdatingSources.current };
 };
