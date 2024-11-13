@@ -258,7 +258,7 @@ const updateEditionsSource = withInstrumentation(
   },
   {
     name: "MAP_STATE:UPDATE_EDITIONS_SOURCE",
-    maxDurationMs: 100,
+    maxDurationMs: 250,
   },
 );
 
