@@ -332,28 +332,14 @@ export class MapEngine {
     this.lastLayer = layerConfigs;
     this.lastSymbolization = symbolization;
     this.lastPreviewProperty = previewProperty;
+
     const style = await loadAndAugmentStyle({
       layerConfigs,
       symbolization,
       previewProperty,
     });
 
-    return new Promise((resolve) => {
-      const styleTimeout = 2000;
-      const timeout = setTimeout(() => {
-        captureWarning(
-          `Timeout: Mapbox style.load took more than ${styleTimeout}`,
-        );
-        resolve();
-      }, styleTimeout);
-
-      this.map.once("style.load", () => {
-        clearTimeout(timeout);
-        resolve();
-      });
-
-      this.map.setStyle(style);
-    });
+    this.map.setStyle(style);
   }
 
   setSource(name: string, sourceFeatures: Feature[]): Promise<void> {
