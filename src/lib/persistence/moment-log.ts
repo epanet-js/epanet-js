@@ -11,6 +11,13 @@ export class MomentLog {
     this.pointer = -1;
   }
 
+  copy() {
+    const newInstance = new MomentLog();
+    newInstance.history = this.history;
+    newInstance.pointer = this.pointer;
+    return newInstance;
+  }
+
   append(forward: Moment, reverse: Moment) {
     const newPointer = this.pointer + 1;
     if (this.history.length >= newPointer) {

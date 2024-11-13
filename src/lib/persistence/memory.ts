@@ -57,7 +57,7 @@ export class MemPersistence implements IPersistence {
   useTransact() {
     return (moment: ModelMoment) => {
       if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-        const momentLog = this.store.get(momentLogAtom);
+        const momentLog = this.store.get(momentLogAtom).copy();
         trackMoment(moment);
         const forwardMoment = {
           ...EMPTY_MOMENT,
@@ -95,7 +95,7 @@ export class MemPersistence implements IPersistence {
   useTransactDeprecated() {
     return (partialMoment: Partial<MomentInput>) => {
       if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-        const momentLog = this.store.get(momentLogAtom);
+        const momentLog = this.store.get(momentLogAtom).copy();
         trackMomentDeprecated(partialMoment);
         const forwardMoment: MomentInput = {
           ...EMPTY_MOMENT,
@@ -148,7 +148,7 @@ export class MemPersistence implements IPersistence {
     return (direction: "undo" | "redo") => {
       if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
         const isUndo = direction === "undo";
-        const momentLog = this.store.get(momentLogAtom);
+        const momentLog = this.store.get(momentLogAtom).copy();
         const moment = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
         if (!moment) return Promise.resolve();
 
