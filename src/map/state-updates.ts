@@ -1,5 +1,5 @@
 import { atom, useAtomValue } from "jotai";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Moment } from "src/lib/persistence/moment";
 import {
   EphemeralEditingState,
@@ -92,11 +92,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const idMap = rep.idMap;
   const [meta] = rep.useMetadata();
   const { label, symbolization } = meta;
-  const stylesConfig: StylesConfig = {
-    symbolization: symbolization || SYMBOLIZATION_NONE,
-    previewProperty: label,
-    layerConfigs,
-  };
+  const stylesConfig: StylesConfig = useMemo(
+    () => ({
+      symbolization: symbolization || SYMBOLIZATION_NONE,
+      previewProperty: label,
+      layerConfigs,
+    }),
+    [label, layerConfigs, symbolization],
+  );
   const importPointer = useRef<number | null>(null);
   const editionsPointer = useRef<number>(0);
   const lastEphemeralSync = useRef<EphemeralEditingState>();
