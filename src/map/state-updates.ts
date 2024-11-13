@@ -34,6 +34,7 @@ import {
 } from "src/lib/constants";
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
+import { withInstrumentation } from "src/infra/with-instrumentation";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -180,35 +181,39 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   return { isUpdatingSources: isUpdatingSources.current };
 };
 
-const updateImportSource = async (
-  map: MapEngine,
-  momentLog: MomentLog,
-  latestImportPointer: number | null,
-  assets: AssetsMap,
-  idMap: IDMap,
-  styles: StylesConfig,
-) => {
-  monitorFrequency("SET_MAP_IMPORT_SOURCE", {
-    limit: 10,
-    intervalMs: 1000,
-  });
-  const importMoments =
-    latestImportPointer === null
-      ? []
-      : momentLog.fetchUpToAndIncluding(latestImportPointer);
+const updateImportSource = withInstrumentation(
+  async (
+    map: MapEngine,
+    momentLog: MomentLog,
+    latestImportPointer: number | null,
+    assets: AssetsMap,
+    idMap: IDMap,
+    styles: StylesConfig,
+  ) => {
+    const importMoments =
+      latestImportPointer === null
+        ? []
+        : momentLog.fetchUpToAndIncluding(latestImportPointer);
 
-  const importedAssetIds = getAssetIdsInMoments(importMoments);
-  const importedAssets = filterAssets(assets, importedAssetIds);
+    const importedAssetIds = getAssetIdsInMoments(importMoments);
+    const importedAssets = filterAssets(assets, importedAssetIds);
 
-  const features = buildOptimizedAssetsSource(
-    importedAssets,
-    idMap,
-    styles.symbolization,
-    styles.previewProperty,
-  );
-  await map.setOnlyStyle(styles);
-  await map.setSource(IMPORTED_FEATURES_SOURCE_NAME, features);
-};
+    const features = buildOptimizedAssetsSource(
+      importedAssets,
+      idMap,
+      styles.symbolization,
+      styles.previewProperty,
+    );
+    await map.setOnlyStyle(styles);
+    await map.setSource(IMPORTED_FEATURES_SOURCE_NAME, features);
+  },
+  {
+    name: "MAP_STATE_UPDATE_IMPORT_SOURCE",
+    maxDurationMs: 10000,
+    maxCalls: 10,
+    callsIntervalMs: 1000,
+  },
+);
 
 const updateEditionsSource = async (
   map: MapEngine,
