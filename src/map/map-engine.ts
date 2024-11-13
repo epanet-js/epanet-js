@@ -383,7 +383,12 @@ export class MapEngine {
   }
 
   removeSource(name: string) {
-    if (!this.map.getSource(name)) return;
+    const source = this.map.getSource(name);
+    if (!source) return;
+
+    this.map.getStyle().layers.forEach((layer) => {
+      this.map.removeLayer(layer.id);
+    });
 
     this.map.removeSource(name);
   }
