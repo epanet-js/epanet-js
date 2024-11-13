@@ -1,4 +1,3 @@
-import { usePersistence } from "src/lib/persistence/context";
 import type { ISymbolizationRamp, ISymbolizationCategorical } from "src/types";
 import {
   Fragment,
@@ -9,7 +8,12 @@ import {
 } from "react";
 import { linearGradient } from "src/lib/color";
 import last from "lodash/last";
-import { scaleUnitAtom, tabAtom, TabOption } from "src/state/jotai";
+import {
+  memoryMetaAtom,
+  scaleUnitAtom,
+  tabAtom,
+  TabOption,
+} from "src/state/jotai";
 import { GearIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import {
   Button,
@@ -22,7 +26,7 @@ import { match } from "ts-pattern";
 import { MapContext } from "src/context/map_context";
 import * as P from "@radix-ui/react-popover";
 import { SCALE_UNITS, ScaleUnit, zScaleUnit } from "src/lib/constants";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import throttle from "lodash/throttle";
 
 interface ScaleMeasurement {
@@ -304,8 +308,7 @@ function ScaleControl() {
 }
 
 export function Legend() {
-  const rep = usePersistence();
-  const [meta] = rep.useMetadata();
+  const meta = useAtomValue(memoryMetaAtom);
   const { symbolization } = meta;
 
   if (!symbolization) return null;
