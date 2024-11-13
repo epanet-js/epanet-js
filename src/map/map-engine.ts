@@ -50,6 +50,13 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   doubleClickZoom: false,
 };
 
+const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
+  if (totalFeatures < 1000) return 2000;
+  if (totalFeatures < 10000) return 5000;
+
+  return 10000;
+};
+
 const cursorSvg = (color: string) => {
   const div = document.createElement("div");
   div.style.color = color;
@@ -364,9 +371,6 @@ export class MapEngine {
   }
 
   setSource(name: string, sourceFeatures: Feature[]): Promise<void> {
-    //eslint-disable-next-line
-    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE', name)
-
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
     }
@@ -375,7 +379,7 @@ export class MapEngine {
     if (!featuresSource) return Promise.resolve();
 
     return new Promise((resolve) => {
-      const idleTimeoutMs = 2000;
+      const idleTimeoutMs = sourceUpdateTimeoutFor(sourceFeatures.length);
       const timeout = setTimeout(() => {
         captureWarning(
           `Timeout: Mapbox idle took more than ${idleTimeoutMs}, ${sourceFeatures.length}`,
