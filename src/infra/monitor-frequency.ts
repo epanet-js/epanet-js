@@ -19,7 +19,7 @@ export const monitorFrequency = (
   const monitor = monitors[name];
 
   //eslint-disable-next-line
-  if (isDebugOn) console.log(`Monitor: ${name} called`);
+  if (isDebugOn) console.log(`${name} called`);
 
   const now = Date.now();
   monitor.calls.push(now);
