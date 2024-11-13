@@ -1,4 +1,4 @@
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Style } from "mapbox-gl";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
@@ -233,11 +233,13 @@ export class MapEngine {
     this.lastPreviewProperty = null;
     this.handlers = handlers;
     this.map = map;
-    void this.setOnlyStyle({
-      layerConfigs,
-      symbolization,
-      previewProperty: previewProperty,
-    });
+    if (!isFeatureOn("FLAG_SPLIT_SOURCES")) {
+      void this.setOnlyStyleDeprecated({
+        layerConfigs,
+        symbolization,
+        previewProperty: previewProperty,
+      });
+    }
   }
 
   /**
@@ -313,7 +315,7 @@ export class MapEngine {
     }
   }
 
-  async setOnlyStyle({
+  async setOnlyStyleDeprecated({
     layerConfigs,
     symbolization,
     previewProperty,
@@ -342,6 +344,25 @@ export class MapEngine {
     this.map.setStyle(style);
   }
 
+  setStyle(style: Style): Promise<void> {
+    return new Promise((resolve) => {
+      const idleTimeoutMs = 2000;
+      const timeout = setTimeout(() => {
+        captureWarning(
+          `Timeout: Mapbox styledata event took more than ${idleTimeoutMs}`,
+        );
+        resolve();
+      }, idleTimeoutMs);
+
+      this.map.once("styledata", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+
+      this.map.setStyle(style);
+    });
+  }
+
   setSource(name: string, sourceFeatures: Feature[]): Promise<void> {
     //eslint-disable-next-line
     if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE', name)
@@ -356,7 +377,9 @@ export class MapEngine {
     return new Promise((resolve) => {
       const idleTimeoutMs = 2000;
       const timeout = setTimeout(() => {
-        captureWarning(`Timeout: Mapbox idle took more than ${idleTimeoutMs}`);
+        captureWarning(
+          `Timeout: Mapbox idle took more than ${idleTimeoutMs}, ${sourceFeatures.length}`,
+        );
         resolve();
       }, idleTimeoutMs);
 
@@ -364,7 +387,16 @@ export class MapEngine {
         clearTimeout(timeout);
         resolve();
       });
-      mSetData(featuresSource, sourceFeatures, "features", false);
+
+      featuresSource.setData({
+        type: "FeatureCollection",
+        features: sourceFeatures,
+      } as IFeatureCollection);
+
+      if (!sourceFeatures.length) {
+        clearTimeout(timeout);
+        resolve();
+      }
     });
   }
 

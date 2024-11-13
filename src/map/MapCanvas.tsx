@@ -259,7 +259,7 @@ export const MapCanvas = memo(function MapCanvas({
       //eslint-disable-next-line @typescript-eslint/no-floating-promises
       (async () => {
         try {
-          await map.setOnlyStyle({
+          await map.setOnlyStyleDeprecated({
             layerConfigs,
             symbolization: symbolization || SYMBOLIZATION_NONE,
             previewProperty: label,
