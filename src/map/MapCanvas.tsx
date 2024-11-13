@@ -285,7 +285,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   useEffect(
     function onEphemeralStateChange() {
-      if (!isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
+      if (isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
         return;
 
       updateEphemeralStateInMap();
@@ -295,7 +295,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   useEffect(
     function onSelectionChange() {
-      if (!isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
+      if (isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
         return;
 
       updateSelectionInMap();
