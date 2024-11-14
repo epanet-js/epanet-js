@@ -4,7 +4,6 @@ import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";
-import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import {
@@ -20,7 +19,6 @@ import {
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -72,23 +70,6 @@ export function useDrawPipeHandlers({
     transact(moment);
   };
 
-  const submitPipeDeprecated = async (
-    startNode: NodeAsset,
-    pipe: Pipe,
-    endNode: NodeAsset,
-  ) => {
-    try {
-      const length = measureLength(pipe.feature);
-      if (!length) return;
-
-      const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
-
-      await transact(moment);
-    } catch (e) {
-      captureError(e as Error);
-    }
-  };
-
   const isSnapping = () => !isShiftHeld();
   const isEndAndContinueOn = isControlHeld;
 
@@ -110,33 +91,15 @@ export function useDrawPipeHandlers({
       }
 
       if (!!snappingNode) {
-        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-          submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-        } else {
-          submitPipeDeprecated(drawing.startNode, drawing.pipe, snappingNode)
-            .then(() => {
-              isEndAndContinueOn()
-                ? startDrawing(snappingNode)
-                : resetDrawing();
-            })
-            .catch((e) => captureError(e));
-        }
+        submitPipe(drawing.startNode, drawing.pipe, snappingNode);
+        isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
         return;
       }
 
       if (isEndAndContinueOn()) {
         const endJunction = createJunction(clickPosition);
-        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-          submitPipe(drawing.startNode, drawing.pipe, endJunction);
-          startDrawing(endJunction);
-        } else {
-          submitPipeDeprecated(drawing.startNode, drawing.pipe, endJunction)
-            .then(() => {
-              startDrawing(endJunction);
-            })
-            .catch((e) => captureError(e));
-        }
+        submitPipe(drawing.startNode, drawing.pipe, endJunction);
+        startDrawing(endJunction);
       } else {
         addVertex(clickPosition);
       }
@@ -180,16 +143,8 @@ export function useDrawPipeHandlers({
 
       const endJunction = createJunction(lastVertex);
 
-      if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-        submitPipe(startNode, pipe, endJunction);
-        resetDrawing();
-      } else {
-        submitPipeDeprecated(startNode, pipe, endJunction)
-          .then(() => {
-            resetDrawing();
-          })
-          .catch((e) => captureError(e));
-      }
+      submitPipe(startNode, pipe, endJunction);
+      resetDrawing();
     },
     exit() {
       resetDrawing();

@@ -12,7 +12,6 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -357,41 +356,17 @@ function LABEL_LAYOUT(
 export function CIRCLE_PAINT(
   symbolization: ISymbolization,
 ): mapboxgl.CirclePaint {
-  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-    return {
-      "circle-opacity": [
-        "case",
-        ["boolean", ["feature-state", "hidden"], false],
-        0,
-        asNumberExpression({
-          symbolization,
-          part: "circle-opacity",
-          defaultValue: 1,
-        }),
-      ],
-      "circle-stroke-color": [
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        LINE_COLORS_SELECTED,
-        "white",
-      ],
-      "circle-stroke-width": 0,
-      "circle-radius": 6,
-      "circle-color": [
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        LINE_COLORS_SELECTED,
-        asColorExpression({
-          symbolization,
-          part: "stroke",
-        }),
-      ],
-    };
-  }
-
   return {
+    "circle-opacity": [
+      "case",
+      ["boolean", ["feature-state", "hidden"], false],
+      0,
+      asNumberExpression({
+        symbolization,
+        part: "circle-opacity",
+        defaultValue: 1,
+      }),
+    ],
     "circle-stroke-color": [
       "match",
       ["feature-state", "selected"],
@@ -401,7 +376,6 @@ export function CIRCLE_PAINT(
     ],
     "circle-stroke-width": 0,
     "circle-radius": 6,
-    "circle-opacity": 1,
     "circle-color": [
       "match",
       ["feature-state", "selected"],
@@ -435,38 +409,20 @@ export function FILL_PAINT(
   symbolization: ISymbolization,
   exp = false,
 ): mapboxgl.FillPaint {
-  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-    return {
-      "fill-opacity": [
-        "case",
-        ["boolean", ["feature-state", "hidden"], false],
-        0,
-        asNumberExpression({
-          symbolization,
-          part: "fill-opacity",
-          defaultValue:
-            typeof symbolization.defaultOpacity === "number"
-              ? symbolization.defaultOpacity
-              : 0.3,
-        }),
-      ],
-      "fill-color": handleSelected(
-        asColorExpression({ symbolization, part: "fill" }),
-        exp,
-        LINE_COLORS_SELECTED,
-      ),
-    };
-  }
-
   return {
-    "fill-opacity": asNumberExpression({
-      symbolization,
-      part: "fill-opacity",
-      defaultValue:
-        typeof symbolization.defaultOpacity === "number"
-          ? symbolization.defaultOpacity
-          : 0.3,
-    }),
+    "fill-opacity": [
+      "case",
+      ["boolean", ["feature-state", "hidden"], false],
+      0,
+      asNumberExpression({
+        symbolization,
+        part: "fill-opacity",
+        defaultValue:
+          typeof symbolization.defaultOpacity === "number"
+            ? symbolization.defaultOpacity
+            : 0.3,
+      }),
+    ],
     "fill-color": handleSelected(
       asColorExpression({ symbolization, part: "fill" }),
       exp,
@@ -479,37 +435,17 @@ export function LINE_PAINT(
   symbolization: ISymbolization,
   exp = false,
 ): mapboxgl.LinePaint {
-  if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-    return {
-      "line-opacity": [
-        "case",
-        ["boolean", ["feature-state", "hidden"], false],
-        0,
-        asNumberExpression({
-          symbolization,
-          part: "stroke-opacity",
-          defaultValue: 1,
-        }),
-      ],
-      "line-width": asNumberExpression({
-        symbolization,
-        part: "stroke-width",
-        defaultValue: 4,
-      }),
-      "line-color": handleSelected(
-        asColorExpression({ symbolization, part: "stroke" }),
-        exp,
-        LINE_COLORS_SELECTED,
-      ),
-    };
-  }
-
   return {
-    "line-opacity": asNumberExpression({
-      symbolization,
-      part: "stroke-opacity",
-      defaultValue: 1,
-    }),
+    "line-opacity": [
+      "case",
+      ["boolean", ["feature-state", "hidden"], false],
+      0,
+      asNumberExpression({
+        symbolization,
+        part: "stroke-opacity",
+        defaultValue: 1,
+      }),
+    ],
     "line-width": asNumberExpression({
       symbolization,
       part: "stroke-width",

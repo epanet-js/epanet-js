@@ -13,7 +13,6 @@ import {
   selectionAtom,
 } from "src/state/jotai";
 import { MapEngine, buildOptimizedAssetsSource } from "./map-engine";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { focusAtom } from "jotai-optics";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
@@ -113,7 +112,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   nextEphemeralSync.current = ephemeralState;
 
   const doUpdates = useCallback(async () => {
-    if (!isFeatureOn("FLAG_SPLIT_SOURCES")) return;
     if (!map) return;
 
     const hasStyleRefresh = lastStylesSync.current !== stylesConfig;

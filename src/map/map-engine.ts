@@ -1,42 +1,18 @@
 import mapboxgl, { Style } from "mapbox-gl";
-import loadAndAugmentStyle, {
+import {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
-import type {
-  EphemeralEditingState,
-  Sel,
-  Data,
-  PreviewProperty,
-} from "src/state/jotai";
-import {
-  CURSOR_DEFAULT,
-  emptySelection,
-  LASSO_YELLOW,
-  LASSO_DARK_YELLOW,
-  DECK_LASSO_ID,
-} from "src/lib/constants";
-import type {
-  Feature,
-  IPresence,
-  IFeatureCollection,
-  ISymbolization,
-  LayerConfigMap,
-} from "src/types";
-import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
-import { colorFromPresence } from "src/lib/color";
+import type { Sel, PreviewProperty } from "src/state/jotai";
+import { CURSOR_DEFAULT, emptySelection } from "src/lib/constants";
+import type { Feature, IFeatureCollection, ISymbolization } from "src/types";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { shallowArrayEqual } from "src/lib/utils";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { PolygonLayer } from "@deck.gl/layers";
 import { isDebugOn } from "src/infra/debug-mode";
-import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
-import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
 import { USelection } from "src/selection";
 import { AssetsMap } from "src/hydraulics/assets";
 import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { captureWarning } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { LayersList } from "@deck.gl/core";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -55,16 +31,6 @@ const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
   if (totalFeatures < 10000) return 5000;
 
   return 10000;
-};
-
-const cursorSvg = (color: string) => {
-  const div = document.createElement("div");
-  div.style.color = color;
-  div.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M7 17L1 1L17 7L10 10L7 17Z" stroke="white" fill="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-</svg>
-`;
-  return div;
 };
 
 export const buildOptimizedAssetsSource = (
@@ -108,38 +74,6 @@ export type MapHandlers = {
   onMove: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
 };
 
-const lastValues = new WeakMap<mapboxgl.GeoJSONSource, Feature[]>();
-
-/**
- * Memoized set data for a mapboxgl.GeoJSONSource. If
- * the same source is called with the same data,
- * it won't set.
- */
-function mSetData(
-  source: mapboxgl.GeoJSONSource,
-  newData: Feature[],
-  _label: string,
-  force?: boolean,
-) {
-  if (!shallowArrayEqual(lastValues.get(source), newData) || force) {
-    source.setData({
-      type: "FeatureCollection",
-      features: newData,
-    } as IFeatureCollection);
-    lastValues.set(source, newData);
-    return true;
-  } else {
-    return false;
-    // console.log(
-    //   "Skipped update",
-    //   _label,
-    //   source,
-    //   newData,
-    //   lastValues.get(source)
-    // );
-  }
-}
-
 const noop = () => null;
 const debugEvent = isDebugOn
   ? (e: mapboxgl.MapboxEvent<any>) => {
@@ -152,31 +86,17 @@ export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
   idMap: IDMap;
-
-  lastSelection: Sel;
   lastSelectionIds: Set<RawId>;
-  lastData: Data | null;
-  lastEphemeralState: EphemeralEditingState;
-  lastSymbolization: ISymbolization | null;
-  presenceMarkers: Map<IPresence["userId"], mapboxgl.Marker>;
-  lastLayer: LayerConfigMap | null;
-  lastPreviewProperty: PreviewProperty;
   overlay: MapboxOverlay;
 
   constructor({
     element,
-    layerConfigs,
     handlers,
-    previewProperty,
-    symbolization,
     idMap,
     controlsCorner = "bottom-left",
   }: {
     element: HTMLDivElement;
-    layerConfigs: LayerConfigMap;
     handlers: React.MutableRefObject<MapHandlers>;
-    symbolization: ISymbolization;
-    previewProperty: PreviewProperty;
     idMap: IDMap;
     controlsCorner?: Parameters<mapboxgl.Map["addControl"]>[1];
   }) {
@@ -229,24 +149,9 @@ export class MapEngine {
     map.on("touchmove", this.onMapTouchMove);
     map.on("touchend", this.onMapTouchEnd);
 
-    this.presenceMarkers = new Map();
-    this.lastSymbolization = symbolization;
-
-    this.lastSelection = { type: "none" };
     this.lastSelectionIds = emptySelection;
-    this.lastData = null;
-    this.lastEphemeralState = { type: "none" };
-    this.lastLayer = null;
-    this.lastPreviewProperty = null;
     this.handlers = handlers;
     this.map = map;
-    if (!isFeatureOn("FLAG_SPLIT_SOURCES")) {
-      void this.setOnlyStyleDeprecated({
-        layerConfigs,
-        symbolization,
-        previewProperty: previewProperty,
-      });
-    }
   }
 
   /**
@@ -301,55 +206,6 @@ export class MapEngine {
     debugEvent(e);
     this.handlers.current.onDoubleClick(e);
   };
-
-  setPresences(presences: IPresence[]) {
-    const ids = new Set(presences.map((p) => p.userId));
-    for (const presence of presences) {
-      const marker =
-        this.presenceMarkers.get(presence.userId) ??
-        new mapboxgl.Marker(cursorSvg(colorFromPresence(presence)));
-      marker
-        .setLngLat([presence.cursorLongitude, presence.cursorLatitude])
-        .addTo(this.map);
-      this.presenceMarkers.set(presence.userId, marker);
-    }
-    // Remove stale presences
-    for (const [id, marker] of this.presenceMarkers.entries()) {
-      if (!ids.has(id)) {
-        marker.remove();
-        this.presenceMarkers.delete(id);
-      }
-    }
-  }
-
-  async setOnlyStyleDeprecated({
-    layerConfigs,
-    symbolization,
-    previewProperty,
-  }: {
-    layerConfigs: LayerConfigMap;
-    symbolization: ISymbolization;
-    previewProperty: PreviewProperty;
-  }): Promise<void> {
-    if (
-      layerConfigs === this.lastLayer &&
-      symbolization === this.lastSymbolization &&
-      previewProperty === this.lastPreviewProperty
-    ) {
-      return;
-    }
-    this.lastLayer = layerConfigs;
-    this.lastSymbolization = symbolization;
-    this.lastPreviewProperty = previewProperty;
-
-    const style = await loadAndAugmentStyle({
-      layerConfigs,
-      symbolization,
-      previewProperty,
-    });
-
-    this.map.setStyle(style);
-  }
 
   setStyle(style: Style): Promise<void> {
     return new Promise((resolve) => {
@@ -445,41 +301,6 @@ export class MapEngine {
     }
   }
 
-  setOnlyData(assets: AssetsMap): Promise<void> {
-    //eslint-disable-next-line
-    if (isDebugOn) console.log('MAP_EXPENSIVE_UPDATE')
-
-    if (!(this.map && (this.map as any).style)) {
-      return Promise.resolve();
-    }
-
-    const featuresSource = this.map.getSource(
-      FEATURES_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
-    if (!featuresSource) return Promise.resolve();
-
-    const strippedFeatures = buildOptimizedAssetsSource(
-      assets,
-      this.idMap,
-      this.lastSymbolization,
-      this.lastPreviewProperty,
-    );
-
-    return new Promise((resolve) => {
-      const idleTimeoutMs = 2000;
-      const timeout = setTimeout(() => {
-        captureWarning(`Timeout: Mapbox idle took more than ${idleTimeoutMs}`);
-        resolve();
-      }, idleTimeoutMs);
-
-      this.map.once("idle", () => {
-        clearTimeout(timeout);
-        resolve();
-      });
-      mSetData(featuresSource, strippedFeatures, "features", false);
-    });
-  }
-
   setOnlySelection(selection: Sel) {
     this.updateSelections(
       new Set(
@@ -488,32 +309,6 @@ export class MapEngine {
         ),
       ),
     );
-  }
-
-  setEphemeralState(ephemeralState: EphemeralEditingState) {
-    this.overlay.setProps({
-      layers: [
-        ephemeralState.type === "drawPipe" &&
-          buildDrawPipeLayers(ephemeralState),
-        ephemeralState.type === "moveAssets" &&
-          buildMoveAssetsLayers(ephemeralState),
-
-        ephemeralState.type === "lasso" &&
-          new PolygonLayer<number[]>({
-            id: DECK_LASSO_ID,
-            data: [makeRectangle(ephemeralState)],
-            visible: ephemeralState.type === "lasso",
-            pickable: false,
-            stroked: true,
-            filled: true,
-            lineWidthUnits: "pixels",
-            getPolygon: (d) => d,
-            getFillColor: LASSO_YELLOW,
-            getLineColor: LASSO_DARK_YELLOW,
-            getLineWidth: 1,
-          }),
-      ],
-    });
   }
 
   setOverlay(layers: LayersList) {
@@ -540,17 +335,15 @@ export class MapEngine {
             selected: "true",
           },
         );
-        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-          this.map.setFeatureState(
-            {
-              source: IMPORTED_FEATURES_SOURCE_NAME,
-              id,
-            },
-            {
-              selected: "true",
-            },
-          );
-        }
+        this.map.setFeatureState(
+          {
+            source: IMPORTED_FEATURES_SOURCE_NAME,
+            id,
+          },
+          {
+            selected: "true",
+          },
+        );
         tmpSet.delete(id);
       }
     }
@@ -564,15 +357,13 @@ export class MapEngine {
           },
           "selected",
         );
-        if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
-          this.map.removeFeatureState(
-            {
-              source: IMPORTED_FEATURES_SOURCE_NAME,
-              id,
-            },
-            "selected",
-          );
-        }
+        this.map.removeFeatureState(
+          {
+            source: IMPORTED_FEATURES_SOURCE_NAME,
+            id,
+          },
+          "selected",
+        );
       }
     }
 
