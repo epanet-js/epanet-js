@@ -1,8 +1,4 @@
-import {
-  dialogAtom,
-  momentLogAtom,
-  momentLogAtomDeprecated,
-} from "src/state/jotai";
+import { dialogAtom, momentLogAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useOpenFiles } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -18,7 +14,6 @@ import {
 } from "src/components/elements";
 import React, { useMemo } from "react";
 import { usePersistence } from "src/lib/persistence/context";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 function UndoList() {
   const rep = usePersistence();
@@ -57,54 +52,6 @@ function UndoList() {
   }, [momentLog, historyControl]);
 
   return <DDSubContent>{MomentsList}</DDSubContent>;
-}
-
-function UndoListDeprecated() {
-  const rep = usePersistence();
-  const historyControl = rep.useHistoryControl();
-  const momentLog = useAtomValue(momentLogAtomDeprecated);
-  return (
-    <DDSubContent>
-      {momentLog.undo
-        .map((moment, i) => {
-          return (
-            <StyledItem
-              key={i}
-              onSelect={async (_e) => {
-                for (let j = 0; j < i + 1; j++) {
-                  await historyControl("undo");
-                }
-              }}
-            >
-              <ArrowRightIcon className="opacity-0" />
-              {moment.note || ""}
-            </StyledItem>
-          );
-        })
-        .reverse()}
-      <DDLabel>
-        <div className="flex items-center gap-x-2">
-          <ArrowRightIcon />
-          Current state
-        </div>
-      </DDLabel>
-      {momentLog.redo.map((moment, i) => {
-        return (
-          <StyledItem
-            key={i}
-            onSelect={async (_e) => {
-              for (let j = 0; j < i + 1; j++) {
-                await historyControl("redo");
-              }
-            }}
-          >
-            <ArrowRightIcon className="opacity-0" />
-            {moment.note || ""}
-          </StyledItem>
-        );
-      })}
-    </DDSubContent>
-  );
 }
 
 export function MenuBarDropdown() {
@@ -186,8 +133,7 @@ export function MenuBarDropdown() {
                 <div className="flex-auto" />
                 <CaretRightIcon />
               </DDSubTriggerItem>
-              {!isFeatureOn("FLAG_SPLIT_SOURCES") && <UndoListDeprecated />}
-              {isFeatureOn("FLAG_SPLIT_SOURCES") && <UndoList />}
+              <UndoList />
             </DD.Sub>
           </DDContent>
         </DD.Portal>

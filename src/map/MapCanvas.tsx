@@ -1,5 +1,4 @@
 import type { HandlerContext, DragTarget } from "src/types";
-import { SYMBOLIZATION_NONE } from "src/types";
 import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
 import React, {
   useRef,
@@ -14,7 +13,6 @@ import React, {
 import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
-import { captureError } from "src/infra/error-tracking";
 import {
   ephemeralStateAtom,
   modeAtom,
@@ -26,7 +24,6 @@ import {
   Sel,
   Data,
   EphemeralEditingState,
-  memoryMetaAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/context/map_context";
 import { MapEngine, MapHandlers } from "./map-engine";
@@ -49,9 +46,7 @@ import { captureException } from "@sentry/nextjs";
 import { newFeatureId } from "src/lib/id";
 import toast from "react-hot-toast";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
-import { monitorFrequency } from "src/infra/monitor-frequency";
 import { useMapStateUpdates } from "./state-updates";
-import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -140,11 +135,10 @@ export const MapCanvas = memo(function MapCanvas({
   const map = useContext(MapContext);
 
   const transact = rep.useTransactDeprecated();
+  const idMap = rep.idMap;
 
   // Queries
   const [meta, updateMeta] = rep.useMetadata();
-  const { label } = meta;
-  const { symbolization } = useAtomValue(memoryMetaAtom);
 
   const currentLayer = meta.layer;
 
@@ -187,25 +181,13 @@ export const MapCanvas = memo(function MapCanvas({
     }
   }, [currentLayer, transact, updateMeta, layerConfigs]);
 
-  // useMap
-  //
-  // Receives
-  // - map & map div refs
-  //
-  // Emits
-  // - map state
   useEffect(() => {
-    // Map has already been initialized
     if (mapRef.current) return;
     if (!mapDivRef.current || !mapHandlers) return;
 
-    // This part is not time-sensitive.
     mapRef.current = new MapEngine({
       element: mapDivRef.current,
-      layerConfigs,
       handlers: mapHandlers as MutableRefObject<MapHandlers>,
-      symbolization: symbolization || SYMBOLIZATION_NONE,
-      previewProperty: label,
       idMap: idMap,
     });
 
@@ -218,92 +200,9 @@ export const MapCanvas = memo(function MapCanvas({
       }
       mapRef.current = null;
     };
-    // eslint-disable-next-line
-  }, [mapRef, mapDivRef, setMap]);
+  }, [mapRef, mapDivRef, setMap, idMap]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
-
-  const dataUpdateInProgress = useRef(false);
-
-  const updateEphemeralStateInMap = useAtomCallback(
-    useCallback(
-      (get) => {
-        if (!map?.map || isFeatureOn("FLAG_SPLIT_SOURCES")) return;
-        const ephemeralState = get(ephemeralStateAtom);
-
-        map.setEphemeralState(ephemeralState);
-      },
-      [map],
-    ),
-  );
-
-  const updateSelectionInMap = useAtomCallback(
-    useCallback(
-      (get) => {
-        if (!map?.map || isFeatureOn("FLAG_SPLIT_SOURCES")) return;
-        const { selection } = get(dataAtom);
-
-        map.setOnlySelection(selection);
-      },
-      [map],
-    ),
-  );
-  useEffect(
-    function expensiveDataUpdate() {
-      if (!map?.map) return;
-      if (isFeatureOn("FLAG_SPLIT_SOURCES")) return;
-
-      dataUpdateInProgress.current = true;
-
-      monitorFrequency("SET_MAP_DATA", { limit: 4, intervalMs: 1000 });
-      //eslint-disable-next-line @typescript-eslint/no-floating-promises
-      (async () => {
-        try {
-          await map.setOnlyStyleDeprecated({
-            layerConfigs,
-            symbolization: symbolization || SYMBOLIZATION_NONE,
-            previewProperty: label,
-          });
-          await map.setOnlyData(data.hydraulicModel.assets);
-        } catch (error) {
-          captureError(error as Error);
-        } finally {
-          updateSelectionInMap();
-          updateEphemeralStateInMap();
-          dataUpdateInProgress.current = false;
-        }
-      })();
-    },
-    [
-      map,
-      data.hydraulicModel.assets,
-      updateSelectionInMap,
-      updateEphemeralStateInMap,
-      layerConfigs,
-      symbolization,
-      label,
-    ],
-  );
-
-  useEffect(
-    function onEphemeralStateChange() {
-      if (isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
-        return;
-
-      updateEphemeralStateInMap();
-    },
-    [ephemeralState, updateEphemeralStateInMap],
-  );
-
-  useEffect(
-    function onSelectionChange() {
-      if (isFeatureOn("FLAG_SPLIT_SOURCES") || dataUpdateInProgress.current)
-        return;
-
-      updateSelectionInMap();
-    },
-    [data.selection, updateSelectionInMap],
-  );
 
   const throttledMovePointer = useMemo(() => {
     function fastMovePointer(point: mapboxgl.Point) {
@@ -322,8 +221,6 @@ export const MapCanvas = memo(function MapCanvas({
     }
     return fastMovePointer;
   }, [map, setCursor]);
-
-  const idMap = rep.idMap;
 
   const handlerContext: HandlerContext = {
     flatbushInstance,
