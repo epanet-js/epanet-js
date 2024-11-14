@@ -12,7 +12,8 @@ import {
   momentLogAtom,
   selectionAtom,
 } from "src/state/jotai";
-import { MapEngine, buildOptimizedAssetsSource } from "./map-engine";
+import { MapEngine } from "./map-engine";
+import { buildOptimizedAssetsSource } from "./data-source";
 import { focusAtom } from "jotai-optics";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
