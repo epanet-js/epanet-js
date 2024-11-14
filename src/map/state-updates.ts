@@ -104,10 +104,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const importPointer = useRef<number | null>(null);
   const editionsPointer = useRef<number>(0);
   const lastEphemeralSync = useRef<EphemeralEditingState>();
+  const nextEphemeralSync = useRef<EphemeralEditingState>();
   const lastSelectionSync = useRef<Sel>();
   const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
   const lastHiddenFeatures = useRef<RawId[]>([]);
+
+  nextEphemeralSync.current = ephemeralState;
 
   const doUpdates = useCallback(async () => {
     if (!isFeatureOn("FLAG_SPLIT_SOURCES")) return;
@@ -160,11 +163,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (
-      lastEphemeralSync.current !== ephemeralState &&
+      !!nextEphemeralSync.current &&
+      lastEphemeralSync.current !== nextEphemeralSync.current &&
       !isUpdatingSources.current
     ) {
-      updateEphemeralStateOvelay(map, ephemeralState);
-      lastEphemeralSync.current = ephemeralState;
+      updateEphemeralStateOvelay(map, nextEphemeralSync.current);
+      lastEphemeralSync.current = nextEphemeralSync.current;
     }
 
     if (lastSelectionSync.current !== selection && !isUpdatingSources.current) {
@@ -179,7 +183,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     stylesConfig,
     map,
     momentLog,
-    ephemeralState,
     selection,
   ]);
 
