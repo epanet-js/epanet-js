@@ -71,6 +71,7 @@ export class MemPersistence implements IPersistence {
         momentLog.append(forwardMoment, reverseMoment);
 
         this.store.set(momentLogAtom, momentLog);
+        //TODO this can be removed when removing feature flag
         return Promise.resolve();
       } else {
         const momentLog = this.store.get(momentLogAtomDeprecated);

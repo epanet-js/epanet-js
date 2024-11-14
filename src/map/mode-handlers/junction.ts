@@ -13,6 +13,7 @@ import { getMapCoord } from "./utils";
 import { captureError } from "src/infra/error-tracking";
 import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useJunctionHandlers({
   mode,
@@ -36,13 +37,20 @@ export function useJunctionHandlers({
       const id = junction.id;
 
       const moment = addJunction(hydraulicModel, { junction });
-      transact(moment)
-        .then(() => {
-          if (!multi) {
-            setSelection(USelection.single(id));
-          }
-        })
-        .catch((e) => captureError(e));
+      if (isFeatureOn("FLAG_SPLIT_SOURCES")) {
+        transact(moment);
+        if (!multi) {
+          setSelection(USelection.single(id));
+        }
+      } else {
+        transact(moment)
+          .then(() => {
+            if (!multi) {
+              setSelection(USelection.single(id));
+            }
+          })
+          .catch((e) => captureError(e));
+      }
     },
     move: noop,
     down: noop,
