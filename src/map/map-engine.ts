@@ -3,15 +3,13 @@ import {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
-import type { Sel, PreviewProperty } from "src/state/jotai";
+import type { Sel } from "src/state/jotai";
 import { CURSOR_DEFAULT, emptySelection } from "src/lib/constants";
-import type { Feature, IFeatureCollection, ISymbolization } from "src/types";
+import type { Feature, IFeatureCollection } from "src/types";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { isDebugOn } from "src/infra/debug-mode";
 import { USelection } from "src/selection";
-import { AssetsMap } from "src/hydraulics/assets";
-import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 
@@ -31,31 +29,6 @@ const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
   if (totalFeatures < 10000) return 5000;
 
   return 10000;
-};
-
-export const buildOptimizedAssetsSource = (
-  assets: AssetsMap,
-  idMap: IDMap,
-  symbolization: ISymbolization | null,
-  previewProperty: PreviewProperty,
-): Feature[] => {
-  const strippedFeatures = [];
-  const keepProperties = getKeepProperties({
-    symbolization,
-    previewProperty,
-  });
-  for (const feature of assets.values()) {
-    if (feature.feature.properties?.visibility === false) {
-      continue;
-    }
-    const strippedFeature = stripFeature({
-      wrappedFeature: feature,
-      keepProperties,
-      idMap,
-    });
-    strippedFeatures.push(strippedFeature);
-  }
-  return strippedFeatures;
 };
 
 type ClickEvent = mapboxgl.MapMouseEvent & mapboxgl.EventData;
