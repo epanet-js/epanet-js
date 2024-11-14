@@ -20,7 +20,6 @@ import {
   dataAtom,
   selectedFeaturesAtom,
   cursorStyleAtom,
-  layerConfigAtom,
   Sel,
   Data,
   EphemeralEditingState,
@@ -41,10 +40,6 @@ import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "src/components/last_search_result";
 import { ModeHints } from "src/components/mode_hints";
-import { fMoment } from "src/lib/persistence/moment";
-import { captureException } from "@sentry/nextjs";
-import { newFeatureId } from "src/lib/id";
-import toast from "react-hot-toast";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -101,7 +96,6 @@ export const MapCanvas = memo(function MapCanvas({
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
-  const layerConfigs = useAtomValue(layerConfigAtom);
   const { featureMapDeprecated, folderMap, hydraulicModel } = data;
   // State
   const [flatbushInstance, setFlatbushInstance] =
@@ -131,55 +125,9 @@ export const MapCanvas = memo(function MapCanvas({
   const mapHandlers = useRef<MapHandlers>();
 
   useMapStateUpdates(mapRef.current);
-  // Context
   const map = useContext(MapContext);
 
-  const transact = rep.useTransactDeprecated();
   const idMap = rep.idMap;
-
-  // Queries
-  const [meta, updateMeta] = rep.useMetadata();
-
-  const currentLayer = meta.layer;
-
-  // Only run this effect once.
-  const migrated = useRef<boolean>(false);
-  useEffect(() => {
-    if (currentLayer && !migrated.current) {
-      migrated.current = true;
-      toast
-        .promise(
-          Promise.resolve(
-            updateMeta({
-              layerId: null,
-              defaultLayer: null,
-            }),
-          ).then(() => {
-            return transact({
-              ...fMoment("Upgrade layers"),
-              putLayerConfigs: [
-                {
-                  ...currentLayer,
-                  at: "a0",
-                  visibility: true,
-                  opacity: 1,
-                  tms: false,
-                  id: newFeatureId(),
-                },
-              ],
-            });
-          }),
-          {
-            loading: "Upgrading layers",
-            success: "Upgraded layers",
-            error: "Error migrating layers",
-          },
-        )
-        .catch((e) => {
-          captureException(e);
-        });
-    }
-  }, [currentLayer, transact, updateMeta, layerConfigs]);
 
   useEffect(() => {
     if (mapRef.current) return;
