@@ -46,9 +46,9 @@ export interface IPersistence {
 
   useLastPresence(): null;
 
-  useHistoryControl(): (direction: "undo" | "redo") => Promise<void>;
+  useHistoryControl(): (direction: "undo" | "redo") => void;
 
-  useTransact(): (moment: ModelMoment) => Promise<void>;
+  useTransact(): (moment: ModelMoment) => void;
 
   /**
    * The main method for making changes to the map: give this

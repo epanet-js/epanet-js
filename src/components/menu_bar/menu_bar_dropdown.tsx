@@ -26,11 +26,9 @@ function UndoList() {
       List.push(
         <StyledItem
           key={position}
-          onSelect={async (_e) => {
+          onSelect={(_e) => {
             for (let j = 0; j < Math.abs(offset); j++) {
-              offset > 0
-                ? await historyControl("undo")
-                : await historyControl("redo");
+              offset > 0 ? historyControl("undo") : historyControl("redo");
             }
           }}
         >
