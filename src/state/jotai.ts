@@ -92,6 +92,10 @@ export const selectedFeaturesAtom = selectAtom(
   shallowArrayEqual,
 );
 
+export const assetsAtom = focusAtom(dataAtom, (optic) =>
+  optic.prop("hydraulicModel").prop("assets"),
+);
+
 export const selectionAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("selection"),
 );

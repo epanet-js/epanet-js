@@ -30,6 +30,20 @@ export type Asset = NodeAsset | LinkAsset;
 
 export class AssetsMap extends Map<AssetId, Asset> {}
 
+export const filterAssets = (
+  assets: AssetsMap,
+  assetIds: Set<AssetId> | AssetId[],
+): AssetsMap => {
+  const resultAssets = new AssetsMap();
+  for (const assetId of assetIds) {
+    const asset = assets.get(assetId);
+    if (!asset) continue;
+
+    resultAssets.set(asset.id, asset);
+  }
+  return resultAssets;
+};
+
 export const createJunction = (
   position: Position,
   id = newFeatureId(),

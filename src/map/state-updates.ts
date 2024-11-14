@@ -5,7 +5,7 @@ import {
   EphemeralEditingState,
   PreviewProperty,
   Sel,
-  dataAtom,
+  assetsAtom,
   ephemeralStateAtom,
   layerConfigAtom,
   memoryMetaAtom,
@@ -14,14 +14,13 @@ import {
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
-import { focusAtom } from "jotai-optics";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap } from "src/hydraulics/assets";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulics/assets";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -49,10 +48,6 @@ const latestChangeAtom = atom((get) => {
   return get(momentLogAtom).getPointer();
 });
 
-const assetsAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("hydraulicModel").prop("assets"),
-);
-
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -62,17 +57,6 @@ const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
     moment.putFeatures.forEach((asset) => assetIds.add(asset.id));
   });
   return assetIds;
-};
-
-const filterAssets = (assets: AssetsMap, assetIds: Set<AssetId>): AssetsMap => {
-  const resultAssets = new AssetsMap();
-  for (const assetId of assetIds) {
-    const asset = assets.get(assetId);
-    if (!asset) continue;
-
-    resultAssets.set(asset.id, asset);
-  }
-  return resultAssets;
 };
 
 type StylesConfig = {
