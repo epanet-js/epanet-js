@@ -66,8 +66,6 @@ export class MemPersistence implements IPersistence {
       momentLog.append(forwardMoment, reverseMoment);
 
       this.store.set(momentLogAtom, momentLog);
-      //TODO this can be removed when removing feature flag
-      return Promise.resolve();
     };
   }
 
@@ -114,14 +112,13 @@ export class MemPersistence implements IPersistence {
       const isUndo = direction === "undo";
       const momentLog = this.store.get(momentLogAtom).copy();
       const moment = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-      if (!moment) return Promise.resolve();
+      if (!moment) return;
 
       this.apply(moment);
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
       this.store.set(momentLogAtom, momentLog);
-      return Promise.resolve();
     };
   }
   /**

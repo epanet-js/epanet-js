@@ -12,7 +12,6 @@ import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/selection";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
-import { captureError } from "src/infra/error-tracking";
 import { deleteAssets } from "src/hydraulics/model-operations";
 import { useSetAtom } from "jotai";
 
@@ -38,7 +37,7 @@ export function useMapKeybindings() {
   useHotkeys(
     ["command+z", "ctrl+z"],
     () => {
-      historyControl("undo").catch((e) => captureError(e));
+      historyControl("undo");
       setEphemeralState({ type: "none" });
       setMode({ mode: Mode.NONE });
     },
@@ -49,7 +48,7 @@ export function useMapKeybindings() {
   useHotkeys(
     ["command+y", "ctrl+y"],
     (e) => {
-      historyControl("redo").catch((e) => captureError(e));
+      historyControl("redo");
       setEphemeralState({ type: "none" });
       setMode({ mode: Mode.NONE });
       e.preventDefault();
@@ -83,15 +82,13 @@ export function useMapKeybindings() {
       (get, set) => {
         const data = get(dataAtom);
         set(selectionAtom, USelection.none());
-        (async () => {
-          const { hydraulicModel, selection } = data;
+        const { hydraulicModel, selection } = data;
 
-          const moment = deleteAssets(hydraulicModel, {
-            assetIds: USelection.toIds(selection),
-          });
+        const moment = deleteAssets(hydraulicModel, {
+          assetIds: USelection.toIds(selection),
+        });
 
-          await transact(moment);
-        })().catch((e) => captureError(e));
+        transact(moment);
         return false;
       },
       [transact],

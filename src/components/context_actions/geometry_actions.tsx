@@ -32,7 +32,7 @@ export function useActions(
 
   const onDelete = useAtomCallback(
     useCallback(
-      async (get, set) => {
+      (get, set) => {
         const { hydraulicModel, selection } = get(dataAtom);
         set(selectionAtom, USelection.none());
 
@@ -40,7 +40,8 @@ export function useActions(
           assetIds: USelection.toIds(selection),
         });
 
-        await transact(moment);
+        transact(moment);
+        return Promise.resolve();
       },
       [transact],
     ),
