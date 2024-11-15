@@ -1,4 +1,4 @@
-import mapboxgl, { Style } from "mapbox-gl";
+import mapboxgl, { MapboxEvent, Style } from "mapbox-gl";
 import {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
@@ -89,6 +89,7 @@ export class MapEngine {
       interleaved: true,
       layers: [],
     });
+    this.handlers = handlers;
 
     map.addControl(this.overlay as any);
 
@@ -123,13 +124,9 @@ export class MapEngine {
     map.on("touchend", this.onMapTouchEnd);
 
     this.lastSelectionIds = emptySelection;
-    this.handlers = handlers;
     this.map = map;
   }
 
-  /**
-   * Handler proxies --------------------------------------
-   */
   onClick = (e: LayerScopedEvent) => {
     debugEvent(e);
     this.handlers.current.onClick(e);
@@ -290,6 +287,17 @@ export class MapEngine {
 
   remove() {
     this.map.remove();
+  }
+
+  setElevationsSource() {
+    this.map.addSource("mapbox-dem", {
+      type: "raster-dem",
+      url: "mapbox://mapbox.terrain-rgb",
+      tileSize: 512,
+      maxzoom: 14,
+    });
+    const noExageration = 1;
+    this.map.setTerrain({ source: "mapbox-dem", exaggeration: noExageration });
   }
 
   private updateSelections(newSet: Set<RawId>) {

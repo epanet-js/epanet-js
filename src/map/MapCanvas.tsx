@@ -164,6 +164,7 @@ export const MapCanvas = memo(function MapCanvas({
       const features = map.map.queryRenderedFeatures(searchBox, {
         layers: CLICKABLE_LAYERS,
       });
+
       const visibleFeatures = features.filter((f) => !f.state.hidden);
       setCursor(visibleFeatures.length ? "pointer" : "");
     }
@@ -186,8 +187,6 @@ export const MapCanvas = memo(function MapCanvas({
   };
 
   const HANDLERS = useModeHandlers(handlerContext);
-
-  // const log = false;
 
   const newHandlers: MapHandlers = {
     onClick: (e: mapboxgl.MapMouseEvent) => {
