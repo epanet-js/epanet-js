@@ -3,6 +3,7 @@ import {
   AssetId,
   LinkAsset,
   NodeAsset,
+  assignElevation,
   getNodeCoordinates,
   updateMatchingEndpoints,
   updateNodeCoordinates,
@@ -12,16 +13,18 @@ import { ModelOperation } from "../model-operation";
 type InputData = {
   nodeId: AssetId;
   newCoordinates: Position;
+  newElevation: number;
 };
 
 export const moveNode: ModelOperation<InputData> = (
   { assets, topology },
-  { nodeId, newCoordinates },
+  { nodeId, newCoordinates, newElevation },
 ) => {
   const node = assets.get(nodeId) as NodeAsset;
   const oldCoordinates = getNodeCoordinates(node);
 
-  const updatedNode = updateNodeCoordinates(node, newCoordinates);
+  let updatedNode = updateNodeCoordinates(node, newCoordinates);
+  updatedNode = assignElevation(updatedNode, newElevation);
   const linkIds = topology.getLinks(node.id);
 
   const updatedLinks = [];
