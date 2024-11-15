@@ -12,11 +12,13 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
+import { getElevationAt } from "../queries";
 
 export function useJunctionHandlers({
   mode,
   hydraulicModel,
   rep,
+  pmap,
 }: HandlerContext): Handlers {
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
@@ -30,7 +32,10 @@ export function useJunctionHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const junction = createJunction({ coordinates: clickPosition });
+      const junction = createJunction({
+        elevation: getElevationAt(pmap, e.lngLat),
+        coordinates: clickPosition,
+      });
 
       const id = junction.id;
 
