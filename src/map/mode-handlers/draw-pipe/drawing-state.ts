@@ -42,14 +42,14 @@ export const useDrawingState = () => {
         return {
           type: "drawPipe",
           snappingCandidate: snappingCoordinates
-            ? createJunction(snappingCoordinates)
+            ? createJunction({ coordinates: snappingCoordinates })
             : null,
         };
 
       return {
         ...prev,
         snappingCandidate: snappingCoordinates
-          ? createJunction(snappingCoordinates)
+          ? createJunction({ coordinates: snappingCoordinates })
           : null,
       };
     });
@@ -69,7 +69,7 @@ export const useDrawingState = () => {
       pipe,
       startNode,
       snappingCandidate: snappingCoordinates
-        ? createJunction(snappingCoordinates)
+        ? createJunction({ coordinates: snappingCoordinates })
         : null,
     });
   };

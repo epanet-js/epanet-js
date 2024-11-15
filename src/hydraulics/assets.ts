@@ -44,10 +44,13 @@ export const filterAssets = (
   return resultAssets;
 };
 
-export const createJunction = (
-  position: Position,
+export const createJunction = ({
+  coordinates,
   id = newFeatureId(),
-): Junction => {
+}: {
+  coordinates: Position;
+  id?: AssetId;
+}): Junction => {
   return {
     id,
     feature: {
@@ -55,7 +58,7 @@ export const createJunction = (
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: position,
+        coordinates,
       },
     },
     folderId: null,

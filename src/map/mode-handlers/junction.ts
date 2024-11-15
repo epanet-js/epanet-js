@@ -30,7 +30,7 @@ export function useJunctionHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const junction = createJunction(clickPosition);
+      const junction = createJunction({ coordinates: clickPosition });
 
       const id = junction.id;
 

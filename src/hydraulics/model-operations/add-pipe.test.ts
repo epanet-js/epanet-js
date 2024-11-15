@@ -12,8 +12,8 @@ import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 describe("addPipe", () => {
   it("updates connections", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = createJunction([10, 10], "A");
-    const endNode = createJunction([30, 30], "B");
+    const startNode = createJunction({ coordinates: [10, 10], id: "A" });
+    const endNode = createJunction({ coordinates: [30, 30], id: "B" });
 
     const pipe = createPipe(
       [
@@ -36,8 +36,8 @@ describe("addPipe", () => {
 
   it("removes redundant vertices", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = createJunction([10, 10], "A");
-    const endNode = createJunction([30, 30], "B");
+    const startNode = createJunction({ coordinates: [10, 10], id: "A" });
+    const endNode = createJunction({ coordinates: [30, 30], id: "B" });
 
     const pipe = createPipe(
       [
@@ -70,8 +70,8 @@ describe("addPipe", () => {
 
   it("ensures connectivity with the link endpoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = createJunction([10, 10]);
-    const endNode = createJunction([20, 20]);
+    const startNode = createJunction({ coordinates: [10, 10] });
+    const endNode = createJunction({ coordinates: [20, 20] });
     const pipe = createPipe(
       [
         [10, 11],

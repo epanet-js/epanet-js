@@ -83,7 +83,7 @@ export function useDrawPipeHandlers({
       if (drawing.isNull) {
         const startNode = snappingNode
           ? snappingNode
-          : createJunction(clickPosition);
+          : createJunction({ coordinates: clickPosition });
 
         startDrawing(startNode);
 
@@ -97,7 +97,7 @@ export function useDrawPipeHandlers({
       }
 
       if (isEndAndContinueOn()) {
-        const endJunction = createJunction(clickPosition);
+        const endJunction = createJunction({ coordinates: clickPosition });
         submitPipe(drawing.startNode, drawing.pipe, endJunction);
         startDrawing(endJunction);
       } else {
@@ -141,7 +141,7 @@ export function useDrawPipeHandlers({
       const lastVertex = geometry.coordinates.at(-1);
       if (!lastVertex) return;
 
-      const endJunction = createJunction(lastVertex);
+      const endJunction = createJunction({ coordinates: lastVertex });
 
       submitPipe(startNode, pipe, endJunction);
       resetDrawing();
