@@ -296,7 +296,7 @@ export class MapEngine {
       tileSize: 512,
       maxzoom: 14,
     });
-    const noExageration = 1;
+    const noExageration = 0;
     this.map.setTerrain({ source: "mapbox-dem", exaggeration: noExageration });
   }
 
