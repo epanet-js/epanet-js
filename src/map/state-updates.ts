@@ -105,6 +105,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (hasStyleRefresh) {
       lastStylesSync.current = stylesConfig;
       await updateLayerStyles(map, stylesConfig);
+    }
+
+    if (hasStyleRefresh) {
       if (isFeatureOn("FLAG_ELEVATIONS")) setUpElevations(map);
     }
 
