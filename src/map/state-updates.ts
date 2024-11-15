@@ -34,6 +34,7 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -104,6 +105,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (hasStyleRefresh) {
       lastStylesSync.current = stylesConfig;
       await updateLayerStyles(map, stylesConfig);
+      if (isFeatureOn("FLAG_ELEVATIONS")) setUpElevations(map);
     }
 
     if (importPointer.current !== latestImportPointer || hasStyleRefresh) {
@@ -180,6 +182,13 @@ const updateLayerStyles = withInstrumentation(
     await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
+);
+
+const setUpElevations = withInstrumentation(
+  (map: MapEngine) => {
+    map.setElevationsSource();
+  },
+  { name: "MAP_STATE:SET_ELEVATIONS", maxDurationMs: 1000 },
 );
 
 const updateImportSource = withInstrumentation(
