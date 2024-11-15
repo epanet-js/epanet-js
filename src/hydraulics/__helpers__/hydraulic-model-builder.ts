@@ -23,7 +23,7 @@ export class HydraulicModelBuilder {
   }
 
   aNode(id: string, coordinates: Position) {
-    const node = createJunction(coordinates, id);
+    const node = createJunction({ coordinates, id });
     this.assets.set(id, node);
     return this;
   }
