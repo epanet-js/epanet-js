@@ -1,11 +1,14 @@
 import { useAtom } from "jotai";
 import {
+  Junction,
   LinkAsset,
   NodeAsset,
   Pipe,
   createJunction,
   createPipe,
 } from "src/hydraulics/assets";
+import { MapEngine } from "src/map/map-engine";
+import { getElevationAt } from "src/map/queries";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 import { Position } from "src/types";
 
@@ -19,11 +22,19 @@ type DrawingState =
     }
   | NullDrawing;
 
-export const useDrawingState = () => {
+export const useDrawingState = (map: MapEngine) => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
 
   const resetDrawing = () => {
     setEphemeralState({ type: "none" });
+  };
+
+  const createJunctionAt = (coordinates: Position): Junction => {
+    const [lng, lat] = coordinates;
+    return createJunction({
+      coordinates,
+      elevation: getElevationAt(map, { lat, lng }),
+    });
   };
 
   const drawingState: DrawingState =
@@ -42,14 +53,14 @@ export const useDrawingState = () => {
         return {
           type: "drawPipe",
           snappingCandidate: snappingCoordinates
-            ? createJunction({ coordinates: snappingCoordinates })
+            ? createJunctionAt(snappingCoordinates)
             : null,
         };
 
       return {
         ...prev,
         snappingCandidate: snappingCoordinates
-          ? createJunction({ coordinates: snappingCoordinates })
+          ? createJunctionAt(snappingCoordinates)
           : null,
       };
     });
@@ -69,7 +80,7 @@ export const useDrawingState = () => {
       pipe,
       startNode,
       snappingCandidate: snappingCoordinates
-        ? createJunction({ coordinates: snappingCoordinates })
+        ? createJunctionAt(snappingCoordinates)
         : null,
     });
   };

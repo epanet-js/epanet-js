@@ -19,6 +19,7 @@ import {
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
+import { getElevationAt } from "src/map/queries";
 
 export function useDrawPipeHandlers({
   rep,
@@ -31,7 +32,7 @@ export function useDrawPipeHandlers({
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState();
+    useDrawingState(pmap);
   const { getSnappingNode, getSnappingCoordinates } = useSnapping(
     pmap,
     idMap,
@@ -70,6 +71,14 @@ export function useDrawPipeHandlers({
     transact(moment);
   };
 
+  const createJunctionAt = (coordinates: Position) => {
+    const [lng, lat] = coordinates;
+    return createJunction({
+      coordinates,
+      elevation: getElevationAt(pmap, { lng, lat }),
+    });
+  };
+
   const isSnapping = () => !isShiftHeld();
   const isEndAndContinueOn = isControlHeld;
 
@@ -83,7 +92,7 @@ export function useDrawPipeHandlers({
       if (drawing.isNull) {
         const startNode = snappingNode
           ? snappingNode
-          : createJunction({ coordinates: clickPosition });
+          : createJunctionAt(clickPosition);
 
         startDrawing(startNode);
 
@@ -97,7 +106,7 @@ export function useDrawPipeHandlers({
       }
 
       if (isEndAndContinueOn()) {
-        const endJunction = createJunction({ coordinates: clickPosition });
+        const endJunction = createJunctionAt(clickPosition);
         submitPipe(drawing.startNode, drawing.pipe, endJunction);
         startDrawing(endJunction);
       } else {
@@ -141,7 +150,7 @@ export function useDrawPipeHandlers({
       const lastVertex = geometry.coordinates.at(-1);
       if (!lastVertex) return;
 
-      const endJunction = createJunction({ coordinates: lastVertex });
+      const endJunction = createJunctionAt(lastVertex);
 
       submitPipe(startNode, pipe, endJunction);
       resetDrawing();
