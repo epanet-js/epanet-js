@@ -185,6 +185,14 @@ export const updateNodeCoordinates = (
   };
 };
 
+export const getNodeElevation = (node: NodeAsset) => {
+  return node.feature.properties.elevation;
+};
+
+export const assignElevation = (node: NodeAsset, elevation: number) => {
+  return assignProperties(node, { elevation }) as NodeAsset;
+};
+
 export const updateLinkCoordinates = (
   link: LinkAsset,
   newCoordinates: Position[],
@@ -220,4 +228,20 @@ export const updateMatchingEndpoints = (
 
 export const getLinkConnections = (link: LinkAsset): LinkConnections => {
   return link.feature.properties.connections;
+};
+
+const assignProperties = (
+  asset: Asset,
+  newProperties: Partial<JunctionAttributes>,
+) => {
+  return {
+    ...asset,
+    feature: {
+      ...asset.feature,
+      properties: {
+        ...asset.feature.properties,
+        ...newProperties,
+      },
+    },
+  };
 };

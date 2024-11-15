@@ -10,6 +10,7 @@ import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
+import { getElevationAt } from "src/map/queries";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -71,6 +72,7 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates: getNodeCoordinates(asset as NodeAsset),
+        newElevation: getElevationAt(pmap, e.lngLat),
       });
       putAssets && startMove(putAssets);
       setCursor("move");
@@ -89,6 +91,7 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates,
+        newElevation: getElevationAt(pmap, e.lngLat),
       });
       putAssets && updateMove(putAssets);
     },
@@ -104,6 +107,7 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
+        newElevation: getElevationAt(pmap, e.lngLat),
       });
       transact(moment);
       resetMove();

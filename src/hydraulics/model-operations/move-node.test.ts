@@ -5,6 +5,7 @@ import {
   NodeAsset,
   getLinkCoordinates,
   getNodeCoordinates,
+  getNodeElevation,
 } from "../assets";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 
@@ -15,15 +16,18 @@ describe("moveNode", () => {
       .aNode(nodeId, [10, 10])
       .build();
     const newCoordinates = [20, 20];
+    const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
       nodeId: "A",
       newCoordinates,
+      newElevation,
     });
 
     const updatedNode = putAssets![0] as NodeAsset;
     expect(updatedNode.id).toEqual(nodeId);
     expect(getNodeCoordinates(updatedNode)).toEqual(newCoordinates);
+    expect(getNodeElevation(updatedNode)).toEqual(10);
   });
 
   it("updates the connected links", () => {
@@ -36,10 +40,12 @@ describe("moveNode", () => {
       .build();
     const nodeId = "B";
     const newCoordinates = [25, 25];
+    const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
       nodeId,
       newCoordinates,
+      newElevation,
     });
 
     expect(putAssets!.length).toEqual(3);
