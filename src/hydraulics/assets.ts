@@ -8,19 +8,23 @@ import {
   Point,
   Position,
 } from "src/types";
-import { JsonValue } from "type-fest";
 import cloneDeep from "lodash/cloneDeep";
 
 type LinkConnections = [start: string, end: string];
 
-type StrictProperties = { [name: string]: JsonValue };
-type NodeFeature = IFeature<Point, StrictProperties>;
+type VisibilityProps = { visibility?: boolean };
+
+type JunctionAttributes = {
+  elevation: number;
+};
+
+type NodeFeature<T> = IFeature<Point, VisibilityProps & T>;
 type LinkFeature = IFeature<
   LineString,
-  StrictProperties & { connections: LinkConnections }
+  VisibilityProps & { connections: LinkConnections }
 >;
 
-export type Junction = IWrappedFeature<NodeFeature>;
+export type Junction = IWrappedFeature<NodeFeature<JunctionAttributes>>;
 export type Pipe = IWrappedFeature<LinkFeature>;
 
 export type NodeAsset = Junction;
@@ -47,15 +51,19 @@ export const filterAssets = (
 export const createJunction = ({
   coordinates,
   id = newFeatureId(),
+  elevation = 0,
 }: {
   coordinates: Position;
   id?: AssetId;
+  elevation?: number;
 }): Junction => {
   return {
     id,
     feature: {
       type: "Feature",
-      properties: {},
+      properties: {
+        elevation,
+      },
       geometry: {
         type: "Point",
         coordinates,
