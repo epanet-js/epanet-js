@@ -23,7 +23,7 @@ import { addPipe } from "src/hydraulics/model-operations";
 import {
   fetchElevationForPoint,
   prefetchElevationsTile,
-} from "src/map/queries";
+} from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
