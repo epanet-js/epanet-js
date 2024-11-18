@@ -1,8 +1,21 @@
 import { LngLatLike } from "mapbox-gl";
+import { QueryClient } from "@tanstack/react-query";
 import { MapEngine } from "./map-engine";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
+const tileSize = 512;
+const fallbackElevation = 0;
+const tileZoom = 14;
 
 export const getElevationAt = withInstrumentation(
   (mapEngine: MapEngine, lngLat: LngLatLike): number => {
@@ -17,45 +30,54 @@ export const getElevationAt = withInstrumentation(
   { name: "MAP_QUERY:GET_ELEVATION", maxDurationMs: 100 },
 );
 
-const tileCache: { [url: string]: Blob } = {};
+export async function fetchElevationForPoint(
+  lng: number,
+  lat: number,
+): Promise<number> {
+  const { queryKey, url } = buildTileDescriptor(lng, lat);
 
-export const fetchElevationForPoint = withInstrumentation(
-  async (lng: number, lat: number, zoom: number): Promise<number> => {
-    const tileSize = 512;
-    const fallbackElevation = 0;
-    const tileZoom = Math.min(Math.floor(zoom), 18);
+  const tileBlob = await queryClient.fetchQuery({
+    queryKey,
+    queryFn: () => fetchTileFromUrl(url),
+  });
 
-    const tileCoords = lngLatToTile(lng, lat, tileZoom);
-    const tileUrl = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tileCoords.z}/${tileCoords.x}/${tileCoords.y}@2x.pngraw?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
-    const tileBlob = tileCache[tileUrl]
-      ? tileCache[tileUrl]
-      : await fetchTile(tileUrl);
+  if (!tileBlob) {
+    return fallbackElevation;
+  }
 
-    if (!tileBlob) return fallbackElevation;
+  const elevationInMeters = await getPixelElevation(
+    tileBlob,
+    lng,
+    lat,
+    tileSize,
+  );
+  return parseFloat(elevationInMeters.toFixed(2));
+}
 
-    const elevation = await getPixelElevation(
-      tileBlob,
-      lng,
-      lat,
-      tileCoords,
-      zoom,
-      tileSize,
-    );
-    return parseFloat(elevation.toFixed(2));
-  },
-  { name: "FETCH_ELEVATION", maxDurationMs: 500 },
-);
+export async function prefetchElevationsTile(lng: number, lat: number) {
+  const { queryKey, url } = buildTileDescriptor(lng, lat);
 
-const fetchTile = withInstrumentation(
+  await queryClient.prefetchQuery({
+    queryKey,
+    queryFn: () => fetchTileFromUrl(url),
+  });
+}
+
+const buildTileDescriptor = (lng: number, lat: number) => {
+  const tileCoordinates = lngLatToTile(lng, lat, tileZoom);
+  const tileUrl = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${tileZoom}/${tileCoordinates.x}/${tileCoordinates.y}@2x.pngraw?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
+  const id = `${tileCoordinates.x}/${tileCoordinates.y}`;
+  return { url: tileUrl, queryKey: ["terrain-tile", id] };
+};
+
+const fetchTileFromUrl = withInstrumentation(
   async (tileUrl: string): Promise<Blob | null> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {
       captureWarning(`Failed to fetch tile: ${tileUrl}`);
       return null;
     }
-    const blob = await response.blob();
-    tileCache[tileUrl] = blob; // Cache the fetched tile
-    return blob;
+    return response.blob();
   },
   {
     name: "FETCH_ELEVATION:FETCH_TILE",
@@ -84,8 +106,6 @@ async function getPixelElevation(
   blob: Blob,
   lng: number,
   lat: number,
-  tileCoords: { x: number; y: number; z: number },
-  z: number,
   tileSize: number,
 ): Promise<number> {
   return new Promise((resolve) => {
@@ -98,7 +118,7 @@ async function getPixelElevation(
       if (!ctx) throw new Error("Canvas is missing");
       ctx.drawImage(img, 0, 0, tileSize, tileSize);
 
-      const scale = Math.pow(2, z);
+      const scale = Math.pow(2, 14);
       const pixelX =
         Math.floor(((lng + 180) / 360) * scale * tileSize) % tileSize;
       const pixelY =
