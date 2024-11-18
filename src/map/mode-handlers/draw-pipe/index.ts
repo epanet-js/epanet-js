@@ -14,12 +14,18 @@ import {
   createPipe,
   extendLink,
   getNodeCoordinates,
+  getNodeElevation,
   isLinkStart,
 } from "src/hydraulics/assets";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
-import { getElevationAt } from "src/map/queries";
+import {
+  fetchElevationForPoint,
+  prefetchElevationsTile,
+} from "src/map/queries";
+import { captureError } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -32,22 +38,19 @@ export function useDrawPipeHandlers({
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState(pmap);
-  const { getSnappingNode, getSnappingCoordinates } = useSnapping(
-    pmap,
-    idMap,
-    hydraulicModel.assets,
-  );
+    useDrawingState();
+  const { getSnappingNode } = useSnapping(pmap, idMap, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = getNodeCoordinates(startNode);
-    const pipe = createPipe([coordinates, coordinates]);
+    const pipe = createPipe([...[coordinates], ...[coordinates]]);
 
     setDrawing({
       startNode,
       pipe,
+      snappingCandidate: null,
     });
     return pipe.id;
   };
@@ -58,59 +61,106 @@ export function useDrawPipeHandlers({
     setDrawing({
       startNode: drawing.startNode,
       pipe: addVertexToLink(drawing.pipe, coordinates),
-      snappingCoordinates: null,
+      snappingCandidate: null,
     });
   };
 
   const submitPipe = (startNode: NodeAsset, pipe: Pipe, endNode: NodeAsset) => {
     const length = measureLength(pipe.feature);
-    if (!length) return;
+    if (!length) {
+      return;
+    }
 
     const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
 
     transact(moment);
   };
 
-  const createJunctionAt = (coordinates: Position) => {
-    const [lng, lat] = coordinates;
-    return createJunction({
-      coordinates,
-      elevation: getElevationAt(pmap, { lng, lat }),
-    });
-  };
-
   const isSnapping = () => !isShiftHeld();
   const isEndAndContinueOn = isControlHeld;
 
+  const coordinatesToLngLat = (coordinates: Position) => {
+    const [lng, lat] = coordinates;
+    return { lng, lat };
+  };
+
   const handlers: Handlers = {
-    click: (e) => {
-      const snappingNode = isSnapping() ? getSnappingNode(e) : null;
-      const clickPosition = snappingNode
-        ? getNodeCoordinates(snappingNode)
-        : getMapCoord(e);
+    click: async (e) => {
+      if (isFeatureOn("FLAG_ELEVATIONS")) {
+        const snappingNode = isSnapping() ? getSnappingNode(e) : null;
+        const clickPosition = snappingNode
+          ? getNodeCoordinates(snappingNode)
+          : getMapCoord(e);
+        const pointElevation = snappingNode
+          ? getNodeElevation(snappingNode)
+          : isFeatureOn("FLAG_ELEVATIONS")
+            ? await fetchElevationForPoint(e.lngLat)
+            : 0;
 
-      if (drawing.isNull) {
-        const startNode = snappingNode
-          ? snappingNode
-          : createJunctionAt(clickPosition);
+        if (drawing.isNull) {
+          const startNode = snappingNode
+            ? snappingNode
+            : createJunction({
+                coordinates: clickPosition,
+                elevation: pointElevation,
+              });
 
-        startDrawing(startNode);
+          startDrawing(startNode);
 
-        return;
-      }
+          return;
+        }
 
-      if (!!snappingNode) {
-        submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-        isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-        return;
-      }
+        if (!!snappingNode) {
+          submitPipe(drawing.startNode, drawing.pipe, snappingNode);
+          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+          return;
+        }
 
-      if (isEndAndContinueOn()) {
-        const endJunction = createJunctionAt(clickPosition);
-        submitPipe(drawing.startNode, drawing.pipe, endJunction);
-        startDrawing(endJunction);
+        if (isEndAndContinueOn()) {
+          const endJunction = createJunction({
+            coordinates: clickPosition,
+            elevation: pointElevation,
+          });
+          submitPipe(drawing.startNode, drawing.pipe, endJunction);
+          startDrawing(endJunction);
+        } else {
+          addVertex(clickPosition);
+        }
       } else {
-        addVertex(clickPosition);
+        const snappingNode = isSnapping() ? getSnappingNode(e) : null;
+        const clickPosition = snappingNode
+          ? getNodeCoordinates(snappingNode)
+          : getMapCoord(e);
+
+        if (drawing.isNull) {
+          const startNode = snappingNode
+            ? snappingNode
+            : createJunction({
+                coordinates: clickPosition,
+                elevation: 0,
+              });
+
+          startDrawing(startNode);
+
+          return;
+        }
+
+        if (!!snappingNode) {
+          submitPipe(drawing.startNode, drawing.pipe, snappingNode);
+          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+          return;
+        }
+
+        if (isEndAndContinueOn()) {
+          const endJunction = createJunction({
+            coordinates: clickPosition,
+            elevation: 0,
+          });
+          submitPipe(drawing.startNode, drawing.pipe, endJunction);
+          startDrawing(endJunction);
+        } else {
+          addVertex(clickPosition);
+        }
       }
     },
     move: (e) => {
@@ -119,27 +169,27 @@ export function useDrawPipeHandlers({
         return;
       }
 
-      const snappingCoordinates = isSnapping()
-        ? getSnappingCoordinates(e)
-        : null;
+      prefetchElevationsTile(e.lngLat).catch(captureError);
+
+      const snappingNode = isSnapping() ? getSnappingNode(e) : null;
 
       if (drawing.isNull) {
-        setSnappingCandidate(snappingCoordinates);
+        setSnappingCandidate(snappingNode);
         return;
       }
 
-      const nextCoordinates = snappingCoordinates || getMapCoord(e);
+      const nextCoordinates =
+        (snappingNode && getNodeCoordinates(snappingNode)) || getMapCoord(e);
 
-      const isPipeStart =
-        snappingCoordinates && isLinkStart(drawing.pipe, snappingCoordinates);
+      const isPipeStart = isLinkStart(drawing.pipe, nextCoordinates);
 
       setDrawing({
         startNode: drawing.startNode,
         pipe: extendLink(drawing.pipe, nextCoordinates),
-        snappingCoordinates: !isPipeStart ? snappingCoordinates : null,
+        snappingCandidate: !isPipeStart ? snappingNode : null,
       });
     },
-    double: (e) => {
+    double: async (e) => {
       e.preventDefault();
 
       if (drawing.isNull) return;
@@ -150,7 +200,12 @@ export function useDrawPipeHandlers({
       const lastVertex = geometry.coordinates.at(-1);
       if (!lastVertex) return;
 
-      const endJunction = createJunctionAt(lastVertex);
+      const endJunction = createJunction({
+        coordinates: lastVertex,
+        elevation: isFeatureOn("FLAG_ELEVATIONS")
+          ? await fetchElevationForPoint(coordinatesToLngLat(lastVertex))
+          : 0,
+      });
 
       submitPipe(startNode, pipe, endJunction);
       resetDrawing();
