@@ -46,7 +46,7 @@ export function useDrawPipeHandlers({
 
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = getNodeCoordinates(startNode);
-    const pipe = createPipe([...[coordinates], ...[coordinates]]);
+    const pipe = createPipe({ coordinates: [coordinates, coordinates] });
 
     setDrawing({
       startNode,

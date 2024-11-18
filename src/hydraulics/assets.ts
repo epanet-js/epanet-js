@@ -74,10 +74,13 @@ export const createJunction = ({
   };
 };
 
-export const createPipe = (
-  coordinates: Position[] = [],
+export const createPipe = ({
+  coordinates,
   id = newFeatureId(),
-): Pipe => {
+}: {
+  coordinates: Position[];
+  id?: AssetId;
+}): Pipe => {
   const nullConnections = ["", ""] as LinkConnections;
 
   return {
