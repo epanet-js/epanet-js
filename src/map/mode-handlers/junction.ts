@@ -12,7 +12,7 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
-import { fetchElevationForPoint } from "../queries";
+import { fetchElevationForPoint, prefetchElevationsTile } from "../queries";
 import { isFeatureOn } from "src/infra/feature-flags";
 import throttle from "lodash/throttle";
 
@@ -20,7 +20,6 @@ export function useJunctionHandlers({
   mode,
   hydraulicModel,
   rep,
-  pmap,
 }: HandlerContext): Handlers {
   const setSelection = useSetAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
@@ -35,11 +34,7 @@ export function useJunctionHandlers({
 
       const clickPosition = getMapCoord(e);
       const elevation = isFeatureOn("FLAG_ELEVATIONS")
-        ? await fetchElevationForPoint(
-            e.lngLat.lng,
-            e.lngLat.lat,
-            pmap.map.getZoom(),
-          )
+        ? await fetchElevationForPoint(e.lngLat.lng, e.lngLat.lat)
         : 0;
       const junction = createJunction({
         elevation,
@@ -56,7 +51,7 @@ export function useJunctionHandlers({
     },
     move: throttle((e) => {
       if (isFeatureOn("FLAG_ELEVATIONS")) {
-        fetchElevationForPoint(e.lngLat.lng, e.lngLat.lat, pmap.map.getZoom());
+        prefetchElevationsTile(e.lngLat.lng, e.lngLat.lat);
       }
     }, 200),
     down: noop,
