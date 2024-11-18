@@ -26,6 +26,7 @@ import {
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { nextTick } from "process";
 
 export function useDrawPipeHandlers({
   rep,
@@ -135,11 +136,11 @@ export function useDrawPipeHandlers({
 
         doAsyncClick()
           .then(() => {
-            setTimeout(() => (isClickInProgress.current = false), 10);
+            nextTick(() => (isClickInProgress.current = false));
           })
           .catch((error) => {
             captureError(error);
-            setTimeout(() => (isClickInProgress.current = false), 10);
+            nextTick(() => (isClickInProgress.current = false));
           });
       } else {
         const snappingNode = isSnapping() ? getSnappingNode(e) : null;
