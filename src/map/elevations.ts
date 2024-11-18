@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/query-core";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
 
