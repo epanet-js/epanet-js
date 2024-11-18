@@ -36,7 +36,7 @@ export function useNoneHandlers({
   folderMap,
   mode,
   rep,
-  pmap,
+  map: pmap,
 }: HandlerContext): Handlers {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);

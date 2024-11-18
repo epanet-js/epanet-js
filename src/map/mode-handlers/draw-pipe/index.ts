@@ -30,7 +30,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 export function useDrawPipeHandlers({
   rep,
   hydraulicModel,
-  pmap,
+  map,
   idMap,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
@@ -39,7 +39,7 @@ export function useDrawPipeHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState();
-  const { getSnappingNode } = useSnapping(pmap, idMap, hydraulicModel.assets);
+  const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 

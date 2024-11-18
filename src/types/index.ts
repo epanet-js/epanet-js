@@ -406,7 +406,7 @@ export interface HandlerContext {
   folderMap: FolderMap;
   idMap: IDMap;
   rep: IPersistence;
-  pmap: MapEngine;
+  map: MapEngine;
 }
 
 /**

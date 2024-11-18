@@ -15,7 +15,7 @@ export function useLassoHandlers({
   idMap,
   folderMap,
   selection,
-  pmap,
+  map: pmap,
 }: HandlerContext): Handlers {
   return {
     click: useAtomCallback(
