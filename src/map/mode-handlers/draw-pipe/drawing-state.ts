@@ -1,16 +1,6 @@
 import { useAtom } from "jotai";
-import {
-  Junction,
-  LinkAsset,
-  NodeAsset,
-  Pipe,
-  createJunction,
-  createPipe,
-} from "src/hydraulics/assets";
-import { MapEngine } from "src/map/map-engine";
-import { getElevationAt } from "src/map/queries";
+import { LinkAsset, NodeAsset, Pipe, createPipe } from "src/hydraulics/assets";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
-import { Position } from "src/types";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
 type DrawingState =
@@ -22,19 +12,11 @@ type DrawingState =
     }
   | NullDrawing;
 
-export const useDrawingState = (map: MapEngine) => {
+export const useDrawingState = () => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
 
   const resetDrawing = () => {
     setEphemeralState({ type: "none" });
-  };
-
-  const createJunctionAt = (coordinates: Position): Junction => {
-    const [lng, lat] = coordinates;
-    return createJunction({
-      coordinates,
-      elevation: getElevationAt(map, { lat, lng }),
-    });
   };
 
   const drawingState: DrawingState =
@@ -47,21 +29,17 @@ export const useDrawingState = (map: MapEngine) => {
         }
       : { isNull: true, snappingCandidate: null };
 
-  const setSnappingCandidate = (snappingCoordinates: Position | null) => {
+  const setSnappingCandidate = (snappingCandidate: NodeAsset | null) => {
     setEphemeralState((prev: EphemeralEditingState) => {
       if (prev.type !== "drawPipe")
         return {
           type: "drawPipe",
-          snappingCandidate: snappingCoordinates
-            ? createJunctionAt(snappingCoordinates)
-            : null,
+          snappingCandidate,
         };
 
       return {
         ...prev,
-        snappingCandidate: snappingCoordinates
-          ? createJunctionAt(snappingCoordinates)
-          : null,
+        snappingCandidate,
       };
     });
   };
@@ -69,19 +47,17 @@ export const useDrawingState = (map: MapEngine) => {
   const setDrawing = ({
     startNode,
     pipe,
-    snappingCoordinates,
+    snappingCandidate,
   }: {
     startNode: NodeAsset;
     pipe: Pipe;
-    snappingCoordinates?: Position | null;
+    snappingCandidate: NodeAsset | null;
   }) => {
     setEphemeralState({
       type: "drawPipe",
       pipe,
       startNode,
-      snappingCandidate: snappingCoordinates
-        ? createJunctionAt(snappingCoordinates)
-        : null,
+      snappingCandidate,
     });
   };
 

@@ -12,7 +12,6 @@ import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import {
   fetchElevationForPoint,
-  getElevationAt,
   prefetchElevationsTile,
 } from "src/map/queries";
 import { isFeatureOn } from "src/infra/feature-flags";
@@ -60,7 +59,7 @@ export function useNoneHandlers({
 
   const handlers: Handlers = {
     double: noop,
-    down: (e) => {
+    down: async (e) => {
       if (selection.type !== "single") {
         return skipMove(e);
       }
@@ -78,7 +77,7 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates: getNodeCoordinates(asset as NodeAsset),
-        newElevation: getElevationAt(pmap, e.lngLat),
+        newElevation: await fetchElevationForPoint(e.lngLat),
       });
       putAssets && startMove(putAssets);
       setCursor("move");
@@ -96,10 +95,11 @@ export function useNoneHandlers({
       if (!asset || isLink(asset)) return;
 
       const newCoordinates = getMapCoord(e);
+      const noElevation = 0;
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates,
-        newElevation: getElevationAt(pmap, e.lngLat),
+        newElevation: noElevation,
       });
       putAssets && updateMove(putAssets);
     },
