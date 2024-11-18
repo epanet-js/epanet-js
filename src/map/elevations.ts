@@ -5,7 +5,8 @@ import { captureWarning } from "src/infra/error-tracking";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 6 * 60 * 1000,
+      staleTime: 5 * 60 * 1000,
+      retry: 3,
     },
   },
 });
