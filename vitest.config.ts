@@ -11,12 +11,20 @@ loadEnvConfig(projectDir);
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
+    environmentMatchGlobs: [
+      ["src/map/**", "jsdom"],
+      ["src/**/**", "node"],
+    ],
+    environmentOptions: {
+      jsdom: { resources: "usable" },
+    },
     dir: "./",
     deps: {
       interopDefault: true,
+      inline: ["vitest-canvas-mock"],
     },
     globals: true,
-    setupFiles: "./test/setup.ts",
+    setupFiles: ["./test/setup.ts"],
     coverage: {
       reporter: ["text", "json", "html"],
     },
