@@ -25,7 +25,7 @@ export const useDrawingState = () => {
           isNull: false,
           startNode: state.startNode,
           snappingCandidate: state.snappingCandidate || null,
-          pipe: state.pipe || createPipe([]),
+          pipe: state.pipe || createPipe({ coordinates: [] }),
         }
       : { isNull: true, snappingCandidate: null };
 

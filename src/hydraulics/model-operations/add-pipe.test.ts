@@ -15,14 +15,14 @@ describe("addPipe", () => {
     const startNode = createJunction({ coordinates: [10, 10], id: "A" });
     const endNode = createJunction({ coordinates: [30, 30], id: "B" });
 
-    const pipe = createPipe(
-      [
+    const pipe = createPipe({
+      coordinates: [
         [10, 10],
         [20, 20],
         [30, 30],
       ],
-      "PIPE",
-    );
+      id: "PIPE",
+    });
 
     const { putAssets } = addPipe(hydraulicModel, {
       startNode,
@@ -39,8 +39,8 @@ describe("addPipe", () => {
     const startNode = createJunction({ coordinates: [10, 10], id: "A" });
     const endNode = createJunction({ coordinates: [30, 30], id: "B" });
 
-    const pipe = createPipe(
-      [
+    const pipe = createPipe({
+      coordinates: [
         [10, 10],
         [20, 20],
         [20, 20],
@@ -50,8 +50,8 @@ describe("addPipe", () => {
         [30, 30],
         [30, 30],
       ],
-      "PIPE",
-    );
+      id: "PIPE",
+    });
 
     const { putAssets } = addPipe(hydraulicModel, {
       startNode,
@@ -72,15 +72,15 @@ describe("addPipe", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = createJunction({ coordinates: [10, 10] });
     const endNode = createJunction({ coordinates: [20, 20] });
-    const pipe = createPipe(
-      [
+    const pipe = createPipe({
+      coordinates: [
         [10, 11],
         [15, 15],
         [19 + 1e-10, 20],
         [19, 20],
       ],
-      "PIPE",
-    );
+      id: "PIPE",
+    });
 
     const { putAssets } = addPipe(hydraulicModel, {
       startNode,
