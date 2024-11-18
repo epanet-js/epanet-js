@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,

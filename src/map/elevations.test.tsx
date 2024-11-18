@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CanvasSetupFn, fetchElevationForPoint, tileSize } from "./elevations";
+import {
+  CanvasSetupFn,
+  fetchElevationForPoint,
+  prefetchElevationsTile,
+  queryClient,
+  tileSize,
+} from "./elevations";
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";
@@ -14,10 +20,11 @@ const setUpCanvasFn = async (blob: Blob) => {
 describe("elevations", () => {
   afterEach(() => {
     vi.resetAllMocks();
+    queryClient.clear();
   });
 
   it("provides the elevation at given coordinates", async () => {
-    stubFetch();
+    stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
     const elevation = await fetchElevationForPoint(
@@ -29,7 +36,7 @@ describe("elevations", () => {
   });
 
   it("can provide many elevations from the same tile", async () => {
-    stubFetch();
+    stubFetchFixture();
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
     const elevation = await fetchElevationForPoint(
@@ -39,9 +46,92 @@ describe("elevations", () => {
 
     expect(elevation).toEqual(54.3);
   });
+
+  it("fetches one tile when coordinates are close", async () => {
+    stubFetchFixture();
+    const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
+    const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
+
+    await fetchElevationForPoint(
+      fixtureCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    await fetchElevationForPoint(
+      closeCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    expect(global.fetch).toHaveBeenCalledOnce();
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining("/14/7992/5108@2x"),
+    );
+  });
+
+  it("asks for tiles when not loaded", async () => {
+    stubFetchFixture();
+    const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
+    const farAwayCoordinates = { lng: +4.380429, lat: -55.9156107 };
+
+    await fetchElevationForPoint(
+      fixtureCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    await fetchElevationForPoint(
+      farAwayCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining("/14/8391/11275@2x"),
+    );
+  });
+
+  it("can prefetch tiles", async () => {
+    stubFetchFixture();
+    const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
+
+    await prefetchElevationsTile(fixtureCoordinates);
+
+    const elevation = await fetchElevationForPoint(
+      fixtureCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(elevation).toEqual(55.6);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining("/14/7992/5108@2x"),
+    );
+  });
+
+  it("provides fallback value when tile not found", async () => {
+    stubHttpError();
+    const anyCoordinates = { lng: 10, lat: 20 };
+
+    const elevation = await fetchElevationForPoint(
+      anyCoordinates,
+      setUpCanvasFn as unknown as CanvasSetupFn,
+    );
+
+    expect(elevation).toEqual(0);
+  });
 });
 
-const stubFetch = () => {
+const stubHttpError = () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+      }),
+    ),
+  );
+};
+
+const stubFetchFixture = () => {
   const fixture = readFixtureAsBuffer();
   const blob = new Blob([fixture]);
   vi.stubGlobal(
