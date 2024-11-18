@@ -17,6 +17,8 @@ const tileSize = 512;
 const fallbackElevation = 0;
 const tileZoom = 14;
 
+type LngLat = { lat: number; lng: number };
+
 export const getElevationAt = withInstrumentation(
   (mapEngine: MapEngine, lngLat: LngLatLike): number => {
     if (!isFeatureOn("FLAG_ELEVATIONS")) return 0;
@@ -30,10 +32,10 @@ export const getElevationAt = withInstrumentation(
   { name: "MAP_QUERY:GET_ELEVATION", maxDurationMs: 100 },
 );
 
-export async function fetchElevationForPoint(
-  lng: number,
-  lat: number,
-): Promise<number> {
+export async function fetchElevationForPoint({
+  lat,
+  lng,
+}: LngLat): Promise<number> {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
   const tileBlob = await queryClient.fetchQuery({
@@ -54,7 +56,7 @@ export async function fetchElevationForPoint(
   return parseFloat(elevationInMeters.toFixed(2));
 }
 
-export async function prefetchElevationsTile(lng: number, lat: number) {
+export async function prefetchElevationsTile({ lng, lat }: LngLat) {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
   await queryClient.prefetchQuery({

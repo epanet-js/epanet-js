@@ -10,7 +10,13 @@ import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
 import { moveNode } from "src/hydraulics/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
-import { getElevationAt } from "src/map/queries";
+import {
+  fetchElevationForPoint,
+  getElevationAt,
+  prefetchElevationsTile,
+} from "src/map/queries";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { captureError } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -83,6 +89,8 @@ export function useNoneHandlers({
         return skipMove(e);
       }
       const [assetId] = getSelectionIds();
+      if (isFeatureOn("FLAG_ELEVATIONS"))
+        prefetchElevationsTile(e.lngLat).catch(captureError);
 
       const asset = hydraulicModel.assets.get(assetId);
       if (!asset || isLink(asset)) return;
@@ -95,7 +103,7 @@ export function useNoneHandlers({
       });
       putAssets && updateMove(putAssets);
     },
-    up: (e) => {
+    up: async (e) => {
       e.preventDefault();
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
@@ -107,7 +115,9 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: getElevationAt(pmap, e.lngLat),
+        newElevation: isFeatureOn("FLAG_ELEVATIONS")
+          ? await fetchElevationForPoint(e.lngLat)
+          : 0,
       });
       transact(moment);
       resetMove();
