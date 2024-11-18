@@ -289,17 +289,6 @@ export class MapEngine {
     this.map.remove();
   }
 
-  setElevationsSource() {
-    this.map.addSource("mapbox-dem", {
-      type: "raster-dem",
-      url: "mapbox://mapbox.terrain-rgb",
-      tileSize: 512,
-      maxzoom: 14,
-    });
-    const noExageration = 0;
-    this.map.setTerrain({ source: "mapbox-dem", exaggeration: noExageration });
-  }
-
   private updateSelections(newSet: Set<RawId>) {
     if (!this.map || !(this.map as any).style) return;
     const oldSet = this.lastSelectionIds;
