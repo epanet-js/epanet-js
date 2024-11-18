@@ -28,7 +28,7 @@ export function usePolygonHandlers({
   featureMapDeprecated,
   folderMap,
   dragTargetRef,
-  pmap,
+  map: pmap,
 }: HandlerContext): Handlers {
   const multi = mode.modeOptions?.multi;
   const setSelection = useSetAtom(selectionAtom);

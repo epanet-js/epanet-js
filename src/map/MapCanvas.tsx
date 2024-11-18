@@ -182,7 +182,7 @@ export const MapCanvas = memo(function MapCanvas({
     folderMap,
     idMap,
     selection,
-    pmap: mapRef.current!,
+    map: mapRef.current!,
     rep,
   };
 

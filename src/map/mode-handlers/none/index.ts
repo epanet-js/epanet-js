@@ -23,7 +23,7 @@ export function useNoneHandlers({
   idMap,
   folderMap,
   rep,
-  pmap,
+  map,
   hydraulicModel,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
@@ -51,7 +51,7 @@ export function useNoneHandlers({
       idMap,
       featureMapDeprecated: hydraulicModel.assets,
       folderMap,
-      pmap,
+      pmap: map,
     });
 
     return fuzzyResult;
