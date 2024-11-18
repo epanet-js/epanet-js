@@ -84,48 +84,63 @@ export function useDrawPipeHandlers({
     return { lng, lat };
   };
 
+  const isClickInProgress = useRef<boolean>(false);
+
   const handlers: Handlers = {
-    click: async (e) => {
+    click: (e) => {
       if (isFeatureOn("FLAG_ELEVATIONS")) {
-        const snappingNode = isSnapping() ? getSnappingNode(e) : null;
-        const clickPosition = snappingNode
-          ? getNodeCoordinates(snappingNode)
-          : getMapCoord(e);
-        const pointElevation = snappingNode
-          ? getNodeElevation(snappingNode)
-          : isFeatureOn("FLAG_ELEVATIONS")
-            ? await fetchElevationForPoint(e.lngLat)
-            : 0;
+        isClickInProgress.current = true;
 
-        if (drawing.isNull) {
-          const startNode = snappingNode
-            ? snappingNode
-            : createJunction({
-                coordinates: clickPosition,
-                elevation: pointElevation,
-              });
+        const doAsyncClick = async () => {
+          const snappingNode = isSnapping() ? getSnappingNode(e) : null;
+          const clickPosition = snappingNode
+            ? getNodeCoordinates(snappingNode)
+            : getMapCoord(e);
+          const pointElevation = snappingNode
+            ? getNodeElevation(snappingNode)
+            : isFeatureOn("FLAG_ELEVATIONS")
+              ? await fetchElevationForPoint(e.lngLat)
+              : 0;
 
-          startDrawing(startNode);
+          if (drawing.isNull) {
+            const startNode = snappingNode
+              ? snappingNode
+              : createJunction({
+                  coordinates: clickPosition,
+                  elevation: pointElevation,
+                });
 
-          return;
-        }
+            startDrawing(startNode);
 
-        if (!!snappingNode) {
-          submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-          return;
-        }
+            return;
+          }
 
-        if (isEndAndContinueOn()) {
-          const endJunction = createJunction({
-            coordinates: clickPosition,
-            elevation: pointElevation,
+          if (!!snappingNode) {
+            submitPipe(drawing.startNode, drawing.pipe, snappingNode);
+            isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+            return;
+          }
+
+          if (isEndAndContinueOn()) {
+            const endJunction = createJunction({
+              coordinates: clickPosition,
+              elevation: pointElevation,
+            });
+            submitPipe(drawing.startNode, drawing.pipe, endJunction);
+            startDrawing(endJunction);
+          } else {
+            addVertex(clickPosition);
+          }
+        };
+
+        doAsyncClick()
+          .then(() => {
+            setTimeout(() => (isClickInProgress.current = false), 10);
+          })
+          .catch((error) => {
+            captureError(error);
+            setTimeout(() => (isClickInProgress.current = false), 10);
           });
-          submitPipe(drawing.startNode, drawing.pipe, endJunction);
-          startDrawing(endJunction);
-        } else {
-          addVertex(clickPosition);
-        }
       } else {
         const snappingNode = isSnapping() ? getSnappingNode(e) : null;
         const clickPosition = snappingNode
@@ -164,6 +179,8 @@ export function useDrawPipeHandlers({
       }
     },
     move: (e) => {
+      if (isClickInProgress.current) return;
+
       const isApplePencil = e.type === "mousemove" && usingTouchEvents.current;
       if (isApplePencil) {
         return;
