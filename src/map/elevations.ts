@@ -11,16 +11,21 @@ const queryClient = new QueryClient({
   },
 });
 
-const tileSize = 512;
+export const tileSize = 512;
+export const tileZoom = 14;
+
 const fallbackElevation = 0;
-const tileZoom = 14;
 
-type LngLat = { lat: number; lng: number };
+export type LngLat = { lat: number; lng: number };
 
-export async function fetchElevationForPoint({
-  lat,
-  lng,
-}: LngLat): Promise<number> {
+export type CanvasSetupFn = (
+  blob: Blob,
+) => Promise<{ img: CanvasImageSource; ctx: CanvasRenderingContext2D }>;
+
+export async function fetchElevationForPoint(
+  { lat, lng }: LngLat,
+  setUpCanvas: CanvasSetupFn = defaultCanvasSetupFn,
+): Promise<number> {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
   const tileBlob = await queryClient.fetchQuery({
@@ -32,13 +37,9 @@ export async function fetchElevationForPoint({
     return fallbackElevation;
   }
 
-  const elevationInMeters = await getPixelElevation(
-    tileBlob,
-    lng,
-    lat,
-    tileSize,
-  );
-  return parseFloat(elevationInMeters.toFixed(2));
+  const { ctx, img } = await setUpCanvas(tileBlob);
+  const elevationInMeters = getElevationPixel(ctx, img, { lng, lat });
+  return elevationInMeters;
 }
 
 export async function prefetchElevationsTile({ lng, lat }: LngLat) {
@@ -89,12 +90,38 @@ function lngLatToTile(lng: number, lat: number, zoom: number) {
   return { x, y, z: zoom };
 }
 
-async function getPixelElevation(
-  blob: Blob,
-  lng: number,
-  lat: number,
-  tileSize: number,
-): Promise<number> {
+const getElevationPixel = (
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  coordinates: LngLat,
+) => {
+  const { lat, lng } = coordinates;
+  ctx.drawImage(img, 0, 0, tileSize, tileSize);
+
+  const { x, y } = getPixelDescriptor(lat, lng, tileZoom);
+
+  const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+  return parseFloat(decodeTerrainRGB(r, g, b).toFixed(2));
+};
+
+const getPixelDescriptor = (lat: number, lng: number, tileZoom: number) => {
+  const scale = Math.pow(2, tileZoom);
+  const pixelX = Math.floor(((lng + 180) / 360) * scale * tileSize) % tileSize;
+  const pixelY =
+    Math.floor(
+      ((1 -
+        Math.log(
+          Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
+        ) /
+          Math.PI) /
+        2) *
+        scale *
+        tileSize,
+    ) % tileSize;
+  return { x: pixelX, y: pixelY };
+};
+
+const defaultCanvasSetupFn: CanvasSetupFn = async (blob: Blob) => {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -103,30 +130,11 @@ async function getPixelElevation(
       canvas.height = tileSize;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas is missing");
-      ctx.drawImage(img, 0, 0, tileSize, tileSize);
-
-      const scale = Math.pow(2, 14);
-      const pixelX =
-        Math.floor(((lng + 180) / 360) * scale * tileSize) % tileSize;
-      const pixelY =
-        Math.floor(
-          ((1 -
-            Math.log(
-              Math.tan((lat * Math.PI) / 180) +
-                1 / Math.cos((lat * Math.PI) / 180),
-            ) /
-              Math.PI) /
-            2) *
-            scale *
-            tileSize,
-        ) % tileSize;
-
-      const [r, g, b] = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-      resolve(decodeTerrainRGB(r, g, b));
+      resolve({ img, ctx });
     };
     img.src = URL.createObjectURL(blob);
   });
-}
+};
 
 function decodeTerrainRGB(r: number, g: number, b: number): number {
   return (r * 256 * 256 + g * 256 + b) * 0.1 - 10000;
