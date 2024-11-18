@@ -13,7 +13,7 @@ import noop from "lodash/noop";
 import {
   fetchElevationForPoint,
   prefetchElevationsTile,
-} from "src/map/queries";
+} from "src/map/elevations";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { captureError } from "src/infra/error-tracking";
 

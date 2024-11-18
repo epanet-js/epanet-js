@@ -12,7 +12,7 @@ import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
-import { fetchElevationForPoint, prefetchElevationsTile } from "../queries";
+import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import { isFeatureOn } from "src/infra/feature-flags";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
