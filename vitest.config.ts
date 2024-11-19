@@ -24,7 +24,7 @@ export default defineConfig({
       inline: ["vitest-canvas-mock"],
     },
     globals: true,
-    setupFiles: ["./test/setup.ts"],
+    setupFiles: ["./test/setup.ts", "./src/__helpers__/feature-flags.ts"],
     coverage: {
       reporter: ["text", "json", "html"],
     },
