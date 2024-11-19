@@ -44,4 +44,23 @@ describe("Pipe", () => {
     expect(pipe.length).toEqual(0);
     expect(pipe.diameter).toEqual(14);
   });
+
+  it("can add a vertex", () => {
+    const pipe = Pipe.build({
+      coordinates: [
+        [1, 1],
+        [2, 2],
+      ],
+      length: 0,
+    });
+
+    pipe.addVertex([3, 3]);
+
+    expect(pipe.coordinates).toEqual([
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ]);
+    expect(pipe.length).not.toEqual(0);
+  });
 });
