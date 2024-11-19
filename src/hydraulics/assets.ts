@@ -7,7 +7,9 @@ import {
   Point,
   Position,
 } from "src/types";
+import measureLength from "@turf/length";
 import cloneDeep from "lodash/cloneDeep";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type LinkConnections = [start: string, end: string];
 
@@ -80,19 +82,19 @@ export const createJunction = ({
 export const createPipe = ({
   coordinates,
   id = newFeatureId(),
+  length = 0,
 }: {
   coordinates: Position[];
   id?: AssetId;
   length?: number;
 }): Pipe => {
   const nullConnections = ["", ""] as LinkConnections;
-  const nullLength = 0;
   return {
     id,
     feature: {
       type: "Feature",
       properties: {
-        length: length || nullLength,
+        length,
         connections: nullConnections,
       },
       geometry: {
@@ -110,6 +112,10 @@ export const extendLink = (link: LinkAsset, position: Position): LinkAsset => {
   const coordinates = feature.geometry.coordinates.slice(0, -1);
 
   return updateLinkCoordinates(link, coordinates.concat([position]));
+};
+
+export const getLinkLength = (link: LinkAsset): number => {
+  return link.feature.properties.length;
 };
 
 export const addVertexToLink = (
@@ -193,16 +199,31 @@ export const updateLinkCoordinates = (
   link: LinkAsset,
   newCoordinates: Position[],
 ): LinkAsset => {
-  return {
-    ...link,
-    feature: {
-      ...link.feature,
-      geometry: {
-        type: "LineString",
-        coordinates: newCoordinates,
+  if (isFeatureOn("FLAG_LENGTHS")) {
+    let updatedLink: LinkAsset = {
+      ...link,
+      feature: {
+        ...link.feature,
+        geometry: {
+          type: "LineString",
+          coordinates: newCoordinates,
+        },
       },
-    },
-  };
+    };
+    updatedLink = assignMeasuredLength(updatedLink);
+    return updatedLink;
+  } else {
+    return {
+      ...link,
+      feature: {
+        ...link.feature,
+        geometry: {
+          type: "LineString",
+          coordinates: newCoordinates,
+        },
+      },
+    };
+  }
 };
 
 export const updateMatchingEndpoints = (
@@ -226,9 +247,16 @@ export const getLinkConnections = (link: LinkAsset): LinkConnections => {
   return link.feature.properties.connections;
 };
 
+export const assignMeasuredLength = (link: LinkAsset): LinkAsset => {
+  const lengthInMeters =
+    measureLength(link.feature, { units: "kilometers" }) * 1000;
+  const length = parseFloat(lengthInMeters.toFixed(2));
+  return assignProperties(link, { length }) as LinkAsset;
+};
+
 const assignProperties = (
   asset: Asset,
-  newProperties: Partial<JunctionAttributes>,
+  newProperties: Partial<JunctionAttributes> | Partial<PipeAttributes>,
 ) => {
   return {
     ...asset,
