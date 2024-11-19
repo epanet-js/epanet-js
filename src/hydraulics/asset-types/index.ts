@@ -6,4 +6,4 @@ export type NodeAsset = Junction;
 export type LinkAsset = Pipe;
 
 export { Pipe, Junction };
-export type { AssetId } from "./asset";
+export type { AssetId } from "./base-asset";

@@ -1,6 +1,6 @@
 import { Position } from "geojson";
 import { Link, LinkAttributes } from "./link";
-import { AssetId } from "./asset";
+import { AssetId } from "./base-asset";
 import { newFeatureId } from "src/lib/id";
 
 export type PipeAttributes = {

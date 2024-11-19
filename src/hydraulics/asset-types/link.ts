@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId } from "./asset";
+import { BaseAsset, AssetId } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
 

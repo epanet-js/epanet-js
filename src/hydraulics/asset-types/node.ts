@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId } from "./asset";
+import { BaseAsset, AssetId } from "./base-asset";
 
 export type NodeAttributes = {
   type: "junction";
