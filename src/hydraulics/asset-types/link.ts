@@ -2,24 +2,8 @@ import { Position } from "geojson";
 import { Asset, AssetId } from "./asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
-import { LinkType } from ".";
 
 type LinkConnections = [start: string, end: string];
-
-export interface LinkAsset {
-  id: string;
-  get connections(): LinkConnections;
-  get coordinates(): Position[];
-  get length(): number;
-  setCoordinates: (newCoordinates: Position[]) => void;
-  get isNode(): boolean;
-  get isLink(): boolean;
-  isStart(position: Position): boolean;
-  isEnd(position: Position): boolean;
-  copy: () => LinkType;
-  get firstVertex(): Position;
-  get lastVertex(): Position;
-}
 
 export type LinkAttributes = {
   type: "pipe";
@@ -27,10 +11,7 @@ export type LinkAttributes = {
   length: number;
 };
 
-export abstract class Link<T>
-  extends Asset<T & LinkAttributes>
-  implements LinkAsset
-{
+export class Link<T> extends Asset<T & LinkAttributes> {
   constructor(
     id: AssetId,
     coordinates: Position[],
@@ -101,6 +82,4 @@ export abstract class Link<T>
 
     this.attributes.length = length;
   }
-
-  abstract copy(): LinkType;
 }

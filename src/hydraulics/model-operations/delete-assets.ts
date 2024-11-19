@@ -1,4 +1,4 @@
-import { AssetId } from "../assets-deprecated";
+import { AssetId } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

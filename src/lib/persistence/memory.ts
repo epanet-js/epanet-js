@@ -38,10 +38,9 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { Asset, getAssetConnections } from "src/hydraulics/assets-deprecated";
 import { AssetsMap } from "src/hydraulics/assets-map";
 import { ModelMoment } from "src/hydraulics/model-operation";
-import { AssetType } from "src/hydraulics/asset-types";
+import { AssetType, LinkType } from "src/hydraulics/asset-types";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -284,15 +283,20 @@ export class MemPersistence implements IPersistence {
       assets.set(inputFeature.id, inputFeature as AssetType);
 
       if (oldVersion && topology.hasLink(oldVersion.id)) {
-        const oldConnections = getAssetConnections(oldVersion as Asset);
+        const oldLink = oldVersion as LinkType;
+        const oldConnections = oldLink.connections;
 
         oldConnections && topology.removeLink(oldVersion.id);
       }
 
-      const connections = getAssetConnections(inputFeature as Asset);
+      if (
+        inputFeature.feature.properties &&
+        inputFeature.feature.properties.connections
+      ) {
+        const [start, end] = (inputFeature as LinkType).connections;
 
-      connections &&
-        topology.addLink(inputFeature.id, connections[0], connections[1]);
+        topology.addLink(inputFeature.id, start, end);
+      }
 
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
