@@ -2,6 +2,7 @@ import { Position } from "geojson";
 import {
   AssetsMap,
   NodeAsset,
+  PipeAttributes,
   createJunction,
   createPipe,
   getNodeCoordinates,
@@ -28,7 +29,12 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aLink(id: string, startNodeId: string, endNodeId: string) {
+  aLink(
+    id: string,
+    startNodeId: string,
+    endNodeId: string,
+    attributes: Partial<PipeAttributes> = {},
+  ) {
     const startNode = this.assets.get(startNodeId);
     const endNode = this.assets.get(endNodeId);
     if (!startNode) throw new Error(`Start node (${startNodeId}) is missing`);
@@ -40,6 +46,7 @@ export class HydraulicModelBuilder {
         getNodeCoordinates(endNode as NodeAsset),
       ],
       id,
+      ...attributes,
     });
     this.assets.set(link.id, link);
     this.topology.addLink(id, startNodeId, endNodeId);
