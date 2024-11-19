@@ -14,7 +14,6 @@ import {
   fetchElevationForPoint,
   prefetchElevationsTile,
 } from "src/map/elevations";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { captureError } from "src/infra/error-tracking";
 
 export function useNoneHandlers({
@@ -87,10 +86,9 @@ export function useNoneHandlers({
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
-      const [assetId] = getSelectionIds();
-      if (isFeatureOn("FLAG_ELEVATIONS"))
-        prefetchElevationsTile(e.lngLat).catch(captureError);
+      prefetchElevationsTile(e.lngLat).catch(captureError);
 
+      const [assetId] = getSelectionIds();
       const asset = hydraulicModel.assets.get(assetId);
       if (!asset || isLink(asset)) return;
 
@@ -115,9 +113,7 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: isFeatureOn("FLAG_ELEVATIONS")
-          ? await fetchElevationForPoint(e.lngLat)
-          : 0,
+        newElevation: await fetchElevationForPoint(e.lngLat),
       });
       transact(moment);
       resetMove();

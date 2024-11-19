@@ -13,7 +13,6 @@ import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulics/model-operations";
 import { createJunction } from "src/hydraulics/assets";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
-import { isFeatureOn } from "src/infra/feature-flags";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 
@@ -34,9 +33,7 @@ export function useJunctionHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const elevation = isFeatureOn("FLAG_ELEVATIONS")
-        ? await fetchElevationForPoint(e.lngLat)
-        : 0;
+      const elevation = await fetchElevationForPoint(e.lngLat);
       const junction = createJunction({
         elevation,
         coordinates: clickPosition,
@@ -51,9 +48,7 @@ export function useJunctionHandlers({
       }
     },
     move: throttle((e) => {
-      if (isFeatureOn("FLAG_ELEVATIONS")) {
-        prefetchElevationsTile(e.lngLat).catch((e) => captureError(e));
-      }
+      prefetchElevationsTile(e.lngLat).catch((e) => captureError(e));
     }, 200),
     down: noop,
     up() {

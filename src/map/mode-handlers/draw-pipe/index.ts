@@ -25,7 +25,6 @@ import {
   prefetchElevationsTile,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { nextTick } from "process";
 
 export function useDrawPipeHandlers({
@@ -89,71 +88,23 @@ export function useDrawPipeHandlers({
 
   const handlers: Handlers = {
     click: (e) => {
-      if (isFeatureOn("FLAG_ELEVATIONS")) {
-        isClickInProgress.current = true;
+      isClickInProgress.current = true;
 
-        const doAsyncClick = async () => {
-          const snappingNode = isSnapping() ? getSnappingNode(e) : null;
-          const clickPosition = snappingNode
-            ? getNodeCoordinates(snappingNode)
-            : getMapCoord(e);
-          const pointElevation = snappingNode
-            ? getNodeElevation(snappingNode)
-            : isFeatureOn("FLAG_ELEVATIONS")
-              ? await fetchElevationForPoint(e.lngLat)
-              : 0;
-
-          if (drawing.isNull) {
-            const startNode = snappingNode
-              ? snappingNode
-              : createJunction({
-                  coordinates: clickPosition,
-                  elevation: pointElevation,
-                });
-
-            startDrawing(startNode);
-
-            return;
-          }
-
-          if (!!snappingNode) {
-            submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-            isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
-            return;
-          }
-
-          if (isEndAndContinueOn()) {
-            const endJunction = createJunction({
-              coordinates: clickPosition,
-              elevation: pointElevation,
-            });
-            submitPipe(drawing.startNode, drawing.pipe, endJunction);
-            startDrawing(endJunction);
-          } else {
-            addVertex(clickPosition);
-          }
-        };
-
-        doAsyncClick()
-          .then(() => {
-            nextTick(() => (isClickInProgress.current = false));
-          })
-          .catch((error) => {
-            captureError(error);
-            nextTick(() => (isClickInProgress.current = false));
-          });
-      } else {
+      const doAsyncClick = async () => {
         const snappingNode = isSnapping() ? getSnappingNode(e) : null;
         const clickPosition = snappingNode
           ? getNodeCoordinates(snappingNode)
           : getMapCoord(e);
+        const pointElevation = snappingNode
+          ? getNodeElevation(snappingNode)
+          : await fetchElevationForPoint(e.lngLat);
 
         if (drawing.isNull) {
           const startNode = snappingNode
             ? snappingNode
             : createJunction({
                 coordinates: clickPosition,
-                elevation: 0,
+                elevation: pointElevation,
               });
 
           startDrawing(startNode);
@@ -170,14 +121,23 @@ export function useDrawPipeHandlers({
         if (isEndAndContinueOn()) {
           const endJunction = createJunction({
             coordinates: clickPosition,
-            elevation: 0,
+            elevation: pointElevation,
           });
           submitPipe(drawing.startNode, drawing.pipe, endJunction);
           startDrawing(endJunction);
         } else {
           addVertex(clickPosition);
         }
-      }
+      };
+
+      doAsyncClick()
+        .then(() => {
+          nextTick(() => (isClickInProgress.current = false));
+        })
+        .catch((error) => {
+          captureError(error);
+          nextTick(() => (isClickInProgress.current = false));
+        });
     },
     move: (e) => {
       if (isClickInProgress.current) return;
@@ -220,9 +180,9 @@ export function useDrawPipeHandlers({
 
       const endJunction = createJunction({
         coordinates: lastVertex,
-        elevation: isFeatureOn("FLAG_ELEVATIONS")
-          ? await fetchElevationForPoint(coordinatesToLngLat(lastVertex))
-          : 0,
+        elevation: await fetchElevationForPoint(
+          coordinatesToLngLat(lastVertex),
+        ),
       });
 
       submitPipe(startNode, pipe, endJunction);
