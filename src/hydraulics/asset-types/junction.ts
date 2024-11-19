@@ -1,24 +1,24 @@
 import { Position } from "geojson";
 import { AssetId } from "./asset";
 import { Node, NodeAttributes } from "./node";
+import { newFeatureId } from "src/lib/id";
 
 export type JunctionAttributes = {
   type: "junction";
 } & NodeAttributes;
 
 export class Junction extends Node<JunctionAttributes> {
-  static build(
-    id: AssetId,
-    coordinates: Position,
-    attributes: Partial<JunctionAttributes> = {},
-  ) {
-    const defaultAttributes: JunctionAttributes = {
-      type: "junction",
-      elevation: 0,
-    };
+  static build({
+    id = newFeatureId(),
+    coordinates = [0, 0],
+    elevation = 0,
+  }: {
+    coordinates?: Position;
+    id?: AssetId;
+  } & Partial<JunctionAttributes> = {}) {
     return new Junction(id, coordinates, {
-      ...defaultAttributes,
-      ...attributes,
+      type: "junction",
+      elevation,
     });
   }
 

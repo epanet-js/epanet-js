@@ -5,10 +5,13 @@ import measureLength from "@turf/length";
 type LinkConnections = [start: string, end: string];
 
 export interface LinkAsset {
+  id: string;
   get connections(): LinkConnections;
   get coordinates(): Position[];
   get length(): number;
   setCoordinates: (newCoordinates: Position[]) => void;
+  get isNode(): boolean;
+  get isLink(): boolean;
 }
 
 export type LinkAttributes = {
@@ -23,6 +26,13 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
     attributes: T & LinkAttributes,
   ) {
     super(id, { type: "LineString", coordinates }, attributes);
+  }
+
+  get isLink() {
+    return true;
+  }
+  get isNode() {
+    return false;
   }
 
   get connections() {

@@ -3,10 +3,12 @@ import { Pipe } from "./pipe";
 
 describe("Pipe", () => {
   it("setting coordinates updates its length", () => {
-    const pipe = Pipe.build("ID", [
-      [1, 1],
-      [2, 2],
-    ]);
+    const pipe = Pipe.build({
+      coordinates: [
+        [1, 1],
+        [2, 2],
+      ],
+    });
 
     expect(pipe.length).toEqual(0);
 
@@ -20,14 +22,14 @@ describe("Pipe", () => {
   });
 
   it("does not mutate after a copy", () => {
-    const pipe = Pipe.build(
-      "ID",
-      [
+    const pipe = Pipe.build({
+      coordinates: [
         [1, 1],
         [2, 2],
       ],
-      { length: 0, diameter: 14 },
-    );
+      length: 0,
+      diameter: 14,
+    });
 
     const pipeCopy = pipe.copy();
 
