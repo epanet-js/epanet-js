@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import { addPipe } from "./add-pipe";
 import {
   LinkAsset,
+  Pipe,
   createJunction,
   createPipe,
   getLinkConnections,
   getLinkCoordinates,
+  getLinkLength,
 } from "../assets";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("addPipe", () => {
   it("updates connections", () => {
@@ -94,5 +97,28 @@ describe("addPipe", () => {
       [15, 15],
       [20, 20],
     ]);
+  });
+
+  it("calculates pipe length", () => {
+    stubFeatureOn("FLAG_LENGTHS");
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startCoordinates = [-4.3760931, 55.9150083];
+    const endCoordiantes = [-4.3771833, 55.9133641];
+    const startNode = createJunction({ coordinates: startCoordinates });
+    const endNode = createJunction({ coordinates: endCoordiantes });
+    const pipe = createPipe({
+      coordinates: [startCoordinates, endCoordiantes],
+      id: "PIPE",
+    });
+
+    const { putAssets } = addPipe(hydraulicModel, {
+      startNode,
+      endNode,
+      pipe,
+    });
+
+    const pipeToCreate = putAssets![0] as Pipe;
+    expect(pipeToCreate.id).toEqual("PIPE");
+    expect(getLinkLength(pipeToCreate)).toEqual(195.04);
   });
 });

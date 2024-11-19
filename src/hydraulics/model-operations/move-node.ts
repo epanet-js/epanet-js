@@ -1,6 +1,7 @@
 import { Position } from "geojson";
 import {
   AssetId,
+  AssetsMap,
   LinkAsset,
   NodeAsset,
   assignElevation,
@@ -25,10 +26,26 @@ export const moveNode: ModelOperation<InputData> = (
 
   let updatedNode = updateNodeCoordinates(node, newCoordinates);
   updatedNode = assignElevation(updatedNode, newElevation);
+
   const linkIds = topology.getLinks(node.id);
 
-  const updatedLinks = [];
+  const updatedLinks = updateLinkCoordinates(
+    assets,
+    linkIds,
+    oldCoordinates,
+    newCoordinates,
+  );
 
+  return { note: "Move node", putAssets: [updatedNode, ...updatedLinks] };
+};
+
+const updateLinkCoordinates = (
+  assets: AssetsMap,
+  linkIds: AssetId[],
+  oldCoordinates: Position,
+  newCoordinates: Position,
+) => {
+  const updatedLinks = [];
   for (const linkId of linkIds) {
     const link = assets.get(linkId) as LinkAsset;
 
@@ -36,6 +53,5 @@ export const moveNode: ModelOperation<InputData> = (
       updateMatchingEndpoints(link, oldCoordinates, newCoordinates),
     );
   }
-
-  return { note: "Move node", putAssets: [updatedNode, ...updatedLinks] };
+  return updatedLinks;
 };
