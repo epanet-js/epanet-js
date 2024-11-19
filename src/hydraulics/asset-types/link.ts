@@ -53,6 +53,13 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
     return isSamePosition(this.coordinates[0], position);
   }
 
+  lastVertex(): Position {
+    const vertex = this.coordinates.at(-1);
+    if (!vertex) throw new Error("Link has no vertex!");
+
+    return vertex;
+  }
+
   addVertex(vertex: Position) {
     this.setCoordinates([...this.coordinates, vertex]);
   }
