@@ -5,13 +5,21 @@ export type AssetId = StringId;
 
 type AssetGeometry = LineString | Point;
 
+export type VisibilityAttributes = {
+  visibility?: boolean;
+};
+
 export class Asset<T> {
-  public readonly feature: IFeature<AssetGeometry, T>;
+  public readonly feature: IFeature<AssetGeometry, T & VisibilityAttributes>;
   public readonly id: AssetId;
   public readonly at = "any";
   public readonly folderId = "any";
 
-  constructor(id: AssetId, geometry: AssetGeometry, attributes: T) {
+  constructor(
+    id: AssetId,
+    geometry: AssetGeometry,
+    attributes: T & VisibilityAttributes,
+  ) {
     this.id = id;
     this.feature = {
       type: "Feature",

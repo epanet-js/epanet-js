@@ -3,7 +3,7 @@ import { Junction } from "./junction";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {
-    const junction = Junction.build("ID", [1, 2]);
+    const junction = Junction.build({ id: "ID", coordinates: [1, 2] });
 
     expect(junction.elevation).toEqual(0);
 

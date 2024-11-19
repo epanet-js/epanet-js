@@ -2,10 +2,13 @@ import { Position } from "geojson";
 import { Asset, AssetId } from "./asset";
 
 export interface NodeAsset {
+  id: string;
   get coordinates(): Position;
   setCoordinates: (newCoordinates: Position) => void;
   get elevation(): number;
   setElevation: (elevation: number) => void;
+  get isNode(): boolean;
+  get isLink(): boolean;
 }
 
 export type NodeAttributes = {
@@ -19,6 +22,14 @@ export class Node<T> extends Asset<T & NodeAttributes> implements NodeAsset {
     attributes: T & NodeAttributes,
   ) {
     super(id, { type: "Point", coordinates }, attributes);
+  }
+
+  get isLink() {
+    return false;
+  }
+
+  get isNode() {
+    return true;
   }
 
   get coordinates() {
