@@ -1,6 +1,5 @@
 import { IFeature } from "src/types";
 import { LineString, Point } from "geojson";
-import { AssetType } from ".";
 
 export type AssetId = StringId;
 
@@ -11,7 +10,7 @@ export type AssetAttributes = {
   visibility?: boolean;
 };
 
-export abstract class Asset<T> {
+export class Asset<T> {
   public readonly feature: IFeature<AssetGeometry, T & AssetAttributes>;
   public readonly id: AssetId;
   public readonly at = "any";
@@ -37,6 +36,4 @@ export abstract class Asset<T> {
   protected get geometry(): AssetGeometry {
     return this.feature.geometry;
   }
-
-  abstract copy(): AssetType;
 }

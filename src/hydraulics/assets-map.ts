@@ -1,13 +1,6 @@
-import {
-  AssetType,
-  AssetId,
-  NodeAsset,
-  NodeType,
-  LinkType,
-} from "./asset-types";
+import { AssetType, AssetId, NodeType, LinkType } from "./asset-types";
 
 export type { AssetId };
-export type { NodeAsset };
 export class AssetsMap extends Map<AssetId, AssetType> {}
 
 export const getLink = (

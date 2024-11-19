@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { PipeAttributes } from "../assets-deprecated";
+import { PipeAttributes } from "../asset-types/pipe";
 import { Topology } from "../topology";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap, getNode } from "../assets-map";

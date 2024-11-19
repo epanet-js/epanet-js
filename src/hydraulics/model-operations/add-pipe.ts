@@ -1,4 +1,4 @@
-import { Pipe, NodeAsset, LinkAsset, NodeType } from "../asset-types";
+import { Pipe, NodeType, LinkType } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
@@ -23,7 +23,7 @@ export const addPipe: ModelOperation<InputData> = (
     putAssets: [pipeCopy, startNode, endNode],
   };
 };
-const removeRedundantVertices = (link: LinkAsset) => {
+const removeRedundantVertices = (link: LinkType) => {
   const vertices = link.coordinates;
   let previous: Position | null = null;
 
@@ -39,9 +39,9 @@ const removeRedundantVertices = (link: LinkAsset) => {
 };
 
 const forceSpatialConnectivity = (
-  link: LinkAsset,
-  startNode: NodeAsset,
-  endNode: NodeAsset,
+  link: LinkType,
+  startNode: NodeType,
+  endNode: NodeType,
 ) => {
   const newCoordinates = [...link.coordinates];
   newCoordinates[0] = startNode.coordinates;

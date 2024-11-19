@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import { AssetId, LinkType, NodeType } from "../asset-types";
 import { AssetsMap, getNode, getLink } from "../assets-map";
 import { ModelOperation } from "../model-operation";
 
@@ -13,7 +13,7 @@ export const moveNode: ModelOperation<InputData> = (
   { assets, topology },
   { nodeId, newCoordinates, newElevation },
 ) => {
-  const node = getNode(assets, nodeId) as NodeAsset;
+  const node = getNode(assets, nodeId) as NodeType;
   const oldCoordinates = node.coordinates;
 
   const updatedNode = node.copy();
@@ -40,7 +40,7 @@ const updateMatchingEndpoints = (
 ) => {
   const updatedLinks = [];
   for (const linkId of linkIds) {
-    const link = getLink(assets, linkId) as LinkAsset;
+    const link = getLink(assets, linkId) as LinkType;
     const linkCopy = link.copy();
 
     const newLinkCoordinates = [...linkCopy.coordinates];
