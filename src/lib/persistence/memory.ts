@@ -38,7 +38,11 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { Asset, AssetsMap, getAssetConnections } from "src/hydraulics/assets";
+import {
+  Asset,
+  AssetsMap,
+  getAssetConnections,
+} from "src/hydraulics/assets-deprecated";
 import { ModelMoment } from "src/hydraulics/model-operation";
 
 export class MemPersistence implements IPersistence {

@@ -6,7 +6,7 @@ import {
   getLinkCoordinates,
   getNodeCoordinates,
   updateLinkCoordinates,
-} from "../assets";
+} from "../assets-deprecated";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";

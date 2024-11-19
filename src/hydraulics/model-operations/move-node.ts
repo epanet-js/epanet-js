@@ -8,7 +8,7 @@ import {
   getNodeCoordinates,
   updateMatchingEndpoints,
   updateNodeCoordinates,
-} from "../assets";
+} from "../assets-deprecated";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

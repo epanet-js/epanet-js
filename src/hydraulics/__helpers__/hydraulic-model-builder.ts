@@ -6,7 +6,7 @@ import {
   createJunction,
   createPipe,
   getNodeCoordinates,
-} from "../assets";
+} from "../assets-deprecated";
 import { Topology } from "../topology";
 import { HydraulicModel } from "../hydraulic-model";
 

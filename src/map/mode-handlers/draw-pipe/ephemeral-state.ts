@@ -1,6 +1,10 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { NodeAsset, Pipe, getNodeCoordinates } from "src/hydraulics/assets";
+import {
+  NodeAsset,
+  Pipe,
+  getNodeCoordinates,
+} from "src/hydraulics/assets-deprecated";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";

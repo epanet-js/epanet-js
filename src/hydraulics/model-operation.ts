@@ -1,4 +1,4 @@
-import { Asset, AssetId } from "./assets";
+import { Asset, AssetId } from "./assets-deprecated";
 import { HydraulicModel } from "./hydraulic-model";
 
 export type ModelMoment = {

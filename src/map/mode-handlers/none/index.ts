@@ -6,7 +6,11 @@ import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
-import { NodeAsset, getNodeCoordinates, isLink } from "src/hydraulics/assets";
+import {
+  NodeAsset,
+  getNodeCoordinates,
+  isLink,
+} from "src/hydraulics/assets-deprecated";
 import { moveNode } from "src/hydraulics/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
