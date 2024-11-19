@@ -3,7 +3,7 @@ import { LineString, Point } from "geojson";
 
 export type AssetId = StringId;
 
-type AssetGeometry = LineString | Point;
+export type AssetGeometry = LineString | Point;
 
 export type VisibilityAttributes = {
   visibility?: boolean;
