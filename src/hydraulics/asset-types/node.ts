@@ -1,8 +1,10 @@
 import { Position } from "geojson";
-import { Asset, AssetId } from "./asset";
+import { Asset, AssetGeometry, AssetId, VisibilityAttributes } from "./asset";
+import { IFeature } from "src/types";
 
 export interface NodeAsset {
   id: string;
+  get feature(): IFeature<AssetGeometry, VisibilityAttributes>;
   get coordinates(): Position;
   setCoordinates: (newCoordinates: Position) => void;
   get elevation(): number;
