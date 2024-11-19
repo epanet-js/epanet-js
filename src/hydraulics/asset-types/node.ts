@@ -1,12 +1,12 @@
 import { Position } from "geojson";
-import { Asset, AssetId } from "./asset";
+import { BaseAsset, AssetId } from "./asset";
 
 export type NodeAttributes = {
   type: "junction";
   elevation: number;
 };
 
-export class Node<T> extends Asset<T & NodeAttributes> {
+export class Node<T> extends BaseAsset<T & NodeAttributes> {
   constructor(
     id: AssetId,
     coordinates: Position,

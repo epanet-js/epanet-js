@@ -1,14 +1,14 @@
 import { useAtom } from "jotai";
-import { NodeType, Pipe } from "src/hydraulics/asset-types";
+import { NodeAsset, Pipe } from "src/hydraulics/asset-types";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
-type NullDrawing = { isNull: true; snappingCandidate: NodeType | null };
+type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
 type DrawingState =
   | {
       isNull: false;
-      startNode: NodeType;
+      startNode: NodeAsset;
       pipe: Pipe;
-      snappingCandidate: NodeType | null;
+      snappingCandidate: NodeAsset | null;
     }
   | NullDrawing;
 
@@ -29,7 +29,7 @@ export const useDrawingState = () => {
         }
       : { isNull: true, snappingCandidate: null };
 
-  const setSnappingCandidate = (snappingCandidate: NodeType | null) => {
+  const setSnappingCandidate = (snappingCandidate: NodeAsset | null) => {
     setEphemeralState((prev: EphemeralEditingState) => {
       if (prev.type !== "drawPipe")
         return {
@@ -49,9 +49,9 @@ export const useDrawingState = () => {
     pipe,
     snappingCandidate,
   }: {
-    startNode: NodeType;
+    startNode: NodeAsset;
     pipe: Pipe;
-    snappingCandidate: NodeType | null;
+    snappingCandidate: NodeAsset | null;
   }) => {
     setEphemeralState({
       type: "drawPipe",

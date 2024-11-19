@@ -15,7 +15,7 @@ import {
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { Junction, NodeType, Pipe } from "src/hydraulics/asset-types";
+import { Junction, NodeAsset, Pipe } from "src/hydraulics/asset-types";
 
 export function useDrawPipeHandlers({
   rep,
@@ -33,7 +33,7 @@ export function useDrawPipeHandlers({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
-  const startDrawing = (startNode: NodeType) => {
+  const startDrawing = (startNode: NodeAsset) => {
     const coordinates = startNode.coordinates;
     const pipe = Pipe.build({ coordinates: [coordinates, coordinates] });
 
@@ -57,7 +57,7 @@ export function useDrawPipeHandlers({
     });
   };
 
-  const submitPipe = (startNode: NodeType, pipe: Pipe, endNode: NodeType) => {
+  const submitPipe = (startNode: NodeAsset, pipe: Pipe, endNode: NodeAsset) => {
     const length = measureLength(pipe.feature);
     if (!length) {
       return;

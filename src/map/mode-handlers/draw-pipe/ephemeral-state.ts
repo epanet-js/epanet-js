@@ -1,12 +1,12 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { Pipe, NodeType } from "src/hydraulics/asset-types";
+import { Pipe, NodeAsset } from "src/hydraulics/asset-types";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
   pipe?: Pipe;
-  startNode?: NodeType;
-  snappingCandidate: NodeType | null;
+  startNode?: NodeAsset;
+  snappingCandidate: NodeAsset | null;
 }
 
 export const buildLayers = (state: EphemeralDrawPipe) => {

@@ -3,14 +3,14 @@ import { LineString, Point } from "geojson";
 
 export type AssetId = StringId;
 
-export type AssetGeometry = LineString | Point;
+type AssetGeometry = LineString | Point;
 
-export type AssetAttributes = {
+type AssetAttributes = {
   type: "pipe" | "junction";
   visibility?: boolean;
 };
 
-export class Asset<T> {
+export class BaseAsset<T> {
   public readonly feature: IFeature<AssetGeometry, T & AssetAttributes>;
   public readonly id: AssetId;
   public readonly at = "any";

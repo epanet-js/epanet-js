@@ -40,7 +40,7 @@ import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
 import { AssetsMap } from "src/hydraulics/assets-map";
 import { ModelMoment } from "src/hydraulics/model-operation";
-import { AssetType, LinkType } from "src/hydraulics/asset-types";
+import { Asset, LinkAsset } from "src/hydraulics/asset-types";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -280,10 +280,10 @@ export class MemPersistence implements IPersistence {
       const {
         hydraulicModel: { assets, topology },
       } = ctx;
-      assets.set(inputFeature.id, inputFeature as AssetType);
+      assets.set(inputFeature.id, inputFeature as Asset);
 
       if (oldVersion && topology.hasLink(oldVersion.id)) {
-        const oldLink = oldVersion as LinkType;
+        const oldLink = oldVersion as LinkAsset;
         const oldConnections = oldLink.connections;
 
         oldConnections && topology.removeLink(oldVersion.id);
@@ -293,7 +293,7 @@ export class MemPersistence implements IPersistence {
         inputFeature.feature.properties &&
         inputFeature.feature.properties.connections
       ) {
-        const [start, end] = (inputFeature as LinkType).connections;
+        const [start, end] = (inputFeature as LinkAsset).connections;
 
         topology.addLink(inputFeature.id, start, end);
       }
