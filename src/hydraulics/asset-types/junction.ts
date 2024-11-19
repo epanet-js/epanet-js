@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { AssetId } from "./asset";
+import { AssetId } from "./base-asset";
 import { Node, NodeAttributes } from "./node";
 import { newFeatureId } from "src/lib/id";
 
