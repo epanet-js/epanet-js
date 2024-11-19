@@ -64,6 +64,24 @@ describe("Pipe", () => {
     expect(pipe.length).not.toEqual(0);
   });
 
+  it("can extend a pipe", () => {
+    const pipe = Pipe.build({
+      coordinates: [
+        [1, 1],
+        [2, 2],
+      ],
+      length: 0,
+    });
+
+    pipe.extendTo([3, 3]);
+
+    expect(pipe.coordinates).toEqual([
+      [1, 1],
+      [3, 3],
+    ]);
+    expect(pipe.length).not.toEqual(0);
+  });
+
   it("can say when a coordinates is the start of a pipe", () => {
     const pipe = Pipe.build({
       coordinates: [

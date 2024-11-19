@@ -57,6 +57,10 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
     this.setCoordinates([...this.coordinates, vertex]);
   }
 
+  extendTo(position: Position) {
+    this.setCoordinates([...this.coordinates.slice(0, -1), position]);
+  }
+
   setCoordinates(newCoordinates: Position[]) {
     this.geometry.coordinates = newCoordinates;
 
