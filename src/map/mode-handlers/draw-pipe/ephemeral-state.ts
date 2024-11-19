@@ -1,16 +1,12 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
-import {
-  NodeAsset,
-  Pipe,
-  getNodeCoordinates,
-} from "src/hydraulics/assets-deprecated";
+import { Pipe, NodeType } from "src/hydraulics/asset-types";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
   pipe?: Pipe;
-  startNode?: NodeAsset;
-  snappingCandidate: NodeAsset | null;
+  startNode?: NodeType;
+  snappingCandidate: NodeType | null;
 }
 
 export const buildLayers = (state: EphemeralDrawPipe) => {
@@ -25,7 +21,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
     state.snappingCandidate &&
       new ScatterplotLayer({
         id: "DRAW_PIPE_SNAPPING_CANDIDATE",
-        data: [getNodeCoordinates(state.snappingCandidate)],
+        data: [state.snappingCandidate.coordinates],
         getPosition: <T>(d: T) => d,
         getRadius: 10,
         radiusUnits: "pixels",

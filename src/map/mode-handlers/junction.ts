@@ -11,10 +11,10 @@ import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulics/model-operations";
-import { createJunction } from "src/hydraulics/assets-deprecated";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
+import { Junction } from "src/hydraulics/asset-types";
 
 export function useJunctionHandlers({
   mode,
@@ -34,7 +34,7 @@ export function useJunctionHandlers({
 
       const clickPosition = getMapCoord(e);
       const elevation = await fetchElevationForPoint(e.lngLat);
-      const junction = createJunction({
+      const junction = Junction.build({
         elevation,
         coordinates: clickPosition,
       });

@@ -1,4 +1,4 @@
-import { AssetsMap } from "src/hydraulics/assets-deprecated";
+import { AssetsMap } from "src/hydraulics/assets-map";
 import { IDMap } from "src/lib/id_mapper";
 import { getKeepProperties, stripFeature } from "src/lib/pmap/strip_features";
 import { PreviewProperty } from "src/state/jotai";

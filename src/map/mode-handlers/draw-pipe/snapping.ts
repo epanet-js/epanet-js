@@ -4,7 +4,8 @@ import type { MapEngine } from "src/map/map-engine";
 import { Position } from "src/types";
 import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
-import { AssetsMap, NodeAsset } from "src/hydraulics/assets-deprecated";
+import { AssetsMap, getNode } from "src/hydraulics/assets-map";
+import { NodeType } from "src/hydraulics/asset-types";
 
 export const useSnapping = (
   map: MapEngine,
@@ -34,17 +35,11 @@ export const useSnapping = (
 
   const getSnappingNode = (
     e: MapMouseEvent | MapTouchEvent,
-  ): NodeAsset | null => {
-    const featureId = getNeighborPoint(e.point);
-    if (!featureId) return null;
+  ): NodeType | null => {
+    const assetId = getNeighborPoint(e.point);
+    if (!assetId) return null;
 
-    const wrappedFeature = assetsMap.get(featureId);
-    if (!wrappedFeature) return null;
-
-    const geometry = wrappedFeature.feature.geometry;
-    if (!geometry || geometry.type !== "Point") return null;
-
-    return wrappedFeature as NodeAsset;
+    return getNode(assetsMap, assetId);
   };
 
   const getSnappingCoordinates = (

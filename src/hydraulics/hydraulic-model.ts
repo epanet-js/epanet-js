@@ -1,5 +1,5 @@
 import { Topology } from "./topology";
-import { AssetsMap } from "./assets-deprecated";
+import { AssetsMap } from "./assets-map";
 
 export type HydraulicModel = {
   assets: AssetsMap;
