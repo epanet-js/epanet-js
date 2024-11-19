@@ -3,6 +3,7 @@ import { Junction } from "./junction";
 
 export type AssetType = Pipe | Junction;
 
+export type { AssetType as Asset };
 export type { LinkAsset } from "./link";
 export type { NodeAsset } from "./node";
 export { Pipe, Junction };

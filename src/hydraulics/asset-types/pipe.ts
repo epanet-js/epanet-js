@@ -18,7 +18,10 @@ export class Pipe extends Link<PipeAttributes> {
     diameter = 0,
     length = 0,
     connections = ["", ""],
-  }: { id?: AssetId; coordinates: Position[] } & Partial<PipeAttributes>) {
+  }: {
+    id?: AssetId;
+    coordinates?: Position[];
+  } & Partial<PipeAttributes> = {}) {
     return new Pipe(id, coordinates, {
       type: "pipe",
       diameter,
@@ -36,6 +39,6 @@ export class Pipe extends Link<PipeAttributes> {
   }
 
   copy() {
-    return new Pipe(this.id, { ...this.coordinates }, { ...this.attributes });
+    return new Pipe(this.id, [...this.coordinates], { ...this.attributes });
   }
 }

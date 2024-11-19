@@ -41,6 +41,10 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
     return this.attributes.connections;
   }
 
+  setConnections(startNodeId: AssetId, endNodeId: AssetId) {
+    this.attributes.connections = [startNodeId, endNodeId];
+  }
+
   get coordinates() {
     return this.geometry.coordinates as Position[];
   }
