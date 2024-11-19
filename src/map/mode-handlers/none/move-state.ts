@@ -1,12 +1,12 @@
 import { GeoJsonLayer } from "@deck.gl/layers";
 import { useAtom } from "jotai";
-import { Asset } from "src/hydraulics/assets-deprecated";
+import { AssetType } from "src/hydraulics/asset-types";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 export type EphemeralMoveAssets = {
   type: "moveAssets";
-  oldAssets: Asset[];
-  targetAssets: Asset[];
+  oldAssets: AssetType[];
+  targetAssets: AssetType[];
 };
 
 export const buildLayers = (state: EphemeralMoveAssets) => {
@@ -41,7 +41,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
 export const useMoveState = () => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
 
-  const startMove = (startAssets: Asset[]) => {
+  const startMove = (startAssets: AssetType[]) => {
     setEphemeralState({
       type: "moveAssets",
       oldAssets: startAssets,
@@ -49,7 +49,7 @@ export const useMoveState = () => {
     });
   };
 
-  const updateMove = (targetAssets: Asset[]) => {
+  const updateMove = (targetAssets: AssetType[]) => {
     if (state.type !== "moveAssets") {
       return startMove(targetAssets);
     }

@@ -1,4 +1,4 @@
-import { Junction } from "../assets-deprecated";
+import { Junction } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

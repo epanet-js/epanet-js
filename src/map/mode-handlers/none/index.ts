@@ -6,11 +6,8 @@ import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
-import {
-  NodeAsset,
-  getNodeCoordinates,
-  isLink,
-} from "src/hydraulics/assets-deprecated";
+
+import { getNode } from "src/hydraulics/assets-map";
 import { moveNode } from "src/hydraulics/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
@@ -74,12 +71,12 @@ export function useNoneHandlers({
       }
 
       e.preventDefault();
-      const asset = hydraulicModel.assets.get(assetId);
-      if (!asset || isLink(asset)) return;
+      const node = getNode(hydraulicModel.assets, assetId);
+      if (!node) return;
 
       const { putAssets } = moveNode(hydraulicModel, {
-        nodeId: asset.id,
-        newCoordinates: getNodeCoordinates(asset as NodeAsset),
+        nodeId: node.id,
+        newCoordinates: node.coordinates,
         newElevation: await fetchElevationForPoint(e.lngLat),
       });
       putAssets && startMove(putAssets);
@@ -94,7 +91,7 @@ export function useNoneHandlers({
 
       const [assetId] = getSelectionIds();
       const asset = hydraulicModel.assets.get(assetId);
-      if (!asset || isLink(asset)) return;
+      if (!asset || asset.isLink) return;
 
       const newCoordinates = getMapCoord(e);
       const noElevation = 0;

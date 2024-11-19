@@ -6,17 +6,6 @@ import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
-import {
-  NodeAsset,
-  Pipe,
-  addVertexToLink,
-  createJunction,
-  createPipe,
-  extendLink,
-  getNodeCoordinates,
-  getNodeElevation,
-  isLinkStart,
-} from "src/hydraulics/assets-deprecated";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
@@ -26,6 +15,7 @@ import {
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
+import { Junction, NodeType, Pipe } from "src/hydraulics/asset-types";
 
 export function useDrawPipeHandlers({
   rep,
@@ -43,9 +33,9 @@ export function useDrawPipeHandlers({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
-  const startDrawing = (startNode: NodeAsset) => {
-    const coordinates = getNodeCoordinates(startNode);
-    const pipe = createPipe({ coordinates: [coordinates, coordinates] });
+  const startDrawing = (startNode: NodeType) => {
+    const coordinates = startNode.coordinates;
+    const pipe = Pipe.build({ coordinates: [coordinates, coordinates] });
 
     setDrawing({
       startNode,
@@ -58,14 +48,16 @@ export function useDrawPipeHandlers({
   const addVertex = (coordinates: Position) => {
     if (drawing.isNull) return;
 
+    const pipeCopy = drawing.pipe.copy();
+    pipeCopy.addVertex(coordinates);
     setDrawing({
       startNode: drawing.startNode,
-      pipe: addVertexToLink(drawing.pipe, coordinates),
+      pipe: pipeCopy,
       snappingCandidate: null,
     });
   };
 
-  const submitPipe = (startNode: NodeAsset, pipe: Pipe, endNode: NodeAsset) => {
+  const submitPipe = (startNode: NodeType, pipe: Pipe, endNode: NodeType) => {
     const length = measureLength(pipe.feature);
     if (!length) {
       return;
@@ -93,16 +85,16 @@ export function useDrawPipeHandlers({
       const doAsyncClick = async () => {
         const snappingNode = isSnapping() ? getSnappingNode(e) : null;
         const clickPosition = snappingNode
-          ? getNodeCoordinates(snappingNode)
+          ? snappingNode.coordinates
           : getMapCoord(e);
         const pointElevation = snappingNode
-          ? getNodeElevation(snappingNode)
+          ? snappingNode.elevation
           : await fetchElevationForPoint(e.lngLat);
 
         if (drawing.isNull) {
           const startNode = snappingNode
             ? snappingNode
-            : createJunction({
+            : Junction.build({
                 coordinates: clickPosition,
                 elevation: pointElevation,
               });
@@ -119,7 +111,7 @@ export function useDrawPipeHandlers({
         }
 
         if (isEndAndContinueOn()) {
-          const endJunction = createJunction({
+          const endJunction = Junction.build({
             coordinates: clickPosition,
             elevation: pointElevation,
           });
@@ -157,14 +149,17 @@ export function useDrawPipeHandlers({
       }
 
       const nextCoordinates =
-        (snappingNode && getNodeCoordinates(snappingNode)) || getMapCoord(e);
+        (snappingNode && snappingNode.coordinates) || getMapCoord(e);
 
-      const isPipeStart = isLinkStart(drawing.pipe, nextCoordinates);
+      const pipeCopy = drawing.pipe.copy();
+      pipeCopy.extendTo(nextCoordinates);
 
       setDrawing({
         startNode: drawing.startNode,
-        pipe: extendLink(drawing.pipe, nextCoordinates),
-        snappingCandidate: !isPipeStart ? snappingNode : null,
+        pipe: pipeCopy,
+        snappingCandidate: !pipeCopy.isStart(nextCoordinates)
+          ? snappingNode
+          : null,
       });
     },
     double: async (e) => {
@@ -173,15 +168,11 @@ export function useDrawPipeHandlers({
       if (drawing.isNull) return;
 
       const { startNode, pipe } = drawing;
-      if (!pipe.feature.geometry) return;
-      const geometry = pipe.feature.geometry;
-      const lastVertex = geometry.coordinates.at(-1);
-      if (!lastVertex) return;
 
-      const endJunction = createJunction({
-        coordinates: lastVertex,
+      const endJunction = Junction.build({
+        coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
-          coordinatesToLngLat(lastVertex),
+          coordinatesToLngLat(pipe.lastVertex),
         ),
       });
 

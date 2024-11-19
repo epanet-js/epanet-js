@@ -1,49 +1,30 @@
-import {
-  LinkAsset,
-  NodeAsset,
-  Pipe,
-  attachConnections,
-  getLinkCoordinates,
-  getNodeCoordinates,
-  updateLinkCoordinates,
-} from "../assets-deprecated";
+import { Pipe, NodeAsset, LinkAsset, NodeType } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 
 type InputData = {
   pipe: Pipe;
-  startNode: NodeAsset;
-  endNode: NodeAsset;
+  startNode: NodeType;
+  endNode: NodeType;
 };
 
 export const addPipe: ModelOperation<InputData> = (
   hydraulicModel,
   { pipe, startNode, endNode },
 ) => {
-  let pipeReady = attachConnections(pipe, startNode.id, endNode.id);
-  pipeReady = removeRedundantVertices(pipeReady);
-  pipeReady = forceSpatialConnectivity(pipeReady, startNode, endNode);
+  const pipeCopy = pipe.copy();
+  pipeCopy.setConnections(startNode.id, endNode.id);
+  removeRedundantVertices(pipeCopy);
+  forceSpatialConnectivity(pipeCopy, startNode, endNode);
+
   return {
     note: "Add pipe",
-    putAssets: [pipeReady, startNode, endNode],
+    putAssets: [pipeCopy, startNode, endNode],
   };
 };
-
-const forceSpatialConnectivity = (
-  link: LinkAsset,
-  startNode: NodeAsset,
-  endNode: NodeAsset,
-) => {
-  const newCoordinates = [...getLinkCoordinates(link)];
-  newCoordinates[0] = getNodeCoordinates(startNode);
-  newCoordinates[newCoordinates.length - 1] = getNodeCoordinates(endNode);
-
-  return updateLinkCoordinates(link, newCoordinates);
-};
-
-const removeRedundantVertices = (link: LinkAsset): LinkAsset => {
-  const vertices = getLinkCoordinates(link);
+const removeRedundantVertices = (link: LinkAsset) => {
+  const vertices = link.coordinates;
   let previous: Position | null = null;
 
   const result = [];
@@ -54,7 +35,19 @@ const removeRedundantVertices = (link: LinkAsset): LinkAsset => {
     result.push(coordinates);
     previous = coordinates;
   }
-  return updateLinkCoordinates(link, result);
+  link.setCoordinates(result);
+};
+
+const forceSpatialConnectivity = (
+  link: LinkAsset,
+  startNode: NodeAsset,
+  endNode: NodeAsset,
+) => {
+  const newCoordinates = [...link.coordinates];
+  newCoordinates[0] = startNode.coordinates;
+  newCoordinates[newCoordinates.length - 1] = endNode.coordinates;
+
+  link.setCoordinates(newCoordinates);
 };
 
 const isAlmostTheSamePoint = (a: Position, b: Position) => {
