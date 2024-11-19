@@ -23,10 +23,6 @@ export class Junction extends Node<JunctionAttributes> {
   }
 
   copy() {
-    return new Junction(
-      this.id,
-      { ...this.coordinates },
-      { ...this.attributes },
-    );
+    return new Junction(this.id, [...this.coordinates], { ...this.attributes });
   }
 }

@@ -2,6 +2,7 @@ import { Position } from "geojson";
 import { Asset, AssetId } from "./asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
+import { LinkType } from ".";
 
 type LinkConnections = [start: string, end: string];
 
@@ -14,14 +15,22 @@ export interface LinkAsset {
   get isNode(): boolean;
   get isLink(): boolean;
   isStart(position: Position): boolean;
+  isEnd(position: Position): boolean;
+  copy: () => LinkType;
+  get firstVertex(): Position;
+  get lastVertex(): Position;
 }
 
 export type LinkAttributes = {
+  type: "pipe";
   connections: LinkConnections;
   length: number;
 };
 
-export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
+export abstract class Link<T>
+  extends Asset<T & LinkAttributes>
+  implements LinkAsset
+{
   constructor(
     id: AssetId,
     coordinates: Position[],
@@ -54,10 +63,21 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
   }
 
   isStart(position: Position) {
-    return isSamePosition(this.coordinates[0], position);
+    return isSamePosition(this.firstVertex, position);
   }
 
-  lastVertex(): Position {
+  isEnd(position: Position) {
+    return isSamePosition(this.lastVertex, position);
+  }
+
+  get firstVertex(): Position {
+    const vertex = this.coordinates[0];
+    if (!vertex) throw new Error("Link has no vertex!");
+
+    return vertex;
+  }
+
+  get lastVertex(): Position {
     const vertex = this.coordinates.at(-1);
     if (!vertex) throw new Error("Link has no vertex!");
 
@@ -81,4 +101,6 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
 
     this.attributes.length = length;
   }
+
+  abstract copy(): LinkType;
 }

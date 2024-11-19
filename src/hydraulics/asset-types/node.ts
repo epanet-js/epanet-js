@@ -1,23 +1,29 @@
 import { Position } from "geojson";
-import { Asset, AssetGeometry, AssetId, VisibilityAttributes } from "./asset";
+import { Asset, AssetGeometry, AssetId, AssetAttributes } from "./asset";
 import { IFeature } from "src/types";
+import { NodeType } from ".";
 
 export interface NodeAsset {
   id: string;
-  get feature(): IFeature<AssetGeometry, VisibilityAttributes>;
+  get feature(): IFeature<AssetGeometry, AssetAttributes>;
   get coordinates(): Position;
   setCoordinates: (newCoordinates: Position) => void;
   get elevation(): number;
   setElevation: (elevation: number) => void;
   get isNode(): boolean;
   get isLink(): boolean;
+  copy: () => NodeType;
 }
 
 export type NodeAttributes = {
+  type: "junction";
   elevation: number;
 };
 
-export class Node<T> extends Asset<T & NodeAttributes> implements NodeAsset {
+export abstract class Node<T>
+  extends Asset<T & NodeAttributes>
+  implements NodeAsset
+{
   constructor(
     id: AssetId,
     coordinates: Position,
@@ -49,4 +55,6 @@ export class Node<T> extends Asset<T & NodeAttributes> implements NodeAsset {
   setElevation(elevation: number) {
     this.attributes.elevation = elevation;
   }
+
+  abstract copy(): NodeType;
 }
