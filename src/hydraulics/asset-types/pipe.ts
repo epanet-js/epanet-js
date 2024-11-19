@@ -39,6 +39,8 @@ export class Pipe extends Link<PipeAttributes> {
   }
 
   copy() {
-    return new Pipe(this.id, [...this.coordinates], { ...this.attributes });
+    return new Pipe(this.id, [...this.coordinates], {
+      ...this.attributes,
+    });
   }
 }

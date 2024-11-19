@@ -1,14 +1,9 @@
 import { Position } from "geojson";
-import {
-  AssetsMap,
-  NodeAsset,
-  PipeAttributes,
-  createJunction,
-  createPipe,
-  getNodeCoordinates,
-} from "../assets-deprecated";
+import { PipeAttributes } from "../assets-deprecated";
 import { Topology } from "../topology";
 import { HydraulicModel } from "../hydraulic-model";
+import { AssetsMap, getNode } from "../assets-map";
+import { Junction, Pipe } from "../asset-types";
 
 export class HydraulicModelBuilder {
   private topology: Topology;
@@ -24,7 +19,7 @@ export class HydraulicModelBuilder {
   }
 
   aNode(id: string, coordinates: Position) {
-    const node = createJunction({ coordinates, id });
+    const node = Junction.build({ coordinates, id });
     this.assets.set(id, node);
     return this;
   }
@@ -35,16 +30,13 @@ export class HydraulicModelBuilder {
     endNodeId: string,
     attributes: Partial<PipeAttributes> = {},
   ) {
-    const startNode = this.assets.get(startNodeId);
-    const endNode = this.assets.get(endNodeId);
+    const startNode = getNode(this.assets, startNodeId);
+    const endNode = getNode(this.assets, endNodeId);
     if (!startNode) throw new Error(`Start node (${startNodeId}) is missing`);
     if (!endNode) throw new Error(`End node (${endNodeId}) is missing`);
 
-    const link = createPipe({
-      coordinates: [
-        getNodeCoordinates(startNode as NodeAsset),
-        getNodeCoordinates(endNode as NodeAsset),
-      ],
+    const link = Pipe.build({
+      coordinates: [startNode.coordinates, endNode.coordinates],
       id,
       ...attributes,
     });
