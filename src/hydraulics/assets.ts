@@ -9,7 +9,6 @@ import {
 } from "src/types";
 import measureLength from "@turf/length";
 import cloneDeep from "lodash/cloneDeep";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type LinkConnections = [start: string, end: string];
 
@@ -199,31 +198,18 @@ export const updateLinkCoordinates = (
   link: LinkAsset,
   newCoordinates: Position[],
 ): LinkAsset => {
-  if (isFeatureOn("FLAG_LENGTHS")) {
-    let updatedLink: LinkAsset = {
-      ...link,
-      feature: {
-        ...link.feature,
-        geometry: {
-          type: "LineString",
-          coordinates: newCoordinates,
-        },
+  let updatedLink: LinkAsset = {
+    ...link,
+    feature: {
+      ...link.feature,
+      geometry: {
+        type: "LineString",
+        coordinates: newCoordinates,
       },
-    };
-    updatedLink = assignMeasuredLength(updatedLink);
-    return updatedLink;
-  } else {
-    return {
-      ...link,
-      feature: {
-        ...link.feature,
-        geometry: {
-          type: "LineString",
-          coordinates: newCoordinates,
-        },
-      },
-    };
-  }
+    },
+  };
+  updatedLink = assignMeasuredLength(updatedLink);
+  return updatedLink;
 };
 
 export const updateMatchingEndpoints = (

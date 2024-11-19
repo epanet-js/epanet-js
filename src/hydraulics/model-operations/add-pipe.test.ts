@@ -10,7 +10,6 @@ import {
   getLinkLength,
 } from "../assets";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("addPipe", () => {
   it("updates connections", () => {
@@ -100,7 +99,6 @@ describe("addPipe", () => {
   });
 
   it("calculates pipe length", () => {
-    stubFeatureOn("FLAG_LENGTHS");
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startCoordinates = [-4.3760931, 55.9150083];
     const endCoordiantes = [-4.3771833, 55.9133641];
