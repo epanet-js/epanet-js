@@ -95,4 +95,12 @@ describe("Pipe", () => {
     expect(pipe.isStart([2, 2])).toBeFalsy();
     expect(pipe.isStart([1, 1])).toBeTruthy();
   });
+
+  it("can attach connections", () => {
+    const pipe = Pipe.build();
+
+    pipe.setConnections("START", "END");
+
+    expect(pipe.connections).toEqual(["START", "END"]);
+  });
 });
