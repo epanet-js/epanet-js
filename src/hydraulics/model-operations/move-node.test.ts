@@ -7,7 +7,7 @@ import {
   getLinkLength,
   getNodeCoordinates,
   getNodeElevation,
-} from "../assets";
+} from "../assets-deprecated";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 
 describe("moveNode", () => {

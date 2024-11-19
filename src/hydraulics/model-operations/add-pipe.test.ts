@@ -8,7 +8,7 @@ import {
   getLinkConnections,
   getLinkCoordinates,
   getLinkLength,
-} from "../assets";
+} from "../assets-deprecated";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 
 describe("addPipe", () => {

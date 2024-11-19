@@ -20,7 +20,11 @@ import loadAndAugmentStyle, {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
 } from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulics/assets";
+import {
+  AssetId,
+  AssetsMap,
+  filterAssets,
+} from "src/hydraulics/assets-deprecated";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";

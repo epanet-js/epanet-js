@@ -4,7 +4,7 @@ import type { MapEngine } from "src/map/map-engine";
 import { Position } from "src/types";
 import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
-import { AssetsMap, NodeAsset } from "src/hydraulics/assets";
+import { AssetsMap, NodeAsset } from "src/hydraulics/assets-deprecated";
 
 export const useSnapping = (
   map: MapEngine,

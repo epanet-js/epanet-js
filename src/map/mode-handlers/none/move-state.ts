@@ -1,6 +1,6 @@
 import { GeoJsonLayer } from "@deck.gl/layers";
 import { useAtom } from "jotai";
-import { Asset } from "src/hydraulics/assets";
+import { Asset } from "src/hydraulics/assets-deprecated";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 export type EphemeralMoveAssets = {

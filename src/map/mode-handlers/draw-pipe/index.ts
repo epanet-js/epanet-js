@@ -16,7 +16,7 @@ import {
   getNodeCoordinates,
   getNodeElevation,
   isLinkStart,
-} from "src/hydraulics/assets";
+} from "src/hydraulics/assets-deprecated";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
 import { addPipe } from "src/hydraulics/model-operations";
