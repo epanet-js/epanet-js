@@ -5,7 +5,7 @@ import { Position } from "src/types";
 import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulics/assets-map";
-import { NodeType } from "src/hydraulics/asset-types";
+import { NodeAsset } from "src/hydraulics/asset-types";
 
 export const useSnapping = (
   map: MapEngine,
@@ -35,7 +35,7 @@ export const useSnapping = (
 
   const getSnappingNode = (
     e: MapMouseEvent | MapTouchEvent,
-  ): NodeType | null => {
+  ): NodeAsset | null => {
     const assetId = getNeighborPoint(e.point);
     if (!assetId) return null;
 

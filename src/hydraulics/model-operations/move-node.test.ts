@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { moveNode } from "./move-node";
 
-import { NodeType, LinkType } from "../asset-types";
+import { NodeAsset, LinkAsset } from "../asset-types";
 import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
 
 describe("moveNode", () => {
@@ -19,7 +19,7 @@ describe("moveNode", () => {
       newElevation,
     });
 
-    const updatedNode = putAssets![0] as NodeType;
+    const updatedNode = putAssets![0] as NodeAsset;
     expect(updatedNode.id).toEqual(nodeId);
     expect(updatedNode.coordinates).toEqual(newCoordinates);
     expect(updatedNode.elevation).toEqual(10);
@@ -44,15 +44,15 @@ describe("moveNode", () => {
     });
 
     expect(putAssets!.length).toEqual(3);
-    const updatedNode = putAssets![0] as NodeType;
+    const updatedNode = putAssets![0] as NodeAsset;
     expect(updatedNode.id).toEqual(nodeId);
     expect(updatedNode.coordinates).toEqual(newCoordinates);
 
-    const updatedAB = putAssets![1] as LinkType;
+    const updatedAB = putAssets![1] as LinkAsset;
     expect(updatedAB.coordinates).toEqual([[10, 10], newCoordinates]);
     expect(updatedAB.length).toEqual(2300489.34);
 
-    const updatedBC = putAssets![2] as LinkType;
+    const updatedBC = putAssets![2] as LinkAsset;
     expect(updatedBC.coordinates).toEqual([newCoordinates, [30, 30]]);
     expect(updatedBC.length).toEqual(742966.22);
   });

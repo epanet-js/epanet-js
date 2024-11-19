@@ -1,9 +1,9 @@
 import { Pipe } from "./pipe";
 import { Junction } from "./junction";
 
-export type AssetType = Pipe | Junction;
-export type NodeType = Junction;
-export type LinkType = Pipe;
+export type Asset = Pipe | Junction;
+export type NodeAsset = Junction;
+export type LinkAsset = Pipe;
 
 export { Pipe, Junction };
 export type { AssetId } from "./asset";

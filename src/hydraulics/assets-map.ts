@@ -1,26 +1,26 @@
-import { AssetType, AssetId, NodeType, LinkType } from "./asset-types";
+import { Asset, AssetId, NodeAsset, LinkAsset } from "./asset-types";
 
 export type { AssetId };
-export class AssetsMap extends Map<AssetId, AssetType> {}
+export class AssetsMap extends Map<AssetId, Asset> {}
 
 export const getLink = (
   assets: AssetsMap,
   assetId: AssetId,
-): LinkType | null => {
+): LinkAsset | null => {
   const asset = assets.get(assetId);
   if (!asset || !asset.isLink) return null;
 
-  return asset as LinkType;
+  return asset as LinkAsset;
 };
 
 export const getNode = (
   assets: AssetsMap,
   assetId: AssetId,
-): NodeType | null => {
+): NodeAsset | null => {
   const asset = assets.get(assetId);
   if (!asset || !asset.isNode) return null;
 
-  return asset as NodeType;
+  return asset as NodeAsset;
 };
 
 export const filterAssets = (
