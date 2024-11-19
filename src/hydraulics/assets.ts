@@ -1,6 +1,5 @@
 import { isSamePosition } from "src/lib/geometry";
 import { newFeatureId } from "src/lib/id";
-import replaceCoordinates from "src/lib/replace_coordinates";
 import {
   IFeature,
   IWrappedFeature,
@@ -18,14 +17,18 @@ type JunctionAttributes = {
   elevation: number;
 };
 
+export type PipeAttributes = {
+  length: number;
+};
+
 type NodeFeature<T> = IFeature<Point, VisibilityProps & T>;
-type LinkFeature = IFeature<
+type LinkFeature<T> = IFeature<
   LineString,
-  VisibilityProps & { connections: LinkConnections }
+  VisibilityProps & { connections: LinkConnections } & T
 >;
 
 export type Junction = IWrappedFeature<NodeFeature<JunctionAttributes>>;
-export type Pipe = IWrappedFeature<LinkFeature>;
+export type Pipe = IWrappedFeature<LinkFeature<PipeAttributes>>;
 
 export type NodeAsset = Junction;
 export type LinkAsset = Pipe;
@@ -80,14 +83,16 @@ export const createPipe = ({
 }: {
   coordinates: Position[];
   id?: AssetId;
+  length?: number;
 }): Pipe => {
   const nullConnections = ["", ""] as LinkConnections;
-
+  const nullLength = 0;
   return {
     id,
     feature: {
       type: "Feature",
       properties: {
+        length: length || nullLength,
         connections: nullConnections,
       },
       geometry: {
@@ -104,13 +109,7 @@ export const extendLink = (link: LinkAsset, position: Position): LinkAsset => {
   const feature = link.feature;
   const coordinates = feature.geometry.coordinates.slice(0, -1);
 
-  return {
-    ...link,
-    feature: replaceCoordinates(
-      feature,
-      coordinates.concat([position]),
-    ) as LinkFeature,
-  };
+  return updateLinkCoordinates(link, coordinates.concat([position]));
 };
 
 export const addVertexToLink = (
@@ -120,13 +119,7 @@ export const addVertexToLink = (
   const feature = link.feature;
   const coordinates = feature.geometry.coordinates;
 
-  return {
-    ...link,
-    feature: replaceCoordinates(
-      feature,
-      coordinates.concat([position]),
-    ) as LinkFeature,
-  };
+  return updateLinkCoordinates(link, coordinates.concat([position]));
 };
 
 export const isLinkStart = (link: LinkAsset, position: Position) => {
