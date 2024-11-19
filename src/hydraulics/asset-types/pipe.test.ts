@@ -63,4 +63,18 @@ describe("Pipe", () => {
     ]);
     expect(pipe.length).not.toEqual(0);
   });
+
+  it("can say when a coordinates is the start of a pipe", () => {
+    const pipe = Pipe.build({
+      coordinates: [
+        [1, 1],
+        [2, 2],
+      ],
+      length: 0,
+    });
+
+    expect(pipe.isStart([3, 3])).toBeFalsy();
+    expect(pipe.isStart([2, 2])).toBeFalsy();
+    expect(pipe.isStart([1, 1])).toBeTruthy();
+  });
 });

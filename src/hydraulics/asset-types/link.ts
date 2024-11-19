@@ -1,6 +1,7 @@
 import { Position } from "geojson";
 import { Asset, AssetId } from "./asset";
 import measureLength from "@turf/length";
+import { isSamePosition } from "src/lib/geometry";
 
 type LinkConnections = [start: string, end: string];
 
@@ -12,6 +13,7 @@ export interface LinkAsset {
   setCoordinates: (newCoordinates: Position[]) => void;
   get isNode(): boolean;
   get isLink(): boolean;
+  isStart(position: Position): boolean;
 }
 
 export type LinkAttributes = {
@@ -45,6 +47,10 @@ export class Link<T> extends Asset<T & LinkAttributes> implements LinkAsset {
 
   get length() {
     return this.attributes.length;
+  }
+
+  isStart(position: Position) {
+    return isSamePosition(this.coordinates[0], position);
   }
 
   addVertex(vertex: Position) {
