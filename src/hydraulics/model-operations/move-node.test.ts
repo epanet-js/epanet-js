@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { moveNode } from "./move-node";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   LinkAsset,
   NodeAsset,
@@ -62,8 +61,6 @@ describe("moveNode", () => {
   });
 
   it("updates the length of the connected links", () => {
-    stubFeatureOn("FLAG_LENGTHS");
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("A", [10, 10])
       .aNode("B", [20, 20])
