@@ -30,7 +30,7 @@ const canonicalSpec: Spec<PipeQuantities> = {
   length: { value: 1000, unit: "m" },
   roughnessDW: { value: 0.26, unit: "mm" },
 };
-const canonicalDefaultValues = getValues(canonicalSpec);
+const defaultValues = getValues(canonicalSpec);
 export const canonicalUnits = getUnits(canonicalSpec);
 
 export const usCustomaryDefaultValues = canonicalize(
@@ -63,7 +63,6 @@ export class Pipe extends Link<PipeAttributes> {
     roughnessDW,
     roughnessCM = 0.012,
   }: BuildData = {}) {
-    const defaultValues = canonicalDefaultValues;
     const attributes: PipeAttributes = {
       type: "pipe",
       diameter: diameter ?? defaultValues.diameter,
