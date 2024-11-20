@@ -3,7 +3,14 @@ import { BaseAsset, AssetId } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
 
-type LinkConnections = [start: string, end: string];
+export type LinkConnections = [start: string, end: string];
+
+export const nullCoordinates = [
+  [0, 0],
+  [0, 0],
+];
+
+export const nullConnections: LinkConnections = ["", ""];
 
 export type LinkAttributes = {
   type: "pipe";

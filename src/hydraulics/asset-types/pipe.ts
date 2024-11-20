@@ -1,8 +1,18 @@
 import { Position } from "geojson";
-import { Link, LinkAttributes } from "./link";
+import {
+  Link,
+  LinkAttributes,
+  LinkConnections,
+  nullConnections,
+  nullCoordinates,
+} from "./link";
 import { AssetId } from "./base-asset";
 import { newFeatureId } from "src/lib/id";
-import { Spec, canonicalize, getUnits, getValues } from "src/quantity";
+import {
+  QuantityMap,
+  QuantityOrNumberMap,
+  createCanonicalMap,
+} from "src/quantity";
 
 export type PipeAttributes = {
   type: "pipe";
@@ -25,52 +35,38 @@ const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
   "C-M": "roughnessCM",
 };
 
-const canonicalSpec: Spec<PipeQuantities> = {
+type BuildData = {
+  id?: AssetId;
+  coordinates?: Position[];
+  connections?: LinkConnections;
+  roughnessHW?: number;
+  roughnessCM?: number;
+} & Partial<QuantityOrNumberMap<PipeQuantities>>;
+
+const canonicalSpec: QuantityMap<PipeQuantities> = {
   diameter: { value: 300, unit: "mm" },
   length: { value: 1000, unit: "m" },
   roughnessDW: { value: 0.26, unit: "mm" },
 };
-const defaultValues = getValues(canonicalSpec);
-export const canonicalUnits = getUnits(canonicalSpec);
-
-export const usCustomaryDefaultValues = canonicalize(
-  {
-    diameter: { value: 12, unit: "in" },
-    length: { value: 1000, unit: "ft" },
-    roughnessDW: { value: 0.00085, unit: "ft" },
-  },
-  canonicalSpec,
-);
-
-const nullCoordinates = [
-  [0, 0],
-  [0, 0],
-];
-
-type BuildData = {
-  id?: AssetId;
-  coordinates?: Position[];
-} & Partial<PipeAttributes>;
+const toCanonical = createCanonicalMap(canonicalSpec);
 
 export class Pipe extends Link<PipeAttributes> {
   static build({
     id = newFeatureId(),
     coordinates = nullCoordinates,
-    connections = ["", ""],
-    diameter,
-    length,
+    connections = nullConnections,
     roughnessHW = 130,
-    roughnessDW,
     roughnessCM = 0.012,
+    ...quantities
   }: BuildData = {}) {
     const attributes: PipeAttributes = {
       type: "pipe",
-      diameter: diameter ?? defaultValues.diameter,
-      length: length ?? defaultValues.length,
-      roughnessHW: roughnessHW ?? defaultValues.roughnessHW,
-      roughnessDW: roughnessDW ?? defaultValues.roughnessDW,
-      roughnessCM: roughnessCM ?? defaultValues.roughnessCM,
-      connections: connections,
+      connections,
+      roughnessHW,
+      roughnessCM,
+      roughnessDW: toCanonical(quantities, "roughnessDW"),
+      length: toCanonical(quantities, "length"),
+      diameter: toCanonical(quantities, "diameter"),
     };
 
     return new Pipe(id, coordinates, attributes);

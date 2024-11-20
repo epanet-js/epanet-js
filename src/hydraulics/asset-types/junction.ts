@@ -2,7 +2,11 @@ import { Position } from "geojson";
 import { AssetId } from "./base-asset";
 import { Node, NodeAttributes } from "./node";
 import { newFeatureId } from "src/lib/id";
-import { Spec, getUnits, getValues } from "src/quantity";
+import {
+  QuantityMap,
+  QuantityOrNumberMap,
+  createCanonicalMap,
+} from "src/quantity";
 
 export type JunctionAttributes = {
   type: "junction";
@@ -11,27 +15,27 @@ export type JunctionAttributes = {
 
 type JunctionQuantities = Omit<JunctionAttributes, "type">;
 
-const canonicalSpec: Spec<JunctionQuantities> = {
+type BuildData = {
+  id?: AssetId;
+  coordinates?: Position;
+} & Partial<QuantityOrNumberMap<JunctionQuantities>>;
+
+const canonicalSpec: QuantityMap<JunctionQuantities> = {
   elevation: { value: 0, unit: "m" },
   demand: { value: 0, unit: "l/s" },
 };
-const defaultValues = getValues(canonicalSpec);
-export const canonicalUnits = getUnits(canonicalSpec);
+const toCanonical = createCanonicalMap(canonicalSpec);
 
 export class Junction extends Node<JunctionAttributes> {
   static build({
     id = newFeatureId(),
     coordinates = [0, 0],
-    elevation,
-    demand,
-  }: {
-    coordinates?: Position;
-    id?: AssetId;
-  } & Partial<JunctionAttributes> = {}) {
+    ...quantities
+  }: BuildData = {}) {
     return new Junction(id, coordinates, {
       type: "junction",
-      elevation: elevation ?? defaultValues.elevation,
-      demand: demand ?? defaultValues.demand,
+      elevation: toCanonical(quantities, "elevation"),
+      demand: toCanonical(quantities, "demand"),
     });
   }
 
