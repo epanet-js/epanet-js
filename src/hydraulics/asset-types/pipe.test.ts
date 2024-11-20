@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Pipe } from "./pipe";
+import { Pipe, canonicalUnits, usCustomaryDefaultValues } from "./pipe";
+import { convertTo } from "src/quantity";
 
 describe("Pipe", () => {
   it("setting coordinates updates its length", () => {
@@ -8,6 +9,7 @@ describe("Pipe", () => {
         [1, 1],
         [2, 2],
       ],
+      length: 0,
     });
 
     expect(pipe.length).toEqual(0);
@@ -102,5 +104,42 @@ describe("Pipe", () => {
     pipe.setConnections("START", "END");
 
     expect(pipe.connections).toEqual(["START", "END"]);
+  });
+
+  it("can assign defaults in si units", () => {
+    const pipe = Pipe.build();
+
+    expect(pipe.id).not.toBeUndefined();
+    expect(pipe.diameter).toEqual(300);
+    expect(pipe.length).toEqual(1000);
+    expect(pipe.roughnessFor("H-W")).toEqual(130);
+
+    const otherPipe = Pipe.build({});
+
+    expect(otherPipe.id).not.toEqual(pipe.id);
+    expect(otherPipe.roughnessFor("D-W")).toEqual(0.26);
+  });
+
+  it("can assign defaults in us customary", () => {
+    const defaultValues = usCustomaryDefaultValues;
+    const pipe = Pipe.build({ ...defaultValues });
+
+    expect(pipe.id).not.toBeUndefined();
+    expect(pipe.diameter).toEqual(304.8);
+    expect(pipe.length).toEqual(304.8);
+    expect(pipe.roughnessFor("H-W")).toEqual(130);
+
+    const otherPipe = Pipe.build({});
+
+    expect(otherPipe.id).not.toEqual(pipe.id);
+    expect(
+      convertTo(
+        {
+          value: otherPipe.roughnessFor("D-W"),
+          unit: canonicalUnits.roughnessDW,
+        },
+        "ft",
+      ),
+    ).toBeCloseTo(0.00085);
   });
 });
