@@ -5,7 +5,7 @@ export type AssetId = StringId;
 
 type AssetGeometry = LineString | Point;
 
-type AssetAttributes = {
+export type AssetAttributes = {
   type: "pipe" | "junction";
   visibility?: boolean;
 };

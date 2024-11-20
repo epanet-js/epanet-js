@@ -13,7 +13,7 @@ export type JunctionAttributes = {
   demand: number;
 } & NodeAttributes;
 
-type JunctionQuantities = Omit<JunctionAttributes, "type">;
+type JunctionQuantities = Pick<JunctionAttributes, "demand" | "elevation">;
 
 type BuildData = {
   id?: AssetId;
