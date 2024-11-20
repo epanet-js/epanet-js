@@ -1,14 +1,18 @@
 import Qty from "js-quantities";
 
-export type Unit = "m" | "mm" | "in" | "ft" | "l/s" | null;
+export type Unit = "m" | "mm" | "in" | "ft" | "l/s" | "l/h" | "km" | null;
 
 export type Quantity = {
   value: number;
   unit: Unit;
 };
 
-export type Spec<T> = {
+export type QuantityMap<T> = {
   [key in keyof T]: Quantity;
+};
+
+export type QuantityOrNumberMap<T> = {
+  [key in keyof T]: Quantity | number;
 };
 
 export const convertTo = (quantity: Quantity, unit: Unit): number => {
@@ -17,35 +21,17 @@ export const convertTo = (quantity: Quantity, unit: Unit): number => {
   return new Qty(quantity.value, quantity.unit).to(unit).scalar;
 };
 
-export const canonicalize = <T>(spec: Spec<T>, canonicalSpec: Spec<T>) => {
-  return Object.keys(spec).reduce(
-    (acc, key) => {
-      const fromQuantity = spec[key as keyof Spec<T>];
-      const canonicalUnit = canonicalSpec[key as keyof Spec<T>].unit;
-      acc[key] = convertTo(fromQuantity, canonicalUnit);
-      return acc;
-    },
-    {} as { [key: string]: number },
-  );
-};
+export const createCanonicalMap =
+  <T>(canonicalSpec: QuantityMap<T>) =>
+  (inputQuantities: Partial<QuantityOrNumberMap<T>>, key: keyof T): number => {
+    const quantityOrNumber = inputQuantities[key];
+    if (quantityOrNumber === undefined) {
+      return canonicalSpec[key].value;
+    }
 
-export const getValues = <T>(spec: Spec<T>) => {
-  return Object.keys(spec).reduce(
-    (acc, key) => {
-      const quantity = spec[key as keyof T];
-      acc[key] = quantity.value;
-      return acc;
-    },
-    {} as { [key: string]: number },
-  );
-};
-export const getUnits = <T>(spec: Spec<T>) => {
-  return Object.keys(spec).reduce(
-    (acc, key) => {
-      const quantity = spec[key as keyof T];
-      acc[key] = quantity.unit;
-      return acc;
-    },
-    {} as { [key: string]: Unit },
-  );
-};
+    if (typeof quantityOrNumber === "object") {
+      return convertTo(quantityOrNumber, canonicalSpec[key].unit);
+    }
+
+    return quantityOrNumber;
+  };

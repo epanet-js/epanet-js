@@ -27,4 +27,14 @@ describe("Junction", () => {
     const otherJunction = Junction.build();
     expect(otherJunction.id).not.toEqual(junction.id);
   });
+
+  it("can assign values in other units", () => {
+    const junction = Junction.build({
+      demand: { value: 10, unit: "l/h" },
+      elevation: { value: 100, unit: "mm" },
+    });
+
+    expect(junction.demand).toBeCloseTo(0.0027);
+    expect(junction.elevation).toEqual(0.1);
+  });
 });

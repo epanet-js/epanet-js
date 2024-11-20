@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Pipe, canonicalUnits, usCustomaryDefaultValues } from "./pipe";
-import { convertTo } from "src/quantity";
+import { Pipe } from "./pipe";
 
 describe("Pipe", () => {
   it("setting coordinates updates its length", () => {
@@ -120,26 +119,16 @@ describe("Pipe", () => {
     expect(otherPipe.roughnessFor("D-W")).toEqual(0.26);
   });
 
-  it("can assign defaults in us customary", () => {
-    const defaultValues = usCustomaryDefaultValues;
-    const pipe = Pipe.build({ ...defaultValues });
+  it("can assign defaults with quantities", () => {
+    const pipe = Pipe.build({
+      diameter: { value: 12, unit: "in" },
+      length: { value: 0.1, unit: "km" },
+      roughnessDW: { value: 0.01, unit: "km" },
+    });
 
     expect(pipe.id).not.toBeUndefined();
     expect(pipe.diameter).toEqual(304.8);
-    expect(pipe.length).toEqual(304.8);
-    expect(pipe.roughnessFor("H-W")).toEqual(130);
-
-    const otherPipe = Pipe.build({});
-
-    expect(otherPipe.id).not.toEqual(pipe.id);
-    expect(
-      convertTo(
-        {
-          value: otherPipe.roughnessFor("D-W"),
-          unit: canonicalUnits.roughnessDW,
-        },
-        "ft",
-      ),
-    ).toBeCloseTo(0.00085);
+    expect(pipe.length).toEqual(100);
+    expect(pipe.roughnessFor("D-W")).toEqual(10000);
   });
 });
