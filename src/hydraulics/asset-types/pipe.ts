@@ -22,9 +22,9 @@ export type PipeAttributes = {
   roughnessCM: number;
 } & LinkAttributes;
 
-type PipeQuantities = Omit<
+type PipeQuantities = Pick<
   PipeAttributes,
-  "id" | "coordinates" | "type" | "connections" | "roughnessHW" | "roughnessCM"
+  "diameter" | "roughnessDW" | "length"
 >;
 
 type HeadlossFormula = "H-W" | "D-W" | "C-M";
