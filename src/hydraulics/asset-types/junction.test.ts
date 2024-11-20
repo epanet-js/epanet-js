@@ -16,4 +16,15 @@ describe("Junction", () => {
     expect(junctionCopy.elevation).toEqual(20);
     expect(junction.elevation).toEqual(10);
   });
+
+  it("assigns default values", () => {
+    const junction = Junction.build();
+
+    expect(junction.elevation).toEqual(0);
+    expect(junction.demand).toEqual(0);
+    expect(junction.id).not.toBeUndefined();
+
+    const otherJunction = Junction.build();
+    expect(otherJunction.id).not.toEqual(junction.id);
+  });
 });
