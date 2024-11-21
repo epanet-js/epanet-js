@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetExplain } from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
-import { translate, translateUnit } from "src/infra/i18n";
+import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -105,9 +105,11 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
               assetSpec[
                 key as keyof QuantityMap<PipeQuantities | JunctionQuantities>
               ];
-            const value = attributeSpec
-              ? convertTo(quantityAttribute, (attributeSpec as Quantity).unit)
-              : quantityAttribute.value;
+            const value = localizeDecimal(
+              attributeSpec
+                ? convertTo(quantityAttribute, (attributeSpec as Quantity).unit)
+                : quantityAttribute.value,
+            );
 
             const unit = attributeSpec
               ? (attributeSpec as Quantity).unit
