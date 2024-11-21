@@ -1,4 +1,7 @@
-const localizeDecimal = (num: number, fractionDigits?: number): string => {
+export const localizeDecimal = (
+  num: number,
+  fractionDigits?: number,
+): string => {
   if (fractionDigits === undefined) {
     fractionDigits = determineDecimalPlaces(num);
   }
@@ -12,7 +15,7 @@ const localizeDecimal = (num: number, fractionDigits?: number): string => {
   return isAllZero ? "0" : formattedNum;
 };
 
-const localizeNumber = ({
+export const localizeNumber = ({
   number,
   fractionDigits = 0,
 }: {
@@ -57,5 +60,3 @@ const handleNegativeZero = (num: number, fractionDigits: number): number => {
     ? Math.abs(num)
     : num;
 };
-
-export { localizeDecimal, localizeNumber };
