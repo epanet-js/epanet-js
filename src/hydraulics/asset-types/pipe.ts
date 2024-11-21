@@ -9,6 +9,7 @@ import {
 import { AssetId } from "./base-asset";
 import { newFeatureId } from "src/lib/id";
 import {
+  Quantity,
   QuantityMap,
   QuantityOrNumberMap,
   createCanonicalMap,
@@ -27,6 +28,10 @@ type PipeQuantities = Pick<
   "diameter" | "roughnessDW" | "length"
 >;
 
+export type PipeExplain = Record<
+  keyof Omit<PipeAttributes, "connections" | "type" | "visibility">,
+  Quantity
+>;
 type HeadlossFormula = "H-W" | "D-W" | "C-M";
 type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
 const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
@@ -92,5 +97,30 @@ export class Pipe extends Link<PipeAttributes> {
     return new Pipe(this.id, [...this.coordinates], {
       ...this.attributes,
     });
+  }
+
+  explain(): PipeExplain {
+    return {
+      diameter: {
+        value: this.attributes.diameter,
+        unit: canonicalSpec.diameter.unit,
+      },
+      length: {
+        value: this.attributes.length,
+        unit: canonicalSpec.length.unit,
+      },
+      roughnessCM: {
+        value: this.attributes.roughnessCM,
+        unit: null,
+      },
+      roughnessDW: {
+        value: this.attributes.roughnessDW,
+        unit: canonicalSpec.roughnessDW.unit,
+      },
+      roughnessHW: {
+        value: this.attributes.roughnessHW,
+        unit: null,
+      },
+    };
   }
 }
