@@ -29,18 +29,3 @@ export const convertTo = (quantity: Quantity, unit: Unit): number => {
 
   return new Qty(quantity.value, quantity.unit).to(unit).scalar;
 };
-
-export const createCanonicalMap =
-  <T>(canonicalSpec: QuantityMap<T>) =>
-  (inputQuantities: Partial<QuantityOrNumberMap<T>>, key: keyof T): number => {
-    const quantityOrNumber = inputQuantities[key];
-    if (quantityOrNumber === undefined) {
-      return canonicalSpec[key].value;
-    }
-
-    if (typeof quantityOrNumber === "object") {
-      return convertTo(quantityOrNumber, canonicalSpec[key].unit);
-    }
-
-    return quantityOrNumber;
-  };

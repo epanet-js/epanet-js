@@ -3,7 +3,11 @@ import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
 import React, { useMemo } from "react";
 import { RawEditor } from "./raw_editor";
-import { Asset, AssetExplain } from "src/hydraulics/asset-types";
+import {
+  Asset,
+  AssetExplain,
+  AssetQuantitiesSpecByType,
+} from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
@@ -13,14 +17,11 @@ import { Quantity, QuantityMap, convertTo } from "src/quantity";
 import {
   HeadlossFormula,
   PipeQuantities,
-  pipeQuantitiesSpec,
   roughnessKeyFor,
 } from "src/hydraulics/asset-types/pipe";
-import {
-  JunctionQuantities,
-  junctionQuantitiesSpec,
-} from "src/hydraulics/asset-types/junction";
+import { JunctionQuantities } from "src/hydraulics/asset-types/junction";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { presets as quantityPresets } from "src/settings/quantities-spec";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -63,8 +64,8 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
   const attributes = asset.explain() as AssetExplain;
 
   const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
-    ? USCustomarySpec
-    : SISpec;
+    ? quantityPresets.usCustomary
+    : quantityPresets.si;
 
   const filteredAttributes = useMemo(() => {
     const headlossFormula: HeadlossFormula = "H-W";
@@ -85,7 +86,7 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
     return filtered;
   }, [attributes]);
 
-  const assetSpec = systemSpec[asset.type as keyof SystemQuantitiesSpec];
+  const assetSpec = systemSpec[asset.type as keyof AssetQuantitiesSpecByType];
 
   return (
     <div
@@ -150,25 +151,3 @@ export function PropertyTableHead() {
     </thead>
   );
 }
-
-type SystemQuantitiesSpec = Record<
-  Asset["type"],
-  QuantityMap<PipeQuantities | JunctionQuantities>
->;
-
-const SISpec: SystemQuantitiesSpec = {
-  pipe: pipeQuantitiesSpec,
-  junction: junctionQuantitiesSpec,
-};
-
-const USCustomarySpec: SystemQuantitiesSpec = {
-  pipe: {
-    diameter: { value: 12, unit: "in" },
-    length: { value: 1000, unit: "ft" },
-    roughnessDW: { value: 0.00015, unit: "ft" },
-  },
-  junction: {
-    elevation: { value: 0, unit: "ft" },
-    demand: { value: 0, unit: "gal/min" },
-  },
-};

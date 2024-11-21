@@ -4,7 +4,7 @@ import { Pipe, NodeAsset } from "src/hydraulics/asset-types";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
-  pipe?: Pipe;
+  pipe: Pipe;
   startNode?: NodeAsset;
   snappingCandidate: NodeAsset | null;
 }

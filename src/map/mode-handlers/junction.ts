@@ -14,7 +14,6 @@ import { addJunction } from "src/hydraulics/model-operations";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
-import { Junction } from "src/hydraulics/asset-types";
 
 export function useJunctionHandlers({
   mode,
@@ -26,6 +25,8 @@ export function useJunctionHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const multi = mode.modeOptions?.multi;
+  const { assetBuilder } = hydraulicModel;
+
   return {
     click: async (e) => {
       if (!multi) {
@@ -34,7 +35,7 @@ export function useJunctionHandlers({
 
       const clickPosition = getMapCoord(e);
       const elevation = await fetchElevationForPoint(e.lngLat);
-      const junction = Junction.build({
+      const junction = assetBuilder.buildJunction({
         elevation,
         coordinates: clickPosition,
       });
