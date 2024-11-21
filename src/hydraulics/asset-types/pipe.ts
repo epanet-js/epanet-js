@@ -1,7 +1,5 @@
-import { Position } from "geojson";
-import { Link, LinkAttributes, LinkConnections } from "./link";
-import { AssetId } from "./base-asset";
-import { Quantity, QuantityOrNumberMap } from "src/quantity";
+import { Link, LinkAttributes } from "./link";
+import { Quantity } from "src/quantity";
 import { AssetQuantitiesSpec } from "./asset-quantities";
 
 export type PipeAttributes = {
@@ -14,13 +12,11 @@ export type PipeAttributes = {
 
 export type PipeQuantities = Pick<
   PipeAttributes,
-  "diameter" | "roughnessDW" | "length"
+  "diameter" | "roughnessDW" | "roughnessHW" | "roughnessCM" | "length"
 >;
 
-export type PipeExplain = Record<
-  keyof Omit<PipeAttributes, "connections" | "type" | "visibility">,
-  Quantity
->;
+export type PipeExplain = Record<keyof PipeQuantities, Quantity>;
+
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 export type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
 export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
@@ -29,18 +25,12 @@ export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
   "C-M": "roughnessCM",
 };
 
-export type PipeBuildData = {
-  id?: AssetId;
-  coordinates?: Position[];
-  connections?: LinkConnections;
-  roughnessHW?: number;
-  roughnessCM?: number;
-} & Partial<QuantityOrNumberMap<PipeQuantities>>;
-
 const canonicalSpec: AssetQuantitiesSpec<PipeQuantities> = {
   diameter: { defaultValue: 300, unit: "mm" },
   length: { defaultValue: 1000, unit: "m" },
   roughnessDW: { defaultValue: 0.26, unit: "mm" },
+  roughnessHW: { defaultValue: 130, unit: null },
+  roughnessCM: { defaultValue: 0.012, unit: null },
 };
 export { canonicalSpec as pipeCanonicalSpec };
 

@@ -1,7 +1,5 @@
-import { Position } from "geojson";
-import { AssetId } from "./base-asset";
 import { Node, NodeAttributes } from "./node";
-import { Quantity, QuantityOrNumberMap } from "src/quantity";
+import { Quantity } from "src/quantity";
 import { AssetQuantitiesSpec } from "./asset-quantities";
 
 export type JunctionAttributes = {
@@ -13,15 +11,7 @@ export type JunctionQuantities = Pick<
   JunctionAttributes,
   "demand" | "elevation"
 >;
-export type JunctionExplain = Record<
-  keyof Omit<JunctionAttributes, "type" | "visibility">,
-  Quantity
->;
-
-export type JunctionBuildData = {
-  id?: AssetId;
-  coordinates?: Position;
-} & Partial<QuantityOrNumberMap<JunctionQuantities>>;
+export type JunctionExplain = Record<keyof JunctionQuantities, Quantity>;
 
 const canonicalSpec: AssetQuantitiesSpec<JunctionQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },

@@ -1,17 +1,30 @@
 import { QuantityMap, QuantityOrNumberMap, convertTo } from "src/quantity";
 import {
+  AssetId,
   AssetQuantitiesSpecByType,
   Junction,
   canonicalQuantitiesSpec,
 } from "./asset-types";
 import {
-  JunctionBuildData,
+  JunctionQuantities,
   junctionCanonicalSpec,
 } from "./asset-types/junction";
 import { AssetQuantitiesSpec } from "./asset-types/asset-quantities";
-import { Pipe, PipeBuildData, pipeCanonicalSpec } from "./asset-types/pipe";
+import { Pipe, PipeQuantities, pipeCanonicalSpec } from "./asset-types/pipe";
 import { newFeatureId } from "src/lib/id";
-import { nullConnections } from "./asset-types/link";
+import { LinkConnections, nullConnections } from "./asset-types/link";
+import { Position } from "geojson";
+
+export type JunctionBuildData = {
+  id?: AssetId;
+  coordinates?: Position;
+} & Partial<QuantityOrNumberMap<JunctionQuantities>>;
+
+export type PipeBuildData = {
+  id?: AssetId;
+  coordinates?: Position[];
+  connections?: LinkConnections;
+} & Partial<QuantityOrNumberMap<PipeQuantities>>;
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
@@ -27,8 +40,6 @@ export class AssetBuilder {
       [0, 0],
     ],
     connections = nullConnections,
-    roughnessHW = 130,
-    roughnessCM = 0.012,
     ...quantities
   }: PipeBuildData = {}) {
     const defaultQuantities = getDefaultQuantities(this.quantitiesSpec.pipe);
@@ -36,8 +47,6 @@ export class AssetBuilder {
     return new Pipe(id, coordinates, {
       type: "pipe",
       connections,
-      roughnessHW,
-      roughnessCM,
       ...canonalizeQuantities(
         { ...defaultQuantities, ...quantities },
         pipeCanonicalSpec,
@@ -49,7 +58,7 @@ export class AssetBuilder {
     id = newFeatureId(),
     coordinates = [0, 0],
     ...quantities
-  }: JunctionBuildData = {}): Junction {
+  }: JunctionBuildData = {}) {
     const defaultQuantities = getDefaultQuantities(
       this.quantitiesSpec.junction,
     );
