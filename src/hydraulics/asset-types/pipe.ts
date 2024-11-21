@@ -8,12 +8,8 @@ import {
 } from "./link";
 import { AssetId } from "./base-asset";
 import { newFeatureId } from "src/lib/id";
-import {
-  Quantity,
-  QuantityMap,
-  QuantityOrNumberMap,
-  createCanonicalMap,
-} from "src/quantity";
+import { Quantity, QuantityOrNumberMap } from "src/quantity";
+import { AssetQuantitiesSpec, createCanonicalMap } from "./asset-quantities";
 
 export type PipeAttributes = {
   type: "pipe";
@@ -40,7 +36,7 @@ export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
   "C-M": "roughnessCM",
 };
 
-type BuildData = {
+export type PipeBuildData = {
   id?: AssetId;
   coordinates?: Position[];
   connections?: LinkConnections;
@@ -48,10 +44,10 @@ type BuildData = {
   roughnessCM?: number;
 } & Partial<QuantityOrNumberMap<PipeQuantities>>;
 
-const canonicalSpec: QuantityMap<PipeQuantities> = {
-  diameter: { value: 300, unit: "mm" },
-  length: { value: 1000, unit: "m" },
-  roughnessDW: { value: 0.26, unit: "mm" },
+const canonicalSpec: AssetQuantitiesSpec<PipeQuantities> = {
+  diameter: { defaultValue: 300, unit: "mm" },
+  length: { defaultValue: 1000, unit: "m" },
+  roughnessDW: { defaultValue: 0.26, unit: "mm" },
 };
 export { canonicalSpec as pipeQuantitiesSpec };
 const toCanonical = createCanonicalMap(canonicalSpec);
@@ -64,7 +60,7 @@ export class Pipe extends Link<PipeAttributes> {
     roughnessHW = 130,
     roughnessCM = 0.012,
     ...quantities
-  }: BuildData = {}) {
+  }: PipeBuildData = {}) {
     const attributes: PipeAttributes = {
       type: "pipe",
       connections,

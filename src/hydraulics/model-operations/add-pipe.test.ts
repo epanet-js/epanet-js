@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { addPipe } from "./add-pipe";
-import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
-import { Pipe, Junction } from "../asset-types";
+import {
+  HydraulicModelBuilder,
+  buildJunction,
+  buildPipe,
+} from "../__helpers__/hydraulic-model-builder";
+import { Pipe } from "../asset-types";
 
 describe("addPipe", () => {
   it("updates connections", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = Junction.build({ coordinates: [10, 10], id: "A" });
-    const endNode = Junction.build({ coordinates: [30, 30], id: "B" });
+    const startNode = buildJunction({ coordinates: [10, 10], id: "A" });
+    const endNode = buildJunction({ coordinates: [30, 30], id: "B" });
 
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [10, 10],
         [20, 20],
@@ -31,10 +35,10 @@ describe("addPipe", () => {
 
   it("removes redundant vertices", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = Junction.build({ coordinates: [10, 10], id: "A" });
-    const endNode = Junction.build({ coordinates: [30, 30], id: "B" });
+    const startNode = buildJunction({ coordinates: [10, 10], id: "A" });
+    const endNode = buildJunction({ coordinates: [30, 30], id: "B" });
 
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [10, 10],
         [20, 20],
@@ -66,9 +70,9 @@ describe("addPipe", () => {
 
   it("ensures connectivity with the link endpoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const startNode = Junction.build({ coordinates: [10, 10] });
-    const endNode = Junction.build({ coordinates: [20, 20] });
-    const pipe = Pipe.build({
+    const startNode = buildJunction({ coordinates: [10, 10] });
+    const endNode = buildJunction({ coordinates: [20, 20] });
+    const pipe = buildPipe({
       coordinates: [
         [10, 11],
         [15, 15],
@@ -97,9 +101,9 @@ describe("addPipe", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startCoordinates = [-4.3760931, 55.9150083];
     const endCoordiantes = [-4.3771833, 55.9133641];
-    const startNode = Junction.build({ coordinates: startCoordinates });
-    const endNode = Junction.build({ coordinates: endCoordiantes });
-    const pipe = Pipe.build({
+    const startNode = buildJunction({ coordinates: startCoordinates });
+    const endNode = buildJunction({ coordinates: endCoordiantes });
+    const pipe = buildPipe({
       coordinates: [startCoordinates, endCoordiantes],
       id: "PIPE",
     });

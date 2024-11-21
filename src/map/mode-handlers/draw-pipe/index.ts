@@ -15,7 +15,7 @@ import {
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { Junction, NodeAsset, Pipe } from "src/hydraulics/asset-types";
+import { NodeAsset, Pipe } from "src/hydraulics/asset-types";
 
 export function useDrawPipeHandlers({
   rep,
@@ -27,15 +27,18 @@ export function useDrawPipeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
+  const { assetBuilder } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState();
+    useDrawingState(assetBuilder);
   const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = startNode.coordinates;
-    const pipe = Pipe.build({ coordinates: [coordinates, coordinates] });
+    const pipe = assetBuilder.buildPipe({
+      coordinates: [coordinates, coordinates],
+    });
 
     setDrawing({
       startNode,
@@ -94,7 +97,7 @@ export function useDrawPipeHandlers({
         if (drawing.isNull) {
           const startNode = snappingNode
             ? snappingNode
-            : Junction.build({
+            : assetBuilder.buildJunction({
                 coordinates: clickPosition,
                 elevation: pointElevation,
               });
@@ -111,7 +114,7 @@ export function useDrawPipeHandlers({
         }
 
         if (isEndAndContinueOn()) {
-          const endJunction = Junction.build({
+          const endJunction = assetBuilder.buildJunction({
             coordinates: clickPosition,
             elevation: pointElevation,
           });
@@ -169,7 +172,7 @@ export function useDrawPipeHandlers({
 
       const { startNode, pipe } = drawing;
 
-      const endJunction = Junction.build({
+      const endJunction = assetBuilder.buildJunction({
         coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),

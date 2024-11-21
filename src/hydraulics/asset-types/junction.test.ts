@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { Junction } from "./junction";
+import { buildJunction } from "../__helpers__/hydraulic-model-builder";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {
-    const junction = Junction.build({ id: "ID", coordinates: [1, 2] });
+    const junction = buildJunction({ id: "ID", coordinates: [1, 2] });
 
     expect(junction.elevation).toEqual(0);
 
@@ -18,18 +18,18 @@ describe("Junction", () => {
   });
 
   it("assigns default values", () => {
-    const junction = Junction.build();
+    const junction = buildJunction();
 
     expect(junction.elevation).toEqual(0);
     expect(junction.demand).toEqual(0);
     expect(junction.id).not.toBeUndefined();
 
-    const otherJunction = Junction.build();
+    const otherJunction = buildJunction();
     expect(otherJunction.id).not.toEqual(junction.id);
   });
 
   it("can assign values in other units", () => {
-    const junction = Junction.build({
+    const junction = buildJunction({
       demand: { value: 10, unit: "l/h" },
       elevation: { value: 100, unit: "mm" },
     });

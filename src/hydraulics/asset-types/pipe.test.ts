@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { Pipe } from "./pipe";
+import { buildPipe } from "../__helpers__/hydraulic-model-builder";
 
 describe("Pipe", () => {
   it("setting coordinates updates its length", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [1, 1],
         [2, 2],
@@ -23,7 +23,7 @@ describe("Pipe", () => {
   });
 
   it("does not mutate after a copy", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [1, 1],
         [2, 2],
@@ -47,7 +47,7 @@ describe("Pipe", () => {
   });
 
   it("can add a vertex", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [1, 1],
         [2, 2],
@@ -66,7 +66,7 @@ describe("Pipe", () => {
   });
 
   it("can extend a pipe", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [1, 1],
         [2, 2],
@@ -84,7 +84,7 @@ describe("Pipe", () => {
   });
 
   it("can say when a coordinates is the start of a pipe", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       coordinates: [
         [1, 1],
         [2, 2],
@@ -98,7 +98,7 @@ describe("Pipe", () => {
   });
 
   it("can attach connections", () => {
-    const pipe = Pipe.build();
+    const pipe = buildPipe();
 
     pipe.setConnections("START", "END");
 
@@ -106,21 +106,21 @@ describe("Pipe", () => {
   });
 
   it("can assign defaults in si units", () => {
-    const pipe = Pipe.build();
+    const pipe = buildPipe();
 
     expect(pipe.id).not.toBeUndefined();
     expect(pipe.diameter).toEqual(300);
     expect(pipe.length).toEqual(1000);
     expect(pipe.roughnessFor("H-W")).toEqual(130);
 
-    const otherPipe = Pipe.build({});
+    const otherPipe = buildPipe({});
 
     expect(otherPipe.id).not.toEqual(pipe.id);
     expect(otherPipe.roughnessFor("D-W")).toEqual(0.26);
   });
 
   it("can assign defaults with quantities", () => {
-    const pipe = Pipe.build({
+    const pipe = buildPipe({
       diameter: { value: 12, unit: "in" },
       length: { value: 0.1, unit: "km" },
       roughnessDW: { value: 0.01, unit: "km" },
