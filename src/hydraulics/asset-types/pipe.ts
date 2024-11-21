@@ -23,7 +23,7 @@ export type PipeAttributes = {
   roughnessCM: number;
 } & LinkAttributes;
 
-type PipeQuantities = Pick<
+export type PipeQuantities = Pick<
   PipeAttributes,
   "diameter" | "roughnessDW" | "length"
 >;
@@ -53,6 +53,7 @@ const canonicalSpec: QuantityMap<PipeQuantities> = {
   length: { value: 1000, unit: "m" },
   roughnessDW: { value: 0.26, unit: "mm" },
 };
+export { canonicalSpec as pipeQuantitiesSpec };
 const toCanonical = createCanonicalMap(canonicalSpec);
 
 export class Pipe extends Link<PipeAttributes> {

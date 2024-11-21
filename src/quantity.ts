@@ -1,6 +1,15 @@
 import Qty from "js-quantities";
 
-export type Unit = "m" | "mm" | "in" | "ft" | "l/s" | "l/h" | "km" | null;
+export type Unit =
+  | "m"
+  | "mm"
+  | "in"
+  | "ft"
+  | "l/s"
+  | "l/h"
+  | "km"
+  | "gal/min"
+  | null;
 
 export type Quantity = {
   value: number;

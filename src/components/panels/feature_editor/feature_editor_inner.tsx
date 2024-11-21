@@ -9,11 +9,18 @@ import { translate } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { Quantity } from "src/quantity";
+import { Quantity, QuantityMap, convertTo } from "src/quantity";
 import {
   HeadlossFormula,
+  PipeQuantities,
+  pipeQuantitiesSpec,
   roughnessKeyFor,
 } from "src/hydraulics/asset-types/pipe";
+import {
+  JunctionQuantities,
+  junctionQuantitiesSpec,
+} from "src/hydraulics/asset-types/junction";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -55,6 +62,10 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
 export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
   const attributes = asset.explain() as AssetExplain;
 
+  const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
+    ? USCustomarySpec
+    : SISpec;
+
   const filteredAttributes = useMemo(() => {
     const headlossFormula: HeadlossFormula = "H-W";
     const roughnessKey = roughnessKeyFor[headlossFormula];
@@ -74,6 +85,8 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
     return filtered;
   }, [attributes]);
 
+  const assetSpec = systemSpec[asset.type as keyof SystemQuantitiesSpec];
+
   return (
     <div
       className="overflow-y-auto placemark-scrollbar"
@@ -84,14 +97,29 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
         <PropertyTableHead />
         <tbody>
           {Object.keys(filteredAttributes).map((key, y) => {
-            const attribute = attributes[key as keyof AssetExplain] as Quantity;
-            const label = attribute.unit
-              ? `${translate(key)} (${attribute.unit})`
+            const quantityAttribute = attributes[
+              key as keyof AssetExplain
+            ] as Quantity;
+
+            const attributeSpec =
+              assetSpec[
+                key as keyof QuantityMap<PipeQuantities | JunctionQuantities>
+              ];
+            const value = attributeSpec
+              ? convertTo(quantityAttribute, (attributeSpec as Quantity).unit)
+              : quantityAttribute.value;
+
+            const unit = attributeSpec
+              ? (attributeSpec as Quantity).unit
+              : null;
+
+            const label = unit
+              ? `${translate(key)} (${unit})`
               : `${translate(key)}`;
             return (
               <PropertyRow
                 key={key}
-                pair={[label, attribute.value]}
+                pair={[label, value]}
                 y={y}
                 even={y % 2 === 0}
                 onChangeValue={() => {}}
@@ -120,3 +148,25 @@ export function PropertyTableHead() {
     </thead>
   );
 }
+
+type SystemQuantitiesSpec = Record<
+  Asset["type"],
+  QuantityMap<PipeQuantities | JunctionQuantities>
+>;
+
+const SISpec: SystemQuantitiesSpec = {
+  pipe: pipeQuantitiesSpec,
+  junction: junctionQuantitiesSpec,
+};
+
+const USCustomarySpec: SystemQuantitiesSpec = {
+  pipe: {
+    diameter: { value: 12, unit: "in" },
+    length: { value: 1000, unit: "ft" },
+    roughnessDW: { value: 0.00015, unit: "ft" },
+  },
+  junction: {
+    elevation: { value: 0, unit: "ft" },
+    demand: { value: 0, unit: "gal/min" },
+  },
+};

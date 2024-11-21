@@ -14,7 +14,10 @@ export type JunctionAttributes = {
   demand: number;
 } & NodeAttributes;
 
-type JunctionQuantities = Pick<JunctionAttributes, "demand" | "elevation">;
+export type JunctionQuantities = Pick<
+  JunctionAttributes,
+  "demand" | "elevation"
+>;
 export type JunctionExplain = Record<
   keyof Omit<JunctionAttributes, "type" | "visibility">,
   Quantity
@@ -29,6 +32,7 @@ const canonicalSpec: QuantityMap<JunctionQuantities> = {
   elevation: { value: 0, unit: "m" },
   demand: { value: 0, unit: "l/s" },
 };
+export { canonicalSpec as junctionQuantitiesSpec };
 const toCanonical = createCanonicalMap(canonicalSpec);
 
 export class Junction extends Node<JunctionAttributes> {
