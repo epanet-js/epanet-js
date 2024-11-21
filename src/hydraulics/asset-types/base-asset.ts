@@ -29,6 +29,10 @@ export class BaseAsset<T> {
     };
   }
 
+  get type() {
+    return this.feature.properties.type;
+  }
+
   protected get attributes() {
     return this.feature.properties;
   }
