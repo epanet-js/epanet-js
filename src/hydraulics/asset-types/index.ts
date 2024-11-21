@@ -1,9 +1,9 @@
-import { Pipe, PipeExplain, PipeQuantities, pipeQuantitiesSpec } from "./pipe";
+import { Pipe, PipeExplain, PipeQuantities, pipeCanonicalSpec } from "./pipe";
 import {
   Junction,
   JunctionExplain,
   JunctionQuantities,
-  junctionQuantitiesSpec,
+  junctionCanonicalSpec,
 } from "./junction";
 
 export type Asset = Pipe | Junction;
@@ -23,6 +23,6 @@ export type AssetQuantitiesSpecByType = Record<
 >;
 
 export const canonicalQuantitiesSpec: AssetQuantitiesSpecByType = {
-  pipe: pipeQuantitiesSpec,
-  junction: junctionQuantitiesSpec,
+  pipe: pipeCanonicalSpec,
+  junction: junctionCanonicalSpec,
 };

@@ -1,15 +1,8 @@
 import { Position } from "geojson";
-import {
-  Link,
-  LinkAttributes,
-  LinkConnections,
-  nullConnections,
-  nullCoordinates,
-} from "./link";
+import { Link, LinkAttributes, LinkConnections } from "./link";
 import { AssetId } from "./base-asset";
-import { newFeatureId } from "src/lib/id";
 import { Quantity, QuantityOrNumberMap } from "src/quantity";
-import { AssetQuantitiesSpec, createCanonicalMap } from "./asset-quantities";
+import { AssetQuantitiesSpec } from "./asset-quantities";
 
 export type PipeAttributes = {
   type: "pipe";
@@ -49,31 +42,9 @@ const canonicalSpec: AssetQuantitiesSpec<PipeQuantities> = {
   length: { defaultValue: 1000, unit: "m" },
   roughnessDW: { defaultValue: 0.26, unit: "mm" },
 };
-export { canonicalSpec as pipeQuantitiesSpec };
-const toCanonical = createCanonicalMap(canonicalSpec);
+export { canonicalSpec as pipeCanonicalSpec };
 
 export class Pipe extends Link<PipeAttributes> {
-  static build({
-    id = newFeatureId(),
-    coordinates = nullCoordinates,
-    connections = nullConnections,
-    roughnessHW = 130,
-    roughnessCM = 0.012,
-    ...quantities
-  }: PipeBuildData = {}) {
-    const attributes: PipeAttributes = {
-      type: "pipe",
-      connections,
-      roughnessHW,
-      roughnessCM,
-      roughnessDW: toCanonical(quantities, "roughnessDW"),
-      length: toCanonical(quantities, "length"),
-      diameter: toCanonical(quantities, "diameter"),
-    };
-
-    return new Pipe(id, coordinates, attributes);
-  }
-
   get diameter() {
     return this.attributes.diameter;
   }

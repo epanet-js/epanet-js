@@ -1,12 +1,17 @@
-import { QuantityMap } from "src/quantity";
+import { QuantityMap, QuantityOrNumberMap, convertTo } from "src/quantity";
 import {
   AssetQuantitiesSpecByType,
   Junction,
   canonicalQuantitiesSpec,
 } from "./asset-types";
-import { JunctionBuildData } from "./asset-types/junction";
+import {
+  JunctionBuildData,
+  junctionCanonicalSpec,
+} from "./asset-types/junction";
 import { AssetQuantitiesSpec } from "./asset-types/asset-quantities";
-import { Pipe, PipeBuildData } from "./asset-types/pipe";
+import { Pipe, PipeBuildData, pipeCanonicalSpec } from "./asset-types/pipe";
+import { newFeatureId } from "src/lib/id";
+import { nullConnections } from "./asset-types/link";
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
@@ -15,20 +20,74 @@ export class AssetBuilder {
     this.quantitiesSpec = quantitiesSpec;
   }
 
-  buildPipe(data: PipeBuildData = {}) {
+  buildPipe({
+    id = newFeatureId(),
+    coordinates = [
+      [0, 0],
+      [0, 0],
+    ],
+    connections = nullConnections,
+    roughnessHW = 130,
+    roughnessCM = 0.012,
+    ...quantities
+  }: PipeBuildData = {}) {
     const defaultQuantities = getDefaultQuantities(this.quantitiesSpec.pipe);
 
-    return Pipe.build({ ...defaultQuantities, ...data });
+    return new Pipe(id, coordinates, {
+      type: "pipe",
+      connections,
+      roughnessHW,
+      roughnessCM,
+      ...canonalizeQuantities(
+        { ...defaultQuantities, ...quantities },
+        pipeCanonicalSpec,
+      ),
+    });
   }
 
-  buildJunction(data: JunctionBuildData = {}) {
+  buildJunction({
+    id = newFeatureId(),
+    coordinates = [0, 0],
+    ...quantities
+  }: JunctionBuildData = {}): Junction {
     const defaultQuantities = getDefaultQuantities(
       this.quantitiesSpec.junction,
     );
 
-    return Junction.build({ ...defaultQuantities, ...data });
+    return new Junction(id, coordinates, {
+      type: "junction",
+      ...canonalizeQuantities(
+        { ...defaultQuantities, ...quantities },
+        junctionCanonicalSpec,
+      ),
+    });
   }
 }
+
+const canonalizeQuantities = <T>(
+  inputQuantities: Partial<QuantityOrNumberMap<T>>,
+  canonicalSpec: AssetQuantitiesSpec<T>,
+): Record<keyof T, number> => {
+  return Object.keys(inputQuantities).reduce(
+    (acc, key) => {
+      const typedKey = key as keyof T;
+      const quantityOrNumber = inputQuantities[typedKey];
+
+      if (typeof quantityOrNumber === "object") {
+        acc[typedKey] = convertTo(
+          quantityOrNumber,
+          canonicalSpec[key as keyof T].unit,
+        );
+        return acc;
+      }
+
+      const number = quantityOrNumber;
+      acc[typedKey] = number as number;
+      return acc;
+    },
+    {} as Record<keyof T, number>,
+  );
+};
 
 const getDefaultQuantities = <T>(
   quantitiesSpec: AssetQuantitiesSpec<T>,
