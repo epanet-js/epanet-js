@@ -4,9 +4,9 @@ import {
   Junction,
   canonicalQuantitiesSpec,
 } from "./asset-types";
-import { JunctionBuildData, JunctionQuantities } from "./asset-types/junction";
+import { JunctionBuildData } from "./asset-types/junction";
 import { AssetQuantitiesSpec } from "./asset-types/asset-quantities";
-import { Pipe, PipeBuildData, PipeQuantities } from "./asset-types/pipe";
+import { Pipe, PipeBuildData } from "./asset-types/pipe";
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
@@ -16,34 +16,29 @@ export class AssetBuilder {
   }
 
   buildPipe(data: PipeBuildData = {}) {
-    const pipeSpec = this.quantitiesSpec
-      .pipe as AssetQuantitiesSpec<PipeQuantities>;
-
-    const defaultQuantities = Object.keys(pipeSpec).reduce((acc, key) => {
-      const typedKey = key as keyof PipeQuantities;
-      acc[typedKey] = {
-        value: pipeSpec[typedKey].defaultValue,
-        unit: pipeSpec[typedKey].unit,
-      };
-      return acc;
-    }, {} as QuantityMap<PipeQuantities>);
+    const defaultQuantities = getDefaultQuantities(this.quantitiesSpec.pipe);
 
     return Pipe.build({ ...defaultQuantities, ...data });
   }
 
   buildJunction(data: JunctionBuildData = {}) {
-    const junctionSpec = this.quantitiesSpec
-      .junction as AssetQuantitiesSpec<JunctionQuantities>;
-
-    const defaultQuantities = Object.keys(junctionSpec).reduce((acc, key) => {
-      const typedKey = key as keyof JunctionQuantities;
-      acc[typedKey] = {
-        value: junctionSpec[typedKey].defaultValue,
-        unit: junctionSpec[typedKey].unit,
-      };
-      return acc;
-    }, {} as QuantityMap<JunctionQuantities>);
+    const defaultQuantities = getDefaultQuantities(
+      this.quantitiesSpec.junction,
+    );
 
     return Junction.build({ ...defaultQuantities, ...data });
   }
 }
+
+const getDefaultQuantities = <T>(
+  quantitiesSpec: AssetQuantitiesSpec<T>,
+): QuantityMap<T> => {
+  return Object.keys(quantitiesSpec).reduce((acc, key) => {
+    const typedKey = key as keyof T;
+    acc[typedKey] = {
+      value: quantitiesSpec[typedKey].defaultValue,
+      unit: quantitiesSpec[typedKey].unit,
+    };
+    return acc;
+  }, {} as QuantityMap<T>);
+};
