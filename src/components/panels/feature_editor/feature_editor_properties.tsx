@@ -89,7 +89,7 @@ export function PropertyTableHead() {
   );
 }
 
-function FeatureEditorPropertiesRaw({
+export function FeatureEditorPropertiesRaw({
   wrappedFeature,
   rep,
   showAll,
