@@ -1,7 +1,7 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
-import React from "react";
+import React, { useMemo } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetExplain } from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
@@ -10,6 +10,10 @@ import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Quantity } from "src/quantity";
+import {
+  HeadlossFormula,
+  roughnessKeyFor,
+} from "src/hydraulics/asset-types/pipe";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -51,6 +55,25 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
 export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
   const attributes = asset.explain() as AssetExplain;
 
+  const filteredAttributes = useMemo(() => {
+    const headlossFormula: HeadlossFormula = "H-W";
+    const roughnessKey = roughnessKeyFor[headlossFormula];
+
+    const filtered = {} as AssetExplain;
+    for (const attributeKey in attributes) {
+      if (
+        attributeKey.startsWith("roughness") &&
+        attributeKey !== roughnessKey
+      ) {
+        continue;
+      }
+
+      filtered[attributeKey as keyof AssetExplain] =
+        attributes[attributeKey as keyof AssetExplain];
+    }
+    return filtered;
+  }, [attributes]);
+
   return (
     <div
       className="overflow-y-auto placemark-scrollbar"
@@ -60,11 +83,11 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
       <table className="pb-2 w-full">
         <PropertyTableHead />
         <tbody>
-          {Object.keys(attributes).map((key, y) => {
+          {Object.keys(filteredAttributes).map((key, y) => {
             const attribute = attributes[key as keyof AssetExplain] as Quantity;
             const label = attribute.unit
-              ? `${key} (${attribute.unit})`
-              : `${key}`;
+              ? `${translate(key)} (${attribute.unit})`
+              : `${translate(key)}`;
             return (
               <PropertyRow
                 key={key}
@@ -88,10 +111,10 @@ export function PropertyTableHead() {
     <thead>
       <tr className="bg-gray-100 dark:bg-gray-800 font-sans text-gray-500 dark:text-gray-100 text-xs text-left">
         <th className="pl-3 py-2 border-r border-t border-b border-gray-200 dark:border-gray-700">
-          Property
+          {translate("property")}
         </th>
         <th className="pl-2 py-2 border-l border-t border-b border-gray-200 dark:border-gray-700">
-          Value
+          {translate("value")}
         </th>
       </tr>
     </thead>

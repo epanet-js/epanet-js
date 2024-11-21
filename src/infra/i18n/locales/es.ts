@@ -15,4 +15,13 @@ export const translations: Translations = {
   undo: "Deshacer",
   redo: "Rehacer",
   cheatsheet: "Guía rápida",
+  diameter: "Diametro",
+  length: "Longitud",
+  demand: "Consumo",
+  elevation: "Elevación",
+  roughnessCM: "Rugosidad",
+  roughnessDW: "Rugosidad",
+  roughnessHW: "Rugosidad",
+  property: "Propiedad",
+  value: "Valor",
 };

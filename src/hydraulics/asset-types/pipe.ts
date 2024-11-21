@@ -32,9 +32,9 @@ export type PipeExplain = Record<
   keyof Omit<PipeAttributes, "connections" | "type" | "visibility">,
   Quantity
 >;
-type HeadlossFormula = "H-W" | "D-W" | "C-M";
-type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
-const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
+export type HeadlossFormula = "H-W" | "D-W" | "C-M";
+export type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
+export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
   "H-W": "roughnessHW",
   "D-W": "roughnessDW",
   "C-M": "roughnessCM",
