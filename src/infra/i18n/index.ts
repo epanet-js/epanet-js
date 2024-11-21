@@ -45,3 +45,5 @@ const getLocale = (): Locale => {
   );
   return code || "en";
 };
+
+export { localizeNumber, localizeDecimal } from "./numbers";
