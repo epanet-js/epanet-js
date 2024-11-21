@@ -3,6 +3,7 @@ import { AssetId } from "./base-asset";
 import { Node, NodeAttributes } from "./node";
 import { newFeatureId } from "src/lib/id";
 import {
+  Quantity,
   QuantityMap,
   QuantityOrNumberMap,
   createCanonicalMap,
@@ -14,6 +15,10 @@ export type JunctionAttributes = {
 } & NodeAttributes;
 
 type JunctionQuantities = Pick<JunctionAttributes, "demand" | "elevation">;
+export type JunctionExplain = Record<
+  keyof Omit<JunctionAttributes, "type" | "visibility">,
+  Quantity
+>;
 
 type BuildData = {
   id?: AssetId;
@@ -45,5 +50,18 @@ export class Junction extends Node<JunctionAttributes> {
 
   copy() {
     return new Junction(this.id, [...this.coordinates], { ...this.attributes });
+  }
+
+  explain(): JunctionExplain {
+    return {
+      elevation: {
+        value: this.attributes.elevation,
+        unit: canonicalSpec.elevation.unit,
+      },
+      demand: {
+        value: this.attributes.demand,
+        unit: canonicalSpec.demand.unit,
+      },
+    };
   }
 }
