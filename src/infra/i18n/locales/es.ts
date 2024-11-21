@@ -1,4 +1,5 @@
-import { Translations } from "./locale";
+import { Translations, UnitsLocale } from "./locale";
+import { units as englishUnits } from "./en";
 
 export const translations: Translations = {
   select: "Seleccionar",
@@ -24,4 +25,8 @@ export const translations: Translations = {
   roughnessHW: "Rugosidad",
   property: "Propiedad",
   value: "Valor",
+};
+
+export const units: UnitsLocale = {
+  ...englishUnits,
 };

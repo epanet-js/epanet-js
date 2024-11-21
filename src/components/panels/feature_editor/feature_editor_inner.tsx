@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetExplain } from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
-import { translate } from "src/infra/i18n";
+import { translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -114,7 +114,7 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
               : null;
 
             const label = unit
-              ? `${translate(key)} (${unit})`
+              ? `${translate(key)} (${translateUnit(unit)})`
               : `${translate(key)}`;
             return (
               <PropertyRow

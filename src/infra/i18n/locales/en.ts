@@ -1,3 +1,5 @@
+import { Unit } from "src/quantity";
+
 export const translations = {
   select: "Select",
   junction: "Junction",
@@ -21,4 +23,15 @@ export const translations = {
   roughnessHW: "Roughness",
   property: "Property",
   value: "Value",
+};
+
+export const units: Record<Exclude<Unit, null>, string> = {
+  m: "m",
+  mm: "mm",
+  in: "in",
+  ft: "ft",
+  "l/s": "l/s",
+  "l/h": "l/h",
+  km: "km",
+  "gal/min": "gpm",
 };
