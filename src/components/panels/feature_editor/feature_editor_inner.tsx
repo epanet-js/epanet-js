@@ -22,17 +22,17 @@ import {
 } from "src/hydraulics/asset-types/pipe";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
+import { BaseAsset } from "src/hydraulics/asset-types/base-asset";
 
 export function FeatureEditorInner({
   selectedFeature,
 }: {
   selectedFeature: IWrappedFeature;
 }) {
-  const assetType = selectedFeature.feature.properties?.type;
   return (
     <>
       <div className="flex-auto overflow-y-auto placemark-scrollbar">
-        {!!assetType ? (
+        {selectedFeature instanceof BaseAsset ? (
           <AssetEditor asset={selectedFeature as Asset} />
         ) : (
           <FeatureEditorProperties wrappedFeature={selectedFeature} />
