@@ -1,7 +1,12 @@
 import { QuantityOrNumberMap, Unit, convertTo } from "src/quantity";
 
+export type QuantitySpec = {
+  defaultValue: number;
+  unit: Unit;
+};
+
 export type AssetQuantitiesSpec<T> = {
-  [key in keyof T]: { defaultValue: number; unit: Unit };
+  [key in keyof T]: QuantitySpec;
 };
 
 export const createCanonicalMap =
