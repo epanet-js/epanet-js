@@ -8,7 +8,7 @@ import {
   AssetExplain,
   AssetQuantities,
   AssetStatus,
-  getUnitFromSpec,
+  getQuantitySpec,
 } from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
@@ -99,16 +99,19 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
             const attribute = filteredAttributes[key as keyof AssetExplain];
 
             if (attribute.type === "quantity") {
+              const quantitySpec = getQuantitySpec(
+                systemSpec,
+                asset.type,
+                key as keyof AssetQuantities,
+              );
+
               return (
                 <QuantityAttributeRow
                   key={key}
                   name={key}
                   attribute={attribute as Quantity}
-                  unit={getUnitFromSpec(
-                    systemSpec,
-                    asset.type,
-                    key as keyof AssetQuantities,
-                  )}
+                  unit={quantitySpec.unit}
+                  decimals={quantitySpec.decimals}
                   position={y}
                 />
               );
@@ -158,14 +161,16 @@ const QuantityAttributeRow = ({
   name,
   attribute,
   unit,
+  decimals,
   position,
 }: {
   name: string;
   attribute: Quantity;
   unit: Unit;
   position: number;
+  decimals?: number;
 }) => {
-  const value = localizeDecimal(convertTo(attribute, unit));
+  const value = localizeDecimal(convertTo(attribute, unit), decimals);
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`

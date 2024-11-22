@@ -16,12 +16,22 @@ export type Quantity = {
   unit: Unit;
 };
 
+export type QuantitySpec = {
+  defaultValue: number;
+  unit: Unit;
+  decimals?: number;
+};
+
 export type QuantityMap<T> = {
   [key in keyof T]: Quantity;
 };
 
 export type QuantityOrNumberMap<T> = {
   [key in keyof T]: Quantity | number;
+};
+
+export type QuantitiesSpec<T> = {
+  [key in keyof T]: QuantitySpec;
 };
 
 export const convertTo = (quantity: Quantity, unit: Unit): number => {
