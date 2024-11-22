@@ -10,7 +10,12 @@ import {
   junctionCanonicalSpec,
 } from "./asset-types/junction";
 import { AssetQuantitiesSpec } from "./asset-types/asset-quantities";
-import { Pipe, PipeQuantities, pipeCanonicalSpec } from "./asset-types/pipe";
+import {
+  Pipe,
+  PipeQuantities,
+  PipeStatus,
+  pipeCanonicalSpec,
+} from "./asset-types/pipe";
 import { newFeatureId } from "src/lib/id";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
@@ -24,6 +29,7 @@ export type PipeBuildData = {
   id?: AssetId;
   coordinates?: Position[];
   connections?: LinkConnections;
+  status?: PipeStatus;
 } & Partial<QuantityOrNumberMap<PipeQuantities>>;
 
 export class AssetBuilder {
@@ -40,6 +46,7 @@ export class AssetBuilder {
       [0, 0],
     ],
     connections = nullConnections,
+    status = "open",
     ...quantities
   }: PipeBuildData = {}) {
     const defaultQuantities = getDefaultQuantities(this.quantitiesSpec.pipe);
@@ -47,6 +54,7 @@ export class AssetBuilder {
     return new Pipe(id, coordinates, {
       type: "pipe",
       connections,
+      status,
       ...canonalizeQuantities(
         { ...defaultQuantities, ...quantities },
         pipeCanonicalSpec,

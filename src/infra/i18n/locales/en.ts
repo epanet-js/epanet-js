@@ -23,6 +23,9 @@ export const translations = {
   roughnessHW: "Roughness",
   property: "Property",
   value: "Value",
+  status: "Status",
+  open: "Open",
+  closed: "Closed",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

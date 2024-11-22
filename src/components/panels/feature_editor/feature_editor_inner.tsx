@@ -6,20 +6,20 @@ import { RawEditor } from "./raw_editor";
 import {
   Asset,
   AssetExplain,
-  AssetQuantitiesSpecByType,
+  AssetQuantities,
+  AssetStatus,
+  getUnitFromSpec,
 } from "src/hydraulics/asset-types";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { Quantity, QuantityMap, convertTo } from "src/quantity";
+import { Quantity, Unit, convertTo } from "src/quantity";
 import {
   HeadlossFormula,
-  PipeQuantities,
   roughnessKeyFor,
 } from "src/hydraulics/asset-types/pipe";
-import { JunctionQuantities } from "src/hydraulics/asset-types/junction";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
 
@@ -67,7 +67,7 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
     ? quantityPresets.usCustomary
     : quantityPresets.si;
 
-  const filteredAttributes = useMemo(() => {
+  const filteredAttributes = useMemo((): AssetExplain => {
     const headlossFormula: HeadlossFormula = "H-W";
     const roughnessKey = roughnessKeyFor[headlossFormula];
 
@@ -86,8 +86,6 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
     return filtered;
   }, [attributes]);
 
-  const assetSpec = systemSpec[asset.type as keyof AssetQuantitiesSpecByType];
-
   return (
     <div
       className="overflow-y-auto placemark-scrollbar"
@@ -98,45 +96,92 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
         <PropertyTableHead />
         <tbody>
           {Object.keys(filteredAttributes).map((key, y) => {
-            const quantityAttribute = attributes[
-              key as keyof AssetExplain
-            ] as Quantity;
+            const attribute = filteredAttributes[key as keyof AssetExplain];
 
-            const attributeSpec =
-              assetSpec[
-                key as keyof QuantityMap<PipeQuantities | JunctionQuantities>
-              ];
-            const value = localizeDecimal(
-              attributeSpec
-                ? convertTo(quantityAttribute, (attributeSpec as Quantity).unit)
-                : quantityAttribute.value,
-            );
+            if (attribute.type === "quantity") {
+              return (
+                <QuantityAttributeRow
+                  key={key}
+                  name={key}
+                  attribute={attribute as Quantity}
+                  unit={getUnitFromSpec(
+                    systemSpec,
+                    asset.type,
+                    key as keyof AssetQuantities,
+                  )}
+                  position={y}
+                />
+              );
+            }
 
-            const unit = attributeSpec
-              ? (attributeSpec as Quantity).unit
-              : null;
-
-            const label = unit
-              ? `${translate(key)} (${translateUnit(unit)})`
-              : `${translate(key)}`;
-            return (
-              <PropertyRow
-                key={key}
-                pair={[label, value]}
-                y={y}
-                even={y % 2 === 0}
-                onChangeValue={() => {}}
-                onChangeKey={() => {}}
-                onDeleteKey={() => {}}
-                onCast={() => {}}
-              />
-            );
+            if (attribute.type === "status") {
+              return (
+                <StatusAttributeRow
+                  key={key}
+                  name={key}
+                  status={attribute.value}
+                  position={y}
+                />
+              );
+            }
           })}
         </tbody>
       </table>
     </div>
   );
 }
+
+const StatusAttributeRow = ({
+  name,
+  status,
+  position,
+}: {
+  name: string;
+  status: AssetStatus;
+  position: number;
+}) => {
+  const label = translate(name);
+  const value = translate(status);
+  return (
+    <PropertyRow
+      pair={[label, value]}
+      y={position}
+      even={position % 2 === 0}
+      onChangeValue={() => {}}
+      onChangeKey={() => {}}
+      onDeleteKey={() => {}}
+      onCast={() => {}}
+    />
+  );
+};
+const QuantityAttributeRow = ({
+  name,
+  attribute,
+  unit,
+  position,
+}: {
+  name: string;
+  attribute: Quantity;
+  unit: Unit;
+  position: number;
+}) => {
+  const value = localizeDecimal(convertTo(attribute, unit));
+
+  const label = unit
+    ? `${translate(name)} (${translateUnit(unit)})`
+    : `${translate(name)}`;
+  return (
+    <PropertyRow
+      pair={[label, value]}
+      y={position}
+      even={position % 2 === 0}
+      onChangeValue={() => {}}
+      onChangeKey={() => {}}
+      onDeleteKey={() => {}}
+      onCast={() => {}}
+    />
+  );
+};
 export function PropertyTableHead() {
   return (
     <thead>

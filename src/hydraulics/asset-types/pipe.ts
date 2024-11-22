@@ -1,6 +1,9 @@
 import { Link, LinkAttributes } from "./link";
-import { Quantity } from "src/quantity";
 import { AssetQuantitiesSpec } from "./asset-quantities";
+import { QuantityAttribute, StatusAttribute } from "./base-asset";
+
+const statuses = ["open", "closed"] as const;
+export type PipeStatus = (typeof statuses)[number];
 
 export type PipeAttributes = {
   type: "pipe";
@@ -8,6 +11,7 @@ export type PipeAttributes = {
   roughnessHW: number;
   roughnessDW: number;
   roughnessCM: number;
+  status: PipeStatus;
 } & LinkAttributes;
 
 export type PipeQuantities = Pick<
@@ -15,7 +19,10 @@ export type PipeQuantities = Pick<
   "diameter" | "roughnessDW" | "roughnessHW" | "roughnessCM" | "length"
 >;
 
-export type PipeExplain = Record<keyof PipeQuantities, Quantity>;
+export type PipeExplain = Record<
+  keyof PipeQuantities & "status",
+  QuantityAttribute | StatusAttribute<PipeStatus>
+>;
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 export type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
@@ -59,23 +66,33 @@ export class Pipe extends Link<PipeAttributes> {
 
   explain(): PipeExplain {
     return {
+      status: {
+        type: "status",
+        value: this.attributes.status,
+        options: statuses,
+      },
       diameter: {
+        type: "quantity",
         value: this.attributes.diameter,
         unit: canonicalSpec.diameter.unit,
       },
       length: {
+        type: "quantity",
         value: this.attributes.length,
         unit: canonicalSpec.length.unit,
       },
       roughnessCM: {
+        type: "quantity",
         value: this.attributes.roughnessCM,
         unit: null,
       },
       roughnessDW: {
+        type: "quantity",
         value: this.attributes.roughnessDW,
         unit: canonicalSpec.roughnessDW.unit,
       },
       roughnessHW: {
+        type: "quantity",
         value: this.attributes.roughnessHW,
         unit: null,
       },

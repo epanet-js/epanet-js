@@ -25,6 +25,9 @@ export const translations: Translations = {
   roughnessHW: "Rugosidad",
   property: "Propiedad",
   value: "Valor",
+  status: "Estado",
+  open: "Abierta",
+  closed: "Cerrada",
 };
 
 export const units: UnitsLocale = {
