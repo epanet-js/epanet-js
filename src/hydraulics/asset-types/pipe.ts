@@ -1,6 +1,6 @@
 import { Link, LinkAttributes } from "./link";
-import { AssetQuantitiesSpec } from "./asset-quantities";
 import { QuantityAttribute, StatusAttribute } from "./base-asset";
+import { QuantitiesSpec } from "src/quantity";
 
 const statuses = ["open", "closed"] as const;
 export type PipeStatus = (typeof statuses)[number];
@@ -32,9 +32,9 @@ export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
   "C-M": "roughnessCM",
 };
 
-const canonicalSpec: AssetQuantitiesSpec<PipeQuantities> = {
+const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
   diameter: { defaultValue: 300, unit: "mm" },
-  length: { defaultValue: 1000, unit: "m" },
+  length: { defaultValue: 1000, unit: "m", decimals: 2 },
   roughnessDW: { defaultValue: 0.26, unit: "mm" },
   roughnessHW: { defaultValue: 130, unit: null },
   roughnessCM: { defaultValue: 0.012, unit: null },

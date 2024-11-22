@@ -1,6 +1,6 @@
 import { Node, NodeAttributes } from "./node";
-import { AssetQuantitiesSpec } from "./asset-quantities";
 import { QuantityAttribute } from "./base-asset";
+import { QuantitiesSpec } from "src/quantity";
 
 export type JunctionAttributes = {
   type: "junction";
@@ -16,7 +16,7 @@ export type JunctionExplain = Record<
   QuantityAttribute
 >;
 
-const canonicalSpec: AssetQuantitiesSpec<JunctionQuantities> = {
+const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
   demand: { defaultValue: 0, unit: "l/s" },
 };

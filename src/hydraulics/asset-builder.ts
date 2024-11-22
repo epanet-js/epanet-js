@@ -1,4 +1,9 @@
-import { QuantityMap, QuantityOrNumberMap, convertTo } from "src/quantity";
+import {
+  QuantitiesSpec,
+  QuantityMap,
+  QuantityOrNumberMap,
+  convertTo,
+} from "src/quantity";
 import {
   AssetId,
   AssetQuantitiesSpecByType,
@@ -9,7 +14,6 @@ import {
   JunctionQuantities,
   junctionCanonicalSpec,
 } from "./asset-types/junction";
-import { AssetQuantitiesSpec } from "./asset-types/asset-quantities";
 import {
   Pipe,
   PipeQuantities,
@@ -83,7 +87,7 @@ export class AssetBuilder {
 
 const canonalizeQuantities = <T>(
   inputQuantities: Partial<QuantityOrNumberMap<T>>,
-  canonicalSpec: AssetQuantitiesSpec<T>,
+  canonicalSpec: QuantitiesSpec<T>,
 ): Record<keyof T, number> => {
   return Object.keys(inputQuantities).reduce(
     (acc, key) => {
@@ -107,7 +111,7 @@ const canonalizeQuantities = <T>(
 };
 
 const getDefaultQuantities = <T>(
-  quantitiesSpec: AssetQuantitiesSpec<T>,
+  quantitiesSpec: QuantitiesSpec<T>,
 ): QuantityMap<T> => {
   return Object.keys(quantitiesSpec).reduce((acc, key) => {
     const typedKey = key as keyof T;

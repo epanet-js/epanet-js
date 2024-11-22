@@ -14,12 +14,8 @@ export type LinkAsset = Pipe;
 export { Pipe, Junction };
 export type { AssetId } from "./base-asset";
 
-import {
-  AssetQuantitiesSpec,
-  QuantitySpec,
-} from "src/hydraulics/asset-types/asset-quantities";
 import { QuantityAttribute, StatusAttribute } from "./base-asset";
-import { Unit } from "src/quantity";
+import { QuantitiesSpec, QuantitySpec } from "src/quantity";
 
 export type AssetExplain = Record<
   "status" | keyof PipeQuantities | keyof JunctionQuantities,
@@ -28,17 +24,17 @@ export type AssetExplain = Record<
 
 export type AssetQuantitiesSpecByType = Record<
   Asset["type"],
-  AssetQuantitiesSpec<AssetQuantities>
+  QuantitiesSpec<AssetQuantities>
 >;
 
-export const getUnitFromSpec = (
-  spec: AssetQuantitiesSpecByType,
+export const getQuantitySpec = (
+  systemSpec: AssetQuantitiesSpecByType,
   assetType: Asset["type"],
   key: keyof AssetQuantities,
-): Unit => {
-  const assetSpec = spec[assetType];
+): QuantitySpec => {
+  const assetSpec = systemSpec[assetType];
   const quantitySpec = assetSpec[key];
-  return (quantitySpec as QuantitySpec).unit;
+  return quantitySpec;
 };
 
 export const canonicalQuantitiesSpec: AssetQuantitiesSpecByType = {
