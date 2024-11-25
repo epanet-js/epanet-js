@@ -1,19 +1,19 @@
-import { Node, NodeAttributes } from "./node";
-import { QuantityAttribute } from "./base-asset";
+import { Node, NodeProperties } from "./node";
+import { QuantityProperty } from "./base-asset";
 import { QuantitiesSpec } from "src/quantity";
 
-export type JunctionAttributes = {
+export type JunctionProperties = {
   type: "junction";
   demand: number;
-} & NodeAttributes;
+} & NodeProperties;
 
 export type JunctionQuantities = Pick<
-  JunctionAttributes,
+  JunctionProperties,
   "demand" | "elevation"
 >;
 export type JunctionExplain = Record<
   keyof JunctionQuantities,
-  QuantityAttribute
+  QuantityProperty
 >;
 
 const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
@@ -22,25 +22,25 @@ const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
 };
 export { canonicalSpec as junctionCanonicalSpec };
 
-export class Junction extends Node<JunctionAttributes> {
+export class Junction extends Node<JunctionProperties> {
   get demand() {
-    return this.attributes.demand;
+    return this.properties.demand;
   }
 
   copy() {
-    return new Junction(this.id, [...this.coordinates], { ...this.attributes });
+    return new Junction(this.id, [...this.coordinates], { ...this.properties });
   }
 
   explain(): JunctionExplain {
     return {
       elevation: {
         type: "quantity",
-        value: this.attributes.elevation,
+        value: this.properties.elevation,
         unit: canonicalSpec.elevation.unit,
       },
       demand: {
         type: "quantity",
-        value: this.attributes.demand,
+        value: this.properties.demand,
         unit: canonicalSpec.demand.unit,
       },
     };

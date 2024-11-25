@@ -1,16 +1,16 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId, AssetAttributes } from "./base-asset";
+import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 
-export type NodeAttributes = {
+export type NodeProperties = {
   type: "junction";
   elevation: number;
-} & AssetAttributes;
+} & AssetProperties;
 
-export class Node<T> extends BaseAsset<T & NodeAttributes> {
+export class Node<T> extends BaseAsset<T & NodeProperties> {
   constructor(
     id: AssetId,
     coordinates: Position,
-    attributes: T & NodeAttributes,
+    attributes: T & NodeProperties,
   ) {
     super(id, { type: "Point", coordinates }, attributes);
   }
@@ -28,7 +28,7 @@ export class Node<T> extends BaseAsset<T & NodeAttributes> {
   }
 
   get elevation() {
-    return this.attributes.elevation;
+    return this.properties.elevation;
   }
 
   setCoordinates(newCoordinates: Position) {
@@ -36,6 +36,6 @@ export class Node<T> extends BaseAsset<T & NodeAttributes> {
   }
 
   setElevation(elevation: number) {
-    this.attributes.elevation = elevation;
+    this.properties.elevation = elevation;
   }
 }
