@@ -1,4 +1,5 @@
 import mapboxgl, { MapboxEvent, Style } from "mapbox-gl";
+import type { Map as MapboxMap } from "mapbox-gl";
 import {
   FEATURES_SOURCE_NAME,
   IMPORTED_FEATURES_SOURCE_NAME,
@@ -283,6 +284,13 @@ export class MapEngine {
 
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
+  }
+
+  queryRenderedFeatures(
+    pointOrBox: Parameters<MapboxMap["queryRenderedFeatures"]>[0],
+    options: Parameters<MapboxMap["queryRenderedFeatures"]>[1],
+  ) {
+    return this.map.queryRenderedFeatures(pointOrBox, options);
   }
 
   remove() {

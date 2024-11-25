@@ -1,4 +1,3 @@
-import * as utils from "src/lib/map_component_utils";
 import type { HandlerContext } from "src/types";
 import { Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
@@ -16,12 +15,15 @@ import {
   prefetchElevationsTile,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
+import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
+import { decodeId } from "src/lib/id";
+import { UIDMap } from "src/lib/id_mapper";
+import { Asset } from "src/hydraulics/asset-types";
 
 export function useNoneHandlers({
   throttledMovePointer,
   selection,
   idMap,
-  folderMap,
   rep,
   map,
   hydraulicModel,
@@ -44,17 +46,19 @@ export function useNoneHandlers({
     throttledMovePointer(e.point);
   };
 
-  const getClickedFeature = (
+  const getClickedAsset = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
-  ) => {
-    const fuzzyResult = utils.fuzzyClick(e, {
-      idMap,
-      featureMapDeprecated: hydraulicModel.assets,
-      folderMap,
-      pmap: map,
-    });
+  ): Asset | null => {
+    const rawId = getClickedFeature(map as QueryProvider, e.point);
+    if (rawId === null) return null;
 
-    return fuzzyResult;
+    const decodedId = decodeId(rawId);
+    const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
+
+    const asset = hydraulicModel.assets.get(uuid);
+    if (!asset) return null;
+
+    return asset;
   };
 
   const handlers: Handlers = {
@@ -65,8 +69,8 @@ export function useNoneHandlers({
       }
 
       const [assetId] = getSelectionIds();
-      const clickedFeature = getClickedFeature(e);
-      if (!clickedFeature || clickedFeature.wrappedFeature.id !== assetId) {
+      const clickedAsset = getClickedAsset(e);
+      if (!clickedAsset || clickedAsset.id !== assetId) {
         return;
       }
 
@@ -121,10 +125,10 @@ export function useNoneHandlers({
       clearSelection();
     },
     click: (e) => {
-      const clickedFeature = getClickedFeature(e);
+      const clickedAsset = getClickedAsset(e);
       e.preventDefault();
 
-      if (!clickedFeature) {
+      if (!clickedAsset) {
         if (isShiftHeld()) return;
 
         clearSelection();
@@ -132,21 +136,14 @@ export function useNoneHandlers({
         setMode({ mode: Mode.NONE });
         return;
       }
-
-      const { wrappedFeature, decodedId } = clickedFeature;
-
-      if (decodedId.type !== "feature") return;
-
-      const id = wrappedFeature.id;
-
       if (isShiftHeld()) {
-        if (isSelected(id)) {
-          removeFromSelection(id);
+        if (isSelected(clickedAsset.id)) {
+          removeFromSelection(clickedAsset.id);
         } else {
-          extendSelection(id);
+          extendSelection(clickedAsset.id);
         }
       } else {
-        toggleSingleSelection(id);
+        toggleSingleSelection(clickedAsset.id);
       }
     },
     exit() {
