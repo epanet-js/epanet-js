@@ -111,24 +111,23 @@ describe("Pipe", () => {
     expect(pipe.id).not.toBeUndefined();
     expect(pipe.diameter).toEqual(300);
     expect(pipe.length).toEqual(1000);
-    expect(pipe.roughnessFor("H-W")).toEqual(130);
+    expect(pipe.roughness).toEqual(130);
 
     const otherPipe = buildPipe({});
 
     expect(otherPipe.id).not.toEqual(pipe.id);
-    expect(otherPipe.roughnessFor("D-W")).toEqual(0.26);
   });
 
   it("can assign defaults with quantities", () => {
     const pipe = buildPipe({
       diameter: { value: 12, unit: "in" },
       length: { value: 0.1, unit: "km" },
-      roughnessDW: { value: 0.01, unit: "km" },
+      roughness: { value: 0.01, unit: null },
     });
 
     expect(pipe.id).not.toBeUndefined();
     expect(pipe.diameter).toEqual(304.8);
     expect(pipe.length).toEqual(100);
-    expect(pipe.roughnessFor("D-W")).toEqual(10000);
+    expect(pipe.roughness).toEqual(0.01);
   });
 });
