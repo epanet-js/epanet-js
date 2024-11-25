@@ -8,12 +8,14 @@ import { useLineHandlers } from "./line";
 import { useJunctionHandlers } from "./junction";
 import { usePolygonHandlers } from "./polygon";
 import { useDrawPipeHandlers } from "./draw-pipe";
+import { useDrawReservoirHandlers } from "./draw-reservoir";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useJunctionHandlers(handlerContext),
     [Mode.DRAW_PIPE]: useDrawPipeHandlers(handlerContext),
+    [Mode.DRAW_RESERVOIR]: useDrawReservoirHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),
     [Mode.DRAW_RECTANGLE]: useRectangleHandlers(handlerContext),

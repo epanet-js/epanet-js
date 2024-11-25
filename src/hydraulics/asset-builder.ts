@@ -23,6 +23,11 @@ import {
 import { newFeatureId } from "src/lib/id";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
+import {
+  Reservoir,
+  ReservoirQuantities,
+  reservoirCanonicalSpec,
+} from "./asset-types/reservoir";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -35,6 +40,11 @@ export type PipeBuildData = {
   connections?: LinkConnections;
   status?: PipeStatus;
 } & Partial<QuantityOrNumberMap<PipeQuantities>>;
+
+export type ReservoirBuildData = {
+  id?: AssetId;
+  coordinates?: Position;
+} & Partial<QuantityOrNumberMap<ReservoirQuantities>>;
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
@@ -80,6 +90,24 @@ export class AssetBuilder {
       ...canonalizeQuantities(
         { ...defaultQuantities, ...quantities },
         junctionCanonicalSpec,
+      ),
+    });
+  }
+
+  buildReservoir({
+    id = newFeatureId(),
+    coordinates = [0, 0],
+    ...quantities
+  }: ReservoirBuildData = {}) {
+    const defaultQuantities = getDefaultQuantities(
+      this.quantitiesSpec.reservoir,
+    );
+
+    return new Reservoir(id, coordinates, {
+      type: "reservoir",
+      ...canonalizeQuantities(
+        { ...defaultQuantities, ...quantities },
+        reservoirCanonicalSpec,
       ),
     });
   }

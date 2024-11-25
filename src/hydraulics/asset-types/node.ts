@@ -2,7 +2,6 @@ import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 
 export type NodeProperties = {
-  type: "junction";
   elevation: number;
 } & AssetProperties;
 
