@@ -8,15 +8,13 @@ export type PipeStatus = (typeof statuses)[number];
 export type PipeAttributes = {
   type: "pipe";
   diameter: number;
-  roughnessHW: number;
-  roughnessDW: number;
-  roughnessCM: number;
+  roughness: number;
   status: PipeStatus;
 } & LinkAttributes;
 
 export type PipeQuantities = Pick<
   PipeAttributes,
-  "diameter" | "roughnessDW" | "roughnessHW" | "roughnessCM" | "length"
+  "diameter" | "roughness" | "length"
 >;
 
 export type PipeExplain = Record<
@@ -25,19 +23,11 @@ export type PipeExplain = Record<
 >;
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
-export type RoughnessKeys = "roughnessHW" | "roughnessDW" | "roughnessCM";
-export const roughnessKeyFor: { [key in HeadlossFormula]: RoughnessKeys } = {
-  "H-W": "roughnessHW",
-  "D-W": "roughnessDW",
-  "C-M": "roughnessCM",
-};
 
 const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
   diameter: { defaultValue: 300, unit: "mm" },
   length: { defaultValue: 1000, unit: "m", decimals: 2 },
-  roughnessDW: { defaultValue: 0.26, unit: "mm" },
-  roughnessHW: { defaultValue: 130, unit: null },
-  roughnessCM: { defaultValue: 0.012, unit: null },
+  roughness: { defaultValue: 130, unit: null }, //H-W
 };
 export { canonicalSpec as pipeCanonicalSpec };
 
@@ -50,12 +40,12 @@ export class Pipe extends Link<PipeAttributes> {
     this.attributes.diameter = value;
   }
 
-  roughnessFor(headlossFormula: HeadlossFormula) {
-    return this.attributes[roughnessKeyFor[headlossFormula]];
+  get roughness() {
+    return this.attributes.roughness;
   }
 
-  setRoughness(value: number, headlossFormula: HeadlossFormula) {
-    this.attributes[roughnessKeyFor[headlossFormula]] = value;
+  setRoughness(value: number) {
+    this.attributes.roughness = value;
   }
 
   copy() {
@@ -81,19 +71,9 @@ export class Pipe extends Link<PipeAttributes> {
         value: this.attributes.length,
         unit: canonicalSpec.length.unit,
       },
-      roughnessCM: {
+      roughness: {
         type: "quantity",
-        value: this.attributes.roughnessCM,
-        unit: null,
-      },
-      roughnessDW: {
-        type: "quantity",
-        value: this.attributes.roughnessDW,
-        unit: canonicalSpec.roughnessDW.unit,
-      },
-      roughnessHW: {
-        type: "quantity",
-        value: this.attributes.roughnessHW,
+        value: this.attributes.roughness,
         unit: null,
       },
     };

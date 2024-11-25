@@ -1,7 +1,7 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
-import React, { useMemo } from "react";
+import React from "react";
 import { RawEditor } from "./raw_editor";
 import {
   Asset,
@@ -16,10 +16,7 @@ import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Quantity, Unit, convertTo } from "src/quantity";
-import {
-  HeadlossFormula,
-  roughnessKeyFor,
-} from "src/hydraulics/asset-types/pipe";
+
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
 import { BaseAsset } from "src/hydraulics/asset-types/base-asset";
@@ -67,25 +64,6 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
     ? quantityPresets.usCustomary
     : quantityPresets.si;
 
-  const filteredAttributes = useMemo((): AssetExplain => {
-    const headlossFormula: HeadlossFormula = "H-W";
-    const roughnessKey = roughnessKeyFor[headlossFormula];
-
-    const filtered = {} as AssetExplain;
-    for (const attributeKey in attributes) {
-      if (
-        attributeKey.startsWith("roughness") &&
-        attributeKey !== roughnessKey
-      ) {
-        continue;
-      }
-
-      filtered[attributeKey as keyof AssetExplain] =
-        attributes[attributeKey as keyof AssetExplain];
-    }
-    return filtered;
-  }, [attributes]);
-
   return (
     <div
       className="overflow-y-auto placemark-scrollbar"
@@ -95,8 +73,8 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
       <table className="pb-2 w-full">
         <PropertyTableHead />
         <tbody>
-          {Object.keys(filteredAttributes).map((key, y) => {
-            const attribute = filteredAttributes[key as keyof AssetExplain];
+          {Object.keys(attributes).map((key, y) => {
+            const attribute = attributes[key as keyof AssetExplain];
 
             if (attribute.type === "quantity") {
               const quantitySpec = getQuantitySpec(
