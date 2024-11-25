@@ -15,7 +15,8 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
   },
   reservoir: {
     elevation: { defaultValue: 0, unit: "ft" },
-    head: { defaultValue: 100, unit: "ft" },
+    head: { defaultValue: 0, unit: "ft" },
+    relativeHead: { defaultValue: 32, unit: "ft" },
   },
 };
 

@@ -10,16 +10,17 @@ export type ReservoirProperties = {
 export type ReservoirQuantities = Pick<
   ReservoirProperties,
   "elevation" | "head"
->;
+> & { relativeHead: number };
 
 export type ReservoirExplain = Record<
-  keyof ReservoirQuantities,
+  keyof Omit<ReservoirQuantities, "relativeHead">,
   QuantityProperty
 >;
 
 const canonicalSpec: QuantitiesSpec<ReservoirQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
-  head: { defaultValue: 30, unit: "m" },
+  relativeHead: { defaultValue: 10, unit: "m" },
+  head: { defaultValue: 0, unit: "m" },
 };
 export { canonicalSpec as reservoirCanonicalSpec };
 
@@ -28,6 +29,14 @@ export class Reservoir extends Node<ReservoirProperties> {
     return new Reservoir(this.id, [...this.coordinates], {
       ...this.properties,
     });
+  }
+
+  get head() {
+    return this.properties.head;
+  }
+
+  setHead(value: number) {
+    this.properties.head = value;
   }
 
   explain(): ReservoirExplain {
