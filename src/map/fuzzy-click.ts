@@ -1,5 +1,5 @@
 import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { MapboxGeoJSONFeature, Map as MapboxMap } from "mapbox-gl";
 import { Feature } from "geojson";
 
 export type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
@@ -12,7 +12,7 @@ export type QueryProvider = {
   queryRenderedFeatures: (
     pointOrBox: Point | Box,
     options: QueryOptions,
-  ) => Feature[];
+  ) => MapboxGeoJSONFeature[];
 };
 
 export const getClickedFeature = (
@@ -29,12 +29,14 @@ export const getClickedFeature = (
   return feature.id as RawId;
 };
 
-const chooseFeature = (features: Feature[]): Feature | null => {
+const chooseFeature = (features: MapboxGeoJSONFeature[]): Feature | null => {
   if (!features.length) return null;
-  const point = features.find((f) => f.geometry.type === "Point");
+  const visibleFeatures = features.filter((f) => !f.state || !f.state.hidden);
+
+  const point = visibleFeatures.find((f) => f.geometry.type === "Point");
   if (point) return point;
 
-  return features[0];
+  return visibleFeatures[0];
 };
 
 const createBox = (point: Point): Box => {
