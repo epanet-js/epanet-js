@@ -18,6 +18,7 @@
     "incremental": true,
     "jsx": "preserve",
     "tsBuildInfoFile": ".tsbuildinfo",
+    "types": ["vitest/globals"],
     "plugins": [
       {
         "name": "next"
