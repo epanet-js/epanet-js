@@ -3,6 +3,7 @@ import {
   PlusIcon,
   CircleIcon,
   StretchHorizontallyIcon,
+  SquareIcon,
 } from "@radix-ui/react-icons";
 import {
   modeAtom,
@@ -17,30 +18,63 @@ import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { USelection } from "src/selection";
 import { IWrappedFeature } from "src/types";
+import { isFeatureOn } from "src/infra/feature-flags";
 
-const MODE_OPTIONS = [
-  {
-    mode: Mode.NONE,
-    hotkey: "1",
-    Icon: CursorArrowIcon,
-    alwaysMultiple: false,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_JUNCTION,
-    hotkey: "2",
-    alwaysMultiple: true,
-    Icon: CircleIcon,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_PIPE,
-    hotkey: "3",
-    alwaysMultiple: true,
-    Icon: StretchHorizontallyIcon,
-    Menu: null,
-  },
-] as const;
+const MODE_OPTIONS = isFeatureOn("FLAG_RESERVOIR")
+  ? ([
+      {
+        mode: Mode.NONE,
+        hotkey: "1",
+        Icon: CursorArrowIcon,
+        alwaysMultiple: false,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_JUNCTION,
+        hotkey: "2",
+        alwaysMultiple: true,
+        Icon: CircleIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_PIPE,
+        hotkey: "3",
+        alwaysMultiple: true,
+        Icon: StretchHorizontallyIcon,
+        Menu: null,
+      },
+
+      {
+        mode: Mode.DRAW_RESERVOIR,
+        hotkey: "4",
+        alwaysMultiple: true,
+        Icon: SquareIcon,
+        Menu: null,
+      },
+    ] as const)
+  : ([
+      {
+        mode: Mode.NONE,
+        hotkey: "1",
+        Icon: CursorArrowIcon,
+        alwaysMultiple: false,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_JUNCTION,
+        hotkey: "2",
+        alwaysMultiple: true,
+        Icon: CircleIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_PIPE,
+        hotkey: "3",
+        alwaysMultiple: true,
+        Icon: StretchHorizontallyIcon,
+        Menu: null,
+      },
+    ] as const);
 
 export default memo(function Modes({
   replaceGeometryForId,

@@ -5,17 +5,25 @@ import {
   junctionCanonicalSpec,
 } from "./junction";
 
-export type Asset = Pipe | Junction;
-export type AssetQuantities = PipeQuantities | JunctionQuantities;
+export type Asset = Pipe | Junction | Reservoir;
+export type AssetQuantities =
+  | PipeQuantities
+  | JunctionQuantities
+  | ReservoirQuantities;
 export type AssetStatus = PipeStatus;
-export type NodeAsset = Junction;
+export type NodeAsset = Junction | Reservoir;
 export type LinkAsset = Pipe;
 
-export { Pipe, Junction };
+export { Pipe, Junction, Reservoir };
 export type { AssetId } from "./base-asset";
 
 import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec, QuantitySpec } from "src/quantity";
+import {
+  Reservoir,
+  ReservoirQuantities,
+  reservoirCanonicalSpec,
+} from "./reservoir";
 
 export type AssetExplain = Record<
   "status" | keyof PipeQuantities | keyof JunctionQuantities,
@@ -40,4 +48,5 @@ export const getQuantitySpec = (
 export const canonicalQuantitiesSpec: AssetQuantitiesSpecByType = {
   pipe: pipeCanonicalSpec,
   junction: junctionCanonicalSpec,
+  reservoir: reservoirCanonicalSpec,
 };

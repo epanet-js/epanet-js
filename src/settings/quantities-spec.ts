@@ -13,6 +13,9 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
     elevation: { defaultValue: 0, unit: "ft" },
     demand: { defaultValue: 0, unit: "gal/min" },
   },
+  reservoir: {
+    elevation: { defaultValue: 0, unit: "ft" },
+  },
 };
 
 export const presets = {
