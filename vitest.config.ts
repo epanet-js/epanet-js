@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
     environmentMatchGlobs: [
-      ["src/map/**", "jsdom"],
+      ["src/map/elevations/*", "jsdom"],
       ["src/**/**", "node"],
     ],
     environmentOptions: {
