@@ -58,7 +58,7 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
 };
 
 export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
-  const attributes = asset.explain() as AssetExplain;
+  const properties = asset.explain() as AssetExplain;
 
   const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
     ? quantityPresets.usCustomary
@@ -73,10 +73,10 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
       <table className="pb-2 w-full">
         <PropertyTableHead />
         <tbody>
-          {Object.keys(attributes).map((key, y) => {
-            const attribute = attributes[key as keyof AssetExplain];
+          {Object.keys(properties).map((key, y) => {
+            const property = properties[key as keyof AssetExplain];
 
-            if (attribute.type === "quantity") {
+            if (property.type === "quantity") {
               const quantitySpec = getQuantitySpec(
                 systemSpec,
                 asset.type,
@@ -84,10 +84,10 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
               );
 
               return (
-                <QuantityAttributeRow
+                <QuantityPropertyRow
                   key={key}
                   name={key}
-                  attribute={attribute as Quantity}
+                  attribute={property as Quantity}
                   unit={quantitySpec.unit}
                   decimals={quantitySpec.decimals}
                   position={y}
@@ -95,12 +95,12 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
               );
             }
 
-            if (attribute.type === "status") {
+            if (property.type === "status") {
               return (
-                <StatusAttributeRow
+                <StatusPropertyRow
                   key={key}
                   name={key}
-                  status={attribute.value}
+                  status={property.value}
                   position={y}
                 />
               );
@@ -112,7 +112,7 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
   );
 }
 
-const StatusAttributeRow = ({
+const StatusPropertyRow = ({
   name,
   status,
   position,
@@ -135,7 +135,7 @@ const StatusAttributeRow = ({
     />
   );
 };
-const QuantityAttributeRow = ({
+const QuantityPropertyRow = ({
   name,
   attribute,
   unit,

@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId, AssetAttributes } from "./base-asset";
+import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
 
@@ -12,17 +12,17 @@ export const nullCoordinates = [
 
 export const nullConnections: LinkConnections = ["", ""];
 
-export type LinkAttributes = {
+export type LinkProperties = {
   type: "pipe";
   connections: LinkConnections;
   length: number;
-} & AssetAttributes;
+} & AssetProperties;
 
-export class Link<T> extends BaseAsset<T & LinkAttributes> {
+export class Link<T> extends BaseAsset<T & LinkProperties> {
   constructor(
     id: AssetId,
     coordinates: Position[],
-    attributes: T & LinkAttributes,
+    attributes: T & LinkProperties,
   ) {
     super(id, { type: "LineString", coordinates }, attributes);
   }
@@ -35,11 +35,11 @@ export class Link<T> extends BaseAsset<T & LinkAttributes> {
   }
 
   get connections() {
-    return this.attributes.connections;
+    return this.properties.connections;
   }
 
   setConnections(startNodeId: AssetId, endNodeId: AssetId) {
-    this.attributes.connections = [startNodeId, endNodeId];
+    this.properties.connections = [startNodeId, endNodeId];
   }
 
   get coordinates() {
@@ -47,7 +47,7 @@ export class Link<T> extends BaseAsset<T & LinkAttributes> {
   }
 
   get length() {
-    return this.attributes.length;
+    return this.properties.length;
   }
 
   isStart(position: Position) {
@@ -87,6 +87,6 @@ export class Link<T> extends BaseAsset<T & LinkAttributes> {
       measureLength(this.feature, { units: "kilometers" }) * 1000;
     const length = parseFloat(lengthInMeters.toFixed(2));
 
-    this.attributes.length = length;
+    this.properties.length = length;
   }
 }

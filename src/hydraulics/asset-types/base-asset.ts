@@ -6,20 +6,20 @@ export type AssetId = StringId;
 
 type AssetGeometry = LineString | Point;
 
-export type AssetAttributes = {
+export type AssetProperties = {
   type: "pipe" | "junction";
   visibility?: boolean;
 };
 
-export type QuantityAttribute = { type: "quantity" } & Quantity;
-export type StatusAttribute<T> = {
+export type QuantityProperty = { type: "quantity" } & Quantity;
+export type StatusProperty<T> = {
   type: "status";
   value: T;
   options: readonly T[];
 };
 
 export class BaseAsset<T> {
-  public readonly feature: IFeature<AssetGeometry, T & AssetAttributes>;
+  public readonly feature: IFeature<AssetGeometry, T & AssetProperties>;
   public readonly id: AssetId;
   public readonly at = "any";
   public readonly folderId = "any";
@@ -27,13 +27,13 @@ export class BaseAsset<T> {
   constructor(
     id: AssetId,
     geometry: AssetGeometry,
-    attributes: T & AssetAttributes,
+    properties: T & AssetProperties,
   ) {
     this.id = id;
     this.feature = {
       type: "Feature",
       geometry,
-      properties: attributes,
+      properties,
     };
   }
 
@@ -41,7 +41,7 @@ export class BaseAsset<T> {
     return this.feature.properties.type;
   }
 
-  protected get attributes() {
+  protected get properties() {
     return this.feature.properties;
   }
 

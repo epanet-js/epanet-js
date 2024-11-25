@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { PipeAttributes } from "../asset-types/pipe";
+import { PipeProperties } from "../asset-types/pipe";
 import { Topology } from "../topology";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap, getNode } from "../assets-map";
@@ -39,7 +39,7 @@ export class HydraulicModelBuilder {
     id: string,
     startNodeId: string,
     endNodeId: string,
-    attributes: Partial<PipeAttributes> = {},
+    attributes: Partial<PipeProperties> = {},
   ) {
     const startNode = getNode(this.assets, startNodeId);
     const endNode = getNode(this.assets, endNodeId);

@@ -1,25 +1,25 @@
-import { Link, LinkAttributes } from "./link";
-import { QuantityAttribute, StatusAttribute } from "./base-asset";
+import { Link, LinkProperties } from "./link";
+import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec } from "src/quantity";
 
 const statuses = ["open", "closed"] as const;
 export type PipeStatus = (typeof statuses)[number];
 
-export type PipeAttributes = {
+export type PipeProperties = {
   type: "pipe";
   diameter: number;
   roughness: number;
   status: PipeStatus;
-} & LinkAttributes;
+} & LinkProperties;
 
 export type PipeQuantities = Pick<
-  PipeAttributes,
+  PipeProperties,
   "diameter" | "roughness" | "length"
 >;
 
 export type PipeExplain = Record<
   keyof PipeQuantities & "status",
-  QuantityAttribute | StatusAttribute<PipeStatus>
+  QuantityProperty | StatusProperty<PipeStatus>
 >;
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
@@ -31,26 +31,26 @@ const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
 };
 export { canonicalSpec as pipeCanonicalSpec };
 
-export class Pipe extends Link<PipeAttributes> {
+export class Pipe extends Link<PipeProperties> {
   get diameter() {
-    return this.attributes.diameter;
+    return this.properties.diameter;
   }
 
   setDiameter(value: number) {
-    this.attributes.diameter = value;
+    this.properties.diameter = value;
   }
 
   get roughness() {
-    return this.attributes.roughness;
+    return this.properties.roughness;
   }
 
   setRoughness(value: number) {
-    this.attributes.roughness = value;
+    this.properties.roughness = value;
   }
 
   copy() {
     return new Pipe(this.id, [...this.coordinates], {
-      ...this.attributes,
+      ...this.properties,
     });
   }
 
@@ -58,22 +58,22 @@ export class Pipe extends Link<PipeAttributes> {
     return {
       status: {
         type: "status",
-        value: this.attributes.status,
+        value: this.properties.status,
         options: statuses,
       },
       diameter: {
         type: "quantity",
-        value: this.attributes.diameter,
+        value: this.properties.diameter,
         unit: canonicalSpec.diameter.unit,
       },
       length: {
         type: "quantity",
-        value: this.attributes.length,
+        value: this.properties.length,
         unit: canonicalSpec.length.unit,
       },
       roughness: {
         type: "quantity",
-        value: this.attributes.roughness,
+        value: this.properties.roughness,
         unit: null,
       },
     };

@@ -14,12 +14,12 @@ export type LinkAsset = Pipe;
 export { Pipe, Junction };
 export type { AssetId } from "./base-asset";
 
-import { QuantityAttribute, StatusAttribute } from "./base-asset";
+import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec, QuantitySpec } from "src/quantity";
 
 export type AssetExplain = Record<
   "status" | keyof PipeQuantities | keyof JunctionQuantities,
-  QuantityAttribute | StatusAttribute<AssetStatus>
+  QuantityProperty | StatusProperty<AssetStatus>
 >;
 
 export type AssetQuantitiesSpecByType = Record<
