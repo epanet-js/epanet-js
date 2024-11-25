@@ -28,7 +28,7 @@ import { EitherAsync } from "purify-ts/EitherAsync";
 import { Left } from "purify-ts/Either";
 import { CoordinateString } from "./coordinate_string";
 import isPlainObject from "lodash/isPlainObject";
-import { JsonObject, JsonValue, SetOptional } from "type-fest";
+import { JsonObject, JsonValue } from "type-fest";
 import { FlatGeobuf } from "./flatgeobuf";
 import { Data } from "src/state/jotai";
 import { ProxyMarked } from "comlink";
@@ -356,7 +356,10 @@ export function importToExportOptions(
  * the results of any format.
  */
 export function fromGeoJSON(
-  { featureMapDeprecated, folderMap }: SetOptional<Data, "selection">,
+  {
+    featureMapDeprecated,
+    folderMap,
+  }: Pick<Data, "featureMapDeprecated" | "folderMap">,
   exportOptions: ExportOptions,
 ) {
   return EitherAsync<ConvertError, ExportedData>(

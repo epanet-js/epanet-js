@@ -291,7 +291,7 @@ export class MemPersistence implements IPersistence {
 
       if (
         inputFeature.feature.properties &&
-        inputFeature.feature.properties.connections
+        (inputFeature as LinkAsset).connections
       ) {
         const [start, end] = (inputFeature as LinkAsset).connections;
 
