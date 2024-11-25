@@ -1,0 +1,52 @@
+import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
+import type { Map as MapboxMap } from "mapbox-gl";
+import { Feature } from "geojson";
+
+export type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
+
+type QueryOptions = Parameters<MapboxMap["queryRenderedFeatures"]>[1];
+
+type Point = { x: number; y: number };
+type Box = [[number, number], [number, number]];
+export type QueryProvider = {
+  queryRenderedFeatures: (
+    pointOrBox: Point | Box,
+    options: QueryOptions,
+  ) => Feature[];
+};
+
+export const getClickedFeature = (
+  map: QueryProvider,
+  point: { x: number; y: number },
+): RawId | null => {
+  let features = map.queryRenderedFeatures(point, queryOptions);
+  if (!features.length) {
+    features = map.queryRenderedFeatures(createBox(point), queryOptions);
+  }
+  const feature = chooseFeature(features);
+  if (!feature) return null;
+
+  return feature.id as RawId;
+};
+
+const chooseFeature = (features: Feature[]): Feature | null => {
+  if (!features.length) return null;
+  const point = features.find((f) => f.geometry.type === "Point");
+  if (point) return point;
+
+  return features[0];
+};
+
+const createBox = (point: Point): Box => {
+  const ry = 10;
+  const rx = ry;
+  return [
+    [point.x - rx, point.y - ry],
+    [point.x + rx, point.y + ry],
+  ];
+};
+
+const queryOptions: Parameters<MapboxMap["queryRenderedFeatures"]>[1] = {
+  layers: CLICKABLE_LAYERS,
+  filter: ["!has", "lasso"],
+};
