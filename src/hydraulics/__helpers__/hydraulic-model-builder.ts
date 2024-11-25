@@ -7,12 +7,15 @@ import {
   AssetBuilder,
   JunctionBuildData,
   PipeBuildData,
+  ReservoirBuildData,
 } from "../asset-builder";
 
 export const buildPipe = (data: PipeBuildData = {}) =>
   new AssetBuilder().buildPipe(data);
 export const buildJunction = (data: JunctionBuildData = {}) =>
   new AssetBuilder().buildJunction(data);
+export const buildReservoir = (data: ReservoirBuildData = {}) =>
+  new AssetBuilder().buildReservoir(data);
 
 export class HydraulicModelBuilder {
   private topology: Topology;

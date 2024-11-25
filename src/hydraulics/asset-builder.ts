@@ -44,7 +44,9 @@ export type PipeBuildData = {
 export type ReservoirBuildData = {
   id?: AssetId;
   coordinates?: Position;
-} & Partial<QuantityOrNumberMap<ReservoirQuantities>>;
+} & Partial<
+  QuantityOrNumberMap<ReservoirQuantities & { relativeHead: number }>
+>;
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
@@ -103,12 +105,18 @@ export class AssetBuilder {
       this.quantitiesSpec.reservoir,
     );
 
+    const canonicalQuantities = canonalizeQuantities(
+      { ...defaultQuantities, ...quantities },
+      reservoirCanonicalSpec,
+    );
+
     return new Reservoir(id, coordinates, {
       type: "reservoir",
-      ...canonalizeQuantities(
-        { ...defaultQuantities, ...quantities },
-        reservoirCanonicalSpec,
-      ),
+      head:
+        quantities.head !== undefined
+          ? canonicalQuantities.head
+          : canonicalQuantities.elevation + canonicalQuantities.relativeHead,
+      elevation: canonicalQuantities.elevation,
     });
   }
 }
