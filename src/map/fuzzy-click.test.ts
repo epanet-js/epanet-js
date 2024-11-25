@@ -47,6 +47,15 @@ describe("get clicked feature", () => {
     expect(id).toEqual(pointId);
   });
 
+  it("ignores hidden features", () => {
+    const mapStub = stubMapQuery([aHiddenPoint()]);
+    const point = { x: 10, y: 10 };
+
+    const ids = getClickedFeature(mapStub, point);
+
+    expect(ids).toBeNull();
+  });
+
   const stubMapQuery = (features: Feature[] = []): QueryProvider => {
     const mapStub = {
       queryRenderedFeatures: vi.fn().mockReturnValue(features),
@@ -67,6 +76,10 @@ describe("get clicked feature", () => {
       },
       properties: {},
     };
+  };
+
+  const aHiddenPoint = (id = 1) => {
+    return { ...aPoint(id as RawId), state: { hidden: true } };
   };
 
   const aPoint = (id: RawId): Feature<Point> => {
