@@ -135,6 +135,9 @@ export function ModeHints() {
         </ModeHint>
       );
     }
+    case Mode.DRAW_RESERVOIR: {
+      return null;
+    }
   }
 
   return null;
