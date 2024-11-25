@@ -27,6 +27,7 @@ export const translations: Translations = {
   status: "Estado",
   open: "Abierta",
   closed: "Cerrada",
+  head: "Carga",
 };
 
 export const units: UnitsLocale = {
