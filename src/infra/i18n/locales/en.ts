@@ -25,6 +25,7 @@ export const translations = {
   status: "Status",
   open: "Open",
   closed: "Closed",
+  head: "Head",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
