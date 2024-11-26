@@ -1,6 +1,7 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { Pipe, NodeAsset } from "src/hydraulics/asset-types";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
@@ -23,7 +24,11 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
         id: "DRAW_PIPE_SNAPPING_CANDIDATE",
         data: [state.snappingCandidate.coordinates],
         getPosition: <T>(d: T) => d,
-        getRadius: 10,
+        getRadius:
+          isFeatureOn("FLAG_RESERVOIR") &&
+          state.snappingCandidate.type === "reservoir"
+            ? 14
+            : 10,
         radiusUnits: "pixels",
         stroked: true,
         getFillColor: [255, 140, 0, 100],
