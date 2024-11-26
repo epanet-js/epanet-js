@@ -47,7 +47,7 @@ export function getKeepProperties({
   symbolization: ISymbolization | null;
   previewProperty: PreviewProperty;
 }) {
-  let keepProperties: string[] = [];
+  let keepProperties: string[] = ["type"];
   if (previewProperty) {
     keepProperties.push(previewProperty);
   }

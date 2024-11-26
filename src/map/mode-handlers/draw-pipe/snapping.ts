@@ -6,6 +6,7 @@ import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulics/assets-map";
 import { NodeAsset } from "src/hydraulics/asset-types";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const useSnapping = (
   map: MapEngine,
@@ -22,7 +23,9 @@ export const useSnapping = (
     ] as [PointLike, PointLike];
 
     const pointFeatures = map.map.queryRenderedFeatures(searchBox, {
-      layers: [FEATURES_POINT_LAYER_NAME],
+      layers: isFeatureOn("FLAG_RESERVOIR")
+        ? [FEATURES_POINT_LAYER_NAME, "reservoirs-layer"]
+        : [FEATURES_POINT_LAYER_NAME],
     });
     if (!pointFeatures.length) return null;
 
