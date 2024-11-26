@@ -225,13 +225,39 @@ export function makeLayers({
       layout: {
         "symbol-placement": "point",
         "icon-image": "reservoir",
-        "icon-size": 1.2,
+        "icon-size": 0.8,
         "icon-allow-overlap": true,
       },
       filter: ["==", ["get", "type"], "reservoir"],
-      paint: { "icon-color": "#ff00ff", "icon-halo-color": "#ff0000" },
+      paint: {
+        "icon-opacity": [
+          "case",
+          ["==", ["feature-state", "selected"], "true"],
+          0,
+          1,
+        ],
+      },
     },
-
+    isFeatureOn("FLAG_RESERVOIR") && {
+      id: "reservoirs-layer-selected",
+      type: "symbol",
+      source: FEATURES_SOURCE_NAME,
+      layout: {
+        "symbol-placement": "point",
+        "icon-image": "reservoir-selected",
+        "icon-size": 0.8,
+        "icon-allow-overlap": true,
+      },
+      filter: ["==", ["get", "type"], "reservoir"],
+      paint: {
+        "icon-opacity": [
+          "case",
+          ["==", ["feature-state", "selected"], "true"],
+          1,
+          0,
+        ],
+      },
+    },
     ...(typeof previewProperty === "string"
       ? [
           {
