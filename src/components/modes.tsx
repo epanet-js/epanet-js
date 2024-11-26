@@ -3,7 +3,7 @@ import {
   PlusIcon,
   CircleIcon,
   StretchHorizontallyIcon,
-  SquareIcon,
+  VercelLogoIcon,
 } from "@radix-ui/react-icons";
 import {
   modeAtom,
@@ -48,7 +48,7 @@ const MODE_OPTIONS = isFeatureOn("FLAG_RESERVOIR")
         mode: Mode.DRAW_RESERVOIR,
         hotkey: "4",
         alwaysMultiple: true,
-        Icon: SquareIcon,
+        Icon: VercelLogoIcon,
         Menu: null,
       },
     ] as const)

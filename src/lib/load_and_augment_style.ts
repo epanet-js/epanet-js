@@ -12,6 +12,7 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -201,13 +202,34 @@ export function makeLayers({
       filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
     },
-    {
+    !isFeatureOn("FLAG_RESERVOIR") && {
       id: FEATURES_POINT_LAYER_NAME,
       type: "circle",
       source: FEATURES_SOURCE_NAME,
       layout: CIRCLE_LAYOUT,
       filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
+    },
+    isFeatureOn("FLAG_RESERVOIR") && {
+      id: FEATURES_POINT_LAYER_NAME,
+      type: "circle",
+      source: FEATURES_SOURCE_NAME,
+      layout: CIRCLE_LAYOUT,
+      filter: ["==", ["get", "type"], "junction"],
+      paint: CIRCLE_PAINT(symbolization),
+    },
+    isFeatureOn("FLAG_RESERVOIR") && {
+      id: "reservoirs-layer",
+      type: "symbol",
+      source: FEATURES_SOURCE_NAME,
+      layout: {
+        "symbol-placement": "point",
+        "icon-image": "reservoir",
+        "icon-size": 1.2,
+        "icon-allow-overlap": true,
+      },
+      filter: ["==", ["get", "type"], "reservoir"],
+      paint: { "icon-color": "#ff00ff", "icon-halo-color": "#ff0000" },
     },
 
     ...(typeof previewProperty === "string"
@@ -466,6 +488,7 @@ export const CONTENT_LAYERS = [
   IMPORTED_FEATURES_FILL_LAYER_NAME,
   FEATURES_LINE_LAYER_NAME,
   IMPORTED_FEATURES_LINE_LAYER_NAME,
+  "reservoirs-layer",
 ];
 
 export const CLICKABLE_LAYERS = CONTENT_LAYERS.concat([

@@ -42,6 +42,8 @@ import { LastSearchResult } from "src/components/last_search_result";
 import { ModeHints } from "src/components/mode_hints";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
+import reservoirPng from "./icons/reservoir.png";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -139,6 +141,14 @@ export const MapCanvas = memo(function MapCanvas({
       idMap: idMap,
     });
 
+    if (isFeatureOn("FLAG_RESERVOIR")) {
+      mapRef.current.map.loadImage(reservoirPng.src, (error, image) => {
+        if (error) throw error;
+        if (!mapRef.current || !image) return;
+
+        mapRef.current.map.addImage("reservoir", image);
+      });
+    }
     setMap(mapRef.current);
 
     return () => {
