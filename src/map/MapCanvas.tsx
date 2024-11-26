@@ -43,6 +43,7 @@ import { ModeHints } from "src/components/mode_hints";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import reservoirPng from "./icons/reservoir.png";
+import reservoirSelectedPng from "./icons/reservoir-selected.png";
 import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -147,6 +148,12 @@ export const MapCanvas = memo(function MapCanvas({
         if (!mapRef.current || !image) return;
 
         mapRef.current.map.addImage("reservoir", image);
+      });
+      mapRef.current.map.loadImage(reservoirSelectedPng.src, (error, image) => {
+        if (error) throw error;
+        if (!mapRef.current || !image) return;
+
+        mapRef.current.map.addImage("reservoir-selected", image);
       });
     }
     setMap(mapRef.current);
