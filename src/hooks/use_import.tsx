@@ -51,6 +51,17 @@ function resultToTransact({
         note: `Imported ${file?.name ? file.name : "a file"}`,
         putAssets: result.geojson.features
           .map((feature) => {
+            if (
+              feature.geometry &&
+              feature.geometry.type === "Point" &&
+              feature.properties!.type === "reservoir"
+            ) {
+              const reservoir = assetBuilder.buildReservoir({
+                ...feature.properties,
+                coordinates: feature.geometry.coordinates,
+              });
+              return reservoir;
+            }
             if (feature.geometry && feature.geometry.type === "Point") {
               const junction = assetBuilder.buildJunction({
                 ...feature.properties,
