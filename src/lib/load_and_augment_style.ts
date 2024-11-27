@@ -225,7 +225,7 @@ export function makeLayers({
       layout: {
         "symbol-placement": "point",
         "icon-image": "reservoir",
-        "icon-size": 0.8,
+        "icon-size": 0.6,
         "icon-allow-overlap": true,
       },
       filter: ["==", ["get", "type"], "reservoir"],
@@ -245,7 +245,7 @@ export function makeLayers({
       layout: {
         "symbol-placement": "point",
         "icon-image": "reservoir-selected",
-        "icon-size": 0.8,
+        "icon-size": 0.6,
         "icon-allow-overlap": true,
       },
       filter: ["==", ["get", "type"], "reservoir"],
