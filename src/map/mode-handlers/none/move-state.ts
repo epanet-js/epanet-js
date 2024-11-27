@@ -69,7 +69,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       new IconLayer({
         id: "ICONS_OVERLAY",
         data: icons,
-        getSize: 24,
+        getSize: 20,
         // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
         iconAtlas: iconAtlas.data,
         iconMapping: iconAtlas.mapping,

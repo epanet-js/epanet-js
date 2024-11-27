@@ -63,6 +63,23 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
     }
 
     return [
+      state.snappingCandidate &&
+        new ScatterplotLayer({
+          id: "DRAW_PIPE_SNAPPING_CANDIDATE",
+          data: [state.snappingCandidate.coordinates],
+          getPosition: <T>(d: T) => d,
+          getRadius:
+            isFeatureOn("FLAG_RESERVOIR") &&
+            state.snappingCandidate.type === "reservoir"
+              ? 12
+              : 10,
+          radiusUnits: "pixels",
+          stroked: true,
+          getFillColor: [255, 140, 0, 100],
+          getLineColor: [0, 0, 0],
+          getLineWidth: 1,
+          lineWidthUnits: "pixels",
+        }),
       new GeoJsonLayer({
         id: "DRAW_PIPE_GEOJSON",
         data: geojsonFeatures,
@@ -75,27 +92,10 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
         getDashArray: [3, 3],
         extensions: [new PathStyleExtension({ dash: true })],
       }),
-      state.snappingCandidate &&
-        new ScatterplotLayer({
-          id: "DRAW_PIPE_SNAPPING_CANDIDATE",
-          data: [state.snappingCandidate.coordinates],
-          getPosition: <T>(d: T) => d,
-          getRadius:
-            isFeatureOn("FLAG_RESERVOIR") &&
-            state.snappingCandidate.type === "reservoir"
-              ? 14
-              : 10,
-          radiusUnits: "pixels",
-          stroked: true,
-          getFillColor: [255, 140, 0, 100],
-          getLineColor: [0, 0, 0],
-          getLineWidth: 1,
-          lineWidthUnits: "pixels",
-        }),
       new IconLayer({
         id: "ICONS_OVERLAY",
         data: icons,
-        getSize: 24,
+        getSize: 14,
         // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
         iconAtlas: iconAtlas.data,
         iconMapping: iconAtlas.mapping,
