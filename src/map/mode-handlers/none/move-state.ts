@@ -12,6 +12,7 @@ export type EphemeralMoveAssets = {
 };
 
 type IconData = {
+  id: string;
   url: string;
   position: Position;
 };
@@ -30,6 +31,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
             break;
           case "reservoir":
             acc.icons.push({
+              id: "reservoir",
               url: reservoirPng.src,
               position: (asset as Reservoir).coordinates,
             });
@@ -60,7 +62,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         data: icons,
         getSize: 24,
         getIcon: (d) => {
-          return { url: d.url, width: 128, height: 128 };
+          return { id: d.id, url: d.url, width: 128, height: 128 };
         },
       }),
     ];
