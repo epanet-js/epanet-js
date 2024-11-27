@@ -28,6 +28,7 @@ import {
   ReservoirQuantities,
   reservoirCanonicalSpec,
 } from "./asset-types/reservoir";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -129,6 +130,8 @@ const canonalizeQuantities = <T>(
     (acc, key) => {
       const typedKey = key as keyof T;
       const quantityOrNumber = inputQuantities[typedKey];
+      const quantitySpec = canonicalSpec[key as keyof T];
+      if (isFeatureOn("FLAG_ASSET_IMPORT") && !quantitySpec) return acc;
 
       if (typeof quantityOrNumber === "object") {
         acc[typedKey] = convertTo(

@@ -7,7 +7,7 @@ import {
 import type { ConvertResult } from "src/lib/convert/utils";
 import type { ImportOptions } from "src/lib/convert";
 import { Data, dataAtom, fileInfoAtom } from "src/state/jotai";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { lib } from "src/lib/worker";
 import type { FileWithHandle } from "browser-fs-access";
 import { usePersistence } from "src/lib/persistence/context";
@@ -27,12 +27,66 @@ import {
 import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
 import { pluralize, truncate } from "src/lib/utils";
+import { ModelMoment } from "src/hydraulics/model-operation";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { AssetBuilder } from "src/hydraulics/asset-builder";
+import { Asset } from "src/hydraulics/asset-types";
 
 /**
  * Creates the _input_ to a transact() operation,
  * given some imported result.
  */
 function resultToTransact({
+  assetBuilder,
+  result,
+  file,
+}: {
+  assetBuilder: AssetBuilder;
+  result: ConvertResult;
+  file: Pick<File, "name">;
+}): ModelMoment {
+  switch (result.type) {
+    case "geojson": {
+      return {
+        note: `Imported ${file?.name ? file.name : "a file"}`,
+        putAssets: result.geojson.features
+          .map((feature) => {
+            if (feature.geometry && feature.geometry.type === "Point") {
+              const junction = assetBuilder.buildJunction({
+                ...feature.properties,
+                coordinates: feature.geometry.coordinates,
+              });
+              return junction;
+            }
+            if (feature.geometry && feature.geometry.type === "LineString") {
+              const pipe = assetBuilder.buildPipe({
+                ...feature.properties,
+                coordinates: feature.geometry.coordinates,
+              });
+              return pipe;
+            }
+            if (
+              feature.geometry &&
+              feature.geometry.type === "MultiLineString"
+            ) {
+              const combinedCoordinates = feature.geometry.coordinates.flat();
+              const pipe = assetBuilder.buildPipe({
+                ...feature.properties,
+                coordinates: combinedCoordinates,
+              });
+              return pipe;
+            }
+            return null;
+          })
+          .filter((a) => !!a) as Asset[],
+      };
+    }
+    case "root": {
+      throw new Error("Invalid import!");
+    }
+  }
+}
+function resultToTransactDeprecated({
   result,
   file,
   track,
@@ -142,7 +196,11 @@ export function flattenRoot(
 
 export function useImportString() {
   const rep = usePersistence();
-  const transact = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
+  const {
+    hydraulicModel: { assetBuilder },
+  } = useAtomValue(dataAtom);
+  const transactDeprecated = rep.useTransactDeprecated();
 
   return useCallback(
     /**
@@ -158,19 +216,27 @@ export function useImportString() {
     ) => {
       return (await stringToGeoJSON(text, options, Comlink.proxy(progress)))
         .map(async (result) => {
-          await transact(
-            resultToTransact({
-              result,
-              file: { name },
-              track: [
-                "import-string",
-                {
-                  format: "geojson",
-                },
-              ],
-              existingFolderId,
-            }),
-          );
+          isFeatureOn("FLAG_ASSET_IMPORT")
+            ? transact(
+                resultToTransact({
+                  assetBuilder,
+                  result,
+                  file: { name },
+                }),
+              )
+            : await transactDeprecated(
+                resultToTransactDeprecated({
+                  result,
+                  file: { name },
+                  track: [
+                    "import-string",
+                    {
+                      format: "geojson",
+                    },
+                  ],
+                  existingFolderId,
+                }),
+              );
           return result;
         })
         .mapLeft((e) => {
@@ -178,7 +244,7 @@ export function useImportString() {
           console.error(e);
         });
     },
-    [transact],
+    [transact, transactDeprecated, assetBuilder],
   );
 }
 
@@ -296,8 +362,12 @@ function useJoinFeatures() {
 export function useImportFile() {
   const rep = usePersistence();
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const transact = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
   const joinFeatures = useJoinFeatures();
+  const {
+    hydraulicModel: { assetBuilder },
+  } = useAtomValue(dataAtom);
 
   return useCallback(
     /**
@@ -333,24 +403,33 @@ export function useImportFile() {
               geojson,
               result,
             });
-            await transact(moment);
+            await transactDeprecated(moment);
             return result;
           } else {
             const exportOptions = importToExportOptions(options);
             if (file.handle && exportOptions) {
               setFileInfo({ handle: file.handle, options: exportOptions });
             }
-            const moment = resultToTransact({
-              result,
-              file,
-              track: [
-                "import",
-                {
-                  format: options.type,
-                },
-              ],
-            });
-            await transact(moment);
+            if (isFeatureOn("FLAG_ASSET_IMPORT")) {
+              const moment = resultToTransact({
+                assetBuilder,
+                result,
+                file,
+              });
+              transact(moment);
+            } else {
+              const moment = resultToTransactDeprecated({
+                result,
+                file,
+                track: [
+                  "import",
+                  {
+                    format: options.type,
+                  },
+                ],
+              });
+              await transactDeprecated(moment);
+            }
             return result;
           }
         },
@@ -358,13 +437,17 @@ export function useImportFile() {
 
       return either;
     },
-    [setFileInfo, transact, joinFeatures],
+    [setFileInfo, transact, transactDeprecated, assetBuilder, joinFeatures],
   );
 }
 
 export function useImportShapefile() {
   const rep = usePersistence();
-  const transact = rep.useTransactDeprecated();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const transact = rep.useTransact();
+  const {
+    hydraulicModel: { assetBuilder },
+  } = useAtomValue(dataAtom);
 
   return useCallback(
     /**
@@ -374,24 +457,32 @@ export function useImportShapefile() {
     async (file: ShapefileGroup, options: ImportOptions) => {
       const either = (await Shapefile.forwardLoose(file, options)).map(
         async (result) => {
-          await transact(
-            resultToTransact({
-              result,
-              file: file.files.shp,
-              track: [
-                "import",
-                {
-                  format: "shapefile",
-                },
-              ],
-            }),
-          );
+          isFeatureOn("FLAG_ASSET_IMPORT")
+            ? transact(
+                resultToTransact({
+                  assetBuilder,
+                  result,
+                  file: file.files.shp,
+                }),
+              )
+            : await transactDeprecated(
+                resultToTransactDeprecated({
+                  result,
+                  file: file.files.shp,
+                  track: [
+                    "import",
+                    {
+                      format: "shapefile",
+                    },
+                  ],
+                }),
+              );
           return result;
         },
       );
 
       return either;
     },
-    [transact],
+    [transact, assetBuilder, transactDeprecated],
   );
 }
