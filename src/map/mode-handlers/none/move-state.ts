@@ -17,6 +17,15 @@ type IconData = {
   position: Position;
 };
 import reservoirPng from "src/map/icons/reservoir.png";
+import { fetchImageAsTexture } from "src/map/icons/fetch-image-as-texture";
+
+const iconMapping = {
+  reservoir: { x: 0, y: 0, width: 32, height: 32 },
+};
+const iconAtlas = {
+  data: fetchImageAsTexture(reservoirPng.src),
+  mapping: iconMapping,
+};
 
 export const buildLayers = (state: EphemeralMoveAssets) => {
   if (isFeatureOn("FLAG_RESERVOIR")) {
@@ -61,9 +70,10 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         id: "ICONS_OVERLAY",
         data: icons,
         getSize: 24,
-        getIcon: (d) => {
-          return { id: d.id, url: d.url, width: 128, height: 128 };
-        },
+        // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
+        iconAtlas: iconAtlas.data,
+        iconMapping: iconAtlas.mapping,
+        getIcon: (d) => d.id as string,
       }),
     ];
   } else {
