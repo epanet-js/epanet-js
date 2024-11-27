@@ -55,8 +55,6 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       new IconLayer({
         id: "ICONS_OVERLAY",
         data: icons,
-        visible: true,
-        getPosition: (d) => d.position,
         getSize: 24,
         getIcon: (d) => {
           return { url: d.url, width: 128, height: 128 };
