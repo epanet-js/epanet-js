@@ -199,23 +199,20 @@ export function makeLayers({
       type: "circle",
       source: IMPORTED_FEATURES_SOURCE_NAME,
       layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_POINT_LAYER_NAME],
+      filter:
+        isFeatureOn("FLAG_ASSET_IMPORT") && isFeatureOn("FLAG_RESERVOIR")
+          ? ["==", ["get", "type"], "junction"]
+          : CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
     },
-    !isFeatureOn("FLAG_RESERVOIR") && {
+    {
       id: FEATURES_POINT_LAYER_NAME,
       type: "circle",
       source: FEATURES_SOURCE_NAME,
       layout: CIRCLE_LAYOUT,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT(symbolization),
-    },
-    isFeatureOn("FLAG_RESERVOIR") && {
-      id: FEATURES_POINT_LAYER_NAME,
-      type: "circle",
-      source: FEATURES_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: ["==", ["get", "type"], "junction"],
+      filter: isFeatureOn("FLAG_RESERVOIR")
+        ? ["==", ["get", "type"], "junction"]
+        : CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
       paint: CIRCLE_PAINT(symbolization),
     },
     isFeatureOn("FLAG_RESERVOIR") && {
@@ -235,6 +232,54 @@ export function makeLayers({
           ["==", ["feature-state", "selected"], "true"],
           0,
           1,
+        ],
+      },
+    },
+    isFeatureOn("FLAG_RESERVOIR") && {
+      id: "imported-reservoirs-layer",
+      type: "symbol",
+      source: IMPORTED_FEATURES_SOURCE_NAME,
+      layout: {
+        "symbol-placement": "point",
+        "icon-image": "reservoir",
+        "icon-size": 0.6,
+        "icon-allow-overlap": true,
+      },
+      filter: ["==", ["get", "type"], "reservoir"],
+      paint: {
+        "icon-opacity": [
+          "case",
+          [
+            "all",
+            ["!=", ["feature-state", "selected"], "true"],
+            ["!=", ["feature-state", "hidden"], true],
+          ],
+          1,
+          0,
+        ],
+      },
+    },
+    isFeatureOn("FLAG_RESERVOIR") && {
+      id: "imported-reservoirs-layer-selected",
+      type: "symbol",
+      source: IMPORTED_FEATURES_SOURCE_NAME,
+      layout: {
+        "symbol-placement": "point",
+        "icon-image": "reservoir-selected",
+        "icon-size": 0.6,
+        "icon-allow-overlap": true,
+      },
+      filter: ["==", ["get", "type"], "reservoir"],
+      paint: {
+        "icon-opacity": [
+          "case",
+          [
+            "all",
+            ["==", ["feature-state", "selected"], "true"],
+            ["!=", ["feature-state", "hidden"], true],
+          ],
+          1,
+          0,
         ],
       },
     },
@@ -520,6 +565,7 @@ export const CONTENT_LAYERS = isFeatureOn("FLAG_RESERVOIR")
       FEATURES_LINE_LAYER_NAME,
       IMPORTED_FEATURES_LINE_LAYER_NAME,
       "reservoirs-layer",
+      "imported-reservoirs-layer",
     ]
   : [
       FEATURES_POINT_LAYER_NAME,
