@@ -24,13 +24,16 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         switch (asset.type) {
           case "pipe":
             acc.geojsonFeatures.push(asset.feature);
+            break;
           case "junction":
             acc.geojsonFeatures.push(asset.feature);
+            break;
           case "reservoir":
             acc.icons.push({
               url: reservoirPng.src,
               position: (asset as Reservoir).coordinates,
             });
+            break;
         }
         return acc;
       },
@@ -71,7 +74,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         lineWidthUnits: "pixels",
         pointRadiusUnits: "pixels",
         getLineWidth: 5,
-        getFillColor: [180, 180, 180],
+        getFillColor: [181, 180, 180],
         getLineColor: [180, 180, 180],
         getPointRadius: 4,
         lineCapRounded: true,
