@@ -1,6 +1,7 @@
 import { GeoJsonLayer } from "@deck.gl/layers";
 import { useAtom } from "jotai";
 import { Asset } from "src/hydraulics/asset-types";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 export type EphemeralMoveAssets = {
@@ -12,30 +13,44 @@ export type EphemeralMoveAssets = {
 export const buildLayers = (state: EphemeralMoveAssets) => {
   const targetFeatures = state.targetAssets.map((a) => a.feature);
   const oldFeatures = state.oldAssets.map((a) => a.feature);
-  return [
-    new GeoJsonLayer({
-      id: "MOVE_OLD_ASSETS",
-      data: oldFeatures,
-      lineWidthUnits: "pixels",
-      pointRadiusUnits: "pixels",
-      getLineWidth: 5,
-      getFillColor: [180, 180, 180],
-      getLineColor: [180, 180, 180],
-      getPointRadius: 4,
-      lineCapRounded: true,
-    }),
-    new GeoJsonLayer({
-      id: "MOVE_TARGET_ASSETS",
-      data: targetFeatures,
-      lineWidthUnits: "pixels",
-      pointRadiusUnits: "pixels",
-      getLineWidth: 4,
-      getFillColor: [0, 0, 0],
-      getLineColor: [0, 0, 0],
-      getPointRadius: 4,
-      lineCapRounded: true,
-    }),
-  ];
+  return isFeatureOn("FLAG_RESERVOIR")
+    ? [
+        new GeoJsonLayer({
+          id: "MOVE_TARGET_ASSETS",
+          data: targetFeatures,
+          lineWidthUnits: "pixels",
+          pointRadiusUnits: "pixels",
+          getLineWidth: 4,
+          getFillColor: [0, 0, 0],
+          getLineColor: [0, 0, 0],
+          getPointRadius: 4,
+          lineCapRounded: true,
+        }),
+      ]
+    : [
+        new GeoJsonLayer({
+          id: "MOVE_OLD_ASSETS",
+          data: oldFeatures,
+          lineWidthUnits: "pixels",
+          pointRadiusUnits: "pixels",
+          getLineWidth: 5,
+          getFillColor: [180, 180, 180],
+          getLineColor: [180, 180, 180],
+          getPointRadius: 4,
+          lineCapRounded: true,
+        }),
+        new GeoJsonLayer({
+          id: "MOVE_TARGET_ASSETS",
+          data: targetFeatures,
+          lineWidthUnits: "pixels",
+          pointRadiusUnits: "pixels",
+          getLineWidth: 4,
+          getFillColor: [0, 0, 0],
+          getLineColor: [0, 0, 0],
+          getPointRadius: 4,
+          lineCapRounded: true,
+        }),
+      ];
 };
 
 export const useMoveState = () => {

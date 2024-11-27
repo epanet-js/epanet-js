@@ -34,6 +34,7 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -87,12 +88,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   );
   const importPointer = useRef<number | null>(null);
   const editionsPointer = useRef<number>(0);
-  const lastEphemeralSync = useRef<EphemeralEditingState>();
+  const lastEphemeralSync = useRef<EphemeralEditingState>({ type: "none" });
   const nextEphemeralSync = useRef<EphemeralEditingState>();
   const lastSelectionSync = useRef<Sel>();
   const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
-  const lastHiddenFeatures = useRef<RawId[]>([]);
+  const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
 
   nextEphemeralSync.current = ephemeralState;
 
@@ -151,6 +152,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       !isUpdatingSources.current
     ) {
       updateEphemeralStateOvelay(map, nextEphemeralSync.current);
+      if (isFeatureOn("FLAG_RESERVOIR")) {
+        hideFeaturesInEphemeralState(
+          map,
+          lastEphemeralSync.current,
+          nextEphemeralSync.current,
+          lastHiddenFeatures.current,
+          idMap,
+        );
+      }
       lastEphemeralSync.current = nextEphemeralSync.current;
     }
 
@@ -251,22 +261,53 @@ const updateEditionsSource = withInstrumentation(
 const updateVisibilityFeatureState = withInstrumentation(
   (
     map: MapEngine,
-    lastHiddenFeatures: RawId[],
+    lastHiddenFeatures: Set<RawId>,
     editedAssetIds: Set<AssetId>,
     idMap: IDMap,
-  ): RawId[] => {
+  ): Set<RawId> => {
     const newHiddenFeatures = Array.from(editedAssetIds).map((uuid) =>
       UIDMap.getIntID(idMap, uuid),
     );
-    const newShownFeatures = lastHiddenFeatures.filter(
+    const newShownFeatures = Array.from(lastHiddenFeatures).filter(
       (intId) => !editedAssetIds.has(UIDMap.getUUID(idMap, intId)),
     );
     map.showFeatures(IMPORTED_FEATURES_SOURCE_NAME, newShownFeatures);
     map.hideFeatures(IMPORTED_FEATURES_SOURCE_NAME, newHiddenFeatures);
 
-    return newHiddenFeatures;
+    return new Set(newHiddenFeatures);
   },
   { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
+);
+
+const hideFeaturesInEphemeralState = withInstrumentation(
+  (
+    map: MapEngine,
+    previousEphemeralState: EphemeralEditingState | undefined,
+    currentEphemeralState: EphemeralEditingState,
+    featuresHiddenFromImport: Set<RawId>,
+    idMap: IDMap,
+  ) => {
+    const previousIds = getFeaturesToHideFrom(previousEphemeralState, idMap);
+    const currentIds = getFeaturesToHideFrom(currentEphemeralState, idMap);
+
+    for (const featureId of previousIds) {
+      map.showFeature(FEATURES_SOURCE_NAME, featureId);
+      if (featuresHiddenFromImport.has(featureId)) continue;
+
+      map.showFeature(IMPORTED_FEATURES_SOURCE_NAME, featureId);
+    }
+
+    for (const featureId of currentIds) {
+      map.hideFeature(FEATURES_SOURCE_NAME, featureId);
+      if (featuresHiddenFromImport.has(featureId)) continue;
+
+      map.hideFeature(IMPORTED_FEATURES_SOURCE_NAME, featureId);
+    }
+  },
+  {
+    name: "MAP_STATE:UPDATE_VISIBILITY_OF_EDITIONS",
+    maxDurationMs: 100,
+  },
 );
 
 const updateEphemeralStateOvelay = withInstrumentation(
@@ -302,3 +343,23 @@ const updateSelectionFeatureState = withInstrumentation(
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
+
+const getFeaturesToHideFrom = (
+  ephemeralState: EphemeralEditingState | undefined,
+  idMap: IDMap,
+): RawId[] => {
+  if (!ephemeralState) return [];
+
+  switch (ephemeralState.type) {
+    case "lasso":
+      return [];
+    case "moveAssets":
+      return ephemeralState.targetAssets.map((a) =>
+        UIDMap.getIntID(idMap, a.id),
+      );
+    case "drawPipe":
+      return [];
+    case "none":
+      return [];
+  }
+};
