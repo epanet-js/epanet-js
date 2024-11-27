@@ -56,6 +56,10 @@ const debugEvent = isDebugOn
     }
   : noop;
 
+import reservoirPng from "./icons/reservoir.png";
+import reservoirSelectedPng from "./icons/reservoir-selected.png";
+import { isFeatureOn } from "src/infra/feature-flags";
+
 export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
@@ -123,6 +127,23 @@ export class MapEngine {
     map.on("touchstart", this.onMapTouchStart);
     map.on("touchmove", this.onMapTouchMove);
     map.on("touchend", this.onMapTouchEnd);
+
+    if (isFeatureOn("FLAG_RESERVOIR")) {
+      map.on("load", () => {
+        map.loadImage(reservoirPng.src, (error, image) => {
+          if (error) throw error;
+          if (!image) return;
+
+          map.addImage("reservoir", image);
+        });
+        map.loadImage(reservoirSelectedPng.src, (error, image) => {
+          if (error) throw error;
+          if (!image) return;
+
+          map.addImage("reservoir-selected", image);
+        });
+      });
+    }
 
     this.lastSelectionIds = emptySelection;
     this.map = map;
