@@ -68,16 +68,12 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
           id: "DRAW_PIPE_SNAPPING_CANDIDATE",
           data: [state.snappingCandidate.coordinates],
           getPosition: <T>(d: T) => d,
-          getRadius:
-            isFeatureOn("FLAG_RESERVOIR") &&
-            state.snappingCandidate.type === "reservoir"
-              ? 12
-              : 10,
+          getRadius: isFeatureOn("FLAG_RESERVOIR") ? 14 : 10,
           radiusUnits: "pixels",
           stroked: true,
           getFillColor: [255, 140, 0, 100],
           getLineColor: [0, 0, 0],
-          getLineWidth: 1,
+          getLineWidth: 0,
           lineWidthUnits: "pixels",
         }),
       new GeoJsonLayer({
@@ -95,7 +91,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       new IconLayer({
         id: "ICONS_OVERLAY",
         data: icons,
-        getSize: 14,
+        getSize: 16,
         // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
         iconAtlas: iconAtlas.data,
         iconMapping: iconAtlas.mapping,
