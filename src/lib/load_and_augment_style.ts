@@ -252,7 +252,11 @@ export function makeLayers({
       paint: {
         "icon-opacity": [
           "case",
-          ["==", ["feature-state", "selected"], "true"],
+          [
+            "all",
+            ["==", ["feature-state", "selected"], "true"],
+            ["!=", ["feature-state", "hidden"], true],
+          ],
           1,
           0,
         ],

@@ -242,17 +242,36 @@ export class MapEngine {
     this.map.removeSource(name);
   }
 
+  showFeature(sourceName: string, featureId: RawId): void {
+    if (!this.map || !(this.map as any).style) return;
+    this.map.removeFeatureState(
+      {
+        source: sourceName,
+        id: featureId,
+      },
+      "hidden",
+    );
+  }
+
+  hideFeature(sourceName: string, featureId: RawId): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    this.map.setFeatureState(
+      {
+        source: sourceName,
+        id: featureId,
+      },
+      {
+        hidden: true,
+      },
+    );
+  }
+
   showFeatures(sourceName: string, featureIds: RawId[]): void {
     if (!this.map || !(this.map as any).style) return;
 
     for (const featureId of featureIds) {
-      this.map.removeFeatureState(
-        {
-          source: sourceName,
-          id: featureId,
-        },
-        "hidden",
-      );
+      this.showFeature(sourceName, featureId);
     }
   }
 
@@ -260,15 +279,7 @@ export class MapEngine {
     if (!this.map || !(this.map as any).style) return;
 
     for (const featureId of featureIds) {
-      this.map.setFeatureState(
-        {
-          source: sourceName,
-          id: featureId,
-        },
-        {
-          hidden: true,
-        },
-      );
+      this.hideFeature(sourceName, featureId);
     }
   }
 
