@@ -1,5 +1,4 @@
 import { CircleLayer } from "mapbox-gl";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
@@ -19,10 +18,7 @@ export const junctionsLayer = ({
     id: layerId,
     type: "circle",
     source,
-    filter:
-      isFeatureOn("FLAG_ASSET_IMPORT") && isFeatureOn("FLAG_RESERVOIR")
-        ? ["==", ["get", "type"], "junction"]
-        : ["all", ["==", "$type", "Point"]],
+    filter: ["==", ["get", "type"], "junction"],
     paint: {
       "circle-opacity": [
         "case",

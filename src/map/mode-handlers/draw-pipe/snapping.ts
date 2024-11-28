@@ -5,7 +5,6 @@ import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulics/assets-map";
 import { NodeAsset } from "src/hydraulics/asset-types";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 
 export const useSnapping = (
@@ -16,14 +15,12 @@ export const useSnapping = (
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
     const pointFeatures = searchNearbyRenderedFeatures(map, {
       point,
-      layers: isFeatureOn("FLAG_RESERVOIR")
-        ? [
-            "junctions",
-            "imported-junctions",
-            "reservoirs",
-            "imported-reservoirs",
-          ]
-        : ["junctions", "imported-junctions"],
+      layers: [
+        "junctions",
+        "imported-junctions",
+        "reservoirs",
+        "imported-reservoirs",
+      ],
     });
     if (!pointFeatures.length) return null;
 
