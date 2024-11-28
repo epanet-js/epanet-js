@@ -272,7 +272,7 @@ export class MapEngine {
     );
   }
 
-  hideFeature(sourceName: string, featureId: RawId): void {
+  hideFeature(sourceName: DataSource, featureId: RawId): void {
     if (!this.map || !(this.map as any).style) return;
 
     this.map.setFeatureState(
@@ -286,7 +286,7 @@ export class MapEngine {
     );
   }
 
-  showFeatures(sourceName: string, featureIds: RawId[]): void {
+  showFeatures(sourceName: DataSource, featureIds: RawId[]): void {
     if (!this.map || !(this.map as any).style) return;
 
     for (const featureId of featureIds) {
@@ -294,7 +294,7 @@ export class MapEngine {
     }
   }
 
-  hideFeatures(sourceName: string, featureIds: RawId[]): void {
+  hideFeatures(sourceName: DataSource, featureIds: RawId[]): void {
     if (!this.map || !(this.map as any).style) return;
 
     for (const featureId of featureIds) {
