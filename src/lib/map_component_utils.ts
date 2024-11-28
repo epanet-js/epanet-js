@@ -6,7 +6,6 @@ import type {
   FolderMap,
 } from "src/types";
 import type { Map as MapboxMap } from "mapbox-gl";
-import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { bufferPoint } from "src/lib/geometry";
 import type { EphemeralEditingStateLasso } from "src/state/jotai";
 import { decodeId } from "src/lib/id";
@@ -16,6 +15,7 @@ import { IDMap, UIDMap } from "./id_mapper";
 import { getMapCoord } from "src/map/map-event";
 import { MapEngine } from "src/map/map-engine";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
+import { clickableLayers } from "src/map/layers/layer";
 
 type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
 
@@ -70,7 +70,7 @@ export function isLassoTiny(
 }
 
 const QRF_OPTIONS: Parameters<MapboxMap["queryRenderedFeatures"]>[1] = {
-  layers: CLICKABLE_LAYERS,
+  layers: clickableLayers,
   filter: ["!has", "lasso"],
 };
 

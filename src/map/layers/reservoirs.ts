@@ -1,11 +1,12 @@
 import { SymbolLayer } from "mapbox-gl";
+import { LayerId } from "./layer";
 
 export const reservoirsLayer = ({
   source,
   layerId,
 }: {
   source: string;
-  layerId: string;
+  layerId: LayerId;
 }): SymbolLayer => {
   return {
     id: layerId,
@@ -38,7 +39,7 @@ export const reservoirsSelectedLayer = ({
   layerId,
 }: {
   source: string;
-  layerId: string;
+  layerId: LayerId;
 }): SymbolLayer => {
   return {
     id: layerId,

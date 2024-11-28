@@ -28,7 +28,6 @@ import { MapContext } from "src/context/map_context";
 import { MapEngine, MapHandlers } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
-import { CLICKABLE_LAYERS } from "src/lib/load_and_augment_style";
 import { env } from "src/lib/env_client";
 import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
 import { useModeHandlers } from "./mode-handlers";
@@ -42,6 +41,7 @@ import { LastSearchResult } from "src/components/last_search_result";
 import { ModeHints } from "src/components/mode_hints";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
+import { clickableLayers } from "./layers/layer";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -161,7 +161,7 @@ export const MapCanvas = memo(function MapCanvas({
         [point.x + radius, point.y + radius],
       ] as unknown as [mapboxgl.Point, mapboxgl.Point];
       const features = map.map.queryRenderedFeatures(searchBox, {
-        layers: CLICKABLE_LAYERS,
+        layers: clickableLayers,
       });
 
       const visibleFeatures = features.filter((f) => !f.state.hidden);
@@ -280,7 +280,7 @@ export const MapCanvas = memo(function MapCanvas({
           const featureUnderMouse = map.map.queryRenderedFeatures(
             [event.pageX - mapDivBox.left, event.pageY - mapDivBox.top],
             {
-              layers: CLICKABLE_LAYERS,
+              layers: clickableLayers,
             },
           );
 
