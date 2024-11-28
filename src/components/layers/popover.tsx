@@ -72,6 +72,8 @@ const SHARED_INTIAL_VALUES = {
   url: "",
   token: "",
   visibility: true,
+  labelVisibility: true,
+  poiVisibility: true,
   tms: false,
   opacity: 1,
 } as const;
@@ -213,6 +215,8 @@ function MapboxLayer({
               ...values,
               name,
               visibility: true,
+              labelVisibility: true,
+              poiVisibility: true,
               tms: false,
               opacity: 1,
               at: oldAt || getNextAt(items),
@@ -487,9 +491,11 @@ function AddLayer() {
                   ...layer,
                   visibility: true,
                   tms: false,
-                  opacity: 1,
+                  opacity: mapboxLayer.opacity,
                   at: oldAt || nextAt,
                   id: newFeatureId(),
+                  labelVisibility: true,
+                  poiVisibility: true,
                 },
               ],
             });
@@ -707,6 +713,44 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
             className={"opacity-30 hover:opacity-100 select-none"}
           >
             <E.VisibilityToggleIcon visibility={layerConfig.visibility} />
+          </div>
+          <div
+            role="checkbox"
+            title="Toggle label visibility"
+            onClick={async () => {
+              await transact({
+                note: "Toggle label visibility",
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    labelVisibility: !layerConfig.labelVisibility,
+                  },
+                ],
+              });
+            }}
+            aria-checked={layerConfig.labelVisibility}
+            className={"opacity-30 hover:opacity-100 select-none"}
+          >
+            <E.LabelToggleIcon visibility={layerConfig.labelVisibility} />
+          </div>
+          <div
+            role="checkbox"
+            title="Toggle POI visibility"
+            onClick={async () => {
+              await transact({
+                note: "Toggle POI visibility",
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    poiVisibility: !layerConfig.poiVisibility,
+                  },
+                ],
+              });
+            }}
+            aria-checked={layerConfig.poiVisibility}
+            className={"opacity-30 hover:opacity-100 select-none"}
+          >
+            <E.PoiToggleIcon visibility={layerConfig.poiVisibility} />
           </div>
 
           <button
