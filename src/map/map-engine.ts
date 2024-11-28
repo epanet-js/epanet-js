@@ -250,7 +250,7 @@ export class MapEngine {
     });
   }
 
-  removeSource(name: string) {
+  removeSource(name: DataSource) {
     const source = this.map.getSource(name);
     if (!source) return;
 
@@ -261,7 +261,7 @@ export class MapEngine {
     this.map.removeSource(name);
   }
 
-  showFeature(sourceName: string, featureId: RawId): void {
+  showFeature(sourceName: DataSource, featureId: RawId): void {
     if (!this.map || !(this.map as any).style) return;
     this.map.removeFeatureState(
       {

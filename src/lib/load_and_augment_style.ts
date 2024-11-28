@@ -18,7 +18,6 @@ import {
   reservoirsSelectedLayer,
   pipesLayer,
   junctionsLayer,
-  assetLayers,
 } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 
@@ -34,14 +33,10 @@ function getEmptyStyle() {
   return style;
 }
 
-export const FEATURES_POINT_HALO_LAYER_NAME = "features-symbol-halo";
-export const FEATURES_POINT_LAYER_NAME = "features-symbol";
-export const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
-export const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
-export const FEATURES_LINE = "features-label";
-export const FEATURES_LINE_LAYER_NAME = "features-line";
-export const IMPORTED_FEATURES_LINE_LAYER_NAME = "imported-features-line";
-export const IMPORTED_FEATURES_POINT_LAYER_NAME = "imported-features-symbol";
+const FEATURES_POINT_LAYER_NAME = "features-symbol";
+const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
+const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
+const FEATURES_LINE_LAYER_NAME = "features-line";
 
 const emptyGeoJSONSource = {
   type: "geojson",
@@ -50,7 +45,7 @@ const emptyGeoJSONSource = {
   tolerance: 0,
 } as const;
 
-export const CONTENT_LAYER_FILTERS: {
+const CONTENT_LAYER_FILTERS: {
   [key: string]: mapboxgl.Layer["filter"];
 } = {
   [FEATURES_LINE_LAYER_NAME]: [
@@ -58,13 +53,7 @@ export const CONTENT_LAYER_FILTERS: {
     ["==", "$type", "LineString"],
     ["==", "$type", "Polygon"],
   ],
-  [IMPORTED_FEATURES_LINE_LAYER_NAME]: [
-    "any",
-    ["==", "$type", "LineString"],
-    ["==", "$type", "Polygon"],
-  ],
   [FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
-  [IMPORTED_FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
 };
 
 function addPreviewFilter(
@@ -340,12 +329,3 @@ export function LINE_PAINT(
     ),
   };
 }
-
-export const CLICKABLE_LAYERS = isFeatureOn("FLAG_RESERVOIR")
-  ? assetLayers
-  : [
-      FEATURES_POINT_LAYER_NAME,
-      IMPORTED_FEATURES_POINT_LAYER_NAME,
-      FEATURES_LINE_LAYER_NAME,
-      IMPORTED_FEATURES_LINE_LAYER_NAME,
-    ];

@@ -1,3 +1,5 @@
+import { isFeatureOn } from "src/infra/feature-flags";
+
 export type LayerId =
   | "pipes"
   | "imported-pipes"
@@ -19,4 +21,6 @@ export const assetLayers: LayerId[] = [
   "imported-reservoirs-selected",
 ];
 
-export const clickableLayers = assetLayers;
+export const clickableLayers: LayerId[] = isFeatureOn("FLAG_RESERVOIR")
+  ? assetLayers
+  : ["pipes", "imported-pipes", "junctions", "imported-junctions"];
