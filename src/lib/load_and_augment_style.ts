@@ -13,6 +13,16 @@ import {
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
 import { isFeatureOn } from "src/infra/feature-flags";
+import {
+  reservoirsLayer,
+  reservoirsSelectedLayer,
+} from "src/map/layers/reservoirs";
+import {
+  asColorExpression,
+  asNumberExpression,
+  junctionsLayer,
+} from "src/map/layers/junctions";
+import { pipesLayer } from "src/map/layers/pipes";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -26,24 +36,15 @@ function getEmptyStyle() {
   return style;
 }
 
-const CIRCLE_LAYOUT: mapboxgl.CircleLayout = {};
-
 export const IMPORTED_FEATURES_SOURCE_NAME = "imported-features";
 export const FEATURES_SOURCE_NAME = "features";
-export const EPHEMERAL_SOURCE_NAME = "ephemeral";
-
-export const EPHEMERAL_LINE_LAYER_NAME = "ephemeral-line";
-export const EPHEMERAL_FILL_LAYER_NAME = "ephemeral-fill";
 
 export const FEATURES_POINT_HALO_LAYER_NAME = "features-symbol-halo";
 export const FEATURES_POINT_LAYER_NAME = "features-symbol";
 export const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
-export const FEATURES_FILL_LABEL_LAYER_NAME = "features-fill-label";
 export const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
 export const FEATURES_LINE = "features-label";
 export const FEATURES_LINE_LAYER_NAME = "features-line";
-export const FEATURES_FILL_LAYER_NAME = "features-fill";
-export const IMPORTED_FEATURES_FILL_LAYER_NAME = "imported-features-fill";
 export const IMPORTED_FEATURES_LINE_LAYER_NAME = "imported-features-line";
 export const IMPORTED_FEATURES_POINT_LAYER_NAME = "imported-features-symbol";
 
@@ -67,8 +68,6 @@ export const CONTENT_LAYER_FILTERS: {
     ["==", "$type", "LineString"],
     ["==", "$type", "Polygon"],
   ],
-  [FEATURES_FILL_LAYER_NAME]: ["==", "$type", "Polygon"],
-  [IMPORTED_FEATURES_FILL_LAYER_NAME]: ["==", "$type", "Polygon"],
   [FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
   [IMPORTED_FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
 };
@@ -126,7 +125,6 @@ export function addEditingLayers({
 }) {
   style.sources[IMPORTED_FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
   style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
-  style.sources[EPHEMERAL_SOURCE_NAME] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -145,168 +143,46 @@ export function makeLayers({
   previewProperty: PreviewProperty;
 }): mapboxgl.AnyLayer[] {
   return [
-    {
-      id: IMPORTED_FEATURES_FILL_LAYER_NAME,
-      type: "fill",
+    pipesLayer({
       source: IMPORTED_FEATURES_SOURCE_NAME,
-      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_FILL_LAYER_NAME],
-      paint: FILL_PAINT(symbolization),
-    },
-    {
-      id: FEATURES_FILL_LAYER_NAME,
-      type: "fill",
+      layerId: IMPORTED_FEATURES_LINE_LAYER_NAME,
+      symbolization,
+    }),
+    pipesLayer({
       source: FEATURES_SOURCE_NAME,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_FILL_LAYER_NAME],
-      paint: FILL_PAINT(symbolization),
-    },
-    {
-      id: IMPORTED_FEATURES_LINE_LAYER_NAME,
-      type: "line",
+      layerId: FEATURES_LINE_LAYER_NAME,
+      symbolization,
+    }),
+    junctionsLayer({
       source: IMPORTED_FEATURES_SOURCE_NAME,
-      filter: CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_LINE_LAYER_NAME],
-      paint: LINE_PAINT(symbolization),
-    },
-
-    {
-      id: FEATURES_LINE_LAYER_NAME,
-      type: "line",
+      layerId: IMPORTED_FEATURES_POINT_LAYER_NAME,
+      symbolization,
+    }),
+    junctionsLayer({
       source: FEATURES_SOURCE_NAME,
-      filter: CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
-      paint: LINE_PAINT(symbolization),
-    },
-    {
-      id: EPHEMERAL_FILL_LAYER_NAME,
-      type: "fill",
-      source: EPHEMERAL_SOURCE_NAME,
-      filter: ["==", "$type", "Polygon"],
-      paint: FILL_PAINT(symbolization),
-    },
-
-    // Real lines, from the dataset.
-    {
-      id: EPHEMERAL_LINE_LAYER_NAME,
-      type: "line",
-      source: EPHEMERAL_SOURCE_NAME,
-      filter: [
-        "any",
-        ["==", "$type", "LineString"],
-        ["==", "$type", "Polygon"],
-      ],
-      paint: LINE_PAINT(symbolization),
-    },
-    {
-      id: IMPORTED_FEATURES_POINT_LAYER_NAME,
-      type: "circle",
-      source: IMPORTED_FEATURES_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter:
-        isFeatureOn("FLAG_ASSET_IMPORT") && isFeatureOn("FLAG_RESERVOIR")
-          ? ["==", ["get", "type"], "junction"]
-          : CONTENT_LAYER_FILTERS[IMPORTED_FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT(symbolization),
-    },
-    {
-      id: FEATURES_POINT_LAYER_NAME,
-      type: "circle",
-      source: FEATURES_SOURCE_NAME,
-      layout: CIRCLE_LAYOUT,
-      filter: isFeatureOn("FLAG_RESERVOIR")
-        ? ["==", ["get", "type"], "junction"]
-        : CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
-      paint: CIRCLE_PAINT(symbolization),
-    },
-    isFeatureOn("FLAG_RESERVOIR") && {
-      id: "reservoirs-layer",
-      type: "symbol",
-      source: FEATURES_SOURCE_NAME,
-      layout: {
-        "symbol-placement": "point",
-        "icon-image": "reservoir",
-        "icon-size": 0.6,
-        "icon-allow-overlap": true,
-      },
-      filter: ["==", ["get", "type"], "reservoir"],
-      paint: {
-        "icon-opacity": [
-          "case",
-          ["==", ["feature-state", "selected"], "true"],
-          0,
-          1,
-        ],
-      },
-    },
-    isFeatureOn("FLAG_RESERVOIR") && {
-      id: "imported-reservoirs-layer",
-      type: "symbol",
-      source: IMPORTED_FEATURES_SOURCE_NAME,
-      layout: {
-        "symbol-placement": "point",
-        "icon-image": "reservoir",
-        "icon-size": 0.6,
-        "icon-allow-overlap": true,
-      },
-      filter: ["==", ["get", "type"], "reservoir"],
-      paint: {
-        "icon-opacity": [
-          "case",
-          [
-            "all",
-            ["!=", ["feature-state", "selected"], "true"],
-            ["!=", ["feature-state", "hidden"], true],
-          ],
-          1,
-          0,
-        ],
-      },
-    },
-    isFeatureOn("FLAG_RESERVOIR") && {
-      id: "imported-reservoirs-layer-selected",
-      type: "symbol",
-      source: IMPORTED_FEATURES_SOURCE_NAME,
-      layout: {
-        "symbol-placement": "point",
-        "icon-image": "reservoir-selected",
-        "icon-size": 0.6,
-        "icon-allow-overlap": true,
-      },
-      filter: ["==", ["get", "type"], "reservoir"],
-      paint: {
-        "icon-opacity": [
-          "case",
-          [
-            "all",
-            ["==", ["feature-state", "selected"], "true"],
-            ["!=", ["feature-state", "hidden"], true],
-          ],
-          1,
-          0,
-        ],
-      },
-    },
-    isFeatureOn("FLAG_RESERVOIR") && {
-      id: "reservoirs-layer-selected",
-      type: "symbol",
-      source: FEATURES_SOURCE_NAME,
-      layout: {
-        "symbol-placement": "point",
-        "icon-image": "reservoir-selected",
-        "icon-size": 0.6,
-        "icon-allow-overlap": true,
-      },
-      filter: ["==", ["get", "type"], "reservoir"],
-      paint: {
-        "icon-opacity": [
-          "case",
-          [
-            "all",
-            ["==", ["feature-state", "selected"], "true"],
-            ["!=", ["feature-state", "hidden"], true],
-          ],
-          1,
-          0,
-        ],
-      },
-    },
+      layerId: FEATURES_POINT_LAYER_NAME,
+      symbolization,
+    }),
+    isFeatureOn("FLAG_RESERVOIR") &&
+      reservoirsLayer({
+        source: FEATURES_SOURCE_NAME,
+        layerId: "reservoirs-layer",
+      }),
+    isFeatureOn("FLAG_RESERVOIR") &&
+      reservoirsLayer({
+        source: IMPORTED_FEATURES_SOURCE_NAME,
+        layerId: "imported-reservoirs-layer",
+      }),
+    isFeatureOn("FLAG_RESERVOIR") &&
+      reservoirsSelectedLayer({
+        source: FEATURES_SOURCE_NAME,
+        layerId: "reservoirs-layer-selected",
+      }),
+    isFeatureOn("FLAG_RESERVOIR") &&
+      reservoirsSelectedLayer({
+        source: IMPORTED_FEATURES_SOURCE_NAME,
+        layerId: "imported-reservoirs-layer-selected",
+      }),
     ...(typeof previewProperty === "string"
       ? [
           {
@@ -331,95 +207,9 @@ export function makeLayers({
               previewProperty,
             ),
           } as mapboxgl.AnyLayer,
-          {
-            id: FEATURES_FILL_LABEL_LAYER_NAME,
-            type: "symbol",
-            source: FEATURES_SOURCE_NAME,
-            paint: LABEL_PAINT(symbolization, previewProperty),
-            layout: LABEL_LAYOUT(previewProperty, "point"),
-            filter: addPreviewFilter(
-              CONTENT_LAYER_FILTERS[FEATURES_FILL_LAYER_NAME],
-              previewProperty,
-            ),
-          } as mapboxgl.AnyLayer,
         ]
       : []),
   ].filter((l) => !!l) as mapboxgl.AnyLayer[];
-}
-
-export function asNumberExpression({
-  symbolization,
-  defaultValue = 2,
-  part,
-}: {
-  symbolization: ISymbolization;
-  defaultValue?: number;
-  part: "stroke-width" | "fill-opacity" | "stroke-opacity" | "circle-opacity";
-}): mapboxgl.Expression | number {
-  if (symbolization.simplestyle) {
-    return ["coalesce", ["get", part], defaultValue];
-  }
-  return defaultValue;
-}
-
-export function asColorExpression({
-  symbolization,
-  part = "fill",
-}: {
-  symbolization: ISymbolization;
-  part?: "fill" | "stroke";
-}): mapboxgl.Expression | string {
-  const expression = asColorExpressionInner({ symbolization });
-  if (symbolization.simplestyle) {
-    return ["coalesce", ["get", part], expression];
-  }
-  return expression;
-}
-
-function asColorExpressionInner({
-  symbolization,
-}: {
-  symbolization: ISymbolization;
-}): mapboxgl.Expression | string {
-  const { defaultColor } = symbolization;
-  switch (symbolization.type) {
-    case "none": {
-      return defaultColor;
-    }
-    case "categorical": {
-      return [
-        "match",
-        ["get", symbolization.property],
-        ...symbolization.stops.flatMap((stop) => [stop.input, stop.output]),
-        defaultColor,
-      ];
-    }
-    case "ramp": {
-      return [
-        "match",
-        ["typeof", ["get", symbolization.property]],
-        "number",
-        symbolization.interpolate === "linear"
-          ? [
-              "interpolate-lab",
-              ["linear"],
-              ["get", symbolization.property],
-              ...symbolization.stops.flatMap((stop) => {
-                return [stop.input, stop.output];
-              }),
-            ]
-          : [
-              "step",
-              ["get", symbolization.property],
-              defaultColor,
-              ...symbolization.stops.flatMap((stop) => {
-                return [stop.input, stop.output];
-              }),
-            ],
-        defaultColor,
-      ];
-    }
-  }
 }
 
 function LABEL_PAINT(
@@ -560,8 +350,6 @@ export const CONTENT_LAYERS = isFeatureOn("FLAG_RESERVOIR")
   ? [
       FEATURES_POINT_LAYER_NAME,
       IMPORTED_FEATURES_POINT_LAYER_NAME,
-      FEATURES_FILL_LAYER_NAME,
-      IMPORTED_FEATURES_FILL_LAYER_NAME,
       FEATURES_LINE_LAYER_NAME,
       IMPORTED_FEATURES_LINE_LAYER_NAME,
       "reservoirs-layer",
@@ -570,12 +358,8 @@ export const CONTENT_LAYERS = isFeatureOn("FLAG_RESERVOIR")
   : [
       FEATURES_POINT_LAYER_NAME,
       IMPORTED_FEATURES_POINT_LAYER_NAME,
-      FEATURES_FILL_LAYER_NAME,
-      IMPORTED_FEATURES_FILL_LAYER_NAME,
       FEATURES_LINE_LAYER_NAME,
       IMPORTED_FEATURES_LINE_LAYER_NAME,
     ];
 
-export const CLICKABLE_LAYERS = CONTENT_LAYERS.concat([
-  EPHEMERAL_FILL_LAYER_NAME,
-]);
+export const CLICKABLE_LAYERS = CONTENT_LAYERS;
