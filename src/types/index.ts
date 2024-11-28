@@ -58,6 +58,8 @@ export const zLayerConfigCommon = z.object({
   opacity: z.number().transform((num) => clamp(num, 0, 1)),
   tms: z.optional(z.boolean()).default(false),
   visibility: z.boolean(),
+  labelVisibility: z.boolean(),
+  poiVisibility: z.boolean(),
 });
 
 const url = z.string().url();

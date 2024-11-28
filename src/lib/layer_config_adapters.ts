@@ -36,7 +36,13 @@ export async function addMapboxStyle(
       };
     });
 
-  return style;
+  const updatedStyle = updateMapboxStyle(style, {
+    labelVisibility: layer.labelVisibility,
+    poiVisibility: layer.poiVisibility,
+    rasterOpacity: layer.opacity,
+  });
+
+  return updatedStyle;
 }
 
 export function paintLayoutFromRasterLayer(
@@ -58,8 +64,6 @@ export async function addTileJSONStyle(
   layer: ILayerConfig,
   id: number,
 ) {
-  // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 
@@ -95,8 +99,6 @@ export function addXYZStyle(
   layer: ILayerConfig,
   id: number,
 ) {
-  // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 
@@ -116,4 +118,73 @@ export function addXYZStyle(
   style.layers.push(newLayer);
 
   return style;
+}
+
+function updateMapboxStyle(
+  style: mapboxgl.Style,
+  options: {
+    labelVisibility?: boolean;
+    poiVisibility?: boolean;
+    rasterOpacity?: number;
+  },
+): mapboxgl.Style {
+  const {
+    labelVisibility = true,
+    poiVisibility = true,
+    rasterOpacity,
+  } = options;
+
+  if (!style.layers) {
+    return style;
+  }
+
+  const isSatelliteStyle =
+    style.name === "Mapbox Satellite Streets" ||
+    style.name === "Mapbox Satellite";
+
+  const updatedLayers = style.layers
+    .map((layer) => {
+      if (
+        !labelVisibility &&
+        layer.id.includes("-label") &&
+        layer.id !== "poi-label"
+      ) {
+        return null;
+      }
+      if (!poiVisibility && layer.id.includes("poi-label")) {
+        return null;
+      }
+
+      if (
+        isSatelliteStyle &&
+        layer.type === "raster" &&
+        rasterOpacity !== undefined
+      ) {
+        return {
+          ...layer,
+          paint: {
+            ...(layer.paint || {}),
+            "raster-opacity": rasterOpacity,
+          },
+        };
+      }
+
+      if (isSatelliteStyle && layer.type === "background" && layer.paint) {
+        return {
+          ...layer,
+          paint: {
+            ...layer.paint,
+            "background-color": "#ffffff",
+          },
+        };
+      }
+
+      return layer;
+    })
+    .filter(Boolean) as mapboxgl.AnyLayer[];
+
+  return {
+    ...style,
+    layers: updatedLayers,
+  };
 }

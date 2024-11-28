@@ -4,11 +4,12 @@ import { ILayerConfig } from "src/types";
 const defaults = {
   type: "MAPBOX",
   token: env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  opacity: 1,
 } as const;
 
 export type LayerConfigTemplate = Pick<
   ILayerConfig,
-  "name" | "url" | "type" | "token"
+  "name" | "url" | "type" | "token" | "opacity"
 >;
 
 const LAYERS: Record<string, LayerConfigTemplate> = {
@@ -24,8 +25,9 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
   },
   SATELLITE: {
     name: "Satellite",
-    url: "mapbox://styles/mapbox/satellite-streets-v11",
+    url: "mapbox://styles/mapbox/satellite-streets-v12",
     ...defaults,
+    opacity: 0.7,
   },
   STREETS: {
     name: "Streets",
