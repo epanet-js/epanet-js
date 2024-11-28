@@ -361,7 +361,6 @@ export function useImportFile() {
 
 export function useImportShapefile() {
   const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const transact = rep.useTransact();
   const {
     hydraulicModel: { assetBuilder },
@@ -388,6 +387,6 @@ export function useImportShapefile() {
 
       return either;
     },
-    [transact, assetBuilder, transactDeprecated],
+    [transact, assetBuilder],
   );
 }
