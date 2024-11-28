@@ -53,7 +53,6 @@ const debugEvent = isDebugOn
     }
   : noop;
 
-import { isFeatureOn } from "src/infra/feature-flags";
 import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 
@@ -125,17 +124,15 @@ export class MapEngine {
     map.on("touchmove", this.onMapTouchMove);
     map.on("touchend", this.onMapTouchEnd);
 
-    if (isFeatureOn("FLAG_RESERVOIR")) {
-      map.on("style.load", async () => {
-        const images = await prepareIconsSprite();
+    map.on("style.load", async () => {
+      const images = await prepareIconsSprite();
 
-        for (const { id, image } of images) {
-          if (map.hasImage(id)) return;
+      for (const { id, image } of images) {
+        if (map.hasImage(id)) return;
 
-          map.addImage(id, image);
-        }
-      });
-    }
+        map.addImage(id, image);
+      }
+    });
 
     this.lastSelectionIds = emptySelection;
     this.map = map;

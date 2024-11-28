@@ -28,7 +28,6 @@ import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
 import { pluralize, truncate } from "src/lib/utils";
 import { ModelMoment } from "src/hydraulics/model-operation";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { AssetBuilder } from "src/hydraulics/asset-builder";
 import { Asset } from "src/hydraulics/asset-types";
 
@@ -97,69 +96,6 @@ function resultToTransact({
     }
   }
 }
-function resultToTransactDeprecated({
-  result,
-  file,
-  track,
-  existingFolderId,
-}: {
-  result: ConvertResult;
-  file: Pick<File, "name">;
-  track: [
-    string,
-    {
-      format: string;
-    },
-  ];
-  existingFolderId?: string | undefined;
-}): Partial<MomentInput> {
-  const folderId = newFeatureId();
-
-  /**
-   * If someone's provided a folder to put this in,
-   * don't generate a new one. Basically, this is for pasting
-   * features into a folder.
-   */
-  const putFolders: MomentInput["putFolders"] = existingFolderId
-    ? []
-    : [
-        {
-          name: file?.name || "Imported file",
-          visibility: true,
-          id: folderId,
-          expanded: true,
-          locked: false,
-          folderId: null,
-        },
-      ];
-
-  switch (result.type) {
-    case "geojson": {
-      const { features } = result.geojson;
-      const ats = generateNKeysBetween(null, null, features.length);
-      return {
-        note: `Imported ${file?.name ? file.name : "a file"}`,
-        track: track,
-        putFolders,
-        putFeatures: result.geojson.features.map((feature, i) => {
-          return {
-            at: ats[i],
-            folderId: existingFolderId || folderId,
-            id: newFeatureId(),
-            feature,
-          };
-        }),
-      };
-    }
-    case "root": {
-      // In the (rare) case in which someone imported
-      // something with a root, then import it in its original
-      // structure.
-      const flat = flattenRoot(result.root, [], [], null);
-      return flat;
-    }
-  }
-}
 
 export function flattenRoot(
   root: Root | Folder,
@@ -211,7 +147,6 @@ export function useImportString() {
   const {
     hydraulicModel: { assetBuilder },
   } = useAtomValue(dataAtom);
-  const transactDeprecated = rep.useTransactDeprecated();
 
   return useCallback(
     /**
@@ -223,31 +158,17 @@ export function useImportString() {
       options: ImportOptions,
       progress: RawProgressCb,
       name: string = "Imported text",
-      existingFolderId?: string,
+      _?: string,
     ) => {
       return (await stringToGeoJSON(text, options, Comlink.proxy(progress)))
-        .map(async (result) => {
-          isFeatureOn("FLAG_ASSET_IMPORT")
-            ? transact(
-                resultToTransact({
-                  assetBuilder,
-                  result,
-                  file: { name },
-                }),
-              )
-            : await transactDeprecated(
-                resultToTransactDeprecated({
-                  result,
-                  file: { name },
-                  track: [
-                    "import-string",
-                    {
-                      format: "geojson",
-                    },
-                  ],
-                  existingFolderId,
-                }),
-              );
+        .map((result) => {
+          transact(
+            resultToTransact({
+              assetBuilder,
+              result,
+              file: { name },
+            }),
+          );
           return result;
         })
         .mapLeft((e) => {
@@ -255,7 +176,7 @@ export function useImportString() {
           console.error(e);
         });
     },
-    [transact, transactDeprecated, assetBuilder],
+    [transact, assetBuilder],
   );
 }
 
@@ -421,26 +342,12 @@ export function useImportFile() {
             if (file.handle && exportOptions) {
               setFileInfo({ handle: file.handle, options: exportOptions });
             }
-            if (isFeatureOn("FLAG_ASSET_IMPORT")) {
-              const moment = resultToTransact({
-                assetBuilder,
-                result,
-                file,
-              });
-              transact(moment);
-            } else {
-              const moment = resultToTransactDeprecated({
-                result,
-                file,
-                track: [
-                  "import",
-                  {
-                    format: options.type,
-                  },
-                ],
-              });
-              await transactDeprecated(moment);
-            }
+            const moment = resultToTransact({
+              assetBuilder,
+              result,
+              file,
+            });
+            transact(moment);
             return result;
           }
         },
@@ -467,27 +374,14 @@ export function useImportShapefile() {
      */
     async (file: ShapefileGroup, options: ImportOptions) => {
       const either = (await Shapefile.forwardLoose(file, options)).map(
-        async (result) => {
-          isFeatureOn("FLAG_ASSET_IMPORT")
-            ? transact(
-                resultToTransact({
-                  assetBuilder,
-                  result,
-                  file: file.files.shp,
-                }),
-              )
-            : await transactDeprecated(
-                resultToTransactDeprecated({
-                  result,
-                  file: file.files.shp,
-                  track: [
-                    "import",
-                    {
-                      format: "shapefile",
-                    },
-                  ],
-                }),
-              );
+        (result) => {
+          transact(
+            resultToTransact({
+              assetBuilder,
+              result,
+              file: file.files.shp,
+            }),
+          );
           return result;
         },
       );

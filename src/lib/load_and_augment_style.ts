@@ -12,7 +12,6 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
-import { isFeatureOn } from "src/infra/feature-flags";
 import {
   reservoirsLayer,
   reservoirsSelectedLayer,
@@ -147,26 +146,22 @@ export function makeLayers({
       layerId: "junctions",
       symbolization,
     }),
-    isFeatureOn("FLAG_RESERVOIR") &&
-      reservoirsLayer({
-        source: "features",
-        layerId: "reservoirs",
-      }),
-    isFeatureOn("FLAG_RESERVOIR") &&
-      reservoirsLayer({
-        source: "imported-features",
-        layerId: "imported-reservoirs",
-      }),
-    isFeatureOn("FLAG_RESERVOIR") &&
-      reservoirsSelectedLayer({
-        source: "features",
-        layerId: "reservoirs-selected",
-      }),
-    isFeatureOn("FLAG_RESERVOIR") &&
-      reservoirsSelectedLayer({
-        source: "imported-features",
-        layerId: "imported-reservoirs-selected",
-      }),
+    reservoirsLayer({
+      source: "features",
+      layerId: "reservoirs",
+    }),
+    reservoirsLayer({
+      source: "imported-features",
+      layerId: "imported-reservoirs",
+    }),
+    reservoirsSelectedLayer({
+      source: "features",
+      layerId: "reservoirs-selected",
+    }),
+    reservoirsSelectedLayer({
+      source: "imported-features",
+      layerId: "imported-reservoirs-selected",
+    }),
     ...(typeof previewProperty === "string"
       ? [
           {
@@ -193,7 +188,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ].filter((l) => !!l) as mapboxgl.AnyLayer[];
+  ].filter((l) => !!l);
 }
 
 function LABEL_PAINT(

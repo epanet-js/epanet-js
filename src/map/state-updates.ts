@@ -31,7 +31,6 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -149,15 +148,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       !isUpdatingSources.current
     ) {
       updateEphemeralStateOvelay(map, nextEphemeralSync.current);
-      if (isFeatureOn("FLAG_RESERVOIR")) {
-        hideFeaturesInEphemeralState(
-          map,
-          lastEphemeralSync.current,
-          nextEphemeralSync.current,
-          lastHiddenFeatures.current,
-          idMap,
-        );
-      }
+      hideFeaturesInEphemeralState(
+        map,
+        lastEphemeralSync.current,
+        nextEphemeralSync.current,
+        lastHiddenFeatures.current,
+        idMap,
+      );
       lastEphemeralSync.current = nextEphemeralSync.current;
     }
 
