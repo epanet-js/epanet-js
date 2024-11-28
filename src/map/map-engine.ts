@@ -10,6 +10,9 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { USelection } from "src/selection";
 import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
+import { DataSource } from "./data-source";
+import { prepareIconsSprite } from "./icons";
+import { IconImage } from "./icons";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -53,15 +56,13 @@ const debugEvent = isDebugOn
     }
   : noop;
 
-import { DataSource } from "./data-source";
-import { prepareIconsSprite } from "./icons";
-
 export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
   idMap: IDMap;
   lastSelectionIds: Set<RawId>;
   overlay: MapboxOverlay;
+  private icons: IconImage[] = [];
 
   constructor({
     element,
@@ -125,9 +126,11 @@ export class MapEngine {
     map.on("touchend", this.onMapTouchEnd);
 
     map.on("style.load", async () => {
-      const images = await prepareIconsSprite();
+      if (!this.icons.length) {
+        this.icons = await prepareIconsSprite();
+      }
 
-      for (const { id, image } of images) {
+      for (const { id, image } of this.icons) {
         if (map.hasImage(id)) return;
 
         map.addImage(id, image);
