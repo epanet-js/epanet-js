@@ -1,7 +1,8 @@
 import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
+import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 
-export type IconId = "reservoir" | "reservoir-outlined";
+export type IconId = "reservoir" | "reservoir-outlined" | "reservoir-selected";
 export type TextureProps = {
   width: number;
   height: number;
@@ -17,11 +18,19 @@ type IconMapping = {
 
 type IconsMapping = Record<IconId, IconMapping>;
 
-const urls = [reservoirPng.src, reservoirOutlinedPng.src];
+type IconUrl = { id: IconId; url: string };
+type IconImage = { id: IconId; image: HTMLImageElement };
+
+const iconUrls: IconUrl[] = [
+  { id: "reservoir", url: reservoirPng.src },
+  { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
+  { id: "reservoir-selected", url: reservoirSelectedPng.src },
+];
 
 const iconsMapping: IconsMapping = {
   reservoir: { x: 0, y: 0, width: 32, height: 32 },
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
+  "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
 };
 
 type Sprite = {
@@ -37,23 +46,21 @@ export const getIconsSprite = () => {
   return sprite.current;
 };
 
-export const prepareIconsSprite = async () => {
-  const images = await Promise.all(urls.map((url) => fetchImage(url)));
-  const { atlas } = buildSprite(images);
+export const prepareIconsSprite = async (): Promise<IconImage[]> => {
+  const iconImages = await Promise.all(
+    iconUrls.map((iconUrl) => fetchImage(iconUrl)),
+  );
+  const { atlas } = buildSprite(iconImages);
 
   sprite.current = {
     atlas,
     mapping: iconsMapping,
   };
+
+  return iconImages;
 };
 
-export const fetchIconsAtlas = async () => {
-  const images = await Promise.all(urls.map((url) => fetchImage(url)));
-  const { atlas } = buildSprite(images);
-  return atlas;
-};
-
-const fetchImage = async (url: string): Promise<HTMLImageElement> => {
+const fetchImage = async ({ id, url }: IconUrl): Promise<IconImage> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -63,11 +70,11 @@ const fetchImage = async (url: string): Promise<HTMLImageElement> => {
   const img = new Image();
   img.src = URL.createObjectURL(blob);
   await img.decode();
-  return img;
+  return { id, image: img };
 };
 
-const buildSprite = (images: HTMLImageElement[]): { atlas: TextureProps } => {
-  const { width, height } = calculateCanvasDimensions(images);
+const buildSprite = (iconImages: IconImage[]): { atlas: TextureProps } => {
+  const { width, height } = calculateCanvasDimensions(iconImages);
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -78,7 +85,7 @@ const buildSprite = (images: HTMLImageElement[]): { atlas: TextureProps } => {
   }
 
   let xOffset = 0;
-  images.forEach((image) => {
+  iconImages.forEach(({ image }) => {
     ctx.drawImage(image, xOffset, 0);
     xOffset += image.width;
   });
@@ -95,11 +102,11 @@ const buildSprite = (images: HTMLImageElement[]): { atlas: TextureProps } => {
 };
 
 const calculateCanvasDimensions = (
-  images: HTMLImageElement[],
+  images: IconImage[],
 ): { width: number; height: number } => {
   let width = 0;
   let height = 0;
-  for (const image of images) {
+  for (const { image } of images) {
     if (image.height > height) height = image.height;
     width += image.width;
   }

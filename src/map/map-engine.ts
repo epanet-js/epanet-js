@@ -8,7 +8,7 @@ import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { isDebugOn } from "src/infra/debug-mode";
 import { USelection } from "src/selection";
-import { captureError, captureWarning } from "src/infra/error-tracking";
+import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -53,8 +53,6 @@ const debugEvent = isDebugOn
     }
   : noop;
 
-import reservoirPng from "./icons/reservoir.png";
-import reservoirSelectedPng from "./icons/reservoir-selected.png";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
@@ -128,21 +126,14 @@ export class MapEngine {
     map.on("touchend", this.onMapTouchEnd);
 
     if (isFeatureOn("FLAG_RESERVOIR")) {
-      map.on("style.load", () => {
-        prepareIconsSprite().catch((e) => captureError(e));
+      map.on("style.load", async () => {
+        const images = await prepareIconsSprite();
 
-        map.loadImage(reservoirPng.src, (error, image) => {
-          if (error) throw error;
-          if (!image) return;
+        for (const { id, image } of images) {
+          if (map.hasImage(id)) return;
 
-          map.addImage("reservoir", image);
-        });
-        map.loadImage(reservoirSelectedPng.src, (error, image) => {
-          if (error) throw error;
-          if (!image) return;
-
-          map.addImage("reservoir-selected", image);
-        });
+          map.addImage(id, image);
+        }
       });
     }
 
