@@ -1,7 +1,8 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, IconLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { Position } from "geojson";
-import { Pipe, NodeAsset, Reservoir } from "src/hydraulics/asset-types";
+import { Feature, Position } from "geojson";
+import { Pipe, NodeAsset } from "src/hydraulics/asset-types";
+import { captureWarning } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export interface EphemeralDrawPipe {
@@ -26,40 +27,38 @@ type IconData = {
   position: Position;
 };
 
+const appendNode = (
+  geojsonFeatures: Feature[],
+  icons: IconData[],
+  node: NodeAsset,
+) => {
+  switch (node.type) {
+    case "junction":
+      geojsonFeatures.push(node.feature);
+      break;
+    case "reservoir":
+      icons.push({
+        id: "reservoir-outlined",
+        position: node.coordinates,
+      });
+      break;
+    default:
+      captureWarning(
+        `Method missing to append ephemeral state for node ${node.type}`,
+      );
+  }
+};
+
 export const buildLayers = (state: EphemeralDrawPipe) => {
   if (isFeatureOn("FLAG_RESERVOIR")) {
-    const geojsonFeatures = [];
+    const geojsonFeatures: Feature[] = [];
     const icons: IconData[] = [];
     if (state.startNode) {
-      switch (state.startNode.type) {
-        case "junction":
-          geojsonFeatures.push(state.startNode.feature);
-          break;
-        case "reservoir":
-          icons.push({
-            id: "reservoir-outlined",
-            position: (state.startNode as Reservoir).coordinates,
-          });
-          break;
-        case "pipe":
-          break;
-      }
+      appendNode(geojsonFeatures, icons, state.startNode);
     }
     if (state.pipe) geojsonFeatures.push(state.pipe.feature);
     if (state.snappingCandidate) {
-      switch (state.snappingCandidate.type) {
-        case "junction":
-          geojsonFeatures.push(state.snappingCandidate.feature);
-          break;
-        case "reservoir":
-          icons.push({
-            id: "reservoir-outlined",
-            position: (state.snappingCandidate as Reservoir).coordinates,
-          });
-          break;
-        case "pipe":
-          break;
-      }
+      appendNode(geojsonFeatures, icons, state.snappingCandidate);
     }
 
     return [
