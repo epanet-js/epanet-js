@@ -129,7 +129,7 @@ export class MapEngine {
     map.on("touchend", this.onMapTouchEnd);
 
     if (isFeatureOn("FLAG_RESERVOIR")) {
-      map.on("load", () => {
+      map.on("style.load", () => {
         map.loadImage(reservoirPng.src, (error, image) => {
           if (error) throw error;
           if (!image) return;
