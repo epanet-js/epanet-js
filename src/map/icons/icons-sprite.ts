@@ -19,7 +19,7 @@ type IconMapping = {
 type IconsMapping = Record<IconId, IconMapping>;
 
 type IconUrl = { id: IconId; url: string };
-type IconImage = { id: IconId; image: HTMLImageElement };
+export type IconImage = { id: IconId; image: HTMLImageElement };
 
 const iconUrls: IconUrl[] = [
   { id: "reservoir", url: reservoirPng.src },
