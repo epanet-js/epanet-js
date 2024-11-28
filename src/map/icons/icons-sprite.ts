@@ -1,6 +1,7 @@
 import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
+import { withInstrumentation } from "src/infra/with-instrumentation";
 
 export type IconId = "reservoir" | "reservoir-outlined" | "reservoir-selected";
 export type TextureProps = {
@@ -46,19 +47,22 @@ export const getIconsSprite = () => {
   return sprite.current;
 };
 
-export const prepareIconsSprite = async (): Promise<IconImage[]> => {
-  const iconImages = await Promise.all(
-    iconUrls.map((iconUrl) => fetchImage(iconUrl)),
-  );
-  const { atlas } = buildSprite(iconImages);
+export const prepareIconsSprite = withInstrumentation(
+  async (): Promise<IconImage[]> => {
+    const iconImages = await Promise.all(
+      iconUrls.map((iconUrl) => fetchImage(iconUrl)),
+    );
+    const { atlas } = buildSprite(iconImages);
 
-  sprite.current = {
-    atlas,
-    mapping: iconsMapping,
-  };
+    sprite.current = {
+      atlas,
+      mapping: iconsMapping,
+    };
 
-  return iconImages;
-};
+    return iconImages;
+  },
+  { name: "GENERATE_ICONS_SPRITE", maxDurationMs: 1000 },
+);
 
 const fetchImage = async ({ id, url }: IconUrl): Promise<IconImage> => {
   const response = await fetch(url);
