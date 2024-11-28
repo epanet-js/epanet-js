@@ -11,24 +11,16 @@ export type EphemeralMoveAssets = {
   targetAssets: Asset[];
 };
 
-type IconData = {
-  id: string;
-  url: string;
-  position: Position;
-};
-import reservoirPng from "src/map/icons/reservoir.png";
-import { fetchImageAsTexture } from "src/map/icons/fetch-image-as-texture";
+import { getIconsSprite, IconId } from "src/map/icons";
 
-const iconMapping = {
-  reservoir: { x: 0, y: 0, width: 32, height: 32 },
-};
-const iconAtlas = {
-  data: fetchImageAsTexture(reservoirPng.src),
-  mapping: iconMapping,
+type IconData = {
+  id: IconId;
+  position: Position;
 };
 
 export const buildLayers = (state: EphemeralMoveAssets) => {
   if (isFeatureOn("FLAG_RESERVOIR")) {
+    const iconsSprite = getIconsSprite();
     const { geojsonFeatures, icons } = state.targetAssets.reduce(
       (acc, asset) => {
         switch (asset.type) {
@@ -41,7 +33,6 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
           case "reservoir":
             acc.icons.push({
               id: "reservoir",
-              url: reservoirPng.src,
               position: (asset as Reservoir).coordinates,
             });
             break;
@@ -71,8 +62,8 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         data: icons,
         getSize: 20,
         // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
-        iconAtlas: iconAtlas.data,
-        iconMapping: iconAtlas.mapping,
+        iconAtlas: iconsSprite.atlas,
+        iconMapping: iconsSprite.mapping,
         getIcon: (d) => d.id as string,
       }),
     ];

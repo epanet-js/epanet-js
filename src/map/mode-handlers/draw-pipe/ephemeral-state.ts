@@ -12,18 +12,10 @@ export interface EphemeralDrawPipe {
   snappingCandidate: NodeAsset | null;
 }
 
-import { fetchImageAsTexture } from "src/map/icons/fetch-image-as-texture";
-import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
+import { IconId, getIconsSprite } from "src/map/icons";
 
-const iconMapping = {
-  "reservoir-outlined": { x: 0, y: 0, width: 32, height: 32 },
-};
-const iconAtlas = {
-  data: fetchImageAsTexture(reservoirOutlinedPng.src),
-  mapping: iconMapping,
-};
 type IconData = {
-  id: string;
+  id: IconId;
   position: Position;
 };
 
@@ -51,6 +43,7 @@ const appendNode = (
 
 export const buildLayers = (state: EphemeralDrawPipe) => {
   if (isFeatureOn("FLAG_RESERVOIR")) {
+    const iconsSprite = getIconsSprite();
     const geojsonFeatures: Feature[] = [];
     const icons: IconData[] = [];
     if (state.startNode) {
@@ -92,8 +85,8 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
         data: icons,
         getSize: 16,
         // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
-        iconAtlas: iconAtlas.data,
-        iconMapping: iconAtlas.mapping,
+        iconAtlas: iconsSprite.atlas,
+        iconMapping: iconsSprite.mapping,
         getIcon: (d) => d.id as string,
       }),
     ];

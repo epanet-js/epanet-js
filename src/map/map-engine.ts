@@ -8,7 +8,7 @@ import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { isDebugOn } from "src/infra/debug-mode";
 import { USelection } from "src/selection";
-import { captureWarning } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -57,6 +57,7 @@ import reservoirPng from "./icons/reservoir.png";
 import reservoirSelectedPng from "./icons/reservoir-selected.png";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { DataSource } from "./data-source";
+import { prepareIconsSprite } from "./icons";
 
 export class MapEngine {
   map: mapboxgl.Map;
@@ -128,6 +129,8 @@ export class MapEngine {
 
     if (isFeatureOn("FLAG_RESERVOIR")) {
       map.on("style.load", () => {
+        prepareIconsSprite().catch((e) => captureError(e));
+
         map.loadImage(reservoirPng.src, (error, image) => {
           if (error) throw error;
           if (!image) return;
