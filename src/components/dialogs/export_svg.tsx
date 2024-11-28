@@ -25,10 +25,10 @@ import { Field, Form, Formik } from "formik";
 import { useRootItems } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import { Root } from "@tmcw/togeojson";
 import { usePersistence } from "src/lib/persistence/context";
-import { asColorExpression } from "src/lib/load_and_augment_style";
 import memoizeOne from "memoize-one";
 import { purple900 } from "src/lib/constants";
 import { MapContext } from "src/context/map_context";
+import { asColorExpression } from "src/lib/symbolization";
 
 const getExpr = memoizeOne((symbolization: ISymbolization) => {
   const expressionDefinition = asColorExpression({

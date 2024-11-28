@@ -7,8 +7,8 @@ import {
   styledTextarea,
   TextWell,
 } from "src/components/elements";
-import { asColorExpression } from "src/lib/load_and_augment_style";
 import type { ISymbolization } from "src/types";
+import { asColorExpression } from "src/lib/symbolization";
 
 function CopySymbolization({
   symbolization,
