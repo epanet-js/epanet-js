@@ -1,9 +1,6 @@
 import mapboxgl, { MapboxEvent, Style } from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
-import {
-  FEATURES_SOURCE_NAME,
-  IMPORTED_FEATURES_SOURCE_NAME,
-} from "src/lib/load_and_augment_style";
+
 import type { Sel } from "src/state/jotai";
 import { CURSOR_DEFAULT, emptySelection } from "src/lib/constants";
 import type { Feature, IFeatureCollection } from "src/types";
@@ -59,6 +56,7 @@ const debugEvent = isDebugOn
 import reservoirPng from "./icons/reservoir.png";
 import reservoirSelectedPng from "./icons/reservoir-selected.png";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { DataSource } from "./data-source";
 
 export class MapEngine {
   map: mapboxgl.Map;
@@ -218,7 +216,7 @@ export class MapEngine {
     });
   }
 
-  setSource(name: string, sourceFeatures: Feature[]): Promise<void> {
+  setSource(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
     }
@@ -336,47 +334,47 @@ export class MapEngine {
 
     for (const id of tmpSet) {
       if (!oldSet.has(id)) {
-        this.map.setFeatureState(
-          {
-            source: FEATURES_SOURCE_NAME,
-            id,
-          },
-          {
-            selected: "true",
-          },
-        );
-        this.map.setFeatureState(
-          {
-            source: IMPORTED_FEATURES_SOURCE_NAME,
-            id,
-          },
-          {
-            selected: "true",
-          },
-        );
+        this.setFeatureState("features", id, { selected: "true" });
+        this.setFeatureState("imported-features", id, { selected: "true" });
         tmpSet.delete(id);
       }
     }
 
     for (const id of oldSet) {
       if (!tmpSet.has(id)) {
-        this.map.removeFeatureState(
-          {
-            source: FEATURES_SOURCE_NAME,
-            id,
-          },
-          "selected",
-        );
-        this.map.removeFeatureState(
-          {
-            source: IMPORTED_FEATURES_SOURCE_NAME,
-            id,
-          },
-          "selected",
-        );
+        this.removeFeatureState("features", id, "selected");
+        this.removeFeatureState("imported-features", id, "selected");
       }
     }
 
     this.lastSelectionIds = newSet;
+  }
+
+  private setFeatureState(
+    source: DataSource,
+    featureId: RawId,
+    data: Record<string, string | boolean>,
+  ) {
+    this.map.setFeatureState(
+      {
+        source,
+        id: featureId,
+      },
+      data,
+    );
+  }
+
+  private removeFeatureState(
+    source: DataSource,
+    featureId: RawId,
+    key: string,
+  ) {
+    this.map.removeFeatureState(
+      {
+        source: source,
+        id: featureId,
+      },
+      key,
+    );
   }
 }

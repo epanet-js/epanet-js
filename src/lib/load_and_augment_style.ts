@@ -16,13 +16,10 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import {
   reservoirsLayer,
   reservoirsSelectedLayer,
-} from "src/map/layers/reservoirs";
-import {
-  asColorExpression,
-  asNumberExpression,
+  pipesLayer,
   junctionsLayer,
-} from "src/map/layers/junctions";
-import { pipesLayer } from "src/map/layers/pipes";
+} from "src/map/layers";
+import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -35,9 +32,6 @@ function getEmptyStyle() {
   };
   return style;
 }
-
-export const IMPORTED_FEATURES_SOURCE_NAME = "imported-features";
-export const FEATURES_SOURCE_NAME = "features";
 
 export const FEATURES_POINT_HALO_LAYER_NAME = "features-symbol-halo";
 export const FEATURES_POINT_LAYER_NAME = "features-symbol";
@@ -123,8 +117,8 @@ export function addEditingLayers({
   symbolization: ISymbolization;
   previewProperty: PreviewProperty;
 }) {
-  style.sources[IMPORTED_FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
-  style.sources[FEATURES_SOURCE_NAME] = emptyGeoJSONSource;
+  style.sources["imported-features"] = emptyGeoJSONSource;
+  style.sources["features"] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -144,43 +138,43 @@ export function makeLayers({
 }): mapboxgl.AnyLayer[] {
   return [
     pipesLayer({
-      source: IMPORTED_FEATURES_SOURCE_NAME,
+      source: "imported-features",
       layerId: IMPORTED_FEATURES_LINE_LAYER_NAME,
       symbolization,
     }),
     pipesLayer({
-      source: FEATURES_SOURCE_NAME,
+      source: "features",
       layerId: FEATURES_LINE_LAYER_NAME,
       symbolization,
     }),
     junctionsLayer({
-      source: IMPORTED_FEATURES_SOURCE_NAME,
+      source: "imported-features",
       layerId: IMPORTED_FEATURES_POINT_LAYER_NAME,
       symbolization,
     }),
     junctionsLayer({
-      source: FEATURES_SOURCE_NAME,
+      source: "features",
       layerId: FEATURES_POINT_LAYER_NAME,
       symbolization,
     }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsLayer({
-        source: FEATURES_SOURCE_NAME,
+        source: "features",
         layerId: "reservoirs-layer",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsLayer({
-        source: IMPORTED_FEATURES_SOURCE_NAME,
+        source: "imported-features",
         layerId: "imported-reservoirs-layer",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsSelectedLayer({
-        source: FEATURES_SOURCE_NAME,
+        source: "features",
         layerId: "reservoirs-layer-selected",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsSelectedLayer({
-        source: IMPORTED_FEATURES_SOURCE_NAME,
+        source: "imported-features",
         layerId: "imported-reservoirs-layer-selected",
       }),
     ...(typeof previewProperty === "string"
@@ -188,7 +182,7 @@ export function makeLayers({
           {
             id: FEATURES_POINT_LABEL_LAYER_NAME,
             type: "symbol",
-            source: FEATURES_SOURCE_NAME,
+            source: "features",
             paint: LABEL_PAINT(symbolization, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "point"),
             filter: addPreviewFilter(
@@ -199,7 +193,7 @@ export function makeLayers({
           {
             id: FEATURES_LINE_LABEL_LAYER_NAME,
             type: "symbol",
-            source: FEATURES_SOURCE_NAME,
+            source: "features",
             paint: LABEL_PAINT(symbolization, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "line"),
             filter: addPreviewFilter(

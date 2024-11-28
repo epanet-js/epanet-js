@@ -16,10 +16,7 @@ import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import loadAndAugmentStyle, {
-  FEATURES_SOURCE_NAME,
-  IMPORTED_FEATURES_SOURCE_NAME,
-} from "src/lib/load_and_augment_style";
+import loadAndAugmentStyle from "src/lib/load_and_augment_style";
 import { AssetId, AssetsMap, filterAssets } from "src/hydraulics/assets-map";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
@@ -215,7 +212,7 @@ const updateImportSource = withInstrumentation(
       styles.symbolization,
       styles.previewProperty,
     );
-    await map.setSource(IMPORTED_FEATURES_SOURCE_NAME, features);
+    await map.setSource("imported-features", features);
   },
   {
     name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
@@ -248,7 +245,7 @@ const updateEditionsSource = withInstrumentation(
       styles.symbolization,
       styles.previewProperty,
     );
-    await map.setSource(FEATURES_SOURCE_NAME, features);
+    await map.setSource("features", features);
 
     return editionAssetIds;
   },
@@ -271,8 +268,8 @@ const updateVisibilityFeatureState = withInstrumentation(
     const newShownFeatures = Array.from(lastHiddenFeatures).filter(
       (intId) => !editedAssetIds.has(UIDMap.getUUID(idMap, intId)),
     );
-    map.showFeatures(IMPORTED_FEATURES_SOURCE_NAME, newShownFeatures);
-    map.hideFeatures(IMPORTED_FEATURES_SOURCE_NAME, newHiddenFeatures);
+    map.showFeatures("imported-features", newShownFeatures);
+    map.hideFeatures("imported-features", newHiddenFeatures);
 
     return new Set(newHiddenFeatures);
   },
@@ -291,17 +288,17 @@ const hideFeaturesInEphemeralState = withInstrumentation(
     const currentIds = getFeaturesToHideFrom(currentEphemeralState, idMap);
 
     for (const featureId of previousIds) {
-      map.showFeature(FEATURES_SOURCE_NAME, featureId);
+      map.showFeature("features", featureId);
       if (featuresHiddenFromImport.has(featureId)) continue;
 
-      map.showFeature(IMPORTED_FEATURES_SOURCE_NAME, featureId);
+      map.showFeature("imported-features", featureId);
     }
 
     for (const featureId of currentIds) {
-      map.hideFeature(FEATURES_SOURCE_NAME, featureId);
+      map.hideFeature("features", featureId);
       if (featuresHiddenFromImport.has(featureId)) continue;
 
-      map.hideFeature(IMPORTED_FEATURES_SOURCE_NAME, featureId);
+      map.hideFeature("imported-features", featureId);
     }
   },
   {
