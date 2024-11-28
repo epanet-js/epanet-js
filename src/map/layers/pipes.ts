@@ -1,14 +1,15 @@
 import { LineLayer } from "mapbox-gl";
 import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { ISymbolization } from "src/types";
-import { asColorExpression, asNumberExpression } from "./junctions";
+import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
+import { DataSource } from "../data-source";
 
 export const pipesLayer = ({
   source,
   layerId,
   symbolization,
 }: {
-  source: string;
+  source: DataSource;
   layerId: string;
   symbolization: ISymbolization;
 }): LineLayer => {
