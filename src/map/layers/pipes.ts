@@ -3,6 +3,7 @@ import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { ISymbolization } from "src/types";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { DataSource } from "../data-source";
+import { LayerId } from "./layer";
 
 export const pipesLayer = ({
   source,
@@ -10,7 +11,7 @@ export const pipesLayer = ({
   symbolization,
 }: {
   source: DataSource;
-  layerId: string;
+  layerId: LayerId;
   symbolization: ISymbolization;
 }): LineLayer => {
   return {

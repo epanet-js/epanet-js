@@ -4,6 +4,7 @@ import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
+import { LayerId } from "./layer";
 
 export const junctionsLayer = ({
   source,
@@ -11,7 +12,7 @@ export const junctionsLayer = ({
   symbolization,
 }: {
   source: DataSource;
-  layerId: string;
+  layerId: LayerId;
   symbolization: ISymbolization;
 }): CircleLayer => {
   return {

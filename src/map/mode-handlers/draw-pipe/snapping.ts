@@ -1,12 +1,12 @@
-import { MapMouseEvent, MapTouchEvent, PointLike } from "mapbox-gl";
+import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import type { MapEngine } from "src/map/map-engine";
 import { Position } from "src/types";
-import { FEATURES_POINT_LAYER_NAME } from "src/lib/load_and_augment_style";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulics/assets-map";
 import { NodeAsset } from "src/hydraulics/asset-types";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { searchNearbyRenderedFeatures } from "src/map/search";
 
 export const useSnapping = (
   map: MapEngine,
@@ -14,18 +14,16 @@ export const useSnapping = (
   assetsMap: AssetsMap,
 ) => {
   const getNeighborPoint = (point: mapboxgl.Point): string | null => {
-    const { x, y } = point;
-    const distance = 12;
-
-    const searchBox = [
-      [x - distance, y - distance] as PointLike,
-      [x + distance, y + distance] as PointLike,
-    ] as [PointLike, PointLike];
-
-    const pointFeatures = map.map.queryRenderedFeatures(searchBox, {
+    const pointFeatures = searchNearbyRenderedFeatures(map, {
+      point,
       layers: isFeatureOn("FLAG_RESERVOIR")
-        ? [FEATURES_POINT_LAYER_NAME, "reservoirs-layer"]
-        : [FEATURES_POINT_LAYER_NAME],
+        ? [
+            "junctions",
+            "imported-junctions",
+            "reservoirs",
+            "imported-reservoirs",
+          ]
+        : ["junctions", "imported-junctions"],
     });
     if (!pointFeatures.length) return null;
 

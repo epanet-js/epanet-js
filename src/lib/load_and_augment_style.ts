@@ -18,6 +18,7 @@ import {
   reservoirsSelectedLayer,
   pipesLayer,
   junctionsLayer,
+  assetLayers,
 } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 
@@ -139,43 +140,43 @@ export function makeLayers({
   return [
     pipesLayer({
       source: "imported-features",
-      layerId: IMPORTED_FEATURES_LINE_LAYER_NAME,
+      layerId: "imported-pipes",
       symbolization,
     }),
     pipesLayer({
       source: "features",
-      layerId: FEATURES_LINE_LAYER_NAME,
+      layerId: "pipes",
       symbolization,
     }),
     junctionsLayer({
       source: "imported-features",
-      layerId: IMPORTED_FEATURES_POINT_LAYER_NAME,
+      layerId: "imported-junctions",
       symbolization,
     }),
     junctionsLayer({
       source: "features",
-      layerId: FEATURES_POINT_LAYER_NAME,
+      layerId: "junctions",
       symbolization,
     }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsLayer({
         source: "features",
-        layerId: "reservoirs-layer",
+        layerId: "reservoirs",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsLayer({
         source: "imported-features",
-        layerId: "imported-reservoirs-layer",
+        layerId: "imported-reservoirs",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsSelectedLayer({
         source: "features",
-        layerId: "reservoirs-layer-selected",
+        layerId: "reservoirs-selected",
       }),
     isFeatureOn("FLAG_RESERVOIR") &&
       reservoirsSelectedLayer({
         source: "imported-features",
-        layerId: "imported-reservoirs-layer-selected",
+        layerId: "imported-reservoirs-selected",
       }),
     ...(typeof previewProperty === "string"
       ? [
@@ -340,20 +341,11 @@ export function LINE_PAINT(
   };
 }
 
-export const CONTENT_LAYERS = isFeatureOn("FLAG_RESERVOIR")
-  ? [
-      FEATURES_POINT_LAYER_NAME,
-      IMPORTED_FEATURES_POINT_LAYER_NAME,
-      FEATURES_LINE_LAYER_NAME,
-      IMPORTED_FEATURES_LINE_LAYER_NAME,
-      "reservoirs-layer",
-      "imported-reservoirs-layer",
-    ]
+export const CLICKABLE_LAYERS = isFeatureOn("FLAG_RESERVOIR")
+  ? assetLayers
   : [
       FEATURES_POINT_LAYER_NAME,
       IMPORTED_FEATURES_POINT_LAYER_NAME,
       FEATURES_LINE_LAYER_NAME,
       IMPORTED_FEATURES_LINE_LAYER_NAME,
     ];
-
-export const CLICKABLE_LAYERS = CONTENT_LAYERS;
