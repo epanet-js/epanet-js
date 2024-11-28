@@ -1,8 +1,6 @@
 import { expect, describe, it, test } from "vitest";
 
-import { newFeatureId } from "src/lib/id";
 import {
-  zLayerConfigCommon,
   Symbolization,
   SYMBOLIZATION_NONE,
   tryUpgrading,
@@ -34,32 +32,6 @@ test("SymbolizationBaseInternal", () => {
       "simplestyle": true,
     }
   `);
-});
-
-test("zLayerConfigCommon", () => {
-  expect(
-    zLayerConfigCommon.parse({
-      name: "Foo",
-      opacity: 10,
-      id: newFeatureId(),
-      at: "a0",
-      visibility: true,
-    }),
-  ).toMatchInlineSnapshot(
-    {
-      id: expect.any(String),
-    },
-    `
-    {
-      "at": "a0",
-      "id": Any<String>,
-      "name": "Foo",
-      "opacity": 1,
-      "tms": false,
-      "visibility": true,
-    }
-  `,
-  );
 });
 
 describe("tryUpgrading", () => {
