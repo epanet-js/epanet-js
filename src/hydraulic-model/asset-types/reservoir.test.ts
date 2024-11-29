@@ -1,4 +1,4 @@
-import { buildReservoir } from "../__helpers__/hydraulic-model-builder";
+import { buildReservoir } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Reservoir", () => {
   it("assigns a head relative to the elevation", () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { moveNode } from "./move-node";
 
 import { NodeAsset, LinkAsset } from "../asset-types";
-import { HydraulicModelBuilder } from "../__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "../../__helpers__/hydraulic-model-builder";
 
 describe("moveNode", () => {
   it("updates the coordinates of a node", () => {

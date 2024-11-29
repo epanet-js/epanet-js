@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import { buildPipe } from "../__helpers__/hydraulic-model-builder";
+import { buildPipe } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Pipe", () => {
   it("setting coordinates updates its length", () => {
