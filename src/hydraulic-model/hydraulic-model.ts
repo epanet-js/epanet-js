@@ -1,8 +1,10 @@
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { AssetBuilder } from "./asset-builder";
-import { isFeatureOn } from "src/infra/feature-flags";
-import { presets } from "src/settings/quantities-spec";
+import {
+  AssetQuantitiesSpecByType,
+  canonicalQuantitiesSpec,
+} from "./asset-types";
 
 export type HydraulicModel = {
   assets: AssetsMap;
@@ -12,12 +14,13 @@ export type HydraulicModel = {
 
 export { AssetsMap };
 
-export const nullHydraulicModel = (assets: AssetsMap): HydraulicModel => {
+export const nullHydraulicModel = (
+  assets: AssetsMap,
+  quantitiesSpec: AssetQuantitiesSpecByType = canonicalQuantitiesSpec,
+): HydraulicModel => {
   return {
     assets,
-    assetBuilder: new AssetBuilder(
-      isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
-    ),
+    assetBuilder: new AssetBuilder(quantitiesSpec),
     topology: new Topology(),
   };
 };
