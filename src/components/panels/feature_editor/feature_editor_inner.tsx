@@ -8,6 +8,7 @@ import {
   AssetExplain,
   AssetQuantities,
   AssetStatus,
+  canonicalQuantitiesSpec,
   getQuantitySpec,
 } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
@@ -62,7 +63,7 @@ export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
 
   const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
     ? quantityPresets.usCustomary
-    : quantityPresets.si;
+    : canonicalQuantitiesSpec;
 
   return (
     <div

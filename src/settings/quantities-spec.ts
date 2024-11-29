@@ -1,7 +1,4 @@
-import {
-  canonicalQuantitiesSpec,
-  AssetQuantitiesSpecByType,
-} from "src/hydraulic-model";
+import { AssetQuantitiesSpecByType } from "src/hydraulic-model";
 
 const USCustomarySpec: AssetQuantitiesSpecByType = {
   pipe: {
@@ -21,6 +18,5 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
 };
 
 export const presets = {
-  si: canonicalQuantitiesSpec,
   usCustomary: USCustomarySpec,
 };

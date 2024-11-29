@@ -21,7 +21,7 @@ import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use_zoom_to";
 import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
-import { deleteAssets } from "src/hydraulic-model";
+import { deleteAssets } from "src/hydraulic-model/model-operations";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
