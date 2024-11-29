@@ -33,17 +33,35 @@ export class HydraulicModelBuilder {
     this.topology = new Topology();
   }
 
-  aNode(id: string, coordinates: Position) {
+  aNode(id: string, coordinates: Position = [0, 0]) {
     const node = this.assetBuilder.buildJunction({ coordinates, id });
     this.assets.set(id, node);
     return this;
   }
 
-  aLink(
+  aJunction(id: string, properties: Partial<JunctionBuildData>) {
+    const junction = this.assetBuilder.buildJunction({
+      id,
+      ...properties,
+    });
+    this.assets.set(id, junction);
+    return this;
+  }
+
+  aReservoir(id: string, properties: Partial<ReservoirBuildData>) {
+    const reservoir = this.assetBuilder.buildReservoir({
+      id,
+      ...properties,
+    });
+    this.assets.set(id, reservoir);
+    return this;
+  }
+
+  aPipe(
     id: string,
     startNodeId: string,
     endNodeId: string,
-    attributes: Partial<PipeProperties> = {},
+    properties: Partial<PipeBuildData>,
   ) {
     const startNode = getNode(this.assets, startNodeId);
     const endNode = getNode(this.assets, endNodeId);
@@ -52,13 +70,23 @@ export class HydraulicModelBuilder {
 
     const link = this.assetBuilder.buildPipe({
       coordinates: [startNode.coordinates, endNode.coordinates],
+      connections: [startNode.id, endNode.id],
       id,
-      ...attributes,
+      ...properties,
     });
     this.assets.set(link.id, link);
     this.topology.addLink(id, startNodeId, endNodeId);
 
     return this;
+  }
+
+  aLink(
+    id: string,
+    startNodeId: string,
+    endNodeId: string,
+    properties: Partial<PipeProperties> = {},
+  ) {
+    return this.aPipe(id, startNodeId, endNodeId, properties);
   }
 
   build(): HydraulicModel {
