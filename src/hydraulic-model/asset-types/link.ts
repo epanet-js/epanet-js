@@ -65,6 +65,12 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     return vertex;
   }
 
+  get intermediateVertices(): Position[] {
+    if (this.coordinates.length < 3) return [];
+
+    return this.coordinates.slice(1, this.coordinates.length - 1);
+  }
+
   get lastVertex(): Position {
     const vertex = this.coordinates.at(-1);
     if (!vertex) throw new Error("Link has no vertex!");

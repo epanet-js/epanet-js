@@ -202,7 +202,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     helpers: FormikHelpers<ExportOptions>,
   ) {
     if (isFeatureOn("FLAG_INP") && exportOptions.type === "inp") {
-      const inp = buildInp(data.hydraulicModel);
+      const inp = buildInp(data.hydraulicModel, { geolocation: true });
       const { fileSave } = await import("browser-fs-access");
 
       try {
