@@ -7,7 +7,7 @@ import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
 import { getNode } from "src/hydraulic-model";
-import { moveNode } from "src/hydraulic-model";
+import { moveNode } from "src/hydraulic-model/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import {

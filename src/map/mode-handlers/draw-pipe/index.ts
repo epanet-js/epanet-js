@@ -8,7 +8,7 @@ import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
-import { addPipe } from "src/hydraulic-model";
+import { addPipe } from "src/hydraulic-model/model-operations";
 import {
   fetchElevationForPoint,
   prefetchElevationsTile,
