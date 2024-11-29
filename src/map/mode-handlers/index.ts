@@ -2,8 +2,6 @@ import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/jotai";
 import { useNoneHandlers } from "./none";
 import { useLassoHandlers } from "./lasso";
-import { useRectangleHandlers } from "./rectangle";
-import { useCircleHandlers } from "./circle";
 import { useLineHandlers } from "./line";
 import { useJunctionHandlers } from "./junction";
 import { usePolygonHandlers } from "./polygon";
@@ -18,8 +16,6 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     [Mode.DRAW_RESERVOIR]: useDrawReservoirHandlers(handlerContext),
     [Mode.DRAW_LINE]: useLineHandlers(handlerContext),
     [Mode.DRAW_POLYGON]: usePolygonHandlers(handlerContext),
-    [Mode.DRAW_RECTANGLE]: useRectangleHandlers(handlerContext),
-    [Mode.DRAW_CIRCLE]: useCircleHandlers(handlerContext),
     [Mode.LASSO]: useLassoHandlers(handlerContext),
   };
   return HANDLERS;

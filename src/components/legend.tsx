@@ -23,7 +23,7 @@ import {
   styledSelect,
 } from "./elements";
 import { match } from "ts-pattern";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import * as P from "@radix-ui/react-popover";
 import { SCALE_UNITS, ScaleUnit, zScaleUnit } from "src/lib/constants";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";

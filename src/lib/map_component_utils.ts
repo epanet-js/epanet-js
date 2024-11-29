@@ -13,7 +13,7 @@ import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";
 import { IDMap, UIDMap } from "./id_mapper";
 import { getMapCoord } from "src/map/map-event";
-import { MapEngine } from "src/map/map-engine";
+import { MapEngine } from "src/map";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
 import { clickableLayers } from "src/map/layers/layer";
 

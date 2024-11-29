@@ -6,7 +6,7 @@ import { CrossCircledIcon } from "@radix-ui/react-icons";
 import Zoom from "src/components/icons/zoom";
 import { captureError } from "src/infra/error-tracking";
 import { getExtent } from "src/lib/geometry";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import cloneDeep from "lodash/cloneDeep";
 import { usePersistence } from "src/lib/persistence/context";
 import { countVertexes, CVertexId } from "src/lib/id";

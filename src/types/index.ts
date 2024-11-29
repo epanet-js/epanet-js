@@ -23,7 +23,7 @@ import { safeParseMaybe } from "src/lib/utils";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulics/hydraulic-model";
-import type { MapEngine } from "src/map/map-engine";
+import type { MapEngine } from "src/map";
 
 export interface CoordProps {
   x: number;
