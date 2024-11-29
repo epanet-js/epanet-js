@@ -27,6 +27,8 @@ import {
 import type { Root } from "@tmcw/togeojson";
 import { FeatureMap } from "src/types";
 import { pluralize } from "src/lib/utils";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { buildInp } from "src/simulation/build-inp";
 
 export function fallbackSave(result: ExportedData, type: FileType) {
   const a = document.createElement("a");
@@ -199,6 +201,31 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     exportOptions: ExportOptions,
     helpers: FormikHelpers<ExportOptions>,
   ) {
+    if (isFeatureOn("FLAG_INP") && exportOptions.type === "inp") {
+      const inp = buildInp(data.hydraulicModel);
+      const { fileSave } = await import("browser-fs-access");
+
+      try {
+        const newHandle = await fileSave(
+          new Blob([inp], { type: "text/plain" }),
+          {
+            fileName: "my-network.inp",
+            extensions: [".inp"],
+            description: "Save file",
+            mimeTypes: ["text/plain"],
+          },
+          null,
+        );
+        if (newHandle) {
+          setFileInfo({ handle: newHandle, options: exportOptions });
+        }
+        toast.success("Saved");
+        onClose();
+      } catch (e) {
+        captureError(e as Error);
+      }
+      return;
+    }
     const { fileSave, supported } = await import("browser-fs-access");
 
     const exportableFeatures = new Map(
