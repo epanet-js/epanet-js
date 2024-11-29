@@ -32,6 +32,8 @@ import { JsonObject, JsonValue } from "type-fest";
 import { FlatGeobuf } from "./flatgeobuf";
 import { Data } from "src/state/jotai";
 import { ProxyMarked } from "comlink";
+import { Inp } from "./inp";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export enum GeocodingBehavior {
   NULL_GEOMETRY,
@@ -214,7 +216,8 @@ export interface FileType {
     | "coordinate-string"
     | "xls"
     | "flatgeobuf"
-    | "osm";
+    | "osm"
+    | "inp";
   readonly label: string | string[];
   readonly extensions: string[];
   readonly mimes: string[];
@@ -239,27 +242,50 @@ export interface FileType {
   ) => EitherAsync<PlacemarkError, ExportResult>;
 }
 
-export const FILE_TYPES = [
-  GeoJSON,
-  KML,
-  KMZ,
-  TCX,
-  GPX,
-  CSV,
-  XLS,
-  Polyline,
-  GeoTIFF,
-  EXIF,
-  WKT,
-  GTFS,
-  TopoJSON,
-  GeoJSONL,
-  BBOX,
-  Shapefile,
-  FlatGeobuf,
-  CoordinateString,
-  OSM,
-] as const;
+export const FILE_TYPES = isFeatureOn("FLAG_INP")
+  ? ([
+      GeoJSON,
+      KML,
+      KMZ,
+      TCX,
+      GPX,
+      CSV,
+      XLS,
+      Polyline,
+      GeoTIFF,
+      EXIF,
+      WKT,
+      GTFS,
+      TopoJSON,
+      GeoJSONL,
+      BBOX,
+      Shapefile,
+      FlatGeobuf,
+      CoordinateString,
+      OSM,
+      Inp,
+    ] as const)
+  : ([
+      GeoJSON,
+      KML,
+      KMZ,
+      TCX,
+      GPX,
+      CSV,
+      XLS,
+      Polyline,
+      GeoTIFF,
+      EXIF,
+      WKT,
+      GTFS,
+      TopoJSON,
+      GeoJSONL,
+      BBOX,
+      Shapefile,
+      FlatGeobuf,
+      CoordinateString,
+      OSM,
+    ] as const);
 
 function assertIsObject(obj: JsonValue): obj is JsonObject {
   return isPlainObject(obj);
