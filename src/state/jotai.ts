@@ -27,6 +27,8 @@ import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-sta
 import { HydraulicModel, nullHydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { presets } from "src/settings/quantities-spec";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -76,7 +78,10 @@ export const dataAtom = atom<Data>({
   selection: {
     type: "none",
   },
-  hydraulicModel: nullHydraulicModel(assetsMap),
+  hydraulicModel: nullHydraulicModel(
+    assetsMap,
+    isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
+  ),
 });
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
