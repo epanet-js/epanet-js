@@ -1,6 +1,6 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import type { MapEngine } from "src/map/map-engine";
+import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulics/assets-map";

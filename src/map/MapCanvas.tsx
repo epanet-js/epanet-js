@@ -24,7 +24,7 @@ import {
   Data,
   EphemeralEditingState,
 } from "src/state/jotai";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import { MapEngine, MapHandlers } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate_flatbush_instance";
 import * as CM from "@radix-ui/react-context-menu";
@@ -333,7 +333,6 @@ export const MapCanvas = memo(function MapCanvas({
 
     if (
       mode.mode === Mode.DRAW_PIPE ||
-      mode.mode === Mode.DRAW_RECTANGLE ||
       mode.mode === Mode.DRAW_JUNCTION ||
       mode.mode === Mode.DRAW_RESERVOIR ||
       mode.mode === Mode.LASSO

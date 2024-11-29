@@ -1,4 +1,4 @@
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import { useAtomCallback } from "jotai/utils";
 import { getExtent, isBBoxEmpty } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";

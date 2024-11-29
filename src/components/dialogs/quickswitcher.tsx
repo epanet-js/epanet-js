@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState } from "react";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import { LngLatBounds, LngLatLike } from "mapbox-gl";
 import { geocodeEarth, GeocoderResults, QItem } from "src/lib/geocode";
 import { ArrowDownIcon } from "@radix-ui/react-icons";

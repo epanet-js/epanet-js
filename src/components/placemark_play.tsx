@@ -1,7 +1,7 @@
 //TODO: CHECK LINTER ERRORS
 /* eslint-disable */
 "use client";
-import type { MapEngine } from 'src/map/map-engine'
+import type { MapEngine } from 'src/map'
 import { MapCanvas } from "src/map/MapCanvas";
 import { MenuBarPlay } from "src/components/menu_bar";
 import Drop from "src/components/drop";
@@ -25,7 +25,7 @@ import {
 } from "src/components/resizer";
 import { BottomPanel, SidePanel } from "src/components/panels";
 import { Keybindings } from "src/components/keybindings";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { Legend } from "src/components/legend";
 import { Visual } from "./visual";

@@ -27,7 +27,7 @@ import { Root } from "@tmcw/togeojson";
 import { usePersistence } from "src/lib/persistence/context";
 import memoizeOne from "memoize-one";
 import { purple900 } from "src/lib/constants";
-import { MapContext } from "src/context/map_context";
+import { MapContext } from "src/map";
 import { asColorExpression } from "src/lib/symbolization";
 
 const getExpr = memoizeOne((symbolization: ISymbolization) => {

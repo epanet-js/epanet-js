@@ -54,17 +54,6 @@ export function ModeHints() {
   }
 
   switch (mode.mode) {
-    case Mode.DRAW_RECTANGLE: {
-      return (
-        <ModeHint mode={mode.mode}>
-          {selection.type === "single" ? (
-            <>Lift the mouse button to finish</>
-          ) : (
-            <>Click and drag to draw a rectangle</>
-          )}
-        </ModeHint>
-      );
-    }
     case Mode.LASSO:
     case Mode.DRAW_JUNCTION: {
       return null;
@@ -101,17 +90,6 @@ export function ModeHints() {
         }
       }
       break;
-    }
-    case Mode.DRAW_CIRCLE: {
-      return (
-        <ModeHint mode={mode.mode}>
-          {selection.type === "single" ? (
-            <>Lift the mouse button to finish</>
-          ) : (
-            <>Click and drag to draw a circle</>
-          )}
-        </ModeHint>
-      );
     }
     case Mode.DRAW_LINE: {
       return (
