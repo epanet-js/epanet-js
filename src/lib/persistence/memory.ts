@@ -38,9 +38,9 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { AssetsMap } from "src/hydraulics/assets-map";
-import { ModelMoment } from "src/hydraulics/model-operation";
-import { Asset, LinkAsset } from "src/hydraulics/asset-types";
+import { AssetsMap } from "src/hydraulic-model";
+import { ModelMoment } from "src/hydraulic-model";
+import { Asset, LinkAsset } from "src/hydraulic-model";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;

@@ -1,7 +1,7 @@
 import {
   canonicalQuantitiesSpec,
   AssetQuantitiesSpecByType,
-} from "src/hydraulics/asset-types";
+} from "src/hydraulic-model";
 
 const USCustomarySpec: AssetQuantitiesSpecByType = {
   pipe: {

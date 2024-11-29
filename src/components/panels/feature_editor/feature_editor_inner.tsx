@@ -9,7 +9,7 @@ import {
   AssetQuantities,
   AssetStatus,
   getQuantitySpec,
-} from "src/hydraulics/asset-types";
+} from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
@@ -19,7 +19,7 @@ import { Quantity, Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
-import { BaseAsset } from "src/hydraulics/asset-types/base-asset";
+import { BaseAsset } from "src/hydraulic-model";
 
 export function FeatureEditorInner({
   selectedFeature,

@@ -10,7 +10,7 @@ import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
-import { addJunction } from "src/hydraulics/model-operations";
+import { addJunction } from "src/hydraulic-model";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";

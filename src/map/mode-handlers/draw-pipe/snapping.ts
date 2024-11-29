@@ -3,8 +3,8 @@ import { IDMap, UIDMap } from "src/lib/id_mapper";
 import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
-import { AssetsMap, getNode } from "src/hydraulics/assets-map";
-import { NodeAsset } from "src/hydraulics/asset-types";
+import { AssetsMap, getNode } from "src/hydraulic-model";
+import { NodeAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 
 export const useSnapping = (

@@ -17,7 +17,7 @@ import {
 } from "src/state/jotai";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { isDebugOn } from "src/infra/debug-mode";
-import { ModelMoment } from "src/hydraulics/model-operation";
+import { ModelMoment } from "src/hydraulic-model";
 
 // This  used to send to posthog, but now could be removed
 // or wired into your own product analytics.

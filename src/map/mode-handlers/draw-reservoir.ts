@@ -13,7 +13,7 @@ import { getMapCoord } from "./utils";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
-import { addReservoir } from "src/hydraulics/model-operations";
+import { addReservoir } from "src/hydraulic-model";
 
 export function useDrawReservoirHandlers({
   mode,

@@ -24,10 +24,7 @@ import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
 import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-state";
-import {
-  HydraulicModel,
-  nullHydraulicModel,
-} from "src/hydraulics/hydraulic-model";
+import { HydraulicModel, nullHydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 

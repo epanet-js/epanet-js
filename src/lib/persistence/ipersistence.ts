@@ -3,7 +3,7 @@ import type { MomentInput } from "./moment";
 import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
-import { ModelMoment } from "src/hydraulics/model-operation";
+import { ModelMoment } from "src/hydraulic-model";
 
 export type PersistenceMetadataMemory = {
   type: "memory";

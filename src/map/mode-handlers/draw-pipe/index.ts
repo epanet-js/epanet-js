@@ -8,14 +8,14 @@ import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./drawing-state";
-import { addPipe } from "src/hydraulics/model-operations";
+import { addPipe } from "src/hydraulic-model";
 import {
   fetchElevationForPoint,
   prefetchElevationsTile,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { NodeAsset, Pipe } from "src/hydraulics/asset-types";
+import { NodeAsset, Pipe } from "src/hydraulic-model";
 
 export function useDrawPipeHandlers({
   rep,

@@ -16,6 +16,7 @@ export type LinkAsset = Pipe;
 
 export { Pipe, Junction, Reservoir };
 export type { AssetId } from "./base-asset";
+export { BaseAsset } from "./base-asset";
 
 import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec, QuantitySpec } from "src/quantity";

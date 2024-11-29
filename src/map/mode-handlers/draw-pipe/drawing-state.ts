@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
-import { AssetBuilder } from "src/hydraulics/asset-builder";
-import { NodeAsset, Pipe } from "src/hydraulics/asset-types";
+import { AssetBuilder } from "src/hydraulic-model";
+import { NodeAsset, Pipe } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
