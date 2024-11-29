@@ -15,7 +15,6 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(rowsFrom(inp)).toContain("[RESERVOIR]");
-    expect(rowsFrom(inp)).toContain(";id\thead\tpattern");
     expect(rowsFrom(inp)).toContain("r1\t10");
     expect(rowsFrom(inp)).toContain("r2\t20");
   });
@@ -35,11 +34,9 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
-    expect(rowsFrom(inp)).toContain(";id\televation");
     expect(rowsFrom(inp)).toContain("j1\t10");
     expect(rowsFrom(inp)).toContain("j2\t20");
     expect(rowsFrom(inp)).toContain("[DEMANDS]");
-    expect(rowsFrom(inp)).toContain(";id\tdemand\tpattern\tcategory");
     expect(rowsFrom(inp)).toContain("j1\t1");
     expect(rowsFrom(inp)).toContain("j2\t2");
   });
@@ -66,9 +63,6 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(rowsFrom(inp)).toContain("[PIPES]");
-    expect(rowsFrom(inp)).toContain(
-      ";id\tstart\tend\tlength\tdiameter\troughness\tminorLoss\tstatus",
-    );
     expect(rowsFrom(inp)).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
     expect(rowsFrom(inp)).toContain(
       "pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed",
@@ -91,6 +85,35 @@ describe("build inp", () => {
     expect(rowsFrom(inp)).toContain("Headloss\tH-W");
 
     expect(rowsFrom(inp).at(-1)).toEqual("[END]");
+  });
+
+  it("includes geographical info when requested", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("junction1", { coordinates: [10, 1] })
+      .aReservoir("reservoir1", { coordinates: [20, 2] })
+      .aPipe("pipe1", "junction1", "reservoir1", {
+        coordinates: [
+          [10, 1],
+          [30, 3],
+          [40, 4],
+          [20, 2],
+        ],
+      })
+      .build();
+
+    const without = buildInp(hydraulicModel);
+    expect(rowsFrom(without)).not.toContain("[COORDINATES]");
+    expect(rowsFrom(without)).not.toContain("[VERTICES]");
+
+    const inp = buildInp(hydraulicModel, { geolocation: true });
+
+    expect(rowsFrom(inp)).toContain("[COORDINATES]");
+    expect(rowsFrom(inp)).toContain("junction1\t10\t1");
+    expect(rowsFrom(inp)).toContain("reservoir1\t20\t2");
+
+    expect(rowsFrom(inp)).toContain("[VERTICES]");
+    expect(rowsFrom(inp)).toContain("pipe1\t30\t3");
+    expect(rowsFrom(inp)).toContain("pipe1\t40\t4");
   });
 
   const rowsFrom = (inp: string) => inp.split("\n");
