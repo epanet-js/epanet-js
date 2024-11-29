@@ -48,6 +48,10 @@ export class Pipe extends Link<PipeProperties> {
     this.properties.roughness = value;
   }
 
+  get status() {
+    return this.properties.status;
+  }
+
   copy() {
     return new Pipe(this.id, [...this.coordinates], {
       ...this.properties,
