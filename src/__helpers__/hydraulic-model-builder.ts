@@ -1,14 +1,15 @@
 import { Position } from "geojson";
-import { PipeProperties } from "../asset-types/pipe";
-import { Topology } from "../topology";
-import { HydraulicModel } from "../hydraulic-model";
-import { AssetsMap, getNode } from "../assets-map";
 import {
+  PipeProperties,
+  HydraulicModel,
+  AssetsMap,
+  getNode,
+  Topology,
   AssetBuilder,
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
-} from "../asset-builder";
+} from "src/hydraulic-model";
 
 export const buildPipe = (data: PipeBuildData = {}) =>
   new AssetBuilder().buildPipe(data);

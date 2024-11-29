@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import { buildJunction } from "../__helpers__/hydraulic-model-builder";
+import { buildJunction } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {

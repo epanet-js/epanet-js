@@ -4,7 +4,7 @@ import {
   HydraulicModelBuilder,
   buildJunction,
   buildPipe,
-} from "../__helpers__/hydraulic-model-builder";
+} from "../../__helpers__/hydraulic-model-builder";
 import { Pipe } from "../asset-types";
 
 describe("addPipe", () => {
