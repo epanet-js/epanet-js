@@ -20,7 +20,6 @@ import {
   PipeStatus,
   pipeCanonicalSpec,
 } from "./asset-types/pipe";
-import { newFeatureId } from "src/lib/id";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
 import {
@@ -48,6 +47,14 @@ export type ReservoirBuildData = {
   QuantityOrNumberMap<ReservoirQuantities & { relativeHead: number }>
 >;
 
+import { customAlphabet } from "nanoid";
+import { newFeatureId } from "src/lib/id";
+import { isFeatureOn } from "src/infra/feature-flags";
+const epanetCompatibleAlphabet =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
+const generateId = () => (isFeatureOn("FLAG_INP") ? nanoId() : newFeatureId());
+
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
 
@@ -56,7 +63,7 @@ export class AssetBuilder {
   }
 
   buildPipe({
-    id = newFeatureId(),
+    id = generateId(),
     coordinates = [
       [0, 0],
       [0, 0],
@@ -79,7 +86,7 @@ export class AssetBuilder {
   }
 
   buildJunction({
-    id = newFeatureId(),
+    id = generateId(),
     coordinates = [0, 0],
     ...quantities
   }: JunctionBuildData = {}) {
@@ -97,7 +104,7 @@ export class AssetBuilder {
   }
 
   buildReservoir({
-    id = newFeatureId(),
+    id = generateId(),
     coordinates = [0, 0],
     ...quantities
   }: ReservoirBuildData = {}) {
