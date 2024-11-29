@@ -9,6 +9,9 @@ const buildInp = (hydraulicModel: HydraulicModel): string => {
     junctions: `[JUNCTIONS]\n;id\televation\n`,
     demands: `[DEMANDS]\n;id\tdemand\tpattern\tcategory\n`,
     pipes: `[PIPES]\n;id\tstart\tend\tlength\tdiameter\troughness\tminorLoss\tstatus\n`,
+    report: `[REPORT]\nStatus\tFULL\n`,
+    times: `[TIMES]\nDuration\t0\n`,
+    options: `[OPTIONS]\nUnits\tLPS\nHeadloss\tH-W\n`,
   };
 
   for (const asset of hydraulicModel.assets.values()) {
@@ -29,7 +32,17 @@ const buildInp = (hydraulicModel: HydraulicModel): string => {
       sections.pipes += `${pipe.id}\t${nodeStart}\t${nodeEnd}\t${pipe.length}\t${pipe.diameter}\t${pipe.roughness}\t${minorLoss}\t${status}\n`;
     }
   }
-  return `${sections.junctions}\n${sections.reservoirs}\n${sections.pipes}\n${sections.demands}`;
+
+  return [
+    sections.junctions,
+    sections.reservoirs,
+    sections.pipes,
+    sections.demands,
+    sections.times,
+    sections.report,
+    sections.options,
+    "[END]",
+  ].join("\n");
 };
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
@@ -54,10 +67,10 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(inp).toContain("[RESERVOIR]");
-    expect(inp).toContain(";id\thead\tpattern");
-    expect(inp).toContain("r1\t10");
-    expect(inp).toContain("r2\t20");
+    expect(rowsFrom(inp)).toContain("[RESERVOIR]");
+    expect(rowsFrom(inp)).toContain(";id\thead\tpattern");
+    expect(rowsFrom(inp)).toContain("r1\t10");
+    expect(rowsFrom(inp)).toContain("r2\t20");
   });
 
   it("adds junctions", () => {
@@ -74,14 +87,14 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(inp).toContain("[JUNCTIONS]");
-    expect(inp).toContain(";id\televation");
-    expect(inp).toContain("j1\t10");
-    expect(inp).toContain("j2\t20");
-    expect(inp).toContain("[DEMANDS]");
-    expect(inp).toContain(";id\tdemand\tpattern\tcategory");
-    expect(inp).toContain("j1\t1");
-    expect(inp).toContain("j2\t2");
+    expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
+    expect(rowsFrom(inp)).toContain(";id\televation");
+    expect(rowsFrom(inp)).toContain("j1\t10");
+    expect(rowsFrom(inp)).toContain("j2\t20");
+    expect(rowsFrom(inp)).toContain("[DEMANDS]");
+    expect(rowsFrom(inp)).toContain(";id\tdemand\tpattern\tcategory");
+    expect(rowsFrom(inp)).toContain("j1\t1");
+    expect(rowsFrom(inp)).toContain("j2\t2");
   });
 
   it("adds pipes", () => {
@@ -105,11 +118,33 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(inp).toContain("[PIPES]\n");
-    expect(inp).toContain(
-      ";id\tstart\tend\tlength\tdiameter\troughness\tminorLoss\tstatus\n",
+    expect(rowsFrom(inp)).toContain("[PIPES]");
+    expect(rowsFrom(inp)).toContain(
+      ";id\tstart\tend\tlength\tdiameter\troughness\tminorLoss\tstatus",
     );
-    expect(inp).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
-    expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
+    expect(rowsFrom(inp)).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
+    expect(rowsFrom(inp)).toContain(
+      "pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed",
+    );
   });
+
+  it("includes simulation settings", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(rowsFrom(inp)).toContain("[TIMES]");
+    expect(rowsFrom(inp)).toContain("Duration\t0");
+
+    expect(rowsFrom(inp)).toContain("[REPORT]");
+    expect(rowsFrom(inp)).toContain("Status\tFULL");
+
+    expect(rowsFrom(inp)).toContain("[OPTIONS]");
+    expect(rowsFrom(inp)).toContain("Units\tLPS");
+    expect(rowsFrom(inp)).toContain("Headloss\tH-W");
+
+    expect(rowsFrom(inp).at(-1)).toEqual("[END]");
+  });
+
+  const rowsFrom = (inp: string) => inp.split("\n");
 });
