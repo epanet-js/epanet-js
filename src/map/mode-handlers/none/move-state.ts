@@ -1,7 +1,7 @@
 import { GeoJsonLayer, IconLayer } from "@deck.gl/layers";
 import { Feature, Position } from "geojson";
 import { useAtom } from "jotai";
-import { Asset, Reservoir } from "src/hydraulics/asset-types";
+import { Asset, Reservoir } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 export type EphemeralMoveAssets = {

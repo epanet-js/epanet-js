@@ -1,7 +1,7 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, IconLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { Feature, Position } from "geojson";
-import { Pipe, NodeAsset } from "src/hydraulics/asset-types";
+import { Pipe, NodeAsset } from "src/hydraulic-model";
 import { captureWarning } from "src/infra/error-tracking";
 
 export interface EphemeralDrawPipe {

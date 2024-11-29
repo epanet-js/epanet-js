@@ -12,7 +12,7 @@ import { filterLockedFeatures } from "src/lib/folder";
 import { USelection } from "src/selection";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
-import { deleteAssets } from "src/hydraulics/model-operations";
+import { deleteAssets } from "src/hydraulic-model";
 import { useSetAtom } from "jotai";
 
 const IGNORE_ROLES = new Set(["menuitem"]);

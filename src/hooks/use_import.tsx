@@ -27,9 +27,9 @@ import {
 import * as Comlink from "comlink";
 import { useAtomCallback } from "jotai/utils";
 import { pluralize, truncate } from "src/lib/utils";
-import { ModelMoment } from "src/hydraulics/model-operation";
-import { AssetBuilder } from "src/hydraulics/asset-builder";
-import { Asset } from "src/hydraulics/asset-types";
+import { ModelMoment } from "src/hydraulic-model";
+import { AssetBuilder } from "src/hydraulic-model";
+import { Asset } from "src/hydraulic-model";
 
 /**
  * Creates the _input_ to a transact() operation,

@@ -17,7 +17,7 @@ import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulics/assets-map";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";

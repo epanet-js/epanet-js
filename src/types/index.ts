@@ -22,7 +22,7 @@ import { purple900 } from "src/lib/constants";
 import { safeParseMaybe } from "src/lib/utils";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
-import { HydraulicModel } from "src/hydraulics/hydraulic-model";
+import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
 
 export interface CoordProps {

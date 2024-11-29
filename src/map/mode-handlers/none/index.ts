@@ -6,8 +6,8 @@ import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
-import { getNode } from "src/hydraulics/assets-map";
-import { moveNode } from "src/hydraulics/model-operations";
+import { getNode } from "src/hydraulic-model";
+import { moveNode } from "src/hydraulic-model";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import {
@@ -18,7 +18,7 @@ import { captureError } from "src/infra/error-tracking";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id_mapper";
-import { Asset } from "src/hydraulics/asset-types";
+import { Asset } from "src/hydraulic-model";
 
 export function useNoneHandlers({
   throttledMovePointer,
