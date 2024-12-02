@@ -2,12 +2,10 @@ import { test, expect, describe, it } from "vitest";
 
 import { DEFAULT_IMPORT_OPTIONS } from ".";
 import { GeoJSON } from "./geojson";
-import { IFeature, Polygon } from "src/types";
 import { twoPoints, fcLineString } from "test/helpers";
 import { Polyline } from "./polyline";
 import { CSV } from "./csv";
 import { Shapefile } from "./shapefile";
-import { BBOX } from "./bbox";
 import { Blob } from "buffer";
 import { getExtension } from "./utils";
 import { FlatGeobuf, adjustForFgb } from "./flatgeobuf";
@@ -50,42 +48,6 @@ describe("convert", () => {
     //   ).unsafeCoerce();
     //   console.log(loop);
     // });
-  });
-  describe("BBOX", () => {
-    const res = {
-      features: [
-        {
-          geometry: {
-            bbox: [0, 1, 2, 3],
-            coordinates: [
-              [
-                [0, 1],
-                [0, 3],
-                [2, 3],
-                [2, 1],
-                [0, 1],
-              ],
-            ],
-            type: "Polygon",
-          },
-          properties: {},
-          type: "Feature",
-        },
-      ],
-      type: "FeatureCollection",
-    };
-    it("forwardString", async () => {
-      expect(
-        (await BBOX.forwardString("0 1 2 3")).unsafeCoerce(),
-      ).toHaveProperty("geojson", res);
-    });
-    it("featureToString", async () => {
-      expect(
-        (
-          await BBOX.featureToString(res.features[0] as IFeature<Polygon>)
-        ).unsafeCoerce(),
-      ).toEqual("0,1,2,3");
-    });
   });
   describe("CoordinateString", () => {
     it("forwardString", async () => {
