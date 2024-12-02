@@ -12,7 +12,6 @@ import { XLS } from "./xls";
 import { BBOX } from "./bbox";
 import { Polyline } from "./polyline";
 import { GeoJSON } from "./geojson";
-import { GeoJSONL } from "./geojsonl";
 import { Shapefile } from "./shapefile";
 import { GeoTIFF } from "./geotiff";
 import { GEOJSON_TYPES } from "src/lib/constants";
@@ -190,7 +189,6 @@ export type ProgressCb = RawProgressCb & ProxyMarked;
 export interface FileType {
   readonly id:
     | "geojson"
-    | "geojsonl"
     | "gpx"
     | "csv"
     | "polyline"
@@ -232,7 +230,6 @@ export const FILE_TYPES = [
   XLS,
   Polyline,
   GeoTIFF,
-  GeoJSONL,
   BBOX,
   Shapefile,
   FlatGeobuf,
