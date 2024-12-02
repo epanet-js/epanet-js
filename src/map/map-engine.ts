@@ -314,7 +314,16 @@ export class MapEngine {
     pointOrBox: Parameters<MapboxMap["queryRenderedFeatures"]>[0],
     options: Parameters<MapboxMap["queryRenderedFeatures"]>[1],
   ) {
-    return this.map.queryRenderedFeatures(pointOrBox, options);
+    const layers = options?.layers || [];
+
+    const availableLayers = layers.filter(
+      (layer) => !!this.map.getLayer(layer),
+    );
+
+    return this.map.queryRenderedFeatures(pointOrBox, {
+      ...options,
+      layers: availableLayers,
+    });
   }
 
   remove() {
