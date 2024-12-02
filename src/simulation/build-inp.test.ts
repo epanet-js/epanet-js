@@ -14,7 +14,7 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("[RESERVOIR]");
+    expect(rowsFrom(inp)).toContain("[RESERVOIRS]");
     expect(rowsFrom(inp)).toContain("r1\t10");
     expect(rowsFrom(inp)).toContain("r2\t20");
   });
