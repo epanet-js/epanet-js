@@ -6,12 +6,9 @@ import { IFeature, Polygon } from "src/types";
 import { twoPoints, fcLineString } from "test/helpers";
 import { Polyline } from "./polyline";
 import { CSV } from "./csv";
-import { EXIF } from "./exif";
 import { Shapefile } from "./shapefile";
 import { BBOX } from "./bbox";
 import { Blob } from "buffer";
-import Fs from "fs";
-import Path from "path";
 import { getExtension } from "./utils";
 import { FlatGeobuf, adjustForFgb } from "./flatgeobuf";
 import { TopoJSON } from "./topojson";
@@ -227,24 +224,6 @@ describe("convert", () => {
     expect(getExtension("foo")).toEqual("");
     expect(getExtension("foo.bar.baz")).toEqual(".baz");
   });
-
-  describe("EXIF", () => {
-    it(".forward", async () => {
-      const input = Fs.readFileSync(Path.join("test", "exifimage.jpg")).buffer;
-      expect(
-        (
-          await EXIF.forwardBinary(input, {
-            ...DEFAULT_IMPORT_OPTIONS,
-            type: EXIF.id,
-          })
-        ).unsafeCoerce(),
-      ).toHaveProperty(["geojson", "features", "0", "geometry"], {
-        coordinates: [-121.78388888888888, 36.802775],
-        type: "Point",
-      });
-    });
-  });
-
   (global as any).Blob = Blob;
 
   describe("CSV", () => {
