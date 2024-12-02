@@ -9,7 +9,6 @@ import {
   castRowGeoJSON,
   castRowLonLat,
   castRowPolyline,
-  castRowWKT,
   castRowZip,
   EnforcedLonLatOptions,
   EnforcedWKTOptions,
@@ -59,14 +58,6 @@ export async function xlsxToGeoJSON(
       case "addresses": {
         await new Promise((resolve) => setTimeout(resolve, 100));
         const feature = await castRowGeocode(row, options);
-        if (feature) {
-          features.push(feature);
-        }
-        break;
-      }
-      case "wkt": {
-        const castRow = row;
-        const feature = castRowWKT(castRow, EnforcedWKTOptions.parse(options));
         if (feature) {
           features.push(feature);
         }

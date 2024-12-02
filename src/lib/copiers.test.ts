@@ -4,11 +4,6 @@ import { pointFeature, fcLineString } from "test/helpers";
 import { COPIERS } from "./copiers";
 
 describe("COPIERS", () => {
-  it(`COPIER.wkt`, async () => {
-    await expect(COPIERS.wkt(pointFeature)).resolves.toEqualRight(
-      "POINT (0 1)",
-    );
-  });
   it(`COPIER.geojson`, async () => {
     await expect(COPIERS.geojson(pointFeature)).resolves.toEqualRight(
       JSON.stringify(pointFeature),

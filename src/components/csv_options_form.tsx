@@ -145,7 +145,7 @@ function GeometryHeaders({
   kind,
   columns,
 }: {
-  kind: "WKT" | "GeoJSON" | "Polyline";
+  kind:  "GeoJSON" | "Polyline";
   columns: Columns;
 }) {
   return (
@@ -330,9 +330,6 @@ function HeaderSelections({
     }
     case "polyline": {
       return <GeometryHeaders kind="Polyline" columns={columns} />;
-    }
-    case "wkt": {
-      return <GeometryHeaders kind="WKT" columns={columns} />;
     }
     case "lonlat": {
       return <LonLatHeaders columns={columns} />;

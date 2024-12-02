@@ -11,7 +11,6 @@ import { getZipDB, ZipDB } from "src/lib/get_zip_db";
 import {
   castRowGeocode,
   castRowLonLat,
-  castRowWKT,
   castRowGeoJSON,
   castRowPolyline,
   castRowZip,
@@ -114,12 +113,10 @@ export function detectColumns(columns: string[]): ImportOptions["csvOptions"] {
   return {
     kind: hasPolylineColumn
       ? "polyline"
-      : hasWktColumn
-        ? "wkt"
-        : latitudeHeader?.column === longitudeHeader?.column ||
-            goodZipHeaders.has(zipHeader?.column?.toLowerCase())
-          ? "zip"
-          : "lonlat",
+      : latitudeHeader?.column === longitudeHeader?.column ||
+          goodZipHeaders.has(zipHeader?.column?.toLowerCase())
+        ? "zip"
+        : "lonlat",
     delimiter: ",",
     latitudeHeader: latitudeHeader?.column || singleColumn,
     longitudeHeader: longitudeHeader?.column || singleColumn,
@@ -179,7 +176,6 @@ export async function csvToGeoJSON(
       break;
     }
     case "geojson":
-    case "wkt":
     case "join":
     case "polyline":
     case "lonlat": {
@@ -199,13 +195,6 @@ export async function csvToGeoJSON(
           castRow,
           EnforcedLonLatOptions.parse(options),
         );
-        if (feature) {
-          features.push(feature);
-        }
-        break;
-      }
-      case "wkt": {
-        const feature = castRowWKT(castRow, EnforcedWKTOptions.parse(options));
         if (feature) {
           features.push(feature);
         }
