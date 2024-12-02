@@ -3,7 +3,6 @@ import { test, expect, describe, it } from "vitest";
 import { DEFAULT_IMPORT_OPTIONS } from ".";
 import { GeoJSON } from "./geojson";
 import { twoPoints, fcLineString } from "test/helpers";
-import { Polyline } from "./polyline";
 import { CSV } from "./csv";
 import { Shapefile } from "./shapefile";
 import { Blob } from "buffer";
@@ -190,33 +189,6 @@ describe("convert", () => {
           )
         ).unsafeCoerce(),
       ).toHaveProperty("name", "features.csv");
-    });
-  });
-
-  describe("Polyline", () => {
-    it("cannot translate points", async () => {
-      expect(
-        await Polyline.back(
-          { geojson: twoPoints },
-          {
-            type: "polyline",
-            folderId: null,
-          },
-        ),
-      ).toBeLeft();
-    });
-    it("can translate lines", async () => {
-      expect(
-        (
-          await Polyline.back(
-            { geojson: fcLineString },
-            {
-              type: "polyline",
-              folderId: null,
-            },
-          )
-        ).unsafeCoerce(),
-      ).toHaveProperty("name", "line.poly");
     });
   });
 

@@ -8,7 +8,6 @@ import {
   castRowGeocode,
   castRowGeoJSON,
   castRowLonLat,
-  castRowPolyline,
   castRowZip,
   EnforcedLonLatOptions,
   EnforcedWKTOptions,
@@ -66,17 +65,6 @@ export async function xlsxToGeoJSON(
       case "geojson": {
         const castRow = row;
         const feature = castRowGeoJSON(
-          castRow,
-          EnforcedWKTOptions.parse(options),
-        );
-        if (feature) {
-          features.push(feature);
-        }
-        break;
-      }
-      case "polyline": {
-        const castRow = row;
-        const feature = castRowPolyline(
           castRow,
           EnforcedWKTOptions.parse(options),
         );

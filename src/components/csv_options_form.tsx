@@ -328,9 +328,6 @@ function HeaderSelections({
     case "geojson": {
       return <GeometryHeaders kind="GeoJSON" columns={columns} />;
     }
-    case "polyline": {
-      return <GeometryHeaders kind="Polyline" columns={columns} />;
-    }
     case "lonlat": {
       return <LonLatHeaders columns={columns} />;
     }
