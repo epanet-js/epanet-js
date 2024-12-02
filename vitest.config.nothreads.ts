@@ -11,13 +11,9 @@ loadEnvConfig(projectDir);
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    exclude: ["src/**/*.nothreads-test.tsx"],
-    environmentMatchGlobs: [
-      ["src/map/elevations/*", "jsdom"],
-      ["src/components/*", "jsdom"],
-      ["src/**/**", "node"],
-    ],
+    threads: false,
+    include: ["src/**/*.nothreads-test.tsx"],
+    environmentMatchGlobs: [["src/**/*.nothreads-test.tsx", "jsdom"]],
     environmentOptions: {
       jsdom: { resources: "usable" },
     },

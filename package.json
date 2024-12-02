@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint --cache --ignore-path .gitignore --ext .js,.ts,.tsx .",
     "lint:fix": "pnpm lint --fix",
-    "test": "vitest run",
+    "test": "pnpm test:default && pnpm test:no-threads",
+    "test:default": "vitest run --config vitest.config.ts",
+    "test:no-threads": "vitest run --config vitest.config.nothreads.ts",
     "test:watch": "vitest --watch",
     "check-types": "tsc --noEmit",
     "check-types:watch": "tsc --noEmit -w"
