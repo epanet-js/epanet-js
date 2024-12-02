@@ -1,7 +1,6 @@
 import type { FeatureCollection } from "src/types";
 import { csvFormat } from "d3-dsv";
 import { ExportOptions } from "..";
-import { geoJSONToPolyline } from "@placemarkio/polyline";
 
 // TODO: what if the feature has latitude & longitude properties?
 export function geojsonToCSV(
@@ -38,17 +37,6 @@ export function geojsonToCSV(
           ? JSON.stringify(feature.geometry)
           : "";
         const row = { ...feature.properties, geojson };
-        rows.push(row);
-      }
-      break;
-    }
-    case "polyline": {
-      for (const feature of geojson.features) {
-        const polyline =
-          feature.geometry?.type === "LineString"
-            ? geoJSONToPolyline(feature.geometry)
-            : "";
-        const row = { ...feature.properties, polyline };
         rows.push(row);
       }
       break;

@@ -95,12 +95,6 @@ export function CSVOptions({
           as well, choose a different Geometry representation.
         </E.TextWell>
       ) : null}
-      {values.csvOptions?.kind === "polyline" ? (
-        <E.TextWell variant="destructive">
-          Exporting as polyline will only include LineString geometries, because
-          other geometries don’t have a representation as encoded polylines.
-        </E.TextWell>
-      ) : null}
     </div>
   );
 }

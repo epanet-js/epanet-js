@@ -10,7 +10,7 @@ import { CoordinateString } from "./convert/coordinate_string";
  * This powers the "Copy" UI for single features.
  */
 export const COPIERS: Record<
-  "geojson" | "geohash" | "coordinates" | "polyline",
+  "geojson" | "geohash" | "coordinates",
   (arg0: IFeature) => Promise<Either<PlacemarkError, string>>
 > = {
   geojson: (feature) => {
@@ -30,9 +30,5 @@ export const COPIERS: Record<
   },
   coordinates: (feature) => {
     return Promise.resolve(CoordinateString.featureToString(feature));
-  },
-  polyline: async (feature) => {
-    const { Polyline } = await import("src/lib/convert/polyline");
-    return Polyline.featureToString(feature);
   },
 };

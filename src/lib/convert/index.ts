@@ -9,7 +9,6 @@ import { ConvertResult, getExtension } from "./utils";
 import { CSV } from "./csv";
 import { OSM } from "./osm";
 import { XLS } from "./xls";
-import { Polyline } from "./polyline";
 import { GeoJSON } from "./geojson";
 import { Shapefile } from "./shapefile";
 import { GEOJSON_TYPES } from "src/lib/constants";
@@ -52,7 +51,6 @@ export const CSV_KINDS = [
   { value: "geojson", label: "GeoJSON Column" },
   { value: "join", label: "Join to geodata" },
   { value: "addresses", label: "Addresses" },
-  { value: "polyline", label: "Encoded polylines" },
 ] as const;
 
 export const DEFAULT_IMPORT_OPTIONS: Omit<ImportOptions, "type"> = {
@@ -187,9 +185,7 @@ export type ProgressCb = RawProgressCb & ProxyMarked;
 export interface FileType {
   readonly id:
     | "geojson"
-    | "gpx"
     | "csv"
-    | "polyline"
     | "shapefile"
     | "coordinate-string"
     | "xls"
@@ -224,7 +220,6 @@ export const FILE_TYPES = [
   GeoJSON,
   CSV,
   XLS,
-  Polyline,
   Shapefile,
   FlatGeobuf,
   CoordinateString,

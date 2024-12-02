@@ -20,10 +20,4 @@ describe("COPIERS", () => {
       "ebpvxypcr",
     );
   });
-  it(`COPIER.polyline`, async () => {
-    await expect(COPIERS.polyline(pointFeature)).resolves.toBeLeft();
-    await expect(
-      COPIERS.polyline(fcLineString.features[0]),
-    ).resolves.toEqualRight("??_ibE_ibE_ibE_ibE");
-  });
 });

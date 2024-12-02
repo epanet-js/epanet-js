@@ -12,7 +12,6 @@ import {
   castRowGeocode,
   castRowLonLat,
   castRowGeoJSON,
-  castRowPolyline,
   castRowZip,
   EnforcedLonLatOptions,
   EnforcedWKTOptions,
@@ -91,7 +90,6 @@ export function detectColumns(columns: string[]): ImportOptions["csvOptions"] {
    * header, it's probably a polyline, and there's no real alternative
    * name for that.
    */
-  const hasPolylineColumn = columns.includes("polyline");
   const hasWktColumn = columns.includes("wkt");
 
   const latitudeHeader = sortByScore(columnsWithScores, "latitudeScore");
@@ -111,20 +109,15 @@ export function detectColumns(columns: string[]): ImportOptions["csvOptions"] {
   const singleColumn = (columns.length === 1 && columns[0]) || "";
 
   return {
-    kind: hasPolylineColumn
-      ? "polyline"
-      : latitudeHeader?.column === longitudeHeader?.column ||
-          goodZipHeaders.has(zipHeader?.column?.toLowerCase())
+    kind:
+      latitudeHeader?.column === longitudeHeader?.column ||
+      goodZipHeaders.has(zipHeader?.column?.toLowerCase())
         ? "zip"
         : "lonlat",
     delimiter: ",",
     latitudeHeader: latitudeHeader?.column || singleColumn,
     longitudeHeader: longitudeHeader?.column || singleColumn,
-    geometryHeader: hasPolylineColumn
-      ? "polyline"
-      : hasWktColumn
-        ? "wkt"
-        : singleColumn,
+    geometryHeader: hasWktColumn ? "wkt" : singleColumn,
     joinTargetHeader: singleColumn,
     joinSourceHeader: singleColumn,
     sheet: "",
@@ -177,7 +170,6 @@ export async function csvToGeoJSON(
     }
     case "geojson":
     case "join":
-    case "polyline":
     case "lonlat": {
       break;
     }
@@ -202,16 +194,6 @@ export async function csvToGeoJSON(
       }
       case "geojson": {
         const feature = castRowGeoJSON(
-          castRow,
-          EnforcedWKTOptions.parse(options),
-        );
-        if (feature) {
-          features.push(feature);
-        }
-        break;
-      }
-      case "polyline": {
-        const feature = castRowPolyline(
           castRow,
           EnforcedWKTOptions.parse(options),
         );
