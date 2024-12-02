@@ -27,7 +27,6 @@ import {
 import type { Root } from "@tmcw/togeojson";
 import { FeatureMap } from "src/types";
 import { pluralize } from "src/lib/utils";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { buildInp } from "src/simulation/build-inp";
 
 export function fallbackSave(result: ExportedData, type: FileType) {
@@ -195,7 +194,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     exportOptions: ExportOptions,
     helpers: FormikHelpers<ExportOptions>,
   ) {
-    if (isFeatureOn("FLAG_INP") && exportOptions.type === "inp") {
+    if (exportOptions.type === "inp") {
       const inp = buildInp(data.hydraulicModel, { geolocation: true });
       const { fileSave } = await import("browser-fs-access");
 

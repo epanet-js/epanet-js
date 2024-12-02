@@ -48,12 +48,10 @@ export type ReservoirBuildData = {
 >;
 
 import { customAlphabet } from "nanoid";
-import { newFeatureId } from "src/lib/id";
-import { isFeatureOn } from "src/infra/feature-flags";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
-const generateId = () => (isFeatureOn("FLAG_INP") ? nanoId() : newFeatureId());
+const generateId = () => nanoId();
 
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;

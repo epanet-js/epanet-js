@@ -1,9 +1,7 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { AssetBuilder } from "./asset-builder";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
-    stubFeatureOn("FLAG_INP");
     const assetBuilder = new AssetBuilder();
 
     const pipe = assetBuilder.buildPipe();
