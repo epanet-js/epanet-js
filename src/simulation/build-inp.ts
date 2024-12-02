@@ -15,7 +15,7 @@ export const buildInp = (
   const oneStep = 0;
   const sections = {
     junctions: ["[JUNCTIONS]", ";Id\tElevation"],
-    reservoirs: ["[RESERVOIR]", ";Id\tHead\tPattern"],
+    reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
     pipes: [
       "[PIPES]",
       ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
@@ -88,7 +88,7 @@ export const buildInp = (
     "[END]",
   ]
     .filter((f) => !!f)
-    .join("\n");
+    .join("\n\n");
 };
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
