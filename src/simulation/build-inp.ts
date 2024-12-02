@@ -12,7 +12,6 @@ export const buildInp = (
 ): string => {
   const defaultUnits = "LPS";
   const defaultHeadloss = "H-W";
-  const defaultMinorloss = 0;
   const oneStep = 0;
   const sections = {
     junctions: ["[JUNCTIONS]", ";Id\tElevation"],
@@ -64,7 +63,7 @@ export const buildInp = (
           pipe.length,
           pipe.diameter,
           pipe.roughness,
-          defaultMinorloss,
+          pipe.minorLoss,
           pipeStatusFor(pipe),
         ].join("\t"),
       );

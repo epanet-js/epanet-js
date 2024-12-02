@@ -9,12 +9,13 @@ export type PipeProperties = {
   type: "pipe";
   diameter: number;
   roughness: number;
+  minorLoss: number;
   status: PipeStatus;
 } & LinkProperties;
 
 export type PipeQuantities = Pick<
   PipeProperties,
-  "diameter" | "roughness" | "length"
+  "diameter" | "roughness" | "length" | "minorLoss"
 >;
 
 export type PipeExplain = Record<
@@ -28,6 +29,7 @@ const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
   diameter: { defaultValue: 300, unit: "mm" },
   length: { defaultValue: 1000, unit: "m", decimals: 2 },
   roughness: { defaultValue: 130, unit: null }, //H-W
+  minorLoss: { defaultValue: 0, unit: null },
 };
 export { canonicalSpec as pipeCanonicalSpec };
 
@@ -50,6 +52,10 @@ export class Pipe extends Link<PipeProperties> {
 
   get status() {
     return this.properties.status;
+  }
+
+  get minorLoss() {
+    return this.properties.minorLoss;
   }
 
   copy() {
@@ -78,6 +84,11 @@ export class Pipe extends Link<PipeProperties> {
       roughness: {
         type: "quantity",
         value: this.properties.roughness,
+        unit: null,
+      },
+      minorLoss: {
+        type: "quantity",
+        value: this.properties.minorLoss,
         unit: null,
       },
     };

@@ -22,6 +22,7 @@ export const translations: Translations = {
   demand: "Consumo",
   elevation: "Elevación",
   roughness: "Rugosidad",
+  minorLoss: "Coef. de pérdidas",
   property: "Propiedad",
   value: "Valor",
   status: "Estado",
