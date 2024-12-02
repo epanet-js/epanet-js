@@ -18,7 +18,6 @@ import { TopoJSON } from "./topojson";
 import { GeoTIFF } from "./geotiff";
 import { EXIF } from "./exif";
 import { WKT } from "./wkt";
-import { GTFS } from "./gtfs";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
@@ -201,7 +200,6 @@ export interface FileType {
     | "polyline"
     | "geotiff"
     | "wkt"
-    | "gtfs"
     | "topojson"
     | "exif"
     | "bbox"
@@ -243,7 +241,6 @@ export const FILE_TYPES = [
   GeoTIFF,
   EXIF,
   WKT,
-  GTFS,
   TopoJSON,
   GeoJSONL,
   BBOX,
