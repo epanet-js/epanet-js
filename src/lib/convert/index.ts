@@ -18,7 +18,6 @@ import { Left } from "purify-ts/Either";
 import { CoordinateString } from "./coordinate_string";
 import isPlainObject from "lodash/isPlainObject";
 import { JsonObject, JsonValue } from "type-fest";
-import { FlatGeobuf } from "./flatgeobuf";
 import { Data } from "src/state/jotai";
 import { ProxyMarked } from "comlink";
 import { Inp } from "./inp";
@@ -189,7 +188,6 @@ export interface FileType {
     | "shapefile"
     | "coordinate-string"
     | "xls"
-    | "flatgeobuf"
     | "osm"
     | "inp";
   readonly label: string | string[];
@@ -221,7 +219,6 @@ export const FILE_TYPES = [
   CSV,
   XLS,
   Shapefile,
-  FlatGeobuf,
   CoordinateString,
   OSM,
   Inp,

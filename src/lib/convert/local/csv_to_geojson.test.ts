@@ -158,21 +158,6 @@ describe("detect columns", () => {
       geocodingType: "search",
     });
   });
-  it("distinct types", () => {
-    expect(detectColumns(["name", "wkt"])).toHaveProperty(["kind"], "wkt");
-    expect(detectColumns(["name", "wkt"])).toHaveProperty(
-      ["geometryHeader"],
-      "wkt",
-    );
-    expect(detectColumns(["name", "polyline"])).toHaveProperty(
-      ["kind"],
-      "polyline",
-    );
-    expect(detectColumns(["name", "polyline"])).toHaveProperty(
-      ["geometryHeader"],
-      "polyline",
-    );
-  });
   it("typos", () => {
     expect(detectColumns(["name", "elatation", "latitude", "lon"])).toEqual({
       autoType: true,

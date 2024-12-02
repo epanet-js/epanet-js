@@ -1,4 +1,4 @@
-import { test, expect, describe, it } from "vitest";
+import { expect, describe, it } from "vitest";
 
 import { DEFAULT_IMPORT_OPTIONS } from ".";
 import { GeoJSON } from "./geojson";
@@ -7,7 +7,6 @@ import { CSV } from "./csv";
 import { Shapefile } from "./shapefile";
 import { Blob } from "buffer";
 import { getExtension } from "./utils";
-import { FlatGeobuf, adjustForFgb } from "./flatgeobuf";
 import { CoordinateString } from "./coordinate_string";
 
 describe("convert", () => {
@@ -103,72 +102,7 @@ describe("convert", () => {
   });
   // TODO: this is blocked by dynamic import() support
   // in the test stack.
-  test("FlatGeobuf", () => {
-    expect(FlatGeobuf).toBeTruthy();
-  });
 
-  test("adjustForFgb", () => {
-    expect(
-      adjustForFgb({
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: null,
-            properties: null,
-          },
-        ],
-      }),
-    ).toMatchInlineSnapshot(`
-    {
-      "features": [],
-      "type": "FeatureCollection",
-    }
-  `);
-
-    expect(
-      adjustForFgb({
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [1, 2],
-            },
-            properties: {
-              x: [1],
-              b: { x: 1 },
-              q: null,
-              y: 2,
-            },
-          },
-        ],
-      }),
-    ).toMatchInlineSnapshot(`
-    {
-      "features": [
-        {
-          "geometry": {
-            "coordinates": [
-              1,
-              2,
-            ],
-            "type": "Point",
-          },
-          "properties": {
-            "b": "{\\"x\\":1}",
-            "q": null,
-            "x": "[1]",
-            "y": 2,
-          },
-          "type": "Feature",
-        },
-      ],
-      "type": "FeatureCollection",
-    }
-  `);
-  });
   it("getExtension", () => {
     expect(getExtension("foo.bar")).toEqual(".bar");
     expect(getExtension("foo")).toEqual("");
