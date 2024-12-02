@@ -13,7 +13,6 @@ import { BBOX } from "./bbox";
 import { Polyline } from "./polyline";
 import { GeoJSON } from "./geojson";
 import { Shapefile } from "./shapefile";
-import { GeoTIFF } from "./geotiff";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
@@ -192,7 +191,6 @@ export interface FileType {
     | "gpx"
     | "csv"
     | "polyline"
-    | "geotiff"
     | "bbox"
     | "shapefile"
     | "coordinate-string"
@@ -229,7 +227,6 @@ export const FILE_TYPES = [
   CSV,
   XLS,
   Polyline,
-  GeoTIFF,
   BBOX,
   Shapefile,
   FlatGeobuf,
