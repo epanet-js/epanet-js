@@ -5,11 +5,9 @@ import { GeoJSON } from "./geojson";
 import { IFeature, Polygon } from "src/types";
 import { twoPoints, fcLineString } from "test/helpers";
 import { Polyline } from "./polyline";
-import { KML } from "./kml";
 import { CSV } from "./csv";
 import { WKT } from "./wkt";
 import { EXIF } from "./exif";
-import { TCX } from "./tcx";
 import { Shapefile } from "./shapefile";
 import { BBOX } from "./bbox";
 import { Blob } from "buffer";
@@ -94,12 +92,6 @@ describe("convert", () => {
       ).toEqual("0,1,2,3");
     });
   });
-  describe("TCX", () => {
-    it("id", () => {
-      expect(TCX.id).toEqual("tcx");
-    });
-  });
-
   describe("CoordinateString", () => {
     it("forwardString", async () => {
       expect(
@@ -301,26 +293,6 @@ describe("convert", () => {
           )
         ).unsafeCoerce(),
       ).toHaveProperty("name", "features.csv");
-    });
-  });
-
-  describe("KML", () => {
-    it("can translate lines", async () => {
-      expect(
-        (
-          await KML.back(
-            {
-              geojson: twoPoints,
-              featureMapDeprecated: new Map(),
-              folderMap: new Map(),
-            },
-            {
-              type: "csv",
-              folderId: null,
-            },
-          )
-        ).unsafeCoerce(),
-      ).toHaveProperty("name", "features.kml");
     });
   });
 

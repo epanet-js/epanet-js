@@ -5,10 +5,7 @@ import {
   UWrappedFeature,
 } from "src/types";
 import { ConvertResult, getExtension } from "./utils";
-import { KML } from "./kml";
-import { KMZ } from "./kmz";
-import { TCX } from "./tcx";
-import { GPX } from "./gpx";
+
 import { CSV } from "./csv";
 import { OSM } from "./osm";
 import { XLS } from "./xls";
@@ -199,9 +196,6 @@ export interface FileType {
   readonly id:
     | "geojson"
     | "geojsonl"
-    | "kml"
-    | "kmz"
-    | "tcx"
     | "gpx"
     | "csv"
     | "polyline"
@@ -243,10 +237,6 @@ export interface FileType {
 
 export const FILE_TYPES = [
   GeoJSON,
-  KML,
-  KMZ,
-  TCX,
-  GPX,
   CSV,
   XLS,
   Polyline,
@@ -372,12 +362,11 @@ export function fromGeoJSON(
         return throwE(new ConvertError("Unexpected missing type"));
       }
 
-      const { filteredFeatures, filteredFolders } =
-        UWrappedFeature.filterMapByFolder(
-          featureMapDeprecated,
-          folderMap,
-          exportOptions.folderId,
-        );
+      const { filteredFeatures } = UWrappedFeature.filterMapByFolder(
+        featureMapDeprecated,
+        folderMap,
+        exportOptions.folderId,
+      );
 
       const geojson = UWrappedFeature.toFeatureCollection(
         Array.from(filteredFeatures.values()),
@@ -388,7 +377,6 @@ export function fromGeoJSON(
           {
             geojson,
             featureMapDeprecated: filteredFeatures,
-            folderMap: filteredFolders,
           },
           exportOptions,
         ),
