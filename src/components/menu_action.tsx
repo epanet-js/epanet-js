@@ -26,7 +26,7 @@ export default function MenuAction({
       onClick();
     },
     [onClick],
-    `SET MODE ${label}`,
+    `Menu action ${label}`,
   );
 
   return (

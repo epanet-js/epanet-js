@@ -120,3 +120,7 @@ export function HelpDot() {
     </DD.Root>
   );
 }
+
+export const Divider = () => {
+  return <div className="border-r-2 border-gray-100 h-8"></div>;
+};

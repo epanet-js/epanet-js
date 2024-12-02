@@ -13,6 +13,7 @@ export default defineConfig({
   test: {
     environmentMatchGlobs: [
       ["src/map/elevations/*", "jsdom"],
+      ["src/components/*", "jsdom"],
       ["src/**/**", "node"],
     ],
     environmentOptions: {

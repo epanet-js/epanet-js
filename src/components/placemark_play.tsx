@@ -3,7 +3,7 @@
 "use client";
 import type { MapEngine } from 'src/map'
 import { MapCanvas } from "src/map/MapCanvas";
-import { MenuBarPlay } from "src/components/menu_bar";
+import { Divider, MenuBarPlay } from "src/components/menu_bar";
 import Drop from "src/components/drop";
 import Modes from "src/components/modes";
 import { Dialogs } from "src/components/dialogs";
@@ -30,7 +30,7 @@ import Notifications from "src/components/notifications";
 import { Legend } from "src/components/legend";
 import { Visual } from "./visual";
 import { ErrorBoundary } from "@sentry/nextjs";
-import { MoveIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { DividerVerticalIcon, MoveIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom, splitsAtom } from "src/state/jotai";
@@ -49,6 +49,8 @@ import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
+import {SimulationButton} from './SimulationButton';
+import {isFeatureOn} from 'src/infra/feature-flags';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -193,6 +195,7 @@ export function PlacemarkPlay() {
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
             >
               <Modes replaceGeometryForId={null} />
+                {isFeatureOn('FLAG_SIMULATION') && <><Divider/> <SimulationButton /></>}
               <div className="flex-auto" />
               <ContextActions />
               <div className="flex-auto" />
