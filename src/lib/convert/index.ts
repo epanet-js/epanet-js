@@ -184,12 +184,12 @@ export type ProgressCb = RawProgressCb & ProxyMarked;
 export interface FileType {
   readonly id:
     | "geojson"
+    | "inp"
     | "csv"
     | "shapefile"
     | "coordinate-string"
     | "xls"
-    | "osm"
-    | "inp";
+    | "osm";
   readonly label: string | string[];
   readonly extensions: string[];
   readonly mimes: string[];
@@ -216,12 +216,12 @@ export interface FileType {
 
 export const FILE_TYPES = [
   GeoJSON,
+  Inp,
   CSV,
   XLS,
   Shapefile,
   CoordinateString,
   OSM,
-  Inp,
 ] as const;
 
 function assertIsObject(obj: JsonValue): obj is JsonObject {
