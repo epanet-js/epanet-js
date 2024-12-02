@@ -266,6 +266,9 @@ importers:
       envsafe:
         specifier: ^2.0.3
         version: 2.0.3
+      epanet-js:
+        specifier: ^0.7.0
+        version: 0.7.0
       eslint-plugin-prettier:
         specifier: ^5.2.1
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.3)
@@ -1177,6 +1180,9 @@ packages:
 
   '@math.gl/web-mercator@4.1.0':
     resolution: {integrity: sha512-HZo3vO5GCMkXJThxRJ5/QYUYRr3XumfT8CzNNCwoJfinxy5NtKUd7dusNTXn7yJ40UoB8FMIwkVwNlqaiRZZAw==}
+
+  '@model-create/epanet-engine@0.7.0':
+    resolution: {integrity: sha512-arXG4bOKUZLR1LkkBvo3f6yteFUGsXvYhxvdj9S/TJdz/xHhHUspcepTzV8KKIh3HEWMu0iTcRtgjJwvmeUcpw==}
 
   '@msgpack/msgpack@2.8.0':
     resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
@@ -3534,6 +3540,9 @@ packages:
   envsafe@2.0.3:
     resolution: {integrity: sha512-51lek8h5btjXhXUDW//Pno7HPydM1WQzltOb1/ONRKdwB2QkfAURnN4Qn0cJ5LzGvX2Km1ReR2O3K3Bqq9sBMg==}
     engines: {node: '>=10'}
+
+  epanet-js@0.7.0:
+    resolution: {integrity: sha512-LOi9Lpu8s4b88O84wqr5hFdyQAd48UMTjZG+uShg2qCaG0fPLBcHS322Gkp96KiWwOMZixVSxBzAkWj7+lnFmg==}
 
   es-abstract@1.23.3:
     resolution: {integrity: sha512-e+HfNH61Bj1X9/jLc5v1owaLYuHdeHHSQlkhCBiTK8rBvKaULl/beGMxwrMXjpYrv4pz22BlY570vVePA2ho4A==}
@@ -7124,6 +7133,8 @@ snapshots:
     dependencies:
       '@math.gl/core': 4.1.0
 
+  '@model-create/epanet-engine@0.7.0': {}
+
   '@msgpack/msgpack@2.8.0': {}
 
   '@next/env@14.2.15': {}
@@ -9756,6 +9767,10 @@ snapshots:
   entities@4.5.0: {}
 
   envsafe@2.0.3: {}
+
+  epanet-js@0.7.0:
+    dependencies:
+      '@model-create/epanet-engine': 0.7.0
 
   es-abstract@1.23.3:
     dependencies:
