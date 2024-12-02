@@ -9,6 +9,7 @@ import { matcherHint } from "jest-matcher-utils";
 import { diff } from "jest-diff";
 import { Maybe } from "purify-ts/Maybe";
 import { expect } from "vitest";
+import "@testing-library/jest-dom";
 
 const passMessage = (expect: "Left" | "Right") => () =>
   matcherHint(`.not.to${expect}`, "received", "") +

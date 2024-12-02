@@ -29,6 +29,7 @@ export const translations: Translations = {
   open: "Abierta",
   closed: "Cerrada",
   head: "Carga",
+  simulate: "Simular",
 };
 
 export const units: UnitsLocale = {

@@ -27,6 +27,7 @@ export const translations = {
   open: "Open",
   closed: "Closed",
   head: "Head",
+  simulate: "Simulate",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
