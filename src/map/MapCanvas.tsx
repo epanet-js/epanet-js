@@ -42,6 +42,7 @@ import { ModeHints } from "src/components/mode_hints";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
+import { searchNearbyRenderedFeatures } from "./search";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -155,12 +156,9 @@ export const MapCanvas = memo(function MapCanvas({
     function fastMovePointer(point: mapboxgl.Point) {
       if (!map) return;
 
-      const radius = 7;
-      const searchBox = [
-        [point.x - radius, point.y - radius],
-        [point.x + radius, point.y + radius],
-      ] as unknown as [mapboxgl.Point, mapboxgl.Point];
-      const features = map.map.queryRenderedFeatures(searchBox, {
+      const features = searchNearbyRenderedFeatures(map, {
+        point,
+        distance: 7,
         layers: clickableLayers,
       });
 
