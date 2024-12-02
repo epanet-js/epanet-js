@@ -20,6 +20,7 @@ export const translations = {
   demand: "Demand",
   elevation: "Elevation",
   roughness: "Roughness",
+  minorLoss: "Loss coeff.",
   property: "Property",
   value: "Value",
   status: "Status",

@@ -8,6 +8,7 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
     diameter: { defaultValue: 12, unit: "in" },
     length: { defaultValue: 1000, unit: "ft", decimals: 2 },
     roughness: { defaultValue: 130, unit: null },
+    minorLoss: { defaultValue: 0, unit: null },
   },
   junction: {
     elevation: { defaultValue: 0, unit: "ft" },

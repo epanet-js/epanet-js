@@ -111,6 +111,7 @@ describe("Pipe", () => {
     expect(pipe.diameter).toEqual(300);
     expect(pipe.length).toEqual(1000);
     expect(pipe.roughness).toEqual(130);
+    expect(pipe.minorLoss).toEqual(0);
 
     const otherPipe = buildPipe({});
 
@@ -122,11 +123,13 @@ describe("Pipe", () => {
       diameter: { value: 12, unit: "in" },
       length: { value: 0.1, unit: "km" },
       roughness: { value: 0.01, unit: null },
+      minorLoss: { value: 1, unit: null },
     });
 
     expect(pipe.id).not.toBeUndefined();
     expect(pipe.diameter).toEqual(304.8);
     expect(pipe.length).toEqual(100);
     expect(pipe.roughness).toEqual(0.01);
+    expect(pipe.minorLoss).toEqual(1);
   });
 });
