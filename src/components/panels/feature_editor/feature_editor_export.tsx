@@ -62,7 +62,7 @@ const ExportInner = memo(function ExportInner({
 }) {
   return (
     <PanelDetailsCollapsible title="Export" atom={panelExportOpen}>
-      <Formik initialValues={{ format: "wkt" }} onSubmit={onCopy}>
+      <Formik initialValues={{ format: "geojson" }} onSubmit={onCopy}>
         <Form className="flex items-center space-x-2">
           <Field
             className={styledSelect({ size: "xs" }) + " w-full"}
@@ -70,7 +70,6 @@ const ExportInner = memo(function ExportInner({
             id="format"
             name="format"
           >
-            <option value="wkt">WKT</option>
             <option value="geojson">GeoJSON</option>
             {type === "LineString" ? (
               <option value="polyline">Polyline</option>

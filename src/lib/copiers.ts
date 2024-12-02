@@ -10,13 +10,9 @@ import { CoordinateString } from "./convert/coordinate_string";
  * This powers the "Copy" UI for single features.
  */
 export const COPIERS: Record<
-  "wkt" | "geojson" | "geohash" | "coordinates" | "polyline" | "bbox",
+  "geojson" | "geohash" | "coordinates" | "polyline" | "bbox",
   (arg0: IFeature) => Promise<Either<PlacemarkError, string>>
 > = {
-  wkt: async (feature) => {
-    const { WKT } = await import("src/lib/convert/wkt");
-    return WKT.featureToString(feature);
-  },
   geojson: (feature) => {
     return Promise.resolve(Right(JSON.stringify(feature)));
   },

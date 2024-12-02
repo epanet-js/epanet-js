@@ -17,7 +17,6 @@ import { Shapefile } from "./shapefile";
 import { TopoJSON } from "./topojson";
 import { GeoTIFF } from "./geotiff";
 import { EXIF } from "./exif";
-import { WKT } from "./wkt";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
@@ -55,7 +54,6 @@ export const CSV_KINDS = [
     label: "Coordinates",
   },
   { value: "zip", label: "ZIP Codes" },
-  { value: "wkt", label: "WKT Column" },
   { value: "geojson", label: "GeoJSON Column" },
   { value: "join", label: "Join to geodata" },
   { value: "addresses", label: "Addresses" },
@@ -199,7 +197,6 @@ export interface FileType {
     | "csv"
     | "polyline"
     | "geotiff"
-    | "wkt"
     | "topojson"
     | "exif"
     | "bbox"
@@ -240,7 +237,6 @@ export const FILE_TYPES = [
   Polyline,
   GeoTIFF,
   EXIF,
-  WKT,
   TopoJSON,
   GeoJSONL,
   BBOX,

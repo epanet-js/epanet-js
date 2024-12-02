@@ -1,8 +1,6 @@
 import type { FeatureCollection } from "src/types";
 import { csvFormat } from "d3-dsv";
 import { ExportOptions } from "..";
-import { geoJSONToWkt } from "betterknown";
-import { Maybe } from "purify-ts/Maybe";
 import { geoJSONToPolyline } from "@placemarkio/polyline";
 
 // TODO: what if the feature has latitude & longitude properties?
@@ -31,16 +29,6 @@ export function geojsonToCSV(
             rows.push(row);
           }
         }
-      }
-      break;
-    }
-    case "wkt": {
-      for (const feature of geojson.features) {
-        const wkt: string = feature.geometry
-          ? Maybe.fromNullable(geoJSONToWkt(feature.geometry)).orDefault("")
-          : "";
-        const row = { ...feature.properties, wkt };
-        rows.push(row);
       }
       break;
     }

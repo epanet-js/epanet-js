@@ -6,7 +6,6 @@ import { IFeature, Polygon } from "src/types";
 import { twoPoints, fcLineString } from "test/helpers";
 import { Polyline } from "./polyline";
 import { CSV } from "./csv";
-import { WKT } from "./wkt";
 import { EXIF } from "./exif";
 import { Shapefile } from "./shapefile";
 import { BBOX } from "./bbox";
@@ -247,38 +246,6 @@ describe("convert", () => {
   });
 
   (global as any).Blob = Blob;
-
-  describe("WKT", () => {
-    it("forwardString", async () => {
-      expect(
-        (await WKT.forwardString("POINT (1 2)")).unsafeCoerce(),
-      ).toHaveProperty("geojson", {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [1, 2],
-            },
-          },
-        ],
-      });
-    });
-    it("featureToString", async () => {
-      await expect(
-        WKT.featureToString({
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "Point",
-            coordinates: [1, 2],
-          },
-        }),
-      ).resolves.toEqualRight("POINT (1 2)");
-    });
-  });
 
   describe("CSV", () => {
     it("can translate lines", async () => {
