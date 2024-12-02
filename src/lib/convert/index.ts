@@ -16,7 +16,6 @@ import { GeoJSONL } from "./geojsonl";
 import { Shapefile } from "./shapefile";
 import { TopoJSON } from "./topojson";
 import { GeoTIFF } from "./geotiff";
-import { EXIF } from "./exif";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
@@ -198,7 +197,6 @@ export interface FileType {
     | "polyline"
     | "geotiff"
     | "topojson"
-    | "exif"
     | "bbox"
     | "shapefile"
     | "coordinate-string"
@@ -236,7 +234,6 @@ export const FILE_TYPES = [
   XLS,
   Polyline,
   GeoTIFF,
-  EXIF,
   TopoJSON,
   GeoJSONL,
   BBOX,
