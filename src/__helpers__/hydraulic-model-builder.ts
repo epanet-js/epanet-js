@@ -39,7 +39,7 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aJunction(id: string, properties: Partial<JunctionBuildData>) {
+  aJunction(id: string, properties: Partial<JunctionBuildData> = {}) {
     const junction = this.assetBuilder.buildJunction({
       id,
       ...properties,
@@ -48,7 +48,7 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aReservoir(id: string, properties: Partial<ReservoirBuildData>) {
+  aReservoir(id: string, properties: Partial<ReservoirBuildData> = {}) {
     const reservoir = this.assetBuilder.buildReservoir({
       id,
       ...properties,
@@ -61,7 +61,7 @@ export class HydraulicModelBuilder {
     id: string,
     startNodeId: string,
     endNodeId: string,
-    properties: Partial<PipeBuildData>,
+    properties: Partial<PipeBuildData> = {},
   ) {
     const startNode = getNode(this.assets, startNodeId);
     const endNode = getNode(this.assets, endNodeId);
