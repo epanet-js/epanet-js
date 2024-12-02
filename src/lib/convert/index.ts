@@ -9,7 +9,6 @@ import { ConvertResult, getExtension } from "./utils";
 import { CSV } from "./csv";
 import { OSM } from "./osm";
 import { XLS } from "./xls";
-import { BBOX } from "./bbox";
 import { Polyline } from "./polyline";
 import { GeoJSON } from "./geojson";
 import { Shapefile } from "./shapefile";
@@ -191,7 +190,6 @@ export interface FileType {
     | "gpx"
     | "csv"
     | "polyline"
-    | "bbox"
     | "shapefile"
     | "coordinate-string"
     | "xls"
@@ -227,7 +225,6 @@ export const FILE_TYPES = [
   CSV,
   XLS,
   Polyline,
-  BBOX,
   Shapefile,
   FlatGeobuf,
   CoordinateString,

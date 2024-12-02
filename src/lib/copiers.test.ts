@@ -20,9 +20,6 @@ describe("COPIERS", () => {
       "ebpvxypcr",
     );
   });
-  it(`COPIER.bbox`, async () => {
-    await expect(COPIERS.bbox(pointFeature)).resolves.toEqualRight("0,1,0,1");
-  });
   it(`COPIER.polyline`, async () => {
     await expect(COPIERS.polyline(pointFeature)).resolves.toBeLeft();
     await expect(
