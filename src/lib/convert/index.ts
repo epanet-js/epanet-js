@@ -14,7 +14,6 @@ import { Polyline } from "./polyline";
 import { GeoJSON } from "./geojson";
 import { GeoJSONL } from "./geojsonl";
 import { Shapefile } from "./shapefile";
-import { TopoJSON } from "./topojson";
 import { GeoTIFF } from "./geotiff";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
@@ -196,7 +195,6 @@ export interface FileType {
     | "csv"
     | "polyline"
     | "geotiff"
-    | "topojson"
     | "bbox"
     | "shapefile"
     | "coordinate-string"
@@ -234,7 +232,6 @@ export const FILE_TYPES = [
   XLS,
   Polyline,
   GeoTIFF,
-  TopoJSON,
   GeoJSONL,
   BBOX,
   Shapefile,
@@ -258,9 +255,7 @@ async function detectJson(file: File) {
       if (!assertIsObject(obj)) {
         return throwE(new PlacemarkError("Could not determine JSON type"));
       }
-      if (obj.type === "Topology") {
-        return { ...DEFAULT_IMPORT_OPTIONS, type: TopoJSON.id };
-      } else if (typeof obj.type === "string" && GEOJSON_TYPES.has(obj.type)) {
+      if (typeof obj.type === "string" && GEOJSON_TYPES.has(obj.type)) {
         return { ...DEFAULT_IMPORT_OPTIONS, type: GeoJSON.id };
       }
       return throwE(new PlacemarkError("Could not determine JSON type"));

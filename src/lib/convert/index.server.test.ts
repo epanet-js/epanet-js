@@ -11,7 +11,6 @@ import { BBOX } from "./bbox";
 import { Blob } from "buffer";
 import { getExtension } from "./utils";
 import { FlatGeobuf, adjustForFgb } from "./flatgeobuf";
-import { TopoJSON } from "./topojson";
 import { CoordinateString } from "./coordinate_string";
 
 describe("convert", () => {
@@ -137,16 +136,6 @@ describe("convert", () => {
               [3, 4],
             ],
           },
-        }),
-      ).resolves.toBeLeft();
-    });
-  });
-  describe("TopoJSON", () => {
-    it("forward", async () => {
-      await expect(
-        TopoJSON.forwardString("{}", {
-          ...DEFAULT_IMPORT_OPTIONS,
-          type: TopoJSON.id,
         }),
       ).resolves.toBeLeft();
     });
