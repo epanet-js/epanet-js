@@ -28,6 +28,8 @@ export const translations = {
   closed: "Closed",
   head: "Head",
   simulate: "Simulate",
+  simulationSuccess: "Simulation was successfull",
+  simulationFailure: "Simulation with errors",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

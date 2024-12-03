@@ -1,18 +1,133 @@
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import MenuAction from "./menu_action";
 import { translate } from "src/infra/i18n";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
+import { runSimulation } from "src/simulation";
+import { buildInp } from "src/simulation/build-inp";
+import { DialogHeader } from "./dialog";
+import { ReactNode, Suspense, useMemo, useState } from "react";
+import * as RadixDialog from "@radix-ui/react-dialog";
+import {
+  B3Size,
+  DefaultErrorBoundary,
+  Loading,
+  StyledDialogContent,
+  StyledDialogOverlay,
+} from "./elements";
+
+type SimulationState = {
+  status: "success" | "failure";
+  report: string;
+};
 
 export const SimulationButton = () => {
-  const handleClick = () => {};
+  const data = useAtomValue(dataAtom);
+  const [isSummaryOpen, setSummaryOpen] = useState<boolean>(false);
+  const [simulationState, setSimulationState] =
+    useState<SimulationState | null>(null);
+
+  const handleClick = () => {
+    const inp = buildInp(data.hydraulicModel);
+    const { report, status } = runSimulation(inp);
+    setSimulationState({ status, report });
+    setSummaryOpen(true);
+  };
 
   return (
-    <MenuAction
-      label={translate("simulate")}
-      role="button"
-      onClick={handleClick}
-      hotkey={"shift+enter"}
+    <>
+      <MenuAction
+        label={translate("simulate")}
+        role="button"
+        onClick={handleClick}
+        hotkey={"shift+enter"}
+      >
+        <LightningBoltIcon />
+      </MenuAction>
+      {!!isSummaryOpen && simulationState && (
+        <SummaryDialog
+          simulationState={simulationState}
+          onClose={() => setSummaryOpen(false)}
+        />
+      )}
+    </>
+  );
+};
+const SummaryDialog = ({
+  simulationState,
+  onClose,
+}: {
+  simulationState: SimulationState;
+  onClose: () => void;
+}) => {
+  const title =
+    simulationState.status === "success"
+      ? translate("simulationSuccess")
+      : translate("simulationFailure");
+
+  const formattedReport = useMemo(() => {
+    const rows = simulationState.report.split("\n");
+    return rows.map((row, i) => {
+      const trimmedRow = row.trim();
+      let content = <p>{trimmedRow}</p>;
+      if (trimmedRow.startsWith("***")) {
+        content = <hr />;
+      } else if (trimmedRow.startsWith("*") && trimmedRow.endsWith("*")) {
+        content = (
+          <p>
+            <b>{trimmedRow.replaceAll("*", "")}</b>
+          </p>
+        );
+      }
+      return (
+        <div key={i}>
+          {content}
+          <br />
+        </div>
+      );
+    });
+  }, [simulationState.report]);
+
+  return (
+    <Dialog onClose={onClose}>
+      <DialogHeader title={title} titleIcon={LightningBoltIcon} />
+      <div>{formattedReport}</div>
+    </Dialog>
+  );
+};
+
+const Dialog = ({
+  onClose,
+  children,
+  size = "sm",
+}: {
+  onClose: () => void;
+  children: ReactNode;
+  size?: B3Size;
+}) => {
+  return (
+    <RadixDialog.Root
+      open={true}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
     >
-      <LightningBoltIcon />
-    </MenuAction>
+      <RadixDialog.Trigger className="hidden">
+        <div className="hidden"></div>
+      </RadixDialog.Trigger>
+      <RadixDialog.Portal>
+        <StyledDialogOverlay />
+        <Suspense fallback={<Loading />}>
+          <StyledDialogContent
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            size={size}
+          >
+            <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
+          </StyledDialogContent>
+        </Suspense>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 };
