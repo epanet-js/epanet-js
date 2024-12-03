@@ -79,9 +79,9 @@ const SummaryDialog = ({
 }) => {
   const icon =
     simulationState.status === "success" ? (
-      <CheckCircledIcon className="w-8 h-8 text-green-500" />
+      <CheckCircledIcon className="w-6 h-6 text-green-500" />
     ) : (
-      <CrossCircledIcon className="w-8 h-8 text-red-500" />
+      <CrossCircledIcon className="w-6 h-6 text-red-500" />
     );
   const title =
     simulationState.status === "success"
