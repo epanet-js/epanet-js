@@ -12,6 +12,7 @@ const BINDINGS = {
   "2": translate("junction"),
   "3": translate("pipe"),
   "4": translate("reservoir"),
+  "Shift+Enter": translate("simulate"),
   Esc: `${translate("exit")} / ${translate("clearSelection")}`,
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),

@@ -1,4 +1,8 @@
-import type { ForwardRefExoticComponent, RefAttributes } from "react";
+import type {
+  ForwardRefExoticComponent,
+  ReactNode,
+  RefAttributes,
+} from "react";
 import type { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import * as D from "@radix-ui/react-dialog";
@@ -10,9 +14,11 @@ type SlottableIcon =
 export function DialogHeader({
   title,
   titleIcon: TitleIcon,
+  children,
 }: {
-  title: string;
-  titleIcon: SlottableIcon;
+  title?: string;
+  titleIcon?: SlottableIcon;
+  children?: ReactNode;
 }) {
   return (
     <div
@@ -21,8 +27,9 @@ export function DialogHeader({
         pb-4 text-lg
         text-black dark:text-white"
     >
-      <TitleIcon />
-      <div className="truncate flex-auto">{title}</div>
+      {children && children}
+      {TitleIcon && <TitleIcon />}
+      {title && <div className="truncate flex-auto">{title}</div>}
       <D.Close
         aria-label="Close"
         className="text-gray-500 shrink-0
