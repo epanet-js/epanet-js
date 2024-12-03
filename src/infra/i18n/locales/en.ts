@@ -30,6 +30,7 @@ export const translations = {
   simulate: "Simulate",
   simulationSuccess: "Simulation was successfull",
   simulationFailure: "Simulation with errors",
+  runningSimulation: "Running simulation...",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
