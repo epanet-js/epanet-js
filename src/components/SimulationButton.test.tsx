@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { runSimulation } from "src/simulation";
 import { SimulationButton } from "./SimulationButton";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -7,6 +8,14 @@ import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { dataAtom, Store } from "src/state/jotai";
 
 describe("Simulation button", () => {
+  beforeEach(() => {
+    setupWebWorker();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("displays", () => {
     const store = getDefaultStore();
     renderComponent(store);
@@ -68,5 +77,13 @@ describe("Simulation button", () => {
 
   const aNonSimulableModel = () => {
     return HydraulicModelBuilder.with().aReservoir("r1").build();
+  };
+
+  const setupWebWorker = () => {
+    vi.mock("src/lib/worker", () => ({
+      lib: {
+        runSimulation,
+      },
+    }));
   };
 });

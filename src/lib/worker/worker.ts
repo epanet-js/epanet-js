@@ -4,6 +4,7 @@ import * as Comlink from "comlink";
 import { EitherHandler } from "./shared";
 import { bufferFeature } from "src/lib/buffer";
 import { booleanFeatures } from "src/lib/map_operations_deprecated/boolean_features";
+import { runSimulation } from "src/simulation";
 
 const lib = {
   getIssues,
@@ -11,6 +12,7 @@ const lib = {
   booleanFeatures,
   fileToGeoJSON,
   fromGeoJSON,
+  runSimulation,
 };
 
 export type Lib = typeof lib;
