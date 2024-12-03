@@ -1,12 +1,13 @@
 import {
   CheckCircledIcon,
+  CircleIcon,
   CrossCircledIcon,
   LightningBoltIcon,
 } from "@radix-ui/react-icons";
 import MenuAction from "./menu_action";
 import { translate } from "src/infra/i18n";
-import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/jotai";
+import { useAtom, useAtomValue } from "jotai";
+import { dataAtom, simulationAtom } from "src/state/jotai";
 import { buildInp } from "src/simulation/build-inp";
 import { DialogHeader } from "./dialog";
 import { ReactNode, Suspense, useMemo, useState } from "react";
@@ -20,25 +21,60 @@ import {
 } from "./elements";
 import { lib as webWorker } from "src/lib/worker";
 
-type SimulationState = {
-  status: "success" | "failure";
-  report: string;
+export const SimulationStatusButton = () => {
+  const simulation = useAtomValue(simulationAtom);
+
+  const { icon, colorClass, text } = useMemo(() => {
+    switch (simulation.status) {
+      case "idle":
+        return {
+          icon: <CircleIcon />,
+          colorClass: "text-gray-500",
+          text: "Ready to run",
+        };
+      case "running":
+        return {
+          icon: <CircleIcon />,
+          colorClass: "text-gray-500",
+          text: "Running...",
+        };
+      case "success":
+        return {
+          icon: <CheckCircledIcon />,
+          colorClass: "text-green-500",
+          text: translate("simulationSuccess"),
+        };
+      case "failure":
+        return {
+          icon: <CrossCircledIcon />,
+          colorClass: "text-red-500",
+          text: translate("simulationFailure"),
+        };
+    }
+  }, [simulation.status]);
+
+  return (
+    <div
+      className={`flex flex-row items-center space-x-1 p-2 text-sm ${colorClass}`}
+    >
+      {icon}
+      <span>{text}</span>
+    </div>
+  );
 };
 
 export const SimulationButton = () => {
   const data = useAtomValue(dataAtom);
   const [isSummaryOpen, setSummaryOpen] = useState<boolean>(false);
-  const [isLoading, setLoading] = useState<boolean>(false);
-  const [simulationState, setSimulationState] =
-    useState<SimulationState | null>(null);
+
+  const [simulation, setSimulationState] = useAtom(simulationAtom);
 
   const handleClick = async () => {
-    setLoading(true);
+    setSimulationState({ status: "running" });
     const inp = buildInp(data.hydraulicModel);
     const { report, status } = await webWorker.runSimulation(inp);
     setSimulationState({ status, report });
     setSummaryOpen(true);
-    setLoading(false);
   };
 
   return (
@@ -51,13 +87,16 @@ export const SimulationButton = () => {
       >
         <LightningBoltIcon />
       </MenuAction>
-      {isLoading && <LoadingDialog />}
-      {!!isSummaryOpen && simulationState && (
-        <SummaryDialog
-          simulationState={simulationState}
-          onClose={() => setSummaryOpen(false)}
-        />
-      )}
+      {simulation.status === "running" && <LoadingDialog />}
+      {!!isSummaryOpen &&
+        (simulation.status === "success" ||
+          simulation.status === "failure") && (
+          <SummaryDialog
+            status={simulation.status}
+            report={simulation.report}
+            onClose={() => setSummaryOpen(false)}
+          />
+        )}
     </>
   );
 };
@@ -71,25 +110,27 @@ const LoadingDialog = () => {
 };
 
 const SummaryDialog = ({
-  simulationState,
+  status,
+  report,
   onClose,
 }: {
-  simulationState: SimulationState;
+  status: "success" | "failure";
+  report: string;
   onClose: () => void;
 }) => {
   const icon =
-    simulationState.status === "success" ? (
+    status === "success" ? (
       <CheckCircledIcon className="w-6 h-6 text-green-500" />
     ) : (
       <CrossCircledIcon className="w-6 h-6 text-red-500" />
     );
   const title =
-    simulationState.status === "success"
+    status === "success"
       ? translate("simulationSuccess")
       : translate("simulationFailure");
 
   const formattedReport = useMemo(() => {
-    const rows = simulationState.report.split("\n");
+    const rows = report.split("\n");
     return rows.map((row, i) => {
       const trimmedRow = row.trim();
       let content = <p>{trimmedRow}</p>;
@@ -107,7 +148,7 @@ const SummaryDialog = ({
         </div>
       );
     });
-  }, [simulationState.report]);
+  }, [report]);
 
   return (
     <Dialog onClose={onClose}>

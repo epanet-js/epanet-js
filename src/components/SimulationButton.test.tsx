@@ -4,7 +4,12 @@ import { SimulationButton } from "./SimulationButton";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
-import { dataAtom, Store } from "src/state/jotai";
+import {
+  dataAtom,
+  simulationAtom,
+  SimulationSuccess,
+  Store,
+} from "src/state/jotai";
 import { lib } from "src/lib/worker";
 import { runSimulation } from "src/simulation";
 import { Mock } from "vitest";
@@ -30,19 +35,36 @@ describe("Simulation button", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows success when simulation passes", async () => {
-    const hydraulicModel = aSimulableModel();
-    const store = getDefaultStore();
-    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+  describe("with a successful simulation", () => {
+    it("shows success when simulation passes", async () => {
+      const hydraulicModel = aSimulableModel();
+      const store = getDefaultStore();
+      store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
 
-    renderComponent(store);
+      renderComponent(store);
 
-    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+      await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
 
-    expect(await screen.findByText(/success/i)).toBeInTheDocument();
+      expect(await screen.findByText(/success/i)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByText(/success/i)).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(screen.queryByText(/success/i)).not.toBeInTheDocument();
+    });
+
+    it("persists the simulation result", async () => {
+      const hydraulicModel = aSimulableModel();
+      const store = getDefaultStore();
+      store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+
+      renderComponent(store);
+
+      await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+
+      expect(await screen.findByText(/success/i)).toBeInTheDocument();
+      const simulation = store.get(simulationAtom) as SimulationSuccess;
+      expect(simulation.status).toEqual("success");
+      expect(simulation.report).not.toContain(/error/i);
+    });
   });
 
   it("shows failure when simulation fails", async () => {

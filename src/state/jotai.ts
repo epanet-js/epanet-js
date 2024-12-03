@@ -57,6 +57,20 @@ export const walkthroughAtom = atom<WalkthroughState>({
 export type PreviewProperty = PersistenceMetadataMemory["label"];
 
 // ----------------------------------------------------------------------------
+//
+
+export type SimulationIdle = { status: "idle" };
+export type SimulationSuccess = { status: "success"; report: string };
+export type SimulationFailure = { status: "failure"; report: string };
+export type SimulationRunning = { status: "running" };
+
+export type SimulationState =
+  | SimulationIdle
+  | SimulationSuccess
+  | SimulationFailure
+  | SimulationRunning;
+
+export const simulationAtom = atom<SimulationState>({ status: "idle" });
 
 /**
  * Core data
