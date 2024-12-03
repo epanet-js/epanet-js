@@ -219,7 +219,7 @@ const styledDialogContent = ({ size = "sm" }: { size?: B3Size }) =>
       "p-0": size === "xs",
     },
     `fixed inline-block w-full
-      max-h-screen
+      max-h-[80vh]
       text-left
       align-bottom
       bg-white dark:bg-gray-900
