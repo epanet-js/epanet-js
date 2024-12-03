@@ -24,14 +24,17 @@ type SimulationState = {
 export const SimulationButton = () => {
   const data = useAtomValue(dataAtom);
   const [isSummaryOpen, setSummaryOpen] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [simulationState, setSimulationState] =
     useState<SimulationState | null>(null);
 
   const handleClick = async () => {
+    setLoading(true);
     const inp = buildInp(data.hydraulicModel);
     const { report, status } = await webWorker.runSimulation(inp);
     setSimulationState({ status, report });
     setSummaryOpen(true);
+    setLoading(false);
   };
 
   return (
@@ -44,6 +47,7 @@ export const SimulationButton = () => {
       >
         <LightningBoltIcon />
       </MenuAction>
+      {isLoading && <LoadingDialog />}
       {!!isSummaryOpen && simulationState && (
         <SummaryDialog
           simulationState={simulationState}
@@ -53,6 +57,15 @@ export const SimulationButton = () => {
     </>
   );
 };
+
+const LoadingDialog = () => {
+  return (
+    <Dialog>
+      <p>{translate("runningSimulation")}</p>
+    </Dialog>
+  );
+};
+
 const SummaryDialog = ({
   simulationState,
   onClose,
@@ -97,11 +110,11 @@ const SummaryDialog = ({
 };
 
 const Dialog = ({
-  onClose,
+  onClose = () => {},
   children,
   size = "sm",
 }: {
-  onClose: () => void;
+  onClose?: () => void;
   children: ReactNode;
   size?: B3Size;
 }) => {

@@ -1,6 +1,6 @@
 import { Project, Workspace } from "epanet-js";
 
-type SimulationResult = {
+export type SimulationResult = {
   status: "success" | "failure";
   report: string;
 };

@@ -32,6 +32,7 @@ export const translations: Translations = {
   simulate: "Simular",
   simulationSuccess: "Ejecución exitosa",
   simulationFailure: "Ejecución con errores",
+  runningSimulation: "Ejecutando simulación",
 };
 
 export const units: UnitsLocale = {

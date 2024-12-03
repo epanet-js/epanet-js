@@ -1,18 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { runSimulation } from "src/simulation";
 import { SimulationButton } from "./SimulationButton";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { dataAtom, Store } from "src/state/jotai";
+import { lib } from "src/lib/worker";
+import { runSimulation } from "src/simulation";
+import { Mock } from "vitest";
+
+vi.mock("src/lib/worker", () => ({
+  lib: {
+    runSimulation: vi.fn(),
+  },
+}));
 
 describe("Simulation button", () => {
-  beforeEach(() => {
-    setupWebWorker();
-  });
-
   afterEach(() => {
+    wireWebWorker();
     vi.clearAllMocks();
   });
 
@@ -26,6 +31,7 @@ describe("Simulation button", () => {
   });
 
   it("shows success when simulation passes", async () => {
+    //(lib.runSimulation as unknown as Mock).mockImplementation(runSimulation);
     const hydraulicModel = aSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
@@ -41,6 +47,7 @@ describe("Simulation button", () => {
   });
 
   it("shows failure when simulation fails", async () => {
+    (lib.runSimulation as unknown as Mock).mockImplementation(runSimulation);
     const hydraulicModel = aNonSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
@@ -55,6 +62,19 @@ describe("Simulation button", () => {
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByText(/with error/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/not enough nodes/i)).not.toBeInTheDocument();
+  });
+
+  it("shows loading state", async () => {
+    mockSimulationOnHold();
+    const hydraulicModel = aNonSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+
+    expect(screen.getByText(/running/i)).toBeInTheDocument();
   });
 
   const renderComponent = (store: Store) => {
@@ -79,11 +99,13 @@ describe("Simulation button", () => {
     return HydraulicModelBuilder.with().aReservoir("r1").build();
   };
 
-  const setupWebWorker = () => {
-    vi.mock("src/lib/worker", () => ({
-      lib: {
-        runSimulation,
-      },
-    }));
+  const wireWebWorker = () => {
+    (lib.runSimulation as unknown as Mock).mockImplementation(runSimulation);
+  };
+
+  const mockSimulationOnHold = () => {
+    (lib.runSimulation as unknown as Mock).mockImplementation(
+      () => new Promise((_) => {}),
+    );
   };
 });
