@@ -1,4 +1,8 @@
-import { LightningBoltIcon } from "@radix-ui/react-icons";
+import {
+  CheckCircledIcon,
+  CrossCircledIcon,
+  LightningBoltIcon,
+} from "@radix-ui/react-icons";
 import MenuAction from "./menu_action";
 import { translate } from "src/infra/i18n";
 import { useAtomValue } from "jotai";
@@ -73,6 +77,12 @@ const SummaryDialog = ({
   simulationState: SimulationState;
   onClose: () => void;
 }) => {
+  const icon =
+    simulationState.status === "success" ? (
+      <CheckCircledIcon className="w-8 h-8 text-green-500" />
+    ) : (
+      <CrossCircledIcon className="w-8 h-8 text-red-500" />
+    );
   const title =
     simulationState.status === "success"
       ? translate("simulationSuccess")
@@ -101,7 +111,8 @@ const SummaryDialog = ({
 
   return (
     <Dialog onClose={onClose}>
-      <DialogHeader title={title} titleIcon={LightningBoltIcon} />
+      <DialogHeader title={title}>{icon}</DialogHeader>
+
       <div className="p-4 border rounded-sm text-sm bg-gray-100 text-gray-700">
         {formattedReport}
       </div>

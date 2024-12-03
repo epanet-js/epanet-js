@@ -29,6 +29,7 @@ module.exports = {
       purple: colors.purple,
       yellow: colors.yellow,
       red: colors.red,
+      green: colors.green,
     },
     extend: {
       keyframes: {

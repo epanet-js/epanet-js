@@ -31,7 +31,6 @@ describe("Simulation button", () => {
   });
 
   it("shows success when simulation passes", async () => {
-    //(lib.runSimulation as unknown as Mock).mockImplementation(runSimulation);
     const hydraulicModel = aSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
@@ -47,7 +46,6 @@ describe("Simulation button", () => {
   });
 
   it("shows failure when simulation fails", async () => {
-    (lib.runSimulation as unknown as Mock).mockImplementation(runSimulation);
     const hydraulicModel = aNonSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
