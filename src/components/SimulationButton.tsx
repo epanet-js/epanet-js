@@ -3,7 +3,6 @@ import MenuAction from "./menu_action";
 import { translate } from "src/infra/i18n";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-import { runSimulation } from "src/simulation";
 import { buildInp } from "src/simulation/build-inp";
 import { DialogHeader } from "./dialog";
 import { ReactNode, Suspense, useMemo, useState } from "react";
@@ -15,6 +14,7 @@ import {
   StyledDialogContent,
   StyledDialogOverlay,
 } from "./elements";
+import { lib as webWorker } from "src/lib/worker";
 
 type SimulationState = {
   status: "success" | "failure";
@@ -27,9 +27,9 @@ export const SimulationButton = () => {
   const [simulationState, setSimulationState] =
     useState<SimulationState | null>(null);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     const inp = buildInp(data.hydraulicModel);
-    const { report, status } = runSimulation(inp);
+    const { report, status } = await webWorker.runSimulation(inp);
     setSimulationState({ status, report });
     setSummaryOpen(true);
   };
