@@ -74,15 +74,13 @@ const SummaryDialog = ({
         content = <hr />;
       } else if (trimmedRow.startsWith("*") && trimmedRow.endsWith("*")) {
         content = (
-          <p>
-            <b>{trimmedRow.replaceAll("*", "")}</b>
-          </p>
+          <p className="font-[600]">{trimmedRow.replaceAll("*", "")}</p>
         );
       }
       return (
         <div key={i}>
           {content}
-          <br />
+          {i < rows.length - 1 && <br />}
         </div>
       );
     });
@@ -91,7 +89,9 @@ const SummaryDialog = ({
   return (
     <Dialog onClose={onClose}>
       <DialogHeader title={title} titleIcon={LightningBoltIcon} />
-      <div>{formattedReport}</div>
+      <div className="p-4 border rounded-sm text-sm bg-gray-100 text-gray-700">
+        {formattedReport}
+      </div>
     </Dialog>
   );
 };
