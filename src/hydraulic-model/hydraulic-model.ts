@@ -7,6 +7,7 @@ import {
 } from "./asset-types";
 
 export type HydraulicModel = {
+  version: string;
   assets: AssetsMap;
   assetBuilder: AssetBuilder;
   topology: Topology;
@@ -19,6 +20,7 @@ export const nullHydraulicModel = (
   quantitiesSpec: AssetQuantitiesSpecByType = canonicalQuantitiesSpec,
 ): HydraulicModel => {
   return {
+    version: "0",
     assets,
     assetBuilder: new AssetBuilder(quantitiesSpec),
     topology: new Topology(),

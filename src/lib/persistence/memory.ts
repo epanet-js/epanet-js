@@ -41,6 +41,7 @@ import { sortAts } from "src/lib/parse_stored";
 import { AssetsMap } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
+import { nanoid } from "nanoid";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -151,6 +152,7 @@ export class MemPersistence implements IPersistence {
       selection: ctx.selection,
       hydraulicModel: {
         ...ctx.hydraulicModel,
+        version: nanoid(),
         assets: updatedFeatures,
       },
       featureMapDeprecated: updatedFeatures,
