@@ -1,4 +1,5 @@
 import { Position } from "geojson";
+import { nanoid } from "nanoid";
 import {
   PipeProperties,
   HydraulicModel,
@@ -91,6 +92,7 @@ export class HydraulicModelBuilder {
 
   build(): HydraulicModel {
     return {
+      version: nanoid(),
       assets: this.assets,
       assetBuilder: this.assetBuilder,
       topology: this.topology,
