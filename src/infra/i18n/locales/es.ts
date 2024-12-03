@@ -30,6 +30,8 @@ export const translations: Translations = {
   closed: "Cerrada",
   head: "Carga",
   simulate: "Simular",
+  simulationSuccess: "Ejecución exitosa",
+  simulationFailure: "Ejecución con errores",
 };
 
 export const units: UnitsLocale = {
