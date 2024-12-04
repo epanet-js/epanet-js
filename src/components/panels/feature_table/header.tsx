@@ -5,14 +5,13 @@ import * as P from "@radix-ui/react-popover";
 import { virtualPositionTop } from "../feature_table";
 import * as E from "src/components/elements";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { dataAtom, dialogAtom, virtualColumnsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { deletePropertyKey } from "src/lib/map_operations_deprecated/delete_property_key";
 import without from "lodash/without";
 import { useAtomCallback } from "jotai/utils";
-import { useFeatureMap } from "src/lib/persistence/shared";
 import renameProperty from "src/lib/rename_property";
 import { Formik, Form } from "formik";
 
@@ -31,7 +30,7 @@ export function RenamePropertyDialog({
 }) {
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
-  const featureMapDeprecated = useFeatureMap();
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
 
   const onSubmit = async (values: RenameFormValues) => {
     await transact({
