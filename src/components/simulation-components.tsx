@@ -145,22 +145,10 @@ const SummaryDialog = ({
 
   const formattedReport = useMemo(() => {
     const rows = report.split("\n");
-    return rows.map((row, i) => {
+    return rows.map((row) => {
       const trimmedRow = row.trim();
-      let content = <p>{trimmedRow}</p>;
-      if (trimmedRow.startsWith("***")) {
-        content = <hr />;
-      } else if (trimmedRow.startsWith("*") && trimmedRow.endsWith("*")) {
-        content = (
-          <p className="font-[600]">{trimmedRow.replaceAll("*", "")}</p>
-        );
-      }
-      return (
-        <div key={i}>
-          {content}
-          {i < rows.length - 1 && <br />}
-        </div>
-      );
+      const content = <p>{trimmedRow}</p>;
+      return content;
     });
   }, [report]);
 
@@ -168,7 +156,7 @@ const SummaryDialog = ({
     <Dialog onClose={onClose}>
       <DialogHeader title={title}>{icon}</DialogHeader>
 
-      <div className="p-4 border rounded-sm text-sm bg-gray-100 text-gray-700">
+      <div className="p-4 border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
         {formattedReport}
       </div>
     </Dialog>
@@ -202,6 +190,7 @@ const Dialog = ({
           <StyledDialogContent
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={size}
+            widthClasses="max-w-620"
           >
             <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
           </StyledDialogContent>
