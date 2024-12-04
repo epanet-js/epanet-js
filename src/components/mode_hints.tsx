@@ -58,20 +58,6 @@ export function ModeHints() {
     case Mode.DRAW_JUNCTION: {
       return null;
     }
-    case Mode.DRAW_POLYGON: {
-      return (
-        <ModeHint mode={mode.mode}>
-          {selection.type === "single" ? (
-            <>
-              Finish by clicking the starting point, double-clicking or hitting
-              Enter
-            </>
-          ) : (
-            <>Click to start the polygon, then click to add each vertex</>
-          )}
-        </ModeHint>
-      );
-    }
     case Mode.NONE: {
       if (selection.type === "single") {
         if (mode.modeOptions?.hasResizedRectangle) {
@@ -90,17 +76,6 @@ export function ModeHints() {
         }
       }
       break;
-    }
-    case Mode.DRAW_LINE: {
-      return (
-        <ModeHint mode={mode.mode}>
-          {selection.type === "single" ? (
-            <>End a line by double-clicking or hitting Enter</>
-          ) : (
-            <>Click to start the line, then click to add each vertex</>
-          )}
-        </ModeHint>
-      );
     }
     case Mode.DRAW_PIPE: {
       return (

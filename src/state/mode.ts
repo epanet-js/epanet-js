@@ -11,8 +11,6 @@ export enum Mode {
   DRAW_JUNCTION = "DRAW_JUNCTION",
   DRAW_PIPE = "DRAW_PIPE",
   DRAW_RESERVOIR = "DRAW_RESERVOIR",
-  DRAW_LINE = "DRAW_LINE",
-  DRAW_POLYGON = "DRAW_POLYGON",
 }
 
 export enum CIRCLE_TYPE {
@@ -61,8 +59,6 @@ export const MODE_INFO: Record<
   [Mode.DRAW_JUNCTION]: { label: translate("junction") },
   [Mode.DRAW_PIPE]: { label: translate("pipe") },
   [Mode.DRAW_RESERVOIR]: { label: translate("reservoir") },
-  [Mode.DRAW_LINE]: { label: "Line" },
-  [Mode.DRAW_POLYGON]: { label: "Polygon" },
   [Mode.LASSO]: { label: "Lasso" },
 };
 

@@ -322,12 +322,7 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "move") return "cursor-move";
     if (cursor === "pointer") return "placemark-cursor-pointer";
 
-    if (
-      mode.mode === Mode.NONE ||
-      mode.mode === Mode.DRAW_POLYGON ||
-      mode.mode === Mode.DRAW_LINE
-    )
-      return "placemark-cursor-default";
+    if (mode.mode === Mode.NONE) return "placemark-cursor-default";
 
     if (
       mode.mode === Mode.DRAW_PIPE ||
