@@ -1,9 +1,5 @@
 import { InitHydOption, Project, Workspace } from "epanet-js";
-
-export type SimulationResult = {
-  status: "success" | "failure";
-  report: string;
-};
+import { SimulationResult } from "../result";
 
 export const runSimulation = (inp: string): SimulationResult => {
   const ws = new Workspace();
