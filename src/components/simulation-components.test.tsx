@@ -10,6 +10,7 @@ import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import {
   dataAtom,
   simulationAtom,
+  SimulationFailure,
   SimulationSuccess,
   Store,
 } from "src/state/jotai";
@@ -61,40 +62,38 @@ describe("simulation components integration", () => {
     expect(screen.queryByText(/running/i)).not.toBeInTheDocument();
   });
 
-  describe("with a successful simulation", () => {
-    it("shows success when simulation passes", async () => {
-      const hydraulicModel = aSimulableModel();
-      const store = getDefaultStore();
-      store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+  it("shows success when simulation passes", async () => {
+    const hydraulicModel = aSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
 
-      renderComponents(store);
+    renderComponents(store);
 
-      await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
 
-      expect(await screen.findAllByText(/success/i)).toHaveLength(2);
+    expect(await screen.findAllByText(/success/i)).toHaveLength(2);
 
-      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
 
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-      expect(screen.getByText(/success/i)).toBeInTheDocument();
-    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByText(/success/i)).toBeInTheDocument();
+  });
 
-    it("persists the simulation result", async () => {
-      const hydraulicModel = aSimulableModel();
-      const store = getDefaultStore();
-      store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+  it("persists state the simulation when passes", async () => {
+    const hydraulicModel = aSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
 
-      renderComponents(store);
+    renderComponents(store);
 
-      await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
 
-      expect(await screen.findAllByText(/success/i)).toHaveLength(2);
+    expect(await screen.findAllByText(/success/i)).toHaveLength(2);
 
-      const simulation = store.get(simulationAtom) as SimulationSuccess;
-      expect(simulation.status).toEqual("success");
-      expect(simulation.report).not.toContain(/error/i);
-      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
-    });
+    const simulation = store.get(simulationAtom) as SimulationSuccess;
+    expect(simulation.status).toEqual("success");
+    expect(simulation.report).not.toContain(/error/i);
+    expect(simulation.modelVersion).toEqual(hydraulicModel.version);
   });
 
   it("shows failure when simulation fails", async () => {
@@ -113,6 +112,22 @@ describe("simulation components integration", () => {
 
     expect(screen.queryByText("dialog")).not.toBeInTheDocument();
     expect(screen.getByText(/with error/i)).toBeInTheDocument();
+  });
+
+  it("persists state when simulation fails", async () => {
+    const hydraulicModel = aNonSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+
+    renderComponents(store);
+
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+
+    expect(await screen.findAllByText(/with error/i)).toHaveLength(2);
+
+    const simulation = store.get(simulationAtom) as SimulationFailure;
+    expect(simulation.status).toEqual("failure");
+    expect(simulation.report).toContain("not enough");
   });
 
   it("shows message when simulation outdated", async () => {

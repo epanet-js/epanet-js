@@ -145,10 +145,9 @@ const SummaryDialog = ({
 
   const formattedReport = useMemo(() => {
     const rows = report.split("\n");
-    return rows.map((row) => {
+    return rows.map((row, i) => {
       const trimmedRow = row.trim();
-      const content = <p>{trimmedRow}</p>;
-      return content;
+      return <p key={i}>{trimmedRow}</p>;
     });
   }, [report]);
 
