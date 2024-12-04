@@ -1,6 +1,10 @@
+import { nanoid } from "nanoid";
 import { Moment } from "./moment";
 
-type Action = { forward: Moment; reverse: Moment };
+export const generateStateId = () => nanoid();
+export const initId = nanoid();
+
+type Action = { stateId: string; forward: Moment; reverse: Moment };
 
 export class MomentLog {
   protected history: Action[];
@@ -18,13 +22,17 @@ export class MomentLog {
     return newInstance;
   }
 
-  append(forward: Moment, reverse: Moment) {
+  append(
+    forward: Moment,
+    reverse: Moment,
+    stateId: string = generateStateId(),
+  ) {
     const newPointer = this.pointer + 1;
     if (this.history.length >= newPointer) {
       this.history.splice(newPointer);
     }
 
-    this.history.push({ forward, reverse });
+    this.history.push({ stateId, forward, reverse });
     this.pointer = newPointer;
   }
 
@@ -40,18 +48,26 @@ export class MomentLog {
     this.pointer++;
   }
 
-  nextUndo(): Moment | null {
+  nextUndo(): { moment: Moment; stateId: string } | null {
     const action = this.history[this.pointer];
     if (!action) return null;
 
-    return action.reverse;
+    return {
+      moment: action.reverse,
+      stateId: this.history[this.pointer - 1]
+        ? this.history[this.pointer - 1].stateId
+        : initId,
+    };
   }
 
-  nextRedo(): Moment | null {
+  nextRedo(): { stateId: string; moment: Moment } | null {
     const action = this.history[this.pointer + 1];
     if (!action) return null;
 
-    return action.forward;
+    return {
+      moment: action.forward,
+      stateId: action.stateId,
+    };
   }
 
   last(): Moment | null {

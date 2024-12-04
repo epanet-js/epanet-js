@@ -62,10 +62,11 @@ export class MemPersistence implements IPersistence {
         deleteFeatures: moment.deleteAssets || [],
         putFeatures: moment.putAssets || [],
       };
+      const newStateId = nanoid();
 
-      const reverseMoment = this.apply(forwardMoment);
+      const reverseMoment = this.apply(newStateId, forwardMoment);
 
-      momentLog.append(forwardMoment, reverseMoment);
+      momentLog.append(forwardMoment, reverseMoment, newStateId);
 
       this.store.set(momentLogAtom, momentLog);
     };
@@ -79,7 +80,9 @@ export class MemPersistence implements IPersistence {
         ...EMPTY_MOMENT,
         ...partialMoment,
       };
-      const reverseMoment = this.apply(forwardMoment);
+      const newStateId = nanoid();
+
+      const reverseMoment = this.apply(newStateId, forwardMoment);
       momentLog.append(forwardMoment as Moment, reverseMoment);
       this.store.set(momentLogAtom, momentLog);
       return Promise.resolve();
@@ -113,10 +116,10 @@ export class MemPersistence implements IPersistence {
     return (direction: "undo" | "redo") => {
       const isUndo = direction === "undo";
       const momentLog = this.store.get(momentLogAtom).copy();
-      const moment = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-      if (!moment) return;
+      const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
+      if (!action) return;
 
-      this.apply(moment);
+      this.apply(action.stateId, action.moment);
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
@@ -127,7 +130,7 @@ export class MemPersistence implements IPersistence {
    * This could and should be improved. It does do some weird stuff:
    * we need to write to the moment log and to features.
    */
-  private apply(forwardMoment: MomentInput) {
+  private apply(stateId: string, forwardMoment: MomentInput) {
     const ctx = this.store.get(dataAtom);
     const layerConfigMap = this.store.get(layerConfigAtom);
     const reverseMoment = UMoment.merge(
@@ -152,7 +155,7 @@ export class MemPersistence implements IPersistence {
       selection: ctx.selection,
       hydraulicModel: {
         ...ctx.hydraulicModel,
-        version: nanoid(),
+        version: stateId,
         assets: updatedFeatures,
       },
       featureMapDeprecated: updatedFeatures,
