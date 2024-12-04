@@ -195,7 +195,9 @@ export function PlacemarkPlay() {
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
             >
               <Modes replaceGeometryForId={null} />
-              {isFeatureOn('FLAG_SIMULATION') && <><Divider/> <SimulationButton /><SimulationStatusText /></>}
+              <Divider/>
+              <SimulationButton />
+              <SimulationStatusText />
               <div className="flex-auto" />
               <ContextActions />
               <div className="flex-auto" />
