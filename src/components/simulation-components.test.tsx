@@ -15,7 +15,7 @@ import {
   Store,
 } from "src/state/jotai";
 import { lib } from "src/lib/worker";
-import { runSimulation } from "src/simulation";
+import { runSimulation } from "src/simulation/epanet/worker";
 import { Mock } from "vitest";
 
 vi.mock("src/lib/worker", () => ({
