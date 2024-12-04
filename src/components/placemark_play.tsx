@@ -49,7 +49,7 @@ import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
-import {SimulationButton, SimulationStatusButton} from './simulation-components';
+import {SimulationButton, SimulationStatusText} from './simulation-components';
 import {isFeatureOn} from 'src/infra/feature-flags';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
@@ -195,7 +195,7 @@ export function PlacemarkPlay() {
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
             >
               <Modes replaceGeometryForId={null} />
-              {isFeatureOn('FLAG_SIMULATION') && <><Divider/> <SimulationButton /><SimulationStatusButton /></>}
+              {isFeatureOn('FLAG_SIMULATION') && <><Divider/> <SimulationButton /><SimulationStatusText /></>}
               <div className="flex-auto" />
               <ContextActions />
               <div className="flex-auto" />

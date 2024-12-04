@@ -22,7 +22,7 @@ import {
 } from "./elements";
 import { lib as webWorker } from "src/lib/worker";
 
-export const SimulationStatusButton = () => {
+export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
 
