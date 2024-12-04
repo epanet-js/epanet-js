@@ -1,21 +1,11 @@
 import {
   IWrappedFeature,
   IFolder,
-  IPresence,
   ILayerConfig,
   LayerConfigMap,
 } from "src/types";
-import { fMoment, Moment, MomentInput, UMomentLog } from "./moment";
-import { useCallback } from "react";
-import { useAtomCallback } from "jotai/utils";
-import { useAtomValue } from "jotai";
-import {
-  Data,
-  dataAtom,
-  momentLogAtomDeprecated,
-  presencesAtom,
-} from "src/state/jotai";
-import { EMPTY_ARRAY } from "src/lib/constants";
+import { fMoment, Moment, MomentInput } from "./moment";
+import { Data } from "src/state/jotai";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ModelMoment } from "src/hydraulic-model";
 
@@ -118,72 +108,4 @@ export function getFreshAt(ctx: Data): string {
   const a = getLastAtInMap(ctx.featureMapDeprecated);
   const b = getLastAtInMap(ctx.folderMap);
   return a > b ? a : b;
-}
-
-export function useEndSnapshot() {
-  return useAtomCallback(
-    useCallback((_get, set) => {
-      set(momentLogAtomDeprecated, (momentLog) =>
-        UMomentLog.endSnapshot(momentLog),
-      );
-    }, []),
-  );
-}
-
-export function useStartSnapshot() {
-  return useAtomCallback(
-    useCallback(
-      (_get, set, feature: Parameters<typeof UMomentLog.startSnapshot>[1]) => {
-        set(momentLogAtomDeprecated, (momentLog) =>
-          UMomentLog.startSnapshot(momentLog, feature),
-        );
-      },
-      [],
-    ),
-  );
-}
-
-export function usePresences(userId: number | undefined): IPresence[] {
-  const rawPresences = useAtomValue(presencesAtom).presences.entries();
-  if (userId === undefined) return EMPTY_ARRAY as IPresence[];
-  const others = Array.from(rawPresences).filter((pair) => {
-    return pair[0] !== userId;
-  });
-  if (others.length === 0) return EMPTY_ARRAY as IPresence[];
-  return others.map((val) => val[1]);
-}
-
-/**
- * Dangerous! This makes the assumption that the
- * previous history state is about to be undone. This
- * is only used in the double-click case for now.
- */
-export function usePopMoment() {
-  return useAtomCallback(
-    useCallback((_get, set, n: number) => {
-      set(momentLogAtomDeprecated, (momentLog) =>
-        UMomentLog.popMoment(momentLog, n),
-      );
-    }, []),
-  );
-}
-
-/**
- * Subscribe to the raw map of features indexed
- * by ID.
- *
- * @returns map of folders
- */
-export function useFeatureMap(): Map<string, IWrappedFeature> {
-  return useAtomValue(dataAtom).featureMapDeprecated;
-}
-
-/**
- * Subscribe to the raw map of features indexed
- * by ID.
- *
- * @returns map of folders
- */
-export function useFolderMap(): Map<string, IFolder> {
-  return useAtomValue(dataAtom).folderMap;
 }

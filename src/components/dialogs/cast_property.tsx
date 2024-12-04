@@ -1,13 +1,13 @@
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import { Formik, Field, Form } from "formik";
-import type { ModalStateCastProperty } from "src/state/jotai";
+import { dataAtom, type ModalStateCastProperty } from "src/state/jotai";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { castExplicit, ExplicitCast } from "src/lib/cast";
 import { usePersistence } from "src/lib/persistence/context";
 import { styledSelect } from "src/components/elements";
 import { JsonObject } from "type-fest";
-import { useFeatureMap } from "src/lib/persistence/shared";
+import { useAtomValue } from "jotai";
 
 type CastFormValues = {
   castTarget: ExplicitCast;
@@ -39,7 +39,7 @@ export function CastPropertyDialog({
 }) {
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
-  const featureMapDeprecated = useFeatureMap();
+  const { featureMapDeprecated } = useAtomValue(dataAtom);
 
   const onSubmit = async (values: CastFormValues) => {
     await transact({
