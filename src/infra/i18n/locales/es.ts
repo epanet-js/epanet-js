@@ -30,8 +30,9 @@ export const translations: Translations = {
   closed: "Cerrada",
   head: "Carga",
   simulate: "Simular",
-  simulationSuccess: "Ejecución exitosa",
-  simulationFailure: "Ejecución con errores",
+  simulationSuccess: "Simulación exitosa",
+  simulationFailure: "Simulación con errores",
+  simulationOutdated: "Simulación desactualizada",
   runningSimulation: "Ejecutando simulación",
 };
 

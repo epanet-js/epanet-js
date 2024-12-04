@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SimulationButton } from "./SimulationButton";
+import { SimulationButton } from "./simulation-components";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
@@ -64,6 +64,7 @@ describe("Simulation button", () => {
       const simulation = store.get(simulationAtom) as SimulationSuccess;
       expect(simulation.status).toEqual("success");
       expect(simulation.report).not.toContain(/error/i);
+      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
     });
   });
 
