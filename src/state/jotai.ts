@@ -11,8 +11,6 @@ import {
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "src/types";
-import type { IMomentLog } from "src/lib/persistence/moment";
-import { CMomentLog } from "src/lib/persistence/moment";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/lib/convert";
 import { focusAtom } from "jotai-optics";
@@ -237,13 +235,6 @@ export type {
  * TODO: move to server
  */
 export type PartialLayer = SetOptional<MapboxLayer, "createdById">;
-
-/**
- * Moment log state. This is the client-side representation
- * of undo/redo history, which is only relevant to the user
- * editing this document.
- */
-export const momentLogAtomDeprecated = atom<IMomentLog>(new CMomentLog());
 
 export const momentLogAtom = atom<MomentLog>(new MomentLog());
 

@@ -1,4 +1,3 @@
-import { isDebugOn } from "src/infra/debug-mode";
 import type {
   IFolder,
   IFolderInput,
@@ -63,25 +62,6 @@ export const EMPTY_MOMENT: Moment = {
   deleteLayerConfigs: [],
 };
 
-export interface IMomentLog {
-  undo: Moment[];
-  redo: Moment[];
-  paused: boolean;
-}
-
-const HISTORY_LIMIT = 100;
-
-export class CMomentLog implements IMomentLog {
-  undo: Moment[];
-  redo: Moment[];
-  paused: boolean;
-  constructor() {
-    this.undo = [];
-    this.redo = [];
-    this.paused = false;
-  }
-}
-
 export const OPPOSITE = {
   undo: "redo",
   redo: "undo",
@@ -132,84 +112,3 @@ class CUMoment {
 }
 
 export const UMoment = new CUMoment();
-
-const noop = () => null;
-const consoleDebugger = (step: string, momentLog: IMomentLog) => {
-  // eslint-disable-next-line no-console
-  console.log(`MOMENT_LOG@${step} ${JSON.stringify(momentLog)}`);
-};
-const debugMomentLog = isDebugOn ? consoleDebugger : noop;
-
-class CUMomentLog {
-  shallowCopy(oldLog: IMomentLog): IMomentLog {
-    return {
-      undo: oldLog.undo.slice(),
-      redo: oldLog.redo.slice(),
-      paused: oldLog.paused,
-    };
-  }
-
-  hasUndo(log: Readonly<IMomentLog>) {
-    return log.undo.length > 0;
-  }
-
-  hasRedo(log: Readonly<IMomentLog>) {
-    return log.redo.length > 0;
-  }
-
-  startSnapshot(
-    oldLog: Readonly<IMomentLog>,
-    before: IWrappedFeature | IWrappedFeature[],
-  ) {
-    const momentLog = this.shallowCopy(oldLog);
-    momentLog.paused = true;
-    if (before) {
-      const moment = fMoment("Drag");
-      if (Array.isArray(before)) {
-        moment.putFeatures = moment.putFeatures.concat(before);
-      } else {
-        moment.putFeatures.push(before);
-      }
-      momentLog.undo = [moment].concat(momentLog.undo).slice(0, HISTORY_LIMIT);
-    }
-    return momentLog;
-  }
-
-  endSnapshot(oldLog: IMomentLog) {
-    const momentLog = this.shallowCopy(oldLog);
-    momentLog.paused = false;
-    return momentLog;
-  }
-
-  pushMomentDeprecated(oldLog: IMomentLog, reverseMoment: Moment): IMomentLog {
-    debugMomentLog("BEFORE_PUSH", oldLog);
-
-    if (UMoment.isEmpty(reverseMoment)) {
-      return oldLog;
-    }
-    const momentLog = this.shallowCopy(oldLog);
-    // If there is future history, delete it.
-    // There is a single linear history.
-    if (momentLog.redo.length) {
-      momentLog.redo = [];
-    }
-    momentLog.undo = [reverseMoment]
-      .concat(momentLog.undo)
-      .slice(0, HISTORY_LIMIT);
-
-    debugMomentLog("AFTER_PUSH", momentLog);
-    return momentLog;
-  }
-
-  popMoment(oldLog: Readonly<IMomentLog>, n = 1) {
-    debugMomentLog("BEFORE_POP", oldLog);
-    const momentLog = this.shallowCopy(oldLog);
-    for (let i = 0; i < n; i++) {
-      momentLog.undo.shift();
-    }
-    debugMomentLog("AFTER_POP", momentLog);
-    return momentLog;
-  }
-}
-
-export const UMomentLog = new CUMomentLog();
