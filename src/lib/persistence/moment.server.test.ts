@@ -1,12 +1,6 @@
 import { expect, describe, it } from "vitest";
 
-import {
-  EMPTY_MOMENT,
-  UMoment,
-  UMomentLog,
-  CMomentLog,
-  fMoment,
-} from "./moment";
+import { EMPTY_MOMENT, UMoment, fMoment } from "./moment";
 
 describe("fMoment", () => {
   it("generates a moment", () => {
@@ -31,39 +25,5 @@ describe("UMoment", () => {
     const m = fMoment("This is the note");
     m.deleteFeatures.push("yyyy");
     expect(UMoment.isEmpty(m)).toBeFalsy();
-  });
-});
-
-describe("UMomentLog", () => {
-  describe("#pushMomentDeprecated", () => {
-    it("pushing a valid moment", () => {
-      const log = new CMomentLog();
-      const a = fMoment("This is the note");
-      a.deleteFeatures.push("yyyy");
-
-      const newLog = UMomentLog.pushMomentDeprecated(log, a);
-      expect(newLog).toHaveProperty(["undo", "length"], 1);
-      expect(newLog).toHaveProperty(["redo", "length"], 0);
-
-      expect(UMomentLog.hasUndo(newLog)).toBeTruthy();
-      expect(UMomentLog.hasRedo(newLog)).toBeFalsy();
-    });
-    it("#popMoment", () => {
-      const log = new CMomentLog();
-      const a = fMoment("This is the note");
-      a.deleteFeatures.push("yyyy");
-      const logA = UMomentLog.pushMomentDeprecated(log, a);
-      const logB = UMomentLog.popMoment(logA, 1);
-      expect(logA.undo).toHaveLength(1);
-      expect(logB.undo).toEqual([]);
-    });
-    it("empty case", () => {
-      const log = new CMomentLog();
-      const a = fMoment("This is the note");
-
-      const newLog = UMomentLog.pushMomentDeprecated(log, a);
-      expect(newLog).toHaveProperty(["undo", "length"], 0);
-      expect(newLog).toHaveProperty(["redo", "length"], 0);
-    });
   });
 });
