@@ -59,6 +59,23 @@ describe("epanet simulation", () => {
     expect(report).toContain("Error 200");
   });
 
+  describe("results reader", () => {
+    it("can read pressure values", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1")
+        .aJunction("j1")
+        .aPipe("p1", "r1", "j1")
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp);
+
+      expect(status).toEqual("success");
+      expect(results.getPressure("j1")).toBeCloseTo(10);
+      expect(results.getPressure("r1")).toBeCloseTo(0);
+    });
+  });
+
   const wireWebWorker = () => {
     (lib.runSimulation as unknown as Mock).mockImplementation(
       workerRunSimulation,

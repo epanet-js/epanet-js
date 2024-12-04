@@ -1,8 +1,11 @@
 import { lib as webWorker } from "src/lib/worker";
 import { SimulationResult } from "../result";
+import { EpanetResults } from "./epanet-results";
 
 export const runSimulation = async (inp: string): Promise<SimulationResult> => {
-  const { report, status } = await webWorker.runSimulation(inp);
+  const { report, status, nodeResults } = await webWorker.runSimulation(inp);
 
-  return { status, report };
+  const results = new EpanetResults(nodeResults);
+
+  return { status, report, results };
 };
