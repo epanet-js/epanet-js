@@ -1,6 +1,7 @@
 import {
   CheckCircledIcon,
   CircleIcon,
+  CountdownTimerIcon,
   CrossCircledIcon,
   LightningBoltIcon,
 } from "@radix-ui/react-icons";
@@ -23,6 +24,7 @@ import { lib as webWorker } from "src/lib/worker";
 
 export const SimulationStatusButton = () => {
   const simulation = useAtomValue(simulationAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
 
   const { icon, colorClass, text } = useMemo(() => {
     switch (simulation.status) {
@@ -39,6 +41,14 @@ export const SimulationStatusButton = () => {
           text: "Running...",
         };
       case "success":
+        if (hydraulicModel.version !== simulation.modelVersion) {
+          return {
+            icon: <CountdownTimerIcon />,
+            colorClass: "text-orange-500",
+            text: translate("simulationOutdated"),
+          };
+        }
+
         return {
           icon: <CheckCircledIcon />,
           colorClass: "text-green-500",
@@ -51,7 +61,7 @@ export const SimulationStatusButton = () => {
           text: translate("simulationFailure"),
         };
     }
-  }, [simulation.status]);
+  }, [simulation, hydraulicModel.version]);
 
   return (
     <div
@@ -64,16 +74,20 @@ export const SimulationStatusButton = () => {
 };
 
 export const SimulationButton = () => {
-  const data = useAtomValue(dataAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
   const [isSummaryOpen, setSummaryOpen] = useState<boolean>(false);
 
   const [simulation, setSimulationState] = useAtom(simulationAtom);
 
   const handleClick = async () => {
     setSimulationState({ status: "running" });
-    const inp = buildInp(data.hydraulicModel);
+    const inp = buildInp(hydraulicModel);
     const { report, status } = await webWorker.runSimulation(inp);
-    setSimulationState({ status, report });
+    setSimulationState({
+      status,
+      report,
+      modelVersion: hydraulicModel.version,
+    });
     setSummaryOpen(true);
   };
 
