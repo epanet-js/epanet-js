@@ -22,7 +22,7 @@ export const buildInp = (
     ],
     demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
     times: ["[TIMES]", `Duration\t${oneStep}`],
-    report: ["[REPORT]", "Status\tFULL"],
+    report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
     options: [
       "[OPTIONS]",
       `Units\t${defaultUnits}`,

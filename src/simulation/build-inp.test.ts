@@ -79,6 +79,8 @@ describe("build inp", () => {
 
     expect(rowsFrom(inp)).toContain("[REPORT]");
     expect(rowsFrom(inp)).toContain("Status\tFULL");
+    expect(rowsFrom(inp)).toContain("Summary\tNo");
+    expect(rowsFrom(inp)).toContain("Page\t0");
 
     expect(rowsFrom(inp)).toContain("[OPTIONS]");
     expect(rowsFrom(inp)).toContain("Units\tLPS");
