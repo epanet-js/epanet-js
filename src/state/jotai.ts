@@ -63,7 +63,11 @@ export type SimulationSuccess = {
   report: string;
   modelVersion: string;
 };
-export type SimulationFailure = { status: "failure"; report: string };
+export type SimulationFailure = {
+  status: "failure";
+  report: string;
+  modelVersion: string;
+};
 export type SimulationRunning = { status: "running" };
 
 export type SimulationState =

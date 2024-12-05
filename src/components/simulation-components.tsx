@@ -55,6 +55,14 @@ export const SimulationStatusText = () => {
           text: translate("simulationSuccess"),
         };
       case "failure":
+        if (hydraulicModel.version !== simulation.modelVersion) {
+          return {
+            icon: <CountdownTimerIcon />,
+            colorClass: "text-orange-500",
+            text: translate("simulationOutdated"),
+          };
+        }
+
         return {
           icon: <CrossCircledIcon />,
           colorClass: "text-red-500",

@@ -130,7 +130,7 @@ describe("simulation components integration", () => {
     expect(simulation.report).toContain("not enough");
   });
 
-  it("shows message when simulation outdated", async () => {
+  it("shows message when simulation outdated after success", async () => {
     const hydraulicModel = aSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
@@ -140,6 +140,34 @@ describe("simulation components integration", () => {
     await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
 
     expect(await screen.findAllByText(/success/i)).toHaveLength(2);
+
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    expect(screen.queryByText("dialog")).not.toBeInTheDocument();
+
+    const otherHydraulicModel = aSimulableModel();
+    expect(hydraulicModel.version).not.toEqual(otherHydraulicModel);
+
+    act(() => {
+      store.set(dataAtom, (prev) => ({
+        ...prev,
+        hydraulicModel: otherHydraulicModel,
+      }));
+    });
+
+    expect(await screen.findByText(/outdated/i)).toBeInTheDocument();
+  });
+
+  it("shows message when simulation outdated after failure", async () => {
+    const hydraulicModel = aNonSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+
+    renderComponents(store);
+
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+
+    expect(await screen.findAllByText(/with errors/i)).toHaveLength(2);
 
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
 
