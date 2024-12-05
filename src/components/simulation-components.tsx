@@ -7,9 +7,10 @@ import {
 } from "@radix-ui/react-icons";
 import MenuAction from "./menu_action";
 import { translate } from "src/infra/i18n";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { buildInp } from "src/simulation/build-inp";
+import { runSimulation } from "src/simulation";
 import { DialogHeader } from "./dialog";
 import { ReactNode, Suspense, useMemo, useState } from "react";
 import * as RadixDialog from "@radix-ui/react-dialog";
@@ -20,7 +21,8 @@ import {
   StyledDialogContent,
   StyledDialogOverlay,
 } from "./elements";
-import { lib as webWorker } from "src/lib/worker";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { attachSimulation } from "src/hydraulic-model";
 
 export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -86,11 +88,21 @@ export const SimulationButton = () => {
   const [isSummaryOpen, setSummaryOpen] = useState<boolean>(false);
 
   const [simulation, setSimulationState] = useAtom(simulationAtom);
+  const setData = useSetAtom(dataAtom);
 
   const handleClick = async () => {
     setSimulationState({ status: "running" });
     const inp = buildInp(hydraulicModel);
-    const { report, status } = await webWorker.runSimulation(inp);
+    const { report, status, results } = await runSimulation(inp);
+
+    if (isFeatureOn("FLAG_ASSET_RESULTS")) {
+      attachSimulation(hydraulicModel, results);
+      setData((prev) => ({
+        ...prev,
+        hydraulicModel,
+      }));
+    }
+
     setSimulationState({
       status,
       report,

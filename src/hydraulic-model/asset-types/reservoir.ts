@@ -41,7 +41,7 @@ export class Reservoir extends Node<ReservoirProperties> {
     this.properties.head = value;
   }
 
-  explain(): ReservoirExplain {
+  explainDeprecated(): ReservoirExplain {
     return {
       elevation: {
         type: "quantity",

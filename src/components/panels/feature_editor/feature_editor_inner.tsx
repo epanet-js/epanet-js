@@ -7,7 +7,9 @@ import {
   Asset,
   AssetExplain,
   AssetQuantities,
+  AssetQuantitiesSpecByType,
   AssetStatus,
+  Junction,
   canonicalQuantitiesSpec,
   getQuantitySpec,
 } from "src/hydraulic-model";
@@ -16,11 +18,15 @@ import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRow } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { Quantity, Unit, convertTo } from "src/quantity";
+import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
+import {
+  JunctionQuantities,
+  junctionCanonicalSpec,
+} from "src/hydraulic-model/asset-types/junction";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -49,67 +55,128 @@ export function FeatureEditorInner({
 }
 
 const AssetEditor = ({ asset }: { asset: Asset }) => {
+  const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
+    ? quantityPresets.usCustomary
+    : canonicalQuantitiesSpec;
+
+  if (isFeatureOn("FLAG_ASSET_RESULTS") && asset.type === "junction") {
+    return (
+      <JunctionEditor
+        junction={asset as Junction}
+        quantitiesSpec={
+          systemSpec.junction as QuantitiesSpec<JunctionQuantities>
+        }
+      />
+    );
+  }
+
+  return <AssetPropertiesEditor asset={asset} systemSpec={systemSpec} />;
+};
+
+const JunctionEditor = ({
+  junction,
+  quantitiesSpec,
+}: {
+  junction: Junction;
+  quantitiesSpec: QuantitiesSpec<JunctionQuantities>;
+}) => {
   return (
-    <PanelDetails title={translate(asset.type)} variant="fullwidth">
+    <PanelDetails title={translate("junction")} variant="fullwidth">
       <div className="pb-3 contain-layout">
-        <AssetPropertiesEditor asset={asset} />
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <QuantityRow
+                name="elevation"
+                position={0}
+                value={junction.elevation}
+                fromUnit={junctionCanonicalSpec.elevation.unit}
+                toUnit={quantitiesSpec.elevation.unit}
+                decimals={quantitiesSpec.elevation.decimals}
+              />
+              <QuantityRow
+                name="demand"
+                position={1}
+                value={junction.demand}
+                fromUnit={junctionCanonicalSpec.demand.unit}
+                toUnit={quantitiesSpec.demand.unit}
+                decimals={quantitiesSpec.demand.decimals}
+              />
+              <QuantityRow
+                name="pressure"
+                position={2}
+                value={junction.pressure}
+                fromUnit={junctionCanonicalSpec.pressure.unit}
+                toUnit={quantitiesSpec.pressure.unit}
+                decimals={quantitiesSpec.pressure.decimals}
+              />
+            </tbody>
+          </table>
+        </div>
       </div>
     </PanelDetails>
   );
 };
 
-export function AssetPropertiesEditor({ asset }: { asset: Asset }) {
-  const properties = asset.explain() as AssetExplain;
-
-  const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
-    ? quantityPresets.usCustomary
-    : canonicalQuantitiesSpec;
+export function AssetPropertiesEditor({
+  asset,
+  systemSpec,
+}: {
+  asset: Asset;
+  systemSpec: AssetQuantitiesSpecByType;
+}) {
+  const properties = asset.explainDeprecated() as AssetExplain;
 
   return (
-    <div
-      className="overflow-y-auto placemark-scrollbar"
-      data-focus-scope
-      onKeyDown={onArrow}
-    >
-      <table className="pb-2 w-full">
-        <PropertyTableHead />
-        <tbody>
-          {Object.keys(properties).map((key, y) => {
-            const property = properties[key as keyof AssetExplain];
+    <PanelDetails title={translate(asset.type)} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div
+          className="overflow-y-auto placemark-scrollbar"
+          data-focus-scope
+          onKeyDown={onArrow}
+        >
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              {Object.keys(properties).map((key, y) => {
+                const property = properties[key as keyof AssetExplain];
 
-            if (property.type === "quantity") {
-              const quantitySpec = getQuantitySpec(
-                systemSpec,
-                asset.type,
-                key as keyof AssetQuantities,
-              );
+                if (property.type === "quantity") {
+                  const quantitySpec = getQuantitySpec(
+                    systemSpec,
+                    asset.type,
+                    key as keyof AssetQuantities,
+                  );
 
-              return (
-                <QuantityPropertyRow
-                  key={key}
-                  name={key}
-                  attribute={property as Quantity}
-                  unit={quantitySpec.unit}
-                  decimals={quantitySpec.decimals}
-                  position={y}
-                />
-              );
-            }
+                  return (
+                    <QuantityPropertyRowDeprecated
+                      key={key}
+                      name={key}
+                      attribute={property as Quantity}
+                      unit={quantitySpec.unit}
+                      decimals={quantitySpec.decimals}
+                      position={y}
+                    />
+                  );
+                }
 
-            if (property.type === "status") {
-              return (
-                <StatusPropertyRow
-                  key={key}
-                  name={key}
-                  status={property.value}
-                  position={y}
-                />
-              );
-            }
-          })}
-        </tbody>
-      </table>
-    </div>
+                if (property.type === "status") {
+                  return (
+                    <StatusPropertyRow
+                      key={key}
+                      name={key}
+                      status={property.value}
+                      position={y}
+                    />
+                  );
+                }
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
   );
 }
 
@@ -136,7 +203,44 @@ const StatusPropertyRow = ({
     />
   );
 };
-const QuantityPropertyRow = ({
+
+const QuantityRow = ({
+  name,
+  value,
+  fromUnit,
+  toUnit,
+  decimals,
+  position,
+}: {
+  name: string;
+  value: number | null;
+  fromUnit: Unit;
+  toUnit: Unit;
+  position: number;
+  decimals?: number;
+}) => {
+  const displayValue =
+    value === null
+      ? translate("notAvailable")
+      : localizeDecimal(convertTo({ value, unit: fromUnit }, toUnit), decimals);
+
+  const label = toUnit
+    ? `${translate(name)} (${translateUnit(toUnit)})`
+    : `${translate(name)}`;
+  return (
+    <PropertyRow
+      pair={[label, displayValue]}
+      y={position}
+      even={position % 2 === 0}
+      onChangeValue={() => {}}
+      onChangeKey={() => {}}
+      onDeleteKey={() => {}}
+      onCast={() => {}}
+    />
+  );
+};
+
+const QuantityPropertyRowDeprecated = ({
   name,
   attribute,
   unit,
@@ -144,12 +248,15 @@ const QuantityPropertyRow = ({
   position,
 }: {
   name: string;
-  attribute: Quantity;
+  attribute: { value: number | null; unit: Unit };
   unit: Unit;
   position: number;
   decimals?: number;
 }) => {
-  const value = localizeDecimal(convertTo(attribute, unit), decimals);
+  const value =
+    attribute.value === null
+      ? "N/A"
+      : localizeDecimal(convertTo(attribute as Quantity, unit), decimals);
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`

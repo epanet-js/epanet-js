@@ -1,7 +1,14 @@
-import { Asset, AssetId, NodeAsset, LinkAsset } from "./asset-types";
+import { Asset, AssetId, NodeAsset, LinkAsset, Pipe } from "./asset-types";
 
 export type { AssetId };
 export class AssetsMap extends Map<AssetId, Asset> {}
+
+export const getPipe = (assets: AssetsMap, pipeId: AssetId): Pipe | null => {
+  const asset = assets.get(pipeId);
+  if (!asset || asset.type !== "pipe") return null;
+
+  return asset as Pipe;
+};
 
 export const getLink = (
   assets: AssetsMap,

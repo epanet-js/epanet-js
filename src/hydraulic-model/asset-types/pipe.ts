@@ -80,7 +80,7 @@ export class Pipe extends Link<PipeProperties> {
     });
   }
 
-  explain(): PipeExplain {
+  explainDeprecated(): PipeExplain {
     return {
       status: {
         type: "status",
