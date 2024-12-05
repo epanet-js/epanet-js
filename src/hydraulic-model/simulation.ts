@@ -1,8 +1,8 @@
 import { HydraulicModel } from "./hydraulic-model";
 
 export interface ResultsReader {
-  getPressure: (nodeId: string) => number;
-  getFlow: (linkId: string) => number;
+  getPressure: (nodeId: string) => number | null;
+  getFlow: (linkId: string) => number | null;
 }
 
 export const attachSimulation = (

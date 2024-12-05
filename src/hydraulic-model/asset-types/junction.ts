@@ -26,7 +26,7 @@ const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
 export { canonicalSpec as junctionCanonicalSpec };
 
 export interface JunctionSimulationProvider {
-  getPressure: (id: string) => number;
+  getPressure: (id: string) => number | null;
 }
 
 export class Junction extends Node<JunctionProperties> {
