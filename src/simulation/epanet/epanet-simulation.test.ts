@@ -60,10 +60,10 @@ describe("epanet simulation", () => {
   });
 
   describe("results reader", () => {
-    it("can read pressure values", async () => {
+    it("can read simulation values", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
-        .aJunction("j1")
+        .aJunction("j1", { demand: 1 })
         .aPipe("p1", "r1", "j1")
         .build();
       const inp = buildInp(hydraulicModel);
@@ -73,6 +73,7 @@ describe("epanet simulation", () => {
       expect(status).toEqual("success");
       expect(results.getPressure("j1")).toBeCloseTo(10);
       expect(results.getPressure("r1")).toBeCloseTo(0);
+      expect(results.getFlow("p1")).toBeCloseTo(1);
     });
   });
 
