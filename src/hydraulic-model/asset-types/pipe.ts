@@ -36,7 +36,7 @@ const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
 export { canonicalSpec as pipeCanonicalSpec };
 
 interface PipeSimulationProvider {
-  getFlow: (id: string) => number;
+  getFlow: (id: string) => number | null;
 }
 
 export class Pipe extends Link<PipeProperties> {

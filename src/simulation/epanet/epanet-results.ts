@@ -1,12 +1,8 @@
 import { ResultsReader } from "../results-reader";
 
-export type NodeResults = {
-  [id: string]: { pressure: number };
-};
+export type NodeResults = Map<string, { pressure: number }>;
 
-export type LinkResults = {
-  [id: string]: { flow: number };
-};
+export type LinkResults = Map<string, { flow: number }>;
 
 export class EpanetResults implements ResultsReader {
   private nodes: NodeResults;
@@ -18,10 +14,10 @@ export class EpanetResults implements ResultsReader {
   }
 
   getPressure(nodeId: string) {
-    return this.nodes[nodeId].pressure;
+    return this.nodes.has(nodeId) ? this.nodes.get(nodeId)!.pressure : null;
   }
 
   getFlow(linkId: string) {
-    return this.links[linkId].flow;
+    return this.links.has(linkId) ? this.links.get(linkId)!.flow : null;
   }
 }

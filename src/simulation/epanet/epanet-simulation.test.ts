@@ -75,6 +75,23 @@ describe("epanet simulation", () => {
       expect(results.getPressure("r1")).toBeCloseTo(0);
       expect(results.getFlow("p1")).toBeCloseTo(1);
     });
+
+    it("provides null values when failed", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1")
+        .aJunction("j1", { demand: 1 })
+        .aJunction("j2")
+        .aPipe("p1", "r1", "j1")
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp);
+
+      expect(status).toEqual("failure");
+      expect(results.getPressure("j1")).toBeNull();
+      expect(results.getPressure("r1")).toBeNull();
+      expect(results.getFlow("p1")).toBeNull();
+    });
   });
 
   const wireWebWorker = () => {
