@@ -22,9 +22,25 @@ const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
 };
 export { canonicalSpec as junctionCanonicalSpec };
 
+export interface JunctionSimulationProvider {
+  getPressure: (id: string) => number;
+}
+
 export class Junction extends Node<JunctionProperties> {
+  private simulation: JunctionSimulationProvider | null = null;
+
   get demand() {
     return this.properties.demand;
+  }
+
+  get pressure() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getPressure(this.id);
+  }
+
+  setSimulation(simulation: JunctionSimulationProvider) {
+    this.simulation = simulation;
   }
 
   copy() {

@@ -33,7 +33,13 @@ const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
 };
 export { canonicalSpec as pipeCanonicalSpec };
 
+interface PipeSimulationProvider {
+  getFlow: (id: string) => number;
+}
+
 export class Pipe extends Link<PipeProperties> {
+  private simulation: PipeSimulationProvider | null = null;
+
   get diameter() {
     return this.properties.diameter;
   }
@@ -56,6 +62,16 @@ export class Pipe extends Link<PipeProperties> {
 
   get minorLoss() {
     return this.properties.minorLoss;
+  }
+
+  get flow() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getFlow(this.id);
+  }
+
+  setSimulation(simulation: PipeSimulationProvider) {
+    this.simulation = simulation;
   }
 
   copy() {
