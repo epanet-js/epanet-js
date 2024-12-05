@@ -36,6 +36,7 @@ export const translations: Translations = {
   runningSimulation: "Ejecutando simulación",
   pressure: "Presión",
   notAvailable: "No disponible",
+  flow: "Caudal",
 };
 
 export const units: UnitsLocale = {
