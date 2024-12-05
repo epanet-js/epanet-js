@@ -31,6 +31,8 @@ export class Reservoir extends Node<ReservoirProperties> {
     });
   }
 
+  setSimulation() {}
+
   get head() {
     return this.properties.head;
   }
