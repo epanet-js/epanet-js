@@ -9,6 +9,7 @@ export type Unit =
   | "l/h"
   | "km"
   | "gal/min"
+  | "psi"
   | null;
 
 export type Quantity = {

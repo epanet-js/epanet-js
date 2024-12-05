@@ -17,6 +17,8 @@ import {
 import { lib } from "src/lib/worker";
 import { runSimulation } from "src/simulation/epanet/worker";
 import { Mock } from "vitest";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { getPipe } from "src/hydraulic-model/assets-map";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -94,6 +96,22 @@ describe("simulation components integration", () => {
     expect(simulation.status).toEqual("success");
     expect(simulation.report).not.toContain(/error/i);
     expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+  });
+
+  it("updates the hydraulic model state when simulation passes", async () => {
+    stubFeatureOn("FLAG_ASSET_RESULTS");
+    const hydraulicModel = aSimulableModel();
+    const store = getDefaultStore();
+    store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
+
+    renderComponents(store);
+
+    await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
+
+    expect(await screen.findAllByText(/success/i)).toHaveLength(2);
+
+    const { hydraulicModel: lastModel } = store.get(dataAtom);
+    expect(getPipe(lastModel.assets, "p1")!.flow).not.toBeNull();
   });
 
   it("shows failure when simulation fails", async () => {

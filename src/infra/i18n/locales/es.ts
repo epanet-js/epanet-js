@@ -34,6 +34,8 @@ export const translations: Translations = {
   simulationFailure: "Simulación con errores",
   simulationOutdated: "Simulación desactualizada",
   runningSimulation: "Ejecutando simulación",
+  pressure: "Presión",
+  notAvailable: "No disponible",
 };
 
 export const units: UnitsLocale = {

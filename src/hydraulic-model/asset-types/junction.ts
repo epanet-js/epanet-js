@@ -10,7 +10,8 @@ export type JunctionProperties = {
 export type JunctionQuantities = Pick<
   JunctionProperties,
   "demand" | "elevation"
->;
+> & { pressure: number };
+
 export type JunctionExplain = Record<
   keyof JunctionQuantities,
   QuantityProperty
@@ -19,7 +20,9 @@ export type JunctionExplain = Record<
 const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
   demand: { defaultValue: 0, unit: "l/s" },
+  pressure: { defaultValue: 0, unit: "m" },
 };
+
 export { canonicalSpec as junctionCanonicalSpec };
 
 export interface JunctionSimulationProvider {
@@ -47,7 +50,7 @@ export class Junction extends Node<JunctionProperties> {
     return new Junction(this.id, [...this.coordinates], { ...this.properties });
   }
 
-  explain(): JunctionExplain {
+  explainDeprecated(): Omit<JunctionExplain, "pressure"> {
     return {
       elevation: {
         type: "quantity",

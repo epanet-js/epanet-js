@@ -13,6 +13,7 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
   junction: {
     elevation: { defaultValue: 0, unit: "ft" },
     demand: { defaultValue: 0, unit: "gal/min" },
+    pressure: { defaultValue: 0, unit: "psi" },
   },
   reservoir: {
     elevation: { defaultValue: 0, unit: "ft" },
