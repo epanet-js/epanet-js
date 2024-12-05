@@ -9,6 +9,7 @@ const USCustomarySpec: AssetQuantitiesSpecByType = {
     length: { defaultValue: 1000, unit: "ft", decimals: 2 },
     roughness: { defaultValue: 130, unit: null },
     minorLoss: { defaultValue: 0, unit: null },
+    flow: { defaultValue: 0, unit: "gal/min" },
   },
   junction: {
     elevation: { defaultValue: 0, unit: "ft" },

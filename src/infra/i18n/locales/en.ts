@@ -32,8 +32,9 @@ export const translations = {
   simulationFailure: "Simulation with errors",
   simulationOutdated: "Simulation outdated",
   runningSimulation: "Running simulation...",
-  pressure: "Pressure",
   notAvailable: "Not available",
+  pressure: "Pressure",
+  flow: "Flow",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

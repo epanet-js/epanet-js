@@ -10,6 +10,7 @@ import {
   AssetQuantitiesSpecByType,
   AssetStatus,
   Junction,
+  Pipe,
   canonicalQuantitiesSpec,
   getQuantitySpec,
 } from "src/hydraulic-model";
@@ -27,6 +28,10 @@ import {
   JunctionQuantities,
   junctionCanonicalSpec,
 } from "src/hydraulic-model/asset-types/junction";
+import {
+  PipeQuantities,
+  pipeCanonicalSpec,
+} from "src/hydraulic-model/asset-types/pipe";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -69,8 +74,79 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       />
     );
   }
+  if (isFeatureOn("FLAG_ASSET_RESULTS") && asset.type === "pipe") {
+    return (
+      <PipeEditor
+        pipe={asset as Pipe}
+        quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
+      />
+    );
+  }
 
   return <AssetPropertiesEditor asset={asset} systemSpec={systemSpec} />;
+};
+
+const PipeEditor = ({
+  pipe,
+  quantitiesSpec,
+}: {
+  pipe: Pipe;
+  quantitiesSpec: QuantitiesSpec<PipeQuantities>;
+}) => {
+  return (
+    <PanelDetails title={translate("pipe")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <StatusRow name={"status"} status={pipe.status} position={0} />
+              <QuantityRow
+                name="diameter"
+                position={1}
+                value={pipe.diameter}
+                fromUnit={pipeCanonicalSpec.diameter.unit}
+                toUnit={quantitiesSpec.diameter.unit}
+                decimals={quantitiesSpec.diameter.decimals}
+              />
+              <QuantityRow
+                name="length"
+                position={2}
+                value={pipe.length}
+                fromUnit={pipeCanonicalSpec.length.unit}
+                toUnit={quantitiesSpec.length.unit}
+                decimals={quantitiesSpec.length.decimals}
+              />
+              <QuantityRow
+                name="roughness"
+                position={3}
+                value={pipe.roughness}
+                fromUnit={pipeCanonicalSpec.roughness.unit}
+                toUnit={quantitiesSpec.roughness.unit}
+                decimals={quantitiesSpec.roughness.decimals}
+              />
+              <QuantityRow
+                name="minorLoss"
+                position={4}
+                value={pipe.minorLoss}
+                fromUnit={pipeCanonicalSpec.minorLoss.unit}
+                toUnit={quantitiesSpec.minorLoss.unit}
+                decimals={quantitiesSpec.minorLoss.decimals}
+              />
+              <QuantityRow
+                name="flow"
+                position={5}
+                value={pipe.flow}
+                fromUnit={pipeCanonicalSpec.flow.unit}
+                toUnit={quantitiesSpec.flow.unit}
+                decimals={quantitiesSpec.flow.decimals}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
 };
 
 const JunctionEditor = ({
@@ -163,7 +239,7 @@ export function AssetPropertiesEditor({
 
                 if (property.type === "status") {
                   return (
-                    <StatusPropertyRow
+                    <StatusRow
                       key={key}
                       name={key}
                       status={property.value}
@@ -180,7 +256,7 @@ export function AssetPropertiesEditor({
   );
 }
 
-const StatusPropertyRow = ({
+const StatusRow = ({
   name,
   status,
   position,

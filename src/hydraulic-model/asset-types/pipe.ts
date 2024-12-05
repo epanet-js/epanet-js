@@ -16,7 +16,7 @@ export type PipeProperties = {
 export type PipeQuantities = Pick<
   PipeProperties,
   "diameter" | "roughness" | "length" | "minorLoss"
->;
+> & { flow: number };
 
 export type PipeExplain = Record<
   keyof PipeQuantities & "status",
@@ -30,7 +30,9 @@ const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
   length: { defaultValue: 1000, unit: "m", decimals: 2 },
   roughness: { defaultValue: 130, unit: null }, //H-W
   minorLoss: { defaultValue: 0, unit: null },
+  flow: { defaultValue: 0, unit: "l/s" },
 };
+
 export { canonicalSpec as pipeCanonicalSpec };
 
 interface PipeSimulationProvider {
