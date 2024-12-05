@@ -132,4 +132,17 @@ describe("Pipe", () => {
     expect(pipe.roughness).toEqual(0.01);
     expect(pipe.minorLoss).toEqual(1);
   });
+
+  it("can attach a simulation", () => {
+    const pipe = buildPipe();
+
+    expect(pipe.flow).toBeNull();
+
+    const simulation = {
+      getFlow: () => 20,
+    };
+    pipe.setSimulation(simulation);
+
+    expect(pipe.flow).toEqual(20);
+  });
 });
