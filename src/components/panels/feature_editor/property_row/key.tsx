@@ -49,6 +49,7 @@ export function PropertyRowKeyReadonly({
       spellCheck="false"
       type="text"
       readOnly
+      disabled
       className={styledPropertyInput("left", value === undefined)}
       {...coordPropsAttr({ x, y })}
       aria-label={`Key: ${key}`}
