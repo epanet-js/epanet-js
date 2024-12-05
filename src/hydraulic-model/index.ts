@@ -28,3 +28,5 @@ export type {
   AssetQuantitiesSpecByType,
 } from "./asset-types";
 export { Topology } from "./topology";
+
+export { attachSimulation } from "./simulation";
