@@ -32,7 +32,7 @@ export const runSimulation = (
       nodeResults,
     };
   } catch (error) {
-    model.copyReport("error.rpt");
+    model.close();
     const report = ws.readFile("report.rpt");
 
     return {
