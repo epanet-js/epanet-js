@@ -147,7 +147,7 @@ const SummaryDialog = ({
     const rows = report.split("\n");
     return rows.map((row, i) => {
       const trimmedRow = row.trim();
-      return <p key={i}>{trimmedRow}</p>;
+      return <pre key={i}>{trimmedRow}</pre>;
     });
   }, [report]);
 
