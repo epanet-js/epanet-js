@@ -17,7 +17,7 @@ import {
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { onArrow } from "src/lib/arrow_navigation";
-import { PropertyRow } from "./property_row";
+import { PropertyRowReadonly } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
 
@@ -268,14 +268,10 @@ const StatusRow = ({
   const label = translate(name);
   const value = translate(status);
   return (
-    <PropertyRow
+    <PropertyRowReadonly
       pair={[label, value]}
       y={position}
       even={position % 2 === 0}
-      onChangeValue={() => {}}
-      onChangeKey={() => {}}
-      onDeleteKey={() => {}}
-      onCast={() => {}}
     />
   );
 };
@@ -304,14 +300,10 @@ const QuantityRow = ({
     ? `${translate(name)} (${translateUnit(toUnit)})`
     : `${translate(name)}`;
   return (
-    <PropertyRow
+    <PropertyRowReadonly
       pair={[label, displayValue]}
       y={position}
       even={position % 2 === 0}
-      onChangeValue={() => {}}
-      onChangeKey={() => {}}
-      onDeleteKey={() => {}}
-      onCast={() => {}}
     />
   );
 };
@@ -337,15 +329,12 @@ const QuantityPropertyRowDeprecated = ({
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`
     : `${translate(name)}`;
+
   return (
-    <PropertyRow
+    <PropertyRowReadonly
       pair={[label, value]}
       y={position}
       even={position % 2 === 0}
-      onChangeValue={() => {}}
-      onChangeKey={() => {}}
-      onDeleteKey={() => {}}
-      onCast={() => {}}
     />
   );
 };
