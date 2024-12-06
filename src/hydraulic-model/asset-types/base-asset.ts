@@ -1,6 +1,5 @@
 import { IFeature } from "src/types";
 import { LineString, Point } from "geojson";
-import { Quantity } from "src/quantity";
 
 export type AssetId = StringId;
 
@@ -9,13 +8,6 @@ type AssetGeometry = LineString | Point;
 export type AssetProperties = {
   type: "pipe" | "junction" | "reservoir";
   visibility?: boolean;
-};
-
-export type QuantityProperty = { type: "quantity" } & Quantity;
-export type StatusProperty<T> = {
-  type: "status";
-  value: T;
-  options: readonly T[];
 };
 
 export class BaseAsset<T> {

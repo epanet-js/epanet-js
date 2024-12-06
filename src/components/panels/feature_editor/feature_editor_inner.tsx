@@ -5,21 +5,16 @@ import React from "react";
 import { RawEditor } from "./raw_editor";
 import {
   Asset,
-  AssetExplain,
-  AssetQuantities,
-  AssetQuantitiesSpecByType,
   AssetStatus,
   Junction,
   Pipe,
   canonicalQuantitiesSpec,
-  getQuantitySpec,
 } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
-import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyRowReadonly } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
+import { QuantitiesSpec, Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets as quantityPresets } from "src/settings/quantities-spec";
@@ -32,6 +27,11 @@ import {
   PipeQuantities,
   pipeCanonicalSpec,
 } from "src/hydraulic-model/asset-types/pipe";
+import {
+  Reservoir,
+  ReservoirQuantities,
+  reservoirCanonicalSpec,
+} from "src/hydraulic-model/asset-types/reservoir";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -64,26 +64,33 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
     ? quantityPresets.usCustomary
     : canonicalQuantitiesSpec;
 
-  if (isFeatureOn("FLAG_ASSET_RESULTS") && asset.type === "junction") {
-    return (
-      <JunctionEditor
-        junction={asset as Junction}
-        quantitiesSpec={
-          systemSpec.junction as QuantitiesSpec<JunctionQuantities>
-        }
-      />
-    );
+  switch (asset.type) {
+    case "junction":
+      return (
+        <JunctionEditor
+          junction={asset as Junction}
+          quantitiesSpec={
+            systemSpec.junction as QuantitiesSpec<JunctionQuantities>
+          }
+        />
+      );
+    case "pipe":
+      return (
+        <PipeEditor
+          pipe={asset as Pipe}
+          quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
+        />
+      );
+    case "reservoir":
+      return (
+        <ReservoirEditor
+          reservoir={asset as Reservoir}
+          quantitiesSpec={
+            systemSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
+          }
+        />
+      );
   }
-  if (isFeatureOn("FLAG_ASSET_RESULTS") && asset.type === "pipe") {
-    return (
-      <PipeEditor
-        pipe={asset as Pipe}
-        quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
-      />
-    );
-  }
-
-  return <AssetPropertiesEditor asset={asset} systemSpec={systemSpec} />;
 };
 
 const PipeEditor = ({
@@ -195,66 +202,43 @@ const JunctionEditor = ({
   );
 };
 
-export function AssetPropertiesEditor({
-  asset,
-  systemSpec,
+const ReservoirEditor = ({
+  reservoir,
+  quantitiesSpec,
 }: {
-  asset: Asset;
-  systemSpec: AssetQuantitiesSpecByType;
-}) {
-  const properties = asset.explainDeprecated() as AssetExplain;
-
+  reservoir: Reservoir;
+  quantitiesSpec: QuantitiesSpec<ReservoirQuantities>;
+}) => {
   return (
-    <PanelDetails title={translate(asset.type)} variant="fullwidth">
+    <PanelDetails title={translate("reservoir")} variant="fullwidth">
       <div className="pb-3 contain-layout">
-        <div
-          className="overflow-y-auto placemark-scrollbar"
-          data-focus-scope
-          onKeyDown={onArrow}
-        >
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {Object.keys(properties).map((key, y) => {
-                const property = properties[key as keyof AssetExplain];
-
-                if (property.type === "quantity") {
-                  const quantitySpec = getQuantitySpec(
-                    systemSpec,
-                    asset.type,
-                    key as keyof AssetQuantities,
-                  );
-
-                  return (
-                    <QuantityPropertyRowDeprecated
-                      key={key}
-                      name={key}
-                      attribute={property as Quantity}
-                      unit={quantitySpec.unit}
-                      decimals={quantitySpec.decimals}
-                      position={y}
-                    />
-                  );
-                }
-
-                if (property.type === "status") {
-                  return (
-                    <StatusRow
-                      key={key}
-                      name={key}
-                      status={property.value}
-                      position={y}
-                    />
-                  );
-                }
-              })}
+              <QuantityRow
+                name="elevation"
+                position={0}
+                value={reservoir.elevation}
+                fromUnit={reservoirCanonicalSpec.elevation.unit}
+                toUnit={quantitiesSpec.elevation.unit}
+                decimals={quantitiesSpec.elevation.decimals}
+              />
+              <QuantityRow
+                name="head"
+                position={1}
+                value={reservoir.head}
+                fromUnit={reservoirCanonicalSpec.head.unit}
+                toUnit={quantitiesSpec.head.unit}
+                decimals={quantitiesSpec.head.decimals}
+              />
             </tbody>
           </table>
         </div>
       </div>
     </PanelDetails>
   );
-}
+};
 
 const StatusRow = ({
   name,
@@ -308,36 +292,6 @@ const QuantityRow = ({
   );
 };
 
-const QuantityPropertyRowDeprecated = ({
-  name,
-  attribute,
-  unit,
-  decimals,
-  position,
-}: {
-  name: string;
-  attribute: { value: number | null; unit: Unit };
-  unit: Unit;
-  position: number;
-  decimals?: number;
-}) => {
-  const value =
-    attribute.value === null
-      ? "N/A"
-      : localizeDecimal(convertTo(attribute as Quantity, unit), decimals);
-
-  const label = unit
-    ? `${translate(name)} (${translateUnit(unit)})`
-    : `${translate(name)}`;
-
-  return (
-    <PropertyRowReadonly
-      pair={[label, value]}
-      y={position}
-      even={position % 2 === 0}
-    />
-  );
-};
 export function PropertyTableHead() {
   return (
     <thead>
