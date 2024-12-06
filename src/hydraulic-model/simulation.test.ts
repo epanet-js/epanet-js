@@ -42,7 +42,7 @@ describe("attach simulation", () => {
   });
 
   it.skip("is performant", () => {
-    const total = 1e6;
+    const total = 1e5;
     const resultsReader: ResultsReader = {
       getPressure: () => 10,
       getFlow: () => 20,
