@@ -18,7 +18,6 @@ export type {
   AssetStatus,
   AssetQuantities,
   PipeProperties,
-  AssetExplain,
   NodeAsset,
   LinkAsset,
   Asset,

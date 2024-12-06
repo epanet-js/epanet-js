@@ -21,7 +21,6 @@ import {
   StyledDialogContent,
   StyledDialogOverlay,
 } from "./elements";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { attachSimulation } from "src/hydraulic-model";
 
 export const SimulationStatusText = () => {
@@ -95,13 +94,11 @@ export const SimulationButton = () => {
     const inp = buildInp(hydraulicModel);
     const { report, status, results } = await runSimulation(inp);
 
-    if (isFeatureOn("FLAG_ASSET_RESULTS")) {
-      attachSimulation(hydraulicModel, results);
-      setData((prev) => ({
-        ...prev,
-        hydraulicModel,
-      }));
-    }
+    attachSimulation(hydraulicModel, results);
+    setData((prev) => ({
+      ...prev,
+      hydraulicModel,
+    }));
 
     setSimulationState({
       status,

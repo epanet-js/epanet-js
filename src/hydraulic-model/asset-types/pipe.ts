@@ -1,5 +1,4 @@
 import { Link, LinkProperties } from "./link";
-import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec } from "src/quantity";
 
 const statuses = ["open", "closed"] as const;
@@ -17,11 +16,6 @@ export type PipeQuantities = Pick<
   PipeProperties,
   "diameter" | "roughness" | "length" | "minorLoss"
 > & { flow: number };
-
-export type PipeExplain = Record<
-  keyof PipeQuantities & "status",
-  QuantityProperty | StatusProperty<PipeStatus>
->;
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 
@@ -80,35 +74,5 @@ export class Pipe extends Link<PipeProperties> {
     return new Pipe(this.id, [...this.coordinates], {
       ...this.properties,
     });
-  }
-
-  explainDeprecated(): PipeExplain {
-    return {
-      status: {
-        type: "status",
-        value: this.properties.status,
-        options: statuses,
-      },
-      diameter: {
-        type: "quantity",
-        value: this.properties.diameter,
-        unit: canonicalSpec.diameter.unit,
-      },
-      length: {
-        type: "quantity",
-        value: this.properties.length,
-        unit: canonicalSpec.length.unit,
-      },
-      roughness: {
-        type: "quantity",
-        value: this.properties.roughness,
-        unit: null,
-      },
-      minorLoss: {
-        type: "quantity",
-        value: this.properties.minorLoss,
-        unit: null,
-      },
-    };
   }
 }

@@ -1,5 +1,4 @@
 import { Node, NodeProperties } from "./node";
-import { QuantityProperty } from "./base-asset";
 import { QuantitiesSpec } from "src/quantity";
 
 export type ReservoirProperties = {
@@ -11,11 +10,6 @@ export type ReservoirQuantities = Pick<
   ReservoirProperties,
   "elevation" | "head"
 > & { relativeHead: number };
-
-export type ReservoirExplain = Record<
-  keyof Omit<ReservoirQuantities, "relativeHead">,
-  QuantityProperty
->;
 
 const canonicalSpec: QuantitiesSpec<ReservoirQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
@@ -39,20 +33,5 @@ export class Reservoir extends Node<ReservoirProperties> {
 
   setHead(value: number) {
     this.properties.head = value;
-  }
-
-  explainDeprecated(): ReservoirExplain {
-    return {
-      elevation: {
-        type: "quantity",
-        value: this.properties.elevation,
-        unit: canonicalSpec.elevation.unit,
-      },
-      head: {
-        type: "quantity",
-        value: this.properties.head,
-        unit: canonicalSpec.head.unit,
-      },
-    };
   }
 }

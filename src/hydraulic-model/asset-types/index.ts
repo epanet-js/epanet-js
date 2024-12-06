@@ -19,18 +19,12 @@ export type { AssetId } from "./base-asset";
 export { BaseAsset } from "./base-asset";
 export type { PipeProperties } from "./pipe";
 
-import { QuantityProperty, StatusProperty } from "./base-asset";
 import { QuantitiesSpec, QuantitySpec } from "src/quantity";
 import {
   Reservoir,
   ReservoirQuantities,
   reservoirCanonicalSpec,
 } from "./reservoir";
-
-export type AssetExplain = Record<
-  "status" | keyof PipeQuantities | keyof JunctionQuantities,
-  QuantityProperty | StatusProperty<AssetStatus>
->;
 
 export type AssetQuantitiesSpecByType = Record<
   Asset["type"],

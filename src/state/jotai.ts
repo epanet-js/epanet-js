@@ -15,7 +15,6 @@ import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/lib/convert";
 import { focusAtom } from "jotai-optics";
 import { USelection } from "./uselection";
-import { shallowArrayEqual } from "src/lib/utils";
 import { atomWithMachine } from "jotai-xstate";
 import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
@@ -106,17 +105,9 @@ export const dataAtom = atom<Data>({
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 
-export const selectedFeaturesAtom = isFeatureOn("FLAG_ASSET_RESULTS")
-  ? selectAtom(dataAtom, (data) => {
-      return USelection.getSelectedFeatures(data);
-    })
-  : selectAtom(
-      dataAtom,
-      (data) => {
-        return USelection.getSelectedFeatures(data);
-      },
-      shallowArrayEqual,
-    );
+export const selectedFeaturesAtom = selectAtom(dataAtom, (data) => {
+  return USelection.getSelectedFeatures(data);
+});
 
 export const assetsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("hydraulicModel").prop("assets"),

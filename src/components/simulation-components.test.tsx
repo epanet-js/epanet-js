@@ -17,7 +17,6 @@ import {
 import { lib } from "src/lib/worker";
 import { runSimulation } from "src/simulation/epanet/worker";
 import { Mock } from "vitest";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { getPipe } from "src/hydraulic-model/assets-map";
 
 vi.mock("src/lib/worker", () => ({
@@ -99,7 +98,6 @@ describe("simulation components integration", () => {
   });
 
   it("updates the hydraulic model state when simulation passes", async () => {
-    stubFeatureOn("FLAG_ASSET_RESULTS");
     const hydraulicModel = aSimulableModel();
     const store = getDefaultStore();
     store.set(dataAtom, (prev) => ({ ...prev, hydraulicModel }));
