@@ -1,9 +1,4 @@
-import {
-  QuantitiesSpec,
-  QuantityMap,
-  QuantityOrNumberMap,
-  convertTo,
-} from "src/quantity";
+import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
 import {
   AssetId,
   AssetQuantitiesSpecByType,
@@ -28,24 +23,33 @@ import {
   reservoirCanonicalSpec,
 } from "./asset-types/reservoir";
 
+type QuantityOrNumber = Quantity | number;
+
 export type JunctionBuildData = {
   id?: AssetId;
   coordinates?: Position;
-} & Partial<QuantityOrNumberMap<JunctionQuantities>>;
+  elevation?: QuantityOrNumber;
+  demand?: QuantityOrNumber;
+};
 
 export type PipeBuildData = {
   id?: AssetId;
   coordinates?: Position[];
   connections?: LinkConnections;
   status?: PipeStatus;
-} & Partial<QuantityOrNumberMap<PipeQuantities>>;
+  diameter?: QuantityOrNumber;
+  roughness?: QuantityOrNumber;
+  minorLoss?: QuantityOrNumber;
+  length?: QuantityOrNumber;
+};
 
 export type ReservoirBuildData = {
   id?: AssetId;
   coordinates?: Position;
-} & Partial<
-  QuantityOrNumberMap<ReservoirQuantities & { relativeHead: number }>
->;
+  head?: QuantityOrNumber;
+  relativeHead?: number;
+  elevation?: QuantityOrNumber;
+};
 
 import { customAlphabet } from "nanoid";
 const epanetCompatibleAlphabet =
@@ -68,100 +72,109 @@ export class AssetBuilder {
     ],
     connections = nullConnections,
     status = "open",
-    ...quantities
+    length,
+    diameter,
+    minorLoss,
+    roughness,
   }: PipeBuildData = {}) {
-    const defaultQuantities = getDefaultQuantities(this.quantitiesSpec.pipe);
-
     return new Pipe(id, coordinates, {
       type: "pipe",
       connections,
       status,
-      ...canonalizeQuantities(
-        { ...defaultQuantities, ...quantities },
-        pipeCanonicalSpec,
-      ),
+      length: this.getPipeValue("length", length),
+      diameter: this.getPipeValue("diameter", diameter),
+      minorLoss: this.getPipeValue("minorLoss", minorLoss),
+      roughness: this.getPipeValue("roughness", roughness),
     });
   }
 
   buildJunction({
     id = generateId(),
     coordinates = [0, 0],
-    ...quantities
+    elevation,
+    demand,
   }: JunctionBuildData = {}) {
-    const defaultQuantities = getDefaultQuantities(
-      this.quantitiesSpec.junction,
-    );
-
     return new Junction(id, coordinates, {
       type: "junction",
-      ...canonalizeQuantities(
-        { ...defaultQuantities, ...quantities },
-        junctionCanonicalSpec,
-      ),
+      elevation: this.getJunctionValue("elevation", elevation),
+      demand: this.getJunctionValue("demand", demand),
     });
   }
 
   buildReservoir({
     id = generateId(),
     coordinates = [0, 0],
-    ...quantities
+    elevation,
+    head,
+    relativeHead,
   }: ReservoirBuildData = {}) {
-    const defaultQuantities = getDefaultQuantities(
-      this.quantitiesSpec.reservoir,
-    );
-
-    const canonicalQuantities = canonalizeQuantities(
-      { ...defaultQuantities, ...quantities },
-      reservoirCanonicalSpec,
-    );
+    const elevationValue = this.getReservoirValue("elevation", elevation);
+    let headValue: number;
+    if (head !== undefined) {
+      headValue = this.getReservoirValue("head", head);
+    } else {
+      const relativeHeadValue = this.getReservoirValue(
+        "relativeHead",
+        relativeHead,
+      );
+      headValue = relativeHeadValue + elevationValue;
+    }
 
     return new Reservoir(id, coordinates, {
       type: "reservoir",
-      head:
-        quantities.head !== undefined
-          ? canonicalQuantities.head
-          : canonicalQuantities.elevation + canonicalQuantities.relativeHead,
-      elevation: canonicalQuantities.elevation,
+      head: headValue,
+      elevation: elevationValue,
     });
+  }
+
+  private getPipeValue(
+    name: keyof PipeQuantities,
+    candidate?: QuantityOrNumber,
+  ) {
+    return getValueFor(
+      candidate,
+      pipeCanonicalSpec[name].unit,
+      (this.quantitiesSpec.pipe as QuantitiesSpec<PipeQuantities>)[name]
+        .defaultValue,
+    );
+  }
+
+  private getJunctionValue(
+    name: keyof JunctionQuantities,
+    candidate?: QuantityOrNumber,
+  ) {
+    return getValueFor(
+      candidate,
+      junctionCanonicalSpec[name].unit,
+      (this.quantitiesSpec.junction as QuantitiesSpec<JunctionQuantities>)[name]
+        .defaultValue,
+    );
+  }
+
+  private getReservoirValue(
+    name: keyof ReservoirQuantities,
+    candidate?: QuantityOrNumber,
+  ) {
+    return getValueFor(
+      candidate,
+      reservoirCanonicalSpec[name].unit,
+      (this.quantitiesSpec.reservoir as QuantitiesSpec<ReservoirQuantities>)[
+        name
+      ].defaultValue,
+    );
   }
 }
 
-const canonalizeQuantities = <T>(
-  inputQuantities: Partial<QuantityOrNumberMap<T>>,
-  canonicalSpec: QuantitiesSpec<T>,
-): Record<keyof T, number> => {
-  return Object.keys(inputQuantities).reduce(
-    (acc, key) => {
-      const typedKey = key as keyof T;
-      const quantityOrNumber = inputQuantities[typedKey];
-      const quantitySpec = canonicalSpec[key as keyof T];
-      if (!quantitySpec) return acc;
+const getValueFor = (
+  quantityOrNumber: Quantity | number | undefined,
+  targetUnit: Unit,
+  defaultValue: number,
+): number => {
+  if (quantityOrNumber === undefined) return defaultValue;
 
-      if (typeof quantityOrNumber === "object") {
-        acc[typedKey] = convertTo(
-          quantityOrNumber,
-          canonicalSpec[key as keyof T].unit,
-        );
-        return acc;
-      }
+  if (typeof quantityOrNumber === "object") {
+    return convertTo(quantityOrNumber, targetUnit);
+  }
 
-      const number = quantityOrNumber;
-      acc[typedKey] = number as number;
-      return acc;
-    },
-    {} as Record<keyof T, number>,
-  );
-};
-
-const getDefaultQuantities = <T>(
-  quantitiesSpec: QuantitiesSpec<T>,
-): QuantityMap<T> => {
-  return Object.keys(quantitiesSpec).reduce((acc, key) => {
-    const typedKey = key as keyof T;
-    acc[typedKey] = {
-      value: quantitiesSpec[typedKey].defaultValue,
-      unit: quantitiesSpec[typedKey].unit,
-    };
-    return acc;
-  }, {} as QuantityMap<T>);
+  return quantityOrNumber;
 };
