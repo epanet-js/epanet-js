@@ -106,13 +106,17 @@ export const dataAtom = atom<Data>({
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 
-export const selectedFeaturesAtom = selectAtom(
-  dataAtom,
-  (data) => {
-    return USelection.getSelectedFeatures(data);
-  },
-  shallowArrayEqual,
-);
+export const selectedFeaturesAtom = isFeatureOn("FLAG_ASSET_RESULTS")
+  ? selectAtom(dataAtom, (data) => {
+      return USelection.getSelectedFeatures(data);
+    })
+  : selectAtom(
+      dataAtom,
+      (data) => {
+        return USelection.getSelectedFeatures(data);
+      },
+      shallowArrayEqual,
+    );
 
 export const assetsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("hydraulicModel").prop("assets"),
