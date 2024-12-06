@@ -47,4 +47,5 @@ export const units: Record<Exclude<Unit, null>, string> = {
   km: "km",
   "gal/min": "gpm",
   psi: "psi",
+  mwc: "mwc",
 };

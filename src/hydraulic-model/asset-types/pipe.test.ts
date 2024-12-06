@@ -127,7 +127,7 @@ describe("Pipe", () => {
     });
 
     expect(pipe.id).not.toBeUndefined();
-    expect(pipe.diameter).toEqual(304.8);
+    expect(pipe.diameter).toBeCloseTo(304.8);
     expect(pipe.length).toEqual(100);
     expect(pipe.roughness).toEqual(0.01);
     expect(pipe.minorLoss).toEqual(1);

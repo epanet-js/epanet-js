@@ -20,7 +20,7 @@ export type JunctionExplain = Record<
 const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
   demand: { defaultValue: 0, unit: "l/s" },
-  pressure: { defaultValue: 0, unit: "m" },
+  pressure: { defaultValue: 0, unit: "mwc" },
 };
 
 export { canonicalSpec as junctionCanonicalSpec };
