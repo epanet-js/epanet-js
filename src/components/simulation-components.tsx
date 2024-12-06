@@ -12,7 +12,7 @@ import { dataAtom, simulationAtom } from "src/state/jotai";
 import { buildInp } from "src/simulation/build-inp";
 import { runSimulation } from "src/simulation";
 import { DialogHeader } from "./dialog";
-import { ReactNode, Suspense, useMemo, useState } from "react";
+import { ReactNode, Suspense, useEffect, useMemo, useState } from "react";
 import * as RadixDialog from "@radix-ui/react-dialog";
 import {
   B3Size,
@@ -187,7 +187,7 @@ const SummaryDialog = ({
 };
 
 const Dialog = ({
-  onClose = () => {},
+  onClose,
   children,
   size = "sm",
 }: {
@@ -195,11 +195,26 @@ const Dialog = ({
   children: ReactNode;
   size?: B3Size;
 }) => {
+  useEffect(() => {
+    if (!onClose) return;
+    const stopEscPropagation = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+
+      onClose();
+      e.stopImmediatePropagation();
+    };
+    const captureEarly = true;
+    document.addEventListener("keydown", stopEscPropagation, captureEarly);
+    return () => {
+      document.removeEventListener("keydown", stopEscPropagation, captureEarly);
+    };
+  }, [onClose]);
+
   return (
     <RadixDialog.Root
       open={true}
       onOpenChange={(isOpen) => {
-        if (!isOpen) {
+        if (!isOpen && onClose) {
           onClose();
         }
       }}
