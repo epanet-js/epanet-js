@@ -9,6 +9,7 @@ export type Unit =
   | "l/h"
   | "km"
   | "gal/min"
+  | "mwc"
   | "psi"
   | null;
 
@@ -35,8 +36,20 @@ export type QuantitiesSpec<T> = {
   [key in keyof T]: QuantitySpec;
 };
 
-export const convertTo = (quantity: Quantity, unit: Unit): number => {
-  if (quantity.unit === null || unit === null) return quantity.value;
+export const convertTo = (quantity: Quantity, targetUnit: Unit): number => {
+  if (quantity.unit === null || targetUnit === null) return quantity.value;
+  if (quantity.unit === targetUnit) return quantity.value;
 
-  return new Qty(quantity.value, quantity.unit).to(unit).scalar;
+  let conversionQuantity: Qty;
+  if (quantity.unit === "mwc") {
+    conversionQuantity = new Qty(quantity.value * 100, "cmh2o");
+  } else {
+    conversionQuantity = new Qty(quantity.value, quantity.unit);
+  }
+
+  if (targetUnit === "mwc") {
+    return conversionQuantity.to("cmh2o").scalar / 100;
+  } else {
+    return conversionQuantity.to(targetUnit).scalar;
+  }
 };
