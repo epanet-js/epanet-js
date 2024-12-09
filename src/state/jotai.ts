@@ -388,12 +388,19 @@ const syncingMachine = createMachine({
 
 export const syncingMachineAtom = atomWithMachine(() => syncingMachine);
 
+export enum TabOption {
+  Asset = "Asset",
+  Analysis = "Analysis",
+}
+
 export enum TabOptionDeprecated {
   Feature = "Feature",
   Table = "Table",
   List = "List",
   Symbolization = "Symbolization",
 }
+
+export const tabAtom = atom<TabOption>(TabOption.Asset);
 
 export const tabAtomDeprecated = atom<TabOptionDeprecated>(
   TabOptionDeprecated.Feature,
