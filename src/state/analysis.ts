@@ -1,11 +1,17 @@
 import { atom } from "jotai";
+import { ISymbolizationRamp } from "src/types";
 
-export type NodesAnalysis = "none" | "pressures";
+export type PressuresAnalysis = {
+  type: "pressures";
+  symbolization: ISymbolizationRamp;
+};
+
+export type NodesAnalysis = { type: "none" } | PressuresAnalysis;
 
 type AnalysisState = {
   nodes: NodesAnalysis;
 };
 
 export const analysisAtom = atom<AnalysisState>({
-  nodes: "none",
+  nodes: { type: "none" },
 });
