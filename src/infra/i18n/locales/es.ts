@@ -30,15 +30,19 @@ export const translations: Translations = {
   closed: "Cerrada",
   head: "Carga",
   simulate: "Simular",
+  simulation: "Simulación",
   simulationSuccess: "Simulación exitosa",
   simulationFailure: "Simulación con errores",
   simulationOutdated: "Simulación desactualizada",
   runningSimulation: "Ejecutando simulación",
   pressure: "Presión",
+  pressures: "Presiones",
   notAvailable: "No disponible",
   flow: "Caudal",
   asset: "Activo",
   analysis: "Análisis",
+  none: "Ninguno",
+  nodesAnalysis: "Análisis de nudos",
 };
 
 export const units: UnitsLocale = {

@@ -14,8 +14,8 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     exclude: ["src/**/*.nothreads-test.tsx"],
     environmentMatchGlobs: [
-      ["src/map/elevations/*", "jsdom"],
-      ["src/components/*", "jsdom"],
+      ["src/map/elevations/**/*", "jsdom"],
+      ["src/components/**/*", "jsdom"],
       ["src/**/**", "node"],
     ],
     environmentOptions: {

@@ -28,15 +28,19 @@ export const translations = {
   closed: "Closed",
   head: "Head",
   simulate: "Simulate",
+  simulation: "Simulation",
   simulationSuccess: "Simulation was successful",
   simulationFailure: "Simulation with errors",
   simulationOutdated: "Simulation outdated",
   runningSimulation: "Running simulation...",
   notAvailable: "Not available",
   pressure: "Pressure",
+  pressures: "Pressures",
   flow: "Flow",
   asset: "Asset",
   analysis: "Analysis",
+  none: "None",
+  nodesAnalysis: "Nodes analysis",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
