@@ -55,7 +55,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
   return [
     state.snappingCandidate &&
       new ScatterplotLayer({
-        id: "DRAW_PIPE_SNAPPING_CANDIDATE",
+        id: "ephemeral-draw-pipe-snapping-candidate",
         data: [state.snappingCandidate.coordinates],
         getPosition: <T>(d: T) => d,
         getRadius: 14,
@@ -67,7 +67,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
         lineWidthUnits: "pixels",
       }),
     new GeoJsonLayer({
-      id: "DRAW_PIPE_GEOJSON",
+      id: "ephemeral-draw-pipe-geojson",
       data: geojsonFeatures,
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
@@ -79,7 +79,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       extensions: [new PathStyleExtension({ dash: true })],
     }),
     new IconLayer({
-      id: "ICONS_OVERLAY",
+      id: "ephemeral-draw-pipe-icons",
       data: icons,
       getSize: 16,
       // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas

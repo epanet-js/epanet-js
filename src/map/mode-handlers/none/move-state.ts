@@ -45,7 +45,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
 
   return [
     new GeoJsonLayer({
-      id: "MOVE_TARGET_ASSETS",
+      id: "ephemeral-move-assets",
       data: geojsonFeatures,
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
@@ -56,7 +56,7 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       lineCapRounded: true,
     }),
     new IconLayer({
-      id: "ICONS_OVERLAY",
+      id: "ephemeral-move-icons",
       data: icons,
       getSize: 20,
       // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas

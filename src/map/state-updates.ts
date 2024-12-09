@@ -1,28 +1,41 @@
 import { atom, useAtomValue } from "jotai";
 import { useCallback, useMemo, useRef } from "react";
+import { Layer as DeckLayer } from "@deck.gl/core";
 import { Moment } from "src/lib/persistence/moment";
 import {
   EphemeralEditingState,
   PreviewProperty,
   Sel,
+  SimulationSuccess,
   assetsAtom,
   ephemeralStateAtom,
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
   selectionAtom,
+  simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
-import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
+import {
+  ISymbolization,
+  ISymbolizationRamp,
+  LayerConfigMap,
+  SYMBOLIZATION_NONE,
+} from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
+import {
+  AssetId,
+  AssetsMap,
+  Junction,
+  filterAssets,
+} from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
-import { PolygonLayer } from "@deck.gl/layers";
+import { PolygonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import {
   DECK_LASSO_ID,
   LASSO_DARK_YELLOW,
@@ -31,6 +44,8 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { AnalysisState, analysisAtom } from "src/state/analysis";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -70,6 +85,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const selection = useAtomValue(selectionAtom);
 
   const assets = useAtomValue(assetsAtom);
+  const simulation = useAtomValue(simulationAtom);
+  const analysis = useAtomValue(analysisAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
   const rep = usePersistence();
   const idMap = rep.idMap;
@@ -90,6 +107,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
+  const lastAnalysisSync = useRef<AnalysisState>();
+  const lastSimulationVersion = useRef<string>();
 
   nextEphemeralSync.current = ephemeralState;
 
@@ -97,13 +116,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (!map) return;
 
     const hasStyleRefresh = lastStylesSync.current !== stylesConfig;
+    const hasNewImport = importPointer.current !== latestImportPointer;
+    const hasNewAssets = latestChangePointer !== editionsPointer.current;
+    let ephemeralStateOverlays: DeckLayer[] = [];
+    let analysisOverlays: DeckLayer[] = [];
 
     if (hasStyleRefresh) {
       lastStylesSync.current = stylesConfig;
       await updateLayerStyles(map, stylesConfig);
     }
 
-    if (importPointer.current !== latestImportPointer || hasStyleRefresh) {
+    if (hasNewImport || hasStyleRefresh) {
       importPointer.current = latestImportPointer;
       isUpdatingSources.current = true;
 
@@ -119,7 +142,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       isUpdatingSources.current = false;
     }
 
-    if (latestChangePointer !== editionsPointer.current || hasStyleRefresh) {
+    if (hasNewAssets || hasStyleRefresh) {
       editionsPointer.current = latestChangePointer;
       isUpdatingSources.current = true;
 
@@ -147,7 +170,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       lastEphemeralSync.current !== nextEphemeralSync.current &&
       !isUpdatingSources.current
     ) {
-      updateEphemeralStateOvelay(map, nextEphemeralSync.current);
+      if (isFeatureOn("FLAG_PRESSURES")) {
+        ephemeralStateOverlays = updateEphemeralStateOvelay(
+          map,
+          nextEphemeralSync.current,
+        );
+      } else {
+        updateEphemeralStateOvelayDeprecated(map, nextEphemeralSync.current);
+      }
       hideFeaturesInEphemeralState(
         map,
         lastEphemeralSync.current,
@@ -162,7 +192,32 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, selection);
       lastSelectionSync.current = selection;
     }
+
+    const hasNewSimulation =
+      lastSimulationVersion.current !==
+      (simulation as SimulationSuccess).modelVersion;
+    if (
+      isFeatureOn("FLAG_PRESSURES") ||
+      lastAnalysisSync.current !== analysis ||
+      hasNewAssets ||
+      hasNewSimulation
+    ) {
+      lastSimulationVersion.current =
+        (simulation as SimulationSuccess).modelVersion || "0";
+      lastAnalysisSync.current = analysis;
+      analysisOverlays = updateAnalysisOverlays(
+        map,
+        assets,
+        analysis,
+        lastEphemeralSync.current,
+      );
+    }
+
+    if (isFeatureOn("FLAG_PRESSURES")) {
+      map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
+    }
   }, [
+    simulation,
     assets,
     idMap,
     latestImportPointer,
@@ -171,6 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     map,
     momentLog,
     selection,
+    analysis,
   ]);
 
   doUpdates().catch((e) => captureError(e));
@@ -305,8 +361,40 @@ const hideFeaturesInEphemeralState = withInstrumentation(
 );
 
 const updateEphemeralStateOvelay = withInstrumentation(
+  (map: MapEngine, ephemeralState: EphemeralEditingState): DeckLayer[] => {
+    let ephemeralLayers: DeckLayer[] = [];
+
+    if (ephemeralState.type === "drawPipe") {
+      ephemeralLayers = buildDrawPipeLayers(ephemeralState) as DeckLayer[];
+    }
+    if (ephemeralState.type === "moveAssets") {
+      ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
+    }
+    if (ephemeralState.type === "lasso") {
+      ephemeralLayers = [
+        new PolygonLayer<number[]>({
+          id: DECK_LASSO_ID,
+          data: [makeRectangle(ephemeralState)],
+          visible: ephemeralState.type === "lasso",
+          pickable: false,
+          stroked: true,
+          filled: true,
+          lineWidthUnits: "pixels",
+          getPolygon: (d) => d,
+          getFillColor: LASSO_YELLOW,
+          getLineColor: LASSO_DARK_YELLOW,
+          getLineWidth: 1,
+        }),
+      ];
+    }
+    return ephemeralLayers;
+  },
+  { name: "MAP_STATE:UPDATE_OVERLAYS", maxDurationMs: 100 },
+);
+
+const updateEphemeralStateOvelayDeprecated = withInstrumentation(
   (map: MapEngine, ephemeralState: EphemeralEditingState) => {
-    const layers = [
+    const ephemeralLayers = [
       ephemeralState.type === "drawPipe" && buildDrawPipeLayers(ephemeralState),
       ephemeralState.type === "moveAssets" &&
         buildMoveAssetsLayers(ephemeralState),
@@ -326,7 +414,8 @@ const updateEphemeralStateOvelay = withInstrumentation(
           getLineWidth: 1,
         }),
     ];
-    map.setOverlay(layers);
+
+    map.setOverlay(ephemeralLayers);
   },
   { name: "MAP_STATE:UPDATE_OVERLAYS", maxDurationMs: 100 },
 );
@@ -337,6 +426,87 @@ const updateSelectionFeatureState = withInstrumentation(
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
+
+const updateAnalysisOverlays = (
+  map: MapEngine,
+  assets: AssetsMap,
+  analysis: AnalysisState,
+  ephemeralState: EphemeralEditingState,
+): DeckLayer[] => {
+  const assetsInEphemeralState = getAssetsInEphemeralState(ephemeralState);
+  const buildPressuresOverlay = (
+    assets: AssetsMap,
+    symbolization: ISymbolizationRamp,
+  ) => {
+    const data = [];
+
+    const steps = symbolization.stops.map((stop) => {
+      return {
+        value: stop.input,
+        color: stop.output
+          .replace("rgb(", "")
+          .replace(")", "")
+          .split(",")
+          .map((value) => parseInt(value.trim())),
+      };
+    });
+
+    const colorFor = (value: number): number[] => {
+      const step = steps.find((step) => value <= step.value);
+      return step ? step.color : steps[steps.length - 1].color;
+    };
+
+    for (const asset of assets.values()) {
+      if (asset.type !== "junction" || assetsInEphemeralState.has(asset.id))
+        continue;
+
+      data.push({
+        color: colorFor((asset as Junction).pressure || 0),
+        coordinates: asset.coordinates,
+      });
+    }
+
+    return [
+      new ScatterplotLayer({
+        id: "analysis-pressures",
+        data,
+        getPosition: (d) => d.coordinates as [number, number],
+        getRadius: 6,
+        radiusUnits: "pixels",
+        getFillColor: (d) => d.color as [number, number, number],
+        pickable: false,
+        antialiasing: true,
+      }),
+    ];
+  };
+
+  const analysisLayers: DeckLayer[] = [];
+
+  if (analysis.nodes.type === "pressures") {
+    analysisLayers.push(
+      ...buildPressuresOverlay(assets, analysis.nodes.symbolization),
+    );
+  }
+
+  return analysisLayers;
+};
+
+const getAssetsInEphemeralState = (
+  ephemeralState: EphemeralEditingState | undefined,
+): Set<AssetId> => {
+  if (!ephemeralState) return new Set([]);
+
+  switch (ephemeralState.type) {
+    case "lasso":
+      return new Set([]);
+    case "moveAssets":
+      return new Set(ephemeralState.targetAssets.map((a) => a.id));
+    case "drawPipe":
+      return new Set([]);
+    case "none":
+      return new Set([]);
+  }
+};
 
 const getFeaturesToHideFrom = (
   ephemeralState: EphemeralEditingState | undefined,
