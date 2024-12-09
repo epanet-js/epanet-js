@@ -8,7 +8,7 @@ export type PressuresAnalysis = {
 
 export type NodesAnalysis = { type: "none" } | PressuresAnalysis;
 
-type AnalysisState = {
+export type AnalysisState = {
   nodes: NodesAnalysis;
 };
 
