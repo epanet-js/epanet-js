@@ -23,6 +23,7 @@ const SymbolizationEditor = dynamic(
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
+import { AnalysisEditor } from "./AnalysisEditor";
 
 const TAB_ORDER_RIGHT = [
   TabOptionDeprecated.Feature,
@@ -77,7 +78,7 @@ const ActiveTab = memo(function ActiveTab({
     case TabOption.Asset:
       return <FeatureEditor />;
     case TabOption.Analysis:
-      return <SymbolizationEditor />;
+      return <AnalysisEditor />;
   }
 });
 
