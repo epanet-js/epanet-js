@@ -388,14 +388,16 @@ const syncingMachine = createMachine({
 
 export const syncingMachineAtom = atomWithMachine(() => syncingMachine);
 
-export enum TabOption {
+export enum TabOptionDeprecated {
   Feature = "Feature",
   Table = "Table",
   List = "List",
   Symbolization = "Symbolization",
 }
 
-export const tabAtom = atom<TabOption>(TabOption.Feature);
+export const tabAtomDeprecated = atom<TabOptionDeprecated>(
+  TabOptionDeprecated.Feature,
+);
 
 export type VirtualColumns = string[];
 export const virtualColumnsAtom = atom<VirtualColumns>([]);

@@ -2,8 +2,8 @@ import dynamic from "next/dynamic";
 import { memo } from "react";
 import {
   showPanelBottomAtom,
-  TabOption,
-  tabAtom,
+  TabOptionDeprecated,
+  tabAtomDeprecated,
   splitsAtom,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
@@ -20,8 +20,15 @@ const SymbolizationEditor = dynamic(
 );
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 
-const TAB_ORDER_RIGHT = [TabOption.Feature, TabOption.Table];
-const TAB_ORDER_BOTTOM = [TabOption.Table, TabOption.Feature, TabOption.List];
+const TAB_ORDER_RIGHT = [
+  TabOptionDeprecated.Feature,
+  TabOptionDeprecated.Table,
+];
+const TAB_ORDER_BOTTOM = [
+  TabOptionDeprecated.Table,
+  TabOptionDeprecated.Feature,
+  TabOptionDeprecated.List,
+];
 
 function Tab({
   onClick,
@@ -60,16 +67,16 @@ function Tab({
 const ActiveTab = memo(function ActiveTab({
   activeTab,
 }: {
-  activeTab: TabOption;
+  activeTab: TabOptionDeprecated;
 }) {
   switch (activeTab) {
-    case TabOption.Feature:
+    case TabOptionDeprecated.Feature:
       return <FeatureEditor />;
-    case TabOption.Table:
+    case TabOptionDeprecated.Table:
       return <FeatureTable />;
-    case TabOption.List:
+    case TabOptionDeprecated.List:
       return <FeatureEditorFolderInner />;
-    case TabOption.Symbolization:
+    case TabOptionDeprecated.Symbolization:
       return <SymbolizationEditor />;
   }
 });
@@ -80,9 +87,9 @@ const TabList = memo(function TabList({
   activeTab,
   showSymbolization,
 }: {
-  tabOrder: TabOption[];
-  activeTab: TabOption;
-  setTab: React.Dispatch<React.SetStateAction<TabOption>>;
+  tabOrder: TabOptionDeprecated[];
+  activeTab: TabOptionDeprecated;
+  setTab: React.Dispatch<React.SetStateAction<TabOptionDeprecated>>;
   showSymbolization: boolean;
 }) {
   return (
@@ -109,8 +116,8 @@ const TabList = memo(function TabList({
           key="Symbolization"
           aria-label="Symbolization"
           title="Symbolization"
-          onClick={() => setTab(TabOption.Symbolization)}
-          active={activeTab === TabOption.Symbolization}
+          onClick={() => setTab(TabOptionDeprecated.Symbolization)}
+          active={activeTab === TabOptionDeprecated.Symbolization}
           label={<EyeOpenIcon />}
         />
       ) : null}
@@ -161,10 +168,10 @@ export const Panel = memo(function PanelInner({
   tabOrder,
   showSymbolization = true,
 }: {
-  tabOrder: TabOption[];
+  tabOrder: TabOptionDeprecated[];
   showSymbolization?: boolean;
 }) {
-  const [activeTab, setTab] = useAtom(tabAtom);
+  const [activeTab, setTab] = useAtom(tabAtomDeprecated);
 
   return (
     <div className="absolute inset-0 flex flex-col">
