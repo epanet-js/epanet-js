@@ -37,6 +37,8 @@ export const translations: Translations = {
   pressure: "Presión",
   notAvailable: "No disponible",
   flow: "Caudal",
+  asset: "Activo",
+  analysis: "Análisis",
 };
 
 export const units: UnitsLocale = {

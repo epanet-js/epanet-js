@@ -35,6 +35,8 @@ export const translations = {
   notAvailable: "Not available",
   pressure: "Pressure",
   flow: "Flow",
+  asset: "Asset",
+  analysis: "Analysis",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
