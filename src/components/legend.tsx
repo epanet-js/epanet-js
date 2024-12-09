@@ -11,8 +11,8 @@ import last from "lodash/last";
 import {
   memoryMetaAtom,
   scaleUnitAtom,
-  tabAtom,
-  TabOption,
+  tabAtomDeprecated,
+  TabOptionDeprecated,
 } from "src/state/jotai";
 import { GearIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import {
@@ -35,7 +35,7 @@ interface ScaleMeasurement {
 }
 
 function LegendTitle({ title }: { title: string }) {
-  const setTab = useSetAtom(tabAtom);
+  const setTab = useSetAtom(tabAtomDeprecated);
   return (
     <div className="block w-full px-2 pt-2 text-right flex justify-between items-center">
       {title}
@@ -43,7 +43,7 @@ function LegendTitle({ title }: { title: string }) {
         variant="quiet"
         aria-label="Edit symbolization"
         onClick={() => {
-          setTab(TabOption.Symbolization);
+          setTab(TabOptionDeprecated.Symbolization);
         }}
       >
         <Pencil2Icon className="w-3 h-3" />

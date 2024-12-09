@@ -1,5 +1,9 @@
 import type { GeoJsonProperties, IWrappedFeature } from "src/types";
-import { panelStyleOpen, tabAtom, TabOption } from "src/state/jotai";
+import {
+  panelStyleOpen,
+  tabAtomDeprecated,
+  TabOptionDeprecated,
+} from "src/state/jotai";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import {
   Button,
@@ -220,13 +224,13 @@ function StyleFields({ helpers }: { helpers: FormikProps<FormValues> }) {
 }
 
 function LiteralStyleNotice() {
-  const setTab = useSetAtom(tabAtom);
+  const setTab = useSetAtom(tabAtomDeprecated);
   return (
     <TextWell>
       The current map symbolization has literal styles disabled.{" "}
       <Button
         onClick={() => {
-          setTab(TabOption.Symbolization);
+          setTab(TabOptionDeprecated.Symbolization);
         }}
         size="xs"
       >
