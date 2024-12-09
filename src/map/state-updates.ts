@@ -18,24 +18,14 @@ import {
 import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
-import {
-  ISymbolization,
-  ISymbolizationRamp,
-  LayerConfigMap,
-  SYMBOLIZATION_NONE,
-} from "src/types";
+import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import {
-  AssetId,
-  AssetsMap,
-  Junction,
-  filterAssets,
-} from "src/hydraulic-model";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
-import { PolygonLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { PolygonLayer } from "@deck.gl/layers";
 import {
   DECK_LASSO_ID,
   LASSO_DARK_YELLOW,
@@ -46,6 +36,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { buildPressuresOverlay } from "./overlays/pressures";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -171,7 +162,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       !isUpdatingSources.current
     ) {
       if (isFeatureOn("FLAG_PRESSURES")) {
-        ephemeralStateOverlays = updateEphemeralStateOvelay(
+        ephemeralStateOverlays = buildEphemeralStateOvelay(
           map,
           nextEphemeralSync.current,
         );
@@ -205,7 +196,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       lastSimulationVersion.current =
         (simulation as SimulationSuccess).modelVersion || "0";
       lastAnalysisSync.current = analysis;
-      analysisOverlays = updateAnalysisOverlays(
+      analysisOverlays = buildAnalysisOverlays(
         map,
         assets,
         analysis,
@@ -360,7 +351,7 @@ const hideFeaturesInEphemeralState = withInstrumentation(
   },
 );
 
-const updateEphemeralStateOvelay = withInstrumentation(
+const buildEphemeralStateOvelay = withInstrumentation(
   (map: MapEngine, ephemeralState: EphemeralEditingState): DeckLayer[] => {
     let ephemeralLayers: DeckLayer[] = [];
 
@@ -389,7 +380,7 @@ const updateEphemeralStateOvelay = withInstrumentation(
     }
     return ephemeralLayers;
   },
-  { name: "MAP_STATE:UPDATE_OVERLAYS", maxDurationMs: 100 },
+  { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
 );
 
 const updateEphemeralStateOvelayDeprecated = withInstrumentation(
@@ -427,69 +418,30 @@ const updateSelectionFeatureState = withInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
-const updateAnalysisOverlays = (
-  map: MapEngine,
-  assets: AssetsMap,
-  analysis: AnalysisState,
-  ephemeralState: EphemeralEditingState,
-): DeckLayer[] => {
-  const assetsInEphemeralState = getAssetsInEphemeralState(ephemeralState);
-  const buildPressuresOverlay = (
+const buildAnalysisOverlays = withInstrumentation(
+  (
+    map: MapEngine,
     assets: AssetsMap,
-    symbolization: ISymbolizationRamp,
-  ) => {
-    const data = [];
+    analysis: AnalysisState,
+    ephemeralState: EphemeralEditingState,
+  ): DeckLayer[] => {
+    const assetsInEphemeralState = getAssetsInEphemeralState(ephemeralState);
+    const analysisLayers: DeckLayer[] = [];
 
-    const steps = symbolization.stops.map((stop) => {
-      return {
-        value: stop.input,
-        color: stop.output
-          .replace("rgb(", "")
-          .replace(")", "")
-          .split(",")
-          .map((value) => parseInt(value.trim())),
-      };
-    });
-
-    const colorFor = (value: number): number[] => {
-      const step = steps.find((step) => value <= step.value);
-      return step ? step.color : steps[steps.length - 1].color;
-    };
-
-    for (const asset of assets.values()) {
-      if (asset.type !== "junction" || assetsInEphemeralState.has(asset.id))
-        continue;
-
-      data.push({
-        color: colorFor((asset as Junction).pressure || 0),
-        coordinates: asset.coordinates,
-      });
+    if (analysis.nodes.type === "pressures") {
+      analysisLayers.push(
+        ...buildPressuresOverlay(
+          assets,
+          analysis.nodes.symbolization,
+          assetsInEphemeralState,
+        ),
+      );
     }
 
-    return [
-      new ScatterplotLayer({
-        id: "analysis-pressures",
-        data,
-        getPosition: (d) => d.coordinates as [number, number],
-        getRadius: 6,
-        radiusUnits: "pixels",
-        getFillColor: (d) => d.color as [number, number, number],
-        pickable: false,
-        antialiasing: true,
-      }),
-    ];
-  };
-
-  const analysisLayers: DeckLayer[] = [];
-
-  if (analysis.nodes.type === "pressures") {
-    analysisLayers.push(
-      ...buildPressuresOverlay(assets, analysis.nodes.symbolization),
-    );
-  }
-
-  return analysisLayers;
-};
+    return analysisLayers;
+  },
+  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 200 },
+);
 
 const getAssetsInEphemeralState = (
   ephemeralState: EphemeralEditingState | undefined,
