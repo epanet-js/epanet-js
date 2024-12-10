@@ -5,7 +5,7 @@ import { AnalysisEditor } from "./AnalysisEditor";
 import userEvent from "@testing-library/user-event";
 import { PressuresAnalysis, analysisAtom } from "src/state/analysis";
 
-describe.skip("Analysis Editor", () => {
+describe("Analysis Editor", () => {
   it("can change the analysis for nodes", async () => {
     const store = getDefaultStore();
     renderComponent(store);
