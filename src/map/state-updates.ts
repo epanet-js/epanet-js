@@ -37,6 +37,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { buildPressuresOverlay } from "./overlays/pressures";
+import { USelection } from "src/selection";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -67,6 +68,7 @@ type MapState = {
   ephemeralState: EphemeralEditingState;
   analysis: AnalysisState;
   simulation: SimulationState;
+  selectedAssetIds: Set<AssetId>;
 };
 
 const nullMapState: MapState = {
@@ -81,6 +83,7 @@ const nullMapState: MapState = {
   ephemeralState: { type: "none" },
   analysis: { nodes: { type: "none" } },
   simulation: { status: "idle" },
+  selectedAssetIds: new Set(),
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -111,6 +114,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const analysis = get(analysisAtom);
   const simulation = get(simulationAtom);
+  const selectedAssetIds = new Set(USelection.toIds(selection));
 
   return {
     lastImportPointer,
@@ -120,6 +124,7 @@ const mapStateAtom = atom<MapState>((get) => {
     ephemeralState,
     analysis,
     simulation,
+    selectedAssetIds,
   };
 });
 
@@ -231,6 +236,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         assets,
         mapState.analysis,
         mapState.ephemeralState,
+        mapState.selectedAssetIds,
       );
     }
 
@@ -411,6 +417,7 @@ const buildAnalysisOverlays = withInstrumentation(
     assets: AssetsMap,
     analysis: AnalysisState,
     ephemeralState: EphemeralEditingState,
+    selectedAssetIds: Set<AssetId>,
   ): DeckLayer[] => {
     const assetsInEphemeralState = getAssetsInEphemeralState(ephemeralState);
     const analysisLayers: DeckLayer[] = [];
@@ -420,7 +427,9 @@ const buildAnalysisOverlays = withInstrumentation(
         ...buildPressuresOverlay(
           assets,
           analysis.nodes.symbolization,
-          assetsInEphemeralState,
+          (assetId) =>
+            !assetsInEphemeralState.has(assetId) &&
+            !selectedAssetIds.has(assetId),
         ),
       );
     }

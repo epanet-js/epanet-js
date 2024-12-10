@@ -8,7 +8,7 @@ type Rgb = [number, number, number];
 export const buildPressuresOverlay = (
   assets: AssetsMap,
   symbolization: ISymbolizationRamp,
-  skipSet: Set<AssetId>,
+  conditionFn: (assetId: AssetId) => boolean,
 ) => {
   const steps = symbolization.stops.map((stop) => {
     return {
@@ -26,7 +26,7 @@ export const buildPressuresOverlay = (
   for (const asset of assets.values()) {
     if (
       asset.type !== "junction" ||
-      skipSet.has(asset.id) ||
+      !conditionFn(asset.id) ||
       (asset as Junction).pressure === null
     )
       continue;
