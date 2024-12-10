@@ -6,13 +6,13 @@ import { CURSOR_DEFAULT, emptySelection } from "src/lib/constants";
 import type { Feature, IFeatureCollection } from "src/types";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { isDebugOn } from "src/infra/debug-mode";
 import { USelection } from "src/selection";
 import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
+import { isDebugMapHandlers } from "src/infra/debug-mode";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -49,7 +49,7 @@ export type MapHandlers = {
 };
 
 const noop = () => null;
-const debugEvent = isDebugOn
+const debugEvent = isDebugMapHandlers
   ? (e: mapboxgl.MapboxEvent<any>) => {
       // eslint-disable-next-line no-console
       console.log(`MAPBOX_EVENT: ${e.type}`);
