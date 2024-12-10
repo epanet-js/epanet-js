@@ -6,7 +6,7 @@ import { TabOption, tabAtom } from "src/state/jotai";
 import { ISymbolizationRamp } from "src/types";
 import { Button } from "../elements";
 import { Pencil2Icon } from "@radix-ui/react-icons";
-import { translate } from "src/infra/i18n";
+import { translate, translateUnit } from "src/infra/i18n";
 
 export const AnalysisLegends = () => {
   const { nodes } = useAtomValue(analysisAtom);
@@ -49,9 +49,12 @@ const LegendRamp = ({
 }: {
   symbolization: ISymbolizationRamp;
 }) => {
+  const title = symbolization.unit
+    ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
+    : translate(symbolization.property);
   return (
     <>
-      <LegendTitle title={translate(symbolization.property)} />
+      <LegendTitle title={title} />
       <div className="p-2">
         <div
           className="h-4 rounded dark:border dark:border-white"

@@ -24,6 +24,7 @@ import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
+import { Unit } from "@deck.gl/core";
 
 export interface CoordProps {
   x: number;
@@ -382,7 +383,9 @@ export const SYMBOLIZATION_NONE: ISymbolizationNone = {
 };
 
 export type ISymbolizationNone = z.infer<typeof SymbolizationNone>;
-export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp>;
+export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp> & {
+  unit?: Unit;
+};
 export type ISymbolizationCategorical = z.infer<
   typeof SymbolizationCategorical
 >;

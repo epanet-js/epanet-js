@@ -6,6 +6,7 @@ import { translate } from "src/infra/i18n";
 import { ISymbolizationRamp } from "src/types";
 import { purple900 } from "src/lib/constants";
 import { COLORBREWER_ALL } from "src/lib/colorbrewer";
+import { Unit } from "@deck.gl/core";
 
 const generateRampStops = (name: string, intervals: number[]) => {
   const rampSize = 7;
@@ -24,6 +25,7 @@ const defaultPressuresSymbolization: ISymbolizationRamp = {
   type: "ramp",
   simplestyle: true,
   property: "pressure",
+  unit: "mwc" as Unit,
   defaultColor: purple900,
   defaultOpacity: 0.3,
   interpolate: "step",
