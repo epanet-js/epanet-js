@@ -24,10 +24,15 @@ export const buildPressuresOverlay = (
 
   const data = [];
   for (const asset of assets.values()) {
-    if (asset.type !== "junction" || skipSet.has(asset.id)) continue;
+    if (
+      asset.type !== "junction" ||
+      skipSet.has(asset.id) ||
+      (asset as Junction).pressure === null
+    )
+      continue;
 
     data.push({
-      color: colorFor((asset as Junction).pressure || 0),
+      color: colorFor((asset as Junction).pressure as number),
       coordinates: asset.coordinates,
     });
   }
