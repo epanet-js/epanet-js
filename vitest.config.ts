@@ -11,20 +11,15 @@ loadEnvConfig(projectDir);
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
+    environment: "jsdom",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    exclude: ["src/**/*.nothreads-test.tsx"],
     environmentMatchGlobs: [
-      ["src/map/elevations/*", "jsdom"],
-      ["src/components/*", "jsdom"],
-      ["src/**/**", "node"],
+      ["src/**/*.test.tsx", "jsdom"],
+      ["src/**/*.test.ts", "node"],
     ],
-    environmentOptions: {
-      jsdom: { resources: "usable" },
-    },
     dir: "./",
     deps: {
       interopDefault: true,
-      inline: ["vitest-canvas-mock"],
     },
     globals: true,
     setupFiles: ["./test/setup.ts", "./src/__helpers__/feature-flags.ts"],
