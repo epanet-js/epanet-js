@@ -6,12 +6,14 @@ import {
   EphemeralEditingState,
   PreviewProperty,
   Sel,
+  SimulationState,
   assetsAtom,
   ephemeralStateAtom,
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
   selectionAtom,
+  simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
@@ -66,15 +68,100 @@ type StylesConfig = {
   previewProperty: PreviewProperty;
 };
 
+type MapState = {
+  lastImportPointer: number | null;
+  lastChangePointer: number;
+  stylesConfig: StylesConfig;
+  selection: Sel;
+  ephemeralState: EphemeralEditingState;
+  analysis: AnalysisState;
+  simulation: SimulationState;
+};
+
+const nullMapState: MapState = {
+  lastImportPointer: null,
+  lastChangePointer: 0,
+  stylesConfig: {
+    symbolization: SYMBOLIZATION_NONE,
+    previewProperty: null,
+    layerConfigs: new Map(),
+  },
+  selection: { type: "none" },
+  ephemeralState: { type: "none" },
+  analysis: { nodes: { type: "none" } },
+  simulation: { status: "idle" },
+} as const;
+
+const stylesConfigAtom = atom<StylesConfig>((get) => {
+  const layerConfigs = get(layerConfigAtom);
+  const { symbolization, label } = get(memoryMetaAtom);
+
+  return {
+    symbolization: symbolization || SYMBOLIZATION_NONE,
+    previewProperty: label,
+    layerConfigs,
+  };
+});
+
+const momentLogPointersAtom = atom((get) => {
+  const momentLog = get(momentLogAtom);
+  const lastImportPointer = momentLog.searchLast(isImportMoment);
+  const lastChangePointer = momentLog.getPointer();
+  return {
+    lastImportPointer,
+    lastChangePointer,
+  };
+});
+
+const mapStateAtom = atom<MapState>((get) => {
+  const { lastImportPointer, lastChangePointer } = get(momentLogPointersAtom);
+  const stylesConfig = get(stylesConfigAtom);
+  const selection = get(selectionAtom);
+  const ephemeralState = get(ephemeralStateAtom);
+  const analysis = get(analysisAtom);
+  const simulation = get(simulationAtom);
+
+  return {
+    lastImportPointer,
+    lastChangePointer,
+    stylesConfig,
+    selection,
+    ephemeralState,
+    analysis,
+    simulation,
+  };
+});
+
+const detectChanges = (
+  state: MapState,
+  prev: MapState,
+): {
+  hasNewImport: boolean;
+  hasNewEditions: boolean;
+  hasNewStyles: boolean;
+  hasNewSelection: boolean;
+  hasNewEphemeralState: boolean;
+  hasNewSimulation: boolean;
+} => {
+  return {
+    hasNewImport: state.lastImportPointer !== prev.lastImportPointer,
+    hasNewEditions: state.lastChangePointer !== prev.lastChangePointer,
+    hasNewStyles: state.stylesConfig !== prev.stylesConfig,
+    hasNewSelection: state.selection !== prev.selection,
+    hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
+    hasNewSimulation: state.simulation !== prev.simulation,
+  };
+};
+
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
+  const mapState = useAtomValue(mapStateAtom);
   const latestImportPointer = useAtomValue(latestImportAtom);
   const latestChangePointer = useAtomValue(latestChangeAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
 
   const assets = useAtomValue(assetsAtom);
-  const analysis = useAtomValue(analysisAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
   const rep = usePersistence();
   const idMap = rep.idMap;
@@ -95,50 +182,53 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
+  const previousMapStateRef = useRef<MapState>(nullMapState);
 
   nextEphemeralSync.current = ephemeralState;
 
   const doUpdates = useCallback(async () => {
     if (!map) return;
 
-    const hasStyleRefresh = lastStylesSync.current !== stylesConfig;
-    const hasNewImport = importPointer.current !== latestImportPointer;
-    const hasNewAssets = latestChangePointer !== editionsPointer.current;
+    if (mapState === previousMapStateRef.current) return;
+
+    const previousMapState = previousMapStateRef.current;
+    previousMapStateRef.current = mapState;
+
+    const changes = detectChanges(mapState, previousMapState);
+    const {
+      hasNewImport,
+      hasNewStyles,
+      hasNewEditions,
+      hasNewSelection,
+      hasNewEphemeralState,
+    } = changes;
+
     let ephemeralStateOverlays: DeckLayer[] = [];
     let analysisOverlays: DeckLayer[] = [];
 
-    if (hasStyleRefresh) {
-      lastStylesSync.current = stylesConfig;
-      await updateLayerStyles(map, stylesConfig);
+    if (hasNewStyles) {
+      await updateLayerStyles(map, mapState.stylesConfig);
     }
 
-    if (hasNewImport || hasStyleRefresh) {
-      importPointer.current = latestImportPointer;
-      isUpdatingSources.current = true;
-
+    if (hasNewImport || hasNewStyles) {
       await updateImportSource(
         map,
         momentLog,
-        latestImportPointer,
+        mapState.lastImportPointer,
         assets,
         idMap,
-        stylesConfig,
+        mapState.stylesConfig,
       );
-
-      isUpdatingSources.current = false;
     }
 
-    if (hasNewAssets || hasStyleRefresh) {
-      editionsPointer.current = latestChangePointer;
-      isUpdatingSources.current = true;
-
+    if (hasNewEditions || hasNewStyles) {
       const editedAssetIds = await updateEditionsSource(
         map,
         momentLog,
-        latestImportPointer,
+        mapState.lastImportPointer,
         assets,
         idMap,
-        stylesConfig,
+        mapState.stylesConfig,
       );
       const newHiddenFeatures = updateVisibilityFeatureState(
         map,
@@ -148,51 +238,37 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       );
 
       lastHiddenFeatures.current = newHiddenFeatures;
-      isUpdatingSources.current = false;
     }
 
-    if (
-      !!nextEphemeralSync.current &&
-      lastEphemeralSync.current !== nextEphemeralSync.current &&
-      !isUpdatingSources.current
-    ) {
+    if (hasNewEphemeralState) {
       ephemeralStateOverlays = buildEphemeralStateOvelay(
         map,
-        nextEphemeralSync.current,
+        mapState.ephemeralState,
       );
       hideFeaturesInEphemeralState(
         map,
-        lastEphemeralSync.current,
-        nextEphemeralSync.current,
+        previousMapState.ephemeralState,
+        mapState.ephemeralState,
         lastHiddenFeatures.current,
         idMap,
       );
-      lastEphemeralSync.current = nextEphemeralSync.current;
     }
 
-    if (lastSelectionSync.current !== selection && !isUpdatingSources.current) {
-      updateSelectionFeatureState(map, selection);
-      lastSelectionSync.current = selection;
+    if (hasNewSelection) {
+      updateSelectionFeatureState(map, mapState.selection);
     }
-    analysisOverlays = buildAnalysisOverlays(
-      map,
-      assets,
-      analysis,
-      lastEphemeralSync.current,
-    );
+
+    if (isFeatureOn("FLAG_PRESSURES")) {
+      analysisOverlays = buildAnalysisOverlays(
+        map,
+        assets,
+        mapState.analysis,
+        mapState.ephemeralState,
+      );
+    }
 
     map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
-  }, [
-    assets,
-    idMap,
-    latestImportPointer,
-    latestChangePointer,
-    stylesConfig,
-    map,
-    momentLog,
-    selection,
-    analysis,
-  ]);
+  }, [mapState, assets, idMap, map, momentLog]);
 
   const doUpdatesDeprecated = useCallback(async () => {
     if (!map) return;
