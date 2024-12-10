@@ -6,14 +6,12 @@ import {
   EphemeralEditingState,
   PreviewProperty,
   Sel,
-  SimulationSuccess,
   assetsAtom,
   ephemeralStateAtom,
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
   selectionAtom,
-  simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import { buildOptimizedAssetsSource } from "./data-source";
@@ -76,7 +74,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const selection = useAtomValue(selectionAtom);
 
   const assets = useAtomValue(assetsAtom);
-  const simulation = useAtomValue(simulationAtom);
   const analysis = useAtomValue(analysisAtom);
   const layerConfigs = useAtomValue(layerConfigAtom);
   const rep = usePersistence();
@@ -98,8 +95,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastStylesSync = useRef<StylesConfig>();
   const isUpdatingSources = useRef<boolean>(false);
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
-  const lastAnalysisSync = useRef<AnalysisState>();
-  const lastSimulationVersion = useRef<string>();
 
   nextEphemeralSync.current = ephemeralState;
 
@@ -161,14 +156,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       lastEphemeralSync.current !== nextEphemeralSync.current &&
       !isUpdatingSources.current
     ) {
-      if (isFeatureOn("FLAG_PRESSURES")) {
-        ephemeralStateOverlays = buildEphemeralStateOvelay(
-          map,
-          nextEphemeralSync.current,
-        );
-      } else {
-        updateEphemeralStateOvelayDeprecated(map, nextEphemeralSync.current);
-      }
+      ephemeralStateOverlays = buildEphemeralStateOvelay(
+        map,
+        nextEphemeralSync.current,
+      );
       hideFeaturesInEphemeralState(
         map,
         lastEphemeralSync.current,
@@ -183,32 +174,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, selection);
       lastSelectionSync.current = selection;
     }
+    analysisOverlays = buildAnalysisOverlays(
+      map,
+      assets,
+      analysis,
+      lastEphemeralSync.current,
+    );
 
-    const hasNewSimulation =
-      lastSimulationVersion.current !==
-      (simulation as SimulationSuccess).modelVersion;
-    if (
-      isFeatureOn("FLAG_PRESSURES") ||
-      lastAnalysisSync.current !== analysis ||
-      hasNewAssets ||
-      hasNewSimulation
-    ) {
-      lastSimulationVersion.current =
-        (simulation as SimulationSuccess).modelVersion || "0";
-      lastAnalysisSync.current = analysis;
-      analysisOverlays = buildAnalysisOverlays(
-        map,
-        assets,
-        analysis,
-        lastEphemeralSync.current,
-      );
-    }
-
-    if (isFeatureOn("FLAG_PRESSURES")) {
-      map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
-    }
+    map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
   }, [
-    simulation,
     assets,
     idMap,
     latestImportPointer,
@@ -220,7 +194,93 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     analysis,
   ]);
 
-  doUpdates().catch((e) => captureError(e));
+  const doUpdatesDeprecated = useCallback(async () => {
+    if (!map) return;
+
+    const hasStyleRefresh = lastStylesSync.current !== stylesConfig;
+    const hasNewImport = importPointer.current !== latestImportPointer;
+    const hasNewAssets = latestChangePointer !== editionsPointer.current;
+
+    if (hasStyleRefresh) {
+      lastStylesSync.current = stylesConfig;
+      await updateLayerStyles(map, stylesConfig);
+    }
+
+    if (hasNewImport || hasStyleRefresh) {
+      importPointer.current = latestImportPointer;
+      isUpdatingSources.current = true;
+
+      await updateImportSource(
+        map,
+        momentLog,
+        latestImportPointer,
+        assets,
+        idMap,
+        stylesConfig,
+      );
+
+      isUpdatingSources.current = false;
+    }
+
+    if (hasNewAssets || hasStyleRefresh) {
+      editionsPointer.current = latestChangePointer;
+      isUpdatingSources.current = true;
+
+      const editedAssetIds = await updateEditionsSource(
+        map,
+        momentLog,
+        latestImportPointer,
+        assets,
+        idMap,
+        stylesConfig,
+      );
+      const newHiddenFeatures = updateVisibilityFeatureState(
+        map,
+        lastHiddenFeatures.current,
+        editedAssetIds,
+        idMap,
+      );
+
+      lastHiddenFeatures.current = newHiddenFeatures;
+      isUpdatingSources.current = false;
+    }
+
+    if (
+      !!nextEphemeralSync.current &&
+      lastEphemeralSync.current !== nextEphemeralSync.current &&
+      !isUpdatingSources.current
+    ) {
+      updateEphemeralStateOvelayDeprecated(map, nextEphemeralSync.current);
+      hideFeaturesInEphemeralState(
+        map,
+        lastEphemeralSync.current,
+        nextEphemeralSync.current,
+        lastHiddenFeatures.current,
+        idMap,
+      );
+      lastEphemeralSync.current = nextEphemeralSync.current;
+    }
+
+    if (lastSelectionSync.current !== selection && !isUpdatingSources.current) {
+      updateSelectionFeatureState(map, selection);
+      lastSelectionSync.current = selection;
+    }
+  }, [
+    assets,
+    idMap,
+    latestImportPointer,
+    latestChangePointer,
+    stylesConfig,
+    map,
+    momentLog,
+    selection,
+  ]);
+
+  if (isFeatureOn("FLAG_PRESSURES")) {
+    doUpdates().catch((e) => captureError(e));
+  } else {
+    doUpdatesDeprecated().catch((e) => captureError(e));
+  }
 
   return { isUpdatingSources: isUpdatingSources.current };
 };
