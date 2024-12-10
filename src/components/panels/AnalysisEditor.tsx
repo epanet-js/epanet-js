@@ -27,8 +27,8 @@ const defaultPressuresSymbolization: ISymbolizationRamp = {
   defaultColor: purple900,
   defaultOpacity: 0.3,
   interpolate: "step",
-  rampName: "ag_Sunset",
-  stops: generateRampStops("ag_Sunset", [5, 10, 20, 30, 40, 50, Infinity]),
+  rampName: "ag_GrnYl",
+  stops: generateRampStops("ag_GrnYl", [5, 10, 20, 30, 40, 50, 60]),
 };
 
 export const AnalysisEditor = () => {
