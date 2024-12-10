@@ -5,6 +5,20 @@ import { NodesAnalysis, analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
 import { ISymbolizationRamp } from "src/types";
 import { purple900 } from "src/lib/constants";
+import { COLORBREWER_ALL } from "src/lib/colorbrewer";
+
+const generateRampStops = (name: string, intervals: number[]) => {
+  const rampSize = 7;
+  const pressuresRamp = COLORBREWER_ALL.find((ramp) => ramp.name === name);
+  if (!pressuresRamp) throw new Error("Ramp not found!");
+
+  const stops = pressuresRamp.colors[rampSize].map(
+    (color: string, i: number) => {
+      return { input: intervals[i], output: color };
+    },
+  );
+  return stops;
+};
 
 const defaultPressuresSymbolization: ISymbolizationRamp = {
   type: "ramp",
@@ -13,16 +27,8 @@ const defaultPressuresSymbolization: ISymbolizationRamp = {
   defaultColor: purple900,
   defaultOpacity: 0.3,
   interpolate: "step",
-  rampName: "RdPu",
-  stops: [
-    { input: 5, output: "rgb(254,235,226)" },
-    { input: 10, output: "rgb(252,197,192)" },
-    { input: 20, output: "rgb(250,159,181)" },
-    { input: 30, output: "rgb(247,104,161)" },
-    { input: 40, output: "rgb(221,52,151)" },
-    { input: 50, output: "rgb(174,1,126)" },
-    { input: 60, output: "rgb(122,1,119)" },
-  ],
+  rampName: "ag_Sunset",
+  stops: generateRampStops("ag_Sunset", [5, 10, 20, 30, 40, 50, Infinity]),
 };
 
 export const AnalysisEditor = () => {
