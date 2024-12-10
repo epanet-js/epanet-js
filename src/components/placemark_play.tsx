@@ -51,6 +51,7 @@ import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
 import {SimulationButton, SimulationStatusText} from './simulation-components';
 import {isFeatureOn} from 'src/infra/feature-flags';
+import {AnalysisLegends} from './analysis/AnalysisLengeds';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -296,22 +297,8 @@ function DraggableMap({
       <div className="flex-auto relative">
         <MapCanvas setMap={setMap} />
       </div>
-      {layout === "FLOATING" ? null : <Legend />}
-      {layout === "FLOATING" ? (
-        <button
-          className="absolute top-2 left-2 block p-2
-        border border-gray-300 dark:border-black
-        bg-white dark:bg-gray-700
-        dark:text-white
-        rounded
-        touch-none
-        cursor-move"
-          {...listeners}
-          {...attributes}
-        >
-          <MoveIcon />
-        </button>
-      ) : null}
+      {isFeatureOn('FLAG_PRESSURES') &&  <AnalysisLegends />}
+      {!isFeatureOn('FLAG_PRESSURES') && <Legend />}
     </div>
   );
 }
