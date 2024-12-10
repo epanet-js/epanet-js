@@ -48,6 +48,7 @@ export const AnalysisEditor = () => {
               className={styledSelect({ size: "sm" })}
               value={analysis.nodes.type}
               onChange={(event) => {
+                event.target.blur();
                 const type = event.target.value as NodesAnalysis["type"];
                 switch (type) {
                   case "none":

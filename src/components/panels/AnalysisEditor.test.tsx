@@ -31,6 +31,8 @@ describe("Analysis Editor", () => {
     expect(
       isSelected(screen.getByRole("option", { name: "None" })),
     ).toBeTruthy();
+
+    expect(document.activeElement).not.toBe(screen.getByRole("combobox"));
   });
 
   it("applies a default symbolizaton when choosing pressures", async () => {
