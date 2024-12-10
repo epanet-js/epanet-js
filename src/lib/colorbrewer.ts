@@ -3329,7 +3329,31 @@ export const CARTO_COLOR_QUALITATIVE: CBColors[] = [
   },
 ];
 
+const epanetColors: CBColors[] = [
+  {
+    name: "epanet-pressures",
+    colors: {
+      "2": ["#009392", "#cf597e"],
+      "3": ["#009392", "#8bc480", "#f1d572"],
+      "4": ["#009392", "#68b982", "#c3d86b", "#f1d572"],
+      "5": ["#009392", "#52b684", "#94cd74", "#e8c565", "#f99a5d"],
+      "6": ["#009392", "#3fb086", "#71c37d", "#c1d76c", "#f3c761", "#f7745d"],
+      "7": [
+        "#009392",
+        "#36ab8b",
+        "#68b982",
+        "#a9d46d",
+        "#edd361",
+        "#f89e5d",
+        "#cf597e",
+      ],
+    },
+    tags: ["epanet"],
+  },
+];
+
 export const COLORBREWER_ALL: CBColors[] = [
+  ...epanetColors,
   ...COLORBREWER_SEQUENTIAL,
   ...COLORBREWER_DIVERGING,
   ...COLORBREWER_QUAL,

@@ -5,20 +5,19 @@ import { NodesAnalysis, analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
 import { ISymbolizationRamp } from "src/types";
 import { purple900 } from "src/lib/constants";
-import { COLORBREWER_ALL } from "src/lib/colorbrewer";
+import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { Unit } from "@deck.gl/core";
 
 const generateRampStops = (name: string, intervals: number[]) => {
-  const rampSize = 7;
   const pressuresRamp = COLORBREWER_ALL.find((ramp) => ramp.name === name);
   if (!pressuresRamp) throw new Error("Ramp not found!");
 
-  const stops = pressuresRamp.colors[rampSize].map(
-    (color: string, i: number) => {
-      return { input: intervals[i], output: color };
-    },
-  );
-  return stops;
+  const stops = pressuresRamp.colors[
+    intervals.length as keyof CBColors["colors"]
+  ]?.map((color: string, i: number) => {
+    return { input: intervals[i], output: color };
+  });
+  return stops as ISymbolizationRamp["stops"];
 };
 
 const defaultPressuresSymbolization: ISymbolizationRamp = {
@@ -29,8 +28,8 @@ const defaultPressuresSymbolization: ISymbolizationRamp = {
   defaultColor: purple900,
   defaultOpacity: 0.3,
   interpolate: "step",
-  rampName: "ag_GrnYl",
-  stops: generateRampStops("ag_GrnYl", [5, 10, 20, 30, 40, 50, 60]),
+  rampName: "epanet-pressures",
+  stops: generateRampStops("epanet-pressures", [0, 25, 50, 75, 100]),
 };
 
 export const AnalysisEditor = () => {
