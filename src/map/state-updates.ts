@@ -1,5 +1,5 @@
 import { atom, useAtomValue } from "jotai";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Layer as DeckLayer } from "@deck.gl/core";
 import { Moment } from "src/lib/persistence/moment";
 import {
@@ -41,15 +41,6 @@ import { buildPressuresOverlay } from "./overlays/pressures";
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
 };
-
-const latestImportAtom = atom((get) => {
-  const momentLog = get(momentLogAtom);
-  return momentLog.searchLast(isImportMoment);
-});
-
-const latestChangeAtom = atom((get) => {
-  return get(momentLogAtom).getPointer();
-});
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -156,35 +147,11 @@ const detectChanges = (
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
   const mapState = useAtomValue(mapStateAtom);
-  const latestImportPointer = useAtomValue(latestImportAtom);
-  const latestChangePointer = useAtomValue(latestChangeAtom);
-  const ephemeralState = useAtomValue(ephemeralStateAtom);
-  const selection = useAtomValue(selectionAtom);
 
   const assets = useAtomValue(assetsAtom);
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const rep = usePersistence();
-  const idMap = rep.idMap;
-  const { symbolization, label } = useAtomValue(memoryMetaAtom);
-  const stylesConfig: StylesConfig = useMemo(
-    () => ({
-      symbolization: symbolization || SYMBOLIZATION_NONE,
-      previewProperty: label,
-      layerConfigs,
-    }),
-    [label, layerConfigs, symbolization],
-  );
-  const importPointer = useRef<number | null>(null);
-  const editionsPointer = useRef<number>(0);
-  const lastEphemeralSync = useRef<EphemeralEditingState>({ type: "none" });
-  const nextEphemeralSync = useRef<EphemeralEditingState>();
-  const lastSelectionSync = useRef<Sel>();
-  const lastStylesSync = useRef<StylesConfig>();
-  const isUpdatingSources = useRef<boolean>(false);
+  const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
-
-  nextEphemeralSync.current = ephemeralState;
 
   const doUpdates = useCallback(async () => {
     if (!map) return;
@@ -270,95 +237,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
   }, [mapState, assets, idMap, map, momentLog]);
 
-  const doUpdatesDeprecated = useCallback(async () => {
-    if (!map) return;
-
-    const hasStyleRefresh = lastStylesSync.current !== stylesConfig;
-    const hasNewImport = importPointer.current !== latestImportPointer;
-    const hasNewAssets = latestChangePointer !== editionsPointer.current;
-
-    if (hasStyleRefresh) {
-      lastStylesSync.current = stylesConfig;
-      await updateLayerStyles(map, stylesConfig);
-    }
-
-    if (hasNewImport || hasStyleRefresh) {
-      importPointer.current = latestImportPointer;
-      isUpdatingSources.current = true;
-
-      await updateImportSource(
-        map,
-        momentLog,
-        latestImportPointer,
-        assets,
-        idMap,
-        stylesConfig,
-      );
-
-      isUpdatingSources.current = false;
-    }
-
-    if (hasNewAssets || hasStyleRefresh) {
-      editionsPointer.current = latestChangePointer;
-      isUpdatingSources.current = true;
-
-      const editedAssetIds = await updateEditionsSource(
-        map,
-        momentLog,
-        latestImportPointer,
-        assets,
-        idMap,
-        stylesConfig,
-      );
-      const newHiddenFeatures = updateVisibilityFeatureState(
-        map,
-        lastHiddenFeatures.current,
-        editedAssetIds,
-        idMap,
-      );
-
-      lastHiddenFeatures.current = newHiddenFeatures;
-      isUpdatingSources.current = false;
-    }
-
-    if (
-      !!nextEphemeralSync.current &&
-      lastEphemeralSync.current !== nextEphemeralSync.current &&
-      !isUpdatingSources.current
-    ) {
-      updateEphemeralStateOvelayDeprecated(map, nextEphemeralSync.current);
-      hideFeaturesInEphemeralState(
-        map,
-        lastEphemeralSync.current,
-        nextEphemeralSync.current,
-        lastHiddenFeatures.current,
-        idMap,
-      );
-      lastEphemeralSync.current = nextEphemeralSync.current;
-    }
-
-    if (lastSelectionSync.current !== selection && !isUpdatingSources.current) {
-      updateSelectionFeatureState(map, selection);
-      lastSelectionSync.current = selection;
-    }
-  }, [
-    assets,
-    idMap,
-    latestImportPointer,
-    latestChangePointer,
-    stylesConfig,
-    map,
-    momentLog,
-    selection,
-  ]);
-
-  if (isFeatureOn("FLAG_PRESSURES")) {
-    doUpdates().catch((e) => captureError(e));
-  } else {
-    doUpdatesDeprecated().catch((e) => captureError(e));
-  }
-
-  return { isUpdatingSources: isUpdatingSources.current };
+  doUpdates().catch((e) => captureError(e));
 };
 
 const updateLayerStyles = withInstrumentation(
@@ -517,34 +396,6 @@ const buildEphemeralStateOvelay = withInstrumentation(
     return ephemeralLayers;
   },
   { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
-);
-
-const updateEphemeralStateOvelayDeprecated = withInstrumentation(
-  (map: MapEngine, ephemeralState: EphemeralEditingState) => {
-    const ephemeralLayers = [
-      ephemeralState.type === "drawPipe" && buildDrawPipeLayers(ephemeralState),
-      ephemeralState.type === "moveAssets" &&
-        buildMoveAssetsLayers(ephemeralState),
-
-      ephemeralState.type === "lasso" &&
-        new PolygonLayer<number[]>({
-          id: DECK_LASSO_ID,
-          data: [makeRectangle(ephemeralState)],
-          visible: ephemeralState.type === "lasso",
-          pickable: false,
-          stroked: true,
-          filled: true,
-          lineWidthUnits: "pixels",
-          getPolygon: (d) => d,
-          getFillColor: LASSO_YELLOW,
-          getLineColor: LASSO_DARK_YELLOW,
-          getLineWidth: 1,
-        }),
-    ];
-
-    map.setOverlay(ephemeralLayers);
-  },
-  { name: "MAP_STATE:UPDATE_OVERLAYS", maxDurationMs: 100 },
 );
 
 const updateSelectionFeatureState = withInstrumentation(
