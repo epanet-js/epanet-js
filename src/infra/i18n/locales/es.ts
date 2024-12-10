@@ -47,5 +47,5 @@ export const translations: Translations = {
 
 export const units: UnitsLocale = {
   ...englishUnits,
-  mwc: "mca",
+  mwc: "m",
 };
