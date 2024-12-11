@@ -37,6 +37,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
+import { buildFlowsOverlay } from "./overlays/flows";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -437,6 +438,17 @@ const buildAnalysisOverlays = withInstrumentation(
     selectedAssetIds: Set<AssetId>,
   ): DeckLayer[] => {
     const analysisLayers: DeckLayer[] = [];
+
+    if (analysis.links.type === "flows") {
+      analysisLayers.push(
+        ...buildFlowsOverlay(
+          assets,
+          analysis.links.symbolization,
+          (assetId) =>
+            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
+        ),
+      );
+    }
 
     if (analysis.nodes.type === "pressures") {
       analysisLayers.push(
