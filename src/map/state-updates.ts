@@ -20,7 +20,7 @@ import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
+import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -69,6 +69,7 @@ type MapState = {
   analysis: AnalysisState;
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
+  movedAssets: Asset[];
 };
 
 const nullMapState: MapState = {
@@ -84,6 +85,7 @@ const nullMapState: MapState = {
   analysis: { nodes: { type: "none" } },
   simulation: { status: "idle" },
   selectedAssetIds: new Set(),
+  movedAssets: [],
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -116,6 +118,8 @@ const mapStateAtom = atom<MapState>((get) => {
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
+  const movedAssets = getMovedAssets(ephemeralState);
+
   return {
     lastImportPointer,
     lastChangePointer,
@@ -125,6 +129,7 @@ const mapStateAtom = atom<MapState>((get) => {
     analysis,
     simulation,
     selectedAssetIds,
+    movedAssets,
   };
 });
 
@@ -138,6 +143,8 @@ const detectChanges = (
   hasNewSelection: boolean;
   hasNewEphemeralState: boolean;
   hasNewSimulation: boolean;
+  hasNewAnalysis: boolean;
+  hasNewMovedAssets: boolean;
 } => {
   return {
     hasNewImport: state.lastImportPointer !== prev.lastImportPointer,
@@ -146,6 +153,8 @@ const detectChanges = (
     hasNewSelection: state.selection !== prev.selection,
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
+    hasNewAnalysis: state.analysis !== prev.analysis,
+    hasNewMovedAssets: state.movedAssets !== prev.movedAssets,
   };
 };
 
@@ -157,6 +166,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
+  const analysisOverlays = useRef<DeckLayer[]>([]);
+  const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
 
   const doUpdates = useCallback(async () => {
     if (!map) return;
@@ -173,10 +184,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewEditions,
       hasNewSelection,
       hasNewEphemeralState,
+      hasNewAnalysis,
+      hasNewSimulation,
+      hasNewMovedAssets,
     } = changes;
-
-    let ephemeralStateOverlays: DeckLayer[] = [];
-    let analysisOverlays: DeckLayer[] = [];
 
     if (hasNewStyles) {
       await updateLayerStyles(map, mapState.stylesConfig);
@@ -213,7 +224,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (hasNewEphemeralState) {
-      ephemeralStateOverlays = buildEphemeralStateOvelay(
+      ephemeralStateOverlays.current = buildEphemeralStateOvelay(
         map,
         mapState.ephemeralState,
       );
@@ -230,17 +241,26 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (isFeatureOn("FLAG_PRESSURES")) {
-      analysisOverlays = buildAnalysisOverlays(
+    if (
+      isFeatureOn("FLAG_PRESSURES") &&
+      (hasNewAnalysis ||
+        hasNewSimulation ||
+        hasNewMovedAssets ||
+        hasNewSelection)
+    ) {
+      analysisOverlays.current = buildAnalysisOverlays(
         map,
         assets,
         mapState.analysis,
-        mapState.ephemeralState,
+        mapState.movedAssets,
         mapState.selectedAssetIds,
       );
     }
 
-    map.setOverlay([...analysisOverlays, ...ephemeralStateOverlays]);
+    map.setOverlay([
+      ...analysisOverlays.current,
+      ...ephemeralStateOverlays.current,
+    ]);
   }, [mapState, assets, idMap, map, momentLog]);
 
   doUpdates().catch((e) => captureError(e));
@@ -416,10 +436,10 @@ const buildAnalysisOverlays = withInstrumentation(
     map: MapEngine,
     assets: AssetsMap,
     analysis: AnalysisState,
-    ephemeralState: EphemeralEditingState,
+    movedAssets: Asset[],
     selectedAssetIds: Set<AssetId>,
   ): DeckLayer[] => {
-    const assetsInEphemeralState = getAssetsInEphemeralState(ephemeralState);
+    const movedAssetIds = new Set(movedAssets.map((asset) => asset.id));
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.nodes.type === "pressures") {
@@ -428,31 +448,27 @@ const buildAnalysisOverlays = withInstrumentation(
           assets,
           analysis.nodes.symbolization,
           (assetId) =>
-            !assetsInEphemeralState.has(assetId) &&
-            !selectedAssetIds.has(assetId),
+            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
         ),
       );
     }
 
     return analysisLayers;
   },
-  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 200 },
+  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 100 },
 );
 
-const getAssetsInEphemeralState = (
-  ephemeralState: EphemeralEditingState | undefined,
-): Set<AssetId> => {
-  if (!ephemeralState) return new Set([]);
-
+const noMoved: Asset[] = [];
+const getMovedAssets = (ephemeralState: EphemeralEditingState): Asset[] => {
   switch (ephemeralState.type) {
     case "lasso":
-      return new Set([]);
+      return noMoved;
     case "moveAssets":
-      return new Set(ephemeralState.targetAssets.map((a) => a.id));
+      return ephemeralState.targetAssets;
     case "drawPipe":
-      return new Set([]);
+      return noMoved;
     case "none":
-      return new Set([]);
+      return noMoved;
   }
 };
 
