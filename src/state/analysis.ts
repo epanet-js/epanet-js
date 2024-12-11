@@ -1,14 +1,14 @@
 import { atom } from "jotai";
-import { ISymbolizationRamp } from "src/types";
+import { RangeColorMapping } from "src/analysis/range-color-mapping";
 
 export type PressuresAnalysis = {
   type: "pressures";
-  symbolization: ISymbolizationRamp;
+  rangeColorMapping: RangeColorMapping;
 };
 
 export type FlowsAnalysis = {
   type: "flows";
-  symbolization: ISymbolizationRamp;
+  rangeColorMapping: RangeColorMapping;
 };
 
 export type NodesAnalysis = { type: "none" } | PressuresAnalysis;

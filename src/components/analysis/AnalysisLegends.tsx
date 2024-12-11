@@ -13,8 +13,12 @@ export const AnalysisLegends = () => {
 
   return (
     <div className="space-y-1 absolute top-10 left-2 w-48">
-      {nodes.type !== "none" && <Legend symbolization={nodes.symbolization} />}
-      {links.type !== "none" && <Legend symbolization={links.symbolization} />}
+      {nodes.type !== "none" && (
+        <Legend symbolization={nodes.rangeColorMapping.symbolization} />
+      )}
+      {links.type !== "none" && (
+        <Legend symbolization={links.rangeColorMapping.symbolization} />
+      )}
     </div>
   );
 };

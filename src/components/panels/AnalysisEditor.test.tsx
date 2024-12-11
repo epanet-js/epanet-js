@@ -106,7 +106,8 @@ describe("Analysis Editor", () => {
     const { nodes } = store.get(analysisAtom);
     const nodesAnalysis = nodes as PressuresAnalysis;
     expect(nodesAnalysis.type).toEqual("pressures");
-    expect(nodesAnalysis?.symbolization).toEqual(
+    expect(nodesAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
+    expect(nodesAnalysis.rangeColorMapping.symbolization).toEqual(
       expect.objectContaining({
         type: "ramp",
         property: "pressure",
@@ -129,7 +130,8 @@ describe("Analysis Editor", () => {
     const { links } = store.get(analysisAtom);
     const linksAnalysis = links as FlowsAnalysis;
     expect(linksAnalysis.type).toEqual("flows");
-    expect(linksAnalysis?.symbolization).toEqual(
+    expect(linksAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
+    expect(linksAnalysis.rangeColorMapping.symbolization).toEqual(
       expect.objectContaining({
         type: "ramp",
         property: "flow",
