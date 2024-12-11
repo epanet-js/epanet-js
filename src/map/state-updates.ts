@@ -35,7 +35,6 @@ import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 
@@ -242,11 +241,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (
-      isFeatureOn("FLAG_PRESSURES") &&
-      (hasNewAnalysis ||
-        hasNewSimulation ||
-        hasNewMovedAssets ||
-        hasNewSelection)
+      hasNewAnalysis ||
+      hasNewSimulation ||
+      hasNewMovedAssets ||
+      hasNewSelection
     ) {
       analysisOverlays.current = buildAnalysisOverlays(
         map,
