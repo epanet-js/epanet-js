@@ -3,12 +3,9 @@ import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./AnalysisEditor";
 import userEvent from "@testing-library/user-event";
-import {
-  FlowsAnalysis,
-  PressuresAnalysis,
-  analysisAtom,
-} from "src/state/analysis";
+import { analysisAtom } from "src/state/analysis";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { FlowsAnalysis, PressuresAnalysis } from "src/analysis";
 
 describe("Analysis Editor", () => {
   it("can change the analysis for nodes", async () => {

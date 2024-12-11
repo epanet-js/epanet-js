@@ -1,10 +1,11 @@
 import { useAtom } from "jotai";
 import { styledSelect } from "../elements";
 import { PanelDetails } from "../panel_details";
-import { LinksAnalysis, NodesAnalysis, analysisAtom } from "src/state/analysis";
+import { analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
+import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
