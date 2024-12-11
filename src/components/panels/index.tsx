@@ -1,9 +1,6 @@
-import dynamic from "next/dynamic";
 import { memo } from "react";
 import {
   showPanelBottomAtom,
-  TabOptionDeprecated,
-  tabAtomDeprecated,
   splitsAtom,
   TabOption,
   tabAtom,
@@ -11,29 +8,10 @@ import {
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
 
-const FeatureTable = dynamic(
-  () => import("src/components/panels/feature_table"),
-);
 import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
-import { FeatureEditorFolderInner } from "./feature_editor/feature_editor_folder";
-const SymbolizationEditor = dynamic(
-  () => import("src/components/panels/symbolization_editor"),
-);
-import { EyeOpenIcon } from "@radix-ui/react-icons";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { AnalysisEditor } from "./AnalysisEditor";
-
-const TAB_ORDER_RIGHT = [
-  TabOptionDeprecated.Feature,
-  TabOptionDeprecated.Table,
-];
-const TAB_ORDER_BOTTOM = [
-  TabOptionDeprecated.Table,
-  TabOptionDeprecated.Feature,
-  TabOptionDeprecated.List,
-];
 
 function Tab({
   onClick,
@@ -82,23 +60,6 @@ const ActiveTab = memo(function ActiveTab({
   }
 });
 
-const ActiveTabDeprecated = memo(function ActiveTab({
-  activeTab,
-}: {
-  activeTab: TabOptionDeprecated;
-}) {
-  switch (activeTab) {
-    case TabOptionDeprecated.Feature:
-      return <FeatureEditor />;
-    case TabOptionDeprecated.Table:
-      return <FeatureTable />;
-    case TabOptionDeprecated.List:
-      return <FeatureEditorFolderInner />;
-    case TabOptionDeprecated.Symbolization:
-      return <SymbolizationEditor />;
-  }
-});
-
 const TabList = memo(function TabList({
   setTab,
   activeTab,
@@ -131,50 +92,6 @@ const TabList = memo(function TabList({
   );
 });
 
-const TabListDeprecated = memo(function TabList({
-  tabOrder,
-  setTab,
-  activeTab,
-  showSymbolization,
-}: {
-  tabOrder: TabOptionDeprecated[];
-  activeTab: TabOptionDeprecated;
-  setTab: React.Dispatch<React.SetStateAction<TabOptionDeprecated>>;
-  showSymbolization: boolean;
-}) {
-  return (
-    <div
-      role="tablist"
-      style={{
-        gridTemplateColumns: `repeat(${tabOrder.length}, 1fr) min-content`,
-      }}
-      className="flex-0 grid h-8 flex-none
-      sticky top-0 z-10
-      bg-white dark:bg-gray-800
-      divide-x divide-gray-200 dark:divide-black"
-    >
-      {tabOrder.map((tab) => (
-        <Tab
-          key={tab}
-          onClick={() => setTab(tab)}
-          active={activeTab === tab}
-          label={tab}
-        />
-      ))}
-      {showSymbolization ? (
-        <Tab
-          key="Symbolization"
-          aria-label="Symbolization"
-          title="Symbolization"
-          onClick={() => setTab(TabOptionDeprecated.Symbolization)}
-          active={activeTab === TabOptionDeprecated.Symbolization}
-          label={<EyeOpenIcon />}
-        />
-      ) : null}
-    </div>
-  );
-});
-
 export const SidePanel = memo(function SidePanelInner() {
   const splits = useAtomValue(splitsAtom);
   if (!splits.rightOpen) return null;
@@ -185,7 +102,7 @@ export const SidePanel = memo(function SidePanelInner() {
       }}
       className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900 relative"
     >
-      <Panel tabOrder={TAB_ORDER_RIGHT} />
+      <Panel />
     </div>
   );
 });
@@ -201,7 +118,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
       }}
       className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 relative"
     >
-      <Panel tabOrder={TAB_ORDER_BOTTOM} showSymbolization={false} />
+      <Panel />
     </div>
   );
 });
@@ -209,38 +126,19 @@ export const BottomPanel = memo(function BottomPanelInner() {
 export const FullPanel = memo(function FullPanelInner() {
   return (
     <div className="flex flex-auto bg-white dark:bg-gray-800 relative">
-      <Panel tabOrder={TAB_ORDER_BOTTOM} showSymbolization={false} />
+      <Panel />
     </div>
   );
 });
 
-export const Panel = memo(function PanelInner({
-  tabOrder,
-  showSymbolization = true,
-}: {
-  tabOrder: TabOptionDeprecated[];
-  showSymbolization?: boolean;
-}) {
-  const [activeTabDeprecated, setTabDeprecated] = useAtom(tabAtomDeprecated);
+export const Panel = memo(function PanelInner() {
   const [activeTab, setTab] = useAtom(tabAtom);
 
-  return isFeatureOn("FLAG_PRESSURES") ? (
+  return (
     <div className="absolute inset-0 flex flex-col">
       <TabList activeTab={activeTab} setTab={setTab} />
       <DefaultErrorBoundary>
         <ActiveTab activeTab={activeTab} />
-      </DefaultErrorBoundary>
-    </div>
-  ) : (
-    <div className="absolute inset-0 flex flex-col">
-      <TabListDeprecated
-        tabOrder={tabOrder}
-        activeTab={activeTabDeprecated}
-        setTab={setTabDeprecated}
-        showSymbolization={showSymbolization}
-      />
-      <DefaultErrorBoundary>
-        <ActiveTabDeprecated activeTab={activeTabDeprecated} />
       </DefaultErrorBoundary>
     </div>
   );

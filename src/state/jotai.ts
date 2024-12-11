@@ -393,18 +393,7 @@ export enum TabOption {
   Analysis = "Analysis",
 }
 
-export enum TabOptionDeprecated {
-  Feature = "Feature",
-  Table = "Table",
-  List = "List",
-  Symbolization = "Symbolization",
-}
-
 export const tabAtom = atom<TabOption>(TabOption.Asset);
-
-export const tabAtomDeprecated = atom<TabOptionDeprecated>(
-  TabOptionDeprecated.Feature,
-);
 
 export type VirtualColumns = string[];
 export const virtualColumnsAtom = atom<VirtualColumns>([]);

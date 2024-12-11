@@ -27,7 +27,6 @@ import { BottomPanel, SidePanel } from "src/components/panels";
 import { Keybindings } from "src/components/keybindings";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { Legend } from "src/components/legend";
 import { Visual } from "./visual";
 import { ErrorBoundary } from "@sentry/nextjs";
 import { CheckCircledIcon, CheckIcon, CrossCircledIcon, DividerVerticalIcon, MoveIcon, ShadowInnerIcon, UpdateIcon } from "@radix-ui/react-icons";
@@ -297,8 +296,7 @@ function DraggableMap({
       <div className="flex-auto relative">
         <MapCanvas setMap={setMap} />
       </div>
-      {isFeatureOn('FLAG_PRESSURES') &&  <AnalysisLegends />}
-      {!isFeatureOn('FLAG_PRESSURES') && <Legend />}
+      <AnalysisLegends />
     </div>
   );
 }
