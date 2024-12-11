@@ -9,20 +9,21 @@ import { Pencil2Icon } from "@radix-ui/react-icons";
 import { translate, translateUnit } from "src/infra/i18n";
 
 export const AnalysisLegends = () => {
-  const { nodes } = useAtomValue(analysisAtom);
+  const { nodes, links } = useAtomValue(analysisAtom);
 
-  if (nodes.type === "none") return null;
-
-  return <Legend symbolization={nodes.symbolization} />;
+  return (
+    <div className="space-y-1 absolute top-10 left-2 w-48">
+      {nodes.type !== "none" && <Legend symbolization={nodes.symbolization} />}
+      {links.type !== "none" && <Legend symbolization={links.symbolization} />}
+    </div>
+  );
 };
 
 const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
   return (
-    <div className="space-y-1 absolute top-10 left-2 w-48">
-      <LegendContainer>
-        <LegendRamp symbolization={symbolization} />
-      </LegendContainer>
-    </div>
+    <LegendContainer>
+      <LegendRamp symbolization={symbolization} />
+    </LegendContainer>
   );
 };
 
