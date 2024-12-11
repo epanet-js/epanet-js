@@ -19,6 +19,7 @@ import {
   junctionsLayer,
 } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
+import { slotLayer } from "src/map/slots";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -136,6 +137,7 @@ export function makeLayers({
       layerId: "pipes",
       symbolization,
     }),
+    slotLayer("after-lines-slot"),
     junctionsLayer({
       source: "imported-features",
       layerId: "imported-junctions",
