@@ -50,7 +50,7 @@ import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
 import {SimulationButton, SimulationStatusText} from './simulation-components';
 import {isFeatureOn} from 'src/infra/feature-flags';
-import {AnalysisLegends} from './analysis/AnalysisLegends';
+import {AnalysisLegends} from './AnalysisLegends';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 

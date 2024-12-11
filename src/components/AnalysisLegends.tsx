@@ -4,7 +4,7 @@ import { linearGradient } from "src/lib/color";
 import { analysisAtom } from "src/state/analysis";
 import { TabOption, tabAtom } from "src/state/jotai";
 import { ISymbolizationRamp } from "src/types";
-import { Button } from "../elements";
+import { Button } from "./elements";
 import { Pencil2Icon } from "@radix-ui/react-icons";
 import { translate, translateUnit } from "src/infra/i18n";
 
