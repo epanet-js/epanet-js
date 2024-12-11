@@ -242,6 +242,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (
+      hasNewEditions ||
       hasNewAnalysis ||
       hasNewSimulation ||
       hasNewMovedAssets ||
