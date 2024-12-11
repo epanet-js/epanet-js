@@ -20,7 +20,7 @@ import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -69,7 +69,7 @@ type MapState = {
   analysis: AnalysisState;
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
-  movedAssets: Asset[];
+  movedAssetIds: Set<AssetId>;
 };
 
 const nullMapState: MapState = {
@@ -85,7 +85,7 @@ const nullMapState: MapState = {
   analysis: { nodes: { type: "none" } },
   simulation: { status: "idle" },
   selectedAssetIds: new Set(),
-  movedAssets: [],
+  movedAssetIds: new Set(),
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -118,7 +118,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
-  const movedAssets = getMovedAssets(ephemeralState);
+  const movedAssetIds = getMovedAssets(ephemeralState);
 
   return {
     lastImportPointer,
@@ -129,7 +129,7 @@ const mapStateAtom = atom<MapState>((get) => {
     analysis,
     simulation,
     selectedAssetIds,
-    movedAssets,
+    movedAssetIds,
   };
 });
 
@@ -154,7 +154,7 @@ const detectChanges = (
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewAnalysis: state.analysis !== prev.analysis,
-    hasNewMovedAssets: state.movedAssets !== prev.movedAssets,
+    hasNewMovedAssets: state.movedAssetIds.size !== prev.movedAssetIds.size,
   };
 };
 
@@ -228,10 +228,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         map,
         mapState.ephemeralState,
       );
-      hideFeaturesInEphemeralState(
+      updateEditionsVisibility(
         map,
-        previousMapState.ephemeralState,
-        mapState.ephemeralState,
+        previousMapState.movedAssetIds,
+        mapState.movedAssetIds,
         lastHiddenFeatures.current,
         idMap,
       );
@@ -252,7 +252,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         map,
         assets,
         mapState.analysis,
-        mapState.movedAssets,
+        mapState.movedAssetIds,
         mapState.selectedAssetIds,
       );
     }
@@ -361,25 +361,24 @@ const updateVisibilityFeatureState = withInstrumentation(
   { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
 );
 
-const hideFeaturesInEphemeralState = withInstrumentation(
+const updateEditionsVisibility = withInstrumentation(
   (
     map: MapEngine,
-    previousEphemeralState: EphemeralEditingState | undefined,
-    currentEphemeralState: EphemeralEditingState,
+    previousMovedAssetIds: Set<AssetId>,
+    movedAssetIds: Set<AssetId>,
     featuresHiddenFromImport: Set<RawId>,
     idMap: IDMap,
   ) => {
-    const previousIds = getFeaturesToHideFrom(previousEphemeralState, idMap);
-    const currentIds = getFeaturesToHideFrom(currentEphemeralState, idMap);
-
-    for (const featureId of previousIds) {
+    for (const assetId of previousMovedAssetIds.values()) {
+      const featureId = UIDMap.getIntID(idMap, assetId);
       map.showFeature("features", featureId);
       if (featuresHiddenFromImport.has(featureId)) continue;
 
       map.showFeature("imported-features", featureId);
     }
 
-    for (const featureId of currentIds) {
+    for (const assetId of movedAssetIds.values()) {
+      const featureId = UIDMap.getIntID(idMap, assetId);
       map.hideFeature("features", featureId);
       if (featuresHiddenFromImport.has(featureId)) continue;
 
@@ -387,7 +386,7 @@ const hideFeaturesInEphemeralState = withInstrumentation(
     }
   },
   {
-    name: "MAP_STATE:UPDATE_VISIBILITY_OF_EDITIONS",
+    name: "MAP_STATE:UPDATE_EDITIONS_VISIBILITY",
     maxDurationMs: 100,
   },
 );
@@ -436,10 +435,9 @@ const buildAnalysisOverlays = withInstrumentation(
     map: MapEngine,
     assets: AssetsMap,
     analysis: AnalysisState,
-    movedAssets: Asset[],
+    movedAssetIds: Set<AssetId>,
     selectedAssetIds: Set<AssetId>,
   ): DeckLayer[] => {
-    const movedAssetIds = new Set(movedAssets.map((asset) => asset.id));
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.nodes.type === "pressures") {
@@ -458,36 +456,18 @@ const buildAnalysisOverlays = withInstrumentation(
   { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 100 },
 );
 
-const noMoved: Asset[] = [];
-const getMovedAssets = (ephemeralState: EphemeralEditingState): Asset[] => {
+const noMoved: Set<AssetId> = new Set();
+const getMovedAssets = (
+  ephemeralState: EphemeralEditingState,
+): Set<AssetId> => {
   switch (ephemeralState.type) {
     case "lasso":
       return noMoved;
     case "moveAssets":
-      return ephemeralState.targetAssets;
+      return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
     case "drawPipe":
       return noMoved;
     case "none":
       return noMoved;
-  }
-};
-
-const getFeaturesToHideFrom = (
-  ephemeralState: EphemeralEditingState | undefined,
-  idMap: IDMap,
-): RawId[] => {
-  if (!ephemeralState) return [];
-
-  switch (ephemeralState.type) {
-    case "lasso":
-      return [];
-    case "moveAssets":
-      return ephemeralState.targetAssets.map((a) =>
-        UIDMap.getIntID(idMap, a.id),
-      );
-    case "drawPipe":
-      return [];
-    case "none":
-      return [];
   }
 };
