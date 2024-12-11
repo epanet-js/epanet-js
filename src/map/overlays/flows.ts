@@ -2,6 +2,7 @@ import { GeoJsonLayer } from "@deck.gl/layers";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetId, AssetsMap, Pipe } from "src/hydraulic-model";
 import { IFeature } from "src/types";
+import { slots } from "../slots";
 
 export const buildFlowsOverlay = (
   assets: AssetsMap,
@@ -23,10 +24,11 @@ export const buildFlowsOverlay = (
   return [
     new GeoJsonLayer({
       id: "analysis-flows",
+      beforeId: slots["after-lines-slot"],
       data: data as unknown as IFeature[],
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
-      getLineWidth: 4,
+      getLineWidth: 5,
       getFillColor: [0, 0, 0],
       getLineColor: (pipe) =>
         rangeColorMapping.colorFor(
