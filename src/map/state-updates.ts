@@ -443,7 +443,7 @@ const buildAnalysisOverlays = withInstrumentation(
       analysisLayers.push(
         ...buildFlowsOverlay(
           assets,
-          analysis.links.symbolization,
+          analysis.links.rangeColorMapping,
           (assetId) =>
             !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
         ),
@@ -454,7 +454,7 @@ const buildAnalysisOverlays = withInstrumentation(
       analysisLayers.push(
         ...buildPressuresOverlay(
           assets,
-          analysis.nodes.symbolization,
+          analysis.nodes.rangeColorMapping,
           (assetId) =>
             !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
         ),

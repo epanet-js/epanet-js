@@ -24,7 +24,7 @@ import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
-import { Unit } from "@deck.gl/core";
+import { Unit } from "src/quantity";
 
 export interface CoordProps {
   x: number;

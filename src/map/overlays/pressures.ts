@@ -1,27 +1,12 @@
 import { ScatterplotLayer } from "@deck.gl/layers";
+import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetId, AssetsMap, Junction } from "src/hydraulic-model";
-import { ISymbolizationRamp } from "src/types";
-import { parseHexColor } from "src/vendor/mapshaper/color/color-utils";
-
-type Rgb = [number, number, number];
 
 export const buildPressuresOverlay = (
   assets: AssetsMap,
-  symbolization: ISymbolizationRamp,
+  rangeColorMapping: RangeColorMapping,
   conditionFn: (assetId: AssetId) => boolean,
 ) => {
-  const steps = symbolization.stops.map((stop) => {
-    return {
-      value: stop.input,
-      color: parseColor(stop.output),
-    };
-  });
-
-  const colorFor = (value: number): number[] => {
-    const step = steps.find((step) => value <= step.value);
-    return step ? step.color : steps[steps.length - 1].color;
-  };
-
   const data: Junction[] = [];
   for (const asset of assets.values()) {
     if (
@@ -43,28 +28,9 @@ export const buildPressuresOverlay = (
       getRadius: 6,
       radiusUnits: "pixels",
       getFillColor: (junction: Junction) =>
-        colorFor(junction.pressure as number) as [number, number, number],
+        rangeColorMapping.colorFor(junction.pressure as number),
       pickable: false,
       antialiasing: true,
     }),
   ];
-};
-
-const parseColor = (color: string): Rgb => {
-  if (color.startsWith("#")) {
-    const parsed = parseHexColor(color);
-    if (parsed === null) throw new Error(`Invalid color ${color}`);
-    const { r, g, b } = parsed;
-    return [r, g, b];
-  }
-
-  if (color.startsWith("rgb")) {
-    return color
-      .replace("rgb(", "")
-      .replace(")", "")
-      .split(",")
-      .map((value) => parseInt(value.trim())) as Rgb;
-  }
-
-  throw new Error(`Color is not supported ${color}`);
 };
