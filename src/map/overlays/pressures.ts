@@ -22,7 +22,7 @@ export const buildPressuresOverlay = (
     return step ? step.color : steps[steps.length - 1].color;
   };
 
-  const data = [];
+  const data: Junction[] = [];
   for (const asset of assets.values()) {
     if (
       asset.type !== "junction" ||
@@ -31,20 +31,19 @@ export const buildPressuresOverlay = (
     )
       continue;
 
-    data.push({
-      color: colorFor((asset as Junction).pressure as number),
-      coordinates: asset.coordinates,
-    });
+    data.push(asset as Junction);
   }
 
   return [
     new ScatterplotLayer({
       id: "analysis-pressures",
       data,
-      getPosition: (d) => d.coordinates as [number, number],
+      getPosition: (junction: Junction) =>
+        junction.coordinates as [number, number],
       getRadius: 6,
       radiusUnits: "pixels",
-      getFillColor: (d) => d.color as [number, number, number],
+      getFillColor: (junction: Junction) =>
+        colorFor(junction.pressure as number) as [number, number, number],
       pickable: false,
       antialiasing: true,
     }),
