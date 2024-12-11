@@ -39,10 +39,12 @@ export const translations: Translations = {
   pressures: "Presiones",
   notAvailable: "No disponible",
   flow: "Caudal",
+  flows: "Caudales",
   asset: "Activo",
   analysis: "Análisis",
   none: "Ninguno",
   nodesAnalysis: "Análisis de nudos",
+  linksAnalysis: "Análisis de enlaces",
 };
 
 export const units: UnitsLocale = {

@@ -3331,7 +3331,7 @@ export const CARTO_COLOR_QUALITATIVE: CBColors[] = [
 
 const epanetColors: CBColors[] = [
   {
-    name: "epanet-pressures",
+    name: "epanet-ramp",
     colors: {
       "2": ["#004e64", "#cf597e"],
       "3": ["#004e64", "#8bc480", "#f1d572"],
