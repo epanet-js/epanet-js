@@ -1,9 +1,14 @@
 import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
+import arrowWhite from "src/map/icons/arrow-white.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 
-export type IconId = "reservoir" | "reservoir-outlined" | "reservoir-selected";
+export type IconId =
+  | "reservoir"
+  | "reservoir-outlined"
+  | "reservoir-selected"
+  | "arrow-white";
 export type TextureProps = {
   width: number;
   height: number;
@@ -26,12 +31,14 @@ const iconUrls: IconUrl[] = [
   { id: "reservoir", url: reservoirPng.src },
   { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
   { id: "reservoir-selected", url: reservoirSelectedPng.src },
+  { id: "arrow-white", url: arrowWhite.src },
 ];
 
 const iconsMapping: IconsMapping = {
   reservoir: { x: 0, y: 0, width: 32, height: 32 },
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
   "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
+  "arrow-white": { x: 96, y: 0, width: 64, height: 64 },
 };
 
 type Sprite = {
