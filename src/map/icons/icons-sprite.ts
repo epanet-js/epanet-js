@@ -8,7 +8,7 @@ export type IconId =
   | "reservoir"
   | "reservoir-outlined"
   | "reservoir-selected"
-  | "arrow-white";
+  | "arrow";
 export type TextureProps = {
   width: number;
   height: number;
@@ -20,6 +20,7 @@ type IconMapping = {
   y: number;
   width: number;
   height: number;
+  mask?: boolean;
 };
 
 type IconsMapping = Record<IconId, IconMapping>;
@@ -31,14 +32,14 @@ const iconUrls: IconUrl[] = [
   { id: "reservoir", url: reservoirPng.src },
   { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
   { id: "reservoir-selected", url: reservoirSelectedPng.src },
-  { id: "arrow-white", url: arrowWhite.src },
+  { id: "arrow", url: arrowWhite.src },
 ];
 
 const iconsMapping: IconsMapping = {
   reservoir: { x: 0, y: 0, width: 32, height: 32 },
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
   "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
-  "arrow-white": { x: 96, y: 0, width: 64, height: 64 },
+  arrow: { x: 96, y: 0, width: 64, height: 64, mask: true },
 };
 
 type Sprite = {
