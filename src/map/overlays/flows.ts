@@ -55,9 +55,10 @@ export const buildFlowsOverlay = (
       // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
       iconAtlas: iconsSprite.atlas,
       iconMapping: iconsSprite.mapping,
-      getIcon: (_d) => "arrow-white",
+      getIcon: (_d) => "arrow",
       getAngle: (d) => d.angle,
       getPosition: (d) => d.coordinates,
+      getColor: (d) => rangeColorMapping.colorFor(Math.abs(d.value)),
     }),
   ];
 };
@@ -67,15 +68,17 @@ const calculateArrows = (
 ): { angle: number; coordinates: Position }[] => {
   const coordinates = pipe.coordinates;
   const midpoints = [];
+  const flow = pipe.flow as number;
   for (let i = 0; i < coordinates.length - 1; i++) {
     const start = coordinates[i];
     const end = coordinates[i + 1];
-    const angleFromNorth = bearing(start, end);
+    const angleFromNorth = flow > 0 ? bearing(start, end) : bearing(end, start);
     const angleFromEast = (90 - angleFromNorth + 360) % 360;
 
     midpoints.push({
       coordinates: turfMidpont(start, end).geometry.coordinates,
       angle: angleFromEast,
+      value: flow,
     });
   }
   return midpoints;
