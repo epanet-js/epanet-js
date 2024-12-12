@@ -7,15 +7,13 @@ import turfMidpont from "@turf/midpoint";
 import { bearing } from "@turf/bearing";
 import turfLength from "@turf/length";
 import { getIconsSprite } from "../icons";
-import { Sprite } from "../icons/icons-sprite";
 
 type Arrow = {
-  coordinates: Position;
+  position: Position;
   angle: number;
-  value: number;
+  color: [number, number, number];
+  size: number;
 };
-
-type Arrows = Record<string, Arrow[]>;
 
 export const buildFlowsOverlay = (
   assets: AssetsMap,
@@ -24,15 +22,8 @@ export const buildFlowsOverlay = (
 ) => {
   const iconsSprite = getIconsSprite();
   const data: Pipe[] = [];
+  const arrows: Arrow[] = [];
 
-  const arrows = {
-    50: [],
-    20: [],
-    10: [],
-    5: [],
-    2: [],
-    1: [],
-  };
   for (const asset of assets.values()) {
     if (
       asset.type !== "pipe" ||
@@ -41,8 +32,9 @@ export const buildFlowsOverlay = (
     )
       continue;
 
-    appendArrows(arrows, asset as Pipe);
-    data.push(asset as Pipe);
+    const pipe = asset as Pipe;
+    appendArrows(arrows, pipe, rangeColorMapping);
+    data.push(pipe);
   }
 
   return [
@@ -62,112 +54,67 @@ export const buildFlowsOverlay = (
       lineCapRounded: true,
       antialiasing: true,
     }),
-    buildArrowIconLayer({
-      size: 50,
-      data: arrows[50],
-      rangeColorMapping,
-      iconsSprite,
-    }),
-    buildArrowIconLayer({
-      size: 20,
-      data: arrows[20],
-      rangeColorMapping,
-      iconsSprite,
-    }),
-    buildArrowIconLayer({
-      size: 10,
-      data: arrows[10],
-      rangeColorMapping,
-      iconsSprite,
-    }),
-    buildArrowIconLayer({
-      size: 5,
-      data: arrows[5],
-      rangeColorMapping,
-      iconsSprite,
-    }),
-    buildArrowIconLayer({
-      size: 2,
-      data: arrows[2],
-      rangeColorMapping,
-      iconsSprite,
-    }),
-    buildArrowIconLayer({
-      size: 1,
-      data: arrows[1],
-      rangeColorMapping,
-      iconsSprite,
+    new IconLayer({
+      id: "analysis-flows-icons",
+      data: arrows,
+      getSize: (d: Arrow) => d.size,
+      sizeUnits: "meters",
+      sizeMinPixels: 0,
+      sizeMaxPixels: 24,
+      // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
+      iconAtlas: iconsSprite.atlas,
+      iconMapping: iconsSprite.mapping,
+      getIcon: (_d) => "arrow",
+      getAngle: (d: Arrow) => d.angle,
+      getPosition: (d: Arrow) => d.position as [number, number],
+      getColor: (d: Arrow) => d.color,
     }),
   ];
 };
 
-const buildArrowIconLayer = ({
-  data,
-  size,
-  iconsSprite,
-  rangeColorMapping,
-}: {
-  data: Arrow[];
-  size: number;
-  iconsSprite: Sprite;
-  rangeColorMapping: RangeColorMapping;
-}): IconLayer => {
-  return new IconLayer({
-    id: `analysis-flows-icons-${size}`,
-    data,
-    getSize: size,
-    sizeUnits: "meters",
-    sizeMinPixels: 0,
-    sizeMaxPixels: 24,
-    // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
-    iconAtlas: iconsSprite.atlas,
-    iconMapping: iconsSprite.mapping,
-    getIcon: (_d) => "arrow",
-    getAngle: (d) => d.angle as number,
-    getPosition: (d) => d.coordinates as [number, number],
-    getColor: (d) => rangeColorMapping.colorFor(Math.abs(d.value)),
-  });
-};
-
-const appendArrows = (arrows: Arrows, pipe: Pipe): void => {
-  const coordinates = pipe.coordinates;
+const appendArrows = (
+  arrows: Arrow[],
+  pipe: Pipe,
+  rangeColorMapping: RangeColorMapping,
+): void => {
   const flow = pipe.flow as number;
 
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    const start = coordinates[i];
-    const end = coordinates[i + 1];
-    const segmentLengthInMeters =
-      turfLength({
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: [start, end],
-        },
-      } as IFeature) * 1000;
-
-    const arrowsForSize = chooseSize(arrows, segmentLengthInMeters);
-    arrowsForSize.push(buildArrow([start, end], flow));
+  for (const [start, end] of pipe.segments) {
+    const length = measureSegment(start, end);
+    const size = chooseSizeFor(length);
+    arrows.push({
+      position: turfMidpont(start, end).geometry.coordinates,
+      angle: flow > 0 ? calculateAngle(start, end) : calculateAngle(end, start),
+      color: rangeColorMapping.colorFor(Math.abs(flow)),
+      size,
+    });
   }
 };
 
-const chooseSize = (arrows: Arrows, segmentLengthInMeters: number): Arrow[] => {
-  if (100 <= segmentLengthInMeters) return arrows[50];
-  if (50 <= segmentLengthInMeters) return arrows[20];
-  if (20 <= segmentLengthInMeters) return arrows[10];
-  if (10 <= segmentLengthInMeters) return arrows[5];
-  if (5 <= segmentLengthInMeters) return arrows[2];
-
-  return arrows[1];
+const measureSegment = (start: Position, end: Position) => {
+  return (
+    turfLength({
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: [start, end],
+      },
+    } as IFeature) * 1000
+  );
 };
 
-const buildArrow = (coordinates: Position[], flow: number): Arrow => {
-  const [start, end] = coordinates;
-  const angleFromNorth = flow > 0 ? bearing(start, end) : bearing(end, start);
-  const angleFromEast = (90 - angleFromNorth + 360) % 360;
+const chooseSizeFor = (segmentLengthInMeters: number): number => {
+  if (100 <= segmentLengthInMeters) return 50;
+  if (50 <= segmentLengthInMeters) return 20;
+  if (20 <= segmentLengthInMeters) return 10;
+  if (10 <= segmentLengthInMeters) return 5;
+  if (5 <= segmentLengthInMeters) return 2;
 
-  return {
-    coordinates: turfMidpont(start, end).geometry.coordinates,
-    angle: angleFromEast,
-    value: flow,
-  };
+  return 1;
+};
+
+const calculateAngle = (start: Position, end: Position): number => {
+  const angleFromNorth = bearing(start, end);
+  const angleFromEast = (90 - angleFromNorth + 360) % 360;
+  return angleFromEast;
 };

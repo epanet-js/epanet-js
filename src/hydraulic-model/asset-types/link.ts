@@ -78,6 +78,16 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     return vertex;
   }
 
+  get segments(): [Position, Position][] {
+    const result: [Position, Position][] = [];
+    for (let i = 0; i < this.coordinates.length - 1; i++) {
+      const start = this.coordinates[i];
+      const end = this.coordinates[i + 1];
+      result.push([start, end]);
+    }
+    return result;
+  }
+
   addVertex(vertex: Position) {
     this.setCoordinates([...this.coordinates, vertex]);
   }
