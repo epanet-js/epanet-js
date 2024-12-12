@@ -4,7 +4,6 @@ import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./AnalysisEditor";
 import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { FlowsAnalysis, PressuresAnalysis } from "src/analysis";
 
 describe("Analysis Editor", () => {
@@ -52,7 +51,6 @@ describe("Analysis Editor", () => {
   });
 
   it("can change the analysis for links", async () => {
-    stubFeatureOn("FLAG_FLOWS");
     const store = getDefaultStore();
     renderComponent(store);
 
@@ -113,7 +111,6 @@ describe("Analysis Editor", () => {
   });
 
   it("applies a default symbolizaton when choosing flows", async () => {
-    stubFeatureOn("FLAG_FLOWS");
     const store = getDefaultStore();
     renderComponent(store);
 
