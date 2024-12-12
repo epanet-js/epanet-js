@@ -42,7 +42,7 @@ const iconsMapping: IconsMapping = {
   arrow: { x: 96, y: 0, width: 64, height: 64, mask: true },
 };
 
-type Sprite = {
+export type Sprite = {
   atlas: TextureProps;
   mapping: IconsMapping;
 };
