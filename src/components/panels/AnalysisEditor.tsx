@@ -3,7 +3,6 @@ import { styledSelect } from "../elements";
 import { PanelDetails } from "../panel_details";
 import { analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 
@@ -56,46 +55,44 @@ export const AnalysisEditor = () => {
             </select>
           </div>
         </PanelDetails>
-        {isFeatureOn("FLAG_FLOWS") && (
-          <PanelDetails title={translate("linksAnalysis")}>
-            <div className="flex items-center gap-x-2">
-              <select
-                aria-label={translate("linksAnalysis")}
-                className={styledSelect({ size: "sm" })}
-                value={analysis.links.type}
-                onChange={(event) => {
-                  event.target.blur();
-                  const type = event.target.value as LinksAnalysis["type"];
-                  switch (type) {
-                    case "none":
-                      return setAnalysis((prev) => ({
-                        ...prev,
-                        links: { type: "none" },
-                      }));
-                    case "flows":
-                      return setAnalysis((prev) => ({
-                        ...prev,
-                        links: {
-                          type: "flows",
-                          rangeColorMapping: RangeColorMapping.build({
-                            steps: [0, 25, 50, 75, 100],
-                            property: "flow",
-                            unit: "l/s",
-                            paletteName: "epanet-ramp",
-                          }),
-                        },
-                      }));
-                  }
-                }}
-              >
-                <option value="none">{translate("none")}</option>
-                <optgroup label={translate("simulation")}>
-                  <option value="flows">{translate("flows")}</option>
-                </optgroup>
-              </select>
-            </div>
-          </PanelDetails>
-        )}
+        <PanelDetails title={translate("linksAnalysis")}>
+          <div className="flex items-center gap-x-2">
+            <select
+              aria-label={translate("linksAnalysis")}
+              className={styledSelect({ size: "sm" })}
+              value={analysis.links.type}
+              onChange={(event) => {
+                event.target.blur();
+                const type = event.target.value as LinksAnalysis["type"];
+                switch (type) {
+                  case "none":
+                    return setAnalysis((prev) => ({
+                      ...prev,
+                      links: { type: "none" },
+                    }));
+                  case "flows":
+                    return setAnalysis((prev) => ({
+                      ...prev,
+                      links: {
+                        type: "flows",
+                        rangeColorMapping: RangeColorMapping.build({
+                          steps: [0, 25, 50, 75, 100],
+                          property: "flow",
+                          unit: "l/s",
+                          paletteName: "epanet-ramp",
+                        }),
+                      },
+                    }));
+                }
+              }}
+            >
+              <option value="none">{translate("none")}</option>
+              <optgroup label={translate("simulation")}>
+                <option value="flows">{translate("flows")}</option>
+              </optgroup>
+            </select>
+          </div>
+        </PanelDetails>
       </div>
     </div>
   );
