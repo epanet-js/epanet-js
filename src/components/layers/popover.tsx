@@ -12,7 +12,6 @@ import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { layerConfigAtom } from "src/state/jotai";
 import * as E from "src/components/elements";
-import { usePersistence } from "src/lib/persistence/context";
 import * as P from "@radix-ui/react-popover";
 import LAYERS from "src/lib/default_layers";
 import { Maybe } from "purify-ts/Maybe";
@@ -45,7 +44,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
-import { captureException } from "@sentry/nextjs";
 import { useQuery as reactUseQuery } from "react-query";
 import { Suspense, useState } from "react";
 import toast from "react-hot-toast";
@@ -54,8 +52,6 @@ import { zTileJSON } from "src/mapbox-layers/validations";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import { useZoomTo } from "src/hooks/use_zoom_to";
 import clamp from "lodash/clamp";
-import { Moment } from "src/lib/persistence/moment";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useLayerConfigState } from "src/map/layer-config";
 
 type Mode =
@@ -106,7 +102,7 @@ function getNextAt(items: ILayerConfig[]) {
  * in the stack, replace it and use its `at` value.
  */
 function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
-  deleteLayerConfigs: Moment["deleteLayerConfigs"];
+  deleteLayerConfigs: ILayerConfig["id"][];
   oldAt: string | undefined;
 } {
   let oldAt: string | undefined;
@@ -175,8 +171,6 @@ function MapboxLayer({
   onDone?: () => void;
 }) {
   const setMode = useSetAtom(layerModeAtom);
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const { applyChanges } = useLayerConfigState();
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -204,40 +198,22 @@ function MapboxLayer({
     if (deleteLayerConfigs.length) {
       toast("Mapbox layer replaced");
     }
-    isFeatureOn("FLAG_STYLES_NO_LOG")
-      ? applyChanges({
-          deleteLayerConfigs,
-          putLayerConfigs: [
-            {
-              ...values,
-              name,
-              visibility: true,
-              labelVisibility: true,
-              poiVisibility: true,
-              tms: false,
-              opacity: 1,
-              at: oldAt || getNextAt(items),
-              id: newFeatureId(),
-            },
-          ],
-        })
-      : await transactDeprecated({
-          note: "Add layer",
-          deleteLayerConfigs,
-          putLayerConfigs: [
-            {
-              ...values,
-              name,
-              visibility: true,
-              labelVisibility: true,
-              poiVisibility: true,
-              tms: false,
-              opacity: 1,
-              at: oldAt || getNextAt(items),
-              id: newFeatureId(),
-            },
-          ],
-        });
+    applyChanges({
+      deleteLayerConfigs,
+      putLayerConfigs: [
+        {
+          ...values,
+          name,
+          visibility: true,
+          labelVisibility: true,
+          poiVisibility: true,
+          tms: false,
+          opacity: 1,
+          at: oldAt || getNextAt(items),
+          id: newFeatureId(),
+        },
+      ],
+    });
 
     setMode("initial");
     if (onDone) {
@@ -292,8 +268,6 @@ function TileJSONLayer({
   onDone?: () => void;
 }) {
   const setMode = useSetAtom(layerModeAtom);
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const { applyChanges } = useLayerConfigState();
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -326,26 +300,15 @@ function TileJSONLayer({
             [FORM_ERROR]: "Invalid: this TileJSON can’t be downloaded.",
           };
         }
-        isFeatureOn("FLAG_STYLES_NO_LOG")
-          ? applyChanges({
-              putLayerConfigs: [
-                {
-                  ...values,
-                  at: layer?.at || getNextAt(items),
-                  id: values.id || newFeatureId(),
-                },
-              ],
-            })
-          : await transactDeprecated({
-              putLayerConfigs: [
-                {
-                  ...values,
-                  at: layer?.at || getNextAt(items),
-                  id: values.id || newFeatureId(),
-                },
-              ],
-            });
-
+        applyChanges({
+          putLayerConfigs: [
+            {
+              ...values,
+              at: layer?.at || getNextAt(items),
+              id: values.id || newFeatureId(),
+            },
+          ],
+        });
         setMode("initial");
         if (onDone) {
           onDone();
@@ -392,8 +355,6 @@ function XYZLayer({
   onDone?: () => void;
 }) {
   const setMode = useSetAtom(layerModeAtom);
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
@@ -414,27 +375,17 @@ function XYZLayer({
       fullWidthSubmit
       onSubmit={async (values) => {
         await toast.promise(
-          isFeatureOn("FLAG_STYLES_NO_LOG")
-            ? Promise.resolve(
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...values,
-                      at: layer?.at || getNextAt(items),
-                      id: values.id || newFeatureId(),
-                    },
-                  ],
-                }),
-              )
-            : transactDeprecated({
-                putLayerConfigs: [
-                  {
-                    ...values,
-                    at: layer?.at || getNextAt(items),
-                    id: values.id || newFeatureId(),
-                  },
-                ],
-              }),
+          Promise.resolve(
+            applyChanges({
+              putLayerConfigs: [
+                {
+                  ...values,
+                  at: layer?.at || getNextAt(items),
+                  id: values.id || newFeatureId(),
+                },
+              ],
+            }),
+          ),
           {
             loading: isEditing ? "Updating layer" : "Adding layer",
             success: isEditing ? "Updated layer" : "Added layer",
@@ -508,8 +459,6 @@ function AnyLayer({
 }
 
 function AddLayer() {
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const { applyChanges } = useLayerConfigState();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
@@ -524,44 +473,27 @@ function AddLayer() {
         <DefaultLayerItem
           key={id}
           mapboxLayer={mapboxLayer}
-          onSelect={async (layer) => {
+          onSelect={(layer) => {
             const { deleteLayerConfigs, oldAt } =
               maybeDeleteOldMapboxLayer(items);
             if (deleteLayerConfigs.length) {
               toast("Mapbox layer replaced");
             }
-            isFeatureOn("FLAG_STYLES_NO_LOG")
-              ? applyChanges({
-                  deleteLayerConfigs,
-                  putLayerConfigs: [
-                    {
-                      ...layer,
-                      visibility: true,
-                      tms: false,
-                      opacity: mapboxLayer.opacity,
-                      at: oldAt || nextAt,
-                      id: newFeatureId(),
-                      labelVisibility: true,
-                      poiVisibility: true,
-                    },
-                  ],
-                })
-              : await transactDeprecated({
-                  note: "Add layer",
-                  deleteLayerConfigs,
-                  putLayerConfigs: [
-                    {
-                      ...layer,
-                      visibility: true,
-                      tms: false,
-                      opacity: mapboxLayer.opacity,
-                      at: oldAt || nextAt,
-                      id: newFeatureId(),
-                      labelVisibility: true,
-                      poiVisibility: true,
-                    },
-                  ],
-                });
+            applyChanges({
+              deleteLayerConfigs,
+              putLayerConfigs: [
+                {
+                  ...layer,
+                  visibility: true,
+                  tms: false,
+                  opacity: mapboxLayer.opacity,
+                  at: oldAt || nextAt,
+                  id: newFeatureId(),
+                  labelVisibility: true,
+                  poiVisibility: true,
+                },
+              ],
+            });
           }}
         />
       ))}
@@ -651,8 +583,6 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
   const zoomTo = useZoomTo();
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const { applyChanges } = useLayerConfigState();
   const [editing, setEditing] = useState<boolean>(false);
 
@@ -743,27 +673,17 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
         w-12"
               max="100"
               value={Math.round(layerConfig.opacity * 100)}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
                 if (isNaN(opacity)) return;
-                isFeatureOn("FLAG_STYLES_NO_LOG")
-                  ? applyChanges({
-                      putLayerConfigs: [
-                        {
-                          ...layerConfig,
-                          opacity,
-                        },
-                      ],
-                    })
-                  : await transactDeprecated({
-                      note: "Change layer opacity",
-                      putLayerConfigs: [
-                        {
-                          ...layerConfig,
-                          opacity,
-                        },
-                      ],
-                    });
+                applyChanges({
+                  putLayerConfigs: [
+                    {
+                      ...layerConfig,
+                      opacity,
+                    },
+                  ],
+                });
               }}
             />
             <div className="text-gray-500 text-xs">%</div>
@@ -771,25 +691,15 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
           <div
             role="checkbox"
             title="Toggle visibility"
-            onClick={async () => {
-              isFeatureOn("FLAG_STYLES_NO_LOG")
-                ? applyChanges({
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        visibility: !layerConfig.visibility,
-                      },
-                    ],
-                  })
-                : await transactDeprecated({
-                    note: "Toggle background layer visibility",
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        visibility: !layerConfig.visibility,
-                      },
-                    ],
-                  });
+            onClick={() => {
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    visibility: !layerConfig.visibility,
+                  },
+                ],
+              });
             }}
             aria-checked={layerConfig.visibility}
             className={"opacity-30 hover:opacity-100 select-none"}
@@ -799,25 +709,15 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
           <div
             role="checkbox"
             title="Toggle label visibility"
-            onClick={async () => {
-              isFeatureOn("FLAG_STYLES_NO_LOG")
-                ? applyChanges({
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        labelVisibility: !layerConfig.labelVisibility,
-                      },
-                    ],
-                  })
-                : await transactDeprecated({
-                    note: "Toggle label visibility",
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        labelVisibility: !layerConfig.labelVisibility,
-                      },
-                    ],
-                  });
+            onClick={() => {
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    labelVisibility: !layerConfig.labelVisibility,
+                  },
+                ],
+              });
             }}
             aria-checked={layerConfig.labelVisibility}
             className={"opacity-30 hover:opacity-100 select-none"}
@@ -827,25 +727,15 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
           <div
             role="checkbox"
             title="Toggle POI visibility"
-            onClick={async () => {
-              isFeatureOn("FLAG_STYLES_NO_LOG")
-                ? applyChanges({
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        poiVisibility: !layerConfig.poiVisibility,
-                      },
-                    ],
-                  })
-                : await transactDeprecated({
-                    note: "Toggle POI visibility",
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        poiVisibility: !layerConfig.poiVisibility,
-                      },
-                    ],
-                  });
+            onClick={() => {
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    poiVisibility: !layerConfig.poiVisibility,
+                  },
+                ],
+              });
             }}
             aria-checked={layerConfig.poiVisibility}
             className={"opacity-30 hover:opacity-100 select-none"}
@@ -855,15 +745,10 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
 
           <button
             className={"opacity-30 hover:opacity-100 select-none"}
-            onClick={async () => {
-              isFeatureOn("FLAG_STYLES_NO_LOG")
-                ? applyChanges({
-                    deleteLayerConfigs: [layerConfig.id],
-                  })
-                : await transactDeprecated({
-                    note: "Delete layer",
-                    deleteLayerConfigs: [layerConfig.id],
-                  });
+            onClick={() => {
+              applyChanges({
+                deleteLayerConfigs: [layerConfig.id],
+              });
             }}
           >
             <TrashIcon />
@@ -885,8 +770,6 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
 export { FORM_ERROR } from "src/core/components/Form";
 
 export function LayersPopover() {
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
   const items = [...layerConfigs.values()];
@@ -915,24 +798,14 @@ export function LayersPopover() {
         );
       } catch (e) {}
 
-      isFeatureOn("FLAG_STYLES_NO_LOG")
-        ? applyChanges({
-            putLayerConfigs: [
-              {
-                ...layerConfig,
-                at,
-              },
-            ],
-          })
-        : transactDeprecated({
-            note: "Reorder layers",
-            putLayerConfigs: [
-              {
-                ...layerConfig,
-                at,
-              },
-            ],
-          }).catch((e) => captureException(e));
+      applyChanges({
+        putLayerConfigs: [
+          {
+            ...layerConfig,
+            at,
+          },
+        ],
+      });
     }
   }
 
