@@ -1,7 +1,6 @@
 import type {
   IFolder,
   IFolderInput,
-  ILayerConfig,
   IWrappedFeature,
   IWrappedFeatureInput,
 } from "src/types";
@@ -18,8 +17,6 @@ export interface Moment {
   deleteFeatures: IWrappedFeature["id"][];
   putFolders: IFolder[];
   deleteFolders: IFolder["id"][];
-  putLayerConfigs: ILayerConfig[];
-  deleteLayerConfigs: ILayerConfig["id"][];
 }
 
 // This was previously posthog properties,
@@ -33,8 +30,6 @@ export interface MomentInput {
   deleteFeatures: IWrappedFeature["id"][];
   putFolders: IFolderInput[];
   deleteFolders: IFolder["id"][];
-  putLayerConfigs: ILayerConfig[];
-  deleteLayerConfigs: ILayerConfig["id"][];
   skipMomentLog?: boolean;
 }
 
@@ -48,8 +43,6 @@ export function fMoment(note?: string): Moment {
     deleteFeatures: [],
     putFolders: [],
     deleteFolders: [],
-    putLayerConfigs: [],
-    deleteLayerConfigs: [],
   };
 }
 
@@ -58,8 +51,6 @@ export const EMPTY_MOMENT: Moment = {
   deleteFolders: [],
   putFeatures: [],
   deleteFeatures: [],
-  putLayerConfigs: [],
-  deleteLayerConfigs: [],
 };
 
 export const OPPOSITE = {
@@ -77,8 +68,6 @@ class CUMoment {
       deleteFeatures: first.deleteFeatures.slice(),
       putFolders: first.putFolders.slice(),
       deleteFolders: first.deleteFolders.slice(),
-      putLayerConfigs: first.putLayerConfigs.slice(),
-      deleteLayerConfigs: first.deleteLayerConfigs.slice(),
     };
 
     for (const moment of moments.slice(1)) {
@@ -86,10 +75,6 @@ class CUMoment {
       dst.deleteFeatures = dst.deleteFeatures.concat(moment.deleteFeatures);
       dst.deleteFolders = dst.deleteFolders.concat(moment.deleteFolders);
       dst.putFolders = dst.putFolders.concat(moment.putFolders);
-      dst.deleteLayerConfigs = dst.deleteLayerConfigs.concat(
-        moment.deleteLayerConfigs,
-      );
-      dst.putLayerConfigs = dst.putLayerConfigs.concat(moment.putLayerConfigs);
     }
 
     return dst;
@@ -104,9 +89,7 @@ class CUMoment {
       moment.putFolders.length === 0 &&
       moment.deleteFolders.length === 0 &&
       moment.putFeatures.length === 0 &&
-      moment.deleteFeatures.length === 0 &&
-      moment.putLayerConfigs.length === 0 &&
-      moment.deleteLayerConfigs.length === 0
+      moment.deleteFeatures.length === 0
     );
   }
 }

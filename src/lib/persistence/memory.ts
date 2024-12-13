@@ -1,10 +1,8 @@
 import type {
   IFolder,
   IFolderInput,
-  ILayerConfig,
   IWrappedFeature,
   IWrappedFeatureInput,
-  LayerConfigMap,
 } from "src/types";
 import once from "lodash/once";
 import type {
@@ -23,7 +21,6 @@ import { generateKeyBetween } from "fractional-indexing";
 import {
   Data,
   dataAtom,
-  layerConfigAtom,
   memoryMetaAtom,
   Store,
   momentLogAtom,
@@ -32,7 +29,6 @@ import {
   getFreshAt,
   momentForDeleteFeatures,
   momentForDeleteFolders,
-  momentForDeleteLayerConfigs,
   trackMoment,
   trackMomentDeprecated,
 } from "./shared";
@@ -132,18 +128,12 @@ export class MemPersistence implements IPersistence {
    */
   private apply(stateId: string, forwardMoment: MomentInput) {
     const ctx = this.store.get(dataAtom);
-    const layerConfigMap = this.store.get(layerConfigAtom);
     const reverseMoment = UMoment.merge(
       fMoment(forwardMoment.note || `Reverse`),
       this.deleteFeaturesInner(forwardMoment.deleteFeatures, ctx),
       this.deleteFoldersInner(forwardMoment.deleteFolders, ctx),
       this.putFeaturesInner(forwardMoment.putFeatures, ctx),
       this.putFoldersInner(forwardMoment.putFolders, ctx),
-      this.putLayerConfigsInner(forwardMoment.putLayerConfigs, layerConfigMap),
-      this.deleteLayerConfigsInner(
-        forwardMoment.deleteLayerConfigs,
-        layerConfigMap,
-      ),
     );
 
     const updatedFeatures = new AssetsMap(
@@ -165,19 +155,6 @@ export class MemPersistence implements IPersistence {
         }),
       ),
     });
-    if (
-      forwardMoment.putLayerConfigs?.length ||
-      forwardMoment.deleteLayerConfigs?.length
-    ) {
-      this.store.set(
-        layerConfigAtom,
-        new Map(
-          Array.from(layerConfigMap).sort((a, b) => {
-            return sortAts(a[1], b[1]);
-          }),
-        ),
-      );
-    }
     return reverseMoment;
   }
 
@@ -201,17 +178,6 @@ export class MemPersistence implements IPersistence {
       hydraulicModel.assets.delete(id);
       hydraulicModel.topology.removeNode(id);
       hydraulicModel.topology.removeLink(id);
-    }
-    return moment;
-  }
-
-  private deleteLayerConfigsInner(
-    layerConfigs: readonly ILayerConfig["id"][],
-    layerConfigMap: LayerConfigMap,
-  ) {
-    const moment = momentForDeleteLayerConfigs(layerConfigs, layerConfigMap);
-    for (const id of layerConfigs) {
-      layerConfigMap.delete(id);
     }
     return moment;
   }
@@ -307,24 +273,5 @@ export class MemPersistence implements IPersistence {
     }
 
     return reverseMoment;
-  }
-
-  private putLayerConfigsInner(
-    layerConfigs: ILayerConfig[],
-    layerConfigMap: LayerConfigMap,
-  ) {
-    const moment = fMoment("Put layer configs");
-
-    for (const layerConfig of layerConfigs) {
-      const oldVersion = layerConfigMap.get(layerConfig.id);
-      if (oldVersion) {
-        moment.putLayerConfigs.push(oldVersion);
-      } else {
-        moment.deleteLayerConfigs.push(layerConfig.id);
-      }
-      layerConfigMap.set(layerConfig.id, layerConfig);
-    }
-
-    return moment;
   }
 }

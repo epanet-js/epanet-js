@@ -1,9 +1,4 @@
-import {
-  IWrappedFeature,
-  IFolder,
-  ILayerConfig,
-  LayerConfigMap,
-} from "src/types";
+import { IWrappedFeature, IFolder } from "src/types";
 import { fMoment, Moment, MomentInput } from "./moment";
 import { Data } from "src/state/jotai";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -45,20 +40,6 @@ export function momentForDeleteFeatures(
     const feature = featureMapDeprecated.get(id);
     if (feature) {
       moment.putFeatures.push(feature);
-    }
-  }
-  return moment;
-}
-
-export function momentForDeleteLayerConfigs(
-  layerConfigs: readonly ILayerConfig["id"][],
-  layerConfigMap: LayerConfigMap,
-): Moment {
-  const moment = fMoment("Update layers");
-  for (const id of layerConfigs) {
-    const layerConfig = layerConfigMap.get(id);
-    if (layerConfig) {
-      moment.putLayerConfigs.push(layerConfig);
     }
   }
   return moment;
