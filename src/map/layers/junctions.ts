@@ -39,7 +39,9 @@ export const junctionsLayer = ({
         "white",
       ],
       "circle-stroke-width": 0,
-      "circle-radius": 6,
+      "circle-radius": isFeatureOn("FLAG_MAP_VISUALS")
+        ? ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 6]
+        : 6,
       "circle-color": [
         "match",
         ["feature-state", "selected"],
@@ -51,6 +53,6 @@ export const junctionsLayer = ({
         }),
       ],
     },
-    minzoom: isFeatureOn("FLAG_MAP_VISUALS") ? 15 : 0,
+    minzoom: isFeatureOn("FLAG_MAP_VISUALS") ? 14 : 0,
   };
 };
