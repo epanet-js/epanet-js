@@ -1,4 +1,5 @@
 import { Root } from "@tmcw/togeojson";
+import { HydraulicModel } from "src/hydraulic-model";
 import { FeatureCollection } from "src/types";
 
 // https://github.com/browserify/path-browserify/blob/872fec31a8bac7b9b43be0e54ef3037e0202c5fb/index.js#L389
@@ -70,6 +71,12 @@ export function stringToBlob(str: string) {
   return new Blob([str], { type: "text/plain" });
 }
 
+export interface InpResult {
+  type: "inp";
+  hydraulicModel: HydraulicModel;
+  notes: string[];
+}
+
 export interface GeoJSONResult {
   type: "geojson";
   geojson: FeatureCollection;
@@ -82,7 +89,7 @@ export interface RootResult {
   notes: string[];
 }
 
-export type ConvertResult = GeoJSONResult | RootResult;
+export type ConvertResult = GeoJSONResult | RootResult | InpResult;
 
 export function okResult(geojson: FeatureCollection): ConvertResult {
   return {

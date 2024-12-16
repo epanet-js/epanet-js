@@ -23,6 +23,13 @@ export function flattenResult(result: ConvertResult): FeatureCollection {
   switch (result.type) {
     case "geojson":
       return result.geojson;
+    case "inp":
+      return {
+        type: "FeatureCollection",
+        features: [...result.hydraulicModel.assets.values()].map(
+          (a) => a.feature,
+        ),
+      };
     case "root":
       return {
         type: "FeatureCollection",
