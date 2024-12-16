@@ -128,7 +128,7 @@ const readAllSections = (inp: string): InpData => {
         diameter: parseFloat(diameter),
         roughness: parseFloat(roughness),
         minorLoss: parseFloat(minorLoss),
-        status: status === "Open" ? "open" : "closed",
+        status: status.toLowerCase() === "open" ? "open" : "closed",
       });
     }
 

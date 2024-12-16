@@ -97,7 +97,7 @@ describe("Parse inp", () => {
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
 
-  it.only("ignores comments", () => {
+  it("ignores comments", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pipeId = "p1";
