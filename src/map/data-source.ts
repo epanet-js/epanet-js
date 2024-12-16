@@ -17,12 +17,13 @@ export const buildOptimizedAssetsSource = (
     symbolization,
     previewProperty,
   });
-  for (const feature of assets.values()) {
-    if (feature.feature.properties?.visibility === false) {
+  for (const asset of assets.values()) {
+    if (asset.feature.properties?.visibility === false) {
       continue;
     }
+
     const strippedFeature = stripFeature({
-      wrappedFeature: feature,
+      wrappedFeature: asset,
       keepProperties,
       idMap,
     });
