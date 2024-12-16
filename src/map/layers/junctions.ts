@@ -4,6 +4,7 @@ import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const junctionsLayer = ({
   source,
@@ -50,5 +51,6 @@ export const junctionsLayer = ({
         }),
       ],
     },
+    minzoom: isFeatureOn("FLAG_MAP_VISUALS") ? 15 : 0,
   };
 };
