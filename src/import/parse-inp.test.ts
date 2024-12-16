@@ -87,6 +87,7 @@ describe("Parse inp", () => {
     expect(pipe.roughness).toEqual(roughness);
     expect(pipe.minorLoss).toEqual(minorLoss);
     expect(pipe.status).toEqual("open");
+    expect(pipe.connections).toEqual([reservoirId, junctionId]);
     expect(pipe.coordinates).toEqual([
       [10, 20],
       [50, 60],
@@ -96,27 +97,36 @@ describe("Parse inp", () => {
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
 
-  it("ignores comments", () => {
+  it.only("ignores comments", () => {
     const reservoirId = "r1";
+    const junctionId = "j1";
+    const pipeId = "p1";
     const head = 100;
     const lat = 10;
     const lng = 20;
     const inp = `
     [RESERVOIRS]
     ;ID\tHEAD
-    ${reservoirId}\t${head}
+    ${reservoirId}\t${head};__valuecomment
 
     [COORDINATES]
-    ;ID XCORD YLAT
-    ${reservoirId}\t${lng}\t${lat}
+    ${reservoirId}\t${lng}\t${lat};__anothercomment
 
+    [JUNCTIONS]
+    ${junctionId}\t10
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
     const hydraulicModel = parseInp(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
-    expect(hydraulicModel.assets.size).toEqual(1);
+    expect(reservoir.head).toEqual(100);
+    expect(reservoir.coordinates).toEqual([lng, lat]);
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    expect(pipe.status).toEqual("open");
+    expect(hydraulicModel.assets.size).toEqual(3);
   });
 
   it("ignores unsupported sections", () => {
@@ -140,5 +150,25 @@ describe("Parse inp", () => {
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
     expect(hydraulicModel.assets.size).toEqual(1);
+  });
+
+  it("[temporary] converts tanks to reservoirs", () => {
+    const tankId = "t1";
+    const elevation = 100;
+    const initLevel = 20;
+    const lng = 10;
+    const lat = 20;
+    const inp = `
+    [TANKS]
+    ${tankId}\t${elevation}\t${initLevel}\tANY
+
+    [COORDINATES]
+    ${tankId}\t${lng}\t${lat}
+    `;
+
+    const hydraulicModel = parseInp(inp);
+
+    const tankAsReservoir = hydraulicModel.assets.get(tankId) as Reservoir;
+    expect(tankAsReservoir.head).toEqual(elevation + initLevel);
   });
 });
