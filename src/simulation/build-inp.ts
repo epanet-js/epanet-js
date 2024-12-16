@@ -25,6 +25,9 @@ export const buildInp = (
     report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
     options: [
       "[OPTIONS]",
+      "Quality\tNONE",
+      "Unbalanced\tCONTINUE 10",
+      "Accuracy\t0.01",
       `Units\t${defaultUnits}`,
       `Headloss\t${defaultHeadloss}`,
     ],

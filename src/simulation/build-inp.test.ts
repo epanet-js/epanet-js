@@ -83,7 +83,9 @@ describe("build inp", () => {
     expect(rowsFrom(inp)).toContain("Page\t0");
 
     expect(rowsFrom(inp)).toContain("[OPTIONS]");
+    expect(rowsFrom(inp)).toContain("Accuracy\t0.01");
     expect(rowsFrom(inp)).toContain("Units\tLPS");
+    expect(rowsFrom(inp)).toContain("Quality\tNONE");
     expect(rowsFrom(inp)).toContain("Headloss\tH-W");
 
     expect(rowsFrom(inp).at(-1)).toEqual("[END]");
