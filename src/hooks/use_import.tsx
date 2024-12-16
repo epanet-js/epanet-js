@@ -4,7 +4,7 @@ import {
   importToExportOptions,
   RawProgressCb,
 } from "src/lib/convert";
-import type { ConvertResult } from "src/lib/convert/utils";
+import type { ConvertResult, InpResult } from "src/lib/convert/utils";
 import type { ImportOptions } from "src/lib/convert";
 import { Data, dataAtom, fileInfoAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -30,6 +30,7 @@ import { pluralize, truncate } from "src/lib/utils";
 import { ModelMoment } from "src/hydraulic-model";
 import { AssetBuilder } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
+import { parseInp } from "src/import/parse-inp";
 
 /**
  * Creates the _input_ to a transact() operation,
@@ -45,49 +46,17 @@ function resultToTransact({
   file: Pick<File, "name">;
 }): ModelMoment {
   switch (result.type) {
+    case "inp": {
+      return {
+        note: `Imported ${file?.name ? file.name : "a file"}`,
+        putAssets: [...result.hydraulicModel.assets.values()],
+      };
+    }
     case "geojson": {
       return {
         note: `Imported ${file?.name ? file.name : "a file"}`,
         putAssets: result.geojson.features
-          .map((feature) => {
-            if (
-              feature.geometry &&
-              feature.geometry.type === "Point" &&
-              feature.properties!.type === "reservoir"
-            ) {
-              const reservoir = assetBuilder.buildReservoir({
-                ...feature.properties,
-                coordinates: feature.geometry.coordinates,
-              });
-              return reservoir;
-            }
-            if (feature.geometry && feature.geometry.type === "Point") {
-              const junction = assetBuilder.buildJunction({
-                ...feature.properties,
-                coordinates: feature.geometry.coordinates,
-              });
-              return junction;
-            }
-            if (feature.geometry && feature.geometry.type === "LineString") {
-              const pipe = assetBuilder.buildPipe({
-                ...feature.properties,
-                coordinates: feature.geometry.coordinates,
-              });
-              return pipe;
-            }
-            if (
-              feature.geometry &&
-              feature.geometry.type === "MultiLineString"
-            ) {
-              const combinedCoordinates = feature.geometry.coordinates.flat();
-              const pipe = assetBuilder.buildPipe({
-                ...feature.properties,
-                coordinates: combinedCoordinates,
-              });
-              return pipe;
-            }
-            return null;
-          })
+          .map((feature) => assetFromFeature(feature, assetBuilder))
           .filter((a) => !!a) as Asset[],
       };
     }
@@ -96,6 +65,46 @@ function resultToTransact({
     }
   }
 }
+
+const assetFromFeature = (
+  feature: Feature,
+  assetBuilder: AssetBuilder,
+): Asset | null => {
+  if (
+    feature.geometry &&
+    feature.geometry.type === "Point" &&
+    feature.properties!.type === "reservoir"
+  ) {
+    const reservoir = assetBuilder.buildReservoir({
+      ...feature.properties,
+      coordinates: feature.geometry.coordinates,
+    });
+    return reservoir;
+  }
+  if (feature.geometry && feature.geometry.type === "Point") {
+    const junction = assetBuilder.buildJunction({
+      ...feature.properties,
+      coordinates: feature.geometry.coordinates,
+    });
+    return junction;
+  }
+  if (feature.geometry && feature.geometry.type === "LineString") {
+    const pipe = assetBuilder.buildPipe({
+      ...feature.properties,
+      coordinates: feature.geometry.coordinates,
+    });
+    return pipe;
+  }
+  if (feature.geometry && feature.geometry.type === "MultiLineString") {
+    const combinedCoordinates = feature.geometry.coordinates.flat();
+    const pipe = assetBuilder.buildPipe({
+      ...feature.properties,
+      coordinates: combinedCoordinates,
+    });
+    return pipe;
+  }
+  return null;
+};
 
 export function flattenRoot(
   root: Root | Folder,
@@ -312,6 +321,16 @@ export function useImportFile() {
       progress: RawProgressCb,
     ) => {
       const arrayBuffer = await file.arrayBuffer();
+
+      if (options.type === "inp") {
+        const content = new TextDecoder().decode(arrayBuffer);
+        const hydraulicModel = parseInp(content);
+        transact({
+          note: `Import ${file.name}`,
+          putAssets: [...hydraulicModel.assets.values()],
+        });
+        return { type: "inp", notes: [], hydraulicModel } as InpResult;
+      }
 
       const either = (
         await lib.fileToGeoJSON(
