@@ -32,8 +32,14 @@ export class Topology {
     if (this.linksMap.has(linkId))
       throw new Error(`There is already a link with the same id (${linkId})`);
 
-    const link = this.graph.addLink(startNodeId, endNodeId, { id: linkId });
-    this.linksMap.set(linkId, link);
+    try {
+      const link = this.graph.addLink(startNodeId, endNodeId, { id: linkId });
+      this.linksMap.set(linkId, link);
+    } catch (error) {
+      throw new Error(
+        `Failed to add link (${linkId}, ${startNodeId}, ${endNodeId}): ${(error as Error).message}`,
+      );
+    }
   }
 
   getLinks(nodeId: string): string[] {
