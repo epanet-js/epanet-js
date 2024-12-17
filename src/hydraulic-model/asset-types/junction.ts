@@ -1,3 +1,4 @@
+import { isFeatureOn } from "src/infra/feature-flags";
 import { Node, NodeProperties } from "./node";
 import { QuantitiesSpec } from "src/quantity";
 
@@ -13,7 +14,10 @@ export type JunctionQuantities = Pick<
 
 const canonicalSpec: QuantitiesSpec<JunctionQuantities> = {
   elevation: { defaultValue: 0, unit: "m" },
-  demand: { defaultValue: 0, unit: "l/s" },
+  demand: {
+    defaultValue: isFeatureOn("FLAG_DEFAULT_DEMAND") ? 1 : 0,
+    unit: "l/s",
+  },
   pressure: { defaultValue: 0, unit: "mwc" },
 };
 
