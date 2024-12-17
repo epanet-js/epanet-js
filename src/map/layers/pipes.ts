@@ -19,7 +19,7 @@ export const pipesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: isFeatureOn("FLAG_MAP_VISUALS")
+    filter: isFeatureOn("FLAG_MANY_ASSETS")
       ? ["==", "$type", "LineString"]
       : ["any", ["==", "$type", "LineString"], ["==", "$type", "Polygon"]],
     paint: {
@@ -33,7 +33,7 @@ export const pipesLayer = ({
           defaultValue: 1,
         }),
       ],
-      "line-width": isFeatureOn("FLAG_MAP_VISUALS")
+      "line-width": isFeatureOn("FLAG_MANY_ASSETS")
         ? ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4]
         : asNumberExpression({
             symbolization,
@@ -46,7 +46,6 @@ export const pipesLayer = ({
         LINE_COLORS_SELECTED,
       ),
     },
-    minzoom: isFeatureOn("FLAG_MAP_VISUALS") ? 14 : 0,
   };
 };
 
