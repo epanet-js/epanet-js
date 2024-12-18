@@ -38,9 +38,11 @@ import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import {
+  FlowsData,
   buildFlowsData,
   buildFlowsOverlay,
   buildFlowsOverlayDeprecated,
+  nullFlowsData,
 } from "./overlays/flows";
 import { isFeatureOn } from "src/infra/feature-flags";
 
@@ -173,6 +175,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const analysisOverlays = useRef<DeckLayer[]>([]);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
+  const flowsData = useRef<FlowsData>(nullFlowsData);
 
   const doUpdates = useCallback(async () => {
     if (!map) return;
@@ -246,28 +249,44 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (
-      hasNewEditions ||
-      hasNewAnalysis ||
-      hasNewSimulation ||
-      hasNewMovedAssets ||
-      hasNewSelection
-    ) {
-      analysisOverlays.current = isFeatureOn("FLAG_SPLIT_OVERLAYS")
-        ? buildAnalysisOverlays(
-            map,
-            assets,
-            mapState.analysis,
-            mapState.movedAssetIds,
-            mapState.selectedAssetIds,
-          )
-        : buildAnalysisOverlaysDeprecated(
-            map,
-            assets,
-            mapState.analysis,
-            mapState.movedAssetIds,
-            mapState.selectedAssetIds,
-          );
+    if (isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
+      if (hasNewEditions || hasNewAnalysis || hasNewSimulation) {
+        flowsData.current = buildAnalysisData(assets, mapState.analysis);
+      }
+      if (
+        hasNewEditions ||
+        hasNewAnalysis ||
+        hasNewSimulation ||
+        hasNewMovedAssets ||
+        hasNewSelection
+      ) {
+        analysisOverlays.current = buildAnalysisOverlays(
+          map,
+          assets,
+          mapState.analysis,
+          mapState.movedAssetIds,
+          mapState.selectedAssetIds,
+          flowsData.current,
+        );
+      }
+    }
+
+    if (!isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
+      if (
+        hasNewEditions ||
+        hasNewAnalysis ||
+        hasNewSimulation ||
+        hasNewMovedAssets ||
+        hasNewSelection
+      ) {
+        buildAnalysisOverlaysDeprecated(
+          map,
+          assets,
+          mapState.analysis,
+          mapState.movedAssetIds,
+          mapState.selectedAssetIds,
+        );
+      }
     }
 
     map.setOverlay([
@@ -443,6 +462,15 @@ const updateSelectionFeatureState = withInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
+const buildAnalysisData = withInstrumentation(
+  (assets: AssetsMap, analysis: AnalysisState): FlowsData => {
+    if (analysis.links.type !== "flows") return nullFlowsData;
+
+    return buildFlowsData(assets, analysis.links.rangeColorMapping);
+  },
+  { name: "MAP_STATE:BUILD_ANALYSIS_DATA", maxDurationMs: 1000 },
+);
+
 const buildAnalysisOverlays = withInstrumentation(
   (
     map: MapEngine,
@@ -450,14 +478,11 @@ const buildAnalysisOverlays = withInstrumentation(
     analysis: AnalysisState,
     movedAssetIds: Set<AssetId>,
     selectedAssetIds: Set<AssetId>,
+    flowsData: FlowsData,
   ): DeckLayer[] => {
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.links.type === "flows") {
-      const flowsData = buildFlowsData(
-        assets,
-        analysis.links.rangeColorMapping,
-      );
       analysisLayers.push(
         ...buildFlowsOverlay(
           flowsData,
