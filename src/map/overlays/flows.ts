@@ -24,10 +24,12 @@ type Arrow = {
   pipeId: AssetId;
 };
 
-type FlowsData = {
+export type FlowsData = {
   pipes: Pipe[];
   arrows: Arrow[];
 };
+
+export const nullFlowsData: FlowsData = { pipes: [], arrows: [] };
 
 export const buildFlowsData = (
   assets: AssetsMap,
