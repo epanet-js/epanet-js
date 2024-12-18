@@ -37,7 +37,12 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
-import { buildFlowsOverlay } from "./overlays/flows";
+import {
+  buildFlowsData,
+  buildFlowsOverlay,
+  buildFlowsOverlayDeprecated,
+} from "./overlays/flows";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -248,13 +253,21 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewMovedAssets ||
       hasNewSelection
     ) {
-      analysisOverlays.current = buildAnalysisOverlays(
-        map,
-        assets,
-        mapState.analysis,
-        mapState.movedAssetIds,
-        mapState.selectedAssetIds,
-      );
+      analysisOverlays.current = isFeatureOn("FLAG_SPLIT_OVERLAYS")
+        ? buildAnalysisOverlays(
+            map,
+            assets,
+            mapState.analysis,
+            mapState.movedAssetIds,
+            mapState.selectedAssetIds,
+          )
+        : buildAnalysisOverlaysDeprecated(
+            map,
+            assets,
+            mapState.analysis,
+            mapState.movedAssetIds,
+            mapState.selectedAssetIds,
+          );
     }
 
     map.setOverlay([
@@ -441,8 +454,49 @@ const buildAnalysisOverlays = withInstrumentation(
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.links.type === "flows") {
+      const flowsData = buildFlowsData(
+        assets,
+        analysis.links.rangeColorMapping,
+      );
       analysisLayers.push(
         ...buildFlowsOverlay(
+          flowsData,
+          analysis.links.rangeColorMapping,
+          (assetId: AssetId) =>
+            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
+        ),
+      );
+    }
+
+    if (analysis.nodes.type === "pressures") {
+      analysisLayers.push(
+        ...buildPressuresOverlay(
+          assets,
+          analysis.nodes.rangeColorMapping,
+          (assetId) =>
+            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
+        ),
+      );
+    }
+
+    return analysisLayers;
+  },
+  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 100 },
+);
+
+const buildAnalysisOverlaysDeprecated = withInstrumentation(
+  (
+    map: MapEngine,
+    assets: AssetsMap,
+    analysis: AnalysisState,
+    movedAssetIds: Set<AssetId>,
+    selectedAssetIds: Set<AssetId>,
+  ): DeckLayer[] => {
+    const analysisLayers: DeckLayer[] = [];
+
+    if (analysis.links.type === "flows") {
+      analysisLayers.push(
+        ...buildFlowsOverlayDeprecated(
           assets,
           analysis.links.rangeColorMapping,
           (assetId) =>

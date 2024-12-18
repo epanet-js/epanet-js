@@ -4,7 +4,7 @@ import { purple900 } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { parseHexColor } from "src/vendor/mapshaper/color/color-utils";
 
-type Rgb = [number, number, number];
+export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
 
 export class RangeColorMapping {
