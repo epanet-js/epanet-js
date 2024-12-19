@@ -39,11 +39,11 @@ import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import {
-  SegmentsData,
   buildFlowsOverlay,
   buildFlowsOverlayDeprecated,
 } from "./overlays/flows";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { LinkSegmentsMap } from "./link-segments";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -467,7 +467,7 @@ const buildAnalysisOverlays = withInstrumentation(
   (
     map: MapEngine,
     assets: AssetsMap,
-    segments: SegmentsData,
+    segments: LinkSegmentsMap,
     analysis: AnalysisState,
     movedAssetIds: Set<AssetId>,
     selectedAssetIds: Set<AssetId>,
