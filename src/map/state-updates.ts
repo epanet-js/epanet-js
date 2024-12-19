@@ -105,20 +105,15 @@ const stylesConfigAtom = atom<StylesConfig>((get) => {
   };
 });
 
-const momentLogPointersAtom = atom(
-  withInstrumentation(
-    (get) => {
-      const momentLog = get(momentLogAtom);
-      const lastImportPointer = momentLog.searchLast(isImportMoment);
-      const lastChangePointer = momentLog.getPointer();
-      return {
-        lastImportPointer,
-        lastChangePointer,
-      };
-    },
-    { name: "MAP_STATE:COMPUTE_MOMENT_POINTERS" },
-  ),
-);
+const momentLogPointersAtom = atom((get) => {
+  const momentLog = get(momentLogAtom);
+  const lastImportPointer = momentLog.searchLast(isImportMoment);
+  const lastChangePointer = momentLog.getPointer();
+  return {
+    lastImportPointer,
+    lastChangePointer,
+  };
+});
 
 const mapStateAtom = atom<MapState>((get) => {
   const { lastImportPointer, lastChangePointer } = get(momentLogPointersAtom);
