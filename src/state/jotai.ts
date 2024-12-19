@@ -9,6 +9,7 @@ import {
   IPresence,
   IWrappedFeature,
   LayerConfigMap,
+  Position,
   SYMBOLIZATION_NONE,
 } from "src/types";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
@@ -21,7 +22,11 @@ import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
 import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-state";
-import { HydraulicModel, nullHydraulicModel } from "src/hydraulic-model";
+import {
+  AssetId,
+  HydraulicModel,
+  nullHydraulicModel,
+} from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { isFeatureOn } from "src/infra/feature-flags";
@@ -80,11 +85,22 @@ export const simulationAtom = atom<SimulationState>({ status: "idle" });
 /**
  * Core data
  */
+export type SegmentData = {
+  midpoint: Position;
+  coordinates: Position[];
+  angle: number;
+  lengthInMeters: number;
+  assetId: AssetId;
+};
+export const nullSegmentsData: SegmentsData = new Map();
+export type SegmentsData = Map<AssetId, SegmentData[]>;
+
 export interface Data {
   folderMap: FolderMap;
   featureMapDeprecated: FeatureMap; //Use hydraulicModel.assets instead
   selection: Sel;
   hydraulicModel: HydraulicModel;
+  segments: SegmentsData;
 }
 
 /**
@@ -101,7 +117,12 @@ export const dataAtom = atom<Data>({
     assetsMap,
     isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
   ),
+  segments: nullSegmentsData,
 });
+
+export const segmentsAtom = focusAtom(dataAtom, (optic) =>
+  optic.prop("segments"),
+);
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 

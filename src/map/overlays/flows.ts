@@ -23,17 +23,32 @@ type Arrow = {
   size: number;
   pipeId: AssetId;
 };
+export type SegmentData = {
+  midpoint: Position;
+  coordinates: Position[];
+  angle: number;
+  lengthInMeters: number;
+  assetId: AssetId;
+};
+export const nullSegmentsData: SegmentsData = new Map();
+export type SegmentsData = Map<AssetId, SegmentData[]>;
 
 export type FlowsData = {
   pipes: Pipe[];
   arrows: Arrow[];
+  segments: SegmentsData;
 };
 
-export const nullFlowsData: FlowsData = { pipes: [], arrows: [] };
+export const nullFlowsData: FlowsData = {
+  pipes: [],
+  arrows: [],
+  segments: nullSegmentsData,
+};
 
 export const buildFlowsData = (
   assets: AssetsMap,
   rangeColorMapping: RangeColorMapping,
+  segments: SegmentsData,
 ): FlowsData => {
   const pipes = [];
   const arrows: Arrow[] = [];
@@ -41,16 +56,17 @@ export const buildFlowsData = (
     if (asset.type !== "pipe" || (asset as Pipe).flow === null) continue;
 
     const pipe = asset as Pipe;
-    appendArrows(arrows, pipe, rangeColorMapping);
+    //appendArrows(arrows, pipe, rangeColorMapping);
     pipes.push(pipe);
   }
 
-  return { pipes, arrows };
+  return { pipes, arrows, segments };
 };
 
 export const buildFlowsOverlay = (
   flowsData: FlowsData,
   rangeColorMapping: RangeColorMapping,
+  getFlowFn: (pipeId: AssetId) => number | null,
   visibilityFn: (assetId: AssetId) => boolean,
 ): DeckLayer[] => {
   const iconsSprite = getIconsSprite();
@@ -80,8 +96,8 @@ export const buildFlowsOverlay = (
     }),
     new IconLayer({
       id: "analysis-flows-icons",
-      data: flowsData.arrows,
-      getSize: (d: Arrow) => d.size,
+      data: [...flowsData.segments.values()].flat(),
+      getSize: (segment: SegmentData) => chooseSizeFor(segment.lengthInMeters),
       sizeUnits: "meters",
       sizeMinPixels: 0,
       sizeMaxPixels: 24,
@@ -89,12 +105,16 @@ export const buildFlowsOverlay = (
       iconAtlas: iconsSprite.atlas,
       iconMapping: iconsSprite.mapping,
       getIcon: (_d) => "arrow",
-      getAngle: (d: Arrow) => d.angle,
-      getPosition: (d: Arrow) => d.position as [number, number],
-      getColor: (d: Arrow) => {
-        if (!visibilityFn(d.pipeId)) return [0, 0, 0, 0];
+      getAngle: (segment: SegmentData) => segment.angle,
+      getPosition: (segment: SegmentData) =>
+        segment.midpoint as [number, number],
+      getColor: (segment: SegmentData) => {
+        if (!visibilityFn(segment.assetId)) return [0, 0, 0, 0];
 
-        return d.color;
+        const flow = getFlowFn(segment.assetId);
+        if (flow === null) return [0, 0, 0, 0];
+
+        return rangeColorMapping.colorFor(Math.abs(flow));
       },
       updateTriggers: {
         getColor: visibilityFn,
@@ -158,27 +178,6 @@ export const buildFlowsOverlayDeprecated = (
       getColor: (d: ArrowDeprecated) => d.color,
     }),
   ];
-};
-
-const appendArrows = (
-  arrows: Arrow[],
-  pipe: Pipe,
-  rangeColorMapping: RangeColorMapping,
-): void => {
-  const flow = pipe.flow as number;
-  const absFlow = Math.abs(flow);
-
-  for (const [start, end] of pipe.segments) {
-    const length = measureSegment(start, end);
-    const size = chooseSizeFor(length);
-    arrows.push({
-      position: turfMidpont(start, end).geometry.coordinates,
-      angle: flow > 0 ? calculateAngle(start, end) : calculateAngle(end, start),
-      size,
-      color: rangeColorMapping.colorFor(absFlow),
-      pipeId: pipe.id,
-    });
-  }
 };
 
 const appendArrowsDeprecated = (
