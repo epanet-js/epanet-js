@@ -1,4 +1,7 @@
-import { buildPipe } from "src/__helpers__/hydraulic-model-builder";
+import {
+  buildJunction,
+  buildPipe,
+} from "src/__helpers__/hydraulic-model-builder";
 import { LinkSegment, calculateSegments } from "./link-segments";
 
 describe("link segments", () => {
@@ -91,6 +94,23 @@ describe("link segments", () => {
 
     const otherSegments = linkSegments.get(otherPipe.id) as LinkSegment[];
     expect(otherSegments[0].linkId).toEqual(otherPipe.id);
+  });
+
+  it("ignores nodes", () => {
+    const pipe = buildPipe({
+      coordinates: [
+        [0, 0],
+        [1, 1],
+      ],
+    });
+    const aNode = buildJunction();
+    const linkSegments = calculateSegments({
+      putAssets: [pipe, aNode],
+      deleteAssets: [],
+    });
+
+    expect(linkSegments.has(pipe.id)).toBeTruthy();
+    expect(linkSegments.has(aNode.id)).toBeFalsy();
   });
 
   it("preserves state of previous segments", () => {
