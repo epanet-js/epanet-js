@@ -105,7 +105,11 @@ export const buildFlowsOverlay = (
       iconAtlas: iconsSprite.atlas,
       iconMapping: iconsSprite.mapping,
       getIcon: (_d) => "arrow",
-      getAngle: (segment: SegmentData) => segment.angle,
+      getAngle: (segment: SegmentData) => {
+        const flow = getFlowFn(segment.assetId);
+        if (flow === null) return 0;
+        return flow > 0 ? segment.angle : rotate180(segment.angle);
+      },
       getPosition: (segment: SegmentData) =>
         segment.midpoint as [number, number],
       getColor: (segment: SegmentData) => {
@@ -178,6 +182,9 @@ export const buildFlowsOverlayDeprecated = (
       getColor: (d: ArrowDeprecated) => d.color,
     }),
   ];
+};
+const rotate180 = (angle: number) => {
+  return angle + (180 % 360);
 };
 
 const appendArrowsDeprecated = (
