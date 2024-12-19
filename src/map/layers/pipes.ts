@@ -4,7 +4,6 @@ import { ISymbolization } from "src/types";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const pipesLayer = ({
   source,
@@ -19,9 +18,7 @@ export const pipesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: isFeatureOn("FLAG_MANY_ASSETS")
-      ? ["==", "$type", "LineString"]
-      : ["any", ["==", "$type", "LineString"], ["==", "$type", "Polygon"]],
+    filter: ["==", "$type", "LineString"],
     paint: {
       "line-opacity": [
         "case",
@@ -33,13 +30,7 @@ export const pipesLayer = ({
           defaultValue: 1,
         }),
       ],
-      "line-width": isFeatureOn("FLAG_MANY_ASSETS")
-        ? ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4]
-        : asNumberExpression({
-            symbolization,
-            part: "stroke-width",
-            defaultValue: 4,
-          }),
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
       "line-color": handleSelected(
         asColorExpression({ symbolization, part: "stroke" }),
         false,
