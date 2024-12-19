@@ -1,22 +1,11 @@
 import { GeoJsonLayer, IconLayer } from "@deck.gl/layers";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetId, AssetsMap, Pipe } from "src/hydraulic-model";
-import { IFeature, Position } from "src/types";
+import { IFeature } from "src/types";
 import { slots } from "../slots";
-import turfMidpont from "@turf/midpoint";
-import { bearing } from "@turf/bearing";
-import turfLength from "@turf/length";
 import { getIconsSprite } from "../icons";
 import { Layer as DeckLayer } from "@deck.gl/core";
-import { getPipe } from "src/hydraulic-model/assets-map";
 import { LinkSegment, LinkSegmentsMap } from "../link-segments";
-
-type ArrowDeprecated = {
-  position: Position;
-  angle: number;
-  color: [number, number, number];
-  size: number;
-};
 
 export const buildFlowsOverlay = (
   assets: AssetsMap,
@@ -25,109 +14,50 @@ export const buildFlowsOverlay = (
   visibilityFn: (assetId: AssetId) => boolean,
 ): DeckLayer[] => {
   const iconsSprite = getIconsSprite();
-  const pipes = [...assets.values()].filter((asset) => asset.type === "pipe");
-  const getFlow = (pipeId: AssetId): number | null => {
-    const pipe = getPipe(assets, pipeId);
-    if (!pipe) return null;
-    return pipe.flow;
-  };
-  return [
-    new GeoJsonLayer({
-      id: "analysis-flows",
-      beforeId: slots["after-lines-slot"],
-      data: pipes as unknown as IFeature[],
-      lineWidthUnits: "pixels",
-      pointRadiusUnits: "pixels",
-      getLineWidth: 5,
-      getFillColor: [0, 0, 0],
-      // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
-      getLineColor: (pipe: Pipe) => {
-        if (!visibilityFn(pipe.id) || pipe.flow === null) return [0, 0, 0, 0];
-
-        return rangeColorMapping.colorFor(
-          Math.abs((pipe as unknown as Pipe).flow as number),
-        );
-      },
-      getPointRadius: 4,
-      lineCapRounded: true,
-      antialiasing: true,
-      updateTriggers: {
-        getLineColor: visibilityFn,
-      },
-    }),
-    new IconLayer({
-      id: "analysis-flows-icons",
-      data: [...segments.values()].flat(),
-      getSize: (segment: LinkSegment) => chooseSizeFor(segment.lengthInMeters),
-      sizeUnits: "meters",
-      sizeMinPixels: 0,
-      sizeMaxPixels: 24,
-      // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
-      iconAtlas: iconsSprite.atlas,
-      iconMapping: iconsSprite.mapping,
-      getIcon: (_d) => "arrow",
-      getAngle: (segment: LinkSegment) => {
-        const flow = getFlow(segment.linkId);
-        if (flow === null) return 0;
-        return flow > 0 ? segment.angle : rotate180(segment.angle);
-      },
-      getPosition: (segment: LinkSegment) =>
-        segment.midpoint as [number, number],
-      getColor: (segment: LinkSegment) => {
-        if (!visibilityFn(segment.linkId)) return [0, 0, 0, 0];
-
-        const flow = getFlow(segment.linkId);
-        if (flow === null) return [0, 0, 0, 0];
-
-        return rangeColorMapping.colorFor(Math.abs(flow));
-      },
-    }),
-  ];
-};
-
-export const buildFlowsOverlayDeprecated = (
-  assets: AssetsMap,
-  rangeColorMapping: RangeColorMapping,
-  conditionFn: (assetId: AssetId) => boolean,
-) => {
-  const iconsSprite = getIconsSprite();
-  const data: Pipe[] = [];
-  const arrows: ArrowDeprecated[] = [];
-
+  const pipesWithFlow = [];
+  const flowArrows = [];
+  const colorForPipe = new Map();
   for (const asset of assets.values()) {
     if (
       asset.type !== "pipe" ||
-      !conditionFn(asset.id) ||
-      (asset as Pipe).flow === null
+      (asset as Pipe).flow === null ||
+      !visibilityFn(asset.id)
     )
       continue;
 
-    const pipe = asset as Pipe;
-    appendArrowsDeprecated(arrows, pipe, rangeColorMapping);
-    data.push(pipe);
+    pipesWithFlow.push(asset);
+    const flow = (asset as Pipe).flow as number;
+    const absFlow = Math.abs(flow);
+    colorForPipe.set(asset.id, rangeColorMapping.colorFor(absFlow));
+
+    const pipeSegments = segments.get(asset.id);
+    if (!pipeSegments) continue;
+
+    flowArrows.push(
+      ...pipeSegments.map((segment: LinkSegment) => ({
+        position: segment.midpoint,
+        angle: flow > 0 ? segment.angle : segment.angle180,
+        color: colorForPipe.get(asset.id),
+        size: chooseSizeFor(segment.lengthInMeters),
+      })),
+    );
   }
 
   return [
     new GeoJsonLayer({
       id: "analysis-flows",
       beforeId: slots["after-lines-slot"],
-      data: data as unknown as IFeature[],
+      data: pipesWithFlow as unknown as IFeature[],
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
       getLineWidth: 5,
-      getFillColor: [0, 0, 0],
-      getLineColor: (pipe) =>
-        rangeColorMapping.colorFor(
-          Math.abs((pipe as unknown as Pipe).flow as number),
-        ),
-      getPointRadius: 4,
+      getLineColor: (pipe) => colorForPipe.get(pipe.id),
       lineCapRounded: true,
-      antialiasing: true,
     }),
     new IconLayer({
       id: "analysis-flows-icons",
-      data: arrows,
-      getSize: (d: ArrowDeprecated) => d.size,
+      data: flowArrows,
+      getSize: (d) => d.size,
       sizeUnits: "meters",
       sizeMinPixels: 0,
       sizeMaxPixels: 24,
@@ -135,45 +65,11 @@ export const buildFlowsOverlayDeprecated = (
       iconAtlas: iconsSprite.atlas,
       iconMapping: iconsSprite.mapping,
       getIcon: (_d) => "arrow",
-      getAngle: (d: ArrowDeprecated) => d.angle,
-      getPosition: (d: ArrowDeprecated) => d.position as [number, number],
-      getColor: (d: ArrowDeprecated) => d.color,
+      getAngle: (d) => d.angle,
+      getPosition: (d) => d.position,
+      getColor: (d) => d.color,
     }),
   ];
-};
-const rotate180 = (angle: number) => {
-  return angle + (180 % 360);
-};
-
-const appendArrowsDeprecated = (
-  arrows: ArrowDeprecated[],
-  pipe: Pipe,
-  rangeColorMapping: RangeColorMapping,
-): void => {
-  const flow = pipe.flow as number;
-
-  for (const [start, end] of pipe.segments) {
-    const length = measureSegment(start, end);
-    const size = chooseSizeFor(length);
-    arrows.push({
-      position: turfMidpont(start, end).geometry.coordinates,
-      angle: flow > 0 ? calculateAngle(start, end) : calculateAngle(end, start),
-      color: rangeColorMapping.colorFor(Math.abs(flow)),
-      size,
-    });
-  }
-};
-
-const measureSegment = (start: Position, end: Position) => {
-  return (
-    turfLength({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: [start, end],
-      },
-    } as IFeature) * 1000
-  );
 };
 
 const chooseSizeFor = (segmentLengthInMeters: number): number => {
@@ -184,10 +80,4 @@ const chooseSizeFor = (segmentLengthInMeters: number): number => {
   if (5 <= segmentLengthInMeters) return 2;
 
   return 1;
-};
-
-const calculateAngle = (start: Position, end: Position): number => {
-  const angleFromNorth = bearing(start, end);
-  const angleFromEast = (90 - angleFromNorth + 360) % 360;
-  return angleFromEast;
 };

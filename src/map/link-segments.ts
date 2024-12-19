@@ -9,6 +9,7 @@ import { IFeature } from "src/types";
 export type LinkSegment = {
   midpoint: Position;
   angle: number;
+  angle180: number;
   lengthInMeters: number;
   linkId: AssetId;
 };
@@ -34,9 +35,11 @@ export const calculateSegments = withInstrumentation(
       const linkSegments: LinkSegment[] = [];
       for (const segmentCoordinates of (asset as LinkAsset).segments) {
         const [start, end] = segmentCoordinates;
+        const angle = calculateAngle(segmentCoordinates);
         linkSegments.push({
           midpoint: turfMidpont(start, end).geometry.coordinates,
-          angle: calculateAngle(segmentCoordinates),
+          angle,
+          angle180: rotate180(angle),
           lengthInMeters: measureSegment(segmentCoordinates),
           linkId: asset.id,
         });
@@ -64,4 +67,8 @@ const measureSegment = (coordinates: Position[]) => {
       },
     } as IFeature) * 1000
   );
+};
+
+const rotate180 = (angle: number) => {
+  return angle + (180 % 360);
 };
