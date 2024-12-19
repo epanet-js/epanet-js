@@ -38,11 +38,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
-import {
-  buildFlowsOverlay,
-  buildFlowsOverlayDeprecated,
-} from "./overlays/flows";
-import { isFeatureOn } from "src/infra/feature-flags";
+import { buildFlowsOverlay } from "./overlays/flows";
 import { LinkSegmentsMap } from "./link-segments";
 
 const isImportMoment = (moment: Moment) => {
@@ -248,41 +244,21 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
-      if (
-        hasNewEditions ||
-        hasNewAnalysis ||
-        hasNewSimulation ||
-        hasNewMovedAssets ||
-        hasNewSelection
-      ) {
-        analysisOverlays.current = buildAnalysisOverlays(
-          map,
-          assets,
-          segments,
-          mapState.analysis,
-          mapState.movedAssetIds,
-          mapState.selectedAssetIds,
-        );
-      }
-    }
-
-    if (!isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
-      if (
-        hasNewEditions ||
-        hasNewAnalysis ||
-        hasNewSimulation ||
-        hasNewMovedAssets ||
-        hasNewSelection
-      ) {
-        analysisOverlays.current = buildAnalysisOverlaysDeprecated(
-          map,
-          assets,
-          mapState.analysis,
-          mapState.movedAssetIds,
-          mapState.selectedAssetIds,
-        );
-      }
+    if (
+      hasNewEditions ||
+      hasNewAnalysis ||
+      hasNewSimulation ||
+      hasNewMovedAssets ||
+      hasNewSelection
+    ) {
+      analysisOverlays.current = buildAnalysisOverlays(
+        map,
+        assets,
+        segments,
+        mapState.analysis,
+        mapState.movedAssetIds,
+        mapState.selectedAssetIds,
+      );
     }
 
     map.setOverlay([
@@ -495,44 +471,13 @@ const buildAnalysisOverlays = withInstrumentation(
 
     return analysisLayers;
   },
-  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 100 },
-);
 
-const buildAnalysisOverlaysDeprecated = withInstrumentation(
-  (
-    map: MapEngine,
-    assets: AssetsMap,
-    analysis: AnalysisState,
-    movedAssetIds: Set<AssetId>,
-    selectedAssetIds: Set<AssetId>,
-  ): DeckLayer[] => {
-    const analysisLayers: DeckLayer[] = [];
-
-    if (analysis.links.type === "flows") {
-      analysisLayers.push(
-        ...buildFlowsOverlayDeprecated(
-          assets,
-          analysis.links.rangeColorMapping,
-          (assetId) =>
-            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
-        ),
-      );
-    }
-
-    if (analysis.nodes.type === "pressures") {
-      analysisLayers.push(
-        ...buildPressuresOverlay(
-          assets,
-          analysis.nodes.rangeColorMapping,
-          (assetId) =>
-            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
-        ),
-      );
-    }
-
-    return analysisLayers;
+  {
+    name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS",
+    maxDurationMs: 100,
+    maxCalls: 10,
+    callsIntervalMs: 1000,
   },
-  { name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS", maxDurationMs: 100 },
 );
 
 const noMoved: Set<AssetId> = new Set();
