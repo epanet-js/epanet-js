@@ -145,4 +145,26 @@ describe("Pipe", () => {
 
     expect(pipe.flow).toEqual(20);
   });
+
+  it("can get its segments", () => {
+    const pipe = buildPipe({
+      coordinates: [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+    });
+
+    expect(pipe.segments.length).toEqual(2);
+    expect(pipe.segments).toEqual([
+      [
+        [0, 0],
+        [1, 1],
+      ],
+      [
+        [1, 1],
+        [2, 2],
+      ],
+    ]);
+  });
 });
