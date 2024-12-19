@@ -29,7 +29,7 @@ export const calculateSegments = withInstrumentation(
     });
     putAssets.forEach((wrappedFeature) => {
       const asset = wrappedFeature as unknown as Asset;
-      if (asset.type !== "pipe") return;
+      if (!asset.isLink) return;
 
       const linkSegments: LinkSegment[] = [];
       for (const segmentCoordinates of (asset as LinkAsset).segments) {
