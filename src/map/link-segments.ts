@@ -1,5 +1,4 @@
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import { SegmentData, SegmentsData } from "./overlays/flows";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { bearing } from "@turf/bearing";
 import turfLength from "@turf/length";
@@ -7,11 +6,22 @@ import turfMidpont from "@turf/midpoint";
 import { Position } from "geojson";
 import { IFeature } from "src/types";
 
+export type LinkSegment = {
+  midpoint: Position;
+  angle: number;
+  lengthInMeters: number;
+  linkId: AssetId;
+};
+export type LinkSegmentsMap = Map<AssetId, LinkSegment[]>;
+export const nullLinkSegmentsMap: LinkSegmentsMap = new Map();
+
 export const calculateSegments = withInstrumentation(
   (
-    previousSegments: SegmentsData,
-    putAssets: Asset[],
-    deleteAssets: AssetId[],
+    {
+      putAssets,
+      deleteAssets,
+    }: { putAssets: Asset[]; deleteAssets: AssetId[] },
+    previousSegments: LinkSegmentsMap = new Map(),
   ) => {
     const segments = new Map(Array.from(previousSegments));
     deleteAssets.forEach((assetId) => {
@@ -21,18 +31,17 @@ export const calculateSegments = withInstrumentation(
       const asset = wrappedFeature as unknown as Asset;
       if (asset.type !== "pipe") return;
 
-      const assetSegments: SegmentData[] = [];
+      const linkSegments: LinkSegment[] = [];
       for (const segmentCoordinates of (asset as LinkAsset).segments) {
         const [start, end] = segmentCoordinates;
-        assetSegments.push({
+        linkSegments.push({
           midpoint: turfMidpont(start, end).geometry.coordinates,
-          coordinates: [start, end],
           angle: calculateAngle(segmentCoordinates),
           lengthInMeters: measureSegment(segmentCoordinates),
-          assetId: asset.id,
+          linkId: asset.id,
         });
       }
-      segments.set(asset.id, assetSegments);
+      segments.set(asset.id, linkSegments);
     });
     return segments;
   },

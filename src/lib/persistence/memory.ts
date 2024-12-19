@@ -39,7 +39,7 @@ import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { calculateSegments } from "src/map/segments";
+import { calculateSegments } from "src/map/link-segments";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -145,9 +145,11 @@ export class MemPersistence implements IPersistence {
     );
     const updatedSegments = isFeatureOn("FLAG_SPLIT_OVERLAYS")
       ? calculateSegments(
+          {
+            putAssets: forwardMoment.putFeatures as unknown as Asset[],
+            deleteAssets: forwardMoment.deleteFeatures,
+          },
           ctx.segments,
-          forwardMoment.putFeatures as unknown as Asset[],
-          forwardMoment.deleteFeatures,
         )
       : ctx.segments;
     this.store.set(dataAtom, {

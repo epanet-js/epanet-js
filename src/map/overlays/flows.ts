@@ -9,6 +9,7 @@ import turfLength from "@turf/length";
 import { getIconsSprite } from "../icons";
 import { Layer as DeckLayer } from "@deck.gl/core";
 import { getPipe } from "src/hydraulic-model/assets-map";
+import { LinkSegment, LinkSegmentsMap } from "../link-segments";
 
 type ArrowDeprecated = {
   position: Position;
@@ -16,19 +17,10 @@ type ArrowDeprecated = {
   color: [number, number, number];
   size: number;
 };
-export type SegmentData = {
-  midpoint: Position;
-  coordinates: Position[];
-  angle: number;
-  lengthInMeters: number;
-  assetId: AssetId;
-};
-export const nullSegmentsData: SegmentsData = new Map();
-export type SegmentsData = Map<AssetId, SegmentData[]>;
 
 export const buildFlowsOverlay = (
   assets: AssetsMap,
-  segments: SegmentsData,
+  segments: LinkSegmentsMap,
   rangeColorMapping: RangeColorMapping,
   visibilityFn: (assetId: AssetId) => boolean,
 ): DeckLayer[] => {
@@ -66,7 +58,7 @@ export const buildFlowsOverlay = (
     new IconLayer({
       id: "analysis-flows-icons",
       data: [...segments.values()].flat(),
-      getSize: (segment: SegmentData) => chooseSizeFor(segment.lengthInMeters),
+      getSize: (segment: LinkSegment) => chooseSizeFor(segment.lengthInMeters),
       sizeUnits: "meters",
       sizeMinPixels: 0,
       sizeMaxPixels: 24,
@@ -74,17 +66,17 @@ export const buildFlowsOverlay = (
       iconAtlas: iconsSprite.atlas,
       iconMapping: iconsSprite.mapping,
       getIcon: (_d) => "arrow",
-      getAngle: (segment: SegmentData) => {
-        const flow = getFlow(segment.assetId);
+      getAngle: (segment: LinkSegment) => {
+        const flow = getFlow(segment.linkId);
         if (flow === null) return 0;
         return flow > 0 ? segment.angle : rotate180(segment.angle);
       },
-      getPosition: (segment: SegmentData) =>
+      getPosition: (segment: LinkSegment) =>
         segment.midpoint as [number, number],
-      getColor: (segment: SegmentData) => {
-        if (!visibilityFn(segment.assetId)) return [0, 0, 0, 0];
+      getColor: (segment: LinkSegment) => {
+        if (!visibilityFn(segment.linkId)) return [0, 0, 0, 0];
 
-        const flow = getFlow(segment.assetId);
+        const flow = getFlow(segment.linkId);
         if (flow === null) return [0, 0, 0, 0];
 
         return rangeColorMapping.colorFor(Math.abs(flow));
