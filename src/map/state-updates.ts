@@ -12,6 +12,7 @@ import {
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
+  segmentsAtom,
   selectionAtom,
   simulationAtom,
 } from "src/state/jotai";
@@ -39,12 +40,14 @@ import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import {
   FlowsData,
+  SegmentsData,
   buildFlowsData,
   buildFlowsOverlay,
   buildFlowsOverlayDeprecated,
   nullFlowsData,
 } from "./overlays/flows";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { getPipe } from "src/hydraulic-model/assets-map";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -106,15 +109,20 @@ const stylesConfigAtom = atom<StylesConfig>((get) => {
   };
 });
 
-const momentLogPointersAtom = atom((get) => {
-  const momentLog = get(momentLogAtom);
-  const lastImportPointer = momentLog.searchLast(isImportMoment);
-  const lastChangePointer = momentLog.getPointer();
-  return {
-    lastImportPointer,
-    lastChangePointer,
-  };
-});
+const momentLogPointersAtom = atom(
+  withInstrumentation(
+    (get) => {
+      const momentLog = get(momentLogAtom);
+      const lastImportPointer = momentLog.searchLast(isImportMoment);
+      const lastChangePointer = momentLog.getPointer();
+      return {
+        lastImportPointer,
+        lastChangePointer,
+      };
+    },
+    { name: "MAP_STATE:COMPUTE_MOMENT_POINTERS" },
+  ),
+);
 
 const mapStateAtom = atom<MapState>((get) => {
   const { lastImportPointer, lastChangePointer } = get(momentLogPointersAtom);
@@ -170,6 +178,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const mapState = useAtomValue(mapStateAtom);
 
   const assets = useAtomValue(assetsAtom);
+  const segments = useAtomValue(segmentsAtom);
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
@@ -251,7 +260,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
     if (isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
       if (hasNewEditions || hasNewAnalysis || hasNewSimulation) {
-        flowsData.current = buildAnalysisData(assets, mapState.analysis);
+        flowsData.current = buildAnalysisData(
+          assets,
+          mapState.analysis,
+          segments,
+        );
       }
       if (
         hasNewEditions ||
@@ -279,7 +292,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewMovedAssets ||
         hasNewSelection
       ) {
-        buildAnalysisOverlaysDeprecated(
+        analysisOverlays.current = buildAnalysisOverlaysDeprecated(
           map,
           assets,
           mapState.analysis,
@@ -293,7 +306,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       ...analysisOverlays.current,
       ...ephemeralStateOverlays.current,
     ]);
-  }, [mapState, assets, idMap, map, momentLog]);
+  }, [mapState, assets, segments, idMap, map, momentLog]);
 
   doUpdates().catch((e) => captureError(e));
 };
@@ -463,10 +476,14 @@ const updateSelectionFeatureState = withInstrumentation(
 );
 
 const buildAnalysisData = withInstrumentation(
-  (assets: AssetsMap, analysis: AnalysisState): FlowsData => {
+  (
+    assets: AssetsMap,
+    analysis: AnalysisState,
+    segments: SegmentsData,
+  ): FlowsData => {
     if (analysis.links.type !== "flows") return nullFlowsData;
 
-    return buildFlowsData(assets, analysis.links.rangeColorMapping);
+    return buildFlowsData(assets, analysis.links.rangeColorMapping, segments);
   },
   { name: "MAP_STATE:BUILD_ANALYSIS_DATA", maxDurationMs: 1000 },
 );
@@ -483,12 +500,19 @@ const buildAnalysisOverlays = withInstrumentation(
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.links.type === "flows") {
+      const visibilityFn = (pipeId: AssetId) =>
+        !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
+      const getFlowFn = (pipeId: AssetId): number | null => {
+        const pipe = getPipe(assets, pipeId);
+        if (!pipe) return null;
+        return pipe.flow;
+      };
       analysisLayers.push(
         ...buildFlowsOverlay(
           flowsData,
           analysis.links.rangeColorMapping,
-          (assetId: AssetId) =>
-            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
+          getFlowFn,
+          visibilityFn,
         ),
       );
     }
