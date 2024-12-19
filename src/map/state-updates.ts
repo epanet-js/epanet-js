@@ -39,15 +39,11 @@ import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import {
-  FlowsData,
   SegmentsData,
-  buildFlowsData,
   buildFlowsOverlay,
   buildFlowsOverlayDeprecated,
-  nullFlowsData,
 } from "./overlays/flows";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { getPipe } from "src/hydraulic-model/assets-map";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -184,7 +180,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const analysisOverlays = useRef<DeckLayer[]>([]);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
-  const flowsData = useRef<FlowsData>(nullFlowsData);
 
   const doUpdates = useCallback(async () => {
     if (!map) return;
@@ -259,13 +254,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (isFeatureOn("FLAG_SPLIT_OVERLAYS")) {
-      if (hasNewEditions || hasNewAnalysis || hasNewSimulation) {
-        flowsData.current = buildAnalysisData(
-          assets,
-          mapState.analysis,
-          segments,
-        );
-      }
       if (
         hasNewEditions ||
         hasNewAnalysis ||
@@ -276,10 +264,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         analysisOverlays.current = buildAnalysisOverlays(
           map,
           assets,
+          segments,
           mapState.analysis,
           mapState.movedAssetIds,
           mapState.selectedAssetIds,
-          flowsData.current,
         );
       }
     }
@@ -475,43 +463,25 @@ const updateSelectionFeatureState = withInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
-const buildAnalysisData = withInstrumentation(
-  (
-    assets: AssetsMap,
-    analysis: AnalysisState,
-    segments: SegmentsData,
-  ): FlowsData => {
-    if (analysis.links.type !== "flows") return nullFlowsData;
-
-    return buildFlowsData(assets, analysis.links.rangeColorMapping, segments);
-  },
-  { name: "MAP_STATE:BUILD_ANALYSIS_DATA", maxDurationMs: 1000 },
-);
-
 const buildAnalysisOverlays = withInstrumentation(
   (
     map: MapEngine,
     assets: AssetsMap,
+    segments: SegmentsData,
     analysis: AnalysisState,
     movedAssetIds: Set<AssetId>,
     selectedAssetIds: Set<AssetId>,
-    flowsData: FlowsData,
   ): DeckLayer[] => {
     const analysisLayers: DeckLayer[] = [];
 
     if (analysis.links.type === "flows") {
       const visibilityFn = (pipeId: AssetId) =>
         !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
-      const getFlowFn = (pipeId: AssetId): number | null => {
-        const pipe = getPipe(assets, pipeId);
-        if (!pipe) return null;
-        return pipe.flow;
-      };
       analysisLayers.push(
         ...buildFlowsOverlay(
-          flowsData,
+          assets,
+          segments,
           analysis.links.rangeColorMapping,
-          getFlowFn,
           visibilityFn,
         ),
       );

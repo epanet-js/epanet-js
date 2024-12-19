@@ -8,20 +8,13 @@ import { bearing } from "@turf/bearing";
 import turfLength from "@turf/length";
 import { getIconsSprite } from "../icons";
 import { Layer as DeckLayer } from "@deck.gl/core";
+import { getPipe } from "src/hydraulic-model/assets-map";
 
 type ArrowDeprecated = {
   position: Position;
   angle: number;
   color: [number, number, number];
   size: number;
-};
-
-type Arrow = {
-  position: Position;
-  angle: number;
-  color: [number, number, number];
-  size: number;
-  pipeId: AssetId;
 };
 export type SegmentData = {
   midpoint: Position;
@@ -33,55 +26,31 @@ export type SegmentData = {
 export const nullSegmentsData: SegmentsData = new Map();
 export type SegmentsData = Map<AssetId, SegmentData[]>;
 
-export type FlowsData = {
-  pipes: Pipe[];
-  arrows: Arrow[];
-  segments: SegmentsData;
-};
-
-export const nullFlowsData: FlowsData = {
-  pipes: [],
-  arrows: [],
-  segments: nullSegmentsData,
-};
-
-export const buildFlowsData = (
-  assets: AssetsMap,
-  rangeColorMapping: RangeColorMapping,
-  segments: SegmentsData,
-): FlowsData => {
-  const pipes = [];
-  const arrows: Arrow[] = [];
-  for (const asset of assets.values()) {
-    if (asset.type !== "pipe" || (asset as Pipe).flow === null) continue;
-
-    const pipe = asset as Pipe;
-    //appendArrows(arrows, pipe, rangeColorMapping);
-    pipes.push(pipe);
-  }
-
-  return { pipes, arrows, segments };
-};
-
 export const buildFlowsOverlay = (
-  flowsData: FlowsData,
+  assets: AssetsMap,
+  segments: SegmentsData,
   rangeColorMapping: RangeColorMapping,
-  getFlowFn: (pipeId: AssetId) => number | null,
   visibilityFn: (assetId: AssetId) => boolean,
 ): DeckLayer[] => {
   const iconsSprite = getIconsSprite();
+  const pipes = [...assets.values()].filter((asset) => asset.type === "pipe");
+  const getFlow = (pipeId: AssetId): number | null => {
+    const pipe = getPipe(assets, pipeId);
+    if (!pipe) return null;
+    return pipe.flow;
+  };
   return [
     new GeoJsonLayer({
       id: "analysis-flows",
       beforeId: slots["after-lines-slot"],
-      data: flowsData.pipes as unknown as IFeature[],
+      data: pipes as unknown as IFeature[],
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
       getLineWidth: 5,
       getFillColor: [0, 0, 0],
       // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
       getLineColor: (pipe: Pipe) => {
-        if (!visibilityFn(pipe.id)) return [0, 0, 0, 0];
+        if (!visibilityFn(pipe.id) || pipe.flow === null) return [0, 0, 0, 0];
 
         return rangeColorMapping.colorFor(
           Math.abs((pipe as unknown as Pipe).flow as number),
@@ -96,7 +65,7 @@ export const buildFlowsOverlay = (
     }),
     new IconLayer({
       id: "analysis-flows-icons",
-      data: [...flowsData.segments.values()].flat(),
+      data: [...segments.values()].flat(),
       getSize: (segment: SegmentData) => chooseSizeFor(segment.lengthInMeters),
       sizeUnits: "meters",
       sizeMinPixels: 0,
@@ -106,7 +75,7 @@ export const buildFlowsOverlay = (
       iconMapping: iconsSprite.mapping,
       getIcon: (_d) => "arrow",
       getAngle: (segment: SegmentData) => {
-        const flow = getFlowFn(segment.assetId);
+        const flow = getFlow(segment.assetId);
         if (flow === null) return 0;
         return flow > 0 ? segment.angle : rotate180(segment.angle);
       },
@@ -115,13 +84,10 @@ export const buildFlowsOverlay = (
       getColor: (segment: SegmentData) => {
         if (!visibilityFn(segment.assetId)) return [0, 0, 0, 0];
 
-        const flow = getFlowFn(segment.assetId);
+        const flow = getFlow(segment.assetId);
         if (flow === null) return [0, 0, 0, 0];
 
         return rangeColorMapping.colorFor(Math.abs(flow));
-      },
-      updateTriggers: {
-        getColor: visibilityFn,
       },
     }),
   ];
