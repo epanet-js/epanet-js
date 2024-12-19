@@ -4,7 +4,6 @@ import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const junctionsLayer = ({
   source,
@@ -39,9 +38,7 @@ export const junctionsLayer = ({
         "white",
       ],
       "circle-stroke-width": 0,
-      "circle-radius": isFeatureOn("FLAG_MANY_ASSETS")
-        ? ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 6]
-        : 6,
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 6],
       "circle-color": [
         "match",
         ["feature-state", "selected"],

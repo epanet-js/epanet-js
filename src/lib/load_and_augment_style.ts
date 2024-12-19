@@ -20,7 +20,6 @@ import {
 } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { slotLayer } from "src/map/slots";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -42,7 +41,7 @@ const FEATURES_LINE_LAYER_NAME = "features-line";
 const emptyGeoJSONSource = {
   type: "geojson",
   data: emptyFeatureCollection,
-  buffer: isFeatureOn("FLAG_MANY_ASSETS") ? 0 : 512,
+  buffer: 0,
   tolerance: 0,
 } as const;
 
