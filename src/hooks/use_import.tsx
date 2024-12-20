@@ -31,6 +31,7 @@ import { ModelMoment } from "src/hydraulic-model";
 import { AssetBuilder } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
 import { parseInp } from "src/import/parse-inp";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 /**
  * Creates the _input_ to a transact() operation,
@@ -304,6 +305,7 @@ export function useImportFile() {
   const rep = usePersistence();
   const setFileInfo = useSetAtom(fileInfoAtom);
   const transact = rep.useTransact();
+  const transactImport = rep.useTransactImport();
   const transactDeprecated = rep.useTransactDeprecated();
   const joinFeatures = useJoinFeatures();
   const {
@@ -325,10 +327,14 @@ export function useImportFile() {
       if (options.type === "inp") {
         const content = new TextDecoder().decode(arrayBuffer);
         const hydraulicModel = parseInp(content);
-        transact({
-          note: `Import ${file.name}`,
-          putAssets: [...hydraulicModel.assets.values()],
-        });
+        if (isFeatureOn("FLAG_MODEL_UNITS")) {
+          transactImport(hydraulicModel, file.name);
+        } else {
+          transact({
+            note: `Import ${file.name}`,
+            putAssets: [...hydraulicModel.assets.values()],
+          });
+        }
         return { type: "inp", notes: [], hydraulicModel } as InpResult;
       }
 
@@ -374,7 +380,14 @@ export function useImportFile() {
 
       return either;
     },
-    [setFileInfo, transact, transactDeprecated, assetBuilder, joinFeatures],
+    [
+      setFileInfo,
+      transact,
+      transactImport,
+      transactDeprecated,
+      assetBuilder,
+      joinFeatures,
+    ],
   );
 }
 

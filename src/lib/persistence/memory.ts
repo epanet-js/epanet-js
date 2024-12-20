@@ -34,7 +34,7 @@ import {
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
-import { AssetsMap } from "src/hydraulic-model";
+import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
@@ -49,6 +49,31 @@ export class MemPersistence implements IPersistence {
   }
   putPresence = async () => {};
 
+  useTransactImport() {
+    return (hydraulicModel: HydraulicModel, name: string) => {
+      const momentLog = this.store.get(momentLogAtom).copy();
+      const moment = {
+        note: `Import ${name}`,
+        putAssets: [...hydraulicModel.assets.values()],
+      };
+      trackMoment(moment);
+      const forwardMoment = {
+        ...EMPTY_MOMENT,
+        note: moment.note,
+        deleteFeatures: [],
+        putFeatures: moment.putAssets,
+      };
+      const newStateId = nanoid();
+
+      const reverseMoment = this.apply(newStateId, forwardMoment);
+      momentLog.append(forwardMoment, reverseMoment, newStateId);
+      this.store.set(dataAtom, (prev) => ({
+        ...prev,
+        hydraulicModel,
+      }));
+      this.store.set(momentLogAtom, momentLog);
+    };
+  }
   useTransact() {
     return (moment: ModelMoment) => {
       const momentLog = this.store.get(momentLogAtom).copy();
