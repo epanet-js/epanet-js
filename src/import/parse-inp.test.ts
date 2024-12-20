@@ -173,7 +173,7 @@ describe("Parse inp", () => {
     expect(tankAsReservoir.head).toEqual(elevation + initLevel);
   });
 
-  it("detects the unit system", () => {
+  it("detects the us customary unit system", () => {
     stubFeatureOn("FLAG_MODEL_UNITS");
     const anyId = "R1";
     const head = 100;
@@ -194,5 +194,28 @@ describe("Parse inp", () => {
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
+  });
+
+  it("detects other systems", () => {
+    stubFeatureOn("FLAG_MODEL_UNITS");
+    const anyId = "R1";
+    const head = 100;
+    const inp = `
+    [RESERVOIRS]
+    ${anyId}\t${head}
+    [OPTIONS]
+    ANY
+    Units\tLPS
+    ANY
+    `;
+    const hydraulicModel = parseInp(inp);
+    expect(hydraulicModel.quantitiesSpec.pipe).toMatchObject({
+      flow: {
+        unit: "l/s",
+        defaultValue: 0,
+      },
+    });
+    const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
+    expect(reservoir.getUnit("head")).toEqual("m");
   });
 });
