@@ -20,7 +20,6 @@ import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id_mapper";
 import { Asset } from "src/hydraulic-model";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -47,8 +46,6 @@ export function useNoneHandlers({
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     throttledMovePointer(e.point);
   };
-
-  const { quantitiesSpec } = hydraulicModel;
 
   const getClickedAsset = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
@@ -87,7 +84,7 @@ export function useNoneHandlers({
         newCoordinates: node.coordinates,
         newElevation: isFeatureOn("FLAG_MODEL_UNITS")
           ? await fetchElevationForPoint(e.lngLat, {
-              unit: getQuantityUnit(quantitiesSpec, node.type, "elevation"),
+              unit: node.getUnit("elevation"),
             })
           : await fetchElevationForPoint(e.lngLat),
       });
@@ -130,7 +127,7 @@ export function useNoneHandlers({
         newCoordinates,
         newElevation: isFeatureOn("FLAG_MODEL_UNITS")
           ? await fetchElevationForPoint(e.lngLat, {
-              unit: getQuantityUnit(quantitiesSpec, node.type, "elevation"),
+              unit: node.getUnit("elevation"),
             })
           : await fetchElevationForPoint(e.lngLat),
       });

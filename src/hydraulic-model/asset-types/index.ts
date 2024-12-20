@@ -64,3 +64,24 @@ export const getQuantityUnit = (
   }
   return (quantitySpec as QuantitySpec).unit;
 };
+
+type UnitRecord = Record<string, Unit>;
+export const getUnitsByAsset = (
+  systemSpec: AssetQuantitiesSpecByType,
+): Record<Asset["type"], UnitRecord> => {
+  const result: Record<Asset["type"], UnitRecord> = {
+    pipe: {},
+    junction: {},
+    reservoir: {},
+  };
+  for (const assetType in systemSpec) {
+    const assetQuantitiesSpec = systemSpec[assetType as Asset["type"]];
+
+    for (const name in assetQuantitiesSpec) {
+      result[assetType as Asset["type"]][name as keyof AssetQuantities] = (
+        assetQuantitiesSpec[name as keyof AssetQuantities] as QuantitySpec
+      ).unit;
+    }
+  }
+  return result;
+};

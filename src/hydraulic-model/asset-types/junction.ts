@@ -44,7 +44,16 @@ export class Junction extends Node<JunctionProperties> {
     this.simulation = simulation;
   }
 
+  getUnit(key: keyof JunctionQuantities) {
+    return this.units[key];
+  }
+
   copy() {
-    return new Junction(this.id, [...this.coordinates], { ...this.properties });
+    return new Junction(
+      this.id,
+      [...this.coordinates],
+      { ...this.properties },
+      this.units,
+    );
   }
 }
