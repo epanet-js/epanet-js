@@ -11,6 +11,7 @@ export type HydraulicModel = {
   assets: AssetsMap;
   assetBuilder: AssetBuilder;
   topology: Topology;
+  quantitiesSpec: AssetQuantitiesSpecByType;
 };
 
 export { AssetsMap };
@@ -24,5 +25,6 @@ export const nullHydraulicModel = (
     assets,
     assetBuilder: new AssetBuilder(quantitiesSpec),
     topology: new Topology(),
+    quantitiesSpec,
   };
 };
