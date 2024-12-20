@@ -1,3 +1,4 @@
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { buildPipe } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Pipe", () => {
@@ -21,6 +22,30 @@ describe("Pipe", () => {
     expect(pipe.length).toEqual(15724.04);
   });
 
+  it("takes into account unit system", () => {
+    stubFeatureOn("FLAG_MODEL_UNITS");
+    const pipe = buildPipe(
+      {
+        coordinates: [
+          [1, 1],
+          [2, 2],
+        ],
+        length: 0,
+      },
+      { length: { unit: "ft", defaultValue: 0 } },
+    );
+
+    expect(pipe.length).toEqual(0);
+
+    const newCoordinates = [
+      [1, 1],
+      [1.1, 1.1],
+    ];
+    pipe.setCoordinates(newCoordinates);
+
+    expect(pipe.length).toBeCloseTo(51588.05);
+  });
+
   it("does not mutate after a copy", () => {
     const pipe = buildPipe({
       coordinates: [
@@ -39,7 +64,7 @@ describe("Pipe", () => {
     ]);
     pipeCopy.setDiameter(20);
 
-    expect(pipeCopy.length).toEqual(15724.04);
+    expect(pipeCopy.length).toBeCloseTo(15724.04);
     expect(pipeCopy.diameter).toEqual(20);
     expect(pipe.length).toEqual(0);
     expect(pipe.diameter).toEqual(14);

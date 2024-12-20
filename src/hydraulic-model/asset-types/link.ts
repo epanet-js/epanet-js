@@ -2,6 +2,8 @@ import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
+import { convertTo } from "src/quantity";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type LinkConnections = [start: string, end: string];
 
@@ -97,12 +99,23 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     this.setCoordinates([...this.coordinates.slice(0, -1), position]);
   }
 
+  getUnit(quantity: "length") {
+    return this.units[quantity];
+  }
+
   setCoordinates(newCoordinates: Position[]) {
     this.geometry.coordinates = newCoordinates;
 
     const lengthInMeters =
       measureLength(this.feature, { units: "kilometers" }) * 1000;
-    const length = parseFloat(lengthInMeters.toFixed(2));
+    const length = isFeatureOn("FLAG_MODEL_UNITS")
+      ? parseFloat(
+          convertTo(
+            { value: lengthInMeters, unit: "m" },
+            this.getUnit("length"),
+          ).toFixed(6),
+        )
+      : parseFloat(lengthInMeters.toFixed(2));
 
     this.properties.length = length;
   }
