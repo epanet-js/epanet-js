@@ -104,7 +104,7 @@ describe("Pipe", () => {
     expect(pipe.connections).toEqual(["START", "END"]);
   });
 
-  it("can assign defaults in si units", () => {
+  it("can assign defaults", () => {
     const pipe = buildPipe();
 
     expect(pipe.id).not.toBeUndefined();
@@ -118,17 +118,17 @@ describe("Pipe", () => {
     expect(otherPipe.id).not.toEqual(pipe.id);
   });
 
-  it("can assign defaults with quantities", () => {
+  it("can assign values", () => {
     const pipe = buildPipe({
-      diameter: { value: 12, unit: "in" },
-      length: { value: 0.1, unit: "km" },
-      roughness: { value: 0.01, unit: null },
-      minorLoss: { value: 1, unit: null },
+      diameter: 12,
+      length: 0.1,
+      roughness: 0.01,
+      minorLoss: 1,
     });
 
     expect(pipe.id).not.toBeUndefined();
-    expect(pipe.diameter).toBeCloseTo(304.8);
-    expect(pipe.length).toEqual(100);
+    expect(pipe.diameter).toEqual(12);
+    expect(pipe.length).toEqual(0.1);
     expect(pipe.roughness).toEqual(0.01);
     expect(pipe.minorLoss).toEqual(1);
   });
