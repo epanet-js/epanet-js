@@ -66,8 +66,15 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
 
   switch (asset.type) {
     case "junction":
-      return (
+      return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <JunctionEditor
+          junction={asset as Junction}
+          quantitiesSpec={
+            systemSpec.junction as QuantitiesSpec<JunctionQuantities>
+          }
+        />
+      ) : (
+        <JunctionEditorDeprecated
           junction={asset as Junction}
           quantitiesSpec={
             systemSpec.junction as QuantitiesSpec<JunctionQuantities>
@@ -75,15 +82,27 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
         />
       );
     case "pipe":
-      return (
+      return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <PipeEditor
+          pipe={asset as Pipe}
+          quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
+        />
+      ) : (
+        <PipeEditorDeprecated
           pipe={asset as Pipe}
           quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
         />
       );
     case "reservoir":
-      return (
+      return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <ReservoirEditor
+          reservoir={asset as Reservoir}
+          quantitiesSpec={
+            systemSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
+          }
+        />
+      ) : (
+        <ReservoirEditorDeprecated
           reservoir={asset as Reservoir}
           quantitiesSpec={
             systemSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
@@ -112,11 +131,69 @@ const PipeEditor = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
+                unit={quantitiesSpec.diameter.unit}
+                decimals={quantitiesSpec.diameter.decimals}
+              />
+              <QuantityRow
+                name="length"
+                position={2}
+                value={pipe.length}
+                unit={quantitiesSpec.length.unit}
+                decimals={quantitiesSpec.length.decimals}
+              />
+              <QuantityRow
+                name="roughness"
+                position={3}
+                value={pipe.roughness}
+                unit={quantitiesSpec.roughness.unit}
+                decimals={quantitiesSpec.roughness.decimals}
+              />
+              <QuantityRow
+                name="minorLoss"
+                position={4}
+                value={pipe.minorLoss}
+                unit={quantitiesSpec.minorLoss.unit}
+                decimals={quantitiesSpec.minorLoss.decimals}
+              />
+              <QuantityRow
+                name="flow"
+                position={5}
+                value={pipe.flow}
+                unit={quantitiesSpec.flow.unit}
+                decimals={quantitiesSpec.flow.decimals}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
+};
+
+const PipeEditorDeprecated = ({
+  pipe,
+  quantitiesSpec,
+}: {
+  pipe: Pipe;
+  quantitiesSpec: QuantitiesSpec<PipeQuantities>;
+}) => {
+  return (
+    <PanelDetails title={translate("pipe")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <StatusRow name={"status"} status={pipe.status} position={0} />
+              <QuantityRowDeprecated
+                name="diameter"
+                position={1}
+                value={pipe.diameter}
                 fromUnit={pipeCanonicalSpec.diameter.unit}
                 toUnit={quantitiesSpec.diameter.unit}
                 decimals={quantitiesSpec.diameter.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="length"
                 position={2}
                 value={pipe.length}
@@ -124,7 +201,7 @@ const PipeEditor = ({
                 toUnit={quantitiesSpec.length.unit}
                 decimals={quantitiesSpec.length.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
@@ -132,7 +209,7 @@ const PipeEditor = ({
                 toUnit={quantitiesSpec.roughness.unit}
                 decimals={quantitiesSpec.roughness.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
@@ -140,7 +217,7 @@ const PipeEditor = ({
                 toUnit={quantitiesSpec.minorLoss.unit}
                 decimals={quantitiesSpec.minorLoss.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="flow"
                 position={5}
                 value={pipe.flow}
@@ -174,11 +251,53 @@ const JunctionEditor = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
+                unit={quantitiesSpec.elevation.unit}
+                decimals={quantitiesSpec.elevation.decimals}
+              />
+              <QuantityRow
+                name="demand"
+                position={1}
+                value={junction.demand}
+                unit={quantitiesSpec.demand.unit}
+                decimals={quantitiesSpec.demand.decimals}
+              />
+              <QuantityRow
+                name="pressure"
+                position={2}
+                value={junction.pressure}
+                unit={quantitiesSpec.pressure.unit}
+                decimals={quantitiesSpec.pressure.decimals}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
+};
+const JunctionEditorDeprecated = ({
+  junction,
+  quantitiesSpec,
+}: {
+  junction: Junction;
+  quantitiesSpec: QuantitiesSpec<JunctionQuantities>;
+}) => {
+  return (
+    <PanelDetails title={translate("junction")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <QuantityRowDeprecated
+                name="elevation"
+                position={0}
+                value={junction.elevation}
                 fromUnit={junctionCanonicalSpec.elevation.unit}
                 toUnit={quantitiesSpec.elevation.unit}
                 decimals={quantitiesSpec.elevation.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="demand"
                 position={1}
                 value={junction.demand}
@@ -186,7 +305,7 @@ const JunctionEditor = ({
                 toUnit={quantitiesSpec.demand.unit}
                 decimals={quantitiesSpec.demand.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="pressure"
                 position={2}
                 value={junction.pressure}
@@ -216,7 +335,7 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="elevation"
                 position={0}
                 value={reservoir.elevation}
@@ -224,12 +343,48 @@ const ReservoirEditor = ({
                 toUnit={quantitiesSpec.elevation.unit}
                 decimals={quantitiesSpec.elevation.decimals}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="head"
                 position={1}
                 value={reservoir.head}
                 fromUnit={reservoirCanonicalSpec.head.unit}
                 toUnit={quantitiesSpec.head.unit}
+                decimals={quantitiesSpec.head.decimals}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
+};
+
+const ReservoirEditorDeprecated = ({
+  reservoir,
+  quantitiesSpec,
+}: {
+  reservoir: Reservoir;
+  quantitiesSpec: QuantitiesSpec<ReservoirQuantities>;
+}) => {
+  return (
+    <PanelDetails title={translate("reservoir")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <QuantityRow
+                name="elevation"
+                position={0}
+                value={reservoir.elevation}
+                unit={quantitiesSpec.elevation.unit}
+                decimals={quantitiesSpec.elevation.decimals}
+              />
+              <QuantityRow
+                name="head"
+                position={1}
+                value={reservoir.head}
+                unit={quantitiesSpec.head.unit}
                 decimals={quantitiesSpec.head.decimals}
               />
             </tbody>
@@ -261,6 +416,36 @@ const StatusRow = ({
 };
 
 const QuantityRow = ({
+  name,
+  value,
+  unit,
+  decimals,
+  position,
+}: {
+  name: string;
+  value: number | null;
+  unit: Unit;
+  position: number;
+  decimals?: number;
+}) => {
+  const displayValue =
+    value === null
+      ? translate("notAvailable")
+      : localizeDecimal(value, decimals);
+
+  const label = unit
+    ? `${translate(name)} (${translateUnit(unit)})`
+    : `${translate(name)}`;
+  return (
+    <PropertyRowReadonly
+      pair={[label, displayValue]}
+      y={position}
+      even={position % 2 === 0}
+    />
+  );
+};
+
+const QuantityRowDeprecated = ({
   name,
   value,
   fromUnit,
