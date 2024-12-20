@@ -19,6 +19,8 @@ import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id_mapper";
 import { Asset } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -45,6 +47,8 @@ export function useNoneHandlers({
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     throttledMovePointer(e.point);
   };
+
+  const { quantitiesSpec } = hydraulicModel;
 
   const getClickedAsset = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
@@ -81,7 +85,11 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: node.id,
         newCoordinates: node.coordinates,
-        newElevation: await fetchElevationForPoint(e.lngLat),
+        newElevation: isFeatureOn("FLAG_MODEL_UNITS")
+          ? await fetchElevationForPoint(e.lngLat, {
+              unit: getQuantityUnit(quantitiesSpec, node.type, "elevation"),
+            })
+          : await fetchElevationForPoint(e.lngLat),
       });
       putAssets && startMove(putAssets);
       setCursor("move");
@@ -113,12 +121,18 @@ export function useNoneHandlers({
       }
 
       const [assetId] = getSelectionIds();
+      const node = getNode(hydraulicModel.assets, assetId);
+      if (!node) return skipMove(e);
 
       const newCoordinates = getMapCoord(e);
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: await fetchElevationForPoint(e.lngLat),
+        newElevation: isFeatureOn("FLAG_MODEL_UNITS")
+          ? await fetchElevationForPoint(e.lngLat, {
+              unit: getQuantityUnit(quantitiesSpec, node.type, "elevation"),
+            })
+          : await fetchElevationForPoint(e.lngLat),
       });
       transact(moment);
       resetMove();
