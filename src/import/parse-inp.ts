@@ -1,6 +1,8 @@
 import { Position } from "geojson";
 import { HydraulicModel, nullHydraulicModel } from "src/hydraulic-model";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import { presets } from "src/settings/quantities-spec";
+import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 type InpData = {
   junctions: { id: string; elevation: number }[];
@@ -27,6 +29,7 @@ type InpData = {
   coordinates: Record<string, Position>;
   vertices: Record<string, Position[]>;
   demands: Record<string, number>;
+  options: { units: EpanetUnitSystem };
 };
 
 export const parseInp = (inp: string): HydraulicModel => {
@@ -45,6 +48,7 @@ const readAllSections = (inp: string): InpData => {
     coordinates: {},
     vertices: {},
     demands: {},
+    options: { units: "GPM" },
   };
   for (const row of rows) {
     const trimmedRow = row.trim();
@@ -89,6 +93,10 @@ const readAllSections = (inp: string): InpData => {
     }
     if (trimmedRow.includes("[VERTICES]")) {
       section = "vertices";
+      continue;
+    }
+    if (trimmedRow.includes("[OPTIONS]")) {
+      section = "options";
       continue;
     }
     if (trimmedRow.startsWith("[")) {
@@ -170,12 +178,23 @@ const readAllSections = (inp: string): InpData => {
       const [nodeId, demand] = readValues(trimmedRow);
       inpData.demands[nodeId] = parseFloat(demand);
     }
+
+    if (section === "options") {
+      const [name, value] = readValues(trimmedRow);
+      if (name === "Units") inpData.options.units = value as EpanetUnitSystem;
+    }
   }
   return inpData;
 };
 
 const buildModel = (inpData: InpData): HydraulicModel => {
-  const hydraulicModel = nullHydraulicModel(new Map());
+  let hydraulicModel: HydraulicModel;
+  if (inpData.options.units === "GPM") {
+    hydraulicModel = nullHydraulicModel(new Map(), presets.usCustomary);
+  } else {
+    hydraulicModel = nullHydraulicModel(new Map(), presets.si);
+  }
+
   for (const junctionData of inpData.junctions) {
     const junction = hydraulicModel.assetBuilder.buildJunction({
       id: junctionData.id,

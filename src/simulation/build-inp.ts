@@ -12,7 +12,7 @@ type BuildOptions = {
   geolocation?: boolean;
 };
 
-type EpanetUnitSystem = "LPS" | "GPM";
+export type EpanetUnitSystem = "LPS" | "GPM";
 
 const chooseUnitSystem = (
   quantitiesSpec: AssetQuantitiesSpecByType,

@@ -1,5 +1,6 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Parse inp", () => {
   it("includes junctions in the model", () => {
@@ -170,5 +171,28 @@ describe("Parse inp", () => {
 
     const tankAsReservoir = hydraulicModel.assets.get(tankId) as Reservoir;
     expect(tankAsReservoir.head).toEqual(elevation + initLevel);
+  });
+
+  it("detects the unit system", () => {
+    stubFeatureOn("FLAG_MODEL_UNITS");
+    const anyId = "R1";
+    const head = 100;
+    const inp = `
+    [RESERVOIRS]
+    ${anyId}\t${head}
+    [OPTIONS]
+    ANY
+    Units\tGPM
+    ANY
+    `;
+    const hydraulicModel = parseInp(inp);
+    expect(hydraulicModel.quantitiesSpec.pipe).toMatchObject({
+      flow: {
+        unit: "gal/min",
+        defaultValue: 0,
+      },
+    });
+    const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
+    expect(reservoir.getUnit("head")).toEqual("ft");
   });
 });
