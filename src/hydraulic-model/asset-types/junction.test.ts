@@ -28,14 +28,14 @@ describe("Junction", () => {
     expect(otherJunction.id).not.toEqual(junction.id);
   });
 
-  it("can assign values in other units", () => {
+  it("can assign values", () => {
     const junction = buildJunction({
-      demand: { value: 10, unit: "l/h" },
-      elevation: { value: 100, unit: "mm" },
+      demand: 10,
+      elevation: 100,
     });
 
-    expect(junction.demand).toBeCloseTo(0.0027);
-    expect(junction.elevation).toEqual(0.1);
+    expect(junction.demand).toEqual(10);
+    expect(junction.elevation).toEqual(100);
   });
 
   it("can attach a simulation", () => {

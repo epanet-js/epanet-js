@@ -28,8 +28,8 @@ type QuantityOrNumber = Quantity | number;
 export type JunctionBuildData = {
   id?: AssetId;
   coordinates?: Position;
-  elevation?: QuantityOrNumber;
-  demand?: QuantityOrNumber;
+  elevation?: number;
+  demand?: number;
 };
 
 export type PipeBuildData = {
@@ -37,21 +37,22 @@ export type PipeBuildData = {
   coordinates?: Position[];
   connections?: LinkConnections;
   status?: PipeStatus;
-  diameter?: QuantityOrNumber;
-  roughness?: QuantityOrNumber;
-  minorLoss?: QuantityOrNumber;
-  length?: QuantityOrNumber;
+  diameter?: number;
+  roughness?: number;
+  minorLoss?: number;
+  length?: number;
 };
 
 export type ReservoirBuildData = {
   id?: AssetId;
   coordinates?: Position;
-  head?: QuantityOrNumber;
+  head?: number;
   relativeHead?: number;
-  elevation?: QuantityOrNumber;
+  elevation?: number;
 };
 
 import { customAlphabet } from "nanoid";
+import { isFeatureOn } from "src/infra/feature-flags";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -77,15 +78,27 @@ export class AssetBuilder {
     minorLoss,
     roughness,
   }: PipeBuildData = {}) {
-    return new Pipe(id, coordinates, {
-      type: "pipe",
-      connections,
-      status,
-      length: this.getPipeValue("length", length),
-      diameter: this.getPipeValue("diameter", diameter),
-      minorLoss: this.getPipeValue("minorLoss", minorLoss),
-      roughness: this.getPipeValue("roughness", roughness),
-    });
+    if (isFeatureOn("FLAG_MODEL_UNITS")) {
+      return new Pipe(id, coordinates, {
+        type: "pipe",
+        connections,
+        status,
+        length: this.getPipeValue("length", length),
+        diameter: this.getPipeValue("diameter", diameter),
+        minorLoss: this.getPipeValue("minorLoss", minorLoss),
+        roughness: this.getPipeValue("roughness", roughness),
+      });
+    } else {
+      return new Pipe(id, coordinates, {
+        type: "pipe",
+        connections,
+        status,
+        length: this.getPipeValueDeprecated("length", length),
+        diameter: this.getPipeValueDeprecated("diameter", diameter),
+        minorLoss: this.getPipeValueDeprecated("minorLoss", minorLoss),
+        roughness: this.getPipeValueDeprecated("roughness", roughness),
+      });
+    }
   }
 
   buildJunction({
@@ -94,11 +107,19 @@ export class AssetBuilder {
     elevation,
     demand,
   }: JunctionBuildData = {}) {
-    return new Junction(id, coordinates, {
-      type: "junction",
-      elevation: this.getJunctionValue("elevation", elevation),
-      demand: this.getJunctionValue("demand", demand),
-    });
+    if (isFeatureOn("FLAG_MODEL_UNITS")) {
+      return new Junction(id, coordinates, {
+        type: "junction",
+        elevation: this.getJunctionValue("elevation", elevation),
+        demand: this.getJunctionValue("demand", demand),
+      });
+    } else {
+      return new Junction(id, coordinates, {
+        type: "junction",
+        elevation: this.getJunctionValueDeprecated("elevation", elevation),
+        demand: this.getJunctionValueDeprecated("demand", demand),
+      });
+    }
   }
 
   buildReservoir({
@@ -108,26 +129,56 @@ export class AssetBuilder {
     head,
     relativeHead,
   }: ReservoirBuildData = {}) {
-    const elevationValue = this.getReservoirValue("elevation", elevation);
-    let headValue: number;
-    if (head !== undefined) {
-      headValue = this.getReservoirValue("head", head);
-    } else {
-      const relativeHeadValue = this.getReservoirValue(
-        "relativeHead",
-        relativeHead,
-      );
-      headValue = relativeHeadValue + elevationValue;
-    }
+    if (isFeatureOn("FLAG_MODEL_UNITS")) {
+      const elevationValue = this.getReservoirValue("elevation", elevation);
+      let headValue: number;
+      if (head !== undefined) {
+        headValue = this.getReservoirValue("head", head);
+      } else {
+        const relativeHeadValue = this.getReservoirValue(
+          "relativeHead",
+          relativeHead,
+        );
+        headValue = relativeHeadValue + elevationValue;
+      }
 
-    return new Reservoir(id, coordinates, {
-      type: "reservoir",
-      head: headValue,
-      elevation: elevationValue,
-    });
+      return new Reservoir(id, coordinates, {
+        type: "reservoir",
+        head: headValue,
+        elevation: elevationValue,
+      });
+    } else {
+      const elevationValue = this.getReservoirValueDeprecated(
+        "elevation",
+        elevation,
+      );
+      let headValue: number;
+      if (head !== undefined) {
+        headValue = this.getReservoirValueDeprecated("head", head);
+      } else {
+        const relativeHeadValue = this.getReservoirValueDeprecated(
+          "relativeHead",
+          relativeHead,
+        );
+        headValue = relativeHeadValue + elevationValue;
+      }
+
+      return new Reservoir(id, coordinates, {
+        type: "reservoir",
+        head: headValue,
+        elevation: elevationValue,
+      });
+    }
   }
 
-  private getPipeValue(
+  private getPipeValue(name: keyof PipeQuantities, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return (this.quantitiesSpec.pipe as QuantitiesSpec<PipeQuantities>)[name]
+      .defaultValue;
+  }
+
+  private getPipeValueDeprecated(
     name: keyof PipeQuantities,
     candidate?: QuantityOrNumber,
   ) {
@@ -139,7 +190,15 @@ export class AssetBuilder {
     );
   }
 
-  private getJunctionValue(
+  private getJunctionValue(name: keyof JunctionQuantities, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return (this.quantitiesSpec.junction as QuantitiesSpec<JunctionQuantities>)[
+      name
+    ].defaultValue;
+  }
+
+  private getJunctionValueDeprecated(
     name: keyof JunctionQuantities,
     candidate?: QuantityOrNumber,
   ) {
@@ -152,6 +211,17 @@ export class AssetBuilder {
   }
 
   private getReservoirValue(
+    name: keyof ReservoirQuantities,
+    candidate?: number,
+  ) {
+    if (candidate !== undefined) return candidate;
+
+    return (
+      this.quantitiesSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
+    )[name].defaultValue;
+  }
+
+  private getReservoirValueDeprecated(
     name: keyof ReservoirQuantities,
     candidate?: QuantityOrNumber,
   ) {
