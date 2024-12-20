@@ -10,6 +10,8 @@ import {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
+  canonicalQuantitiesSpec,
+  AssetQuantitiesSpecByType,
 } from "src/hydraulic-model";
 
 export const buildPipe = (data: PipeBuildData = {}) =>
@@ -23,6 +25,7 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
+  private quantitiesSpec: AssetQuantitiesSpecByType;
 
   static with() {
     return new HydraulicModelBuilder();
@@ -30,7 +33,8 @@ export class HydraulicModelBuilder {
 
   constructor() {
     this.assets = new Map();
-    this.assetBuilder = new AssetBuilder();
+    this.quantitiesSpec = canonicalQuantitiesSpec;
+    this.assetBuilder = new AssetBuilder(this.quantitiesSpec);
     this.topology = new Topology();
   }
 
@@ -96,6 +100,7 @@ export class HydraulicModelBuilder {
       assets: this.assets,
       assetBuilder: this.assetBuilder,
       topology: this.topology,
+      quantitiesSpec: this.quantitiesSpec,
     };
   }
 }
