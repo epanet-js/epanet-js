@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
+import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
 
 export type NodeProperties = {
   elevation: number;
@@ -11,8 +11,9 @@ export class Node<T> extends BaseAsset<T & NodeProperties> {
     id: AssetId,
     coordinates: Position,
     attributes: T & NodeProperties,
+    units: AssetUnits,
   ) {
-    super(id, { type: "Point", coordinates }, attributes);
+    super(id, { type: "Point", coordinates }, attributes, units);
   }
 
   get isLink() {

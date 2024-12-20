@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
+import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
 
@@ -22,9 +22,10 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
   constructor(
     id: AssetId,
     coordinates: Position[],
-    attributes: T & LinkProperties,
+    properties: T & LinkProperties,
+    units: AssetUnits,
   ) {
-    super(id, { type: "LineString", coordinates }, attributes);
+    super(id, { type: "LineString", coordinates }, properties, units);
   }
 
   get isLink() {

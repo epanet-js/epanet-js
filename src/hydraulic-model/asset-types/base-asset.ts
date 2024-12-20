@@ -1,5 +1,6 @@
 import { IFeature } from "src/types";
 import { LineString, Point } from "geojson";
+import { Unit } from "src/quantity";
 
 export type AssetId = StringId;
 
@@ -10,18 +11,23 @@ export type AssetProperties = {
   visibility?: boolean;
 };
 
+export type AssetUnits = Record<string, Unit>;
+
 export class BaseAsset<T> {
   public readonly feature: IFeature<AssetGeometry, T & AssetProperties>;
   public readonly id: AssetId;
   public readonly at = "any";
   public readonly folderId = "any";
+  protected units: AssetUnits;
 
   constructor(
     id: AssetId,
     geometry: AssetGeometry,
     properties: T & AssetProperties,
+    units: AssetUnits,
   ) {
     this.id = id;
+    this.units = units;
     this.feature = {
       type: "Feature",
       geometry,

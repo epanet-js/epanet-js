@@ -1,9 +1,11 @@
 import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
 import {
+  Asset,
   AssetId,
   AssetQuantitiesSpecByType,
   Junction,
   canonicalQuantitiesSpec,
+  getUnitsByAsset,
 } from "./asset-types";
 import {
   JunctionQuantities,
@@ -58,11 +60,18 @@ const epanetCompatibleAlphabet =
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
 const generateId = () => nanoId();
 
+type UnitRecord = Record<string, Unit>;
+type UnitsByAsset = Record<Asset["type"], UnitRecord>;
+
+const noUnits = {};
+
 export class AssetBuilder {
   private quantitiesSpec: AssetQuantitiesSpecByType;
+  private unitsByAsset: UnitsByAsset;
 
   constructor(quantitiesSpec = canonicalQuantitiesSpec) {
     this.quantitiesSpec = quantitiesSpec;
+    this.unitsByAsset = getUnitsByAsset(this.quantitiesSpec);
   }
 
   buildPipe({
@@ -79,25 +88,35 @@ export class AssetBuilder {
     roughness,
   }: PipeBuildData = {}) {
     if (isFeatureOn("FLAG_MODEL_UNITS")) {
-      return new Pipe(id, coordinates, {
-        type: "pipe",
-        connections,
-        status,
-        length: this.getPipeValue("length", length),
-        diameter: this.getPipeValue("diameter", diameter),
-        minorLoss: this.getPipeValue("minorLoss", minorLoss),
-        roughness: this.getPipeValue("roughness", roughness),
-      });
+      return new Pipe(
+        id,
+        coordinates,
+        {
+          type: "pipe",
+          connections,
+          status,
+          length: this.getPipeValue("length", length),
+          diameter: this.getPipeValue("diameter", diameter),
+          minorLoss: this.getPipeValue("minorLoss", minorLoss),
+          roughness: this.getPipeValue("roughness", roughness),
+        },
+        this.unitsByAsset.pipe,
+      );
     } else {
-      return new Pipe(id, coordinates, {
-        type: "pipe",
-        connections,
-        status,
-        length: this.getPipeValueDeprecated("length", length),
-        diameter: this.getPipeValueDeprecated("diameter", diameter),
-        minorLoss: this.getPipeValueDeprecated("minorLoss", minorLoss),
-        roughness: this.getPipeValueDeprecated("roughness", roughness),
-      });
+      return new Pipe(
+        id,
+        coordinates,
+        {
+          type: "pipe",
+          connections,
+          status,
+          length: this.getPipeValueDeprecated("length", length),
+          diameter: this.getPipeValueDeprecated("diameter", diameter),
+          minorLoss: this.getPipeValueDeprecated("minorLoss", minorLoss),
+          roughness: this.getPipeValueDeprecated("roughness", roughness),
+        },
+        noUnits,
+      );
     }
   }
 
@@ -108,17 +127,27 @@ export class AssetBuilder {
     demand,
   }: JunctionBuildData = {}) {
     if (isFeatureOn("FLAG_MODEL_UNITS")) {
-      return new Junction(id, coordinates, {
-        type: "junction",
-        elevation: this.getJunctionValue("elevation", elevation),
-        demand: this.getJunctionValue("demand", demand),
-      });
+      return new Junction(
+        id,
+        coordinates,
+        {
+          type: "junction",
+          elevation: this.getJunctionValue("elevation", elevation),
+          demand: this.getJunctionValue("demand", demand),
+        },
+        this.unitsByAsset.junction,
+      );
     } else {
-      return new Junction(id, coordinates, {
-        type: "junction",
-        elevation: this.getJunctionValueDeprecated("elevation", elevation),
-        demand: this.getJunctionValueDeprecated("demand", demand),
-      });
+      return new Junction(
+        id,
+        coordinates,
+        {
+          type: "junction",
+          elevation: this.getJunctionValueDeprecated("elevation", elevation),
+          demand: this.getJunctionValueDeprecated("demand", demand),
+        },
+        noUnits,
+      );
     }
   }
 
@@ -142,11 +171,16 @@ export class AssetBuilder {
         headValue = relativeHeadValue + elevationValue;
       }
 
-      return new Reservoir(id, coordinates, {
-        type: "reservoir",
-        head: headValue,
-        elevation: elevationValue,
-      });
+      return new Reservoir(
+        id,
+        coordinates,
+        {
+          type: "reservoir",
+          head: headValue,
+          elevation: elevationValue,
+        },
+        this.unitsByAsset.reservoir,
+      );
     } else {
       const elevationValue = this.getReservoirValueDeprecated(
         "elevation",
@@ -163,11 +197,16 @@ export class AssetBuilder {
         headValue = relativeHeadValue + elevationValue;
       }
 
-      return new Reservoir(id, coordinates, {
-        type: "reservoir",
-        head: headValue,
-        elevation: elevationValue,
-      });
+      return new Reservoir(
+        id,
+        coordinates,
+        {
+          type: "reservoir",
+          head: headValue,
+          elevation: elevationValue,
+        },
+        noUnits,
+      );
     }
   }
 

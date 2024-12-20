@@ -20,12 +20,21 @@ export { canonicalSpec as reservoirCanonicalSpec };
 
 export class Reservoir extends Node<ReservoirProperties> {
   copy() {
-    return new Reservoir(this.id, [...this.coordinates], {
-      ...this.properties,
-    });
+    return new Reservoir(
+      this.id,
+      [...this.coordinates],
+      {
+        ...this.properties,
+      },
+      this.units,
+    );
   }
 
   setSimulation() {}
+
+  getUnit(key: keyof ReservoirQuantities) {
+    return this.units[key];
+  }
 
   get head() {
     return this.properties.head;
