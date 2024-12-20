@@ -1,5 +1,10 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
+import {
+  AssetQuantitiesSpecByType,
+  canonicalQuantitiesSpec,
+} from "src/hydraulic-model";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -89,6 +94,23 @@ describe("build inp", () => {
     expect(rowsFrom(inp)).toContain("Headloss\tH-W");
 
     expect(rowsFrom(inp).at(-1)).toEqual("[END]");
+  });
+
+  it("detects units based on the flow units of the model", () => {
+    stubFeatureOn("FLAG_MODEL_UNITS");
+    const quantitiesWithGPM: AssetQuantitiesSpecByType = {
+      ...canonicalQuantitiesSpec,
+      pipe: {
+        ...canonicalQuantitiesSpec.pipe,
+        flow: { unit: "gal/min", defaultValue: 0 },
+      },
+    };
+    const hydraulicModel =
+      HydraulicModelBuilder.with(quantitiesWithGPM).build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(rowsFrom(inp)).toContain("Units\tGPM");
   });
 
   it("includes geographical info when requested", () => {
