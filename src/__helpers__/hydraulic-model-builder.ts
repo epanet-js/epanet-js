@@ -1,4 +1,4 @@
-import { QuantitiesSpec, QuantitySpec, Unit } from "src/quantity";
+import { QuantitiesSpec } from "src/quantity";
 import { Position } from "geojson";
 import { nanoid } from "nanoid";
 import {
@@ -13,8 +13,6 @@ import {
   ReservoirBuildData,
   canonicalQuantitiesSpec,
   AssetQuantitiesSpecByType,
-  Asset,
-  AssetQuantities,
 } from "src/hydraulic-model";
 import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 
@@ -43,8 +41,10 @@ export class HydraulicModelBuilder {
   private assetBuilder: AssetBuilder;
   private quantitiesSpec: AssetQuantitiesSpecByType;
 
-  static with() {
-    return new HydraulicModelBuilder();
+  static with(
+    quantitiesSpec: AssetQuantitiesSpecByType = canonicalQuantitiesSpec,
+  ) {
+    return new HydraulicModelBuilder(quantitiesSpec);
   }
 
   constructor(
@@ -54,12 +54,6 @@ export class HydraulicModelBuilder {
     this.quantitiesSpec = quantitiesSpec;
     this.assetBuilder = new AssetBuilder(this.quantitiesSpec);
     this.topology = new Topology();
-  }
-
-  forcingUnit(assetType: Asset["type"], key: string, unit: Unit) {
-    const assetSpec = this.quantitiesSpec[assetType];
-    (assetSpec[key as keyof AssetQuantities] as QuantitySpec).unit = unit;
-    return this;
   }
 
   aNode(id: string, coordinates: Position = [0, 0]) {

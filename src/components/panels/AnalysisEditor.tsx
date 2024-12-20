@@ -1,13 +1,17 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { styledSelect } from "../elements";
 import { PanelDetails } from "../panel_details";
 import { analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { dataAtom } from "src/state/jotai";
+import { getQuantityUnit } from "src/hydraulic-model/asset-types";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
@@ -40,7 +44,13 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "pressure",
-                          unit: "mwc",
+                          unit: isFeatureOn("FLAG_MODEL_UNITS")
+                            ? getQuantityUnit(
+                                hydraulicModel.quantitiesSpec,
+                                "junction",
+                                "pressure",
+                              )
+                            : "l/s",
                           paletteName: "epanet-ramp",
                         }),
                       },
@@ -78,7 +88,13 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "flow",
-                          unit: "l/s",
+                          unit: isFeatureOn("FLAG_MODEL_UNITS")
+                            ? getQuantityUnit(
+                                hydraulicModel.quantitiesSpec,
+                                "pipe",
+                                "flow",
+                              )
+                            : "l/s",
                           paletteName: "epanet-ramp",
                         }),
                       },

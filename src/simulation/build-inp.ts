@@ -1,4 +1,10 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import {
+  AssetQuantitiesSpecByType,
+  getQuantityUnit,
+} from "src/hydraulic-model/asset-types";
+import { captureWarning } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type SimulationPipeStatus = "Open" | "Closed";
 
@@ -6,11 +12,28 @@ type BuildOptions = {
   geolocation?: boolean;
 };
 
+type EpanetUnitSystem = "LPS" | "GPM";
+
+const chooseUnitSystem = (
+  quantitiesSpec: AssetQuantitiesSpecByType,
+): EpanetUnitSystem => {
+  const pipeFlowUnit = getQuantityUnit(quantitiesSpec, "pipe", "flow");
+  if (pipeFlowUnit === "l/s") return "LPS";
+  if (pipeFlowUnit === "gal/min") return "GPM";
+
+  captureWarning(
+    `Flow unit not supported ${pipeFlowUnit}, fallback to default`,
+  );
+  return "LPS";
+};
+
 export const buildInp = (
   hydraulicModel: HydraulicModel,
   { geolocation = false }: BuildOptions = {},
 ): string => {
-  const defaultUnits = "LPS";
+  const defaultUnits = isFeatureOn("FLAG_MODEL_UNITS")
+    ? chooseUnitSystem(hydraulicModel.quantitiesSpec)
+    : "LPS";
   const defaultHeadloss = "H-W";
   const oneStep = 0;
   const sections = {
