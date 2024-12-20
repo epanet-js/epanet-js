@@ -30,7 +30,6 @@ import {
 import {
   Reservoir,
   ReservoirQuantities,
-  reservoirCanonicalSpec,
 } from "src/hydraulic-model/asset-types/reservoir";
 
 export function FeatureEditorInner({
@@ -131,35 +130,35 @@ const PipeEditor = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
-                unit={quantitiesSpec.diameter.unit}
+                unit={pipe.getUnit("diameter")}
                 decimals={quantitiesSpec.diameter.decimals}
               />
               <QuantityRow
                 name="length"
                 position={2}
                 value={pipe.length}
-                unit={quantitiesSpec.length.unit}
+                unit={pipe.getUnit("length")}
                 decimals={quantitiesSpec.length.decimals}
               />
               <QuantityRow
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
-                unit={quantitiesSpec.roughness.unit}
+                unit={pipe.getUnit("roughness")}
                 decimals={quantitiesSpec.roughness.decimals}
               />
               <QuantityRow
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
-                unit={quantitiesSpec.minorLoss.unit}
+                unit={pipe.getUnit("minorLoss")}
                 decimals={quantitiesSpec.minorLoss.decimals}
               />
               <QuantityRow
                 name="flow"
                 position={5}
                 value={pipe.flow}
-                unit={quantitiesSpec.flow.unit}
+                unit={pipe.getUnit("flow")}
                 decimals={quantitiesSpec.flow.decimals}
               />
             </tbody>
@@ -251,21 +250,21 @@ const JunctionEditor = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
-                unit={quantitiesSpec.elevation.unit}
+                unit={junction.getUnit("elevation")}
                 decimals={quantitiesSpec.elevation.decimals}
               />
               <QuantityRow
                 name="demand"
                 position={1}
                 value={junction.demand}
-                unit={quantitiesSpec.demand.unit}
+                unit={junction.getUnit("demand")}
                 decimals={quantitiesSpec.demand.decimals}
               />
               <QuantityRow
                 name="pressure"
                 position={2}
                 value={junction.pressure}
-                unit={quantitiesSpec.pressure.unit}
+                unit={junction.getUnit("pressure")}
                 decimals={quantitiesSpec.pressure.decimals}
               />
             </tbody>
@@ -335,20 +334,18 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <QuantityRowDeprecated
+              <QuantityRow
                 name="elevation"
                 position={0}
                 value={reservoir.elevation}
-                fromUnit={reservoirCanonicalSpec.elevation.unit}
-                toUnit={quantitiesSpec.elevation.unit}
+                unit={reservoir.getUnit("elevation")}
                 decimals={quantitiesSpec.elevation.decimals}
               />
-              <QuantityRowDeprecated
+              <QuantityRow
                 name="head"
                 position={1}
                 value={reservoir.head}
-                fromUnit={reservoirCanonicalSpec.head.unit}
-                toUnit={quantitiesSpec.head.unit}
+                unit={reservoir.getUnit("head")}
                 decimals={quantitiesSpec.head.decimals}
               />
             </tbody>
