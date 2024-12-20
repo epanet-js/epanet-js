@@ -1,6 +1,8 @@
 import { QueryClient } from "@tanstack/query-core";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
+import { Unit, convertTo } from "src/quantity";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +26,10 @@ export type CanvasSetupFn = (
 
 export async function fetchElevationForPoint(
   { lat, lng }: LngLat,
-  setUpCanvas: CanvasSetupFn = defaultCanvasSetupFn,
+  {
+    unit = "m",
+    setUpCanvas = defaultCanvasSetupFn,
+  }: { unit?: Unit; setUpCanvas?: CanvasSetupFn } = {},
 ): Promise<number> {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
@@ -39,7 +44,9 @@ export async function fetchElevationForPoint(
 
   const { ctx, img } = await setUpCanvas(tileBlob);
   const elevationInMeters = getElevationPixel(ctx, img, { lng, lat });
-  return elevationInMeters;
+  return isFeatureOn("FLAG_MODEL_UNITS")
+    ? convertTo({ value: elevationInMeters, unit: "m" }, unit)
+    : elevationInMeters;
 }
 
 export async function prefetchElevationsTile({ lng, lat }: LngLat) {

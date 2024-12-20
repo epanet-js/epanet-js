@@ -9,6 +9,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const setUpCanvasFn = async (blob: Blob) => {
   const canvas = createCanvas(tileSize, tileSize);
@@ -16,6 +17,8 @@ const setUpCanvasFn = async (blob: Blob) => {
   const img = await loadImage(await blobToBuffer(blob));
   return { ctx, img };
 };
+
+const testCanvasFn = setUpCanvasFn as unknown as CanvasSetupFn;
 
 describe("elevations", () => {
   afterEach(() => {
@@ -27,22 +30,33 @@ describe("elevations", () => {
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
-    const elevation = await fetchElevationForPoint(
-      fixtureCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(elevation).toEqual(55.6);
+  });
+
+  it("can convert to other unit", async () => {
+    stubFeatureOn("FLAG_MODEL_UNITS");
+    stubFetchFixture();
+    const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
+
+    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
+      setUpCanvas: testCanvasFn,
+      unit: "ft",
+    });
+
+    expect(elevation).toBeCloseTo(182.41);
   });
 
   it("can provide many elevations from the same tile", async () => {
     stubFetchFixture();
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
-    const elevation = await fetchElevationForPoint(
-      closeCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    const elevation = await fetchElevationForPoint(closeCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(elevation).toEqual(54.3);
   });
@@ -52,15 +66,13 @@ describe("elevations", () => {
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
-    await fetchElevationForPoint(
-      fixtureCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    await fetchElevationForPoint(fixtureCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
-    await fetchElevationForPoint(
-      closeCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    await fetchElevationForPoint(closeCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(global.fetch).toHaveBeenCalledOnce();
     expect(global.fetch).toHaveBeenLastCalledWith(
@@ -73,15 +85,13 @@ describe("elevations", () => {
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
     const farAwayCoordinates = { lng: +4.380429, lat: -55.9156107 };
 
-    await fetchElevationForPoint(
-      fixtureCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    await fetchElevationForPoint(fixtureCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
-    await fetchElevationForPoint(
-      farAwayCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    await fetchElevationForPoint(farAwayCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(global.fetch).toHaveBeenLastCalledWith(
@@ -95,10 +105,9 @@ describe("elevations", () => {
 
     await prefetchElevationsTile(fixtureCoordinates);
 
-    const elevation = await fetchElevationForPoint(
-      fixtureCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(elevation).toEqual(55.6);
@@ -111,10 +120,9 @@ describe("elevations", () => {
     stubHttpError();
     const anyCoordinates = { lng: 10, lat: 20 };
 
-    const elevation = await fetchElevationForPoint(
-      anyCoordinates,
-      setUpCanvasFn as unknown as CanvasSetupFn,
-    );
+    const elevation = await fetchElevationForPoint(anyCoordinates, {
+      setUpCanvas: testCanvasFn,
+    });
 
     expect(elevation).toEqual(0);
   });
