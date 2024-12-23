@@ -1,8 +1,14 @@
 import { AssetBuilder } from "./asset-builder";
+import { canonicalQuantitiesSpec } from "./asset-types";
+import { Quantities } from "./quantities";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
-    const assetBuilder = new AssetBuilder();
+    const quantities = new Quantities(canonicalQuantitiesSpec);
+    const assetBuilder = new AssetBuilder(
+      quantities.units,
+      quantities.defaults,
+    );
 
     const pipe = assetBuilder.buildPipe();
 

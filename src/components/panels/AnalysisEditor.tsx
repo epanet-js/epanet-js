@@ -6,7 +6,6 @@ import { translate } from "src/infra/i18n";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom } from "src/state/jotai";
-import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
@@ -45,11 +44,7 @@ export const AnalysisEditor = () => {
                           steps: [0, 25, 50, 75, 100],
                           property: "pressure",
                           unit: isFeatureOn("FLAG_MODEL_UNITS")
-                            ? getQuantityUnit(
-                                hydraulicModel.quantitiesSpec,
-                                "junction",
-                                "pressure",
-                              )
+                            ? hydraulicModel.units.junction.pressure
                             : "l/s",
                           paletteName: "epanet-ramp",
                         }),
@@ -89,11 +84,7 @@ export const AnalysisEditor = () => {
                           steps: [0, 25, 50, 75, 100],
                           property: "flow",
                           unit: isFeatureOn("FLAG_MODEL_UNITS")
-                            ? getQuantityUnit(
-                                hydraulicModel.quantitiesSpec,
-                                "pipe",
-                                "flow",
-                              )
+                            ? hydraulicModel.units.pipe.flow
                             : "l/s",
                           paletteName: "epanet-ramp",
                         }),

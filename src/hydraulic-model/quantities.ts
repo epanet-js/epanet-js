@@ -15,7 +15,7 @@ export type AssetQuantitiesSpec = {
   reservoir: Record<ReservoirQuantity, QuantitySpec>;
 };
 
-export type AssetUnitsByType = {
+export type ModelUnits = {
   pipe: Record<PipeQuantity, Unit>;
   junction: Record<JunctionQuantity, Unit>;
   reservoir: Record<ReservoirQuantity, Unit>;
@@ -23,13 +23,13 @@ export type AssetUnitsByType = {
 
 export class Quantities {
   public readonly defaults: DefaultQuantities;
-  public readonly units: AssetUnitsByType;
+  public readonly units: ModelUnits;
   private spec: AssetQuantitiesSpec;
 
   constructor(spec: AssetQuantitiesSpec) {
     this.spec = spec;
     this.defaults = this.buildDefaultQuantities(spec);
-    this.units = this.buildAssetUnitsByType(spec);
+    this.units = this.buildModelUnits(spec);
   }
 
   getUnit<T extends keyof AssetQuantitiesSpec>(
@@ -46,7 +46,7 @@ export class Quantities {
     return (this.spec[assetType][name] as QuantitySpec).defaultValue;
   }
 
-  private buildAssetUnitsByType(spec: AssetQuantitiesSpec): AssetUnitsByType {
+  private buildModelUnits(spec: AssetQuantitiesSpec): ModelUnits {
     const result = { pipe: {}, junction: {}, reservoir: {} };
     for (const assetType in spec) {
       result[assetType as keyof AssetQuantitiesSpec] = this.mapUnits(
@@ -54,7 +54,7 @@ export class Quantities {
         assetType as keyof AssetQuantitiesSpec,
       );
     }
-    return result as AssetUnitsByType;
+    return result as ModelUnits;
   }
 
   private mapUnits<T extends keyof AssetQuantitiesSpec>(

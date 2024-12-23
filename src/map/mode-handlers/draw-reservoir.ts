@@ -15,7 +15,6 @@ import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 import { addReservoir } from "src/hydraulic-model/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 
 export function useDrawReservoirHandlers({
   mode,
@@ -27,7 +26,7 @@ export function useDrawReservoirHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const multi = mode.modeOptions?.multi;
-  const { assetBuilder, quantitiesSpec } = hydraulicModel;
+  const { assetBuilder, units } = hydraulicModel;
 
   return {
     click: async (e) => {
@@ -38,7 +37,7 @@ export function useDrawReservoirHandlers({
       const clickPosition = getMapCoord(e);
       const elevation = isFeatureOn("FLAG_MODEL_UNITS")
         ? await fetchElevationForPoint(e.lngLat, {
-            unit: getQuantityUnit(quantitiesSpec, "reservoir", "elevation"),
+            unit: units.reservoir.elevation,
           })
         : await fetchElevationForPoint(e.lngLat);
       const reservoir = assetBuilder.buildReservoir({

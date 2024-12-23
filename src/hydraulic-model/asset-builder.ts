@@ -1,5 +1,5 @@
-import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
-import { AssetId, Junction, canonicalQuantitiesSpec } from "./asset-types";
+import { Quantity, Unit, convertTo } from "src/quantity";
+import { AssetId, Junction } from "./asset-types";
 import {
   JunctionQuantities,
   JunctionQuantity,
@@ -51,11 +51,7 @@ export type ReservoirBuildData = {
 
 import { customAlphabet } from "nanoid";
 import { isFeatureOn } from "src/infra/feature-flags";
-import {
-  AssetQuantitiesSpec,
-  AssetUnitsByType,
-  Quantities,
-} from "./quantities";
+import { ModelUnits } from "./quantities";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -70,15 +66,12 @@ export type DefaultQuantities = {
 };
 
 export class AssetBuilder {
-  private quantitiesSpec: AssetQuantitiesSpec;
-  private units: AssetUnitsByType;
+  private units: ModelUnits;
   private defaults: DefaultQuantities;
 
-  constructor(quantitiesSpec = canonicalQuantitiesSpec) {
-    const quantities = new Quantities(quantitiesSpec);
-    this.quantitiesSpec = quantitiesSpec;
-    this.units = quantities.units;
-    this.defaults = quantities.defaults;
+  constructor(units: ModelUnits, defaults: DefaultQuantities) {
+    this.units = units;
+    this.defaults = defaults;
   }
 
   buildPipe({
@@ -230,8 +223,7 @@ export class AssetBuilder {
     return getValueFor(
       candidate,
       pipeCanonicalSpec[name].unit,
-      (this.quantitiesSpec.pipe as QuantitiesSpec<PipeQuantities>)[name]
-        .defaultValue,
+      this.defaults.pipe[name],
     );
   }
 
@@ -248,8 +240,7 @@ export class AssetBuilder {
     return getValueFor(
       candidate,
       junctionCanonicalSpec[name].unit,
-      (this.quantitiesSpec.junction as QuantitiesSpec<JunctionQuantities>)[name]
-        .defaultValue,
+      this.defaults.junction[name],
     );
   }
 
@@ -266,9 +257,7 @@ export class AssetBuilder {
     return getValueFor(
       candidate,
       reservoirCanonicalSpec[name].unit,
-      (this.quantitiesSpec.reservoir as QuantitiesSpec<ReservoirQuantities>)[
-        name
-      ].defaultValue,
+      this.defaults.reservoir[name],
     );
   }
 }

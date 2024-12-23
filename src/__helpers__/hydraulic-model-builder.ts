@@ -16,6 +16,7 @@ import {
 import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import {
   AssetQuantitiesSpec,
+  ModelUnits,
   Quantities,
 } from "src/hydraulic-model/quantities";
 
@@ -30,19 +31,31 @@ export const buildPipe = (
       ...unitsOverride,
     },
   };
-  return new AssetBuilder(quantitiesSpec).buildPipe(data);
+  const quantities = new Quantities(quantitiesSpec);
+  return new AssetBuilder(quantities.units, quantities.defaults).buildPipe(
+    data,
+  );
 };
 
-export const buildJunction = (data: JunctionBuildData = {}) =>
-  new AssetBuilder().buildJunction(data);
-export const buildReservoir = (data: ReservoirBuildData = {}) =>
-  new AssetBuilder().buildReservoir(data);
+export const buildJunction = (data: JunctionBuildData = {}) => {
+  const quantities = new Quantities(canonicalQuantitiesSpec);
+  return new AssetBuilder(quantities.units, quantities.defaults).buildJunction(
+    data,
+  );
+};
+export const buildReservoir = (data: ReservoirBuildData = {}) => {
+  const quantities = new Quantities(canonicalQuantitiesSpec);
+  return new AssetBuilder(quantities.units, quantities.defaults).buildReservoir(
+    data,
+  );
+};
 
 export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
   private quantitiesSpec: AssetQuantitiesSpec;
+  private units: ModelUnits;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -51,7 +64,9 @@ export class HydraulicModelBuilder {
   constructor(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
     this.assets = new Map();
     this.quantitiesSpec = quantitiesSpec;
-    this.assetBuilder = new AssetBuilder(this.quantitiesSpec);
+    const quantities = new Quantities(this.quantitiesSpec);
+    this.units = quantities.units;
+    this.assetBuilder = new AssetBuilder(this.units, quantities.defaults);
     this.topology = new Topology();
   }
 
@@ -117,8 +132,7 @@ export class HydraulicModelBuilder {
       assets: this.assets,
       assetBuilder: this.assetBuilder,
       topology: this.topology,
-      quantitiesSpec: this.quantitiesSpec,
-      quantities: new Quantities(this.quantitiesSpec),
+      units: this.units,
     };
   }
 }
