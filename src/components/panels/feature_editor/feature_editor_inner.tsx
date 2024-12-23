@@ -8,17 +8,12 @@ import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { PropertyRowReadonly } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { QuantitiesSpec, Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
-import { presets } from "src/settings/quantities-spec";
+import { AssetQuantitiesSpec, presets } from "src/settings/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
-import { JunctionQuantities } from "src/hydraulic-model/asset-types/junction";
-import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
-import {
-  Reservoir,
-  ReservoirQuantities,
-} from "src/hydraulic-model/asset-types/reservoir";
+import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -56,44 +51,33 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <JunctionEditor
           junction={asset as Junction}
-          quantitiesSpec={
-            systemSpec.junction as QuantitiesSpec<JunctionQuantities>
-          }
+          quantitiesSpec={systemSpec.junction}
         />
       ) : (
         <JunctionEditorDeprecated
           junction={asset as Junction}
-          quantitiesSpec={
-            systemSpec.junction as QuantitiesSpec<JunctionQuantities>
-          }
+          quantitiesSpec={systemSpec.junction}
         />
       );
     case "pipe":
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
-        <PipeEditor
-          pipe={asset as Pipe}
-          quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
-        />
+        <PipeEditor pipe={asset as Pipe} quantitiesSpec={systemSpec.pipe} />
       ) : (
         <PipeEditorDeprecated
           pipe={asset as Pipe}
-          quantitiesSpec={systemSpec.pipe as QuantitiesSpec<PipeQuantities>}
+          quantitiesSpec={systemSpec.pipe}
         />
       );
     case "reservoir":
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <ReservoirEditor
           reservoir={asset as Reservoir}
-          quantitiesSpec={
-            systemSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
-          }
+          quantitiesSpec={systemSpec.reservoir}
         />
       ) : (
         <ReservoirEditorDeprecated
           reservoir={asset as Reservoir}
-          quantitiesSpec={
-            systemSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
-          }
+          quantitiesSpec={systemSpec.reservoir}
         />
       );
   }
@@ -104,7 +88,7 @@ const PipeEditor = ({
   quantitiesSpec,
 }: {
   pipe: Pipe;
-  quantitiesSpec: QuantitiesSpec<PipeQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["pipe"];
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -162,7 +146,7 @@ const PipeEditorDeprecated = ({
   quantitiesSpec,
 }: {
   pipe: Pipe;
-  quantitiesSpec: QuantitiesSpec<PipeQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["pipe"];
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -225,7 +209,7 @@ const JunctionEditor = ({
   quantitiesSpec,
 }: {
   junction: Junction;
-  quantitiesSpec: QuantitiesSpec<JunctionQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["junction"];
 }) => {
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -267,7 +251,7 @@ const JunctionEditorDeprecated = ({
   quantitiesSpec,
 }: {
   junction: Junction;
-  quantitiesSpec: QuantitiesSpec<JunctionQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["junction"];
 }) => {
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -313,7 +297,7 @@ const ReservoirEditor = ({
   quantitiesSpec,
 }: {
   reservoir: Reservoir;
-  quantitiesSpec: QuantitiesSpec<ReservoirQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["reservoir"];
 }) => {
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
@@ -349,7 +333,7 @@ const ReservoirEditorDeprecated = ({
   quantitiesSpec,
 }: {
   reservoir: Reservoir;
-  quantitiesSpec: QuantitiesSpec<ReservoirQuantities>;
+  quantitiesSpec: AssetQuantitiesSpec["reservoir"];
 }) => {
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">

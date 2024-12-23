@@ -1,19 +1,10 @@
 import { Quantity, Unit, convertTo } from "src/quantity";
 import { AssetId, Junction } from "./asset-types";
-import { JunctionQuantities, JunctionQuantity } from "./asset-types/junction";
-import {
-  Pipe,
-  PipeQuantities,
-  PipeQuantity,
-  PipeStatus,
-} from "./asset-types/pipe";
+import { JunctionQuantity } from "./asset-types/junction";
+import { Pipe, PipeQuantity, PipeStatus } from "./asset-types/pipe";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
-import {
-  Reservoir,
-  ReservoirQuantities,
-  ReservoirQuantity,
-} from "./asset-types/reservoir";
+import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
 
 type QuantityOrNumber = Quantity | number;
 
@@ -212,7 +203,7 @@ export class AssetBuilder {
   }
 
   private getPipeValueDeprecated(
-    name: keyof PipeQuantities,
+    name: keyof DefaultQuantities["pipe"],
     candidate?: QuantityOrNumber,
   ) {
     return getValueFor(
@@ -229,7 +220,7 @@ export class AssetBuilder {
   }
 
   private getJunctionValueDeprecated(
-    name: keyof JunctionQuantities,
+    name: keyof DefaultQuantities["junction"],
     candidate?: QuantityOrNumber,
   ) {
     return getValueFor(
@@ -246,7 +237,7 @@ export class AssetBuilder {
   }
 
   private getReservoirValueDeprecated(
-    name: keyof ReservoirQuantities,
+    name: keyof DefaultQuantities["reservoir"],
     candidate?: QuantityOrNumber,
   ) {
     return getValueFor(

@@ -6,10 +6,6 @@ export type ReservoirProperties = {
 } & NodeProperties;
 
 export type ReservoirQuantity = "elevation" | "head" | "relativeHead";
-export type ReservoirQuantities = Pick<
-  ReservoirProperties,
-  "elevation" | "head"
-> & { relativeHead: number };
 
 export class Reservoir extends Node<ReservoirProperties> {
   copy() {
@@ -25,7 +21,7 @@ export class Reservoir extends Node<ReservoirProperties> {
 
   setSimulation() {}
 
-  getUnit(key: keyof ReservoirQuantities) {
+  getUnit(key: ReservoirQuantity) {
     return this.units[key];
   }
 
