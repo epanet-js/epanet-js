@@ -6,6 +6,7 @@ export type ReservoirProperties = {
   head: number;
 } & NodeProperties;
 
+export type ReservoirQuantity = "elevation" | "head" | "relativeHead";
 export type ReservoirQuantities = Pick<
   ReservoirProperties,
   "elevation" | "head"

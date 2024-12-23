@@ -1,8 +1,6 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
-import {
-  AssetQuantitiesSpecByType,
-  getQuantityUnit,
-} from "src/hydraulic-model/asset-types";
+import { getQuantityUnit } from "src/hydraulic-model/asset-types";
+import { AssetQuantitiesSpec } from "src/hydraulic-model/quantities";
 import { captureWarning } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
@@ -15,7 +13,7 @@ type BuildOptions = {
 export type EpanetUnitSystem = "LPS" | "GPM";
 
 const chooseUnitSystem = (
-  quantitiesSpec: AssetQuantitiesSpecByType,
+  quantitiesSpec: AssetQuantitiesSpec,
 ): EpanetUnitSystem => {
   const pipeFlowUnit = getQuantityUnit(quantitiesSpec, "pipe", "flow");
   if (pipeFlowUnit === "l/s") return "LPS";

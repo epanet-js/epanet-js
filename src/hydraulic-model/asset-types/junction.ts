@@ -7,6 +7,7 @@ export type JunctionProperties = {
   demand: number;
 } & NodeProperties;
 
+export type JunctionQuantity = "demand" | "elevation" | "pressure";
 export type JunctionQuantities = Pick<
   JunctionProperties,
   "demand" | "elevation"

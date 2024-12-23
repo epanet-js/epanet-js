@@ -12,6 +12,13 @@ export type PipeProperties = {
   status: PipeStatus;
 } & LinkProperties;
 
+export type PipeQuantity =
+  | "diameter"
+  | "roughness"
+  | "length"
+  | "minorLoss"
+  | "flow";
+
 export type PipeQuantities = Pick<
   PipeProperties,
   "diameter" | "roughness" | "length" | "minorLoss"
@@ -70,7 +77,7 @@ export class Pipe extends Link<PipeProperties> {
     this.simulation = simulation;
   }
 
-  getUnit(quantity: keyof PipeQuantities): Unit {
+  getUnit(quantity: PipeQuantity): Unit {
     return this.units[quantity];
   }
 
