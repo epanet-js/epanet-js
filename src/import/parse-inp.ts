@@ -1,8 +1,8 @@
 import { Position } from "geojson";
 import { HydraulicModel } from "src/hydraulic-model";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
-import { createHydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { presets } from "src/settings/quantities-spec";
+import { initializeHydraulicModel } from "src/hydraulic-model/hydraulic-model";
+import { Quantities, presets } from "src/settings/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 type InpData = {
@@ -189,12 +189,13 @@ const readAllSections = (inp: string): InpData => {
 };
 
 const buildModel = (inpData: InpData): HydraulicModel => {
-  let hydraulicModel: HydraulicModel;
-  if (inpData.options.units === "GPM") {
-    hydraulicModel = createHydraulicModel(presets.usCustomary);
-  } else {
-    hydraulicModel = createHydraulicModel(presets.si);
-  }
+  const spec =
+    inpData.options.units === "GPM" ? presets.usCustomary : presets.si;
+  const quantities = new Quantities(spec);
+  const hydraulicModel = initializeHydraulicModel({
+    units: quantities.units,
+    defaults: quantities.defaults,
+  });
 
   for (const junctionData of inpData.junctions) {
     const junction = hydraulicModel.assetBuilder.buildJunction({

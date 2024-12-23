@@ -11,23 +11,23 @@ import {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
-  canonicalQuantitiesSpec,
 } from "src/hydraulic-model";
 import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
+import { ModelUnits } from "src/hydraulic-model/units";
 import {
   AssetQuantitiesSpec,
-  ModelUnits,
   Quantities,
-} from "src/hydraulic-model/quantities";
+  presets,
+} from "src/settings/quantities-spec";
 
 export const buildPipe = (
   data: PipeBuildData = {},
   unitsOverride: Partial<QuantitiesSpec<PipeQuantities>> = {},
 ) => {
   const quantitiesSpec: AssetQuantitiesSpec = {
-    ...canonicalQuantitiesSpec,
+    ...presets.si,
     pipe: {
-      ...canonicalQuantitiesSpec.pipe,
+      ...presets.si.pipe,
       ...unitsOverride,
     },
   };
@@ -38,13 +38,13 @@ export const buildPipe = (
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
-  const quantities = new Quantities(canonicalQuantitiesSpec);
+  const quantities = new Quantities(presets.si);
   return new AssetBuilder(quantities.units, quantities.defaults).buildJunction(
     data,
   );
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
-  const quantities = new Quantities(canonicalQuantitiesSpec);
+  const quantities = new Quantities(presets.si);
   return new AssetBuilder(quantities.units, quantities.defaults).buildReservoir(
     data,
   );
@@ -54,17 +54,15 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
-  private quantitiesSpec: AssetQuantitiesSpec;
   private units: ModelUnits;
 
-  static with(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
+  static with(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
     return new HydraulicModelBuilder(quantitiesSpec);
   }
 
-  constructor(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
+  constructor(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
     this.assets = new Map();
-    this.quantitiesSpec = quantitiesSpec;
-    const quantities = new Quantities(this.quantitiesSpec);
+    const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(this.units, quantities.defaults);
     this.topology = new Topology();
