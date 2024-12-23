@@ -15,7 +15,6 @@ import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 
 export function useJunctionHandlers({
   mode,
@@ -27,7 +26,7 @@ export function useJunctionHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const multi = mode.modeOptions?.multi;
-  const { assetBuilder, quantitiesSpec } = hydraulicModel;
+  const { assetBuilder, units } = hydraulicModel;
 
   return {
     click: async (e) => {
@@ -38,7 +37,7 @@ export function useJunctionHandlers({
       const clickPosition = getMapCoord(e);
       const elevation = isFeatureOn("FLAG_MODEL_UNITS")
         ? await fetchElevationForPoint(e.lngLat, {
-            unit: getQuantityUnit(quantitiesSpec, "junction", "elevation"),
+            unit: units.junction.elevation,
           })
         : await fetchElevationForPoint(e.lngLat);
       const junction = assetBuilder.buildJunction({

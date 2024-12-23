@@ -186,11 +186,8 @@ describe("Parse inp", () => {
     ANY
     `;
     const hydraulicModel = parseInp(inp);
-    expect(hydraulicModel.quantitiesSpec.pipe).toMatchObject({
-      flow: {
-        unit: "gal/min",
-        defaultValue: 0,
-      },
+    expect(hydraulicModel.units.pipe).toMatchObject({
+      flow: "gal/min",
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
@@ -209,11 +206,8 @@ describe("Parse inp", () => {
     ANY
     `;
     const hydraulicModel = parseInp(inp);
-    expect(hydraulicModel.quantitiesSpec.pipe).toMatchObject({
-      flow: {
-        unit: "l/s",
-        defaultValue: 0,
-      },
+    expect(hydraulicModel.units.pipe).toMatchObject({
+      flow: "l/s",
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("m");

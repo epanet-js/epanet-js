@@ -2,15 +2,14 @@ import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { AssetBuilder } from "./asset-builder";
 import { canonicalQuantitiesSpec } from "./asset-types";
-import { AssetQuantitiesSpec, Quantities } from "./quantities";
+import { AssetQuantitiesSpec, ModelUnits, Quantities } from "./quantities";
 
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
   assetBuilder: AssetBuilder;
   topology: Topology;
-  quantitiesSpec: AssetQuantitiesSpec;
-  quantities: Quantities;
+  units: ModelUnits;
 };
 
 export { AssetsMap };
@@ -23,9 +22,8 @@ export const nullHydraulicModel = (
   return {
     version: "0",
     assets,
-    assetBuilder: new AssetBuilder(quantitiesSpec),
+    assetBuilder: new AssetBuilder(quantities.units, quantities.defaults),
     topology: new Topology(),
-    quantitiesSpec,
-    quantities,
+    units: quantities.units,
   };
 };

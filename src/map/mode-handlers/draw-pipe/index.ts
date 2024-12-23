@@ -17,7 +17,6 @@ import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { NodeAsset, Pipe } from "src/hydraulic-model";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { getQuantityUnit } from "src/hydraulic-model/asset-types";
 
 export function useDrawPipeHandlers({
   rep,
@@ -29,7 +28,7 @@ export function useDrawPipeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const usingTouchEvents = useRef<boolean>(false);
-  const { assetBuilder, quantitiesSpec } = hydraulicModel;
+  const { assetBuilder, units } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState(assetBuilder);
   const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
@@ -96,7 +95,7 @@ export function useDrawPipeHandlers({
           ? snappingNode.elevation
           : isFeatureOn("FLAG_MODEL_UNITS")
             ? await fetchElevationForPoint(e.lngLat, {
-                unit: getQuantityUnit(quantitiesSpec, "junction", "elevation"),
+                unit: units.junction.elevation,
               })
             : await fetchElevationForPoint(e.lngLat);
 
@@ -182,7 +181,7 @@ export function useDrawPipeHandlers({
         coordinates: pipe.lastVertex,
         elevation: isFeatureOn("FLAG_MODEL_UNITS")
           ? await fetchElevationForPoint(coordinatesToLngLat(pipe.lastVertex), {
-              unit: getQuantityUnit(quantitiesSpec, "junction", "elevation"),
+              unit: units.junction.elevation,
             })
           : await fetchElevationForPoint(coordinatesToLngLat(pipe.lastVertex)),
       });
