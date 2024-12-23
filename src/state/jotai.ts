@@ -21,12 +21,13 @@ import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
 import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-state";
-import { HydraulicModel, nullHydraulicModel } from "src/hydraulic-model";
+import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { presets } from "src/settings/quantities-spec";
 import { LinkSegmentsMap, nullLinkSegmentsMap } from "src/map/link-segments";
+import { createHydraulicModel } from "src/hydraulic-model";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -92,17 +93,16 @@ export interface Data {
 /**
  * Derived list of folders
  */
-const assetsMap = new Map();
+const hydraulicModel = createHydraulicModel(
+  isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
+);
 export const dataAtom = atom<Data>({
-  featureMapDeprecated: assetsMap,
+  featureMapDeprecated: hydraulicModel.assets,
   folderMap: new Map(),
   selection: {
     type: "none",
   },
-  hydraulicModel: nullHydraulicModel(
-    assetsMap,
-    isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
-  ),
+  hydraulicModel: hydraulicModel,
   segments: nullLinkSegmentsMap,
 });
 

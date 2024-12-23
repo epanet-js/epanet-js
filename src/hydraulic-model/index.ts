@@ -1,5 +1,5 @@
 export type { HydraulicModel } from "./hydraulic-model";
-export { nullHydraulicModel } from "./hydraulic-model";
+export { createHydraulicModel } from "./hydraulic-model";
 export { AssetBuilder } from "./asset-builder";
 export type {
   JunctionBuildData,
