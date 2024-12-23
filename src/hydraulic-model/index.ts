@@ -24,7 +24,6 @@ export type {
   Reservoir,
   Junction,
   Pipe,
-  AssetQuantitiesSpecByType,
 } from "./asset-types";
 export { Topology } from "./topology";
 

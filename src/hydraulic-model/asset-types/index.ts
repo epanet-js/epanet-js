@@ -19,25 +19,21 @@ export type { AssetId } from "./base-asset";
 export { BaseAsset } from "./base-asset";
 export type { PipeProperties } from "./pipe";
 
-import { QuantitiesSpec, QuantitySpec, Unit } from "src/quantity";
+import { QuantitySpec, Unit } from "src/quantity";
 import {
   Reservoir,
   ReservoirQuantities,
   reservoirCanonicalSpec,
 } from "./reservoir";
+import { AssetQuantitiesSpec } from "../quantities";
 
-export type AssetQuantitiesSpecByType = Record<
-  Asset["type"],
-  QuantitiesSpec<AssetQuantities>
->;
-
-type AssetQuantityKeys =
+export type AssetQuantityKeys =
   | keyof PipeQuantities
   | keyof ReservoirQuantities
   | keyof JunctionQuantities;
 
 export const getQuantitySpec = (
-  systemSpec: AssetQuantitiesSpecByType,
+  systemSpec: AssetQuantitiesSpec,
   assetType: Asset["type"],
   key: keyof AssetQuantities,
 ): QuantitySpec => {
@@ -46,14 +42,14 @@ export const getQuantitySpec = (
   return quantitySpec;
 };
 
-export const canonicalQuantitiesSpec: AssetQuantitiesSpecByType = {
+export const canonicalQuantitiesSpec: AssetQuantitiesSpec = {
   pipe: pipeCanonicalSpec,
   junction: junctionCanonicalSpec,
   reservoir: reservoirCanonicalSpec,
 };
 
 export const getQuantityUnit = (
-  systemSpec: AssetQuantitiesSpecByType,
+  systemSpec: AssetQuantitiesSpec,
   assetType: Asset["type"],
   key: AssetQuantityKeys,
 ): Unit => {
@@ -67,7 +63,7 @@ export const getQuantityUnit = (
 
 type UnitRecord = Record<string, Unit>;
 export const getUnitsByAsset = (
-  systemSpec: AssetQuantitiesSpecByType,
+  systemSpec: AssetQuantitiesSpec,
 ): Record<Asset["type"], UnitRecord> => {
   const result: Record<Asset["type"], UnitRecord> = {
     pipe: {},

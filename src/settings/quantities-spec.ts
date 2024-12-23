@@ -1,9 +1,7 @@
-import {
-  canonicalQuantitiesSpec,
-  AssetQuantitiesSpecByType,
-} from "src/hydraulic-model";
+import { canonicalQuantitiesSpec } from "src/hydraulic-model";
+import { AssetQuantitiesSpec } from "src/hydraulic-model/quantities";
 
-const USCustomarySpec: AssetQuantitiesSpecByType = {
+const USCustomarySpec: AssetQuantitiesSpec = {
   pipe: {
     diameter: { defaultValue: 12, unit: "in" },
     length: { defaultValue: 1000, unit: "ft", decimals: 2 },

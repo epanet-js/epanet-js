@@ -1,19 +1,14 @@
 import { QuantitiesSpec, Quantity, Unit, convertTo } from "src/quantity";
-import {
-  Asset,
-  AssetId,
-  AssetQuantitiesSpecByType,
-  Junction,
-  canonicalQuantitiesSpec,
-  getUnitsByAsset,
-} from "./asset-types";
+import { AssetId, Junction, canonicalQuantitiesSpec } from "./asset-types";
 import {
   JunctionQuantities,
+  JunctionQuantity,
   junctionCanonicalSpec,
 } from "./asset-types/junction";
 import {
   Pipe,
   PipeQuantities,
+  PipeQuantity,
   PipeStatus,
   pipeCanonicalSpec,
 } from "./asset-types/pipe";
@@ -22,6 +17,7 @@ import { Position } from "geojson";
 import {
   Reservoir,
   ReservoirQuantities,
+  ReservoirQuantity,
   reservoirCanonicalSpec,
 } from "./asset-types/reservoir";
 
@@ -55,23 +51,34 @@ export type ReservoirBuildData = {
 
 import { customAlphabet } from "nanoid";
 import { isFeatureOn } from "src/infra/feature-flags";
+import {
+  AssetQuantitiesSpec,
+  AssetUnitsByType,
+  Quantities,
+} from "./quantities";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
 const generateId = () => nanoId();
 
-type UnitRecord = Record<string, Unit>;
-type UnitsByAsset = Record<Asset["type"], UnitRecord>;
-
 const noUnits = {};
 
+export type DefaultQuantities = {
+  pipe: Record<PipeQuantity, number>;
+  junction: Record<JunctionQuantity, number>;
+  reservoir: Record<ReservoirQuantity, number>;
+};
+
 export class AssetBuilder {
-  private quantitiesSpec: AssetQuantitiesSpecByType;
-  private unitsByAsset: UnitsByAsset;
+  private quantitiesSpec: AssetQuantitiesSpec;
+  private units: AssetUnitsByType;
+  private defaults: DefaultQuantities;
 
   constructor(quantitiesSpec = canonicalQuantitiesSpec) {
+    const quantities = new Quantities(quantitiesSpec);
     this.quantitiesSpec = quantitiesSpec;
-    this.unitsByAsset = getUnitsByAsset(this.quantitiesSpec);
+    this.units = quantities.units;
+    this.defaults = quantities.defaults;
   }
 
   buildPipe({
@@ -100,7 +107,7 @@ export class AssetBuilder {
           minorLoss: this.getPipeValue("minorLoss", minorLoss),
           roughness: this.getPipeValue("roughness", roughness),
         },
-        this.unitsByAsset.pipe,
+        this.units.pipe,
       );
     } else {
       return new Pipe(
@@ -135,7 +142,7 @@ export class AssetBuilder {
           elevation: this.getJunctionValue("elevation", elevation),
           demand: this.getJunctionValue("demand", demand),
         },
-        this.unitsByAsset.junction,
+        this.units.junction,
       );
     } else {
       return new Junction(
@@ -179,7 +186,7 @@ export class AssetBuilder {
           head: headValue,
           elevation: elevationValue,
         },
-        this.unitsByAsset.reservoir,
+        this.units.reservoir,
       );
     } else {
       const elevationValue = this.getReservoirValueDeprecated(
@@ -210,11 +217,10 @@ export class AssetBuilder {
     }
   }
 
-  private getPipeValue(name: keyof PipeQuantities, candidate?: number) {
+  private getPipeValue(name: PipeQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return (this.quantitiesSpec.pipe as QuantitiesSpec<PipeQuantities>)[name]
-      .defaultValue;
+    return this.defaults.pipe[name];
   }
 
   private getPipeValueDeprecated(
@@ -229,12 +235,10 @@ export class AssetBuilder {
     );
   }
 
-  private getJunctionValue(name: keyof JunctionQuantities, candidate?: number) {
+  private getJunctionValue(name: JunctionQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return (this.quantitiesSpec.junction as QuantitiesSpec<JunctionQuantities>)[
-      name
-    ].defaultValue;
+    return this.defaults.junction[name];
   }
 
   private getJunctionValueDeprecated(
@@ -249,15 +253,10 @@ export class AssetBuilder {
     );
   }
 
-  private getReservoirValue(
-    name: keyof ReservoirQuantities,
-    candidate?: number,
-  ) {
+  private getReservoirValue(name: ReservoirQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return (
-      this.quantitiesSpec.reservoir as QuantitiesSpec<ReservoirQuantities>
-    )[name].defaultValue;
+    return this.defaults.reservoir[name];
   }
 
   private getReservoirValueDeprecated(

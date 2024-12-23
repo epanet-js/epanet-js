@@ -1,10 +1,8 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
-import {
-  AssetQuantitiesSpecByType,
-  canonicalQuantitiesSpec,
-} from "src/hydraulic-model";
+import { canonicalQuantitiesSpec } from "src/hydraulic-model";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { AssetQuantitiesSpec } from "src/hydraulic-model/quantities";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -98,7 +96,7 @@ describe("build inp", () => {
 
   it("detects units based on the flow units of the model", () => {
     stubFeatureOn("FLAG_MODEL_UNITS");
-    const quantitiesWithGPM: AssetQuantitiesSpecByType = {
+    const quantitiesWithGPM: AssetQuantitiesSpec = {
       ...canonicalQuantitiesSpec,
       pipe: {
         ...canonicalQuantitiesSpec.pipe,

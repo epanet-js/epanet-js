@@ -12,15 +12,18 @@ import {
   PipeBuildData,
   ReservoirBuildData,
   canonicalQuantitiesSpec,
-  AssetQuantitiesSpecByType,
 } from "src/hydraulic-model";
 import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
+import {
+  AssetQuantitiesSpec,
+  Quantities,
+} from "src/hydraulic-model/quantities";
 
 export const buildPipe = (
   data: PipeBuildData = {},
   unitsOverride: Partial<QuantitiesSpec<PipeQuantities>> = {},
 ) => {
-  const quantitiesSpec: AssetQuantitiesSpecByType = {
+  const quantitiesSpec: AssetQuantitiesSpec = {
     ...canonicalQuantitiesSpec,
     pipe: {
       ...canonicalQuantitiesSpec.pipe,
@@ -39,17 +42,13 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
-  private quantitiesSpec: AssetQuantitiesSpecByType;
+  private quantitiesSpec: AssetQuantitiesSpec;
 
-  static with(
-    quantitiesSpec: AssetQuantitiesSpecByType = canonicalQuantitiesSpec,
-  ) {
+  static with(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
     return new HydraulicModelBuilder(quantitiesSpec);
   }
 
-  constructor(
-    quantitiesSpec: AssetQuantitiesSpecByType = canonicalQuantitiesSpec,
-  ) {
+  constructor(quantitiesSpec: AssetQuantitiesSpec = canonicalQuantitiesSpec) {
     this.assets = new Map();
     this.quantitiesSpec = quantitiesSpec;
     this.assetBuilder = new AssetBuilder(this.quantitiesSpec);
@@ -119,6 +118,7 @@ export class HydraulicModelBuilder {
       assetBuilder: this.assetBuilder,
       topology: this.topology,
       quantitiesSpec: this.quantitiesSpec,
+      quantities: new Quantities(this.quantitiesSpec),
     };
   }
 }
