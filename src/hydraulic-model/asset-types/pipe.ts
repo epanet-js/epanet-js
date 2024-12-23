@@ -19,11 +19,6 @@ export type PipeQuantity =
   | "minorLoss"
   | "flow";
 
-export type PipeQuantities = Pick<
-  PipeProperties,
-  "diameter" | "roughness" | "length" | "minorLoss"
-> & { flow: number };
-
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 
 interface PipeSimulationProvider {

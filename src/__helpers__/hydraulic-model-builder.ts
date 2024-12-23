@@ -1,4 +1,3 @@
-import { QuantitiesSpec } from "src/quantity";
 import { Position } from "geojson";
 import { nanoid } from "nanoid";
 import {
@@ -12,7 +11,6 @@ import {
   PipeBuildData,
   ReservoirBuildData,
 } from "src/hydraulic-model";
-import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { ModelUnits } from "src/hydraulic-model/units";
 import {
   AssetQuantitiesSpec,
@@ -22,7 +20,7 @@ import {
 
 export const buildPipe = (
   data: PipeBuildData = {},
-  unitsOverride: Partial<QuantitiesSpec<PipeQuantities>> = {},
+  unitsOverride: Partial<AssetQuantitiesSpec["pipe"]> = {},
 ) => {
   const quantitiesSpec: AssetQuantitiesSpec = {
     ...presets.si,

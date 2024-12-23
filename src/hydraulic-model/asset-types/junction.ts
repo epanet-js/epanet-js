@@ -6,10 +6,6 @@ export type JunctionProperties = {
 } & NodeProperties;
 
 export type JunctionQuantity = "demand" | "elevation" | "pressure";
-export type JunctionQuantities = Pick<
-  JunctionProperties,
-  "demand" | "elevation"
-> & { pressure: number };
 
 export interface JunctionSimulationProvider {
   getPressure: (id: string) => number | null;
@@ -32,7 +28,7 @@ export class Junction extends Node<JunctionProperties> {
     this.simulation = simulation;
   }
 
-  getUnit(key: keyof JunctionQuantities) {
+  getUnit(key: JunctionQuantity) {
     return this.units[key];
   }
 
