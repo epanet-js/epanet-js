@@ -1,8 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
-import { canonicalQuantitiesSpec } from "src/hydraulic-model";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { AssetQuantitiesSpec } from "src/hydraulic-model/quantities";
+import { presets } from "src/settings/quantities-spec";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -96,15 +95,9 @@ describe("build inp", () => {
 
   it("detects units based on the flow units of the model", () => {
     stubFeatureOn("FLAG_MODEL_UNITS");
-    const quantitiesWithGPM: AssetQuantitiesSpec = {
-      ...canonicalQuantitiesSpec,
-      pipe: {
-        ...canonicalQuantitiesSpec.pipe,
-        flow: { unit: "gal/min", defaultValue: 0 },
-      },
-    };
-    const hydraulicModel =
-      HydraulicModelBuilder.with(quantitiesWithGPM).build();
+    const hydraulicModel = HydraulicModelBuilder.with(
+      presets.usCustomary,
+    ).build();
 
     const inp = buildInp(hydraulicModel);
 

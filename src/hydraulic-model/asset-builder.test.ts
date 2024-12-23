@@ -1,10 +1,9 @@
+import { Quantities, presets } from "src/settings/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
-import { canonicalQuantitiesSpec } from "./asset-types";
-import { Quantities } from "./quantities";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
-    const quantities = new Quantities(canonicalQuantitiesSpec);
+    const quantities = new Quantities(presets.si);
     const assetBuilder = new AssetBuilder(
       quantities.units,
       quantities.defaults,

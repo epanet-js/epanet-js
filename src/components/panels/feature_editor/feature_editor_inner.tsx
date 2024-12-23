@@ -3,13 +3,7 @@ import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
 import React from "react";
 import { RawEditor } from "./raw_editor";
-import {
-  Asset,
-  AssetStatus,
-  Junction,
-  Pipe,
-  canonicalQuantitiesSpec,
-} from "src/hydraulic-model";
+import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { PropertyRowReadonly } from "./property_row";
@@ -17,16 +11,10 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { QuantitiesSpec, Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
-import { presets as quantityPresets } from "src/settings/quantities-spec";
+import { presets } from "src/settings/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
-import {
-  JunctionQuantities,
-  junctionCanonicalSpec,
-} from "src/hydraulic-model/asset-types/junction";
-import {
-  PipeQuantities,
-  pipeCanonicalSpec,
-} from "src/hydraulic-model/asset-types/pipe";
+import { JunctionQuantities } from "src/hydraulic-model/asset-types/junction";
+import { PipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import {
   Reservoir,
   ReservoirQuantities,
@@ -60,8 +48,8 @@ export function FeatureEditorInner({
 
 const AssetEditor = ({ asset }: { asset: Asset }) => {
   const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
-    ? quantityPresets.usCustomary
-    : canonicalQuantitiesSpec;
+    ? presets.usCustomary
+    : presets.si;
 
   switch (asset.type) {
     case "junction":
@@ -188,7 +176,7 @@ const PipeEditorDeprecated = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
-                fromUnit={pipeCanonicalSpec.diameter.unit}
+                fromUnit={presets.si.pipe.diameter.unit}
                 toUnit={quantitiesSpec.diameter.unit}
                 decimals={quantitiesSpec.diameter.decimals}
               />
@@ -196,7 +184,7 @@ const PipeEditorDeprecated = ({
                 name="length"
                 position={2}
                 value={pipe.length}
-                fromUnit={pipeCanonicalSpec.length.unit}
+                fromUnit={presets.si.pipe.length.unit}
                 toUnit={quantitiesSpec.length.unit}
                 decimals={quantitiesSpec.length.decimals}
               />
@@ -204,7 +192,7 @@ const PipeEditorDeprecated = ({
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
-                fromUnit={pipeCanonicalSpec.roughness.unit}
+                fromUnit={presets.si.pipe.roughness.unit}
                 toUnit={quantitiesSpec.roughness.unit}
                 decimals={quantitiesSpec.roughness.decimals}
               />
@@ -212,7 +200,7 @@ const PipeEditorDeprecated = ({
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
-                fromUnit={pipeCanonicalSpec.minorLoss.unit}
+                fromUnit={presets.si.pipe.minorLoss.unit}
                 toUnit={quantitiesSpec.minorLoss.unit}
                 decimals={quantitiesSpec.minorLoss.decimals}
               />
@@ -220,7 +208,7 @@ const PipeEditorDeprecated = ({
                 name="flow"
                 position={5}
                 value={pipe.flow}
-                fromUnit={pipeCanonicalSpec.flow.unit}
+                fromUnit={presets.si.pipe.flow.unit}
                 toUnit={quantitiesSpec.flow.unit}
                 decimals={quantitiesSpec.flow.decimals}
               />
@@ -292,7 +280,7 @@ const JunctionEditorDeprecated = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
-                fromUnit={junctionCanonicalSpec.elevation.unit}
+                fromUnit={presets.si.junction.elevation.unit}
                 toUnit={quantitiesSpec.elevation.unit}
                 decimals={quantitiesSpec.elevation.decimals}
               />
@@ -300,7 +288,7 @@ const JunctionEditorDeprecated = ({
                 name="demand"
                 position={1}
                 value={junction.demand}
-                fromUnit={junctionCanonicalSpec.demand.unit}
+                fromUnit={presets.si.junction.demand.unit}
                 toUnit={quantitiesSpec.demand.unit}
                 decimals={quantitiesSpec.demand.decimals}
               />
@@ -308,7 +296,7 @@ const JunctionEditorDeprecated = ({
                 name="pressure"
                 position={2}
                 value={junction.pressure}
-                fromUnit={junctionCanonicalSpec.pressure.unit}
+                fromUnit={presets.si.junction.pressure.unit}
                 toUnit={quantitiesSpec.pressure.unit}
                 decimals={quantitiesSpec.pressure.decimals}
               />

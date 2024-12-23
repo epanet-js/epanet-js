@@ -1,5 +1,5 @@
 import { Link, LinkProperties } from "./link";
-import { QuantitiesSpec, Unit } from "src/quantity";
+import { Unit } from "src/quantity";
 
 const statuses = ["open", "closed"] as const;
 export type PipeStatus = (typeof statuses)[number];
@@ -25,16 +25,6 @@ export type PipeQuantities = Pick<
 > & { flow: number };
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
-
-const canonicalSpec: QuantitiesSpec<PipeQuantities> = {
-  diameter: { defaultValue: 300, unit: "mm" },
-  length: { defaultValue: 1000, unit: "m", decimals: 2 },
-  roughness: { defaultValue: 130, unit: null }, //H-W
-  minorLoss: { defaultValue: 0, unit: null },
-  flow: { defaultValue: 0, unit: "l/s" },
-};
-
-export { canonicalSpec as pipeCanonicalSpec };
 
 interface PipeSimulationProvider {
   getFlow: (id: string) => number | null;

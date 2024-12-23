@@ -1,16 +1,11 @@
 import { Quantity, Unit, convertTo } from "src/quantity";
 import { AssetId, Junction } from "./asset-types";
-import {
-  JunctionQuantities,
-  JunctionQuantity,
-  junctionCanonicalSpec,
-} from "./asset-types/junction";
+import { JunctionQuantities, JunctionQuantity } from "./asset-types/junction";
 import {
   Pipe,
   PipeQuantities,
   PipeQuantity,
   PipeStatus,
-  pipeCanonicalSpec,
 } from "./asset-types/pipe";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
@@ -18,7 +13,6 @@ import {
   Reservoir,
   ReservoirQuantities,
   ReservoirQuantity,
-  reservoirCanonicalSpec,
 } from "./asset-types/reservoir";
 
 type QuantityOrNumber = Quantity | number;
@@ -51,7 +45,8 @@ export type ReservoirBuildData = {
 
 import { customAlphabet } from "nanoid";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { ModelUnits } from "./quantities";
+import { ModelUnits } from "./units";
+import { presets } from "src/settings/quantities-spec";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -222,7 +217,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      pipeCanonicalSpec[name].unit,
+      presets.si.pipe[name].unit,
       this.defaults.pipe[name],
     );
   }
@@ -239,7 +234,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      junctionCanonicalSpec[name].unit,
+      presets.si.junction[name].unit,
       this.defaults.junction[name],
     );
   }
@@ -256,7 +251,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      reservoirCanonicalSpec[name].unit,
+      presets.si.reservoir[name].unit,
       this.defaults.reservoir[name],
     );
   }
