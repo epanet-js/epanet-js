@@ -2,10 +2,10 @@ import { buildReservoir } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Reservoir", () => {
   it("assigns a head relative to the elevation", () => {
-    const reservior = buildReservoir({
+    const reservoir = buildReservoir({
       elevation: 10,
     });
-    expect(reservior.head).toEqual(20);
+    expect(reservoir.head).toEqual(20);
 
     const withNullElevation = buildReservoir({
       elevation: 0,
