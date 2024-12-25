@@ -20,12 +20,13 @@ import {
 
 export const buildPipe = (
   data: PipeBuildData = {},
-  unitsOverride: Partial<AssetQuantitiesSpec["pipe"]> = {},
+  unitsOverride: Partial<AssetQuantitiesSpec["mappings"]["pipe"]> = {},
 ) => {
-  const quantitiesSpec: AssetQuantitiesSpec = {
-    ...presets.si,
+  const quantitiesSpec: AssetQuantitiesSpec = { ...presets.si };
+  quantitiesSpec.mappings = {
+    ...presets.si.mappings,
     pipe: {
-      ...presets.si.pipe,
+      ...presets.si.mappings.pipe,
       ...unitsOverride,
     },
   };

@@ -208,7 +208,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      presets.si.pipe[name].unit,
+      presets.si.mappings.pipe[name].unit,
       this.defaults.pipe[name],
     );
   }
@@ -225,7 +225,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      presets.si.junction[name].unit,
+      presets.si.mappings.junction[name].unit,
       this.defaults.junction[name],
     );
   }
@@ -242,7 +242,7 @@ export class AssetBuilder {
   ) {
     return getValueFor(
       candidate,
-      presets.si.reservoir[name].unit,
+      presets.si.mappings.reservoir[name].unit,
       this.defaults.reservoir[name],
     );
   }

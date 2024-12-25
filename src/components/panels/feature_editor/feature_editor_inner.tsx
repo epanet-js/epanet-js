@@ -51,33 +51,36 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <JunctionEditor
           junction={asset as Junction}
-          quantitiesSpec={systemSpec.junction}
+          quantitiesSpec={systemSpec.mappings.junction}
         />
       ) : (
         <JunctionEditorDeprecated
           junction={asset as Junction}
-          quantitiesSpec={systemSpec.junction}
+          quantitiesSpec={systemSpec.mappings.junction}
         />
       );
     case "pipe":
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
-        <PipeEditor pipe={asset as Pipe} quantitiesSpec={systemSpec.pipe} />
+        <PipeEditor
+          pipe={asset as Pipe}
+          quantitiesSpec={systemSpec.mappings.pipe}
+        />
       ) : (
         <PipeEditorDeprecated
           pipe={asset as Pipe}
-          quantitiesSpec={systemSpec.pipe}
+          quantitiesSpec={systemSpec.mappings.pipe}
         />
       );
     case "reservoir":
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <ReservoirEditor
           reservoir={asset as Reservoir}
-          quantitiesSpec={systemSpec.reservoir}
+          quantitiesSpec={systemSpec.mappings.reservoir}
         />
       ) : (
         <ReservoirEditorDeprecated
           reservoir={asset as Reservoir}
-          quantitiesSpec={systemSpec.reservoir}
+          quantitiesSpec={systemSpec.mappings.reservoir}
         />
       );
   }
@@ -88,7 +91,7 @@ const PipeEditor = ({
   quantitiesSpec,
 }: {
   pipe: Pipe;
-  quantitiesSpec: AssetQuantitiesSpec["pipe"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["pipe"];
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -146,7 +149,7 @@ const PipeEditorDeprecated = ({
   quantitiesSpec,
 }: {
   pipe: Pipe;
-  quantitiesSpec: AssetQuantitiesSpec["pipe"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["pipe"];
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -160,7 +163,7 @@ const PipeEditorDeprecated = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
-                fromUnit={presets.si.pipe.diameter.unit}
+                fromUnit={presets.si.mappings.pipe.diameter.unit}
                 toUnit={quantitiesSpec.diameter.unit}
                 decimals={quantitiesSpec.diameter.decimals}
               />
@@ -168,7 +171,7 @@ const PipeEditorDeprecated = ({
                 name="length"
                 position={2}
                 value={pipe.length}
-                fromUnit={presets.si.pipe.length.unit}
+                fromUnit={presets.si.mappings.pipe.length.unit}
                 toUnit={quantitiesSpec.length.unit}
                 decimals={quantitiesSpec.length.decimals}
               />
@@ -176,7 +179,7 @@ const PipeEditorDeprecated = ({
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
-                fromUnit={presets.si.pipe.roughness.unit}
+                fromUnit={presets.si.mappings.pipe.roughness.unit}
                 toUnit={quantitiesSpec.roughness.unit}
                 decimals={quantitiesSpec.roughness.decimals}
               />
@@ -184,7 +187,7 @@ const PipeEditorDeprecated = ({
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
-                fromUnit={presets.si.pipe.minorLoss.unit}
+                fromUnit={presets.si.mappings.pipe.minorLoss.unit}
                 toUnit={quantitiesSpec.minorLoss.unit}
                 decimals={quantitiesSpec.minorLoss.decimals}
               />
@@ -192,7 +195,7 @@ const PipeEditorDeprecated = ({
                 name="flow"
                 position={5}
                 value={pipe.flow}
-                fromUnit={presets.si.pipe.flow.unit}
+                fromUnit={presets.si.mappings.pipe.flow.unit}
                 toUnit={quantitiesSpec.flow.unit}
                 decimals={quantitiesSpec.flow.decimals}
               />
@@ -209,7 +212,7 @@ const JunctionEditor = ({
   quantitiesSpec,
 }: {
   junction: Junction;
-  quantitiesSpec: AssetQuantitiesSpec["junction"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["junction"];
 }) => {
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -251,7 +254,7 @@ const JunctionEditorDeprecated = ({
   quantitiesSpec,
 }: {
   junction: Junction;
-  quantitiesSpec: AssetQuantitiesSpec["junction"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["junction"];
 }) => {
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -264,7 +267,7 @@ const JunctionEditorDeprecated = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
-                fromUnit={presets.si.junction.elevation.unit}
+                fromUnit={presets.si.mappings.junction.elevation.unit}
                 toUnit={quantitiesSpec.elevation.unit}
                 decimals={quantitiesSpec.elevation.decimals}
               />
@@ -272,7 +275,7 @@ const JunctionEditorDeprecated = ({
                 name="demand"
                 position={1}
                 value={junction.demand}
-                fromUnit={presets.si.junction.demand.unit}
+                fromUnit={presets.si.mappings.junction.demand.unit}
                 toUnit={quantitiesSpec.demand.unit}
                 decimals={quantitiesSpec.demand.decimals}
               />
@@ -280,7 +283,7 @@ const JunctionEditorDeprecated = ({
                 name="pressure"
                 position={2}
                 value={junction.pressure}
-                fromUnit={presets.si.junction.pressure.unit}
+                fromUnit={presets.si.mappings.junction.pressure.unit}
                 toUnit={quantitiesSpec.pressure.unit}
                 decimals={quantitiesSpec.pressure.decimals}
               />
@@ -297,7 +300,7 @@ const ReservoirEditor = ({
   quantitiesSpec,
 }: {
   reservoir: Reservoir;
-  quantitiesSpec: AssetQuantitiesSpec["reservoir"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["reservoir"];
 }) => {
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
@@ -333,7 +336,7 @@ const ReservoirEditorDeprecated = ({
   quantitiesSpec,
 }: {
   reservoir: Reservoir;
-  quantitiesSpec: AssetQuantitiesSpec["reservoir"];
+  quantitiesSpec: AssetQuantitiesSpec["mappings"]["reservoir"];
 }) => {
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
