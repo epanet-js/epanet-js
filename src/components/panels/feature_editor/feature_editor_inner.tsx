@@ -8,14 +8,9 @@ import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import { PropertyRowReadonly } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
-import { Unit, convertTo } from "src/quantity";
+import { Unit } from "src/quantity";
 
-import { isFeatureOn } from "src/infra/feature-flags";
-import {
-  AssetQuantitiesSpec,
-  Quantities,
-  presets,
-} from "src/model-metadata/quantities-spec";
+import { Quantities } from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 
@@ -57,45 +52,26 @@ const AssetEditor = ({
   asset: Asset;
   quantitiesMetadata: Quantities;
 }) => {
-  const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
-    ? presets.usCustomary
-    : presets.si;
-
   switch (asset.type) {
     case "junction":
-      return isFeatureOn("FLAG_MODEL_UNITS") ? (
+      return (
         <JunctionEditor
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
         />
-      ) : (
-        <JunctionEditorDeprecated
-          junction={asset as Junction}
-          quantitiesSpec={systemSpec.mappings.junction}
-        />
       );
     case "pipe":
-      return isFeatureOn("FLAG_MODEL_UNITS") ? (
+      return (
         <PipeEditor
           pipe={asset as Pipe}
           quantitiesMetadata={quantitiesMetadata}
         />
-      ) : (
-        <PipeEditorDeprecated
-          pipe={asset as Pipe}
-          quantitiesSpec={systemSpec.mappings.pipe}
-        />
       );
     case "reservoir":
-      return isFeatureOn("FLAG_MODEL_UNITS") ? (
+      return (
         <ReservoirEditor
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
-        />
-      ) : (
-        <ReservoirEditorDeprecated
-          reservoir={asset as Reservoir}
-          quantitiesSpec={systemSpec.mappings.reservoir}
         />
       );
   }
@@ -159,69 +135,6 @@ const PipeEditor = ({
   );
 };
 
-const PipeEditorDeprecated = ({
-  pipe,
-  quantitiesSpec,
-}: {
-  pipe: Pipe;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["pipe"];
-}) => {
-  return (
-    <PanelDetails title={translate("pipe")} variant="fullwidth">
-      <div className="pb-3 contain-layout">
-        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
-          <table className="pb-2 w-full">
-            <PropertyTableHead />
-            <tbody>
-              <StatusRow name={"status"} status={pipe.status} position={0} />
-              <QuantityRowDeprecated
-                name="diameter"
-                position={1}
-                value={pipe.diameter}
-                fromUnit={presets.si.mappings.pipe.diameter.unit}
-                toUnit={quantitiesSpec.diameter.unit}
-                decimals={quantitiesSpec.diameter.decimals}
-              />
-              <QuantityRowDeprecated
-                name="length"
-                position={2}
-                value={pipe.length}
-                fromUnit={presets.si.mappings.pipe.length.unit}
-                toUnit={quantitiesSpec.length.unit}
-                decimals={quantitiesSpec.length.decimals}
-              />
-              <QuantityRowDeprecated
-                name="roughness"
-                position={3}
-                value={pipe.roughness}
-                fromUnit={presets.si.mappings.pipe.roughness.unit}
-                toUnit={quantitiesSpec.roughness.unit}
-                decimals={quantitiesSpec.roughness.decimals}
-              />
-              <QuantityRowDeprecated
-                name="minorLoss"
-                position={4}
-                value={pipe.minorLoss}
-                fromUnit={presets.si.mappings.pipe.minorLoss.unit}
-                toUnit={quantitiesSpec.minorLoss.unit}
-                decimals={quantitiesSpec.minorLoss.decimals}
-              />
-              <QuantityRowDeprecated
-                name="flow"
-                position={5}
-                value={pipe.flow}
-                fromUnit={presets.si.mappings.pipe.flow.unit}
-                toUnit={quantitiesSpec.flow.unit}
-                decimals={quantitiesSpec.flow.decimals}
-              />
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </PanelDetails>
-  );
-};
-
 const JunctionEditor = ({
   junction,
   quantitiesMetadata,
@@ -270,51 +183,6 @@ const JunctionEditor = ({
     </PanelDetails>
   );
 };
-const JunctionEditorDeprecated = ({
-  junction,
-  quantitiesSpec,
-}: {
-  junction: Junction;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["junction"];
-}) => {
-  return (
-    <PanelDetails title={translate("junction")} variant="fullwidth">
-      <div className="pb-3 contain-layout">
-        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
-          <table className="pb-2 w-full">
-            <PropertyTableHead />
-            <tbody>
-              <QuantityRowDeprecated
-                name="elevation"
-                position={0}
-                value={junction.elevation}
-                fromUnit={presets.si.mappings.junction.elevation.unit}
-                toUnit={quantitiesSpec.elevation.unit}
-                decimals={quantitiesSpec.elevation.decimals}
-              />
-              <QuantityRowDeprecated
-                name="demand"
-                position={1}
-                value={junction.demand}
-                fromUnit={presets.si.mappings.junction.demand.unit}
-                toUnit={quantitiesSpec.demand.unit}
-                decimals={quantitiesSpec.demand.decimals}
-              />
-              <QuantityRowDeprecated
-                name="pressure"
-                position={2}
-                value={junction.pressure}
-                fromUnit={presets.si.mappings.junction.pressure.unit}
-                toUnit={quantitiesSpec.pressure.unit}
-                decimals={quantitiesSpec.pressure.decimals}
-              />
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </PanelDetails>
-  );
-};
 
 const ReservoirEditor = ({
   reservoir,
@@ -346,42 +214,6 @@ const ReservoirEditor = ({
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("reservoir", "head")}
                 decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
-              />
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </PanelDetails>
-  );
-};
-
-const ReservoirEditorDeprecated = ({
-  reservoir,
-  quantitiesSpec,
-}: {
-  reservoir: Reservoir;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["reservoir"];
-}) => {
-  return (
-    <PanelDetails title={translate("reservoir")} variant="fullwidth">
-      <div className="pb-3 contain-layout">
-        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
-          <table className="pb-2 w-full">
-            <PropertyTableHead />
-            <tbody>
-              <QuantityRow
-                name="elevation"
-                position={0}
-                value={reservoir.elevation}
-                unit={quantitiesSpec.elevation.unit}
-                decimals={quantitiesSpec.elevation.decimals}
-              />
-              <QuantityRow
-                name="head"
-                position={1}
-                value={reservoir.head}
-                unit={quantitiesSpec.head.unit}
-                decimals={quantitiesSpec.head.decimals}
               />
             </tbody>
           </table>
@@ -431,38 +263,6 @@ const QuantityRow = ({
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`
-    : `${translate(name)}`;
-  return (
-    <PropertyRowReadonly
-      pair={[label, displayValue]}
-      y={position}
-      even={position % 2 === 0}
-    />
-  );
-};
-
-const QuantityRowDeprecated = ({
-  name,
-  value,
-  fromUnit,
-  toUnit,
-  decimals,
-  position,
-}: {
-  name: string;
-  value: number | null;
-  fromUnit: Unit;
-  toUnit: Unit;
-  position: number;
-  decimals?: number;
-}) => {
-  const displayValue =
-    value === null
-      ? translate("notAvailable")
-      : localizeDecimal(convertTo({ value, unit: fromUnit }, toUnit), decimals);
-
-  const label = toUnit
-    ? `${translate(name)} (${translateUnit(toUnit)})`
     : `${translate(name)}`;
   return (
     <PropertyRowReadonly

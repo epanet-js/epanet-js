@@ -1,6 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { presets } from "src/model-metadata/quantities-spec";
 
 describe("build inp", () => {
@@ -94,7 +93,6 @@ describe("build inp", () => {
   });
 
   it("detects units based on the flow units of the model", () => {
-    stubFeatureOn("FLAG_MODEL_UNITS");
     const hydraulicModel = HydraulicModelBuilder.with(
       presets.usCustomary,
     ).build();

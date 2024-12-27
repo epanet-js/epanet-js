@@ -19,7 +19,6 @@ import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id_mapper";
 import { Asset } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -82,11 +81,9 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: node.id,
         newCoordinates: node.coordinates,
-        newElevation: isFeatureOn("FLAG_MODEL_UNITS")
-          ? await fetchElevationForPoint(e.lngLat, {
-              unit: node.getUnit("elevation"),
-            })
-          : await fetchElevationForPoint(e.lngLat),
+        newElevation: await fetchElevationForPoint(e.lngLat, {
+          unit: node.getUnit("elevation"),
+        }),
       });
       putAssets && startMove(putAssets);
       setCursor("move");
@@ -125,11 +122,9 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: isFeatureOn("FLAG_MODEL_UNITS")
-          ? await fetchElevationForPoint(e.lngLat, {
-              unit: node.getUnit("elevation"),
-            })
-          : await fetchElevationForPoint(e.lngLat),
+        newElevation: await fetchElevationForPoint(e.lngLat, {
+          unit: node.getUnit("elevation"),
+        }),
       });
       transact(moment);
       resetMove();

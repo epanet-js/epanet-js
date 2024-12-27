@@ -9,7 +9,6 @@ import {
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const setUpCanvasFn = async (blob: Blob) => {
   const canvas = createCanvas(tileSize, tileSize);
@@ -38,7 +37,6 @@ describe("elevations", () => {
   });
 
   it("can convert to other unit", async () => {
-    stubFeatureOn("FLAG_MODEL_UNITS");
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 

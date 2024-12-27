@@ -1,6 +1,5 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Parse inp", () => {
   it("includes junctions in the model", () => {
@@ -174,7 +173,6 @@ describe("Parse inp", () => {
   });
 
   it("detects the us customary unit system", () => {
-    stubFeatureOn("FLAG_MODEL_UNITS");
     const anyId = "R1";
     const head = 100;
     const inp = `
@@ -196,7 +194,6 @@ describe("Parse inp", () => {
   });
 
   it("detects other systems", () => {
-    stubFeatureOn("FLAG_MODEL_UNITS");
     const anyId = "R1";
     const head = 100;
     const inp = `

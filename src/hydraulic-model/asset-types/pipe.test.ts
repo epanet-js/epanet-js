@@ -1,4 +1,3 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { buildPipe } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Pipe", () => {
@@ -19,11 +18,10 @@ describe("Pipe", () => {
     ];
     pipe.setCoordinates(newCoordinates);
 
-    expect(pipe.length).toEqual(15724.04);
+    expect(pipe.length).toBeCloseTo(15724.04);
   });
 
   it("takes into account unit system", () => {
-    stubFeatureOn("FLAG_MODEL_UNITS");
     const pipe = buildPipe(
       {
         coordinates: [

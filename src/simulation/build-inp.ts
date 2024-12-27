@@ -1,6 +1,5 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { captureWarning } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type SimulationPipeStatus = "Open" | "Closed";
 
@@ -25,9 +24,7 @@ export const buildInp = (
   hydraulicModel: HydraulicModel,
   { geolocation = false }: BuildOptions = {},
 ): string => {
-  const defaultUnits = isFeatureOn("FLAG_MODEL_UNITS")
-    ? chooseUnitSystem(hydraulicModel.units)
-    : "LPS";
+  const defaultUnits = chooseUnitSystem(hydraulicModel.units);
   const defaultHeadloss = "H-W";
   const oneStep = 0;
   const sections = {

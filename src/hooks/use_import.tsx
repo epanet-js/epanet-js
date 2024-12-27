@@ -31,7 +31,6 @@ import { ModelMoment } from "src/hydraulic-model";
 import { AssetBuilder } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
 import { parseInp } from "src/import/parse-inp";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 /**
  * Creates the _input_ to a transact() operation,
@@ -327,14 +326,7 @@ export function useImportFile() {
       if (options.type === "inp") {
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata } = parseInp(content);
-        if (isFeatureOn("FLAG_MODEL_UNITS")) {
-          transactImport(hydraulicModel, modelMetadata, file.name);
-        } else {
-          transact({
-            note: `Import ${file.name}`,
-            putAssets: [...hydraulicModel.assets.values()],
-          });
-        }
+        transactImport(hydraulicModel, modelMetadata, file.name);
         return { type: "inp", notes: [], hydraulicModel } as InpResult;
       }
 

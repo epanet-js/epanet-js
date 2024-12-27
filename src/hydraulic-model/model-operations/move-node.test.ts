@@ -50,10 +50,10 @@ describe("moveNode", () => {
 
     const updatedAB = putAssets![1] as LinkAsset;
     expect(updatedAB.coordinates).toEqual([[10, 10], newCoordinates]);
-    expect(updatedAB.length).toEqual(2300489.34);
+    expect(updatedAB.length).toBeCloseTo(2300489.34);
 
     const updatedBC = putAssets![2] as LinkAsset;
     expect(updatedBC.coordinates).toEqual([newCoordinates, [30, 30]]);
-    expect(updatedBC.length).toEqual(742966.22);
+    expect(updatedBC.length).toBeCloseTo(742966.22);
   });
 });

@@ -116,6 +116,6 @@ describe("addPipe", () => {
 
     const pipeToCreate = putAssets![0] as Pipe;
     expect(pipeToCreate.id).toEqual("PIPE");
-    expect(pipeToCreate.length).toEqual(195.04);
+    expect(pipeToCreate.length).toBeCloseTo(195.04);
   });
 });
