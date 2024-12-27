@@ -13,6 +13,7 @@ import { Unit, convertTo } from "src/quantity";
 import { isFeatureOn } from "src/infra/feature-flags";
 import {
   AssetQuantitiesSpec,
+  Quantities,
   presets,
 } from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
@@ -20,14 +21,19 @@ import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 
 export function FeatureEditorInner({
   selectedFeature,
+  quantitiesMetadata,
 }: {
   selectedFeature: IWrappedFeature;
+  quantitiesMetadata: Quantities;
 }) {
   return (
     <>
       <div className="flex-auto overflow-y-auto placemark-scrollbar">
         {selectedFeature instanceof BaseAsset ? (
-          <AssetEditor asset={selectedFeature as Asset} />
+          <AssetEditor
+            asset={selectedFeature as Asset}
+            quantitiesMetadata={quantitiesMetadata}
+          />
         ) : (
           <FeatureEditorProperties wrappedFeature={selectedFeature} />
         )}
@@ -44,7 +50,13 @@ export function FeatureEditorInner({
   );
 }
 
-const AssetEditor = ({ asset }: { asset: Asset }) => {
+const AssetEditor = ({
+  asset,
+  quantitiesMetadata,
+}: {
+  asset: Asset;
+  quantitiesMetadata: Quantities;
+}) => {
   const systemSpec = isFeatureOn("FLAG_US_CUSTOMARY")
     ? presets.usCustomary
     : presets.si;
@@ -54,7 +66,7 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <JunctionEditor
           junction={asset as Junction}
-          quantitiesSpec={systemSpec.mappings.junction}
+          quantitiesMetadata={quantitiesMetadata}
         />
       ) : (
         <JunctionEditorDeprecated
@@ -66,7 +78,7 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <PipeEditor
           pipe={asset as Pipe}
-          quantitiesSpec={systemSpec.mappings.pipe}
+          quantitiesMetadata={quantitiesMetadata}
         />
       ) : (
         <PipeEditorDeprecated
@@ -78,7 +90,7 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
       return isFeatureOn("FLAG_MODEL_UNITS") ? (
         <ReservoirEditor
           reservoir={asset as Reservoir}
-          quantitiesSpec={systemSpec.mappings.reservoir}
+          quantitiesMetadata={quantitiesMetadata}
         />
       ) : (
         <ReservoirEditorDeprecated
@@ -91,10 +103,10 @@ const AssetEditor = ({ asset }: { asset: Asset }) => {
 
 const PipeEditor = ({
   pipe,
-  quantitiesSpec,
+  quantitiesMetadata,
 }: {
   pipe: Pipe;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["pipe"];
+  quantitiesMetadata: Quantities;
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -108,36 +120,36 @@ const PipeEditor = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
-                unit={pipe.getUnit("diameter")}
-                decimals={quantitiesSpec.diameter.decimals}
+                unit={quantitiesMetadata.getUnit("pipe", "diameter")}
+                decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
               />
               <QuantityRow
                 name="length"
                 position={2}
                 value={pipe.length}
-                unit={pipe.getUnit("length")}
-                decimals={quantitiesSpec.length.decimals}
+                unit={quantitiesMetadata.getUnit("pipe", "length")}
+                decimals={quantitiesMetadata.getDecimals("pipe", "length")}
               />
               <QuantityRow
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
-                unit={pipe.getUnit("roughness")}
-                decimals={quantitiesSpec.roughness.decimals}
+                unit={quantitiesMetadata.getUnit("pipe", "roughness")}
+                decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
               />
               <QuantityRow
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
-                unit={pipe.getUnit("minorLoss")}
-                decimals={quantitiesSpec.minorLoss.decimals}
+                unit={quantitiesMetadata.getUnit("pipe", "minorLoss")}
+                decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
               />
               <QuantityRow
                 name="flow"
                 position={5}
                 value={pipe.flow}
-                unit={pipe.getUnit("flow")}
-                decimals={quantitiesSpec.flow.decimals}
+                unit={quantitiesMetadata.getUnit("pipe", "flow")}
+                decimals={quantitiesMetadata.getDecimals("pipe", "flow")}
               />
             </tbody>
           </table>
@@ -212,10 +224,10 @@ const PipeEditorDeprecated = ({
 
 const JunctionEditor = ({
   junction,
-  quantitiesSpec,
+  quantitiesMetadata,
 }: {
   junction: Junction;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["junction"];
+  quantitiesMetadata: Quantities;
 }) => {
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -228,22 +240,28 @@ const JunctionEditor = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
-                unit={junction.getUnit("elevation")}
-                decimals={quantitiesSpec.elevation.decimals}
+                unit={quantitiesMetadata.getUnit("junction", "elevation")}
+                decimals={quantitiesMetadata.getDecimals(
+                  "junction",
+                  "elevation",
+                )}
               />
               <QuantityRow
                 name="demand"
                 position={1}
                 value={junction.demand}
-                unit={junction.getUnit("demand")}
-                decimals={quantitiesSpec.demand.decimals}
+                unit={quantitiesMetadata.getUnit("junction", "demand")}
+                decimals={quantitiesMetadata.getDecimals("junction", "demand")}
               />
               <QuantityRow
                 name="pressure"
                 position={2}
                 value={junction.pressure}
-                unit={junction.getUnit("pressure")}
-                decimals={quantitiesSpec.pressure.decimals}
+                unit={quantitiesMetadata.getUnit("junction", "pressure")}
+                decimals={quantitiesMetadata.getDecimals(
+                  "junction",
+                  "pressure",
+                )}
               />
             </tbody>
           </table>
@@ -300,10 +318,10 @@ const JunctionEditorDeprecated = ({
 
 const ReservoirEditor = ({
   reservoir,
-  quantitiesSpec,
+  quantitiesMetadata,
 }: {
   reservoir: Reservoir;
-  quantitiesSpec: AssetQuantitiesSpec["mappings"]["reservoir"];
+  quantitiesMetadata: Quantities;
 }) => {
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
@@ -316,15 +334,18 @@ const ReservoirEditor = ({
                 name="elevation"
                 position={0}
                 value={reservoir.elevation}
-                unit={reservoir.getUnit("elevation")}
-                decimals={quantitiesSpec.elevation.decimals}
+                unit={quantitiesMetadata.getUnit("reservoir", "elevation")}
+                decimals={quantitiesMetadata.getDecimals(
+                  "reservoir",
+                  "elevation",
+                )}
               />
               <QuantityRow
                 name="head"
                 position={1}
                 value={reservoir.head}
-                unit={reservoir.getUnit("head")}
-                decimals={quantitiesSpec.head.decimals}
+                unit={quantitiesMetadata.getUnit("reservoir", "head")}
+                decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
               />
             </tbody>
           </table>
