@@ -88,6 +88,13 @@ export class Quantities {
     this.units = this.buildModelUnits(spec);
   }
 
+  getDecimals<T extends keyof AssetQuantitiesSpec["mappings"]>(
+    assetType: T,
+    name: keyof AssetQuantitiesSpec["mappings"][T],
+  ): number | undefined {
+    return (this.spec.mappings[assetType][name] as QuantitySpec).decimals;
+  }
+
   getUnit<T extends keyof AssetQuantitiesSpec["mappings"]>(
     assetType: T,
     name: keyof AssetQuantitiesSpec["mappings"][T],
