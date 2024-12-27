@@ -37,7 +37,7 @@ export type ReservoirBuildData = {
 import { customAlphabet } from "nanoid";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { ModelUnits } from "./units";
-import { presets } from "src/settings/quantities-spec";
+import { presets } from "src/model-metadata/quantities-spec";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);

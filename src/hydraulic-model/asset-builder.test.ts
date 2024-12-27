@@ -1,4 +1,4 @@
-import { Quantities, presets } from "src/settings/quantities-spec";
+import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
 
 describe("asset builder", () => {

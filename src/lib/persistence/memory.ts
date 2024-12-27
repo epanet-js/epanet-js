@@ -39,6 +39,7 @@ import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { calculateSegments } from "src/map/link-segments";
+import { ModelMetadata } from "src/model-metadata";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -50,7 +51,11 @@ export class MemPersistence implements IPersistence {
   putPresence = async () => {};
 
   useTransactImport() {
-    return (hydraulicModel: HydraulicModel, name: string) => {
+    return (
+      hydraulicModel: HydraulicModel,
+      modelMetadata: ModelMetadata,
+      name: string,
+    ) => {
       const momentLog = this.store.get(momentLogAtom).copy();
       const moment = {
         note: `Import ${name}`,
@@ -70,6 +75,7 @@ export class MemPersistence implements IPersistence {
       this.store.set(dataAtom, (prev) => ({
         ...prev,
         hydraulicModel,
+        modelMetadata,
       }));
       this.store.set(momentLogAtom, momentLog);
     };
@@ -188,6 +194,7 @@ export class MemPersistence implements IPersistence {
         }),
       ),
       segments: updatedSegments,
+      modelMetadata: ctx.modelMetadata,
     });
     return reverseMoment;
   }

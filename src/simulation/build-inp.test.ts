@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { presets } from "src/settings/quantities-spec";
+import { presets } from "src/model-metadata/quantities-spec";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {

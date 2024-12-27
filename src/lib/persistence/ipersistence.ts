@@ -4,6 +4,7 @@ import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
+import { ModelMetadata } from "src/model-metadata";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
@@ -49,7 +50,11 @@ export interface IPersistence {
   useHistoryControl(): (direction: "undo" | "redo") => void;
 
   useTransact(): (moment: ModelMoment) => void;
-  useTransactImport(): (hydraulicModel: HydraulicModel, name: string) => void;
+  useTransactImport(): (
+    hydraulicModel: HydraulicModel,
+    modelMetadata: ModelMetadata,
+    name: string,
+  ) => void;
 
   /**
    * The main method for making changes to the map: give this

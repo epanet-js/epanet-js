@@ -16,7 +16,7 @@ import {
   AssetQuantitiesSpec,
   Quantities,
   presets,
-} from "src/settings/quantities-spec";
+} from "src/model-metadata/quantities-spec";
 
 export const buildPipe = (
   data: PipeBuildData = {},
