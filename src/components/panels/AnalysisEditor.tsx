@@ -6,7 +6,6 @@ import { translate } from "src/infra/i18n";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom } from "src/state/jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
@@ -43,9 +42,7 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "pressure",
-                          unit: isFeatureOn("FLAG_MODEL_UNITS")
-                            ? hydraulicModel.units.junction.pressure
-                            : "l/s",
+                          unit: hydraulicModel.units.junction.pressure,
                           paletteName: "epanet-ramp",
                         }),
                       },
@@ -83,9 +80,7 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "flow",
-                          unit: isFeatureOn("FLAG_MODEL_UNITS")
-                            ? hydraulicModel.units.pipe.flow
-                            : "l/s",
+                          unit: hydraulicModel.units.pipe.flow,
                           paletteName: "epanet-ramp",
                         }),
                       },

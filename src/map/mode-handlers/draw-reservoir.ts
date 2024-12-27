@@ -14,7 +14,6 @@ import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 import { addReservoir } from "src/hydraulic-model/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawReservoirHandlers({
   mode,
@@ -35,11 +34,9 @@ export function useDrawReservoirHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const elevation = isFeatureOn("FLAG_MODEL_UNITS")
-        ? await fetchElevationForPoint(e.lngLat, {
-            unit: units.reservoir.elevation,
-          })
-        : await fetchElevationForPoint(e.lngLat);
+      const elevation = await fetchElevationForPoint(e.lngLat, {
+        unit: units.reservoir.elevation,
+      });
       const reservoir = assetBuilder.buildReservoir({
         elevation,
         coordinates: clickPosition,
