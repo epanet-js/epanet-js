@@ -31,6 +31,7 @@ describe("elevations", () => {
 
     const elevation = await fetchElevationForPoint(fixtureCoordinates, {
       setUpCanvas: testCanvasFn,
+      unit: "m",
     });
 
     expect(elevation).toEqual(55.6);
@@ -53,6 +54,7 @@ describe("elevations", () => {
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
     const elevation = await fetchElevationForPoint(closeCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
@@ -65,10 +67,12 @@ describe("elevations", () => {
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
     await fetchElevationForPoint(fixtureCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
     await fetchElevationForPoint(closeCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
@@ -84,10 +88,12 @@ describe("elevations", () => {
     const farAwayCoordinates = { lng: +4.380429, lat: -55.9156107 };
 
     await fetchElevationForPoint(fixtureCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
     await fetchElevationForPoint(farAwayCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
@@ -104,6 +110,7 @@ describe("elevations", () => {
     await prefetchElevationsTile(fixtureCoordinates);
 
     const elevation = await fetchElevationForPoint(fixtureCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
@@ -119,6 +126,7 @@ describe("elevations", () => {
     const anyCoordinates = { lng: 10, lat: 20 };
 
     const elevation = await fetchElevationForPoint(anyCoordinates, {
+      unit: "m",
       setUpCanvas: testCanvasFn,
     });
 

@@ -26,9 +26,9 @@ export type CanvasSetupFn = (
 export async function fetchElevationForPoint(
   { lat, lng }: LngLat,
   {
-    unit = "m",
+    unit,
     setUpCanvas = defaultCanvasSetupFn,
-  }: { unit?: Unit; setUpCanvas?: CanvasSetupFn } = {},
+  }: { unit: Unit; setUpCanvas?: CanvasSetupFn },
 ): Promise<number> {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
