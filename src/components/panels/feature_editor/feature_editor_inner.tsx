@@ -11,7 +11,10 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { Unit, convertTo } from "src/quantity";
 
 import { isFeatureOn } from "src/infra/feature-flags";
-import { AssetQuantitiesSpec, presets } from "src/settings/quantities-spec";
+import {
+  AssetQuantitiesSpec,
+  presets,
+} from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 

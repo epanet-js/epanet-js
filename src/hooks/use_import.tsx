@@ -326,9 +326,9 @@ export function useImportFile() {
 
       if (options.type === "inp") {
         const content = new TextDecoder().decode(arrayBuffer);
-        const hydraulicModel = parseInp(content);
+        const { hydraulicModel, modelMetadata } = parseInp(content);
         if (isFeatureOn("FLAG_MODEL_UNITS")) {
-          transactImport(hydraulicModel, file.name);
+          transactImport(hydraulicModel, modelMetadata, file.name);
         } else {
           transact({
             note: `Import ${file.name}`,

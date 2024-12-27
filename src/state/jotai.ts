@@ -25,9 +25,10 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { Quantities, presets } from "src/settings/quantities-spec";
+import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { LinkSegmentsMap, nullLinkSegmentsMap } from "src/map/link-segments";
 import { initializeHydraulicModel } from "src/hydraulic-model";
+import { ModelMetadata } from "src/model-metadata";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -87,6 +88,7 @@ export interface Data {
   featureMapDeprecated: FeatureMap; //Use hydraulicModel.assets instead
   selection: Sel;
   hydraulicModel: HydraulicModel;
+  modelMetadata: ModelMetadata;
   segments: LinkSegmentsMap;
 }
 
@@ -96,6 +98,7 @@ export interface Data {
 const quantities = new Quantities(
   isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
 );
+const modelMetadata = { quantities };
 const hydraulicModel = initializeHydraulicModel({
   units: quantities.units,
   defaults: quantities.defaults,
@@ -108,6 +111,7 @@ export const dataAtom = atom<Data>({
     type: "none",
   },
   hydraulicModel: hydraulicModel,
+  modelMetadata,
   segments: nullLinkSegmentsMap,
 });
 

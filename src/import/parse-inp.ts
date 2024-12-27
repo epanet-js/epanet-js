@@ -2,7 +2,8 @@ import { Position } from "geojson";
 import { HydraulicModel } from "src/hydraulic-model";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { initializeHydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { Quantities, presets } from "src/settings/quantities-spec";
+import { ModelMetadata } from "src/model-metadata";
+import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 type InpData = {
@@ -33,7 +34,9 @@ type InpData = {
   options: { units: EpanetUnitSystem };
 };
 
-export const parseInp = (inp: string): HydraulicModel => {
+export const parseInp = (
+  inp: string,
+): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const inpData = readAllSections(inp);
   return buildModel(inpData);
 };
@@ -188,7 +191,9 @@ const readAllSections = (inp: string): InpData => {
   return inpData;
 };
 
-const buildModel = (inpData: InpData): HydraulicModel => {
+const buildModel = (
+  inpData: InpData,
+): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec =
     inpData.options.units === "GPM" ? presets.usCustomary : presets.si;
   const quantities = new Quantities(spec);
@@ -248,7 +253,7 @@ const buildModel = (inpData: InpData): HydraulicModel => {
     );
   }
 
-  return hydraulicModel;
+  return { hydraulicModel, modelMetadata: { quantities } };
 };
 
 const readValues = (row: string): string[] => {

@@ -20,7 +20,7 @@ describe("Parse inp", () => {
     ${junctionId}\t${demand}
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const junction = hydraulicModel.assets.get(junctionId) as Junction;
     expect(junction.id).toEqual(junctionId);
@@ -43,7 +43,7 @@ describe("Parse inp", () => {
 
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -79,7 +79,7 @@ describe("Parse inp", () => {
     ${pipeId}\t${60}\t${70}
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
     expect(pipe.id).toEqual(pipeId);
@@ -119,7 +119,7 @@ describe("Parse inp", () => {
     ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -146,7 +146,7 @@ describe("Parse inp", () => {
     ANYTHING
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -167,7 +167,7 @@ describe("Parse inp", () => {
     ${tankId}\t${lng}\t${lat}
     `;
 
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const tankAsReservoir = hydraulicModel.assets.get(tankId) as Reservoir;
     expect(tankAsReservoir.head).toEqual(elevation + initLevel);
@@ -185,12 +185,14 @@ describe("Parse inp", () => {
     Units\tGPM
     ANY
     `;
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel, modelMetadata } = parseInp(inp);
     expect(hydraulicModel.units.pipe).toMatchObject({
       flow: "gal/min",
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
+
+    expect(modelMetadata.quantities.getUnit("reservoir", "head")).toEqual("ft");
   });
 
   it("detects other systems", () => {
@@ -205,7 +207,7 @@ describe("Parse inp", () => {
     Units\tLPS
     ANY
     `;
-    const hydraulicModel = parseInp(inp);
+    const { hydraulicModel } = parseInp(inp);
     expect(hydraulicModel.units.pipe).toMatchObject({
       flow: "l/s",
     });
