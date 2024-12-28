@@ -48,6 +48,10 @@ export class Pipe extends Link<PipeProperties> {
     return this.properties.status;
   }
 
+  setStatus(newStatus: PipeStatus) {
+    this.properties.status = newStatus;
+  }
+
   get minorLoss() {
     return this.properties.minorLoss;
   }
