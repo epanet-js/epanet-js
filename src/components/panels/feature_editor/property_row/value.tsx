@@ -253,11 +253,11 @@ export const Selector = <T extends string>({
               <Select.Item
                 key={i}
                 value={option.value}
-                className="flex items-center px-2 py-2 cursor-pointer hover:bg-gray-100"
+                className="flex items-center px-2 py-2 cursor-pointer hover:bg-purple-300/10"
               >
                 <Select.ItemText>{option.label}</Select.ItemText>
                 <Select.ItemIndicator className="ml-auto">
-                  <CheckIcon />
+                  <CheckIcon className="text-purple-700" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}
