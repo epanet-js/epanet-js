@@ -264,7 +264,10 @@ export const Selector = <T extends string>({
         onOpenChange={handleOpenChange}
         onValueChange={onChange}
       >
-        <Select.Trigger className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 rounded-md">
+        <Select.Trigger
+          aria-label={`Value for: Status`}
+          className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 rounded-md"
+        >
           <Select.Value />
           <Select.Icon>
             <ChevronDownIcon />
