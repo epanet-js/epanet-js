@@ -44,7 +44,7 @@ export class BaseAsset<T> {
   }
 
   hasProperty(name: string): boolean {
-    return !!this.feature.properties[name as keyof AssetProperties];
+    return this.feature.properties[name as keyof AssetProperties] !== undefined;
   }
 
   protected get properties() {
