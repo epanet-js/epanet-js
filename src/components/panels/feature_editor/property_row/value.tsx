@@ -10,7 +10,13 @@ import {
 } from "../property_row";
 import * as P from "@radix-ui/react-popover";
 import * as Select from "@radix-ui/react-select";
-import { useMemo, useEffect, useRef, useState } from "react";
+import {
+  useMemo,
+  useEffect,
+  useRef,
+  useState,
+  KeyboardEventHandler,
+} from "react";
 import { atom, PrimitiveAtom, useAtomValue } from "jotai";
 
 import { JsonValue } from "type-fest";
@@ -237,8 +243,26 @@ export const Selector = <T extends string>({
   selected: { label: string; value: T };
   onChange: (selected: T) => void;
 }) => {
+  const [isOpen, setOpen] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
+
+  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (event.code === "Escape" || event.code === "Enter") {
+      event.stopPropagation();
+      setOpen(false);
+    }
+  };
+
   return (
-    <Select.Root value={selected.value} onValueChange={onChange}>
+    <Select.Root
+      value={selected.value}
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      onValueChange={onChange}
+    >
       <Select.Trigger className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full pr-1 pl-2 py-2 rounded-md">
         <Select.Value />
         <Select.Icon>
@@ -247,7 +271,10 @@ export const Selector = <T extends string>({
       </Select.Trigger>
 
       <Select.Portal>
-        <Select.Content className="bg-white w-full border text-xs rounded-md shadow-md">
+        <Select.Content
+          onKeyDown={handleKeyDown}
+          className="bg-white w-full border text-xs rounded-md shadow-md"
+        >
           <Select.Viewport className="p-1">
             {options.map((option, i) => (
               <Select.Item
