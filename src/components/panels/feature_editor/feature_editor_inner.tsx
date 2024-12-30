@@ -56,7 +56,7 @@ export function FeatureEditorInner({
   );
 }
 
-const AssetEditor = ({
+export const AssetEditor = ({
   asset,
   quantitiesMetadata,
 }: {
