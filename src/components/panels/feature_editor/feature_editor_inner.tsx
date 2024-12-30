@@ -15,11 +15,15 @@ import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { PipeStatus, pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
-import { changePipeStatus } from "src/hydraulic-model/model-operations";
+import {
+  changePipeStatus,
+  changeProperty,
+} from "src/hydraulic-model/model-operations";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import { Selector } from "./property_row/value";
+import { PropertyRowValue, Selector } from "./property_row/value";
+import { JsonValue } from "type-fest";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -94,6 +98,7 @@ const PipeEditor = ({
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
+
   const handleStatusChange = useCallback(
     (newStatus: PipeStatus) => {
       const moment = changePipeStatus(hydraulicModel, {
@@ -104,6 +109,15 @@ const PipeEditor = ({
     },
     [hydraulicModel, pipe.id, transact],
   );
+
+  const handlePropertyChange = (name: string, value: number) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [pipe.id],
+      property: name,
+      value,
+    });
+    transact(moment);
+  };
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -133,6 +147,7 @@ const PipeEditor = ({
                 value={pipe.diameter}
                 unit={quantitiesMetadata.getUnit("pipe", "diameter")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
+                onChange={handlePropertyChange}
               />
               <QuantityRow
                 name="length"
@@ -140,6 +155,7 @@ const PipeEditor = ({
                 value={pipe.length}
                 unit={quantitiesMetadata.getUnit("pipe", "length")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "length")}
+                onChange={handlePropertyChange}
               />
               <QuantityRow
                 name="roughness"
@@ -147,6 +163,7 @@ const PipeEditor = ({
                 value={pipe.roughness}
                 unit={quantitiesMetadata.getUnit("pipe", "roughness")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
+                onChange={handlePropertyChange}
               />
               <QuantityRow
                 name="minorLoss"
@@ -154,8 +171,9 @@ const PipeEditor = ({
                 value={pipe.minorLoss}
                 unit={quantitiesMetadata.getUnit("pipe", "minorLoss")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
+                onChange={handlePropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="flow"
                 position={5}
                 value={pipe.flow}
@@ -177,6 +195,18 @@ const JunctionEditor = ({
   junction: Junction;
   quantitiesMetadata: Quantities;
 }) => {
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+
+  const handlePropertyChange = (name: string, value: number) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [junction.id],
+      property: name,
+      value,
+    });
+    transact(moment);
+  };
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -193,6 +223,7 @@ const JunctionEditor = ({
                   "junction",
                   "elevation",
                 )}
+                onChange={handlePropertyChange}
               />
               <QuantityRow
                 name="demand"
@@ -200,8 +231,9 @@ const JunctionEditor = ({
                 value={junction.demand}
                 unit={quantitiesMetadata.getUnit("junction", "demand")}
                 decimals={quantitiesMetadata.getDecimals("junction", "demand")}
+                onChange={handlePropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="pressure"
                 position={2}
                 value={junction.pressure}
@@ -226,6 +258,19 @@ const ReservoirEditor = ({
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
 }) => {
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+
+  const handlePropertyChange = (name: string, value: number) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [reservoir.id],
+      property: name,
+      value,
+    });
+    transact(moment);
+  };
+
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -242,6 +287,7 @@ const ReservoirEditor = ({
                   "reservoir",
                   "elevation",
                 )}
+                onChange={handlePropertyChange}
               />
               <QuantityRow
                 name="head"
@@ -249,6 +295,7 @@ const ReservoirEditor = ({
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("reservoir", "head")}
                 decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
+                onChange={handlePropertyChange}
               />
             </tbody>
           </table>
@@ -312,6 +359,67 @@ const StatusRowDeprecated = ({
 };
 
 const QuantityRow = ({
+  name,
+  value,
+  unit,
+  decimals,
+  position,
+  onChange,
+}: {
+  name: string;
+  value: number | null;
+  unit: Unit;
+  position: number;
+  decimals?: number;
+  onChange?: (name: string, newValue: number) => void;
+}) => {
+  if (!isFeatureOn("FLAG_EDIT_PROPS"))
+    return (
+      <QuantityRowDeprecated
+        name={name}
+        value={value}
+        unit={unit}
+        position={position}
+        decimals={decimals}
+      />
+    );
+
+  const displayValue =
+    value === null
+      ? translate("notAvailable")
+      : localizeDecimal(value, decimals);
+
+  const label = unit
+    ? `${translate(name)} (${translateUnit(unit)})`
+    : `${translate(name)}`;
+
+  const handleChange = (key: string, value: JsonValue) => {
+    const numericValue = parseFloat(value as string);
+    if (isNaN(numericValue)) return;
+
+    onChange && onChange(name, numericValue);
+  };
+
+  return (
+    <PropertyRow
+      pair={[label, displayValue]}
+      y={position}
+      even={position % 2 === 0}
+    >
+      <PropertyRowValue
+        pair={[label, displayValue]}
+        x={0}
+        y={position}
+        onChangeValue={handleChange}
+        onDeleteKey={() => {}}
+        even={position % 2 === 0}
+        onCast={() => {}}
+      />
+    </PropertyRow>
+  );
+};
+
+const QuantityRowDeprecated = ({
   name,
   value,
   unit,
