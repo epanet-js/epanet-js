@@ -1,18 +1,26 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
-import React from "react";
+import React, { useCallback } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
-import { PropertyRowReadonly } from "./property_row";
+import { PropertyRow, PropertyRowReadonly } from "./property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { JsonValue } from "type-fest";
+import { TextEditor } from "./property_row/value";
+import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import { changePipeStatus } from "src/hydraulic-model/model-operations";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
+import { usePersistence } from "src/lib/persistence/context";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -84,6 +92,19 @@ const PipeEditor = ({
   pipe: Pipe;
   quantitiesMetadata: Quantities;
 }) => {
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+  const handleStatusChange = useCallback(
+    (newStatus: PipeStatus) => {
+      const moment = changePipeStatus(hydraulicModel, {
+        pipeId: pipe.id,
+        newStatus,
+      });
+      transact(moment);
+    },
+    [hydraulicModel, pipe.id, transact],
+  );
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -91,7 +112,21 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <StatusRow name={"status"} status={pipe.status} position={0} />
+              {isFeatureOn("FLAG_CHANGE_STATUS") && (
+                <StatusRow
+                  name={"status"}
+                  status={pipe.status}
+                  position={0}
+                  onChange={handleStatusChange}
+                />
+              )}
+              {!isFeatureOn("FLAG_CHANGE_STATUS") && (
+                <StatusRowDeprecated
+                  name={"status"}
+                  status={pipe.status}
+                  position={0}
+                />
+              )}
               <QuantityRow
                 name="diameter"
                 position={1}
@@ -224,6 +259,35 @@ const ReservoirEditor = ({
 };
 
 const StatusRow = ({
+  name,
+  status,
+  position,
+  onChange,
+}: {
+  name: string;
+  status: AssetStatus;
+  position: number;
+  onChange: (newStatus: PipeStatus) => void;
+}) => {
+  const label = translate(name);
+  const value = translate(status);
+  const handleOnChangeValue = (key: string, value: JsonValue) => {
+    onChange(value as PipeStatus);
+  };
+  return (
+    <PropertyRow pair={[label, value]} y={position} even={position % 2 === 0}>
+      <TextEditor
+        pair={[label, value]}
+        table={false}
+        onChangeValue={handleOnChangeValue}
+        x={0}
+        y={position}
+      />
+    </PropertyRow>
+  );
+};
+
+const StatusRowDeprecated = ({
   name,
   status,
   position,
