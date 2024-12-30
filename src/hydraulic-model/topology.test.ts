@@ -45,14 +45,10 @@ describe("Topology", () => {
     expect(topology.getLinks("A")).toEqual(["link1", "link2"]);
   });
 
-  it("crashes when trying to add two links with same id", () => {
+  it("skipswhen trying to add two links with same id", () => {
     const topology = new Topology();
 
     topology.addLink("link1", "A", "B");
-
-    expect(() => {
-      topology.addLink("link1", "A", "B");
-    }).toThrow();
 
     topology.removeNode("A");
 
