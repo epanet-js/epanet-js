@@ -1,8 +1,8 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
-const statuses = ["open", "closed"] as const;
-export type PipeStatus = (typeof statuses)[number];
+export const pipeStatuses = ["open", "closed"] as const;
+export type PipeStatus = (typeof pipeStatuses)[number];
 
 export type PipeProperties = {
   type: "pipe";
