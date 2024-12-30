@@ -231,7 +231,7 @@ function PropertyJSONPreview({
  *
  * PropertyRowValue -> TextEditor
  */
-function TextEditor({
+export function TextEditor({
   pair,
   x,
   y,

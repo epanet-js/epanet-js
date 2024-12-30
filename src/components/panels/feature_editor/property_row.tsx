@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import type { MultiPair } from "src/lib/multi_properties";
 import { ExplicitCast } from "src/lib/cast";
 import { styledTd } from "src/components/elements";
@@ -19,7 +19,7 @@ export type OnChangeKey = (key: string, newKey: string) => void;
 export type PropertyPair = [string, JsonValue | undefined];
 export type Pair = PropertyPair | MultiPair;
 
-interface PropertyRowProps {
+interface PropertyRowPropsDeprecated {
   pair: PropertyPair;
   onChangeValue: OnChangeValue;
   even: boolean;
@@ -37,7 +37,7 @@ export function PropertyRowMulti({
   onCast,
   even,
   y,
-}: Omit<PropertyRowProps, "pair"> & {
+}: Omit<PropertyRowPropsDeprecated, "pair"> & {
   pair: MultiPair;
 }) {
   const [key, values] = pair;
@@ -82,7 +82,29 @@ export function PropertyRowMulti({
   );
 }
 
-export function PropertyRow({
+type PropertyRowProps = {
+  pair: PropertyPair;
+  even: boolean;
+  y: number;
+  children: ReactNode;
+};
+
+export const PropertyRow = ({ pair, even, y, children }: PropertyRowProps) => {
+  return (
+    <P.Root>
+      <tr className={`${even ? "" : "bg-gray-100 dark:bg-gray-700"}`}>
+        <td className={`border-r border-b border-t ${styledTd}`}>
+          <PropertyRowKeyReadonly x={0} y={y} pair={pair} />
+        </td>
+        <td className={`border-l border-b border-t relative ${styledTd}`}>
+          {children}
+        </td>
+      </tr>
+    </P.Root>
+  );
+};
+
+export function PropertyRowDeprecated({
   pair,
   onChangeValue,
   onChangeKey,
@@ -90,7 +112,7 @@ export function PropertyRow({
   onDeleteKey,
   onCast,
   y,
-}: PropertyRowProps) {
+}: PropertyRowPropsDeprecated) {
   return (
     <P.Root>
       <tr className={`${even ? "" : "bg-gray-100 dark:bg-gray-700"}`}>
@@ -117,7 +139,7 @@ export function PropertyRowReadonly({
   pair,
   even,
   y,
-}: Pick<PropertyRowProps, "pair" | "even" | "y">) {
+}: Pick<PropertyRowPropsDeprecated, "pair" | "even" | "y">) {
   return (
     <P.Root>
       <tr className={`${even ? "" : "bg-gray-100 dark:bg-gray-700"}`}>

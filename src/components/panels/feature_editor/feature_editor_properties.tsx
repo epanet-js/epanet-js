@@ -1,5 +1,5 @@
 import React, { useRef, memo, useMemo } from "react";
-import { PropertyRow, PropertyRowReadonly } from "./property_row";
+import { PropertyRowDeprecated, PropertyRowReadonly } from "./property_row";
 import { NewRow } from "./new_row";
 import { castExplicit, ExplicitCast } from "src/lib/cast";
 import { usePersistence } from "src/lib/persistence/context";
@@ -196,7 +196,7 @@ export function FeatureEditorPropertiesRaw({
         <tbody>
           {pairs.map((pair, y) => {
             return (
-              <PropertyRow
+              <PropertyRowDeprecated
                 key={pair[0]}
                 pair={pair}
                 y={y}
