@@ -1,14 +1,22 @@
 import { render, screen } from "@testing-library/react";
-import { Store } from "src/state/jotai";
-import { Provider as JotaiProvider, getDefaultStore } from "jotai";
+import { Store, dataAtom, nullData } from "src/state/jotai";
+import { Provider as JotaiProvider, createStore } from "jotai";
 import { AssetEditor } from "./feature_editor/feature_editor_inner";
-import { Asset } from "src/hydraulic-model";
-import { buildPipe } from "src/__helpers__/hydraulic-model-builder";
+import { Asset, Pipe } from "src/hydraulic-model";
+import {
+  HydraulicModelBuilder,
+  buildPipe,
+} from "src/__helpers__/hydraulic-model-builder";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id_mapper";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import userEvent from "@testing-library/user-event";
+import { getPipe } from "src/hydraulic-model/assets-map";
+
+window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -83,10 +91,65 @@ describe("AssetEditor", () => {
         screen.getByRole("textbox", { name: /value for: flow/i }),
       ).toHaveValue("20.0");
     });
+
+    it("can change its status", async () => {
+      stubFeatureOn("FLAG_EDIT_PROPS");
+      const pipeId = "PIPE1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("A")
+        .aNode("B")
+        .aPipe(pipeId, "A", "B", { status: "open" })
+        .build();
+      const store = createStore();
+      store.set(dataAtom, { ...nullData, hydraulicModel });
+      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+      const user = userEvent.setup();
+
+      renderComponent({ store, asset: pipe });
+
+      await user.click(
+        screen.getByRole("combobox", { name: /value for: status/i }),
+      );
+
+      await user.click(screen.getByText(/closed/i));
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
+      ).toEqual("closed");
+    });
+
+    it("can change a property", async () => {
+      stubFeatureOn("FLAG_EDIT_PROPS");
+      const pipeId = "PIPE1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("A")
+        .aNode("B")
+        .aPipe(pipeId, "A", "B", { diameter: 10 })
+        .build();
+      const store = createStore();
+      store.set(dataAtom, { ...nullData, hydraulicModel });
+      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+      const user = userEvent.setup();
+
+      renderComponent({ store, asset: pipe });
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: diameter/i,
+      });
+      await user.clear(field);
+      await user.type(field, "20.5");
+      await user.keyboard("{Enter}");
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+      ).toEqual(20.5);
+    });
   });
 
   const renderComponent = ({
-    store = getDefaultStore(),
+    store = createStore(),
     asset = buildPipe(),
     quantitiesMetadata = new Quantities(presets.si),
   }: Partial<{

@@ -104,7 +104,7 @@ const hydraulicModel = initializeHydraulicModel({
   defaults: quantities.defaults,
 });
 
-export const dataAtom = atom<Data>({
+export const nullData: Data = {
   featureMapDeprecated: hydraulicModel.assets,
   folderMap: new Map(),
   selection: {
@@ -113,7 +113,8 @@ export const dataAtom = atom<Data>({
   hydraulicModel: hydraulicModel,
   modelMetadata,
   segments: nullLinkSegmentsMap,
-});
+};
+export const dataAtom = atom<Data>(nullData);
 
 export const segmentsAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("segments"),
