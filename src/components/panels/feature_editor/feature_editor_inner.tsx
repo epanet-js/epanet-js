@@ -1,7 +1,7 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
@@ -14,13 +14,12 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { JsonValue } from "type-fest";
-import { TextEditor } from "./property_row/value";
-import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import { PipeStatus, pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import { changePipeStatus } from "src/hydraulic-model/model-operations";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
+import { Selector } from "./property_row/value";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -116,6 +115,7 @@ const PipeEditor = ({
                 <StatusRow
                   name={"status"}
                   status={pipe.status}
+                  availableStatuses={pipeStatuses}
                   position={0}
                   onChange={handleStatusChange}
                 />
@@ -261,28 +261,32 @@ const ReservoirEditor = ({
 const StatusRow = ({
   name,
   status,
+  availableStatuses,
   position,
   onChange,
 }: {
   name: string;
   status: AssetStatus;
+  availableStatuses: readonly AssetStatus[];
   position: number;
-  onChange: (newStatus: PipeStatus) => void;
+  onChange: (newStatus: AssetStatus) => void;
 }) => {
   const label = translate(name);
   const value = translate(status);
-  const handleOnChangeValue = (key: string, value: JsonValue) => {
-    onChange(value as PipeStatus);
-  };
+
+  const { selected, options } = useMemo(() => {
+    const options = availableStatuses.map((status) => ({
+      label: translate(status),
+      value: status,
+    })) as { label: string; value: AssetStatus }[];
+    const selected =
+      options.find((option) => option.value === status) || options[0];
+    return { options, selected };
+  }, [status, availableStatuses]);
+
   return (
     <PropertyRow pair={[label, value]} y={position} even={position % 2 === 0}>
-      <TextEditor
-        pair={[label, value]}
-        table={false}
-        onChangeValue={handleOnChangeValue}
-        x={0}
-        y={position}
-      />
+      <Selector options={options} selected={selected} onChange={onChange} />
     </PropertyRow>
   );
 };

@@ -9,6 +9,7 @@ import {
   OnDeleteKey,
 } from "../property_row";
 import * as P from "@radix-ui/react-popover";
+import * as Select from "@radix-ui/react-select";
 import { useMemo, useEffect, useRef, useState } from "react";
 import { atom, PrimitiveAtom, useAtomValue } from "jotai";
 
@@ -29,6 +30,7 @@ import { placemarkTheme } from "src/lib/codemirror_theme";
 import { CoordProps } from "src/types";
 import { dataAtom } from "src/state/jotai";
 import { truncate } from "src/lib/utils";
+import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 
 type Preview =
   | {
@@ -225,6 +227,46 @@ function PropertyJSONPreview({
     </P.Trigger>
   );
 }
+
+export const Selector = <T extends string>({
+  options,
+  selected,
+  onChange,
+}: {
+  options: { label: string; value: T }[];
+  selected: { label: string; value: T };
+  onChange: (selected: T) => void;
+}) => {
+  return (
+    <Select.Root value={selected.value} onValueChange={onChange}>
+      <Select.Trigger className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full pr-1 pl-2 py-2 rounded-md">
+        <Select.Value />
+        <Select.Icon>
+          <ChevronDownIcon />
+        </Select.Icon>
+      </Select.Trigger>
+
+      <Select.Portal>
+        <Select.Content className="bg-white w-full border text-xs rounded-md shadow-md">
+          <Select.Viewport className="p-1">
+            {options.map((option, i) => (
+              <Select.Item
+                key={i}
+                value={option.value}
+                className="flex items-center px-2 py-2 cursor-pointer hover:bg-gray-100"
+              >
+                <Select.ItemText>{option.label}</Select.ItemText>
+                <Select.ItemIndicator className="ml-auto">
+                  <CheckIcon />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+};
 
 /**
  * Edit a text value with a text input
