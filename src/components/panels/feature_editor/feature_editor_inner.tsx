@@ -111,7 +111,7 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {isFeatureOn("FLAG_CHANGE_STATUS") && (
+              {isFeatureOn("FLAG_EDIT_PROPS") && (
                 <StatusRow
                   name={"status"}
                   status={pipe.status}
@@ -120,7 +120,7 @@ const PipeEditor = ({
                   onChange={handleStatusChange}
                 />
               )}
-              {!isFeatureOn("FLAG_CHANGE_STATUS") && (
+              {!isFeatureOn("FLAG_EDIT_PROPS") && (
                 <StatusRowDeprecated
                   name={"status"}
                   status={pipe.status}
