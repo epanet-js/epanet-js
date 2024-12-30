@@ -257,41 +257,43 @@ export const Selector = <T extends string>({
   };
 
   return (
-    <Select.Root
-      value={selected.value}
-      open={isOpen}
-      onOpenChange={handleOpenChange}
-      onValueChange={onChange}
-    >
-      <Select.Trigger className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full pr-1 pl-2 py-2 rounded-md">
-        <Select.Value />
-        <Select.Icon>
-          <ChevronDownIcon />
-        </Select.Icon>
-      </Select.Trigger>
+    <div className="relative group-1">
+      <Select.Root
+        value={selected.value}
+        open={isOpen}
+        onOpenChange={handleOpenChange}
+        onValueChange={onChange}
+      >
+        <Select.Trigger className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 rounded-md">
+          <Select.Value />
+          <Select.Icon>
+            <ChevronDownIcon />
+          </Select.Icon>
+        </Select.Trigger>
 
-      <Select.Portal>
-        <Select.Content
-          onKeyDown={handleKeyDown}
-          className="bg-white w-full border text-xs rounded-md shadow-md"
-        >
-          <Select.Viewport className="p-1">
-            {options.map((option, i) => (
-              <Select.Item
-                key={i}
-                value={option.value}
-                className="flex items-center px-2 py-2 cursor-pointer hover:bg-purple-300/10"
-              >
-                <Select.ItemText>{option.label}</Select.ItemText>
-                <Select.ItemIndicator className="ml-auto">
-                  <CheckIcon className="text-purple-700" />
-                </Select.ItemIndicator>
-              </Select.Item>
-            ))}
-          </Select.Viewport>
-        </Select.Content>
-      </Select.Portal>
-    </Select.Root>
+        <Select.Portal>
+          <Select.Content
+            onKeyDown={handleKeyDown}
+            className="bg-white w-full border text-xs rounded-md shadow-md"
+          >
+            <Select.Viewport className="p-1">
+              {options.map((option, i) => (
+                <Select.Item
+                  key={i}
+                  value={option.value}
+                  className="flex items-center px-2 py-2 cursor-pointer hover:bg-purple-300/10"
+                >
+                  <Select.ItemText>{option.label}</Select.ItemText>
+                  <Select.ItemIndicator className="ml-auto">
+                    <CheckIcon className="text-purple-700" />
+                  </Select.ItemIndicator>
+                </Select.Item>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
+    </div>
   );
 };
 
