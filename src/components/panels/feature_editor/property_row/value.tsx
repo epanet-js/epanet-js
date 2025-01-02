@@ -267,7 +267,7 @@ export const Selector = <T extends string>({
       >
         <Select.Trigger
           aria-label={`Value for: Status`}
-          className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 rounded-md"
+          className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"
         >
           <Select.Value />
           <Select.Icon>
@@ -285,7 +285,7 @@ export const Selector = <T extends string>({
                 <Select.Item
                   key={i}
                   value={option.value}
-                  className="flex items-center px-2 py-2 cursor-pointer hover:bg-purple-300/10"
+                  className="flex items-center px-2 py-2 cursor-pointer focus:bg-purple-300/40"
                 >
                   <Select.ItemText>{option.label}</Select.ItemText>
                   <Select.ItemIndicator className="ml-auto">
