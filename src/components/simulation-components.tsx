@@ -33,13 +33,13 @@ export const SimulationStatusText = () => {
         return {
           icon: <CircleIcon />,
           colorClass: "text-gray-500",
-          text: "Ready to run",
+          text: translate("simulationReadyToRun"),
         };
       case "running":
         return {
           icon: <CircleIcon />,
           colorClass: "text-gray-500",
-          text: "Running...",
+          text: translate("simulationRunning"),
         };
       case "success":
         if (hydraulicModel.version !== simulation.modelVersion) {

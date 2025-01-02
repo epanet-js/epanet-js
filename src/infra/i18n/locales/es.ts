@@ -31,6 +31,8 @@ export const translations: Translations = {
   head: "Carga",
   simulate: "Simular",
   simulation: "Simulación",
+  simulationReadyToRun: "Lista para ejecutar",
+  simulationRunning: "Ejecutando...",
   simulationSuccess: "Simulación exitosa",
   simulationFailure: "Simulación con errores",
   simulationOutdated: "Simulación desactualizada",
