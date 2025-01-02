@@ -393,7 +393,7 @@ const QuantityRow = ({
     ? `${translate(name)} (${translateUnit(unit)})`
     : `${translate(name)}`;
 
-  const handleChange = (key: string, value: JsonValue) => {
+  const handleChange = (value: JsonValue) => {
     const numericValue = parseFloat(value as string);
     if (isNaN(numericValue)) return;
 
@@ -407,13 +407,9 @@ const QuantityRow = ({
       even={position % 2 === 0}
     >
       <NumericField
-        pair={[label, displayValue]}
-        x={0}
-        y={position}
+        label={label}
+        value={displayValue}
         onChangeValue={handleChange}
-        onDeleteKey={() => {}}
-        even={position % 2 === 0}
-        onCast={() => {}}
       />
     </PropertyRow>
   );

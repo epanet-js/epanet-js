@@ -435,28 +435,17 @@ export function TextEditor({
 }
 
 export function NumericField({
-  pair,
+  label,
+  value,
   onChangeValue,
-  onFocus = noop,
-  /**
-   * Whether this value is in a table
-   */
-  table = false,
   readOnly = false,
-  x,
-  y,
 }: {
-  pair: PropertyPair;
-  onChangeValue: OnChangeValue;
-  onDeleteKey: OnDeleteKey;
-  onFocus?: () => void;
-  table?: boolean;
+  label: string;
+  value: string;
+  onChangeValue: (newValue: string) => void;
   readOnly?: boolean;
-  even: boolean;
-  onCast: OnCast;
-} & CoordProps) {
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [key, value] = pair;
   const [inputValue, setInputValue] = useState(value);
   const [isDirty, setDirty] = useState(false);
 
@@ -472,7 +461,7 @@ export function NumericField({
 
   const handleCommitLastChange = () => {
     if (isDirty) {
-      onChangeValue(key, inputValue as JsonValue);
+      onChangeValue(inputValue);
       setDirty(false);
     }
     if (inputRef.current) inputRef.current.blur();
@@ -484,19 +473,18 @@ export function NumericField({
   };
 
   return (
-    <div onFocus={onFocus} className="relative group-1">
+    <div className="relative group-1">
       <input
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         spellCheck="false"
         type="text"
-        {...coordPropsAttr({ x, y })}
-        className={E.styledPropertyInput(table ? "table" : "right")}
-        aria-label={`Value for: ${key}`}
+        className={E.styledPropertyInput("right")}
+        aria-label={`Value for: ${label}`}
         readOnly={readOnly}
         onBlur={handleBlur}
         ref={inputRef}
-        value={inputValue as string}
+        value={inputValue}
       />
     </div>
   );
