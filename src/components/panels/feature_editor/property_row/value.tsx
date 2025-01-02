@@ -447,8 +447,12 @@ export function NumericField({
   readOnly?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState("");
   const [isDirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter" || e.key === "Escape") {
@@ -457,15 +461,17 @@ export function NumericField({
   };
 
   const handleBlur = () => {
-    handleCommitLastChange();
+    if (isDirty) {
+      handleCommitLastChange();
+    }
   };
 
   const handleCommitLastChange = () => {
-    if (isDirty) {
-      onChangeValue(inputValue);
-      setDirty(false);
-    }
-    if (inputRef.current) inputRef.current.blur();
+    onChangeValue(inputValue);
+    setDirty(false);
+    setTimeout(() => {
+      if (inputRef.current) inputRef.current.blur();
+    }, 0);
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
