@@ -22,7 +22,7 @@ import {
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import { PropertyRowValue, Selector } from "./property_row/value";
+import { NumericField, Selector } from "./property_row/value";
 import { JsonValue } from "type-fest";
 
 export function FeatureEditorInner({
@@ -406,7 +406,7 @@ const QuantityRow = ({
       y={position}
       even={position % 2 === 0}
     >
-      <PropertyRowValue
+      <NumericField
         pair={[label, displayValue]}
         x={0}
         y={position}

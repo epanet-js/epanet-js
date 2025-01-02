@@ -20,7 +20,7 @@ window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
-    it("can show a pipe", () => {
+    it("can show its attributes", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
       const asset = buildPipe({
         length: 10,
@@ -77,7 +77,7 @@ describe("AssetEditor", () => {
       ).toHaveValue("Not available");
     });
 
-    it("can show a pipe with simulation", () => {
+    it("can show simulation results", () => {
       const simulationProvider = { getFlow: () => 20 };
       const asset = buildPipe();
       asset.setSimulation(simulationProvider);
@@ -145,6 +145,8 @@ describe("AssetEditor", () => {
       expect(
         (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
       ).toEqual(20.5);
+
+      expect(field).not.toHaveFocus();
     });
   });
 

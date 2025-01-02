@@ -16,6 +16,7 @@ import {
   useRef,
   useState,
   KeyboardEventHandler,
+  ChangeEventHandler,
 } from "react";
 import { atom, PrimitiveAtom, useAtomValue } from "jotai";
 
@@ -430,6 +431,74 @@ export function TextEditor({
         </E.StyledPopoverContent>
       </P.Portal>
     </P.Root>
+  );
+}
+
+export function NumericField({
+  pair,
+  onChangeValue,
+  onFocus = noop,
+  /**
+   * Whether this value is in a table
+   */
+  table = false,
+  readOnly = false,
+  x,
+  y,
+}: {
+  pair: PropertyPair;
+  onChangeValue: OnChangeValue;
+  onDeleteKey: OnDeleteKey;
+  onFocus?: () => void;
+  table?: boolean;
+  readOnly?: boolean;
+  even: boolean;
+  onCast: OnCast;
+} & CoordProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [key, value] = pair;
+  const [inputValue, setInputValue] = useState(value);
+  const [isDirty, setDirty] = useState(false);
+
+  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === "Enter" || e.key === "Escape") {
+      handleCommitLastChange();
+    }
+  };
+
+  const handleBlur = () => {
+    handleCommitLastChange();
+  };
+
+  const handleCommitLastChange = () => {
+    if (isDirty) {
+      onChangeValue(key, inputValue as JsonValue);
+      setDirty(false);
+    }
+    if (inputRef.current) inputRef.current.blur();
+  };
+
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setInputValue(e.target.value);
+    setDirty(true);
+  };
+
+  return (
+    <div onFocus={onFocus} className="relative group-1">
+      <input
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        spellCheck="false"
+        type="text"
+        {...coordPropsAttr({ x, y })}
+        className={E.styledPropertyInput(table ? "table" : "right")}
+        aria-label={`Value for: ${key}`}
+        readOnly={readOnly}
+        onBlur={handleBlur}
+        ref={inputRef}
+        value={inputValue as string}
+      />
+    </div>
   );
 }
 
