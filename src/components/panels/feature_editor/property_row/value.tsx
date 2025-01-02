@@ -278,6 +278,7 @@ export const Selector = <T extends string>({
         <Select.Portal>
           <Select.Content
             onKeyDown={handleKeyDown}
+            onCloseAutoFocus={(e) => e.preventDefault()}
             className="bg-white w-full border text-xs rounded-md shadow-md"
           >
             <Select.Viewport className="p-1">

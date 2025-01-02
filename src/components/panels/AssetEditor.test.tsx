@@ -107,9 +107,11 @@ describe("AssetEditor", () => {
 
       renderComponent({ store, asset: pipe });
 
-      await user.click(
-        screen.getByRole("combobox", { name: /value for: status/i }),
-      );
+      const selector = screen.getByRole("combobox", {
+        name: /value for: status/i,
+      });
+
+      await user.click(selector);
 
       await user.click(screen.getByText(/closed/i));
 
@@ -117,6 +119,8 @@ describe("AssetEditor", () => {
       expect(
         (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
       ).toEqual("closed");
+
+      expect(selector).not.toHaveFocus();
     });
 
     it("can change a property", async () => {
