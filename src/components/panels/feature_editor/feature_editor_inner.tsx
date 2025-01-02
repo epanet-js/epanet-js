@@ -23,7 +23,6 @@ import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { NumericField, Selector } from "./property_row/value";
-import { JsonValue } from "type-fest";
 
 export function FeatureEditorInner({
   selectedFeature,
@@ -393,11 +392,8 @@ const QuantityRow = ({
     ? `${translate(name)} (${translateUnit(unit)})`
     : `${translate(name)}`;
 
-  const handleChange = (value: JsonValue) => {
-    const numericValue = parseFloat(value as string);
-    if (isNaN(numericValue)) return;
-
-    onChange && onChange(name, numericValue);
+  const handleChange = (value: number) => {
+    onChange && onChange(name, value);
   };
 
   return (
@@ -408,7 +404,7 @@ const QuantityRow = ({
     >
       <NumericField
         label={label}
-        value={displayValue}
+        displayValue={displayValue}
         onChangeValue={handleChange}
       />
     </PropertyRow>
