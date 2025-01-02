@@ -29,6 +29,8 @@ export const translations = {
   head: "Head",
   simulate: "Simulate",
   simulation: "Simulation",
+  simulationReadyToRun: "Ready to run",
+  simulationRunning: "Running...",
   simulationSuccess: "Simulation was successful",
   simulationFailure: "Simulation with errors",
   simulationOutdated: "Simulation outdated",
