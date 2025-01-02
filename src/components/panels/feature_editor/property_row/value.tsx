@@ -437,13 +437,13 @@ export function TextEditor({
 
 export function NumericField({
   label,
-  value,
+  displayValue,
   onChangeValue,
   readOnly = false,
 }: {
   label: string;
-  value: string;
-  onChangeValue: (newValue: string) => void;
+  displayValue: string;
+  onChangeValue: (newValue: number) => void;
   readOnly?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -451,12 +451,16 @@ export function NumericField({
   const [isDirty, setDirty] = useState(false);
 
   useEffect(() => {
-    setInputValue(value);
-  }, [value]);
+    setInputValue(displayValue);
+  }, [displayValue]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter" || e.key === "Escape") {
       handleCommitLastChange();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {
+      e.preventDefault();
     }
   };
 
@@ -467,7 +471,14 @@ export function NumericField({
   };
 
   const handleCommitLastChange = () => {
-    onChangeValue(inputValue);
+    const numericValue = parseFloat(inputValue);
+    if (isNaN(numericValue)) {
+      setInputValue(displayValue);
+    } else {
+      setInputValue(String(numericValue));
+      onChangeValue(numericValue);
+    }
+
     setDirty(false);
     setTimeout(() => {
       if (inputRef.current) inputRef.current.blur();
@@ -492,6 +503,7 @@ export function NumericField({
         onBlur={handleBlur}
         ref={inputRef}
         value={inputValue}
+        onFocus={(e) => e.preventDefault()}
       />
     </div>
   );

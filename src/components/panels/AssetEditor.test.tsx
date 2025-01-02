@@ -152,6 +152,36 @@ describe("AssetEditor", () => {
 
       expect(field).not.toHaveFocus();
     });
+
+    it("ignores changes when not a valid number", async () => {
+      stubFeatureOn("FLAG_EDIT_PROPS");
+      const pipeId = "PIPE1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("A")
+        .aNode("B")
+        .aPipe(pipeId, "A", "B", { diameter: 10 })
+        .build();
+      const store = createStore();
+      store.set(dataAtom, { ...nullData, hydraulicModel });
+      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+      const user = userEvent.setup();
+
+      renderComponent({ store, asset: pipe });
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: diameter/i,
+      });
+      await user.clear(field);
+      await user.type(field, "NOTNUMBER");
+      await user.keyboard("{Enter}");
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+      ).toEqual(10);
+
+      expect(field).not.toHaveFocus();
+    });
   });
 
   const renderComponent = ({
