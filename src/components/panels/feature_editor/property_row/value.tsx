@@ -270,7 +270,7 @@ export const Selector = <T extends string>({
           className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"
         >
           <Select.Value />
-          <Select.Icon>
+          <Select.Icon className="px-1">
             <ChevronDownIcon />
           </Select.Icon>
         </Select.Trigger>
