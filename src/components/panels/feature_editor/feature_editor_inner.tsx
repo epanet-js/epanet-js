@@ -403,6 +403,7 @@ const QuantityRow = ({
       even={position % 2 === 0}
     >
       <NumericField
+        key={displayValue}
         label={label}
         displayValue={displayValue}
         onChangeValue={handleChange}

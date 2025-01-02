@@ -447,12 +447,8 @@ export function NumericField({
   readOnly?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(displayValue);
   const [isDirty, setDirty] = useState(false);
-
-  useEffect(() => {
-    setInputValue(displayValue);
-  }, [displayValue]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter" || e.key === "Escape") {
