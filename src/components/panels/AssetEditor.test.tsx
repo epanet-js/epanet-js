@@ -165,6 +165,7 @@ describe("AssetEditor", () => {
     ).toEqual("closed");
 
     expect(selector).not.toHaveFocus();
+    expect(selector).toHaveTextContent("Closed");
   });
 
   it("can change a property", async () => {
@@ -192,6 +193,7 @@ describe("AssetEditor", () => {
       (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
     ).toEqual(20.5);
 
+    expect(field).toHaveValue("20.5");
     expect(field).not.toHaveFocus();
   });
 
@@ -223,6 +225,7 @@ describe("AssetEditor", () => {
       (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
     ).toEqual(10);
 
+    expect(field).toHaveValue("10.0");
     expect(field).not.toHaveFocus();
   });
 
