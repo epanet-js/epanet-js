@@ -173,6 +173,9 @@ describe("AssetEditor", () => {
       });
       await user.clear(field);
       await user.type(field, "NOTNUMBER");
+      expect(
+        screen.getByRole("textbox", { name: /value for: diameter/i }),
+      ).toHaveClass(/orange/i);
       await user.keyboard("{Enter}");
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
