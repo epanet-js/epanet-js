@@ -318,7 +318,6 @@ const StatusRow = ({
   onChange: (newStatus: AssetStatus) => void;
 }) => {
   const label = translate(name);
-  const value = translate(status);
 
   const { selected, options } = useMemo(() => {
     const options = availableStatuses.map((status) => ({
@@ -331,7 +330,7 @@ const StatusRow = ({
   }, [status, availableStatuses]);
 
   return (
-    <PropertyRow pair={[label, value]} y={position} even={position % 2 === 0}>
+    <PropertyRow label={label} y={position} even={position % 2 === 0}>
       <Selector options={options} selected={selected} onChange={onChange} />
     </PropertyRow>
   );
@@ -397,13 +396,9 @@ const QuantityRow = ({
   };
 
   return (
-    <PropertyRow
-      pair={[label, displayValue]}
-      y={position}
-      even={position % 2 === 0}
-    >
+    <PropertyRow label={label} y={position} even={position % 2 === 0}>
       <NumericField
-        key={displayValue}
+        key={value + displayValue}
         label={label}
         displayValue={displayValue}
         onChangeValue={handleChange}
