@@ -75,6 +75,17 @@ export const AssetEditor = ({
     transact(moment);
   };
 
+  const handleStatusChange = useCallback(
+    (newStatus: PipeStatus) => {
+      const moment = changePipeStatus(hydraulicModel, {
+        pipeId: asset.id,
+        newStatus,
+      });
+      transact(moment);
+    },
+    [hydraulicModel, asset.id, transact],
+  );
+
   switch (asset.type) {
     case "junction":
       return (
@@ -90,6 +101,7 @@ export const AssetEditor = ({
           pipe={asset as Pipe}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
+          onStatusChange={handleStatusChange}
         />
       );
     case "reservoir":
@@ -104,31 +116,19 @@ export const AssetEditor = ({
 };
 
 type OnPropertyChange = (name: string, value: number) => void;
+type OnStatusChange = (newStatus: PipeStatus) => void;
 
 const PipeEditor = ({
   pipe,
   quantitiesMetadata,
   onPropertyChange,
+  onStatusChange,
 }: {
   pipe: Pipe;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
+  onStatusChange: OnStatusChange;
 }) => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
-
-  const handleStatusChange = useCallback(
-    (newStatus: PipeStatus) => {
-      const moment = changePipeStatus(hydraulicModel, {
-        pipeId: pipe.id,
-        newStatus,
-      });
-      transact(moment);
-    },
-    [hydraulicModel, pipe.id, transact],
-  );
-
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -142,7 +142,7 @@ const PipeEditor = ({
                   status={pipe.status}
                   availableStatuses={pipeStatuses}
                   position={0}
-                  onChange={handleStatusChange}
+                  onChange={onStatusChange}
                 />
               )}
               {!isFeatureOn("FLAG_EDIT_PROPS") && (
