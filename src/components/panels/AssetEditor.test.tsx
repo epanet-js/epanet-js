@@ -5,7 +5,9 @@ import { AssetEditor } from "./feature_editor/feature_editor_inner";
 import { Asset, Pipe } from "src/hydraulic-model";
 import {
   HydraulicModelBuilder,
+  buildJunction,
   buildPipe,
+  buildReservoir,
 } from "src/__helpers__/hydraulic-model-builder";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { PersistenceContext } from "src/lib/persistence/context";
@@ -20,7 +22,7 @@ window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
-    it("can show its attributes", () => {
+    it("can show its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
       const asset = buildPipe({
         length: 10,
@@ -34,47 +36,12 @@ describe("AssetEditor", () => {
 
       expect(screen.getByText(/pipe/i)).toBeInTheDocument();
 
-      expect(
-        screen.getByRole("textbox", { name: /key: status/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("combobox", { name: /value for: status/i }),
-      ).toHaveTextContent("Open");
-
-      expect(
-        screen.getByRole("textbox", { name: /key: diameter \(mm\)/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: diameter/i }),
-      ).toHaveValue("100");
-
-      expect(
-        screen.getByRole("textbox", { name: /key: roughness/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: roughness/i }),
-      ).toHaveValue("1.00");
-
-      expect(
-        screen.getByRole("textbox", { name: /key: length \(m\)/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: length/i }),
-      ).toHaveValue("10.00");
-
-      expect(
-        screen.getByRole("textbox", { name: /key: loss coeff/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: loss coeff/i }),
-      ).toHaveValue("0.100");
-
-      expect(
-        screen.getByRole("textbox", { name: /key: flow \(l\/s\)/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: flow/i }),
-      ).toHaveValue("Not available");
+      expectStatusDisplayed("Open");
+      expectPropertyDisplayed("diameter (mm)", "100");
+      expectPropertyDisplayed("roughness", "1.00");
+      expectPropertyDisplayed("length", "10.00");
+      expectPropertyDisplayed("loss coeff", "0.100");
+      expectPropertyDisplayed("flow", "Not available");
     });
 
     it("can show simulation results", () => {
@@ -84,107 +51,147 @@ describe("AssetEditor", () => {
 
       renderComponent({ asset });
 
-      expect(
-        screen.getByRole("textbox", { name: /key: flow \(l\/s\)/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("textbox", { name: /value for: flow/i }),
-      ).toHaveValue("20.0");
+      expectPropertyDisplayed("flow (l/s)", "20.0");
     });
+  });
 
-    it("can change its status", async () => {
+  describe("with a junction", () => {
+    it("shows its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
-      const pipeId = "PIPE1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("A")
-        .aNode("B")
-        .aPipe(pipeId, "A", "B", { status: "open" })
-        .build();
-      const store = createStore();
-      store.set(dataAtom, { ...nullData, hydraulicModel });
-      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
-      const user = userEvent.setup();
-
-      renderComponent({ store, asset: pipe });
-
-      const selector = screen.getByRole("combobox", {
-        name: /value for: status/i,
+      const asset = buildJunction({
+        elevation: 10,
+        demand: 100,
       });
 
-      await user.click(selector);
+      renderComponent({ asset });
 
-      await user.click(screen.getByText(/closed/i));
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-      expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
-      ).toEqual("closed");
-
-      expect(selector).not.toHaveFocus();
+      expectPropertyDisplayed("elevation (m)", "10.0");
+      expectPropertyDisplayed("demand (l/s)", "100");
+      expectPropertyDisplayed("pressure (m)", "Not available");
     });
 
-    it("can change a property", async () => {
+    it("can show simulation results", () => {
+      const simulationProvider = { getPressure: () => 20 };
+      const asset = buildJunction();
+      asset.setSimulation(simulationProvider);
+
+      renderComponent({ asset });
+
+      expectPropertyDisplayed("pressure (m)", "20.0");
+    });
+  });
+
+  describe("with a reservoir", () => {
+    it("shows its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
-      const pipeId = "PIPE1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("A")
-        .aNode("B")
-        .aPipe(pipeId, "A", "B", { diameter: 10 })
-        .build();
-      const store = createStore();
-      store.set(dataAtom, { ...nullData, hydraulicModel });
-      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
-      const user = userEvent.setup();
-
-      renderComponent({ store, asset: pipe });
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: diameter/i,
+      const asset = buildReservoir({
+        elevation: 10,
+        head: 100,
       });
-      await user.clear(field);
-      await user.type(field, "20.5");
-      await user.keyboard("{Enter}");
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-      expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
-      ).toEqual(20.5);
+      renderComponent({ asset });
 
-      expect(field).not.toHaveFocus();
+      expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("elevation (m)", "10.0");
+      expectPropertyDisplayed("head (m)", "100");
+    });
+  });
+
+  it("can change its status", async () => {
+    stubFeatureOn("FLAG_EDIT_PROPS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("A")
+      .aNode("B")
+      .aPipe(pipeId, "A", "B", { status: "open" })
+      .build();
+    const store = createStore();
+    store.set(dataAtom, { ...nullData, hydraulicModel });
+    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const user = userEvent.setup();
+
+    renderComponent({ store, asset: pipe });
+
+    const selector = screen.getByRole("combobox", {
+      name: /value for: status/i,
     });
 
-    it("ignores changes when not a valid number", async () => {
-      stubFeatureOn("FLAG_EDIT_PROPS");
-      const pipeId = "PIPE1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("A")
-        .aNode("B")
-        .aPipe(pipeId, "A", "B", { diameter: 10 })
-        .build();
-      const store = createStore();
-      store.set(dataAtom, { ...nullData, hydraulicModel });
-      const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
-      const user = userEvent.setup();
+    await user.click(selector);
 
-      renderComponent({ store, asset: pipe });
+    await user.click(screen.getByText(/closed/i));
 
-      const field = screen.getByRole("textbox", {
-        name: /value for: diameter/i,
-      });
-      await user.clear(field);
-      await user.type(field, "NOTNUMBER");
-      expect(
-        screen.getByRole("textbox", { name: /value for: diameter/i }),
-      ).toHaveClass(/orange/i);
-      await user.keyboard("{Enter}");
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
+    ).toEqual("closed");
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-      expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
-      ).toEqual(10);
+    expect(selector).not.toHaveFocus();
+  });
 
-      expect(field).not.toHaveFocus();
+  it("can change a property", async () => {
+    stubFeatureOn("FLAG_EDIT_PROPS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("A")
+      .aNode("B")
+      .aPipe(pipeId, "A", "B", { diameter: 10 })
+      .build();
+    const store = createStore();
+    store.set(dataAtom, { ...nullData, hydraulicModel });
+    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const user = userEvent.setup();
+
+    renderComponent({ store, asset: pipe });
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
     });
+    await user.clear(field);
+    await user.type(field, "20.5");
+    await user.keyboard("{Enter}");
+
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+    ).toEqual(20.5);
+
+    expect(field).not.toHaveFocus();
+  });
+
+  it("ignores changes when not a valid number", async () => {
+    stubFeatureOn("FLAG_EDIT_PROPS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("A")
+      .aNode("B")
+      .aPipe(pipeId, "A", "B", { diameter: 10 })
+      .build();
+    const store = createStore();
+    store.set(dataAtom, { ...nullData, hydraulicModel });
+    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const user = userEvent.setup();
+
+    renderComponent({ store, asset: pipe });
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
+    });
+    await user.clear(field);
+    await user.type(field, "NOTNUMBER");
+    expect(
+      screen.getByRole("textbox", { name: /value for: diameter/i }),
+    ).toHaveClass(/orange/i);
+    await user.keyboard("{Enter}");
+
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+    ).toEqual(10);
+
+    expect(field).not.toHaveFocus();
   });
 
   const renderComponent = ({
@@ -204,5 +211,33 @@ describe("AssetEditor", () => {
         </PersistenceContext.Provider>
       </JotaiProvider>,
     );
+  };
+
+  const expectPropertyDisplayed = (name: string, value: string) => {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`key: ${escapedName}`, "i"),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`value for: ${escapedName}`, "i"),
+      }),
+    ).toHaveValue(value);
+  };
+
+  const expectStatusDisplayed = (value: string) => {
+    const escapedName = "status";
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`key: ${escapedName}`, "i"),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", {
+        name: new RegExp(`value for: ${escapedName}`, "i"),
+      }),
+    ).toHaveTextContent(value);
   };
 });
