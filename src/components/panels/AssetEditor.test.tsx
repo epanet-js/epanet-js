@@ -1,21 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { AssetEditor } from "./feature_editor/feature_editor_inner";
-import { Asset, Pipe } from "src/hydraulic-model";
-import {
-  HydraulicModelBuilder,
-  buildJunction,
-  buildPipe,
-  buildReservoir,
-} from "src/__helpers__/hydraulic-model-builder";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import { HydraulicModel, Junction, Pipe } from "src/hydraulic-model";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id_mapper";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import userEvent from "@testing-library/user-event";
-import { getPipe } from "src/hydraulic-model/assets-map";
+import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
+import FeatureEditor from "./feature_editor";
 
 window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -24,15 +18,24 @@ describe("AssetEditor", () => {
   describe("with a pipe", () => {
     it("can show its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
-      const asset = buildPipe({
-        length: 10,
-        diameter: 100.1,
-        roughness: 1,
-        minorLoss: 0.1,
-        status: "open",
+      const pipeId = "P1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("A")
+        .aNode("B")
+        .aPipe(pipeId, "A", "B", {
+          status: "open",
+          length: 10,
+          diameter: 100.1,
+          roughness: 1,
+          minorLoss: 0.1,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pipeId,
       });
 
-      renderComponent({ asset });
+      renderComponent(store);
 
       expect(screen.getByText(/pipe/i)).toBeInTheDocument();
 
@@ -46,10 +49,20 @@ describe("AssetEditor", () => {
 
     it("can show simulation results", () => {
       const simulationProvider = { getFlow: () => 20 };
-      const asset = buildPipe();
+      const pipeId = "P1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("A")
+        .aNode("B")
+        .aPipe(pipeId, "A", "B", {})
+        .build();
+      const asset = getPipe(hydraulicModel.assets, pipeId) as Pipe;
       asset.setSimulation(simulationProvider);
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pipeId,
+      });
 
-      renderComponent({ asset });
+      renderComponent(store);
 
       expectPropertyDisplayed("flow (l/s)", "20.0");
     });
@@ -58,12 +71,19 @@ describe("AssetEditor", () => {
   describe("with a junction", () => {
     it("shows its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
-      const asset = buildJunction({
-        elevation: 10,
-        demand: 100,
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          elevation: 10,
+          demand: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
       });
 
-      renderComponent({ asset });
+      renderComponent(store);
 
       expect(screen.getByText(/junction/i)).toBeInTheDocument();
 
@@ -74,10 +94,21 @@ describe("AssetEditor", () => {
 
     it("can show simulation results", () => {
       const simulationProvider = { getPressure: () => 20 };
-      const asset = buildJunction();
-      asset.setSimulation(simulationProvider);
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          elevation: 10,
+          demand: 100,
+        })
+        .build();
+      const junction = hydraulicModel.assets.get(junctionId) as Junction;
+      junction.setSimulation(simulationProvider);
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
+      });
 
-      renderComponent({ asset });
+      renderComponent(store);
 
       expectPropertyDisplayed("pressure (m)", "20.0");
     });
@@ -86,12 +117,19 @@ describe("AssetEditor", () => {
   describe("with a reservoir", () => {
     it("shows its properties", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
-      const asset = buildReservoir({
-        elevation: 10,
-        head: 100,
+      const reservoirId = "R1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(reservoirId, {
+          elevation: 10,
+          head: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: reservoirId,
       });
 
-      renderComponent({ asset });
+      renderComponent(store);
 
       expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
 
@@ -108,12 +146,10 @@ describe("AssetEditor", () => {
       .aNode("B")
       .aPipe(pipeId, "A", "B", { status: "open" })
       .build();
-    const store = createStore();
-    store.set(dataAtom, { ...nullData, hydraulicModel });
-    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
 
-    renderComponent({ store, asset: pipe });
+    renderComponent(store);
 
     const selector = screen.getByRole("combobox", {
       name: /value for: status/i,
@@ -139,12 +175,10 @@ describe("AssetEditor", () => {
       .aNode("B")
       .aPipe(pipeId, "A", "B", { diameter: 10 })
       .build();
-    const store = createStore();
-    store.set(dataAtom, { ...nullData, hydraulicModel });
-    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
 
-    renderComponent({ store, asset: pipe });
+    renderComponent(store);
 
     const field = screen.getByRole("textbox", {
       name: /value for: diameter/i,
@@ -169,12 +203,10 @@ describe("AssetEditor", () => {
       .aNode("B")
       .aPipe(pipeId, "A", "B", { diameter: 10 })
       .build();
-    const store = createStore();
-    store.set(dataAtom, { ...nullData, hydraulicModel });
-    const pipe = getPipe(hydraulicModel.assets, pipeId) as Pipe;
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
 
-    renderComponent({ store, asset: pipe });
+    renderComponent(store);
 
     const field = screen.getByRole("textbox", {
       name: /value for: diameter/i,
@@ -194,20 +226,30 @@ describe("AssetEditor", () => {
     expect(field).not.toHaveFocus();
   });
 
-  const renderComponent = ({
+  const setInitialState = ({
     store = createStore(),
-    asset = buildPipe(),
-    quantitiesMetadata = new Quantities(presets.si),
-  }: Partial<{
-    asset: Asset;
-    store: Store;
-    quantitiesMetadata: Quantities;
-  }> = {}) => {
+    hydraulicModel = HydraulicModelBuilder.with().build(),
+    selectedAssetId,
+  }: {
+    store?: Store;
+    hydraulicModel?: HydraulicModel;
+    selectedAssetId: AssetId;
+  }): Store => {
+    store.set(dataAtom, {
+      ...nullData,
+      hydraulicModel: hydraulicModel,
+      featureMapDeprecated: hydraulicModel.assets,
+      selection: { type: "single", id: selectedAssetId, parts: [] },
+    });
+    return store;
+  };
+
+  const renderComponent = (store: Store) => {
     const idMap = UIDMap.empty();
-    return render(
+    render(
       <JotaiProvider store={store}>
         <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-          <AssetEditor asset={asset} quantitiesMetadata={quantitiesMetadata} />
+          <FeatureEditor />
         </PersistenceContext.Provider>
       </JotaiProvider>,
     );
