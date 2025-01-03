@@ -268,6 +268,7 @@ export const Selector = <T extends string>({
       >
         <Select.Trigger
           aria-label={`Value for: Status`}
+          tabIndex={1}
           className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"
         >
           <Select.Value />
@@ -478,6 +479,7 @@ export function NumericField({
     }
 
     setDirty(false);
+    setError(false);
     setTimeout(() => {
       if (inputRef.current) inputRef.current.blur();
     }, 0);
@@ -512,6 +514,7 @@ export function NumericField({
         ref={inputRef}
         value={inputValue}
         onFocus={(e) => e.preventDefault()}
+        tabIndex={1}
       />
     </div>
   );
