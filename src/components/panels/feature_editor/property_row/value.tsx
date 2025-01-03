@@ -449,6 +449,7 @@ export function NumericField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
+  const [hasError, setError] = useState(false);
   const [isDirty, setDirty] = useState(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
@@ -483,9 +484,19 @@ export function NumericField({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setInputValue(e.target.value);
+    const newInputValue = e.target.value;
+    setInputValue(newInputValue);
+    const numericValue = parseLocaleNumber(newInputValue);
+    setError(isNaN(numericValue));
     setDirty(true);
   };
+
+  if (hasError && inputRef.current) {
+    inputRef.current.className = E.styledPropertyInputWithError("right");
+  }
+  if (!hasError && inputRef.current) {
+    inputRef.current.className = E.styledPropertyInput("right");
+  }
 
   return (
     <div className="relative group-1">
