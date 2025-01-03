@@ -83,18 +83,18 @@ export function PropertyRowMulti({
 }
 
 type PropertyRowProps = {
-  pair: PropertyPair;
+  label: string;
   even: boolean;
   y: number;
   children: ReactNode;
 };
 
-export const PropertyRow = ({ pair, even, y, children }: PropertyRowProps) => {
+export const PropertyRow = ({ label, even, y, children }: PropertyRowProps) => {
   return (
     <P.Root>
       <tr className={`${even ? "" : "bg-gray-100 dark:bg-gray-700"}`}>
         <td className={`border-r border-b border-t ${styledTd}`}>
-          <PropertyRowKeyReadonly x={0} y={y} pair={pair} />
+          <PropertyRowKeyReadonly x={0} y={y} pair={[label, "any"]} />
         </td>
         <td className={`border-l border-b border-t relative ${styledTd}`}>
           {children}
