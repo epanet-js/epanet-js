@@ -1,7 +1,7 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorProperties } from "./feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor_id";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { RawEditor } from "./raw_editor";
 import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
@@ -371,6 +371,8 @@ const QuantityRow = ({
   decimals?: number;
   onChange?: (name: string, newValue: number) => void;
 }) => {
+  const lastChange = useRef<number>(0);
+
   if (!isFeatureOn("FLAG_EDIT_PROPS"))
     return (
       <QuantityRowDeprecated
@@ -392,13 +394,14 @@ const QuantityRow = ({
     : `${translate(name)}`;
 
   const handleChange = (value: number) => {
+    lastChange.current = Date.now();
     onChange && onChange(name, value);
   };
 
   return (
     <PropertyRow label={label} y={position} even={position % 2 === 0}>
       <NumericField
-        key={value + displayValue}
+        key={lastChange.current}
         label={label}
         displayValue={displayValue}
         onChangeValue={handleChange}
