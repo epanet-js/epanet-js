@@ -62,12 +62,26 @@ export const AssetEditor = ({
   asset: Asset;
   quantitiesMetadata: Quantities;
 }) => {
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+
+  const handlePropertyChange = (name: string, value: number) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [asset.id],
+      property: name,
+      value,
+    });
+    transact(moment);
+  };
+
   switch (asset.type) {
     case "junction":
       return (
         <JunctionEditor
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
         />
       );
     case "pipe":
@@ -75,6 +89,7 @@ export const AssetEditor = ({
         <PipeEditor
           pipe={asset as Pipe}
           quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
         />
       );
     case "reservoir":
@@ -82,17 +97,22 @@ export const AssetEditor = ({
         <ReservoirEditor
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
         />
       );
   }
 };
 
+type OnPropertyChange = (name: string, value: number) => void;
+
 const PipeEditor = ({
   pipe,
   quantitiesMetadata,
+  onPropertyChange,
 }: {
   pipe: Pipe;
   quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
 }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
@@ -109,14 +129,6 @@ const PipeEditor = ({
     [hydraulicModel, pipe.id, transact],
   );
 
-  const handlePropertyChange = (name: string, value: number) => {
-    const moment = changeProperty(hydraulicModel, {
-      assetIds: [pipe.id],
-      property: name,
-      value,
-    });
-    transact(moment);
-  };
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -146,7 +158,7 @@ const PipeEditor = ({
                 value={pipe.diameter}
                 unit={quantitiesMetadata.getUnit("pipe", "diameter")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="length"
@@ -154,7 +166,7 @@ const PipeEditor = ({
                 value={pipe.length}
                 unit={quantitiesMetadata.getUnit("pipe", "length")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "length")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="roughness"
@@ -162,7 +174,7 @@ const PipeEditor = ({
                 value={pipe.roughness}
                 unit={quantitiesMetadata.getUnit("pipe", "roughness")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="minorLoss"
@@ -170,7 +182,7 @@ const PipeEditor = ({
                 value={pipe.minorLoss}
                 unit={quantitiesMetadata.getUnit("pipe", "minorLoss")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRowDeprecated
                 name="flow"
@@ -190,22 +202,12 @@ const PipeEditor = ({
 const JunctionEditor = ({
   junction,
   quantitiesMetadata,
+  onPropertyChange,
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
 }) => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
-
-  const handlePropertyChange = (name: string, value: number) => {
-    const moment = changeProperty(hydraulicModel, {
-      assetIds: [junction.id],
-      property: name,
-      value,
-    });
-    transact(moment);
-  };
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -222,7 +224,7 @@ const JunctionEditor = ({
                   "junction",
                   "elevation",
                 )}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="demand"
@@ -230,7 +232,7 @@ const JunctionEditor = ({
                 value={junction.demand}
                 unit={quantitiesMetadata.getUnit("junction", "demand")}
                 decimals={quantitiesMetadata.getDecimals("junction", "demand")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRowDeprecated
                 name="pressure"
@@ -253,23 +255,12 @@ const JunctionEditor = ({
 const ReservoirEditor = ({
   reservoir,
   quantitiesMetadata,
+  onPropertyChange,
 }: {
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
 }) => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
-
-  const handlePropertyChange = (name: string, value: number) => {
-    const moment = changeProperty(hydraulicModel, {
-      assetIds: [reservoir.id],
-      property: name,
-      value,
-    });
-    transact(moment);
-  };
-
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -286,7 +277,7 @@ const ReservoirEditor = ({
                   "reservoir",
                   "elevation",
                 )}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="head"
@@ -294,7 +285,7 @@ const ReservoirEditor = ({
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("reservoir", "head")}
                 decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
-                onChange={handlePropertyChange}
+                onChange={onPropertyChange}
               />
             </tbody>
           </table>
