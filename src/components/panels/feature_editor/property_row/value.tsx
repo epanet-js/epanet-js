@@ -38,6 +38,7 @@ import { CoordProps } from "src/types";
 import { dataAtom } from "src/state/jotai";
 import { truncate } from "src/lib/utils";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { parseLocaleNumber } from "src/infra/i18n";
 
 type Preview =
   | {
@@ -467,7 +468,7 @@ export function NumericField({
   };
 
   const handleCommitLastChange = () => {
-    const numericValue = parseFloat(inputValue);
+    const numericValue = parseLocaleNumber(inputValue);
     if (isNaN(numericValue)) {
       setInputValue(displayValue);
     } else {
