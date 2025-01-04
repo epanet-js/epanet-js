@@ -26,7 +26,7 @@ export const translateUnit = (key: string): string => {
   return text || key;
 };
 
-export { parseLocaleNumber } from "./parse-locale-number";
+export { parseLocaleNumber, reformatWithoutGroups } from "./locale-number";
 export { localizeKeybinding } from "./mac";
 
 export { localizeNumber, localizeDecimal } from "./numbers";

@@ -161,7 +161,7 @@ describe("AssetEditor", () => {
     stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { diameter: 10 })
+      .aPipe(pipeId, { diameter: 10.4 })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -171,6 +171,8 @@ describe("AssetEditor", () => {
     const field = screen.getByRole("textbox", {
       name: /value for: diameter/i,
     });
+    await user.click(field);
+    expect(field).toHaveValue("10.4");
     await user.clear(field);
     await user.type(field, "20.5");
     await user.keyboard("{Enter}");
@@ -182,6 +184,39 @@ describe("AssetEditor", () => {
 
     expect(field).toHaveValue("20.5");
     expect(field).not.toHaveFocus();
+  });
+
+  it("clears group formatting when focusing input", async () => {
+    stubFeatureOn("FLAG_EDIT_PROPS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { length: 10000 })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: length/i,
+    });
+    expect(field).toHaveValue("10,000.00");
+    await user.click(field);
+    expect(field).toHaveValue("10000.00");
+    await user.clear(field);
+    await user.type(field, "1000");
+    await user.keyboard("{Enter}");
+
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).length,
+    ).toEqual(1000);
+
+    const updatedField = screen.getByRole("textbox", {
+      name: /value for: length/i,
+    });
+    expect(updatedField).not.toHaveFocus();
+    expect(updatedField).toHaveValue("1,000.00");
   });
 
   it("ignores changes when not a valid number", async () => {
