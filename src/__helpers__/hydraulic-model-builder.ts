@@ -10,6 +10,8 @@ import {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
+  NodeAsset,
+  AssetId,
 } from "src/hydraulic-model";
 import { ModelUnits } from "src/hydraulic-model/units";
 import {
@@ -93,14 +95,13 @@ export class HydraulicModelBuilder {
 
   aPipe(
     id: string,
-    startNodeId: string,
-    endNodeId: string,
-    properties: Partial<PipeBuildData> = {},
+    data: Partial<
+      PipeBuildData & { startNodeId: string; endNodeId: string }
+    > = {},
   ) {
-    const startNode = getNode(this.assets, startNodeId);
-    const endNode = getNode(this.assets, endNodeId);
-    if (!startNode) throw new Error(`Start node (${startNodeId}) is missing`);
-    if (!endNode) throw new Error(`End node (${endNodeId}) is missing`);
+    const { startNodeId, endNodeId, ...properties } = data;
+    const startNode = this.getNodeOrCreate(startNodeId);
+    const endNode = this.getNodeOrCreate(endNodeId);
 
     const link = this.assetBuilder.buildPipe({
       coordinates: [startNode.coordinates, endNode.coordinates],
@@ -109,7 +110,7 @@ export class HydraulicModelBuilder {
       ...properties,
     });
     this.assets.set(link.id, link);
-    this.topology.addLink(id, startNodeId, endNodeId);
+    this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;
   }
@@ -120,7 +121,7 @@ export class HydraulicModelBuilder {
     endNodeId: string,
     properties: Partial<PipeProperties> = {},
   ) {
-    return this.aPipe(id, startNodeId, endNodeId, properties);
+    return this.aPipe(id, { startNodeId, endNodeId, ...properties });
   }
 
   build(): HydraulicModel {
@@ -131,5 +132,16 @@ export class HydraulicModelBuilder {
       topology: this.topology,
       units: this.units,
     };
+  }
+
+  private getNodeOrCreate(nodeId: AssetId | undefined): NodeAsset {
+    let node: NodeAsset | null;
+    if (!nodeId) {
+      node = this.assetBuilder.buildJunction();
+    } else {
+      node = getNode(this.assets, nodeId);
+      if (!node) throw new Error(`Node provided missing in assets (${nodeId})`);
+    }
+    return node;
   }
 }

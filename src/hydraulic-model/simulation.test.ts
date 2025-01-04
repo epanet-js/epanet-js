@@ -9,9 +9,8 @@ describe("attach simulation", () => {
       getFlow: () => 20,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
       .aJunction("j1")
-      .aPipe("p1", "r1", "j1")
+      .aPipe("p1")
       .build();
 
     attachSimulation(hydraulicModel, resultsReader);
@@ -29,9 +28,8 @@ describe("attach simulation", () => {
       getFlow: () => 20,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
       .aJunction("j1")
-      .aPipe("p1", "r1", "j1")
+      .aPipe("p1")
       .build();
 
     const previousAssets = hydraulicModel.assets;

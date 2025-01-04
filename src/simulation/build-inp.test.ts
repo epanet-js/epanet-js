@@ -47,13 +47,17 @@ describe("build inp", () => {
       .aNode("node1")
       .aNode("node2")
       .aNode("node3")
-      .aPipe("pipe1", "node1", "node2", {
+      .aPipe("pipe1", {
+        startNodeId: "node1",
+        endNodeId: "node2",
         length: 10,
         diameter: 100,
         roughness: 1,
         status: "open",
       })
-      .aPipe("pipe2", "node2", "node3", {
+      .aPipe("pipe2", {
+        startNodeId: "node2",
+        endNodeId: "node3",
         length: 20,
         diameter: 200,
         roughness: 2,
@@ -106,7 +110,9 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
       .aReservoir("reservoir1", { coordinates: [20, 2] })
-      .aPipe("pipe1", "junction1", "reservoir1", {
+      .aPipe("pipe1", {
+        startNodeId: "junction1",
+        endNodeId: "reservoir1",
         coordinates: [
           [10, 1],
           [30, 3],
