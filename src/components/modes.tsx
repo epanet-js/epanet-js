@@ -10,13 +10,11 @@ import {
   Mode,
   MODE_INFO,
   ephemeralStateAtom,
-  dataAtom,
   circleTypeAtom,
 } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { USelection } from "src/selection";
 import { IWrappedFeature } from "src/types";
 import { Divider } from "./menu_bar";
 
@@ -58,7 +56,6 @@ export default memo(function Modes({
   replaceGeometryForId: IWrappedFeature["id"] | null;
 }) {
   const [{ mode: currentMode, modeOptions }, setMode] = useAtom(modeAtom);
-  const setData = useSetAtom(dataAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const circleType = useAtomValue(circleTypeAtom);
 
@@ -78,12 +75,6 @@ export default memo(function Modes({
               label={MODE_INFO[mode].label}
               onClick={(e) => {
                 setEphemeralState({ type: "none" });
-                setData((data) => {
-                  return {
-                    ...data,
-                    selection: USelection.selectionToFolder(data),
-                  };
-                });
                 setMode({
                   mode,
                   modeOptions: {
