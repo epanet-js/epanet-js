@@ -28,6 +28,14 @@ export const parseLocaleNumber = (
   }
 };
 
+export const reformatWithoutGroups = (
+  formatedNumber: string,
+  locale: Locale = getLocale(),
+): string => {
+  const localeSymbols = symbols[locale];
+  return formatedNumber.replaceAll(localeSymbols.groups, "");
+};
+
 const splitByDecimals = (
   numberString: string,
   decimalSymbol: string,

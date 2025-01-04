@@ -17,6 +17,7 @@ import {
   useState,
   KeyboardEventHandler,
   ChangeEventHandler,
+  FocusEventHandler,
 } from "react";
 import { atom, PrimitiveAtom, useAtomValue } from "jotai";
 
@@ -38,7 +39,7 @@ import { CoordProps } from "src/types";
 import { dataAtom } from "src/state/jotai";
 import { truncate } from "src/lib/utils";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
-import { parseLocaleNumber } from "src/infra/i18n";
+import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
 
 type Preview =
   | {
@@ -466,7 +467,15 @@ export function NumericField({
   const handleBlur = () => {
     if (isDirty) {
       handleCommitLastChange();
+    } else {
+      setInputValue(displayValue);
     }
+  };
+
+  const handleFocus: FocusEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    setInputValue(reformatWithoutGroups(displayValue));
+    setTimeout(() => inputRef.current && inputRef.current.select(), 0);
   };
 
   const handleCommitLastChange = () => {
@@ -480,9 +489,7 @@ export function NumericField({
 
     setDirty(false);
     setError(false);
-    setTimeout(() => {
-      if (inputRef.current) inputRef.current.blur();
-    }, 0);
+    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -513,7 +520,7 @@ export function NumericField({
         onBlur={handleBlur}
         ref={inputRef}
         value={inputValue}
-        onFocus={(e) => e.preventDefault()}
+        onFocus={handleFocus}
         tabIndex={1}
       />
     </div>

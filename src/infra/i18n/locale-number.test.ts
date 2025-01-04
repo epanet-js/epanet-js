@@ -1,7 +1,7 @@
-import { parseLocaleNumber } from "./parse-locale-number";
+import { parseLocaleNumber, reformatWithoutGroups } from "./locale-number";
 
 describe("parse locale number", () => {
-  it("parses numbers when in es", () => {
+  it("es", () => {
     expect(parseLocaleNumber("1,2", "es")).toEqual(1.2);
     expect(parseLocaleNumber("-1,2", "es")).toEqual(-1.2);
     expect(parseLocaleNumber("1,234", "es")).toEqual(1.234);
@@ -20,7 +20,7 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("10.00.000", "es")).toBeNaN();
   });
 
-  it("parses numbers when in en", () => {
+  it("en", () => {
     expect(parseLocaleNumber("1.2", "en")).toEqual(1.2);
     expect(parseLocaleNumber("-1.2", "en")).toEqual(-1.2);
     expect(parseLocaleNumber("1.234", "en")).toEqual(1.234);
@@ -37,5 +37,15 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("1.000,2", "en")).toBeNaN();
     expect(parseLocaleNumber("100,00", "en")).toBeNaN();
     expect(parseLocaleNumber("10,00,000", "en")).toBeNaN();
+  });
+});
+
+describe("remove groups formatting", () => {
+  it("es", () => {
+    expect(reformatWithoutGroups("10.000.000,40", "es")).toEqual("10000000,40");
+  });
+
+  it("en", () => {
+    expect(reformatWithoutGroups("10,000,000.40", "en")).toEqual("10000000.40");
   });
 });
