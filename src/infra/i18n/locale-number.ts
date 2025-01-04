@@ -12,8 +12,9 @@ export const parseLocaleNumber = (
   const localeSymbols = symbols[locale];
 
   try {
+    const cleanNumberString = withoutSpaces(numberString);
     const [wholePart, decimalsPart] = splitByDecimals(
-      withoutSpaces(numberString),
+      cleanNumberString,
       localeSymbols.decimals,
       localeSymbols.groups,
     );
