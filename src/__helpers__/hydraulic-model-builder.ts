@@ -75,11 +75,20 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aJunction(id: string, properties: Partial<JunctionBuildData> = {}) {
+  aJunction(
+    id: string,
+    data: Partial<
+      JunctionBuildData & { simulation: Partial<{ pressure: number }> }
+    > = {},
+  ) {
+    const { simulation, ...properties } = data;
     const junction = this.assetBuilder.buildJunction({
       id,
       ...properties,
     });
+    if (simulation) {
+      junction.setSimulation({ getPressure: () => simulation.pressure || 2 });
+    }
     this.assets.set(id, junction);
     return this;
   }
@@ -96,20 +105,25 @@ export class HydraulicModelBuilder {
   aPipe(
     id: string,
     data: Partial<
-      PipeBuildData & { startNodeId: string; endNodeId: string }
+      PipeBuildData & { startNodeId: string; endNodeId: string } & {
+        simulation: Partial<{ flow: number }>;
+      }
     > = {},
   ) {
-    const { startNodeId, endNodeId, ...properties } = data;
+    const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
-    const link = this.assetBuilder.buildPipe({
+    const pipe = this.assetBuilder.buildPipe({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
       ...properties,
     });
-    this.assets.set(link.id, link);
+    this.assets.set(pipe.id, pipe);
+    if (simulation) {
+      pipe.setSimulation({ getFlow: () => simulation.flow || 10 });
+    }
     this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;
