@@ -218,7 +218,7 @@ describe("simulation components integration", () => {
     return HydraulicModelBuilder.with()
       .aReservoir("r1")
       .aJunction("j1")
-      .aPipe("p1", "r1", "j1")
+      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
   };
 

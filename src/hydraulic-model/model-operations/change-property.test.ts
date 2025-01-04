@@ -45,7 +45,7 @@ describe("change property", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("A")
       .aJunction("B")
-      .aPipe("PIPE", "A", "B", { diameter: 10 })
+      .aPipe("PIPE", { diameter: 10 })
       .build();
     const { putAssets } = changeProperty(hydraulicModel, {
       assetIds: ["A", "B", "PIPE"],

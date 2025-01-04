@@ -20,9 +20,7 @@ describe("AssetEditor", () => {
       stubFeatureOn("FLAG_EDIT_PROPS");
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("A")
-        .aNode("B")
-        .aPipe(pipeId, "A", "B", {
+        .aPipe(pipeId, {
           status: "open",
           length: 10,
           diameter: 100.1,
@@ -50,11 +48,7 @@ describe("AssetEditor", () => {
     it("can show simulation results", () => {
       const simulationProvider = { getFlow: () => 20 };
       const pipeId = "P1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("A")
-        .aNode("B")
-        .aPipe(pipeId, "A", "B", {})
-        .build();
+      const hydraulicModel = HydraulicModelBuilder.with().aPipe(pipeId).build();
       const asset = getPipe(hydraulicModel.assets, pipeId) as Pipe;
       asset.setSimulation(simulationProvider);
       const store = setInitialState({
@@ -142,9 +136,7 @@ describe("AssetEditor", () => {
     stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A")
-      .aNode("B")
-      .aPipe(pipeId, "A", "B", { status: "open" })
+      .aPipe(pipeId, { status: "open" })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -172,9 +164,7 @@ describe("AssetEditor", () => {
     stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A")
-      .aNode("B")
-      .aPipe(pipeId, "A", "B", { diameter: 10 })
+      .aPipe(pipeId, { diameter: 10 })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -201,9 +191,7 @@ describe("AssetEditor", () => {
     stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A")
-      .aNode("B")
-      .aPipe(pipeId, "A", "B", { diameter: 10 })
+      .aPipe(pipeId, { diameter: 10 })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
