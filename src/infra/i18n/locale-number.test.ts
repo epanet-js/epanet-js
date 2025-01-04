@@ -18,6 +18,7 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("1,000.2", "es")).toBeNaN();
     expect(parseLocaleNumber("100.00", "es")).toBeNaN();
     expect(parseLocaleNumber("10.00.000", "es")).toBeNaN();
+    expect(parseLocaleNumber("10 00", "en")).toEqual(1000);
   });
 
   it("en", () => {
@@ -37,6 +38,7 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("1.000,2", "en")).toBeNaN();
     expect(parseLocaleNumber("100,00", "en")).toBeNaN();
     expect(parseLocaleNumber("10,00,000", "en")).toBeNaN();
+    expect(parseLocaleNumber("10 00", "en")).toEqual(1000);
   });
 });
 
