@@ -249,6 +249,46 @@ describe("AssetEditor", () => {
     expect(field).not.toHaveFocus();
   });
 
+  it("can edit from the keyboard", async () => {
+    stubFeatureOn("FLAG_EDIT_PROPS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "closed" })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    await user.tab();
+    expect(
+      screen.getByRole("combobox", {
+        name: /value for: status/i,
+      }),
+    ).toHaveFocus();
+    await user.keyboard("[ArrowDown]");
+    expect(screen.getByText(/open/i)).toBeInTheDocument();
+    await user.keyboard("[ArrowUp]");
+    await user.keyboard("[Enter]");
+
+    const updatedSelector = screen.getByRole("combobox", {
+      name: /value for: status/i,
+    });
+    expect(updatedSelector).toHaveTextContent("Open");
+    expect(updatedSelector).not.toHaveFocus();
+
+    await user.tab();
+    expect(updatedSelector).toHaveFocus();
+    await user.tab();
+
+    expect(
+      screen.getByRole("textbox", { name: /value for: diameter/i }),
+    ).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(updatedSelector).toHaveFocus();
+  });
+
   const setInitialState = ({
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
