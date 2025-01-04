@@ -13,7 +13,7 @@ export const parseLocaleNumber = (
 
   try {
     const [wholePart, decimalsPart] = splitByDecimals(
-      numberString,
+      withoutSpaces(numberString),
       localeSymbols.decimals,
       localeSymbols.groups,
     );
@@ -34,6 +34,10 @@ export const reformatWithoutGroups = (
 ): string => {
   const localeSymbols = symbols[locale];
   return formatedNumber.replaceAll(localeSymbols.groups, "");
+};
+
+const withoutSpaces = (numberString: string): string => {
+  return numberString.replaceAll(" ", "");
 };
 
 const splitByDecimals = (
