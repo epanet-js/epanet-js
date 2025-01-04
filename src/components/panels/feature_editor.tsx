@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { FeatureEditorInner } from "./feature_editor/feature_editor_inner";
+import { AssetEditor } from "./AssetEditor";
 import FeatureEditorMulti from "./feature_editor/feature_editor_multi";
 import React from "react";
 import { NothingSelected } from "src/components/nothing_selected";
@@ -15,7 +15,7 @@ export default function FeatureEditor() {
     selectedFeatures.length > 1 ? (
       <FeatureEditorMulti selectedFeatures={selectedFeatures} />
     ) : selectedFeatures.length === 1 ? (
-      <FeatureEditorInner
+      <AssetEditor
         quantitiesMetadata={quantities}
         selectedFeature={selectedFeatures[0]}
       />
