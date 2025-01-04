@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Junction, Pipe } from "src/hydraulic-model";
+import { HydraulicModel, Pipe } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -46,11 +46,10 @@ describe("AssetEditor", () => {
     });
 
     it("can show simulation results", () => {
-      const simulationProvider = { getFlow: () => 20 };
       const pipeId = "P1";
-      const hydraulicModel = HydraulicModelBuilder.with().aPipe(pipeId).build();
-      const asset = getPipe(hydraulicModel.assets, pipeId) as Pipe;
-      asset.setSimulation(simulationProvider);
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(pipeId, { simulation: { flow: 20 } })
+        .build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: pipeId,
@@ -87,16 +86,14 @@ describe("AssetEditor", () => {
     });
 
     it("can show simulation results", () => {
-      const simulationProvider = { getPressure: () => 20 };
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(junctionId, {
           elevation: 10,
           demand: 100,
+          simulation: { pressure: 20 },
         })
         .build();
-      const junction = hydraulicModel.assets.get(junctionId) as Junction;
-      junction.setSimulation(simulationProvider);
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: junctionId,
