@@ -30,7 +30,6 @@ import { Unit } from "src/quantity";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { PipeStatus, pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import {
   changePipeStatus,
@@ -155,22 +154,13 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {isFeatureOn("FLAG_EDIT_PROPS") && (
-                <StatusRow
-                  name={"status"}
-                  status={pipe.status}
-                  availableStatuses={pipeStatuses}
-                  position={0}
-                  onChange={onStatusChange}
-                />
-              )}
-              {!isFeatureOn("FLAG_EDIT_PROPS") && (
-                <StatusRowDeprecated
-                  name={"status"}
-                  status={pipe.status}
-                  position={0}
-                />
-              )}
+              <StatusRow
+                name={"status"}
+                status={pipe.status}
+                availableStatuses={pipeStatuses}
+                position={0}
+                onChange={onStatusChange}
+              />
               <QuantityRow
                 name="diameter"
                 position={1}
@@ -203,7 +193,7 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
                 onChange={onPropertyChange}
               />
-              <QuantityRowDeprecated
+              <QuantityRowReadOnly
                 name="flow"
                 position={5}
                 value={pipe.flow}
@@ -253,7 +243,7 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("junction", "demand")}
                 onChange={onPropertyChange}
               />
-              <QuantityRowDeprecated
+              <QuantityRowReadOnly
                 name="pressure"
                 position={2}
                 value={junction.pressure}
@@ -346,26 +336,6 @@ const StatusRow = ({
   );
 };
 
-const StatusRowDeprecated = ({
-  name,
-  status,
-  position,
-}: {
-  name: string;
-  status: AssetStatus;
-  position: number;
-}) => {
-  const label = translate(name);
-  const value = translate(status);
-  return (
-    <PropertyRowReadonly
-      pair={[label, value]}
-      y={position}
-      even={position % 2 === 0}
-    />
-  );
-};
-
 const QuantityRow = ({
   name,
   value,
@@ -379,20 +349,9 @@ const QuantityRow = ({
   unit: Unit;
   position: number;
   decimals?: number;
-  onChange?: (name: string, newValue: number) => void;
+  onChange: (name: string, newValue: number) => void;
 }) => {
   const lastChange = useRef<number>(0);
-
-  if (!isFeatureOn("FLAG_EDIT_PROPS"))
-    return (
-      <QuantityRowDeprecated
-        name={name}
-        value={value}
-        unit={unit}
-        position={position}
-        decimals={decimals}
-      />
-    );
 
   const displayValue =
     value === null
@@ -405,7 +364,7 @@ const QuantityRow = ({
 
   const handleChange = (value: number) => {
     lastChange.current = Date.now();
-    onChange && onChange(name, value);
+    onChange(name, value);
   };
 
   return (
@@ -420,7 +379,7 @@ const QuantityRow = ({
   );
 };
 
-const QuantityRowDeprecated = ({
+const QuantityRowReadOnly = ({
   name,
   value,
   unit,

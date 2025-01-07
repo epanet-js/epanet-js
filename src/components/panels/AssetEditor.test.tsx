@@ -6,7 +6,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id_mapper";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
@@ -17,7 +16,6 @@ window.HTMLElement.prototype.scrollIntoView = vi.fn();
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
     it("can show its properties", () => {
-      stubFeatureOn("FLAG_EDIT_PROPS");
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, {
@@ -63,7 +61,6 @@ describe("AssetEditor", () => {
 
   describe("with a junction", () => {
     it("shows its properties", () => {
-      stubFeatureOn("FLAG_EDIT_PROPS");
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(junctionId, {
@@ -107,7 +104,6 @@ describe("AssetEditor", () => {
 
   describe("with a reservoir", () => {
     it("shows its properties", () => {
-      stubFeatureOn("FLAG_EDIT_PROPS");
       const reservoirId = "R1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(reservoirId, {
@@ -130,7 +126,6 @@ describe("AssetEditor", () => {
   });
 
   it("can change its status", async () => {
-    stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { status: "open" })
@@ -158,7 +153,6 @@ describe("AssetEditor", () => {
   });
 
   it("can change a property", async () => {
-    stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { diameter: 10.4 })
@@ -187,7 +181,6 @@ describe("AssetEditor", () => {
   });
 
   it("clears group formatting when focusing input", async () => {
-    stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { length: 10000 })
@@ -220,7 +213,6 @@ describe("AssetEditor", () => {
   });
 
   it("ignores changes when not a valid number", async () => {
-    stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { diameter: 10 })
@@ -250,7 +242,6 @@ describe("AssetEditor", () => {
   });
 
   it("can edit from the keyboard", async () => {
-    stubFeatureOn("FLAG_EDIT_PROPS");
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { status: "closed" })
