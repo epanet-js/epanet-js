@@ -164,6 +164,7 @@ const PipeEditor = ({
                 position={1}
                 value={pipe.diameter}
                 positiveOnly={true}
+                isNullable={false}
                 unit={quantitiesMetadata.getUnit("pipe", "diameter")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
                 onChange={onPropertyChange}
@@ -172,6 +173,8 @@ const PipeEditor = ({
                 name="length"
                 position={2}
                 value={pipe.length}
+                positiveOnly={true}
+                isNullable={false}
                 unit={quantitiesMetadata.getUnit("pipe", "length")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "length")}
                 onChange={onPropertyChange}
@@ -180,6 +183,7 @@ const PipeEditor = ({
                 name="roughness"
                 position={3}
                 value={pipe.roughness}
+                positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("pipe", "roughness")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
                 onChange={onPropertyChange}
@@ -188,6 +192,7 @@ const PipeEditor = ({
                 name="minorLoss"
                 position={4}
                 value={pipe.minorLoss}
+                positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("pipe", "minorLoss")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
                 onChange={onPropertyChange}
@@ -344,6 +349,7 @@ const QuantityRow = ({
   decimals,
   positiveOnly = false,
   readOnly = false,
+  isNullable = true,
   position,
   onChange,
 }: {
@@ -352,6 +358,7 @@ const QuantityRow = ({
   unit: Unit;
   position: number;
   positiveOnly?: boolean;
+  isNullable?: boolean;
   readOnly?: boolean;
   decimals?: number;
   onChange?: (name: string, newValue: number) => void;
@@ -378,6 +385,7 @@ const QuantityRow = ({
         key={lastChange.current}
         label={label}
         positiveOnly={positiveOnly}
+        isNullable={isNullable}
         readOnly={readOnly}
         displayValue={displayValue}
         onChangeValue={handleChange}
@@ -407,10 +415,12 @@ const NumericField = ({
   onChangeValue,
   positiveOnly = false,
   readOnly = false,
+  isNullable = true,
 }: {
   label: string;
   displayValue: string;
   onChangeValue: (newValue: number) => void;
+  isNullable?: boolean;
   positiveOnly?: boolean;
   readOnly?: boolean;
 }) => {
@@ -420,6 +430,13 @@ const NumericField = ({
   const [isDirty, setDirty] = useState(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (isFeatureOn("FLAG_VALIDATIONS")) {
+      if (hasError && e.key === "Enter") return;
+      if (e.key === "Escape") {
+        resetInput();
+        return;
+      }
+    }
     if (e.key === "Enter" || e.key === "Escape") {
       handleCommitLastChange();
       return;
@@ -429,8 +446,19 @@ const NumericField = ({
     }
   };
 
+  const resetInput = () => {
+    setInputValue(displayValue);
+    setDirty(false);
+    setError(false);
+    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
+  };
+
   const handleBlur = () => {
-    if (isDirty) {
+    if (
+      isDirty &&
+      (!isFeatureOn("FLAG_VALIDATIONS") ||
+        (isFeatureOn("FLAG_VALIDATIONS") && !hasError))
+    ) {
       handleCommitLastChange();
     } else {
       setInputValue(displayValue);
@@ -459,12 +487,20 @@ const NumericField = ({
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     let newInputValue = e.target.value;
-    if (isFeatureOn("FLAG_VALIDATIONS") && positiveOnly) {
-      newInputValue = newInputValue.replace("-", "");
+    if (isFeatureOn("FLAG_VALIDATIONS")) {
+      newInputValue = newInputValue.replace(/[^0-9+\-eE.,]/g, "");
+
+      if (positiveOnly) {
+        newInputValue = newInputValue.replace(/^-/g, "");
+      }
     }
     setInputValue(newInputValue);
     const numericValue = parseLocaleNumber(newInputValue);
-    setError(isNaN(numericValue));
+    if (isFeatureOn("FLAG_VALIDATIONS")) {
+      setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
+    } else {
+      setError(isNaN(numericValue));
+    }
     setDirty(true);
   };
 
