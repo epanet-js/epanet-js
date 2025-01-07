@@ -15,10 +15,53 @@ import { PropertyTableHead } from "./feature_editor_properties";
 import { pluralize } from "src/lib/utils";
 import { PropertyRowMulti } from "./property_row";
 import { onArrow } from "src/lib/arrow_navigation";
+import { translate } from "src/infra/i18n";
 
 type Transformer = (arg0: Feature) => Feature;
 
 export function FeatureEditorPropertiesMulti({
+  selectedFeatures,
+}: {
+  selectedFeatures: IWrappedFeature[];
+}) {
+  const propertyMap = extractMultiProperties(selectedFeatures);
+  const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
+
+  const pairs = sortBy(Array.from(propertyMap.entries()), ([key]) =>
+    localOrder.current.indexOf(key),
+  );
+
+  return (
+    <PanelDetails
+      title={`Properties (${pluralize("feature", selectedFeatures.length)})`}
+      variant="fullwidth"
+    >
+      <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
+        <PropertyTableHead />
+        <tbody>
+          {pairs.map((pair, y) => {
+            const label = translate(pair[0]);
+            const value = pair[1];
+            return (
+              <PropertyRowMulti
+                y={y}
+                key={label}
+                pair={[label, value]}
+                even={y % 2 === 0}
+                onChangeValue={() => {}}
+                onChangeKey={() => {}}
+                onDeleteKey={() => {}}
+                onCast={() => {}}
+              />
+            );
+          })}
+        </tbody>
+      </table>
+    </PanelDetails>
+  );
+}
+
+export function FeatureEditorPropertiesMultiDeprecated({
   selectedFeatures,
 }: {
   selectedFeatures: IWrappedFeature[];
