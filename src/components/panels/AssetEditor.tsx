@@ -20,10 +20,7 @@ import {
   translate,
   translateUnit,
 } from "src/infra/i18n";
-import {
-  PropertyRow,
-  PropertyRowReadonly,
-} from "./feature_editor/property_row";
+import { PropertyRow } from "./feature_editor/property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -193,12 +190,13 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
                 onChange={onPropertyChange}
               />
-              <QuantityRowReadOnly
+              <QuantityRow
                 name="flow"
                 position={5}
                 value={pipe.flow}
                 unit={quantitiesMetadata.getUnit("pipe", "flow")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "flow")}
+                readOnly={true}
               />
             </tbody>
           </table>
@@ -243,7 +241,7 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("junction", "demand")}
                 onChange={onPropertyChange}
               />
-              <QuantityRowReadOnly
+              <QuantityRow
                 name="pressure"
                 position={2}
                 value={junction.pressure}
@@ -252,6 +250,7 @@ const JunctionEditor = ({
                   "junction",
                   "pressure",
                 )}
+                readOnly={true}
               />
             </tbody>
           </table>
@@ -341,6 +340,7 @@ const QuantityRow = ({
   value,
   unit,
   decimals,
+  readOnly = false,
   position,
   onChange,
 }: {
@@ -348,8 +348,9 @@ const QuantityRow = ({
   value: number | null;
   unit: Unit;
   position: number;
+  readOnly?: boolean;
   decimals?: number;
-  onChange: (name: string, newValue: number) => void;
+  onChange?: (name: string, newValue: number) => void;
 }) => {
   const lastChange = useRef<number>(0);
 
@@ -364,7 +365,7 @@ const QuantityRow = ({
 
   const handleChange = (value: number) => {
     lastChange.current = Date.now();
-    onChange(name, value);
+    onChange && onChange(name, value);
   };
 
   return (
@@ -372,40 +373,11 @@ const QuantityRow = ({
       <NumericField
         key={lastChange.current}
         label={label}
+        readOnly={readOnly}
         displayValue={displayValue}
         onChangeValue={handleChange}
       />
     </PropertyRow>
-  );
-};
-
-const QuantityRowReadOnly = ({
-  name,
-  value,
-  unit,
-  decimals,
-  position,
-}: {
-  name: string;
-  value: number | null;
-  unit: Unit;
-  position: number;
-  decimals?: number;
-}) => {
-  const displayValue =
-    value === null
-      ? translate("notAvailable")
-      : localizeDecimal(value, decimals);
-
-  const label = unit
-    ? `${translate(name)} (${translateUnit(unit)})`
-    : `${translate(name)}`;
-  return (
-    <PropertyRowReadonly
-      pair={[label, displayValue]}
-      y={position}
-      even={position % 2 === 0}
-    />
   );
 };
 
