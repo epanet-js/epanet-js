@@ -21,6 +21,7 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("10 00", "es")).toEqual(1000);
     expect(parseLocaleNumber("1e5", "es")).toEqual(100000);
     expect(parseLocaleNumber("1E-5", "es")).toEqual(0.00001);
+    expect(parseLocaleNumber("1e-5e1", "es")).toBeNaN();
     expect(parseLocaleNumber("Infinity")).toEqual(Infinity);
   });
 
@@ -44,6 +45,7 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("10 00", "en")).toEqual(1000);
     expect(parseLocaleNumber("1e5", "en")).toEqual(100000);
     expect(parseLocaleNumber("1E-5", "en")).toEqual(0.00001);
+    expect(parseLocaleNumber("1e-5e1", "en")).toBeNaN();
     expect(parseLocaleNumber("Infinity")).toEqual(Infinity);
   });
 });
