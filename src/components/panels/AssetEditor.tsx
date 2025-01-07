@@ -488,7 +488,7 @@ const NumericField = ({
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     let newInputValue = e.target.value;
     if (isFeatureOn("FLAG_VALIDATIONS")) {
-      newInputValue = newInputValue.replace(/[^0-9+\-eE.,]/g, "");
+      newInputValue = newInputValue.replace(/[^0-9\-eE.,]/g, "");
 
       if (positiveOnly) {
         newInputValue = newInputValue.replace(/^-/g, "");

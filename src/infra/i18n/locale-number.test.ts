@@ -22,7 +22,9 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("1e5", "es")).toEqual(100000);
     expect(parseLocaleNumber("1E-5", "es")).toEqual(0.00001);
     expect(parseLocaleNumber("1e-5e1", "es")).toBeNaN();
-    expect(parseLocaleNumber("Infinity")).toEqual(Infinity);
+    expect(parseLocaleNumber("-1e-5", "es")).toEqual(-0.00001);
+    expect(parseLocaleNumber("2-3", "es")).toBeNaN();
+    expect(parseLocaleNumber("Infinity", "es")).toEqual(Infinity);
   });
 
   it("en", () => {
