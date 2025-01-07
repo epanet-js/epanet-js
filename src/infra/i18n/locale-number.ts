@@ -12,7 +12,7 @@ export const parseLocaleNumber = (
   const localeSymbols = symbols[locale];
 
   try {
-    const cleanNumberString = checkSymbolsCount(withoutSpaces(numberString));
+    const cleanNumberString = checkSymbols(withoutSpaces(numberString));
     const [wholePart, decimalsPart] = splitByDecimals(
       cleanNumberString,
       localeSymbols.decimals,
@@ -23,7 +23,8 @@ export const parseLocaleNumber = (
       localeSymbols.groups,
     );
 
-    return parseFloat(wholePartWithoutGroups + "." + decimalsPart);
+    const numberAsString = wholePartWithoutGroups + "." + decimalsPart;
+    return parseFloat(numberAsString);
   } catch (error) {
     return NaN;
   }
@@ -41,12 +42,12 @@ const withoutSpaces = (numberString: string): string => {
   return numberString.replaceAll(" ", "");
 };
 
-const checkSymbolsCount = (numberString: string): string => {
-  const eCount = (numberString.match(/[eE]/g) || []).length;
+const checkSymbols = (numberString: string): string => {
+  const eCount = (numberString.match(/e-?/gi) || []).length;
   if (eCount > 1) throw new Error("Invalid number");
 
-  const dashCount = (numberString.match(/-/g) || []).length;
-  if (dashCount > 1) throw new Error("Invalid number");
+  const invalidDashCount = (numberString.match(/(?<!^)(?<!e)-/gi) || []).length;
+  if (invalidDashCount > 0) throw new Error("Invalid number");
 
   return numberString;
 };
