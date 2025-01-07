@@ -180,6 +180,24 @@ describe("AssetEditor", () => {
     expect(field).not.toHaveFocus();
   });
 
+  it("cannot change simulation results", async () => {
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { simulation: { flow: 10 } })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: flow/i,
+    });
+    await user.click(field);
+    expect(field).toHaveValue("10.0");
+    expect(field).toHaveAttribute("readonly");
+  });
+
   it("clears group formatting when focusing input", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
