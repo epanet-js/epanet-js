@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe } from "src/hydraulic-model";
@@ -10,6 +10,8 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { useMapKeybindings } from "src/hooks/use_map_keybindings";
+import Mousetrap from "mousetrap";
 
 window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -155,6 +157,14 @@ describe("AssetEditor", () => {
 
     expect(selector).not.toHaveFocus();
     expect(selector).toHaveTextContent("Closed");
+
+    triggerUndo();
+    await waitFor(() => {
+      const updatedSelector = screen.getByRole("combobox", {
+        name: /value for: status/i,
+      });
+      expect(updatedSelector).toHaveTextContent("Open");
+    });
   });
 
   it("can change a property", async () => {
@@ -181,8 +191,19 @@ describe("AssetEditor", () => {
       (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
     ).toEqual(20.5);
 
-    expect(field).toHaveValue("20.5");
-    expect(field).not.toHaveFocus();
+    let updatedField = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
+    });
+    expect(updatedField).toHaveValue("20.5");
+    expect(updatedField).not.toHaveFocus();
+
+    triggerUndo();
+    await waitFor(() => {
+      updatedField = screen.getByRole("textbox", {
+        name: /value for: diameter/i,
+      });
+      expect(updatedField).toHaveValue("10.4");
+    });
   });
 
   it("cannot change simulation results", async () => {
@@ -498,10 +519,21 @@ describe("AssetEditor", () => {
     render(
       <JotaiProvider store={store}>
         <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
+          <TestKeyBindings />
           <FeatureEditor />
         </PersistenceContext.Provider>
       </JotaiProvider>,
     );
+  };
+
+  const TestKeyBindings = () => {
+    useMapKeybindings();
+
+    return null;
+  };
+
+  const triggerUndo = () => {
+    Mousetrap.trigger("ctrl+z");
   };
 
   const expectPropertyDisplayed = (name: string, value: string) => {
