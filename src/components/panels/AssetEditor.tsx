@@ -382,7 +382,7 @@ const QuantityRow = ({
   return (
     <PropertyRow label={label} y={position} even={position % 2 === 0}>
       <NumericField
-        key={lastChange.current}
+        key={lastChange.current + (value === null ? "NULL" : displayValue)}
         label={label}
         positiveOnly={positiveOnly}
         isNullable={isNullable}
