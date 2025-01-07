@@ -9,6 +9,7 @@ import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -230,35 +231,6 @@ describe("AssetEditor", () => {
     expect(updatedField).toHaveValue("1,000.00");
   });
 
-  it("ignores changes when not a valid number", async () => {
-    const pipeId = "PIPE1";
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { diameter: 10 })
-      .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
-    const user = userEvent.setup();
-
-    renderComponent(store);
-
-    const field = screen.getByRole("textbox", {
-      name: /value for: diameter/i,
-    });
-    await user.clear(field);
-    await user.type(field, "NOTNUMBER");
-    expect(
-      screen.getByRole("textbox", { name: /value for: diameter/i }),
-    ).toHaveClass(/orange/i);
-    await user.keyboard("{Enter}");
-
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-    expect(
-      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
-    ).toEqual(10);
-
-    expect(field).toHaveValue("10.0");
-    expect(field).not.toHaveFocus();
-  });
-
   it("can edit from the keyboard", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -296,6 +268,60 @@ describe("AssetEditor", () => {
 
     await user.tab({ shift: true });
     expect(updatedSelector).toHaveFocus();
+  });
+
+  it("ignores sign in positive only numeric fields", async () => {
+    stubFeatureOn("FLAG_VALIDATIONS");
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { diameter: 10 })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
+    });
+    await user.clear(field);
+    await user.type(field, "-10");
+    await user.keyboard("{Enter}");
+
+    const updatedField = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
+    });
+    expect(updatedField).toHaveValue("10.0");
+    expect(updatedField).not.toHaveFocus();
+  });
+
+  it("ignores changes when not a valid number", async () => {
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { diameter: 10 })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: diameter/i,
+    });
+    await user.clear(field);
+    await user.type(field, "NOTNUMBER");
+    expect(
+      screen.getByRole("textbox", { name: /value for: diameter/i }),
+    ).toHaveClass(/orange/i);
+    await user.keyboard("{Enter}");
+
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+    ).toEqual(10);
+
+    expect(field).toHaveValue("10.0");
+    expect(field).not.toHaveFocus();
   });
 
   const setInitialState = ({
