@@ -38,6 +38,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import * as Select from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -162,6 +163,7 @@ const PipeEditor = ({
                 name="diameter"
                 position={1}
                 value={pipe.diameter}
+                positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("pipe", "diameter")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
                 onChange={onPropertyChange}
@@ -340,6 +342,7 @@ const QuantityRow = ({
   value,
   unit,
   decimals,
+  positiveOnly = false,
   readOnly = false,
   position,
   onChange,
@@ -348,6 +351,7 @@ const QuantityRow = ({
   value: number | null;
   unit: Unit;
   position: number;
+  positiveOnly?: boolean;
   readOnly?: boolean;
   decimals?: number;
   onChange?: (name: string, newValue: number) => void;
@@ -373,6 +377,7 @@ const QuantityRow = ({
       <NumericField
         key={lastChange.current}
         label={label}
+        positiveOnly={positiveOnly}
         readOnly={readOnly}
         displayValue={displayValue}
         onChangeValue={handleChange}
@@ -400,11 +405,13 @@ const NumericField = ({
   label,
   displayValue,
   onChangeValue,
+  positiveOnly = false,
   readOnly = false,
 }: {
   label: string;
   displayValue: string;
   onChangeValue: (newValue: number) => void;
+  positiveOnly?: boolean;
   readOnly?: boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -451,7 +458,10 @@ const NumericField = ({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const newInputValue = e.target.value;
+    let newInputValue = e.target.value;
+    if (isFeatureOn("FLAG_VALIDATIONS") && positiveOnly) {
+      newInputValue = newInputValue.replace("-", "");
+    }
     setInputValue(newInputValue);
     const numericValue = parseLocaleNumber(newInputValue);
     setError(isNaN(numericValue));
