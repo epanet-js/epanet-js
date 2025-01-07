@@ -49,6 +49,10 @@ const checkSymbols = (numberString: string): string => {
   const invalidDashCount = (numberString.match(/(?<!^)(?<!e)-/gi) || []).length;
   if (invalidDashCount > 0) throw new Error("Invalid number");
 
+  const invalidPlusCount = (numberString.match(/(?<!^)(?<!e)\+/gi) || [])
+    .length;
+  if (invalidPlusCount > 0) throw new Error("Invalid number");
+
   return numberString;
 };
 
