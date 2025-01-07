@@ -11,3 +11,9 @@ export const stubFeatureOn = (name: string) => {
     if (flag === name) return true;
   });
 };
+
+export const stubFeatureOff = (name: string) => {
+  (featureFlags.isFeatureOn as Mock).mockImplementation((flag: string) => {
+    if (flag === name) return false;
+  });
+};
