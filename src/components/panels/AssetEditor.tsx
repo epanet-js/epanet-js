@@ -38,7 +38,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import * as Select from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -430,12 +429,10 @@ const NumericField = ({
   const [isDirty, setDirty] = useState(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (isFeatureOn("FLAG_VALIDATIONS")) {
-      if (hasError && e.key === "Enter") return;
-      if (e.key === "Escape") {
-        resetInput();
-        return;
-      }
+    if (hasError && e.key === "Enter") return;
+    if (e.key === "Escape") {
+      resetInput();
+      return;
     }
     if (e.key === "Enter" || e.key === "Escape") {
       handleCommitLastChange();
@@ -454,11 +451,7 @@ const NumericField = ({
   };
 
   const handleBlur = () => {
-    if (
-      isDirty &&
-      (!isFeatureOn("FLAG_VALIDATIONS") ||
-        (isFeatureOn("FLAG_VALIDATIONS") && !hasError))
-    ) {
+    if (isDirty && !hasError) {
       handleCommitLastChange();
     } else {
       setInputValue(displayValue);
@@ -487,20 +480,14 @@ const NumericField = ({
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     let newInputValue = e.target.value;
-    if (isFeatureOn("FLAG_VALIDATIONS")) {
-      newInputValue = newInputValue.replace(/[^0-9\-eE.,]/g, "");
+    newInputValue = newInputValue.replace(/[^0-9\-eE.,]/g, "");
 
-      if (positiveOnly) {
-        newInputValue = newInputValue.replace(/^-/g, "");
-      }
+    if (positiveOnly) {
+      newInputValue = newInputValue.replace(/^-/g, "");
     }
     setInputValue(newInputValue);
     const numericValue = parseLocaleNumber(newInputValue);
-    if (isFeatureOn("FLAG_VALIDATIONS")) {
-      setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
-    } else {
-      setError(isNaN(numericValue));
-    }
+    setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
     setDirty(true);
   };
 
