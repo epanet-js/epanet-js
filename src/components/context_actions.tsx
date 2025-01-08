@@ -48,7 +48,7 @@ export default function ContextActions() {
   return (
     <div className="flex items-center">
       <div className="h-12 self-stretch flex items-center text-xs pr-2 text-gray-700 dark:text-white">
-        {pluralize("feature", selectedWrappedFeatures.length)} selected
+        {pluralize("asset", selectedWrappedFeatures.length)} selected
       </div>
       {selectedWrappedFeatures.length > 1 ? (
         <DD.Root>

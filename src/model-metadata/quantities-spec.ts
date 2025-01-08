@@ -101,6 +101,19 @@ export class Quantities {
     return (this.spec.mappings[assetType][name] as QuantitySpec).unit;
   }
 
+  getDefaultUnit(name: string): Unit {
+    for (const type of Object.keys(this.spec.mappings)) {
+      const assetType = type as keyof AssetQuantitiesSpec["mappings"];
+      for (const propName of Object.keys(this.spec.mappings[assetType])) {
+        if (propName !== name) continue;
+
+        // @ts-expect-error the key for sure exists
+        return (this.spec.mappings[assetType][propName] as QuantitySpec).unit;
+      }
+    }
+    return null;
+  }
+
   getDefaultValue<T extends keyof AssetQuantitiesSpec["mappings"]>(
     assetType: T,
     name: keyof AssetQuantitiesSpec["mappings"][T],

@@ -6,7 +6,7 @@ import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyTableHead } from "./AssetEditor";
-import { localizeDecimal, translate } from "src/infra/i18n";
+import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
 import * as P from "@radix-ui/react-popover";
 import {
   PropertyRowValue,
@@ -17,16 +17,22 @@ import { CardStackIcon } from "@radix-ui/react-icons";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { JsonValue } from "type-fest";
 import { useVirtual } from "react-virtual";
+import { Quantities } from "src/model-metadata/quantities-spec";
 
 export default function MultiAssetEditor({
   selectedFeatures,
+  quantitiesMetadata,
 }: {
   selectedFeatures: IWrappedFeature[];
+  quantitiesMetadata: Quantities;
 }) {
   return (
     <>
       <div className="overflow-auto">
-        <FeatureEditorPropertiesMulti selectedFeatures={selectedFeatures} />
+        <FeatureEditorPropertiesMulti
+          selectedFeatures={selectedFeatures}
+          quantitiesMetadata={quantitiesMetadata}
+        />
       </div>
       <div className="flex-auto" />
       <div className="divide-y divide-gray-200 dark:divide-gray-900 border-t border-gray-200 dark:border-gray-900 overflow-auto placemark-scrollbar"></div>
@@ -36,8 +42,10 @@ export default function MultiAssetEditor({
 
 export function FeatureEditorPropertiesMulti({
   selectedFeatures,
+  quantitiesMetadata,
 }: {
   selectedFeatures: IWrappedFeature[];
+  quantitiesMetadata: Quantities;
 }) {
   const propertyMap = extractMultiProperties(selectedFeatures);
   const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
@@ -61,6 +69,7 @@ export function FeatureEditorPropertiesMulti({
                 key={pair[0]}
                 pair={pair}
                 even={y % 2 === 0}
+                quantitiesMetadata={quantitiesMetadata}
               />
             );
           })}
@@ -74,14 +83,19 @@ const PropertyRowMulti = ({
   pair,
   even,
   y,
+  quantitiesMetadata,
 }: {
   pair: MultiPair;
   even: boolean;
   y: number;
+  quantitiesMetadata: Quantities;
 }) => {
   const [property, values] = pair;
 
-  const label = translate(property);
+  const unit = quantitiesMetadata.getDefaultUnit(property);
+  const label = unit
+    ? `${translate(property)} (${translateUnit(unit)})`
+    : `${translate(property)}`;
 
   const hasMulti = values.size > 1;
   const { value } = values.keys().next();
