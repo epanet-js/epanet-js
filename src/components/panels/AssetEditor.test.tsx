@@ -9,7 +9,6 @@ import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useMapKeybindings } from "src/hooks/use_map_keybindings";
 import Mousetrap from "mousetrap";
 
@@ -17,10 +16,6 @@ window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe("AssetEditor", () => {
-  beforeEach(() => {
-    stubFeatureOff("FLAG_VALIDATIONS");
-  });
-
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const pipeId = "P1";
@@ -297,7 +292,6 @@ describe("AssetEditor", () => {
 
   describe("validations", () => {
     it("ignores sign in positive only numeric fields", async () => {
-      stubFeatureOn("FLAG_VALIDATIONS");
       const pipeId = "PIPE1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, { diameter: 20 })
@@ -325,7 +319,6 @@ describe("AssetEditor", () => {
     });
 
     it("allows cientific notation in positive fields", async () => {
-      stubFeatureOn("FLAG_VALIDATIONS");
       const pipeId = "PIPE1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, { diameter: 20 })
@@ -353,7 +346,6 @@ describe("AssetEditor", () => {
     });
 
     it("ignores text from numeric fields", async () => {
-      stubFeatureOn("FLAG_VALIDATIONS");
       const pipeId = "PIPE1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, { diameter: 20 })
@@ -381,7 +373,6 @@ describe("AssetEditor", () => {
     });
 
     it("doesn't accept 0 in non nullable properties", async () => {
-      stubFeatureOn("FLAG_VALIDATIONS");
       const pipeId = "PIPE1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, { length: 20 })
@@ -416,7 +407,6 @@ describe("AssetEditor", () => {
     });
 
     it("ignores changes when not a valid number", async () => {
-      stubFeatureOn("FLAG_VALIDATIONS");
       const pipeId = "PIPE1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, { diameter: 10 })
@@ -461,38 +451,6 @@ describe("AssetEditor", () => {
 
       expect(updatedField).not.toHaveFocus();
       expect(updatedField).toHaveValue("10.0");
-    });
-
-    it("ignores changes when not a valid number", async () => {
-      const pipeId = "PIPE1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { diameter: 10 })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: pipeId,
-      });
-      const user = userEvent.setup();
-
-      renderComponent(store);
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: diameter/i,
-      });
-      await user.clear(field);
-      await user.type(field, "NOTNUMBER");
-      expect(
-        screen.getByRole("textbox", { name: /value for: diameter/i }),
-      ).toHaveClass(/orange/i);
-      await user.keyboard("{Enter}");
-
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-      expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
-      ).toEqual(10);
-
-      expect(field).toHaveValue("10.0");
-      expect(field).not.toHaveFocus();
     });
   });
 
