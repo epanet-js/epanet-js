@@ -23,6 +23,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
 import { dataAtom, showAllAtom } from "src/state/jotai";
 import { onArrow } from "src/lib/arrow_navigation";
+import { translate } from "src/infra/i18n";
 
 const ShowAllToggle = memo(function ShowAllToggle() {
   const [showAll, setShowAll] = useAtom(showAllAtom);
@@ -79,10 +80,10 @@ export function PropertyTableHead() {
     <thead>
       <tr className="bg-gray-100 dark:bg-gray-800 font-sans text-gray-500 dark:text-gray-100 text-xs text-left">
         <th className="pl-3 py-2 border-r border-t border-b border-gray-200 dark:border-gray-700">
-          Name
+          {translate("property")}
         </th>
         <th className="pl-2 py-2 border-l border-t border-b border-gray-200 dark:border-gray-700">
-          Value
+          {translate("value")}
         </th>
       </tr>
     </thead>
