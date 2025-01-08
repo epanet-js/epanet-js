@@ -429,12 +429,11 @@ const NumericField = ({
   const [isDirty, setDirty] = useState(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (hasError && e.key === "Enter") return;
     if (e.key === "Escape") {
       resetInput();
       return;
     }
-    if (e.key === "Enter" || e.key === "Escape") {
+    if (e.key === "Enter" && !hasError) {
       handleCommitLastChange();
       return;
     }
@@ -447,14 +446,14 @@ const NumericField = ({
     setInputValue(displayValue);
     setDirty(false);
     setError(false);
-    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
+    blurInput();
   };
 
   const handleBlur = () => {
     if (isDirty && !hasError) {
       handleCommitLastChange();
     } else {
-      setInputValue(displayValue);
+      resetInput();
     }
   };
 
@@ -466,15 +465,17 @@ const NumericField = ({
 
   const handleCommitLastChange = () => {
     const numericValue = parseLocaleNumber(inputValue);
-    if (isNaN(numericValue)) {
-      setInputValue(displayValue);
-    } else {
-      setInputValue(String(numericValue));
-      onChangeValue(numericValue);
-    }
+    setInputValue(String(numericValue));
+    onChangeValue(numericValue);
 
     setDirty(false);
     setError(false);
+    blurInput();
+  };
+
+  const blurInput = () => {
+    if (inputRef.current !== document.activeElement) return;
+
     setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
   };
 
