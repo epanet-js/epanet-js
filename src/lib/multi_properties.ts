@@ -2,6 +2,7 @@ import type { JsonValue } from "type-fest";
 import isEqual from "lodash/isEqual";
 import isObject from "lodash/isObject";
 import type { FeatureMap, IWrappedFeature } from "src/types";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 /*
  * property -> { value: FeatureId[] }
@@ -45,6 +46,8 @@ export function extractMultiProperties(
   for (const feature of features) {
     if (!feature.feature.properties) continue;
     for (const key in feature.feature.properties) {
+      if (isFeatureOn("FLAG_MULTI_ASSETS") && key === "connections") continue;
+
       const value = feature.feature.properties[key];
 
       // { key -> {} }
