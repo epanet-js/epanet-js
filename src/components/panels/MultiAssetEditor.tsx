@@ -55,13 +55,11 @@ export function FeatureEditorPropertiesMulti({
         <PropertyTableHead />
         <tbody>
           {pairs.map((pair, y) => {
-            const label = translate(pair[0]);
-            const value = pair[1];
             return (
               <PropertyRowMulti
                 y={y}
-                key={label}
-                pair={[label, value]}
+                key={pair[0]}
+                pair={pair}
                 even={y % 2 === 0}
               />
             );
