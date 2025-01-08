@@ -1,6 +1,6 @@
 import { CoordProps, IWrappedFeature } from "src/types";
 import { MultiPair, extractMultiProperties } from "src/lib/multi_properties";
-import { useCallback, useRef } from "react";
+import { KeyboardEventHandler, useCallback, useRef, useState } from "react";
 import sortBy from "lodash/sortBy";
 import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
@@ -115,12 +115,37 @@ const PropertyRowMulti = ({
 
 function MultiValueField({ pair, onAccept, x, y }: MultiValueProps) {
   const [, value] = pair;
+  const [isOpen, setOpen] = useState(false);
+
+  const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
+    event,
+  ) => {
+    if (event.code === "Escape" || event.code === "Enter") {
+      event.stopPropagation();
+      setOpen(false);
+    }
+  };
+
+  const handleTriggerKeyDown: KeyboardEventHandler<HTMLButtonElement> = (
+    event,
+  ) => {
+    if (event.code === "Enter" && !isOpen) {
+      setOpen(true);
+      event.stopPropagation();
+    }
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
+
   return (
     <div>
-      <P.Root>
+      <P.Root open={isOpen} onOpenChange={handleOpenChange}>
         <P.Trigger
           {...coordPropsAttr({ x, y })}
           aria-label="Multiple values"
+          onKeyDown={handleTriggerKeyDown}
           className="group
           text-left font-mono
           text-xs px-1.5 py-2
@@ -140,7 +165,7 @@ function MultiValueField({ pair, onAccept, x, y }: MultiValueProps) {
           {pluralize("value", value.size)}
         </P.Trigger>
         <P.Portal>
-          <StyledPopoverContent>
+          <StyledPopoverContent onKeyDown={handleContentKeyDown}>
             <StyledPopoverArrow />
             <ValueList pair={pair} onAccept={onAccept} />
           </StyledPopoverContent>
