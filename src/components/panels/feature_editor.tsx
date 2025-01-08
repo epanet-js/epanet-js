@@ -16,7 +16,10 @@ export default function FeatureEditor() {
   const content =
     selectedFeatures.length > 1 ? (
       isFeatureOn("FLAG_MULTI_ASSETS") ? (
-        <MultiAssetEditor selectedFeatures={selectedFeatures} />
+        <MultiAssetEditor
+          selectedFeatures={selectedFeatures}
+          quantitiesMetadata={quantities}
+        />
       ) : (
         <FeatureEditorMulti selectedFeatures={selectedFeatures} />
       )
