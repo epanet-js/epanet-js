@@ -23,6 +23,7 @@ export const translations = {
   minorLoss: "Loss coeff.",
   property: "Property",
   value: "Value",
+  values: "Values",
   status: "Status",
   open: "Open",
   closed: "Closed",
@@ -45,6 +46,7 @@ export const translations = {
   none: "None",
   nodesAnalysis: "Nodes analysis",
   linksAnalysis: "Links analysis",
+  type: "Type",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

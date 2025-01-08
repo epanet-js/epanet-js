@@ -6,7 +6,9 @@ import type { JsonValue } from "type-fest";
 import * as P from "@radix-ui/react-popover";
 import { PropertyRowKey, PropertyRowKeyReadonly } from "./property_row/key";
 import { PropertyRowValue } from "./property_row/value";
-import { MultiValueEditor } from "src/components/shared/multi_value_editor";
+import { MultiValueEditor } from "src/components/shared/multi_value_editor_new";
+import { MultiValueEditor as MultiValueEditorDeprecated } from "src/components/shared/multi_value_editor";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type OnChangeValue = (key: string, value: JsonValue) => void;
 export type OnDeleteKey = (key: string) => void;
@@ -53,18 +55,33 @@ export function PropertyRowMulti({
 
         <td className={`border-l border-b border-t ${styledTd}`}>
           {hasMulti ? (
-            <MultiValueEditor
-              x={1}
-              y={y}
-              pair={pair}
-              onAccept={(newValue) => {
-                if (newValue === undefined) {
-                  onDeleteKey(key);
-                } else {
-                  onChangeValue(key, newValue);
-                }
-              }}
-            />
+            isFeatureOn("FLAG_MULTI_ASSETS") ? (
+              <MultiValueEditor
+                x={1}
+                y={y}
+                pair={pair}
+                onAccept={(newValue) => {
+                  if (newValue === undefined) {
+                    onDeleteKey(key);
+                  } else {
+                    onChangeValue(key, newValue);
+                  }
+                }}
+              />
+            ) : (
+              <MultiValueEditorDeprecated
+                x={1}
+                y={y}
+                pair={pair}
+                onAccept={(newValue) => {
+                  if (newValue === undefined) {
+                    onDeleteKey(key);
+                  } else {
+                    onChangeValue(key, newValue);
+                  }
+                }}
+              />
+            )
           ) : (
             <PropertyRowValue
               x={1}

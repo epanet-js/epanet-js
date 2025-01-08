@@ -25,6 +25,7 @@ export const translations: Translations = {
   minorLoss: "Coef. de pérdidas",
   property: "Propiedad",
   value: "Valor",
+  values: "Valores",
   status: "Estado",
   open: "Abierta",
   closed: "Cerrada",
@@ -47,6 +48,7 @@ export const translations: Translations = {
   none: "Ninguno",
   nodesAnalysis: "Análisis de nudos",
   linksAnalysis: "Análisis de enlaces",
+  type: "Tipo",
 };
 
 export const units: UnitsLocale = {
