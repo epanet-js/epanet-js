@@ -4,7 +4,6 @@ import { ModelUnits } from "src/hydraulic-model/units";
 import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type QuantitySpec = {
   defaultValue: number;
@@ -59,7 +58,7 @@ const internationalSpec: AssetQuantitiesSpec = {
     junction: {
       elevation: { defaultValue: 0, unit: "m" },
       demand: {
-        defaultValue: isFeatureOn("FLAG_DEFAULT_DEMAND") ? 1 : 0,
+        defaultValue: 0,
         unit: "l/s",
       },
       pressure: { defaultValue: 0, unit: "mwc" },
