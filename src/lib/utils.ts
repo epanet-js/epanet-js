@@ -8,6 +8,7 @@ import { SafeParseReturnType, z } from "zod";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import { zTileJSON } from "src/mapbox-layers/validations";
 import { ILayerConfig } from "src/types";
+import { translate } from "src/infra/i18n";
 
 /**
  * Used for the "title" tag so that if we change
@@ -170,7 +171,10 @@ export function pluralize(
 ) {
   if (!irregular && word in IRREGS) irregular = IRREGS[word];
   const pluralized = count === 1 ? word : irregular ? irregular : word + "s";
-  return (inclusive ? count.toLocaleString() + " " : "") + pluralized;
+  return (
+    (inclusive ? count.toLocaleString() + " " : "") +
+    translate(pluralized).toLowerCase()
+  );
 }
 
 export const formatUSD = (n: number) =>

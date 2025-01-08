@@ -1,31 +1,35 @@
 import React, { useCallback, useRef } from "react";
 import type { MultiPair } from "src/lib/multi_properties";
 import type { JsonValue } from "type-fest";
-import isObject from "lodash/isObject";
 import { CardStackIcon } from "@radix-ui/react-icons";
 import { pluralize } from "src/lib/utils";
 import * as P from "@radix-ui/react-popover";
 import { useVirtual } from "react-virtual";
-import { Formik, Form } from "formik";
 import {
-  Button,
-  PopoverTitleAndClose,
-  StyledField,
   StyledPopoverArrow,
   StyledPopoverContent,
 } from "src/components/elements";
 import { CoordProps } from "src/types";
 import { coordPropsAttr } from "src/components/panels/feature_editor/property_row/value";
+import { localizeDecimal, translate } from "src/infra/i18n";
 
 type MultiValueProps = CoordProps & {
   pair: MultiPair;
   onAccept: (arg0: JsonValue | undefined) => void;
 };
 
-function ValueListDeprecated({
-  pair,
-  onAccept,
-}: Omit<MultiValueProps, "x" | "y">) {
+const formatValue = (value: JsonValue | undefined): string => {
+  if (!value) return "";
+  if (typeof value === "number") {
+    return localizeDecimal(value);
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  if (typeof value === "boolean") return String(value);
+
+  return translate(value);
+};
+
+function ValueList({ pair }: Omit<MultiValueProps, "x" | "y">) {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
   const values = Array.from(pair[1].entries());
@@ -38,66 +42,45 @@ function ValueListDeprecated({
 
   return (
     <div>
-      <div className="pb-2 text-xs">Existing values</div>
-      <div ref={parentRef} className="h-32 overflow-y-auto">
+      <div className="pb-2 text-xs text-gray-500 font-bold">
+        {translate("values")}
+      </div>
+      <div ref={parentRef} className="max-h-32 overflow-y-auto">
         <div
           className="w-full relative rounded"
           style={{
             height: `${rowVirtualizer.totalSize}px`,
           }}
         >
-          {rowVirtualizer.virtualItems.map((virtualRow) => {
-            const val = values[virtualRow.index];
+          {rowVirtualizer.virtualItems.map((virtualRow, i) => {
+            const [value, times] = values[virtualRow.index];
+            const isEven = i % 2 == 0;
             return (
               <button
                 type="button"
                 key={virtualRow.index}
-                className="top-0 left-0 block text-left w-full absolute py-1 px-2 flex items-center
+                className={`top-0 left-0 block text-left w-full absolute py-1 px-1 flex items-center
                 hover:bg-gray-200 dark:hover:bg-gray-700
-                gap-x-2"
-                onClick={() => onAccept(val[0])}
+                gap-x-2 cursor-default ${isEven ? "bg-gray-100" : ""} `}
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
                 <div className="flex-auto font-mono text-xs truncate">
-                  {isObject(val[0])
-                    ? JSON.stringify(val[0]).substring(0, 1024)
-                    : String(val[0])}
+                  {formatValue(value)}
                 </div>
                 <div
                   className="text-xs font-mono"
                   title="Features with this value"
                 >
-                  ({val[1]})
+                  ({times})
                 </div>
               </button>
             );
           })}
         </div>
       </div>
-      <div className="pt-3 pb-2 text-xs">New value</div>
-      <Formik
-        initialValues={{ value: "" }}
-        onSubmit={(formValues) => {
-          onAccept(formValues.value);
-        }}
-      >
-        <Form>
-          <div className="flex items-center gap-x-2">
-            <StyledField
-              name="value"
-              spellCheck="false"
-              type="text"
-              _size="xs"
-            />
-            <Button size="xs" type="submit">
-              Set
-            </Button>
-          </div>
-        </Form>
-      </Formik>
     </div>
   );
 }
@@ -131,8 +114,7 @@ export function MultiValueEditor({ pair, onAccept, x, y }: MultiValueProps) {
         <P.Portal>
           <StyledPopoverContent>
             <StyledPopoverArrow />
-            <PopoverTitleAndClose title="" />
-            <ValueListDeprecated pair={pair} onAccept={onAccept} />
+            <ValueList pair={pair} onAccept={onAccept} />
           </StyledPopoverContent>
         </P.Portal>
       </P.Root>
