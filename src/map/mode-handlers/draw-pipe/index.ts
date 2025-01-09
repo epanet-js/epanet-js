@@ -93,7 +93,7 @@ export function useDrawPipeHandlers({
         const pointElevation = snappingNode
           ? snappingNode.elevation
           : await fetchElevationForPoint(e.lngLat, {
-              unit: units.junction.elevation,
+              unit: units.elevation,
             });
 
         if (drawing.isNull) {
@@ -179,7 +179,7 @@ export function useDrawPipeHandlers({
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),
           {
-            unit: units.junction.elevation,
+            unit: units.elevation,
           },
         ),
       });

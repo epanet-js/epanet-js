@@ -10,13 +10,11 @@ type BuildOptions = {
 export type EpanetUnitSystem = "LPS" | "GPM";
 
 const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
-  const pipeFlowUnit = units.pipe.flow;
-  if (pipeFlowUnit === "l/s") return "LPS";
-  if (pipeFlowUnit === "gal/min") return "GPM";
+  const flowUnit = units.flow;
+  if (flowUnit === "l/s") return "LPS";
+  if (flowUnit === "gal/min") return "GPM";
 
-  captureWarning(
-    `Flow unit not supported ${pipeFlowUnit}, fallback to default`,
-  );
+  captureWarning(`Flow unit not supported ${flowUnit}, fallback to default`);
   return "LPS";
 };
 

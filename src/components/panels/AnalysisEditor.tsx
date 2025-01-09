@@ -42,7 +42,7 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "pressure",
-                          unit: hydraulicModel.units.junction.pressure,
+                          unit: hydraulicModel.units.pressure,
                           paletteName: "epanet-ramp",
                         }),
                       },
@@ -80,7 +80,7 @@ export const AnalysisEditor = () => {
                         rangeColorMapping: RangeColorMapping.build({
                           steps: [0, 25, 50, 75, 100],
                           property: "flow",
-                          unit: hydraulicModel.units.pipe.flow,
+                          unit: hydraulicModel.units.flow,
                           paletteName: "epanet-ramp",
                         }),
                       },

@@ -13,24 +13,20 @@ import {
   NodeAsset,
   AssetId,
 } from "src/hydraulic-model";
-import { ModelUnits } from "src/hydraulic-model/units";
 import {
   AssetQuantitiesSpec,
   Quantities,
+  UnitsSpec,
   presets,
 } from "src/model-metadata/quantities-spec";
 
 export const buildPipe = (
   data: PipeBuildData = {},
-  unitsOverride: Partial<AssetQuantitiesSpec["mappings"]["pipe"]> = {},
+  unitsOverride: Partial<UnitsSpec> = {},
 ) => {
-  const quantitiesSpec: AssetQuantitiesSpec = { ...presets.si };
-  quantitiesSpec.mappings = {
-    ...presets.si.mappings,
-    pipe: {
-      ...presets.si.mappings.pipe,
-      ...unitsOverride,
-    },
+  const quantitiesSpec: AssetQuantitiesSpec = {
+    ...presets.si,
+    units: { ...presets.si.units, ...unitsOverride },
   };
   const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(quantities.units, quantities.defaults).buildPipe(
@@ -55,7 +51,7 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
-  private units: ModelUnits;
+  private units: UnitsSpec;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
     return new HydraulicModelBuilder(quantitiesSpec);

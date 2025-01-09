@@ -35,7 +35,7 @@ export function useJunctionHandlers({
 
       const clickPosition = getMapCoord(e);
       const elevation = await fetchElevationForPoint(e.lngLat, {
-        unit: units.junction.elevation,
+        unit: units.elevation,
       });
       const junction = assetBuilder.buildJunction({
         elevation,

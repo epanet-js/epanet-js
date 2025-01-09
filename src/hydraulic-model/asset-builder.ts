@@ -32,7 +32,7 @@ export type ReservoirBuildData = {
 };
 
 import { customAlphabet } from "nanoid";
-import { ModelUnits } from "./units";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -45,10 +45,10 @@ export type DefaultQuantities = {
 };
 
 export class AssetBuilder {
-  private units: ModelUnits;
+  private units: UnitsSpec;
   private defaults: DefaultQuantities;
 
-  constructor(units: ModelUnits, defaults: DefaultQuantities) {
+  constructor(units: UnitsSpec, defaults: DefaultQuantities) {
     this.units = units;
     this.defaults = defaults;
   }
@@ -78,7 +78,7 @@ export class AssetBuilder {
         minorLoss: this.getPipeValue("minorLoss", minorLoss),
         roughness: this.getPipeValue("roughness", roughness),
       },
-      this.units.pipe,
+      this.units,
     );
   }
 
@@ -96,7 +96,7 @@ export class AssetBuilder {
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
-      this.units.junction,
+      this.units,
     );
   }
 
@@ -127,7 +127,7 @@ export class AssetBuilder {
         head: headValue,
         elevation: elevationValue,
       },
-      this.units.reservoir,
+      this.units,
     );
   }
 
