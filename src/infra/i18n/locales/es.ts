@@ -52,6 +52,8 @@ export const translations: Translations = {
   nodesAnalysis: "Análisis de nudos",
   linksAnalysis: "Análisis de enlaces",
   type: "Tipo",
+  delete: "Borrar",
+  zoomTo: "Hacer zoom",
 };
 
 export const units: UnitsLocale = {

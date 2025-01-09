@@ -23,6 +23,7 @@ import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { translate } from "src/infra/i18n";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -49,7 +50,7 @@ export function useActions(
   );
 
   const deleteAssetsAction = {
-    label: "Delete features",
+    label: translate("delete"),
     variant: "destructive" as B3Variant,
     applicable: true,
     icon: <TrashIcon />,
@@ -59,7 +60,7 @@ export function useActions(
   const zoomToAction = {
     icon: <Crosshair1Icon />,
     applicable: true,
-    label: "Zoom to",
+    label: translate("zoomTo"),
     onSelect: function doAddInnerRing() {
       return Promise.resolve(zoomTo(selectedWrappedFeatures));
     },

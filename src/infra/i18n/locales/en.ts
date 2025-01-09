@@ -50,6 +50,8 @@ export const translations = {
   nodesAnalysis: "Nodes analysis",
   linksAnalysis: "Links analysis",
   type: "Type",
+  delete: "Delete",
+  zoomTo: "Zoom to",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
