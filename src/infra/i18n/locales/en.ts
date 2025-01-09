@@ -2,6 +2,7 @@ import { Unit } from "src/quantity";
 
 export const translations = {
   select: "Select",
+  selection: "Selection",
   junction: "Junction",
   pipe: "Pipe",
   reservoir: "Reservoir",

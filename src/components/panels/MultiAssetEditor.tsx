@@ -56,7 +56,7 @@ export function FeatureEditorPropertiesMulti({
 
   return (
     <PanelDetails
-      title={`${pluralize("asset", selectedFeatures.length)}`}
+      title={`${translate("selection")} (${pluralize("asset", selectedFeatures.length)})`}
       variant="fullwidth"
     >
       <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
