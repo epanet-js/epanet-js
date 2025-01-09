@@ -1,6 +1,6 @@
 import { CoordProps, IWrappedFeature } from "src/types";
 import { MultiPair, extractMultiProperties } from "src/lib/multi_properties";
-import { KeyboardEventHandler, useCallback, useRef, useState } from "react";
+import { KeyboardEventHandler, useRef, useState } from "react";
 import sortBy from "lodash/sortBy";
 import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
@@ -16,7 +16,7 @@ import { PropertyRow } from "./feature_editor/property_row";
 import { CardStackIcon } from "@radix-ui/react-icons";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { JsonValue } from "type-fest";
-import { useVirtual } from "react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 
@@ -203,30 +203,45 @@ type MultiValueProps = CoordProps & {
   pair: MultiPair;
   onAccept: (arg0: JsonValue | undefined) => void;
 };
+
+const itemSize = 28;
+
 function ValueList({ pair }: Omit<MultiValueProps, "x" | "y">) {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
   const values = Array.from(pair[1].entries());
 
-  const rowVirtualizer = useVirtual({
-    size: values.length,
-    parentRef,
-    estimateSize: useCallback(() => 28, []),
+  const rowVirtualizer = useVirtualizer({
+    count: values.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => itemSize,
   });
+
+  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (event.code !== "ArrowDown" && event.code !== "ArrowUp") return;
+
+    event.stopPropagation();
+    rowVirtualizer.scrollBy(event.code === "ArrowDown" ? itemSize : -itemSize);
+    parentRef.current && parentRef.current.focus();
+  };
 
   return (
     <div>
       <div className="pb-2 text-xs text-gray-500 font-bold">
         {translate("values")}
       </div>
-      <div ref={parentRef} className="max-h-32 overflow-y-auto">
+      <div
+        ref={parentRef}
+        onKeyDown={handleKeyDown}
+        className="max-h-32 overflow-y-auto"
+      >
         <div
           className="w-full relative rounded"
           style={{
-            height: `${rowVirtualizer.totalSize}px`,
+            height: `${rowVirtualizer.getTotalSize()}px`,
           }}
         >
-          {rowVirtualizer.virtualItems.map((virtualRow, i) => {
+          {rowVirtualizer.getVirtualItems().map((virtualRow, i) => {
             const [value, times] = values[virtualRow.index];
             const isEven = i % 2 == 0;
             return (
