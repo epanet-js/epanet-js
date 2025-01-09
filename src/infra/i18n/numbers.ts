@@ -1,4 +1,28 @@
+import { Locale, getLocale } from "./locale";
+
+const maxDecimals = 9;
+
 export const localizeDecimal = (
+  num: number,
+  {
+    locale = getLocale(),
+    decimals = maxDecimals,
+  }: { locale?: Locale; decimals?: number } = {},
+): string => {
+  const roundedNum = roundToDecimal(num, decimals);
+
+  const options: Intl.NumberFormatOptions = {};
+  options["maximumFractionDigits"] = maxDecimals;
+  options["minimumFractionDigits"] = 0;
+  const value = handleNegativeZero(roundedNum, decimals);
+
+  const formattedNum = value.toLocaleString(locale, options);
+
+  const isAllZero = formattedNum.match(/\d/g)?.every((digit) => digit === "0");
+  return isAllZero ? "0" : formattedNum;
+};
+
+export const localizeDecimalDeprecated = (
   num: number,
   fractionDigits?: number,
 ): string => {
@@ -7,7 +31,7 @@ export const localizeDecimal = (
   }
 
   const roundedNum = roundToDecimal(num, fractionDigits);
-  const formattedNum = localizeNumber({
+  const formattedNum = localizeNumberDeprecated({
     number: roundedNum,
     fractionDigits,
   });
@@ -15,7 +39,7 @@ export const localizeDecimal = (
   return isAllZero ? "0" : formattedNum;
 };
 
-const localizeNumber = ({
+const localizeNumberDeprecated = ({
   number,
   fractionDigits = 0,
 }: {

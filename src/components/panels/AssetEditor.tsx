@@ -14,7 +14,7 @@ import { RawEditor } from "./feature_editor/raw_editor";
 import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import {
-  localizeDecimal,
+  localizeDecimalDeprecated,
   parseLocaleNumber,
   reformatWithoutGroups,
   translate,
@@ -38,6 +38,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import * as Select from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export function AssetEditor({
   selectedFeature,
@@ -367,7 +369,9 @@ const QuantityRow = ({
   const displayValue =
     value === null
       ? translate("notAvailable")
-      : localizeDecimal(value, decimals);
+      : isFeatureOn("FLAG_MULTI_ASSETS")
+        ? localizeDecimal(value, { decimals })
+        : localizeDecimalDeprecated(value, decimals);
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`

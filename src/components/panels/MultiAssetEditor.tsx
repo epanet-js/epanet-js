@@ -6,7 +6,7 @@ import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyTableHead } from "./AssetEditor";
-import { localizeDecimal, translate, translateUnit } from "src/infra/i18n";
+import { translate, translateUnit } from "src/infra/i18n";
 import * as P from "@radix-ui/react-popover";
 import {
   PropertyRowValue,
@@ -18,6 +18,7 @@ import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { JsonValue } from "type-fest";
 import { useVirtual } from "react-virtual";
 import { Quantities } from "src/model-metadata/quantities-spec";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export default function MultiAssetEditor({
   selectedFeatures,
