@@ -184,7 +184,7 @@ describe("Parse inp", () => {
     ANY
     `;
     const { hydraulicModel, modelMetadata } = parseInp(inp);
-    expect(hydraulicModel.units.pipe).toMatchObject({
+    expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
@@ -205,7 +205,7 @@ describe("Parse inp", () => {
     ANY
     `;
     const { hydraulicModel } = parseInp(inp);
-    expect(hydraulicModel.units.pipe).toMatchObject({
+    expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;

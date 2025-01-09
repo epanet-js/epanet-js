@@ -30,7 +30,7 @@ describe("Pipe", () => {
         ],
         length: 0,
       },
-      { length: { unit: "ft", defaultValue: 0 } },
+      { length: "ft" },
     );
 
     expect(pipe.length).toEqual(0);

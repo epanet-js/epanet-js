@@ -35,7 +35,7 @@ export function useDrawReservoirHandlers({
 
       const clickPosition = getMapCoord(e);
       const elevation = await fetchElevationForPoint(e.lngLat, {
-        unit: units.reservoir.elevation,
+        unit: units.elevation,
       });
       const reservoir = assetBuilder.buildReservoir({
         elevation,

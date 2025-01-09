@@ -1,14 +1,14 @@
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { AssetBuilder, DefaultQuantities } from "./asset-builder";
-import { ModelUnits } from "./units";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
   assetBuilder: AssetBuilder;
   topology: Topology;
-  units: ModelUnits;
+  units: UnitsSpec;
 };
 
 export { AssetsMap };
@@ -17,7 +17,7 @@ export const initializeHydraulicModel = ({
   units,
   defaults,
 }: {
-  units: ModelUnits;
+  units: UnitsSpec;
   defaults: DefaultQuantities;
 }) => {
   return {
