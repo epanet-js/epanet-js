@@ -80,10 +80,12 @@ export function GeometryActions({
   return (
     <>
       {as === "context-item" ? (
-        <SingleActions
-          selectedWrappedFeatures={selectedWrappedFeatures}
-          as={as}
-        />
+        isFeatureOn("FLAG_MULTI_ASSETS") ? null : (
+          <SingleActions
+            selectedWrappedFeatures={selectedWrappedFeatures}
+            as={as}
+          />
+        )
       ) : isFeatureOn("FLAG_MULTI_ASSETS") ? null : (
         <DD.Root>
           <Tooltip.Root>
