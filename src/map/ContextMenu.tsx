@@ -2,12 +2,8 @@ import * as CM from "@radix-ui/react-context-menu";
 import React, { memo } from "react";
 import { useSetAtom } from "jotai";
 import { USelection } from "src/selection";
-import { dialogAtom, selectionAtom } from "src/state/jotai";
-import {
-  ArrowRightIcon,
-  CircleIcon,
-  ClipboardCopyIcon,
-} from "@radix-ui/react-icons";
+import { selectionAtom } from "src/state/jotai";
+import { ArrowRightIcon, ClipboardCopyIcon } from "@radix-ui/react-icons";
 import type { IWrappedFeature } from "src/types";
 import { GeometryActions } from "src/components/context_actions/geometry_actions";
 import {
@@ -50,8 +46,6 @@ export const MapContextMenu = memo(function MapContextMenu({
 }: {
   contextInfo: ContextInfo | null;
 }) {
-  const setDialogState = useSetAtom(dialogAtom);
-
   return (
     <CM.Portal>
       <CMContent>
@@ -107,19 +101,6 @@ export const MapContextMenu = memo(function MapContextMenu({
             ) : null}
           </>
         ) : null}
-        <CMItem
-          onSelect={() => {
-            if (contextInfo) {
-              setDialogState({
-                type: "circle",
-                position: contextInfo.position,
-              });
-            }
-          }}
-        >
-          Draw circle here
-          <CircleIcon />
-        </CMItem>
       </CMContent>
     </CM.Portal>
   );
