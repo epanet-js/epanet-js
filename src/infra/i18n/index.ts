@@ -29,4 +29,4 @@ export const translateUnit = (key: string): string => {
 export { parseLocaleNumber, reformatWithoutGroups } from "./locale-number";
 export { localizeKeybinding } from "./mac";
 
-export { localizeNumber, localizeDecimal } from "./numbers";
+export { localizeDecimal } from "./numbers";
