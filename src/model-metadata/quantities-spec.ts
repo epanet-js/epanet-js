@@ -10,9 +10,24 @@ type QuantitySpec = {
   unit: Unit;
   decimals?: number;
 };
+export type SpecUnits = Record<
+  | "diameter"
+  | "length"
+  | "roughness"
+  | "minorLoss"
+  | "flow"
+  | "elevation"
+  | "demand"
+  | "pressure"
+  | "head"
+  | "relativeHead",
+  Unit
+>;
+
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
+  units: SpecUnits;
   mappings: {
     pipe: Record<PipeQuantity, QuantitySpec>;
     junction: Record<JunctionQuantity, QuantitySpec>;
@@ -23,6 +38,18 @@ export type AssetQuantitiesSpec = {
 const USCustomarySpec: AssetQuantitiesSpec = {
   id: "gpm",
   name: "GPM",
+  units: {
+    diameter: "in",
+    length: "ft",
+    roughness: null,
+    minorLoss: null,
+    flow: "gal/min",
+    elevation: "ft",
+    demand: "gal/min",
+    pressure: "psi",
+    head: "ft",
+    relativeHead: "ft",
+  },
   mappings: {
     pipe: {
       diameter: { defaultValue: 12, unit: "in" },
@@ -58,6 +85,18 @@ const USCustomarySpec: AssetQuantitiesSpec = {
 const internationalSpec: AssetQuantitiesSpec = {
   id: "si",
   name: "SI",
+  units: {
+    diameter: "mm",
+    length: "m",
+    roughness: null,
+    minorLoss: null,
+    flow: "l/s",
+    elevation: "m",
+    demand: "l/s",
+    pressure: "mwc",
+    head: "m",
+    relativeHead: "m",
+  },
   mappings: {
     pipe: {
       diameter: { defaultValue: 300, unit: "mm" },
@@ -116,11 +155,8 @@ export class Quantities {
     return (this.spec.mappings[assetType][name] as QuantitySpec).decimals;
   }
 
-  getUnit<T extends keyof AssetQuantitiesSpec["mappings"]>(
-    assetType: T,
-    name: keyof AssetQuantitiesSpec["mappings"][T],
-  ): Unit {
-    return (this.spec.mappings[assetType][name] as QuantitySpec).unit;
+  getUnit(name: keyof SpecUnits): Unit {
+    return this.spec.units[name];
   }
 
   getDefaultUnit(name: string): Unit {

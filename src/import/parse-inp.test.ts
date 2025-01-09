@@ -190,7 +190,7 @@ describe("Parse inp", () => {
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
 
-    expect(modelMetadata.quantities.getUnit("reservoir", "head")).toEqual("ft");
+    expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
   });
 
   it("detects other systems", () => {

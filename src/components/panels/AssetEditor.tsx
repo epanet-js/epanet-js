@@ -164,7 +164,7 @@ const PipeEditor = ({
                 value={pipe.diameter}
                 positiveOnly={true}
                 isNullable={false}
-                unit={quantitiesMetadata.getUnit("pipe", "diameter")}
+                unit={quantitiesMetadata.getUnit("diameter")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
                 onChange={onPropertyChange}
               />
@@ -174,7 +174,7 @@ const PipeEditor = ({
                 value={pipe.length}
                 positiveOnly={true}
                 isNullable={false}
-                unit={quantitiesMetadata.getUnit("pipe", "length")}
+                unit={quantitiesMetadata.getUnit("length")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "length")}
                 onChange={onPropertyChange}
               />
@@ -183,7 +183,7 @@ const PipeEditor = ({
                 position={3}
                 value={pipe.roughness}
                 positiveOnly={true}
-                unit={quantitiesMetadata.getUnit("pipe", "roughness")}
+                unit={quantitiesMetadata.getUnit("roughness")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
                 onChange={onPropertyChange}
               />
@@ -192,7 +192,7 @@ const PipeEditor = ({
                 position={4}
                 value={pipe.minorLoss}
                 positiveOnly={true}
-                unit={quantitiesMetadata.getUnit("pipe", "minorLoss")}
+                unit={quantitiesMetadata.getUnit("minorLoss")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
                 onChange={onPropertyChange}
               />
@@ -200,7 +200,7 @@ const PipeEditor = ({
                 name="flow"
                 position={5}
                 value={pipe.flow}
-                unit={quantitiesMetadata.getUnit("pipe", "flow")}
+                unit={quantitiesMetadata.getUnit("flow")}
                 decimals={quantitiesMetadata.getDecimals("pipe", "flow")}
                 readOnly={true}
               />
@@ -232,7 +232,7 @@ const JunctionEditor = ({
                 name="elevation"
                 position={0}
                 value={junction.elevation}
-                unit={quantitiesMetadata.getUnit("junction", "elevation")}
+                unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals(
                   "junction",
                   "elevation",
@@ -243,7 +243,7 @@ const JunctionEditor = ({
                 name="demand"
                 position={1}
                 value={junction.demand}
-                unit={quantitiesMetadata.getUnit("junction", "demand")}
+                unit={quantitiesMetadata.getUnit("demand")}
                 decimals={quantitiesMetadata.getDecimals("junction", "demand")}
                 onChange={onPropertyChange}
               />
@@ -251,7 +251,7 @@ const JunctionEditor = ({
                 name="pressure"
                 position={2}
                 value={junction.pressure}
-                unit={quantitiesMetadata.getUnit("junction", "pressure")}
+                unit={quantitiesMetadata.getUnit("pressure")}
                 decimals={quantitiesMetadata.getDecimals(
                   "junction",
                   "pressure",
@@ -286,7 +286,7 @@ const ReservoirEditor = ({
                 name="elevation"
                 position={0}
                 value={reservoir.elevation}
-                unit={quantitiesMetadata.getUnit("reservoir", "elevation")}
+                unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals(
                   "reservoir",
                   "elevation",
@@ -297,7 +297,7 @@ const ReservoirEditor = ({
                 name="head"
                 position={1}
                 value={reservoir.head}
-                unit={quantitiesMetadata.getUnit("reservoir", "head")}
+                unit={quantitiesMetadata.getUnit("head")}
                 decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
                 onChange={onPropertyChange}
               />
