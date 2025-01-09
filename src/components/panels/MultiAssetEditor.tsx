@@ -259,10 +259,7 @@ function ValueList({ pair }: Omit<MultiValueProps, "x" | "y">) {
                 <div className="flex-auto font-mono text-xs truncate">
                   {formatValue(value)}
                 </div>
-                <div
-                  className="text-xs font-mono"
-                  title="Features with this value"
-                >
+                <div className="text-xs font-mono" title={translate("assets")}>
                   ({times})
                 </div>
               </button>
