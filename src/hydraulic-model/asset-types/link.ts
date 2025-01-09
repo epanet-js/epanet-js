@@ -111,7 +111,7 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
       convertTo(
         { value: lengthInMeters, unit: "m" },
         this.getUnit("length"),
-      ).toFixed(6),
+      ).toFixed(2),
     );
 
     this.properties.length = length;

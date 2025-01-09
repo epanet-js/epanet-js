@@ -4,6 +4,7 @@ import { ModelUnits } from "src/hydraulic-model/units";
 import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type QuantitySpec = {
   defaultValue: number;
@@ -26,15 +27,27 @@ const USCustomarySpec: AssetQuantitiesSpec = {
   mappings: {
     pipe: {
       diameter: { defaultValue: 12, unit: "in" },
-      length: { defaultValue: 1000, unit: "ft", decimals: 2 },
+      length: {
+        defaultValue: 1000,
+        unit: "ft",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? undefined : 2,
+      },
       roughness: { defaultValue: 130, unit: null },
       minorLoss: { defaultValue: 0, unit: null },
-      flow: { defaultValue: 0, unit: "gal/min" },
+      flow: {
+        defaultValue: 0,
+        unit: "gal/min",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+      },
     },
     junction: {
       elevation: { defaultValue: 0, unit: "ft" },
       demand: { defaultValue: 0, unit: "gal/min" },
-      pressure: { defaultValue: 0, unit: "psi" },
+      pressure: {
+        defaultValue: 0,
+        unit: "psi",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+      },
     },
     reservoir: {
       elevation: { defaultValue: 0, unit: "ft" },
@@ -50,10 +63,18 @@ const internationalSpec: AssetQuantitiesSpec = {
   mappings: {
     pipe: {
       diameter: { defaultValue: 300, unit: "mm" },
-      length: { defaultValue: 1000, unit: "m", decimals: 2 },
+      length: {
+        defaultValue: 1000,
+        unit: "m",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? undefined : 2,
+      },
       roughness: { defaultValue: 130, unit: null }, //H-W
       minorLoss: { defaultValue: 0, unit: null },
-      flow: { defaultValue: 0, unit: "l/s" },
+      flow: {
+        defaultValue: 0,
+        unit: "l/s",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+      },
     },
     junction: {
       elevation: { defaultValue: 0, unit: "m" },
@@ -61,7 +82,11 @@ const internationalSpec: AssetQuantitiesSpec = {
         defaultValue: 0,
         unit: "l/s",
       },
-      pressure: { defaultValue: 0, unit: "mwc" },
+      pressure: {
+        defaultValue: 0,
+        unit: "mwc",
+        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+      },
     },
     reservoir: {
       elevation: { defaultValue: 0, unit: "m" },
