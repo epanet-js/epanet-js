@@ -17,7 +17,7 @@ import { CardStackIcon } from "@radix-ui/react-icons";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { JsonValue } from "type-fest";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Quantities, SpecUnits } from "src/model-metadata/quantities-spec";
+import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export default function MultiAssetEditor({
@@ -93,7 +93,7 @@ const PropertyRowMulti = ({
 }) => {
   const [property, values] = pair;
 
-  const unit = quantitiesMetadata.getUnit(property as keyof SpecUnits);
+  const unit = quantitiesMetadata.getUnit(property as keyof UnitsSpec);
   const label = unit
     ? `${translate(property)} (${translateUnit(unit)})`
     : `${translate(property)}`;

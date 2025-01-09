@@ -1,5 +1,4 @@
 import { Unit } from "src/quantity";
-import { DefaultQuantities } from "src/hydraulic-model/asset-builder";
 import { ModelUnits } from "src/hydraulic-model/units";
 import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
@@ -9,7 +8,7 @@ type QuantitySpec = {
   defaultValue: number;
   unit: Unit;
 };
-export type SpecUnits = Record<
+export type UnitsSpec = Record<
   | "diameter"
   | "length"
   | "roughness"
@@ -22,12 +21,18 @@ export type SpecUnits = Record<
   | "relativeHead",
   Unit
 >;
-type SpecDecimals = Partial<Record<keyof SpecUnits, number>>;
+type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
+type DefaultsSpec = {
+  pipe: Record<PipeQuantity, number>;
+  junction: Record<JunctionQuantity, number>;
+  reservoir: Record<ReservoirQuantity, number>;
+};
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
-  units: SpecUnits;
-  decimals: SpecDecimals;
+  units: UnitsSpec;
+  decimals: DecimalsSpec;
+  defaults: DefaultsSpec;
   mappings: {
     pipe: Record<PipeQuantity, QuantitySpec>;
     junction: Record<JunctionQuantity, QuantitySpec>;
@@ -53,6 +58,25 @@ const USCustomarySpec: AssetQuantitiesSpec = {
   decimals: {
     flow: 3,
     pressure: 3,
+  },
+  defaults: {
+    pipe: {
+      diameter: 12,
+      length: 1000,
+      roughness: 130,
+      minorLoss: 0,
+      flow: 0,
+    },
+    junction: {
+      elevation: 0,
+      demand: 0,
+      pressure: 0,
+    },
+    reservoir: {
+      elevation: 0,
+      head: 0,
+      relativeHead: 32,
+    },
   },
   mappings: {
     pipe: {
@@ -103,6 +127,25 @@ const internationalSpec: AssetQuantitiesSpec = {
     flow: 3,
     pressure: 3,
   },
+  defaults: {
+    pipe: {
+      diameter: 300,
+      length: 1000,
+      roughness: 130,
+      minorLoss: 0,
+      flow: 0,
+    },
+    junction: {
+      elevation: 0,
+      demand: 0,
+      pressure: 0,
+    },
+    reservoir: {
+      elevation: 0,
+      relativeHead: 10,
+      head: 0,
+    },
+  },
   mappings: {
     pipe: {
       diameter: { defaultValue: 300, unit: "mm" },
@@ -142,29 +185,24 @@ export const presets = {
 };
 
 export class Quantities {
-  public readonly defaults: DefaultQuantities;
   public readonly units: ModelUnits;
   private spec: AssetQuantitiesSpec;
 
   constructor(spec: AssetQuantitiesSpec) {
     this.spec = spec;
-    this.defaults = this.buildDefaultQuantities(spec);
     this.units = this.buildModelUnits(spec);
   }
 
-  getDecimals(name: keyof SpecDecimals): number | undefined {
+  get defaults() {
+    return this.spec.defaults;
+  }
+
+  getDecimals(name: keyof DecimalsSpec): number | undefined {
     return this.spec.decimals[name];
   }
 
-  getUnit(name: keyof SpecUnits): Unit {
+  getUnit(name: keyof UnitsSpec): Unit {
     return this.spec.units[name];
-  }
-
-  getDefaultValue<T extends keyof AssetQuantitiesSpec["mappings"]>(
-    assetType: T,
-    name: keyof AssetQuantitiesSpec["mappings"][T],
-  ): number {
-    return (this.spec.mappings[assetType][name] as QuantitySpec).defaultValue;
   }
 
   private buildModelUnits(spec: AssetQuantitiesSpec): ModelUnits {
@@ -187,33 +225,6 @@ export class Quantities {
           name as keyof AssetQuantitiesSpec["mappings"][T]
         ] as QuantitySpec
       ).unit;
-    }
-    return result;
-  }
-
-  private buildDefaultQuantities(spec: AssetQuantitiesSpec): DefaultQuantities {
-    const result = { pipe: {}, junction: {}, reservoir: {} };
-    for (const assetType in spec.mappings) {
-      result[assetType as keyof AssetQuantitiesSpec["mappings"]] =
-        this.mapDefaultQuantities(
-          spec,
-          assetType as keyof AssetQuantitiesSpec["mappings"],
-        );
-    }
-    return result as DefaultQuantities;
-  }
-
-  private mapDefaultQuantities<T extends keyof AssetQuantitiesSpec["mappings"]>(
-    spec: AssetQuantitiesSpec,
-    assetType: T,
-  ): Record<string, number> {
-    const result: Record<string, number> = {};
-    for (const name in spec.mappings[assetType]) {
-      result[name] = (
-        spec.mappings[assetType][
-          name as keyof AssetQuantitiesSpec["mappings"][T]
-        ] as QuantitySpec
-      ).defaultValue;
     }
     return result;
   }
