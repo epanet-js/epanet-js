@@ -15,7 +15,7 @@ export const localizeDecimal = (
   return isAllZero ? "0" : formattedNum;
 };
 
-export const localizeNumber = ({
+const localizeNumber = ({
   number,
   fractionDigits = 0,
 }: {
