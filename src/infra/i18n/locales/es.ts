@@ -3,6 +3,7 @@ import { units as englishUnits } from "./en";
 
 export const translations: Translations = {
   select: "Seleccionar",
+  selection: "Selección",
   junction: "Nudo",
   pipe: "Tubería",
   reservoir: "Embalse",

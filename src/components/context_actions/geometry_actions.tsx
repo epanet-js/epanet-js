@@ -22,6 +22,7 @@ import { useZoomTo } from "src/hooks/use_zoom_to";
 import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -83,7 +84,7 @@ export function GeometryActions({
           selectedWrappedFeatures={selectedWrappedFeatures}
           as={as}
         />
-      ) : (
+      ) : isFeatureOn("FLAG_MULTI_ASSETS") ? null : (
         <DD.Root>
           <Tooltip.Root>
             <ToolbarTrigger aria-label="Operations">

@@ -15,6 +15,8 @@ import { GeometryActions } from "./context_actions/geometry_actions";
 import { MultiActions } from "./context_actions/multi_actions";
 import { ShapeUnite16 } from "./icons";
 import { pluralize } from "src/lib/utils";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { translate } from "src/infra/i18n";
 
 export function ToolbarTrigger({
   children,
@@ -48,9 +50,11 @@ export default function ContextActions() {
   return (
     <div className="flex items-center">
       <div className="h-12 self-stretch flex items-center text-xs pr-2 text-gray-700 dark:text-white">
-        {pluralize("asset", selectedWrappedFeatures.length)} selected
+        {translate("selection")} (
+        {pluralize("asset", selectedWrappedFeatures.length)})
       </div>
-      {selectedWrappedFeatures.length > 1 ? (
+      {selectedWrappedFeatures.length > 1 &&
+      !isFeatureOn("FLAG_MULTI_ASSETS") ? (
         <DD.Root>
           <T.Root>
             <ToolbarTrigger aria-label="Operations">
@@ -73,42 +77,44 @@ export default function ContextActions() {
         selectedWrappedFeatures={selectedWrappedFeatures}
         as="root"
       />
-      <T.Root>
-        <P.Root>
-          <T.Trigger asChild>
-            <div
-              className="h-10 w-10 p-1
+      {!isFeatureOn("FLAG_MULTI_ASSETS") && (
+        <T.Root>
+          <P.Root>
+            <T.Trigger asChild>
+              <div
+                className="h-10 w-10 p-1
                   group bn
                   flex items-stretch justify-center focus:outline-none"
-            >
-              <P.Trigger asChild aria-label="Measurements">
-                <E.Button variant="quiet">
-                  <RulerHorizontalIcon />
-                </E.Button>
-              </P.Trigger>
-            </div>
-          </T.Trigger>
-          <E.TContent side="bottom">
-            <E.StyledTooltipArrow />
-            <div className="whitespace-nowrap">Geometry information</div>
-          </E.TContent>
-          <E.PopoverContent2 size="md">
-            <div className="relative">
-              <P.Close
-                aria-label="Close"
-                className="absolute top-0 right-1 dark:text-white"
               >
-                <Cross1Icon />
-              </P.Close>
-              <div className="pt-4">
-                <FeatureEditorGeometry
-                  wrappedFeatures={selectedWrappedFeatures}
-                />
+                <P.Trigger asChild aria-label="Measurements">
+                  <E.Button variant="quiet">
+                    <RulerHorizontalIcon />
+                  </E.Button>
+                </P.Trigger>
               </div>
-            </div>
-          </E.PopoverContent2>
-        </P.Root>
-      </T.Root>
+            </T.Trigger>
+            <E.TContent side="bottom">
+              <E.StyledTooltipArrow />
+              <div className="whitespace-nowrap">Geometry information</div>
+            </E.TContent>
+            <E.PopoverContent2 size="md">
+              <div className="relative">
+                <P.Close
+                  aria-label="Close"
+                  className="absolute top-0 right-1 dark:text-white"
+                >
+                  <Cross1Icon />
+                </P.Close>
+                <div className="pt-4">
+                  <FeatureEditorGeometry
+                    wrappedFeatures={selectedWrappedFeatures}
+                  />
+                </div>
+              </div>
+            </E.PopoverContent2>
+          </P.Root>
+        </T.Root>
+      )}
     </div>
   );
 }
