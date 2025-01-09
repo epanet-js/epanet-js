@@ -38,10 +38,10 @@ describe("AssetEditor", () => {
       expect(screen.getByText(/pipe/i)).toBeInTheDocument();
 
       expectStatusDisplayed("Open");
-      expectPropertyDisplayed("diameter (mm)", "100");
-      expectPropertyDisplayed("roughness", "1.00");
-      expectPropertyDisplayed("length", "10.00");
-      expectPropertyDisplayed("loss coeff", "0.100");
+      expectPropertyDisplayed("diameter (mm)", "100.1");
+      expectPropertyDisplayed("roughness", "1");
+      expectPropertyDisplayed("length", "10");
+      expectPropertyDisplayed("loss coeff", "0.1");
       expectPropertyDisplayed("flow", "Not available");
     });
 
@@ -57,7 +57,7 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectPropertyDisplayed("flow (l/s)", "20.0");
+      expectPropertyDisplayed("flow (l/s)", "20");
     });
   });
 
@@ -79,7 +79,7 @@ describe("AssetEditor", () => {
 
       expect(screen.getByText(/junction/i)).toBeInTheDocument();
 
-      expectPropertyDisplayed("elevation (m)", "10.0");
+      expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("demand (l/s)", "100");
       expectPropertyDisplayed("pressure (m)", "Not available");
     });
@@ -100,7 +100,7 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectPropertyDisplayed("pressure (m)", "20.0");
+      expectPropertyDisplayed("pressure (m)", "20");
     });
   });
 
@@ -122,7 +122,7 @@ describe("AssetEditor", () => {
 
       expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
 
-      expectPropertyDisplayed("elevation (m)", "10.0");
+      expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("head (m)", "100");
     });
   });
@@ -215,14 +215,14 @@ describe("AssetEditor", () => {
       name: /value for: flow/i,
     });
     await user.click(field);
-    expect(field).toHaveValue("10.0");
+    expect(field).toHaveValue("10");
     expect(field).toHaveAttribute("readonly");
   });
 
   it("clears group formatting when focusing input", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { length: 10000 })
+      .aPipe(pipeId, { length: 10000.2 })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -232,23 +232,23 @@ describe("AssetEditor", () => {
     const field = screen.getByRole("textbox", {
       name: /value for: length/i,
     });
-    expect(field).toHaveValue("10,000.00");
+    expect(field).toHaveValue("10,000.2");
     await user.click(field);
-    expect(field).toHaveValue("10000.00");
+    expect(field).toHaveValue("10000.2");
     await user.clear(field);
-    await user.type(field, "1000");
+    await user.type(field, "1000.4");
     await user.keyboard("{Enter}");
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).length,
-    ).toEqual(1000);
+    ).toEqual(1000.4);
 
     const updatedField = screen.getByRole("textbox", {
       name: /value for: length/i,
     });
     expect(updatedField).not.toHaveFocus();
-    expect(updatedField).toHaveValue("1,000.00");
+    expect(updatedField).toHaveValue("1,000.4");
   });
 
   it("can edit from the keyboard", async () => {
@@ -314,7 +314,7 @@ describe("AssetEditor", () => {
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("10.0");
+      expect(updatedField).toHaveValue("10");
       expect(updatedField).not.toHaveFocus();
     });
 
@@ -368,7 +368,7 @@ describe("AssetEditor", () => {
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("10.0");
+      expect(updatedField).toHaveValue("10");
       expect(updatedField).not.toHaveFocus();
     });
 
@@ -402,7 +402,7 @@ describe("AssetEditor", () => {
       const updatedField = screen.getByRole("textbox", {
         name: /value for: length/i,
       });
-      expect(updatedField).toHaveValue("10.00");
+      expect(updatedField).toHaveValue("10");
       expect(updatedField).not.toHaveFocus();
     });
 
@@ -441,7 +441,7 @@ describe("AssetEditor", () => {
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("10.0");
+      expect(updatedField).toHaveValue("10");
       expect(updatedField).not.toHaveFocus();
 
       await user.clear(updatedField);
@@ -450,7 +450,7 @@ describe("AssetEditor", () => {
       await user.tab();
 
       expect(updatedField).not.toHaveFocus();
-      expect(updatedField).toHaveValue("10.0");
+      expect(updatedField).toHaveValue("10");
     });
   });
 

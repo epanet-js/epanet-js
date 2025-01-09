@@ -1,18 +1,9 @@
-import { MixIcon, TrashIcon, Crosshair1Icon } from "@radix-ui/react-icons";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { TrashIcon, Crosshair1Icon } from "@radix-ui/react-icons";
 import type {
   Action,
   ActionProps,
 } from "src/components/context_actions/action_item";
-import { ToolbarTrigger } from "src/components/context_actions";
-import * as DD from "@radix-ui/react-dropdown-menu";
-import {
-  TContent,
-  StyledTooltipArrow,
-  DDContent,
-  B3Variant,
-} from "src/components/elements";
-import { SingleActions } from "src/components/single_actions";
+import { B3Variant } from "src/components/elements";
 import { usePersistence } from "src/lib/persistence/context";
 import { selectionAtom, dataAtom } from "src/state/jotai";
 import { ActionItem } from "./action_item";
@@ -22,7 +13,6 @@ import { useZoomTo } from "src/hooks/use_zoom_to";
 import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 
 export function useActions(
@@ -80,33 +70,6 @@ export function GeometryActions({
 
   return (
     <>
-      {as === "context-item" ? (
-        isFeatureOn("FLAG_MULTI_ASSETS") ? null : (
-          <SingleActions
-            selectedWrappedFeatures={selectedWrappedFeatures}
-            as={as}
-          />
-        )
-      ) : isFeatureOn("FLAG_MULTI_ASSETS") ? null : (
-        <DD.Root>
-          <Tooltip.Root>
-            <ToolbarTrigger aria-label="Operations">
-              <MixIcon />
-            </ToolbarTrigger>
-            <TContent side="bottom">
-              <StyledTooltipArrow />
-              <div className="whitespace-nowrap">Geometry operations</div>
-            </TContent>
-          </Tooltip.Root>
-          <DDContent align="start">
-            <SingleActions
-              selectedWrappedFeatures={selectedWrappedFeatures}
-              as="dropdown-item"
-            />
-          </DDContent>
-        </DD.Root>
-      )}
-
       {actions
         .filter((action) => action.applicable)
         .map((action, i) => (

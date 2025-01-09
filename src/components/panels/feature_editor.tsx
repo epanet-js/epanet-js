@@ -1,10 +1,8 @@
 import { useAtomValue } from "jotai";
 import { AssetEditor } from "./AssetEditor";
-import FeatureEditorMulti from "./feature_editor/feature_editor_multi";
 import React from "react";
 import { NothingSelected } from "src/components/nothing_selected";
 import { dataAtom, selectedFeaturesAtom } from "src/state/jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
 import MultiAssetEditor from "./MultiAssetEditor";
 
 export default function FeatureEditor() {
@@ -15,14 +13,10 @@ export default function FeatureEditor() {
 
   const content =
     selectedFeatures.length > 1 ? (
-      isFeatureOn("FLAG_MULTI_ASSETS") ? (
-        <MultiAssetEditor
-          selectedFeatures={selectedFeatures}
-          quantitiesMetadata={quantities}
-        />
-      ) : (
-        <FeatureEditorMulti selectedFeatures={selectedFeatures} />
-      )
+      <MultiAssetEditor
+        selectedFeatures={selectedFeatures}
+        quantitiesMetadata={quantities}
+      />
     ) : selectedFeatures.length === 1 ? (
       <AssetEditor
         quantitiesMetadata={quantities}

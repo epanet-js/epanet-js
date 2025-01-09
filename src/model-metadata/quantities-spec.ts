@@ -4,7 +4,6 @@ import { ModelUnits } from "src/hydraulic-model/units";
 import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type QuantitySpec = {
   defaultValue: number;
@@ -30,14 +29,13 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       length: {
         defaultValue: 1000,
         unit: "ft",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? undefined : 2,
       },
       roughness: { defaultValue: 130, unit: null },
       minorLoss: { defaultValue: 0, unit: null },
       flow: {
         defaultValue: 0,
         unit: "gal/min",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+        decimals: 3,
       },
     },
     junction: {
@@ -46,7 +44,7 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       pressure: {
         defaultValue: 0,
         unit: "psi",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+        decimals: 3,
       },
     },
     reservoir: {
@@ -66,14 +64,13 @@ const internationalSpec: AssetQuantitiesSpec = {
       length: {
         defaultValue: 1000,
         unit: "m",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? undefined : 2,
       },
       roughness: { defaultValue: 130, unit: null }, //H-W
       minorLoss: { defaultValue: 0, unit: null },
       flow: {
         defaultValue: 0,
         unit: "l/s",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+        decimals: 3,
       },
     },
     junction: {
@@ -85,7 +82,7 @@ const internationalSpec: AssetQuantitiesSpec = {
       pressure: {
         defaultValue: 0,
         unit: "mwc",
-        decimals: isFeatureOn("FLAG_MULTI_ASSETS") ? 3 : undefined,
+        decimals: 3,
       },
     },
     reservoir: {
