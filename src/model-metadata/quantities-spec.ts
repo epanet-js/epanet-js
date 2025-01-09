@@ -8,7 +8,6 @@ import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 type QuantitySpec = {
   defaultValue: number;
   unit: Unit;
-  decimals?: number;
 };
 export type SpecUnits = Record<
   | "diameter"
@@ -23,11 +22,12 @@ export type SpecUnits = Record<
   | "relativeHead",
   Unit
 >;
-
+type SpecDecimals = Partial<Record<keyof SpecUnits, number>>;
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
   units: SpecUnits;
+  decimals: SpecDecimals;
   mappings: {
     pipe: Record<PipeQuantity, QuantitySpec>;
     junction: Record<JunctionQuantity, QuantitySpec>;
@@ -50,6 +50,10 @@ const USCustomarySpec: AssetQuantitiesSpec = {
     head: "ft",
     relativeHead: "ft",
   },
+  decimals: {
+    flow: 3,
+    pressure: 3,
+  },
   mappings: {
     pipe: {
       diameter: { defaultValue: 12, unit: "in" },
@@ -62,7 +66,6 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       flow: {
         defaultValue: 0,
         unit: "gal/min",
-        decimals: 3,
       },
     },
     junction: {
@@ -71,7 +74,6 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       pressure: {
         defaultValue: 0,
         unit: "psi",
-        decimals: 3,
       },
     },
     reservoir: {
@@ -97,6 +99,10 @@ const internationalSpec: AssetQuantitiesSpec = {
     head: "m",
     relativeHead: "m",
   },
+  decimals: {
+    flow: 3,
+    pressure: 3,
+  },
   mappings: {
     pipe: {
       diameter: { defaultValue: 300, unit: "mm" },
@@ -109,7 +115,6 @@ const internationalSpec: AssetQuantitiesSpec = {
       flow: {
         defaultValue: 0,
         unit: "l/s",
-        decimals: 3,
       },
     },
     junction: {
@@ -121,7 +126,6 @@ const internationalSpec: AssetQuantitiesSpec = {
       pressure: {
         defaultValue: 0,
         unit: "mwc",
-        decimals: 3,
       },
     },
     reservoir: {
@@ -148,11 +152,8 @@ export class Quantities {
     this.units = this.buildModelUnits(spec);
   }
 
-  getDecimals<T extends keyof AssetQuantitiesSpec["mappings"]>(
-    assetType: T,
-    name: keyof AssetQuantitiesSpec["mappings"][T],
-  ): number | undefined {
-    return (this.spec.mappings[assetType][name] as QuantitySpec).decimals;
+  getDecimals(name: keyof SpecDecimals): number | undefined {
+    return this.spec.decimals[name];
   }
 
   getUnit(name: keyof SpecUnits): Unit {

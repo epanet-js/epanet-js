@@ -165,7 +165,7 @@ const PipeEditor = ({
                 positiveOnly={true}
                 isNullable={false}
                 unit={quantitiesMetadata.getUnit("diameter")}
-                decimals={quantitiesMetadata.getDecimals("pipe", "diameter")}
+                decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -175,7 +175,7 @@ const PipeEditor = ({
                 positiveOnly={true}
                 isNullable={false}
                 unit={quantitiesMetadata.getUnit("length")}
-                decimals={quantitiesMetadata.getDecimals("pipe", "length")}
+                decimals={quantitiesMetadata.getDecimals("length")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -184,7 +184,7 @@ const PipeEditor = ({
                 value={pipe.roughness}
                 positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("roughness")}
-                decimals={quantitiesMetadata.getDecimals("pipe", "roughness")}
+                decimals={quantitiesMetadata.getDecimals("roughness")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -193,7 +193,7 @@ const PipeEditor = ({
                 value={pipe.minorLoss}
                 positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("minorLoss")}
-                decimals={quantitiesMetadata.getDecimals("pipe", "minorLoss")}
+                decimals={quantitiesMetadata.getDecimals("minorLoss")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -201,7 +201,7 @@ const PipeEditor = ({
                 position={5}
                 value={pipe.flow}
                 unit={quantitiesMetadata.getUnit("flow")}
-                decimals={quantitiesMetadata.getDecimals("pipe", "flow")}
+                decimals={quantitiesMetadata.getDecimals("flow")}
                 readOnly={true}
               />
             </tbody>
@@ -233,10 +233,7 @@ const JunctionEditor = ({
                 position={0}
                 value={junction.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
-                decimals={quantitiesMetadata.getDecimals(
-                  "junction",
-                  "elevation",
-                )}
+                decimals={quantitiesMetadata.getDecimals("elevation")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -244,7 +241,7 @@ const JunctionEditor = ({
                 position={1}
                 value={junction.demand}
                 unit={quantitiesMetadata.getUnit("demand")}
-                decimals={quantitiesMetadata.getDecimals("junction", "demand")}
+                decimals={quantitiesMetadata.getDecimals("demand")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -252,10 +249,7 @@ const JunctionEditor = ({
                 position={2}
                 value={junction.pressure}
                 unit={quantitiesMetadata.getUnit("pressure")}
-                decimals={quantitiesMetadata.getDecimals(
-                  "junction",
-                  "pressure",
-                )}
+                decimals={quantitiesMetadata.getDecimals("pressure")}
                 readOnly={true}
               />
             </tbody>
@@ -287,10 +281,7 @@ const ReservoirEditor = ({
                 position={0}
                 value={reservoir.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
-                decimals={quantitiesMetadata.getDecimals(
-                  "reservoir",
-                  "elevation",
-                )}
+                decimals={quantitiesMetadata.getDecimals("elevation")}
                 onChange={onPropertyChange}
               />
               <QuantityRow
@@ -298,7 +289,7 @@ const ReservoirEditor = ({
                 position={1}
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("head")}
-                decimals={quantitiesMetadata.getDecimals("reservoir", "head")}
+                decimals={quantitiesMetadata.getDecimals("head")}
                 onChange={onPropertyChange}
               />
             </tbody>
