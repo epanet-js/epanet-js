@@ -40,6 +40,7 @@ import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import { buildFlowsOverlay } from "./overlays/flows";
 import { LinkSegmentsMap } from "./link-segments";
+import { buildVelocitiesOverlay } from "./overlays/velocities";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -450,6 +451,18 @@ const buildAnalysisOverlays = withInstrumentation(
         !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
       analysisLayers.push(
         ...buildFlowsOverlay(
+          assets,
+          segments,
+          analysis.links.rangeColorMapping,
+          visibilityFn,
+        ),
+      );
+    }
+    if (analysis.links.type === "velocities") {
+      const visibilityFn = (pipeId: AssetId) =>
+        !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
+      analysisLayers.push(
+        ...buildVelocitiesOverlay(
           assets,
           segments,
           analysis.links.rangeColorMapping,

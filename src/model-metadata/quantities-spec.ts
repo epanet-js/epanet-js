@@ -29,6 +29,7 @@ export type AssetQuantitiesSpec = {
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
+  analysis: { velocitySteps: number[] };
 };
 
 const USCustomarySpec: AssetQuantitiesSpec = {
@@ -71,6 +72,9 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       head: 0,
       relativeHead: 32,
     },
+  },
+  analysis: {
+    velocitySteps: [0, 2.5, 5, 7.5, 10],
   },
 };
 
@@ -115,6 +119,9 @@ const internationalSpec: AssetQuantitiesSpec = {
       head: 0,
     },
   },
+  analysis: {
+    velocitySteps: [0, 1, 2, 3, 4],
+  },
 };
 
 export const presets = {
@@ -135,6 +142,10 @@ export class Quantities {
 
   get units() {
     return this.spec.units;
+  }
+
+  get analysis() {
+    return this.spec.analysis;
   }
 
   getDecimals(name: keyof DecimalsSpec): number | undefined {
