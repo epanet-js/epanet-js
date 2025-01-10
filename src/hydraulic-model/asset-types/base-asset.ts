@@ -43,6 +43,10 @@ export class BaseAsset<T> {
     this.feature.properties[name as keyof AssetProperties] = value as never;
   }
 
+  getProperty(name: string) {
+    return this.feature.properties[name as keyof AssetProperties];
+  }
+
   hasProperty(name: string): boolean {
     return this.feature.properties[name as keyof AssetProperties] !== undefined;
   }
