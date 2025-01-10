@@ -340,6 +340,7 @@ const StatusRow = ({
           options={options}
           selected={selected}
           onChange={onChange}
+          styleOptions={{ border: false, textSize: "text-xs" }}
         />
       </div>
     </PropertyRow>
