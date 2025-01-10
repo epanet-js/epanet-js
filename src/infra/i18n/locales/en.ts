@@ -51,6 +51,7 @@ export const translations = {
   none: "None",
   nodesAnalysis: "Nodes analysis",
   linksAnalysis: "Links analysis",
+  analysisSettings: "Analysis settings",
   type: "Type",
   delete: "Delete",
   zoomTo: "Zoom to",

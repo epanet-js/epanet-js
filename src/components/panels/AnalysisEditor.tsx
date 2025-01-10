@@ -19,7 +19,7 @@ export const AnalysisEditor = () => {
       <div className="divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
         <div className="p-3 space-y-2">
           <div className="text-sm font-bold dark:text-white">
-            Analysis settings
+            {translate("analysisSettings")}
           </div>
         </div>
         <PanelDetails title={translate("nodesAnalysis")}>
