@@ -39,9 +39,9 @@ const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
 const generateId = () => nanoId();
 
 export type DefaultQuantities = {
-  pipe: Record<PipeQuantity, number>;
-  junction: Record<JunctionQuantity, number>;
-  reservoir: Record<ReservoirQuantity, number>;
+  pipe: Partial<Record<PipeQuantity, number>>;
+  junction: Partial<Record<JunctionQuantity, number>>;
+  reservoir: Partial<Record<ReservoirQuantity, number>>;
 };
 
 export class AssetBuilder {
@@ -134,18 +134,18 @@ export class AssetBuilder {
   private getPipeValue(name: PipeQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return this.defaults.pipe[name];
+    return this.defaults.pipe[name] || 0;
   }
 
   private getJunctionValue(name: JunctionQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return this.defaults.junction[name];
+    return this.defaults.junction[name] || 0;
   }
 
   private getReservoirValue(name: ReservoirQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
-    return this.defaults.reservoir[name];
+    return this.defaults.reservoir[name] || 0;
   }
 }
