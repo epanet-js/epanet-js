@@ -163,10 +163,12 @@ describe("Pipe", () => {
 
     const simulation = {
       getFlow: () => 20,
+      getVelocity: () => 10,
     };
     pipe.setSimulation(simulation);
 
     expect(pipe.flow).toEqual(20);
+    expect(pipe.velocity).toEqual(10);
   });
 
   it("can get its segments", () => {

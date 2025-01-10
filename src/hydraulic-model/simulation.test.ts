@@ -7,6 +7,7 @@ describe("attach simulation", () => {
     const resultsReader: ResultsReader = {
       getPressure: () => 10,
       getFlow: () => 20,
+      getVelocity: () => 5,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
@@ -26,6 +27,7 @@ describe("attach simulation", () => {
     const resultsReader: ResultsReader = {
       getPressure: () => 10,
       getFlow: () => 20,
+      getVelocity: () => 5,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
@@ -44,6 +46,7 @@ describe("attach simulation", () => {
     const resultsReader: ResultsReader = {
       getPressure: () => 10,
       getFlow: () => 20,
+      getVelocity: () => 5,
     };
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {

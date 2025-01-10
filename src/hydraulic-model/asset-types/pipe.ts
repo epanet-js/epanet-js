@@ -23,6 +23,7 @@ export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 
 interface PipeSimulationProvider {
   getFlow: (id: string) => number | null;
+  getVelocity: (id: string) => number | null;
 }
 
 export class Pipe extends Link<PipeProperties> {
@@ -60,6 +61,12 @@ export class Pipe extends Link<PipeProperties> {
     if (!this.simulation) return null;
 
     return this.simulation.getFlow(this.id);
+  }
+
+  get velocity() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getVelocity(this.id);
   }
 
   setSimulation(simulation: PipeSimulationProvider) {

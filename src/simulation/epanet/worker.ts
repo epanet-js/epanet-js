@@ -70,7 +70,8 @@ const readLinkResults = (model: Project) => {
   for (let i = 1; i <= linksCount; i++) {
     const id = model.getLinkId(i);
     const flow = model.getLinkValue(i, LinkProperty.Flow);
-    linkResults.set(id, { flow });
+    const velocity = model.getLinkValue(i, LinkProperty.Velocity);
+    linkResults.set(id, { flow, velocity });
   }
   return linkResults;
 };
