@@ -16,13 +16,18 @@ export type CategoryStats = {
   values: Map<string, number>;
 };
 
-type StatsMap = Map<string, QuantityStats | CategoryStats>;
+export type PropertyStats = QuantityStats | CategoryStats;
+
+type StatsMap = Map<string, PropertyStats>;
+
+const propsToSkip = ["connections"];
 
 export const computePropertyStats = (assets: Asset[]): StatsMap => {
   const statsMap = new Map();
   for (const asset of assets) {
     const properties = asset.listProperties();
     for (const property of properties) {
+      if (propsToSkip.includes(property)) continue;
       const value = asset.getProperty(property) as unknown as number;
       if (typeof value === "string") {
         updateCategoryStats(statsMap, property, value);
