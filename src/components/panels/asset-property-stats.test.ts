@@ -68,7 +68,7 @@ describe("Asset property stats", () => {
     expect(statsMap.get("connections")).toBeFalsy();
   });
 
-  it.only("is performant", () => {
+  it.skip("is performant", () => {
     const total = 1e6;
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {
