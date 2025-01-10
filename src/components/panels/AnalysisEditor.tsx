@@ -90,10 +90,7 @@ export const AnalysisEditor = () => {
                 label: translate(type),
               }),
             )}
-            selected={{
-              label: translate(analysis.nodes.type),
-              value: analysis.nodes.type,
-            }}
+            selected={analysis.nodes.type}
             onChange={handleNodesChange}
           />
         </PanelDetails>
@@ -106,10 +103,7 @@ export const AnalysisEditor = () => {
               value: type,
               label: translate(type),
             }))}
-            selected={{
-              label: translate(analysis.links.type),
-              value: analysis.links.type,
-            }}
+            selected={analysis.links.type}
             onChange={handleLinksChange}
           />
         </PanelDetails>

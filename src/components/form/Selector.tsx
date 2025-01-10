@@ -10,7 +10,7 @@ export const Selector = <T extends string>({
   styleOptions = { border: true, textSize: "text-sm" },
 }: {
   options: { label: string; value: T }[];
-  selected: { label: string; value: T };
+  selected: T;
   onChange: (selected: T) => void;
   ariaLabel?: string;
   styleOptions?: { border: boolean; textSize: "text-xs" | "text-sm" };
@@ -39,7 +39,7 @@ export const Selector = <T extends string>({
   return (
     <div className="relative group-1">
       <Select.Root
-        value={selected.value}
+        value={selected}
         open={isOpen}
         onOpenChange={handleOpenChange}
         onValueChange={onChange}
