@@ -1,43 +1,51 @@
 import { GeoJsonLayer, IconLayer } from "@deck.gl/layers";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
-import { AssetId, AssetsMap, Pipe } from "src/hydraulic-model";
+import { AssetId, AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { IFeature } from "src/types";
 import { slots } from "../slots";
 import { getIconsSprite } from "../icons";
-import { Layer as DeckLayer } from "@deck.gl/core";
 import { LinkSegment, LinkSegmentsMap } from "../link-segments";
 
-export const buildVelocitiesOverlay = (
-  assets: AssetsMap,
-  segments: LinkSegmentsMap,
-  rangeColorMapping: RangeColorMapping,
-  visibilityFn: (assetId: AssetId) => boolean,
-): DeckLayer[] => {
+export const buildArrowsOverlay = ({
+  name,
+  assets,
+  segments,
+  rangeColorMapping,
+  isVisible,
+  getValue,
+}: {
+  name: string;
+  assets: AssetsMap;
+  segments: LinkSegmentsMap;
+  rangeColorMapping: RangeColorMapping;
+  isVisible: (link: AssetId) => boolean;
+  getValue: (link: LinkAsset) => number | null;
+}) => {
   const iconsSprite = getIconsSprite();
-  const pipesWithVelocity = [];
-  const velocityArrows = [];
-  const colorForPipe = new Map();
+  const linkWithData = [];
+  const arrows = [];
+  const colorForLink = new Map();
   for (const asset of assets.values()) {
     if (
-      asset.type !== "pipe" ||
-      (asset as Pipe).velocity === null ||
-      !visibilityFn(asset.id)
+      !asset.isLink ||
+      getValue(asset as LinkAsset) === null ||
+      !isVisible(asset.id)
     )
       continue;
 
-    pipesWithVelocity.push(asset);
-    const velocity = (asset as Pipe).velocity as number;
-    const absVelocity = Math.abs(velocity);
-    colorForPipe.set(asset.id, rangeColorMapping.colorFor(absVelocity));
+    linkWithData.push(asset);
+    const value = getValue(asset as LinkAsset) as number;
+    const absValue = Math.abs(value);
+    colorForLink.set(asset.id, rangeColorMapping.colorFor(absValue));
 
-    const pipeSegments = segments.get(asset.id);
-    if (!pipeSegments) continue;
+    const linkSegments = segments.get(asset.id);
+    if (!linkSegments) continue;
 
-    velocityArrows.push(
-      ...pipeSegments.map((segment: LinkSegment) => ({
+    arrows.push(
+      ...linkSegments.map((segment: LinkSegment) => ({
         position: segment.midpoint,
-        angle: velocity > 0 ? segment.angle : segment.angle180,
-        color: colorForPipe.get(asset.id),
+        angle: value > 0 ? segment.angle : segment.angle180,
+        color: colorForLink.get(asset.id),
         size: chooseSizeFor(segment.lengthInMeters),
       })),
     );
@@ -45,18 +53,18 @@ export const buildVelocitiesOverlay = (
 
   return [
     new GeoJsonLayer({
-      id: "analysis-velocities",
+      id: `analysis-${name}`,
       beforeId: slots["after-lines-slot"],
-      data: pipesWithVelocity as unknown as IFeature[],
+      data: linkWithData as unknown as IFeature[],
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
       getLineWidth: 5,
-      getLineColor: (pipe) => colorForPipe.get(pipe.id),
+      getLineColor: (pipe) => colorForLink.get(pipe.id),
       lineCapRounded: true,
     }),
     new IconLayer({
-      id: "analysis-velocities-icons",
-      data: velocityArrows,
+      id: `analysis-${name}-icons`,
+      data: arrows,
       getSize: (d) => d.size,
       sizeUnits: "meters",
       sizeMinPixels: 0,

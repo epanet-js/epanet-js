@@ -38,9 +38,8 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
-import { buildFlowsOverlay } from "./overlays/flows";
 import { LinkSegmentsMap } from "./link-segments";
-import { buildVelocitiesOverlay } from "./overlays/velocities";
+import { buildArrowsOverlay } from "./overlays/arrows";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -445,29 +444,31 @@ const buildAnalysisOverlays = withInstrumentation(
     selectedAssetIds: Set<AssetId>,
   ): DeckLayer[] => {
     const analysisLayers: DeckLayer[] = [];
+    const visibilityFn = (assetId: AssetId) =>
+      !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
 
     if (analysis.links.type === "flows") {
-      const visibilityFn = (pipeId: AssetId) =>
-        !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
       analysisLayers.push(
-        ...buildFlowsOverlay(
+        ...buildArrowsOverlay({
+          name: "flows",
           assets,
           segments,
-          analysis.links.rangeColorMapping,
-          visibilityFn,
-        ),
+          rangeColorMapping: analysis.links.rangeColorMapping,
+          isVisible: visibilityFn,
+          getValue: (link) => link.flow,
+        }),
       );
     }
     if (analysis.links.type === "velocities") {
-      const visibilityFn = (pipeId: AssetId) =>
-        !movedAssetIds.has(pipeId) && !selectedAssetIds.has(pipeId);
       analysisLayers.push(
-        ...buildVelocitiesOverlay(
+        ...buildArrowsOverlay({
+          name: "velocities",
           assets,
           segments,
-          analysis.links.rangeColorMapping,
-          visibilityFn,
-        ),
+          rangeColorMapping: analysis.links.rangeColorMapping,
+          isVisible: visibilityFn,
+          getValue: (link) => link.velocity,
+        }),
       );
     }
 
@@ -476,8 +477,7 @@ const buildAnalysisOverlays = withInstrumentation(
         ...buildPressuresOverlay(
           assets,
           analysis.nodes.rangeColorMapping,
-          (assetId) =>
-            !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId),
+          visibilityFn,
         ),
       );
     }
