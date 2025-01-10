@@ -9,7 +9,10 @@ import { dataAtom } from "src/state/jotai";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const {
+    hydraulicModel,
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
@@ -85,12 +88,26 @@ export const AnalysisEditor = () => {
                         }),
                       },
                     }));
+                  case "velocities":
+                    return setAnalysis((prev) => ({
+                      ...prev,
+                      links: {
+                        type: "velocities",
+                        rangeColorMapping: RangeColorMapping.build({
+                          steps: quantities.analysis.velocitySteps,
+                          property: "velocity",
+                          unit: hydraulicModel.units.velocity,
+                          paletteName: "epanet-ramp",
+                        }),
+                      },
+                    }));
                 }
               }}
             >
               <option value="none">{translate("none")}</option>
               <optgroup label={translate("simulation")}>
                 <option value="flows">{translate("flows")}</option>
+                <option value="velocities">{translate("velocities")}</option>
               </optgroup>
             </select>
           </div>

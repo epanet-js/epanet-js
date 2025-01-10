@@ -10,5 +10,13 @@ export type FlowsAnalysis = {
   rangeColorMapping: RangeColorMapping;
 };
 
+export type VelocitiesAnalysis = {
+  type: "velocities";
+  rangeColorMapping: RangeColorMapping;
+};
+
 export type NodesAnalysis = { type: "none" } | PressuresAnalysis;
-export type LinksAnalysis = { type: "none" } | FlowsAnalysis;
+export type LinksAnalysis =
+  | { type: "none" }
+  | FlowsAnalysis
+  | VelocitiesAnalysis;
