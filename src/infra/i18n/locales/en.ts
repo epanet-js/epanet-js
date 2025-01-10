@@ -55,6 +55,10 @@ export const translations = {
   type: "Type",
   delete: "Delete",
   zoomTo: "Zoom to",
+  min: "Min",
+  max: "Max",
+  mean: "Mean",
+  sum: "Sum",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

@@ -57,6 +57,10 @@ export const translations: Translations = {
   type: "Tipo",
   delete: "Borrar",
   zoomTo: "Hacer zoom",
+  min: "Mín.",
+  max: "Máx.",
+  mean: "Media",
+  sum: "Suma",
 };
 
 export const units: UnitsLocale = {

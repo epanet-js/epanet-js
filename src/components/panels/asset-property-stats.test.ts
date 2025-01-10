@@ -59,8 +59,17 @@ describe("Asset property stats", () => {
     expect([...statsMap.get("elevation")!.values.keys()]).toEqual([10, 30]);
   });
 
-  it.skip("is performant", () => {
-    const total = 1e5;
+  it("ignores private props", () => {
+    const { assets } = HydraulicModelBuilder.with().aPipe("P1").build();
+    const selection = [...assets.values()];
+
+    const statsMap = computePropertyStats(selection);
+
+    expect(statsMap.get("connections")).toBeFalsy();
+  });
+
+  it.only("is performant", () => {
+    const total = 1e6;
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {
       builder.aJunction(String(i));
