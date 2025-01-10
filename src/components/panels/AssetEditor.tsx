@@ -204,6 +204,14 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("flow")}
                 readOnly={true}
               />
+              <QuantityRow
+                name="velocity"
+                position={6}
+                value={pipe.velocity}
+                unit={quantitiesMetadata.getUnit("velocity")}
+                decimals={quantitiesMetadata.getDecimals("velocity")}
+                readOnly={true}
+              />
             </tbody>
           </table>
         </div>

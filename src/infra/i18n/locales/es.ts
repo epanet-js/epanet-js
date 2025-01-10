@@ -45,6 +45,8 @@ export const translations: Translations = {
   notAvailable: "No disponible",
   flow: "Caudal",
   flows: "Caudales",
+  velocity: "Velocidad",
+  velocities: "Velocidades",
   asset: "Activo",
   assets: "Activos",
   analysis: "Análisis",

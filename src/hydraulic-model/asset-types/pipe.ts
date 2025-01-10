@@ -17,7 +17,8 @@ export type PipeQuantity =
   | "roughness"
   | "length"
   | "minorLoss"
-  | "flow";
+  | "flow"
+  | "velocity";
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 
