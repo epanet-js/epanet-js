@@ -9,6 +9,7 @@ export type UnitsSpec = Record<
   | "roughness"
   | "minorLoss"
   | "flow"
+  | "velocity"
   | "elevation"
   | "demand"
   | "pressure"
@@ -39,6 +40,7 @@ const USCustomarySpec: AssetQuantitiesSpec = {
     roughness: null,
     minorLoss: null,
     flow: "gal/min",
+    velocity: "ft/s",
     elevation: "ft",
     demand: "gal/min",
     pressure: "psi",
@@ -48,6 +50,7 @@ const USCustomarySpec: AssetQuantitiesSpec = {
   decimals: {
     flow: 3,
     pressure: 3,
+    velocity: 3,
   },
   defaults: {
     pipe: {
@@ -56,6 +59,7 @@ const USCustomarySpec: AssetQuantitiesSpec = {
       roughness: 130,
       minorLoss: 0,
       flow: 0,
+      velocity: 0,
     },
     junction: {
       elevation: 0,
@@ -79,6 +83,7 @@ const internationalSpec: AssetQuantitiesSpec = {
     roughness: null,
     minorLoss: null,
     flow: "l/s",
+    velocity: "m/s",
     elevation: "m",
     demand: "l/s",
     pressure: "mwc",
@@ -88,6 +93,7 @@ const internationalSpec: AssetQuantitiesSpec = {
   decimals: {
     flow: 3,
     pressure: 3,
+    velocity: 3,
   },
   defaults: {
     pipe: {
@@ -96,6 +102,7 @@ const internationalSpec: AssetQuantitiesSpec = {
       roughness: 130,
       minorLoss: 0,
       flow: 0,
+      velocity: 0,
     },
     junction: {
       elevation: 0,

@@ -11,6 +11,8 @@ export type Unit =
   | "gal/min"
   | "mwc"
   | "psi"
+  | "m/s"
+  | "ft/s"
   | null;
 
 export type Quantity = {

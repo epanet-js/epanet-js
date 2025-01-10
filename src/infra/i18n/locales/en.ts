@@ -43,6 +43,8 @@ export const translations = {
   pressures: "Pressures",
   flow: "Flow",
   flows: "Flows",
+  velocity: "Velocity",
+  velocities: "Velocities",
   asset: "Asset",
   assets: "Assets",
   analysis: "Analysis",
@@ -65,4 +67,6 @@ export const units: Record<Exclude<Unit, null>, string> = {
   "gal/min": "gpm",
   psi: "psi",
   mwc: "m",
+  "m/s": "m/s",
+  "ft/s": "ft/s",
 };

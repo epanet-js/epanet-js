@@ -48,7 +48,7 @@ describe("AssetEditor", () => {
     it("can show simulation results", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { simulation: { flow: 20 } })
+        .aPipe(pipeId, { simulation: { flow: 20.1234, velocity: 10.1234 } })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -57,7 +57,8 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectPropertyDisplayed("flow (l/s)", "20");
+      expectPropertyDisplayed("flow (l/s)", "20.123");
+      expectPropertyDisplayed("velocity (m/s)", "10.123");
     });
   });
 
