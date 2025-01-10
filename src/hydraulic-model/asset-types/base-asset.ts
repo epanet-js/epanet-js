@@ -47,6 +47,10 @@ export class BaseAsset<T> {
     return this.feature.properties[name as keyof AssetProperties];
   }
 
+  listProperties() {
+    return Object.keys(this.feature.properties);
+  }
+
   hasProperty(name: string): boolean {
     return this.feature.properties[name as keyof AssetProperties] !== undefined;
   }
