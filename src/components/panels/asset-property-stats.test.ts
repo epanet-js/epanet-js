@@ -58,4 +58,21 @@ describe("Asset property stats", () => {
     expect((statsMap.get("demand") as QuantityStats).values.get(20)).toEqual(1);
     expect([...statsMap.get("elevation")!.values.keys()]).toEqual([10, 30]);
   });
+
+  it.skip("is performant", () => {
+    const total = 1e5;
+    const builder = HydraulicModelBuilder.with();
+    for (let i = 0; i < total; i++) {
+      builder.aJunction(String(i));
+    }
+    const { assets } = builder.build();
+
+    const start = performance.now();
+
+    computePropertyStats([...assets.values()]);
+    // eslint-disable-next-line no-console
+    console.log(
+      `Time spent to compute stats: ${(performance.now() - start).toFixed(2)}ms`,
+    );
+  });
 });
