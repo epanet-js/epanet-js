@@ -6,7 +6,6 @@ import type { JsonValue } from "type-fest";
 import * as P from "@radix-ui/react-popover";
 import { PropertyRowKey, PropertyRowKeyReadonly } from "./property_row/key";
 import { PropertyRowValue } from "./property_row/value";
-import { MultiValueEditor as MultiValueEditorDeprecated } from "src/components/shared/multi_value_editor";
 
 export type OnChangeValue = (key: string, value: JsonValue) => void;
 export type OnDeleteKey = (key: string) => void;
@@ -27,59 +26,6 @@ export interface PropertyRowPropsDeprecated {
   onDeleteKey: OnDeleteKey;
   onCast: OnCast;
   y: number;
-}
-
-export function PropertyRowMulti({
-  pair,
-  onChangeValue,
-  onChangeKey,
-  onDeleteKey,
-  onCast,
-  even,
-  y,
-}: Omit<PropertyRowPropsDeprecated, "pair"> & {
-  pair: MultiPair;
-}) {
-  const [key, values] = pair;
-  const hasMulti = values.size > 1;
-  const { value } = values.keys().next();
-
-  return (
-    <P.Root>
-      <tr className={`${even ? "" : "bg-gray-100 dark:bg-gray-700"} group`}>
-        <td className={`border-r border-b border-t ${styledTd}`}>
-          <PropertyRowKey pair={pair} onChangeKey={onChangeKey} x={0} y={y} />
-        </td>
-
-        <td className={`border-l border-b border-t ${styledTd}`}>
-          {hasMulti ? (
-            <MultiValueEditorDeprecated
-              x={1}
-              y={y}
-              pair={pair}
-              onAccept={(newValue) => {
-                if (newValue === undefined) {
-                  onDeleteKey(key);
-                } else {
-                  onChangeValue(key, newValue);
-                }
-              }}
-            />
-          ) : (
-            <PropertyRowValue
-              x={1}
-              y={y}
-              pair={[key, value]}
-              onChangeValue={onChangeValue}
-              even={even}
-              onDeleteKey={onDeleteKey}
-              onCast={onCast}
-            />
-          )}
-        </td>
-      </tr>
-    </P.Root>
-  );
 }
 
 type PropertyRowProps = {
