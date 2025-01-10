@@ -322,14 +322,12 @@ const StatusRow = ({
 }) => {
   const label = translate(name);
 
-  const { selected, options } = useMemo(() => {
+  const options = useMemo(() => {
     const options = availableStatuses.map((status) => ({
       label: translate(status),
       value: status,
     })) as { label: string; value: AssetStatus }[];
-    const selected =
-      options.find((option) => option.value === status) || options[0];
-    return { options, selected };
+    return options;
   }, [status, availableStatuses]);
 
   return (
@@ -338,7 +336,7 @@ const StatusRow = ({
         <Selector
           ariaLabel={"Value for: Status"}
           options={options}
-          selected={selected}
+          selected={status}
           onChange={onChange}
           styleOptions={{ border: false, textSize: "text-xs" }}
         />
