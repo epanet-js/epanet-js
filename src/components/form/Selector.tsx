@@ -1,17 +1,19 @@
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
-import { KeyboardEventHandler, useState } from "react";
+import { KeyboardEventHandler, useMemo, useState } from "react";
 
 export const Selector = <T extends string>({
   options,
   selected,
   onChange,
   ariaLabel,
+  styleOptions = { border: true, textSize: "text-sm" },
 }: {
   options: { label: string; value: T }[];
   selected: { label: string; value: T };
   onChange: (selected: T) => void;
   ariaLabel?: string;
+  styleOptions?: { border: boolean; textSize: "text-xs" | "text-sm" };
 }) => {
   const [isOpen, setOpen] = useState(false);
 
@@ -26,6 +28,14 @@ export const Selector = <T extends string>({
     }
   };
 
+  const triggerStyles = useMemo(() => {
+    return `flex items-center ${styleOptions.border ? "border" : ""} ${styleOptions.textSize} text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10`;
+  }, [styleOptions]);
+
+  const contentStyles = useMemo(() => {
+    return `bg-white w-full border ${styleOptions.textSize} rounded-md shadow-md`;
+  }, [styleOptions]);
+
   return (
     <div className="relative group-1">
       <Select.Root
@@ -37,7 +47,7 @@ export const Selector = <T extends string>({
         <Select.Trigger
           aria-label={ariaLabel}
           tabIndex={1}
-          className="flex items-center text-xs text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"
+          className={triggerStyles}
         >
           <Select.Value />
           <Select.Icon className="px-1">
@@ -49,7 +59,7 @@ export const Selector = <T extends string>({
           <Select.Content
             onKeyDown={handleKeyDown}
             onCloseAutoFocus={(e) => e.preventDefault()}
-            className="bg-white w-full border text-xs rounded-md shadow-md"
+            className={contentStyles}
           >
             <Select.Viewport className="p-1">
               {options.map((option, i) => (

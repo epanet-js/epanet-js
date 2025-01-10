@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./AnalysisEditor";
@@ -7,96 +7,23 @@ import { analysisAtom } from "src/state/analysis";
 import { FlowsAnalysis, PressuresAnalysis } from "src/analysis";
 
 describe("Analysis Editor", () => {
-  it("can change the analysis for nodes", async () => {
+  it("displays nodes analysis options", async () => {
     const store = getDefaultStore();
     renderComponent(store);
 
-    expect(screen.getByText("Nodes analysis")).toBeInTheDocument();
-    expect(
-      isSelected(
-        within(getNodesAnalysisSelector()).getByRole("option", {
-          name: "None",
-        }),
-      ),
-    ).toBeTruthy();
-
-    await userEvent.selectOptions(
-      getNodesAnalysisSelector(),
-      within(getNodesAnalysisSelector()).getByRole("option", {
-        name: "Pressures",
-      }),
+    expect(screen.getByRole("combobox", { name: /nodes/i })).toHaveTextContent(
+      "None",
     );
-    expect(
-      isSelected(
-        within(getNodesAnalysisSelector()).getByRole("option", {
-          name: "Pressures",
-        }),
-      ),
-    ).toBeTruthy();
-
-    await userEvent.selectOptions(
-      getNodesAnalysisSelector(),
-      within(getNodesAnalysisSelector()).getByRole("option", { name: "None" }),
-    );
-
-    expect(
-      isSelected(
-        within(getNodesAnalysisSelector()).getByRole("option", {
-          name: "None",
-        }),
-      ),
-    ).toBeTruthy();
-
-    expect(document.activeElement).not.toBe(getNodesAnalysisSelector());
+    await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
+    expect(screen.getByText("Pressures")).toBeInTheDocument();
   });
 
-  it("can change the analysis for links", async () => {
+  it("can change nodes analysis", async () => {
     const store = getDefaultStore();
     renderComponent(store);
 
-    expect(screen.getByText("Links analysis")).toBeInTheDocument();
-    expect(
-      isSelected(
-        within(getLinksAnalysisSelector()).getByRole("option", {
-          name: "None",
-        }),
-      ),
-    ).toBeTruthy();
-
-    await userEvent.selectOptions(
-      getLinksAnalysisSelector(),
-      within(getLinksAnalysisSelector()).getByRole("option", { name: "Flows" }),
-    );
-    expect(
-      isSelected(screen.getByRole("option", { name: "Flows" })),
-    ).toBeTruthy();
-
-    await userEvent.selectOptions(
-      getLinksAnalysisSelector(),
-      within(getLinksAnalysisSelector()).getByRole("option", { name: "None" }),
-    );
-
-    expect(
-      isSelected(
-        within(getLinksAnalysisSelector()).getByRole("option", {
-          name: "None",
-        }),
-      ),
-    ).toBeTruthy();
-
-    expect(document.activeElement).not.toBe(getLinksAnalysisSelector());
-  });
-
-  it("applies a default symbolizaton when choosing pressures", async () => {
-    const store = getDefaultStore();
-    renderComponent(store);
-
-    await userEvent.selectOptions(
-      getNodesAnalysisSelector(),
-      within(getNodesAnalysisSelector()).getByRole("option", {
-        name: "Pressures",
-      }),
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
+    await userEvent.click(screen.getByText("Pressures"));
 
     const { nodes } = store.get(analysisAtom);
     const nodesAnalysis = nodes as PressuresAnalysis;
@@ -110,16 +37,24 @@ describe("Analysis Editor", () => {
     );
   });
 
-  it("applies a default symbolizaton when choosing flows", async () => {
+  it("displays link analysis options", async () => {
     const store = getDefaultStore();
     renderComponent(store);
 
-    await userEvent.selectOptions(
-      getLinksAnalysisSelector(),
-      within(getLinksAnalysisSelector()).getByRole("option", {
-        name: "Flows",
-      }),
+    expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
+      "None",
     );
+    await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
+    expect(screen.getByText("Flows")).toBeInTheDocument();
+    expect(screen.getByText("Velocities")).toBeInTheDocument();
+  });
+
+  it("can change link analysis", async () => {
+    const store = getDefaultStore();
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
+    await userEvent.click(screen.getByText(/flows/i));
 
     const { links } = store.get(analysisAtom);
     const linksAnalysis = links as FlowsAnalysis;
@@ -131,17 +66,11 @@ describe("Analysis Editor", () => {
         property: "flow",
       }),
     );
+
+    expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
+      "Flows",
+    );
   });
-
-  const getNodesAnalysisSelector = () =>
-    screen.getByRole("combobox", {
-      name: /nodes/i,
-    });
-
-  const getLinksAnalysisSelector = () =>
-    screen.getByRole("combobox", {
-      name: /links/i,
-    });
 
   const renderComponent = (store: Store) => {
     return render(
@@ -151,7 +80,3 @@ describe("Analysis Editor", () => {
     );
   };
 });
-
-const isSelected = (element: HTMLElement): boolean => {
-  return (element as HTMLOptionElement).selected;
-};

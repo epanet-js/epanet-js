@@ -12,9 +12,6 @@ import FeatureEditor from "./feature_editor";
 import { useMapKeybindings } from "src/hooks/use_map_keybindings";
 import Mousetrap from "mousetrap";
 
-window.HTMLElement.prototype.hasPointerCapture = vi.fn();
-window.HTMLElement.prototype.scrollIntoView = vi.fn();
-
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
     it("can show its properties", () => {

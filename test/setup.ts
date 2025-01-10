@@ -179,6 +179,9 @@ if (
     unobserve() {}
   };
 
+  window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
   window.File.prototype.text = function () {
     const reader = new FileReader();
 
