@@ -328,7 +328,7 @@ const StatusRow = ({
       value: status,
     })) as { label: string; value: AssetStatus }[];
     return options;
-  }, [status, availableStatuses]);
+  }, [availableStatuses]);
 
   return (
     <PropertyRow label={label} y={position} even={position % 2 === 0}>
