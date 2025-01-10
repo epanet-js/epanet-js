@@ -74,6 +74,7 @@ describe("epanet simulation", () => {
       expect(results.getPressure("j1")).toBeCloseTo(10);
       expect(results.getPressure("r1")).toBeCloseTo(0);
       expect(results.getFlow("p1")).toBeCloseTo(1);
+      expect(results.getVelocity("p1")).toBeCloseTo(0.014);
     });
 
     it("provides null values when failed", async () => {

@@ -102,7 +102,7 @@ export class HydraulicModelBuilder {
     id: string,
     data: Partial<
       PipeBuildData & { startNodeId: string; endNodeId: string } & {
-        simulation: Partial<{ flow: number }>;
+        simulation: Partial<{ flow: number; velocity: number }>;
       }
     > = {},
   ) {
@@ -118,7 +118,10 @@ export class HydraulicModelBuilder {
     });
     this.assets.set(pipe.id, pipe);
     if (simulation) {
-      pipe.setSimulation({ getFlow: () => simulation.flow || 10 });
+      pipe.setSimulation({
+        getFlow: () => simulation.flow || 10,
+        getVelocity: () => simulation.velocity || 10,
+      });
     }
     this.topology.addLink(id, startNode.id, endNode.id);
 
