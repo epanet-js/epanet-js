@@ -6,7 +6,7 @@ export const localizeDecimal = (
   num: number,
   {
     locale = getLocale(),
-    decimals,
+    decimals = defaultDecimals,
     minScientificThreshold = 1e-3,
     maxScientificThreshold = 1e7,
     scientificDecimals = 3,
@@ -27,7 +27,6 @@ export const localizeDecimal = (
   let formattedNum: string;
   const absValue = Math.abs(num);
   if (
-    decimals === undefined &&
     scientific &&
     (absValue < minScientificThreshold || absValue > maxScientificThreshold)
   ) {
@@ -36,10 +35,8 @@ export const localizeDecimal = (
       .toLocaleString()
       .replace(".", symbols[locale].decimals);
   } else {
-    const roundingDecimals =
-      decimals !== undefined ? decimals : defaultDecimals;
-    const roundedNum = roundToDecimal(num, roundingDecimals);
-    const value = handleNegativeZero(roundedNum, roundingDecimals);
+    const roundedNum = roundToDecimal(num, decimals);
+    const value = handleNegativeZero(roundedNum, decimals);
     formattedNum = value.toLocaleString(locale, options);
   }
 

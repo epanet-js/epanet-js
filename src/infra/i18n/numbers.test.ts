@@ -47,8 +47,8 @@ describe("localize decimal", () => {
 
   it("switches to scientific notation when number too large", () => {
     expect(localizeDecimal(12345.67)).toEqual("12,345.67");
-    expect(localizeDecimal(123456789.12)).toEqual("1.235e+8");
-    expect(localizeDecimal(123456789.12, { locale: "es" })).toEqual("1,235e+8");
+    expect(localizeDecimal(1234567.89)).toEqual("1.235e+6");
+    expect(localizeDecimal(1234567.89, { locale: "es" })).toEqual("1,235e+6");
   });
 
   it("allows to force no scientific notation", () => {
