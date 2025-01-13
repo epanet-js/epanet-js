@@ -1,6 +1,6 @@
 import { CoordProps, IWrappedFeature } from "src/types";
 import { MultiPair, extractMultiProperties } from "src/lib/multi_properties";
-import { KeyboardEventHandler, useCallback, useRef, useState } from "react";
+import { KeyboardEventHandler, useRef, useState } from "react";
 import sortBy from "lodash/sortBy";
 import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
@@ -296,49 +296,34 @@ const QuantityStatsFields = ({
 }: {
   quantityStats: QuantityStats;
 }) => {
-  const buildField = useCallback((name: string, value: number) => {
-    const label = translate(name);
-    const formattedNumber =
-      name === "mean" || name === "sum"
-        ? localizeDecimal(value, { decimals: 3 })
-        : localizeDecimal(value);
-    const extendedNumber =
-      name === "mean" || name === "sum"
-        ? localizeDecimal(value, {
-            maxScientificThreshold: 1e12,
-            scientificDecimals: 9,
-            decimals: 9,
-          })
-        : formattedNumber;
-    return (
-      <div
-        key={name}
-        className="flex flex-col items-space-betweenjustify-center"
-      >
-        <span
-          role="textbox"
-          aria-label={`Key: ${label}`}
-          className="pb-1 text-xs text-gray-500 font-bold"
-        >
-          {translate(name)}
-        </span>
-        <span
-          role="textbox"
-          title={extendedNumber}
-          aria-label={`Value for: ${label}`}
-          className="text-xs font-mono px-2 py-2 bg-gray-100"
-        >
-          {formattedNumber}
-        </span>
-      </div>
-    );
-  }, []);
-
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-4 pb-4">
-      {["min", "max", "mean", "sum"].map((name) =>
-        buildField(name, quantityStats[name as keyof QuantityStats] as number),
-      )}
+      {["min", "max", "mean", "sum"].map((stat, i) => (
+        <div
+          key={i}
+          className="flex flex-col items-space-betweenjustify-center"
+        >
+          <span
+            role="textbox"
+            aria-label={`Key: ${translate(stat)}`}
+            className="pb-1 text-xs text-gray-500 font-bold"
+          >
+            {translate(stat)}
+          </span>
+          <span
+            role="textbox"
+            aria-label={`Value for: ${translate(stat)}`}
+            className="text-xs font-mono px-2 py-2 bg-gray-100"
+          >
+            {localizeDecimal(
+              quantityStats[stat as keyof QuantityStats] as number,
+              {
+                decimals: stat == "mean" || stat == "sum" ? 3 : undefined,
+              },
+            )}
+          </span>
+        </div>
+      ))}
     </div>
   );
 };
@@ -488,7 +473,7 @@ function ValueList({ pair }: { pair: MultiPair }) {
                   {formatValue(value)}
                 </div>
                 <div className="text-xs font-mono" title={translate("assets")}>
-                  ({formatValue(times)})
+                  ({times})
                 </div>
               </button>
             );
