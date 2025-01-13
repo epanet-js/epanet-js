@@ -5,6 +5,12 @@ export const locales = {
   en: en,
   es: es,
 };
+
+export const symbols = {
+  es: { decimals: ",", groups: "." },
+  en: { decimals: ".", groups: "," },
+};
+
 export type Locale = keyof typeof locales;
 
 const codes = Object.keys(locales) as Locale[];

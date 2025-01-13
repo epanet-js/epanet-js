@@ -1,63 +1,41 @@
-import { Locale, getLocale } from "./locale";
+import { Locale, getLocale, symbols } from "./locale";
 
-const maxDecimals = 9;
+const maxDecimals = 6;
+const scientificThresholds = {
+  min: 1e-3,
+  max: 1e6,
+};
 
 export const localizeDecimal = (
   num: number,
   {
     locale = getLocale(),
     decimals = maxDecimals,
-  }: { locale?: Locale; decimals?: number } = {},
+    scientific = true,
+  }: { locale?: Locale; decimals?: number; scientific?: boolean } = {},
 ): string => {
-  const roundedNum = roundToDecimal(num, decimals);
-
   const options: Intl.NumberFormatOptions = {};
   options["maximumFractionDigits"] = maxDecimals;
   options["minimumFractionDigits"] = 0;
-  const value = handleNegativeZero(roundedNum, decimals);
 
-  const formattedNum = value.toLocaleString(locale, options);
-
-  const isAllZero = formattedNum.match(/\d/g)?.every((digit) => digit === "0");
-  return isAllZero ? "0" : formattedNum;
-};
-
-export const localizeDecimalDeprecated = (
-  num: number,
-  fractionDigits?: number,
-): string => {
-  if (fractionDigits === undefined) {
-    fractionDigits = determineDecimalPlaces(num);
+  let formattedNum: string;
+  const absValue = Math.abs(num);
+  if (
+    scientific &&
+    (absValue < scientificThresholds.min || absValue > scientificThresholds.max)
+  ) {
+    formattedNum = num
+      .toExponential(3)
+      .toLocaleString()
+      .replace(".", symbols[locale].decimals);
+  } else {
+    const roundedNum = roundToDecimal(num, decimals);
+    const value = handleNegativeZero(roundedNum, decimals);
+    formattedNum = value.toLocaleString(locale, options);
   }
 
-  const roundedNum = roundToDecimal(num, fractionDigits);
-  const formattedNum = localizeNumberDeprecated({
-    number: roundedNum,
-    fractionDigits,
-  });
   const isAllZero = formattedNum.match(/\d/g)?.every((digit) => digit === "0");
   return isAllZero ? "0" : formattedNum;
-};
-
-const localizeNumberDeprecated = ({
-  number,
-  fractionDigits = 0,
-}: {
-  number: number;
-  fractionDigits?: number;
-}): string => {
-  if (number === undefined) return "";
-  const options: Intl.NumberFormatOptions = {};
-  options["maximumFractionDigits"] = fractionDigits;
-  options["minimumFractionDigits"] = fractionDigits;
-  const value = handleNegativeZero(number, fractionDigits);
-
-  const localizedNumber = value.toLocaleString(
-    window.navigator.language,
-    options,
-  );
-
-  return localizedNumber;
 };
 
 const roundToDecimal = (num: number, decimalPlaces?: number): number => {
