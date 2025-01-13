@@ -306,11 +306,11 @@ const QuantityStatsFields = ({
           <span className="pb-1 text-xs text-gray-500 font-bold">
             {translate(stat)}
           </span>
-          <span className="text-xs font-mono p-2 bg-gray-100">
+          <span className="text-xs font-mono px-2 py-2 bg-gray-100">
             {localizeDecimal(
               quantityStats[stat as keyof QuantityStats] as number,
               {
-                decimals: stat == "mean" ? 6 : undefined,
+                decimals: stat == "mean" || stat == "sum" ? 3 : undefined,
               },
             )}
           </span>
@@ -403,7 +403,7 @@ type MultiValuePropsDeprecated = CoordProps & {
   onAccept: (arg0: JsonValue | undefined) => void;
 };
 
-const itemSize = 28;
+const itemSize = 32;
 
 function ValueList({ pair }: { pair: MultiPair }) {
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -447,7 +447,7 @@ function ValueList({ pair }: { pair: MultiPair }) {
               <button
                 type="button"
                 key={virtualRow.index}
-                className={`top-0 left-0 block text-left w-full absolute py-1 px-2 flex items-center
+                className={`top-0 left-0 block text-left w-full absolute py-2 px-2 flex items-center
                 hover:bg-gray-200 dark:hover:bg-gray-700
                 gap-x-2 cursor-default ${isEven ? "bg-gray-100" : ""} `}
                 style={{
