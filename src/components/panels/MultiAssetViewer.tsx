@@ -303,10 +303,18 @@ const QuantityStatsFields = ({
           key={i}
           className="flex flex-col items-space-betweenjustify-center"
         >
-          <span className="pb-1 text-xs text-gray-500 font-bold">
+          <span
+            role="textbox"
+            aria-label={`Key: ${translate(stat)}`}
+            className="pb-1 text-xs text-gray-500 font-bold"
+          >
             {translate(stat)}
           </span>
-          <span className="text-xs font-mono px-2 py-2 bg-gray-100">
+          <span
+            role="textbox"
+            aria-label={`Value for: ${translate(stat)}`}
+            className="text-xs font-mono px-2 py-2 bg-gray-100"
+          >
             {localizeDecimal(
               quantityStats[stat as keyof QuantityStats] as number,
               {
@@ -405,6 +413,8 @@ type MultiValuePropsDeprecated = CoordProps & {
 
 const itemSize = 32;
 
+const testSize = { width: 400, height: 400 };
+
 function ValueList({ pair }: { pair: MultiPair }) {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -414,6 +424,8 @@ function ValueList({ pair }: { pair: MultiPair }) {
     count: values.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => itemSize,
+    overscan: 5,
+    initialRect: testSize,
   });
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
@@ -447,6 +459,8 @@ function ValueList({ pair }: { pair: MultiPair }) {
               <button
                 type="button"
                 key={virtualRow.index}
+                role="button"
+                aria-label={`Value row: ${value as number}`}
                 className={`top-0 left-0 block text-left w-full absolute py-2 px-2 flex items-center
                 hover:bg-gray-200 dark:hover:bg-gray-700
                 gap-x-2 cursor-default ${isEven ? "bg-gray-100" : ""} `}
