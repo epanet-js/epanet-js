@@ -8,6 +8,7 @@ export type QuantityStats = {
   min: number;
   mean: number;
   values: Map<number, number>;
+  times: number;
 };
 
 export type CategoryStats = {
@@ -54,6 +55,7 @@ const updateQuantityStats = (
       max: -Infinity,
       mean: 0,
       values: new Map(),
+      times: 0,
     });
   }
 
@@ -63,10 +65,11 @@ const updateQuantityStats = (
   if (value > propertyStats.max) propertyStats.max = value;
 
   propertyStats.sum += value;
+  propertyStats.times += 1;
 
   propertyStats.values.set(value, (propertyStats.values.get(value) || 0) + 1);
 
-  propertyStats.mean = propertyStats.sum / propertyStats.values.size;
+  propertyStats.mean = propertyStats.sum / propertyStats.times;
 };
 
 const updateCategoryStats = (
