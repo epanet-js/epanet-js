@@ -1,5 +1,5 @@
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AssetId, HydraulicModel } from "src/hydraulic-model";
 import { UIDMap } from "src/lib/id_mapper";
@@ -42,10 +42,11 @@ describe("Multi asset viewer", () => {
       })
       .aPipe("P2", { length: 20 })
       .aPipe("P3", { length: 30 })
+      .aPipe("P4", { length: 30 })
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetIds: ["P1", "P2", "P3"],
+      selectedAssetIds: ["P1", "P2", "P3", "P4"],
     });
     const user = userEvent.setup();
 
@@ -55,7 +56,20 @@ describe("Multi asset viewer", () => {
 
     await user.click(screen.getByText(/3 values/i));
 
-    expect(screen.getByText(/Mean/i)).toBeInTheDocument();
+    expectStatDisplayed("Min", "10");
+    expectStatDisplayed("Max", "30");
+    expectStatDisplayed("Mean", "22.5");
+    expectStatDisplayed("Sum", "90");
+
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText(/Values/)).toBeInTheDocument();
+    expect(
+      dialog.getByRole("button", { name: "Value row: 30" }),
+    ).toHaveTextContent(/\(2\)/);
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   const setInitialState = ({
@@ -111,6 +125,20 @@ describe("Multi asset viewer", () => {
     expect(
       screen.getByRole("button", {
         name: new RegExp(`values for: ${escapedName}`, "i"),
+      }),
+    ).toHaveTextContent(value);
+  };
+
+  const expectStatDisplayed = (name: string, value: string) => {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`key: ${escapedName}`, "i"),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`value for\: ${escapedName}`, "i"),
       }),
     ).toHaveTextContent(value);
   };

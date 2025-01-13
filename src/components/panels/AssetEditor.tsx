@@ -412,7 +412,7 @@ export function PropertyTableHead() {
   );
 }
 
-const NumericField = ({
+export const NumericField = ({
   label,
   displayValue,
   onChangeValue,
@@ -422,7 +422,7 @@ const NumericField = ({
 }: {
   label: string;
   displayValue: string;
-  onChangeValue: (newValue: number) => void;
+  onChangeValue?: (newValue: number) => void;
   isNullable?: boolean;
   positiveOnly?: boolean;
   readOnly?: boolean;
@@ -470,7 +470,7 @@ const NumericField = ({
   const handleCommitLastChange = () => {
     const numericValue = parseLocaleNumber(inputValue);
     setInputValue(String(numericValue));
-    onChangeValue(numericValue);
+    onChangeValue && onChangeValue(numericValue);
 
     setDirty(false);
     setError(false);
