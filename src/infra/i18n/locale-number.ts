@@ -1,9 +1,4 @@
-import { Locale, getLocale } from "./locale";
-
-const symbols = {
-  es: { decimals: ",", groups: "." },
-  en: { decimals: ".", groups: "," },
-};
+import { Locale, getLocale, symbols } from "./locale";
 
 export const parseLocaleNumber = (
   numberString: string,
