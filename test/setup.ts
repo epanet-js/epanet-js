@@ -181,6 +181,13 @@ if (
 
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  const resizeObserverMock = vi.fn(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+
+  global.ResizeObserver = resizeObserverMock;
 
   window.File.prototype.text = function () {
     const reader = new FileReader();
