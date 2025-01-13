@@ -1,3 +1,4 @@
+import { isFeatureOn } from "../feature-flags";
 import { Locale, getLocale, symbols } from "./locale";
 
 const maxDecimals = 6;
@@ -21,6 +22,7 @@ export const localizeDecimal = (
   let formattedNum: string;
   const absValue = Math.abs(num);
   if (
+    isFeatureOn("FLAG_STATS") &&
     scientific &&
     (absValue < scientificThresholds.min || absValue > scientificThresholds.max)
   ) {
