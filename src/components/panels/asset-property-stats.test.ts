@@ -23,7 +23,7 @@ describe("Asset property stats", () => {
     expect(propertyStats.sum).toEqual(80);
     expect(propertyStats.min).toEqual(10);
     expect(propertyStats.max).toEqual(30);
-    expect(propertyStats.mean).toBeCloseTo(26.666);
+    expect(propertyStats.mean).toBeCloseTo(20);
     expect(propertyStats.values.get(10)).toEqual(1);
     expect(propertyStats.values.get(20)).toEqual(2);
   });
