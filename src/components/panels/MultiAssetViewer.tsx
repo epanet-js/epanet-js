@@ -27,7 +27,7 @@ import {
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
 
-export default function MultiAssetEditor({
+export default function MultiAssetViewer({
   selectedFeatures,
   quantitiesMetadata,
 }: {
