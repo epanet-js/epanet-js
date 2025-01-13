@@ -1,31 +1,37 @@
 import { Locale, getLocale, symbols } from "./locale";
 
-const maxDecimals = 6;
-const scientificThresholds = {
-  min: 1e-3,
-  max: 1e6,
-};
+const defaultDecimals = 6;
 
 export const localizeDecimal = (
   num: number,
   {
     locale = getLocale(),
-    decimals = maxDecimals,
+    decimals = defaultDecimals,
+    minScientificThreshold = 1e-3,
+    maxScientificThreshold = 1e7,
+    scientificDecimals = 3,
     scientific = true,
-  }: { locale?: Locale; decimals?: number; scientific?: boolean } = {},
+  }: {
+    locale?: Locale;
+    decimals?: number;
+    scientific?: boolean;
+    minScientificThreshold?: number;
+    scientificDecimals?: number;
+    maxScientificThreshold?: number;
+  } = {},
 ): string => {
   const options: Intl.NumberFormatOptions = {};
-  options["maximumFractionDigits"] = maxDecimals;
+  options["maximumFractionDigits"] = defaultDecimals;
   options["minimumFractionDigits"] = 0;
 
   let formattedNum: string;
   const absValue = Math.abs(num);
   if (
     scientific &&
-    (absValue < scientificThresholds.min || absValue > scientificThresholds.max)
+    (absValue < minScientificThreshold || absValue > maxScientificThreshold)
   ) {
     formattedNum = num
-      .toExponential(3)
+      .toExponential(scientificDecimals)
       .toLocaleString()
       .replace(".", symbols[locale].decimals);
   } else {

@@ -72,6 +72,34 @@ describe("Multi asset viewer", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("can show raw value when simplified", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("P1", {
+        length: 123456,
+      })
+      .aPipe("P2", { length: 1234567 })
+      .aPipe("P3", { length: 12345678 })
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetIds: ["P1", "P2", "P3"],
+    });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    expectMultiValueDisplayed("Length (m)", "3 values");
+
+    await user.click(screen.getByText(/3 values/i));
+
+    expectStatDisplayed("Sum", "1.370e+7");
+
+    expect(screen.getByText(/1.370e\+7/)).toHaveAttribute(
+      "title",
+      "13,703,701",
+    );
+  });
+
   const setInitialState = ({
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
