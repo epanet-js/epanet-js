@@ -227,7 +227,7 @@ const PropertyRowMultiDeprecated = ({
 };
 
 function MultiValueField({ pair, propertyStats, x, y }: MultiValueProps) {
-  const [, value] = pair;
+  const [label, value] = pair;
   const [isOpen, setOpen] = useState(false);
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
@@ -257,7 +257,7 @@ function MultiValueField({ pair, propertyStats, x, y }: MultiValueProps) {
       <P.Root open={isOpen} onOpenChange={handleOpenChange}>
         <P.Trigger
           {...coordPropsAttr({ x, y })}
-          aria-label="Multiple values"
+          aria-label={`Values for: ${label}`}
           onKeyDown={handleTriggerKeyDown}
           className="group
           text-left font-mono
