@@ -1,4 +1,4 @@
-import { Asset } from "src/hydraulic-model";
+import { Asset, Junction, Pipe } from "src/hydraulic-model";
 
 export type QuantityStats = {
   type: "quantity";
@@ -35,6 +35,18 @@ export const computePropertyStats = (assets: Asset[]): StatsMap => {
       } else {
         updateQuantityStats(statsMap, property, value);
       }
+    }
+    if (asset.type === "pipe") {
+      const flow = (asset as Pipe).flow;
+      if (flow !== null) updateQuantityStats(statsMap, "flow", flow);
+      const velocity = (asset as Pipe).velocity;
+      if (velocity !== null)
+        updateQuantityStats(statsMap, "velocity", velocity);
+    }
+    if (asset.type === "junction") {
+      const pressure = (asset as Junction).pressure;
+      if (pressure !== null)
+        updateQuantityStats(statsMap, "pressure", pressure);
     }
   }
 
