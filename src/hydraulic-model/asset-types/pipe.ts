@@ -12,13 +12,15 @@ export type PipeProperties = {
   status: PipeStatus;
 } & LinkProperties;
 
-export type PipeQuantity =
-  | "diameter"
-  | "roughness"
-  | "length"
-  | "minorLoss"
-  | "flow"
-  | "velocity";
+export const pipeQuantities = [
+  "diameter",
+  "roughness",
+  "length",
+  "minorLoss",
+  "flow",
+  "velocity",
+];
+export type PipeQuantity = (typeof pipeQuantities)[number];
 
 export type HeadlossFormula = "H-W" | "D-W" | "C-M";
 

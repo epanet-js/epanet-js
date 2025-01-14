@@ -5,7 +5,8 @@ export type JunctionProperties = {
   demand: number;
 } & NodeProperties;
 
-export type JunctionQuantity = "demand" | "elevation" | "pressure";
+export const junctionQuantities = ["demand", "elevation", "pressure"] as const;
+export type JunctionQuantity = (typeof junctionQuantities)[number];
 
 export interface JunctionSimulationProvider {
   getPressure: (id: string) => number | null;
