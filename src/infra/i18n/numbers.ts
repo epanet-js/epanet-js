@@ -4,7 +4,7 @@ import { Locale, getLocale, symbols } from "./locale";
 const maxDecimals = 6;
 const scientificThresholds = {
   min: 1e-3,
-  max: 1e7,
+  max: 1e8,
 };
 
 export const localizeDecimal = (
