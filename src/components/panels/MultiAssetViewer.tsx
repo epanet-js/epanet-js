@@ -67,11 +67,7 @@ export function FeatureEditorPropertiesMulti({
     selectedFeatures as Asset[],
     quantitiesMetadata,
   );
-  const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
-
-  const pairs = sortBy(Array.from(propertyMap.entries()), ([key]) =>
-    localOrder.current.indexOf(key),
-  );
+  const pairs = Array.from(propertyMap.entries());
 
   return (
     <PanelDetails
