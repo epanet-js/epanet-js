@@ -40,7 +40,7 @@ export const localizeDecimal = (
   return isAllZero ? "0" : formattedNum;
 };
 
-const roundToDecimal = (num: number, decimalPlaces?: number): number => {
+export const roundToDecimal = (num: number, decimalPlaces?: number): number => {
   const decimals = decimalPlaces || determineDecimalPlaces(num);
   return applyRounding(num, decimals);
 };

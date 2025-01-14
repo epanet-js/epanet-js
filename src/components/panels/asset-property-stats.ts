@@ -1,4 +1,6 @@
 import { Asset, Junction, Pipe } from "src/hydraulic-model";
+import { roundToDecimal } from "src/infra/i18n/numbers";
+import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
 
 export type QuantityStats = {
   type: "quantity";
@@ -23,7 +25,10 @@ type StatsMap = Map<string, PropertyStats>;
 
 const propsToSkip = ["connections"];
 
-export const computePropertyStats = (assets: Asset[]): StatsMap => {
+export const computePropertyStats = (
+  assets: Asset[],
+  quantitiesMetadata: Quantities,
+): StatsMap => {
   const statsMap = new Map();
   for (const asset of assets) {
     const properties = asset.listProperties();
@@ -33,20 +38,21 @@ export const computePropertyStats = (assets: Asset[]): StatsMap => {
       if (typeof value === "string") {
         updateCategoryStats(statsMap, property, value);
       } else {
-        updateQuantityStats(statsMap, property, value);
+        updateQuantityStats(statsMap, property, value, quantitiesMetadata);
       }
     }
     if (asset.type === "pipe") {
       const flow = (asset as Pipe).flow;
-      if (flow !== null) updateQuantityStats(statsMap, "flow", flow);
+      if (flow !== null)
+        updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
       const velocity = (asset as Pipe).velocity;
       if (velocity !== null)
-        updateQuantityStats(statsMap, "velocity", velocity);
+        updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata);
     }
     if (asset.type === "junction") {
       const pressure = (asset as Junction).pressure;
       if (pressure !== null)
-        updateQuantityStats(statsMap, "pressure", pressure);
+        updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);
     }
   }
 
@@ -57,6 +63,7 @@ const updateQuantityStats = (
   statsMap: StatsMap,
   property: string,
   value: number,
+  quantitiesMetadata: Quantities,
 ) => {
   if (!statsMap.has(property)) {
     statsMap.set(property, {
@@ -71,17 +78,32 @@ const updateQuantityStats = (
     });
   }
 
+  const decimalsToRound = quantitiesMetadata.getDecimals(
+    property as keyof DecimalsSpec,
+  );
+  const roundedValue =
+    decimalsToRound === undefined
+      ? value
+      : roundToDecimal(value, decimalsToRound);
+
   const propertyStats = statsMap.get(property) as QuantityStats;
 
-  if (value < propertyStats.min) propertyStats.min = value;
-  if (value > propertyStats.max) propertyStats.max = value;
+  if (roundedValue < propertyStats.min) propertyStats.min = roundedValue;
+  if (roundedValue > propertyStats.max) propertyStats.max = roundedValue;
 
-  propertyStats.sum += value;
+  propertyStats.sum += roundedValue;
   propertyStats.times += 1;
 
-  propertyStats.values.set(value, (propertyStats.values.get(value) || 0) + 1);
+  propertyStats.values.set(
+    roundedValue,
+    (propertyStats.values.get(roundedValue) || 0) + 1,
+  );
 
-  propertyStats.mean = propertyStats.sum / propertyStats.times;
+  const mean = propertyStats.sum / propertyStats.times;
+  propertyStats.mean =
+    decimalsToRound === undefined
+      ? mean
+      : roundToDecimal(mean, decimalsToRound);
 };
 
 const updateCategoryStats = (
