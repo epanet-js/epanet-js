@@ -81,10 +81,7 @@ const updateQuantityStats = (
   const decimalsToRound = quantitiesMetadata.getDecimals(
     property as keyof DecimalsSpec,
   );
-  const roundedValue =
-    decimalsToRound === undefined
-      ? value
-      : roundToDecimal(value, decimalsToRound);
+  const roundedValue = roundToDecimal(value, decimalsToRound);
 
   const propertyStats = statsMap.get(property) as QuantityStats;
 
@@ -100,10 +97,7 @@ const updateQuantityStats = (
   );
 
   const mean = propertyStats.sum / propertyStats.times;
-  propertyStats.mean =
-    decimalsToRound === undefined
-      ? mean
-      : roundToDecimal(mean, decimalsToRound);
+  propertyStats.mean = roundToDecimal(mean, decimalsToRound);
 };
 
 const updateCategoryStats = (

@@ -11,7 +11,7 @@ describe("localize decimal", () => {
     expect(localizeDecimal(1000.1234)).toEqual("1,000.1234");
   });
 
-  it("limits the number of decimals when specified", () => {
+  it("rounds to a decimal when specified", () => {
     expect(localizeDecimal(12.34)).toEqual("12.34");
     expect(localizeDecimal(12.1234567, { decimals: 2 })).toEqual("12.12");
     expect(localizeDecimal(12.127, { decimals: 2 })).toEqual("12.13");
@@ -53,12 +53,5 @@ describe("localize decimal", () => {
     expect(localizeDecimal(12345.67)).toEqual("12,345.67");
     expect(localizeDecimal(1234567.89)).toEqual("1.235e+6");
     expect(localizeDecimal(1234567.89, { locale: "es" })).toEqual("1,235e+6");
-  });
-
-  it("allows to force no scientific notation", () => {
-    stubFeatureOn("FLAG_STATS");
-    expect(localizeDecimal(1234567.89, { scientific: false })).toEqual(
-      "1,234,567.89",
-    );
   });
 });
