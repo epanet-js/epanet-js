@@ -11,29 +11,28 @@ export const localizeDecimal = (
   num: number,
   {
     locale = getLocale(),
-    decimals = maxDecimals,
-    scientific = true,
-  }: { locale?: Locale; decimals?: number; scientific?: boolean } = {},
+    decimals,
+  }: { locale?: Locale; decimals?: number } = {},
 ): string => {
   const options: Intl.NumberFormatOptions = {};
   options["maximumFractionDigits"] = maxDecimals;
   options["minimumFractionDigits"] = 0;
 
+  const roundedValue = roundToDecimal(num, decimals);
+
   let formattedNum: string;
-  const absValue = Math.abs(num);
+  const absValue = Math.abs(roundedValue);
   if (
     isFeatureOn("FLAG_STATS") &&
-    scientific &&
-    (absValue < scientificThresholds.min || absValue > scientificThresholds.max)
+    ((absValue > 0 && absValue < scientificThresholds.min) ||
+      absValue > scientificThresholds.max)
   ) {
-    formattedNum = num
+    formattedNum = roundedValue
       .toExponential(3)
       .toLocaleString()
       .replace(".", symbols[locale].decimals);
   } else {
-    const roundedNum = roundToDecimal(num, decimals);
-    const value = handleNegativeZero(roundedNum, decimals);
-    formattedNum = value.toLocaleString(locale, options);
+    formattedNum = roundedValue.toLocaleString(locale, options);
   }
 
   const isAllZero = formattedNum.match(/\d/g)?.every((digit) => digit === "0");
@@ -41,26 +40,11 @@ export const localizeDecimal = (
 };
 
 export const roundToDecimal = (num: number, decimalPlaces?: number): number => {
-  const decimals = decimalPlaces || determineDecimalPlaces(num);
-  return applyRounding(num, decimals);
+  return decimalPlaces === undefined ? num : applyRounding(num, decimalPlaces);
 };
 
 const applyRounding = (value: number, decimals = 0): number => {
   const scale = Math.pow(10, decimals);
   const smallDiff = 1e-12;
   return Number(Math.round(value * scale + smallDiff) / scale);
-};
-
-const determineDecimalPlaces = (value: number): number => {
-  const absoluteValue = Math.abs(value);
-  if (absoluteValue >= 100) return 0;
-  if (absoluteValue >= 10) return 1;
-  if (absoluteValue >= 1) return 2;
-  return 3;
-};
-
-const handleNegativeZero = (num: number, fractionDigits: number): number => {
-  return Math.ceil(num * Math.pow(10, fractionDigits)) === 0
-    ? Math.abs(num)
-    : num;
 };
