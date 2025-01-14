@@ -476,7 +476,7 @@ function ValueList({ pair }: { pair: MultiPair }) {
                   {formatValue(value)}
                 </div>
                 <div className="text-xs font-mono" title={translate("assets")}>
-                  ({times})
+                  ({localizeDecimal(times)})
                 </div>
               </button>
             );
