@@ -86,7 +86,6 @@ const appendReservoirStats = (
   quantitiesMetadata: Quantities,
 ) => {
   for (const name of reservoirQuantities) {
-    if (name === "relativeHead") continue;
     updateQuantityStats(
       statsMap,
       name,
