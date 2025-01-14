@@ -63,7 +63,10 @@ export function FeatureEditorPropertiesMulti({
   selectedFeatures: IWrappedFeature[];
   quantitiesMetadata: Quantities;
 }) {
-  const propertyMap = computePropertyStats(selectedFeatures as Asset[]);
+  const propertyMap = computePropertyStats(
+    selectedFeatures as Asset[],
+    quantitiesMetadata,
+  );
   const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
 
   const pairs = sortBy(Array.from(propertyMap.entries()), ([key]) =>
@@ -298,32 +301,32 @@ const QuantityStatsFields = ({
 }) => {
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-4 pb-4">
-      {["min", "max", "mean", "sum"].map((stat, i) => (
-        <div
-          key={i}
-          className="flex flex-col items-space-betweenjustify-center"
-        >
-          <span
-            role="textbox"
-            aria-label={`Key: ${translate(stat)}`}
-            className="pb-1 text-xs text-gray-500 font-bold"
+      {["min", "max", "mean", "sum"].map((metric, i) => {
+        const label = translate(metric);
+        return (
+          <div
+            key={i}
+            className="flex flex-col items-space-betweenjustify-center"
           >
-            {translate(stat)}
-          </span>
-          <span
-            role="textbox"
-            aria-label={`Value for: ${translate(stat)}`}
-            className="text-xs font-mono px-2 py-2 bg-gray-100"
-          >
-            {localizeDecimal(
-              quantityStats[stat as keyof QuantityStats] as number,
-              {
-                decimals: stat == "mean" || stat == "sum" ? 3 : undefined,
-              },
-            )}
-          </span>
-        </div>
-      ))}
+            <span
+              role="textbox"
+              aria-label={`Key: ${label}`}
+              className="pb-1 text-xs text-gray-500 font-bold"
+            >
+              {label}
+            </span>
+            <span
+              role="textbox"
+              aria-label={`Value for: ${label}`}
+              className="text-xs font-mono px-2 py-2 bg-gray-100"
+            >
+              {localizeDecimal(
+                quantityStats[metric as keyof QuantityStats] as number,
+              )}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -17,7 +17,7 @@ export type UnitsSpec = Record<
   | "relativeHead",
   Unit
 >;
-type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
+export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
 type DefaultsSpec = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
