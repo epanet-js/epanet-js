@@ -295,6 +295,10 @@ const QuantityStatsFields = ({
 }: {
   quantityStats: QuantityStats;
 }) => {
+  const [tabIndex, setTabIndex] = useState(-1);
+  const handleFocus = () => {
+    setTabIndex(0);
+  };
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-4 pb-4">
       {["min", "max", "mean", "sum"].map((metric, i) => {
@@ -311,15 +315,17 @@ const QuantityStatsFields = ({
             >
               {label}
             </span>
-            <span
+            <input
               role="textbox"
               aria-label={`Value for: ${label}`}
-              className="text-xs font-mono px-2 py-2 bg-gray-100"
-            >
-              {localizeDecimal(
+              className="text-xs font-mono px-2 py-2 bg-gray-100 border-none focus-visible:ring-inset focus-visible:ring-purple-500 focus-visible:bg-purple-300/10"
+              readOnly
+              tabIndex={tabIndex}
+              onFocus={handleFocus}
+              value={localizeDecimal(
                 quantityStats[metric as keyof QuantityStats] as number,
               )}
-            </span>
+            />
           </div>
         );
       })}
