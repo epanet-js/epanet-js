@@ -2,6 +2,7 @@ import type { IWrappedFeature, Feature, ISymbolization } from "src/types";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { PreviewProperty } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function pick(
   properties: Feature["properties"],
@@ -47,7 +48,9 @@ export function getKeepProperties({
   symbolization: ISymbolization | null;
   previewProperty: PreviewProperty;
 }) {
-  let keepProperties: string[] = ["type"];
+  let keepProperties: string[] = isFeatureOn("FLAG_CLOSED_PIPES")
+    ? ["type", "status"]
+    : ["type"];
   if (previewProperty) {
     keepProperties.push(previewProperty);
   }
