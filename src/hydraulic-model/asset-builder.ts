@@ -41,7 +41,7 @@ const generateId = () => nanoId();
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
-  reservoir: Partial<Record<ReservoirQuantity, number>>;
+  reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
 };
 
 export class AssetBuilder {
@@ -143,7 +143,10 @@ export class AssetBuilder {
     return this.defaults.junction[name] || 0;
   }
 
-  private getReservoirValue(name: ReservoirQuantity, candidate?: number) {
+  private getReservoirValue(
+    name: ReservoirQuantity | "relativeHead",
+    candidate?: number,
+  ) {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.reservoir[name] || 0;

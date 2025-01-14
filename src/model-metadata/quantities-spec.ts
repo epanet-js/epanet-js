@@ -13,15 +13,14 @@ export type UnitsSpec = Record<
   | "elevation"
   | "demand"
   | "pressure"
-  | "head"
-  | "relativeHead",
+  | "head",
   Unit
 >;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
 type DefaultsSpec = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
-  reservoir: Partial<Record<ReservoirQuantity, number>>;
+  reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
 };
 export type AssetQuantitiesSpec = {
   id: string;
@@ -46,7 +45,6 @@ const USCustomarySpec: AssetQuantitiesSpec = {
     demand: "gal/min",
     pressure: "psi",
     head: "ft",
-    relativeHead: "ft",
   },
   decimals: {
     flow: 3,
@@ -83,7 +81,6 @@ const internationalSpec: AssetQuantitiesSpec = {
     demand: "l/s",
     pressure: "mwc",
     head: "m",
-    relativeHead: "m",
   },
   decimals: {
     flow: 3,
