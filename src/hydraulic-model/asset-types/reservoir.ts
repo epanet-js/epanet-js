@@ -5,7 +5,12 @@ export type ReservoirProperties = {
   head: number;
 } & NodeProperties;
 
-export type ReservoirQuantity = "elevation" | "head" | "relativeHead";
+export const reservoirQuantities = [
+  "elevation",
+  "head",
+  "relativeHead",
+] as const;
+export type ReservoirQuantity = (typeof reservoirQuantities)[number];
 
 export class Reservoir extends Node<ReservoirProperties> {
   copy() {

@@ -1,4 +1,7 @@
-import { Asset, Junction, Pipe } from "src/hydraulic-model";
+import { Asset, Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import { junctionQuantities } from "src/hydraulic-model/asset-types/junction";
+import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
+import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
 import { roundToDecimal } from "src/infra/i18n/numbers";
 import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
 
@@ -23,48 +26,83 @@ export type PropertyStats = QuantityStats | CategoryStats;
 
 type StatsMap = Map<string, PropertyStats>;
 
-const propsToSkip = ["connections"];
-
 export const computePropertyStats = (
   assets: Asset[],
   quantitiesMetadata: Quantities,
 ): StatsMap => {
   const statsMap = new Map();
   for (const asset of assets) {
-    const properties = asset.listProperties();
-    for (const property of properties) {
-      if (propsToSkip.includes(property)) continue;
-      const value = asset.getProperty(property) as unknown as number;
-      if (typeof value === "string") {
-        updateCategoryStats(statsMap, property, value);
-      } else {
-        updateQuantityStats(statsMap, property, value, quantitiesMetadata);
-      }
-    }
-    if (asset.type === "pipe") {
-      const flow = (asset as Pipe).flow;
-      if (flow !== null)
-        updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
-      const velocity = (asset as Pipe).velocity;
-      if (velocity !== null)
-        updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata);
-    }
-    if (asset.type === "junction") {
-      const pressure = (asset as Junction).pressure;
-      if (pressure !== null)
-        updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);
+    updateCategoryStats(statsMap, "type", asset.type);
+    switch (asset.type) {
+      case "pipe":
+        appendPipeStats(statsMap, asset as Pipe, quantitiesMetadata);
+        break;
+      case "junction":
+        appendJunctionStats(statsMap, asset as Junction, quantitiesMetadata);
+        break;
+      case "reservoir":
+        appendReservoirStats(statsMap, asset as Reservoir, quantitiesMetadata);
+        break;
     }
   }
 
   return statsMap;
 };
 
+const appendPipeStats = (
+  statsMap: StatsMap,
+  pipe: Pipe,
+  quantitiesMetadata: Quantities,
+) => {
+  updateCategoryStats(statsMap, "status", pipe.status);
+  for (const name of pipeQuantities) {
+    updateQuantityStats(
+      statsMap,
+      name,
+      pipe[name as unknown as keyof Pipe] as number,
+      quantitiesMetadata,
+    );
+  }
+};
+
+const appendJunctionStats = (
+  statsMap: StatsMap,
+  junction: Junction,
+  quantitiesMetadata: Quantities,
+) => {
+  for (const name of junctionQuantities) {
+    updateQuantityStats(
+      statsMap,
+      name,
+      junction[name as unknown as keyof Junction] as number,
+      quantitiesMetadata,
+    );
+  }
+};
+
+const appendReservoirStats = (
+  statsMap: StatsMap,
+  reservoir: Reservoir,
+  quantitiesMetadata: Quantities,
+) => {
+  for (const name of reservoirQuantities) {
+    if (name === "relativeHead") continue;
+    updateQuantityStats(
+      statsMap,
+      name,
+      reservoir[name as unknown as keyof Reservoir] as number,
+      quantitiesMetadata,
+    );
+  }
+};
+
 const updateQuantityStats = (
   statsMap: StatsMap,
   property: string,
-  value: number,
+  value: number | null,
   quantitiesMetadata: Quantities,
 ) => {
+  if (value === null) return;
   if (!statsMap.has(property)) {
     statsMap.set(property, {
       type: "quantity",
