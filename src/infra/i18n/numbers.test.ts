@@ -51,7 +51,7 @@ describe("localize decimal", () => {
   it("switches to scientific notation when number too large", () => {
     stubFeatureOn("FLAG_STATS");
     expect(localizeDecimal(12345.67)).toEqual("12,345.67");
-    expect(localizeDecimal(1234567.89)).toEqual("1.235e+6");
-    expect(localizeDecimal(1234567.89, { locale: "es" })).toEqual("1,235e+6");
+    expect(localizeDecimal(12345678.91)).toEqual("1.235e+7");
+    expect(localizeDecimal(12345678.91, { locale: "es" })).toEqual("1,235e+7");
   });
 });
