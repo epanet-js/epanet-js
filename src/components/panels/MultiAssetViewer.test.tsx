@@ -56,10 +56,10 @@ describe("Multi asset viewer", () => {
 
     await user.click(screen.getByText(/3 values/i));
 
-    expectStatDisplayed("Min", "10");
-    expectStatDisplayed("Max", "30");
-    expectStatDisplayed("Mean", "22.5");
-    expectStatDisplayed("Sum", "90");
+    expectMetricDisplayed("Min", "10");
+    expectMetricDisplayed("Max", "30");
+    expectMetricDisplayed("Mean", "22.5");
+    expectMetricDisplayed("Sum", "90");
 
     const dialog = within(screen.getByRole("dialog"));
     expect(dialog.getByText(/Values/)).toBeInTheDocument();
@@ -129,7 +129,7 @@ describe("Multi asset viewer", () => {
     ).toHaveTextContent(value);
   };
 
-  const expectStatDisplayed = (name: string, value: string) => {
+  const expectMetricDisplayed = (name: string, value: string) => {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     expect(
       screen.getByRole("textbox", {
@@ -140,6 +140,6 @@ describe("Multi asset viewer", () => {
       screen.getByRole("textbox", {
         name: new RegExp(`value for\: ${escapedName}`, "i"),
       }),
-    ).toHaveTextContent(value);
+    ).toHaveValue(value);
   };
 });
