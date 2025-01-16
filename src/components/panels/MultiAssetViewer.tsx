@@ -1,7 +1,6 @@
 import { CoordProps, IWrappedFeature } from "src/types";
-import { MultiPair, extractMultiProperties } from "src/lib/multi_properties";
+import { MultiPair } from "src/lib/multi_properties";
 import { KeyboardEventHandler, useRef, useState } from "react";
-import sortBy from "lodash/sortBy";
 import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow_navigation";
@@ -19,7 +18,6 @@ import { JsonValue } from "type-fest";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { isFeatureOn } from "src/infra/feature-flags";
 import {
   PropertyStats,
   QuantityStats,
@@ -37,18 +35,10 @@ export default function MultiAssetViewer({
   return (
     <>
       <div className="overflow-auto">
-        {isFeatureOn("FLAG_STATS") && (
-          <FeatureEditorPropertiesMulti
-            selectedFeatures={selectedFeatures}
-            quantitiesMetadata={quantitiesMetadata}
-          />
-        )}
-        {!isFeatureOn("FLAG_STATS") && (
-          <FeatureEditorPropertiesMultiDeprecated
-            selectedFeatures={selectedFeatures}
-            quantitiesMetadata={quantitiesMetadata}
-          />
-        )}
+        <FeatureEditorPropertiesMulti
+          selectedFeatures={selectedFeatures}
+          quantitiesMetadata={quantitiesMetadata}
+        />
       </div>
       <div className="flex-auto" />
       <div className="divide-y divide-gray-200 dark:divide-gray-900 border-t border-gray-200 dark:border-gray-900 overflow-auto placemark-scrollbar"></div>
@@ -93,45 +83,6 @@ export function FeatureEditorPropertiesMulti({
     </PanelDetails>
   );
 }
-export function FeatureEditorPropertiesMultiDeprecated({
-  selectedFeatures,
-  quantitiesMetadata,
-}: {
-  selectedFeatures: IWrappedFeature[];
-  quantitiesMetadata: Quantities;
-}) {
-  const propertyMap = extractMultiProperties(selectedFeatures);
-  const localOrder = useRef<PropertyKey[]>(Array.from(propertyMap.keys()));
-
-  const pairs = sortBy(Array.from(propertyMap.entries()), ([key]) =>
-    localOrder.current.indexOf(key),
-  );
-
-  return (
-    <PanelDetails
-      title={`${translate("selection")} (${pluralize("asset", selectedFeatures.length)})`}
-      variant="fullwidth"
-    >
-      <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
-        <PropertyTableHead />
-        <tbody>
-          {pairs.map((pair, y) => {
-            return (
-              <PropertyRowMultiDeprecated
-                y={y}
-                key={pair[0]}
-                pair={pair}
-                even={y % 2 === 0}
-                quantitiesMetadata={quantitiesMetadata}
-              />
-            );
-          })}
-        </tbody>
-      </table>
-    </PanelDetails>
-  );
-}
-
 const PropertyRowMulti = ({
   pair,
   even,
@@ -161,52 +112,6 @@ const PropertyRowMulti = ({
           y={y}
           pair={[label, stats.values]}
           propertyStats={stats}
-          onAccept={() => {}}
-        />
-      ) : (
-        <PropertyRowValue
-          x={1}
-          y={y}
-          readOnly={true}
-          pair={[label, formatValue(value)]}
-          onChangeValue={() => {}}
-          even={even}
-          onDeleteKey={() => {}}
-          onCast={() => {}}
-        />
-      )}
-    </PropertyRow>
-  );
-};
-
-const PropertyRowMultiDeprecated = ({
-  pair,
-  even,
-  y,
-  quantitiesMetadata,
-}: {
-  pair: MultiPair;
-  even: boolean;
-  y: number;
-  quantitiesMetadata: Quantities;
-}) => {
-  const [property, values] = pair;
-
-  const unit = quantitiesMetadata.getUnit(property as keyof UnitsSpec);
-  const label = unit
-    ? `${translate(property)} (${translateUnit(unit)})`
-    : `${translate(property)}`;
-
-  const hasMulti = values.size > 1;
-  const { value } = values.keys().next();
-
-  return (
-    <PropertyRow label={label} y={y} even={even}>
-      {hasMulti ? (
-        <MultiValueFieldDeprecated
-          x={1}
-          y={y}
-          pair={[label, values]}
           onAccept={() => {}}
         />
       ) : (
@@ -333,68 +238,6 @@ const QuantityStatsFields = ({
   );
 };
 
-function MultiValueFieldDeprecated({ pair, x, y }: MultiValuePropsDeprecated) {
-  const [, value] = pair;
-  const [isOpen, setOpen] = useState(false);
-
-  const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
-    event,
-  ) => {
-    if (event.code === "Escape" || event.code === "Enter") {
-      event.stopPropagation();
-      setOpen(false);
-    }
-  };
-
-  const handleTriggerKeyDown: KeyboardEventHandler<HTMLButtonElement> = (
-    event,
-  ) => {
-    if (event.code === "Enter" && !isOpen) {
-      setOpen(true);
-      event.stopPropagation();
-    }
-  };
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-  };
-
-  return (
-    <div>
-      <P.Root open={isOpen} onOpenChange={handleOpenChange}>
-        <P.Trigger
-          {...coordPropsAttr({ x, y })}
-          aria-label="Multiple values"
-          onKeyDown={handleTriggerKeyDown}
-          className="group
-          text-left font-mono
-          text-xs px-1.5 py-2
-          text-gray-700
-
-          focus-visible:ring-inset
-          focus-visible:ring-1
-          focus-visible:ring-purple-500
-          aria-expanded:ring-1
-          aria-expanded:ring-purple-500
-
-          gap-x-1 block w-full
-          dark:text-white bg-transparent
-          flex overflow-hidden"
-        >
-          <CardStackIcon />
-          {pluralize("value", value.size)}
-        </P.Trigger>
-        <P.Portal>
-          <StyledPopoverContent onKeyDown={handleContentKeyDown}>
-            <StyledPopoverArrow />
-            <ValueList pair={pair} />
-          </StyledPopoverContent>
-        </P.Portal>
-      </P.Root>
-    </div>
-  );
-}
-
 const formatValue = (value: JsonValue | undefined): string => {
   if (value === undefined) return "";
   if (typeof value === "number") {
@@ -409,10 +252,6 @@ const formatValue = (value: JsonValue | undefined): string => {
 type MultiValueProps = CoordProps & {
   pair: MultiPair;
   propertyStats: PropertyStats;
-  onAccept: (arg0: JsonValue | undefined) => void;
-};
-type MultiValuePropsDeprecated = CoordProps & {
-  pair: MultiPair;
   onAccept: (arg0: JsonValue | undefined) => void;
 };
 

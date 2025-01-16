@@ -1,4 +1,3 @@
-import { isFeatureOn } from "../feature-flags";
 import { Locale, getLocale, symbols } from "./locale";
 
 const maxDecimals = 6;
@@ -23,9 +22,8 @@ export const localizeDecimal = (
   let formattedNum: string;
   const absValue = Math.abs(roundedValue);
   if (
-    isFeatureOn("FLAG_STATS") &&
-    ((absValue > 0 && absValue < scientificThresholds.min) ||
-      absValue > scientificThresholds.max)
+    (absValue > 0 && absValue < scientificThresholds.min) ||
+    absValue > scientificThresholds.max
   ) {
     formattedNum = roundedValue
       .toExponential(3)

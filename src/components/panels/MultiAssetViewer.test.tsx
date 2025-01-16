@@ -7,13 +7,9 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import FeatureEditor from "./feature_editor";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import userEvent from "@testing-library/user-event";
 
 describe("Multi asset viewer", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_STATS");
-  });
   it("shows properties of multiple selected assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe("P1", {
