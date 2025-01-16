@@ -1,4 +1,3 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { localizeDecimal } from "./numbers";
 
 describe("localize decimal", () => {
@@ -32,13 +31,11 @@ describe("localize decimal", () => {
   });
 
   it("can format to zero", () => {
-    stubFeatureOn("FLAG_STATS");
     expect(localizeDecimal(0.000001)).toEqual("1.000e-6");
     expect(localizeDecimal(-0.000001)).toEqual("-1.000e-6");
   });
 
   it("switches to scientific notation when number too small", () => {
-    stubFeatureOn("FLAG_STATS");
     expect(localizeDecimal(0.1234)).toEqual("0.1234");
     expect(localizeDecimal(0.001234)).toEqual("0.001234");
     expect(localizeDecimal(-0.001234)).toEqual("-0.001234");
@@ -49,7 +46,6 @@ describe("localize decimal", () => {
   });
 
   it("switches to scientific notation when number too large", () => {
-    stubFeatureOn("FLAG_STATS");
     expect(localizeDecimal(12345.67)).toEqual("12,345.67");
     expect(localizeDecimal(1234567800.91)).toEqual("1.235e+9");
     expect(localizeDecimal(1234567800.91, { locale: "es" })).toEqual(
