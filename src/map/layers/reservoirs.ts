@@ -1,12 +1,16 @@
 import { SymbolLayer } from "mapbox-gl";
 import { LayerId } from "./layer";
+import { ISymbolization } from "src/types";
+import { POINT_COLORS_SELECTED } from "src/lib/constants";
 
 export const reservoirsLayer = ({
   source,
   layerId,
+  symbolization,
 }: {
   source: string;
   layerId: LayerId;
+  symbolization: ISymbolization;
 }): SymbolLayer => {
   return {
     id: layerId,
@@ -20,48 +24,12 @@ export const reservoirsLayer = ({
     },
     filter: ["==", ["get", "type"], "reservoir"],
     paint: {
-      "icon-opacity": [
+      "icon-opacity": ["case", ["!=", ["feature-state", "hidden"], true], 1, 0],
+      "icon-color": [
         "case",
-        [
-          "all",
-          ["!=", ["feature-state", "selected"], "true"],
-          ["!=", ["feature-state", "hidden"], true],
-        ],
-        1,
-        0,
-      ],
-    },
-  };
-};
-
-export const reservoirsSelectedLayer = ({
-  source,
-  layerId,
-}: {
-  source: string;
-  layerId: LayerId;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "symbol-placement": "point",
-      "icon-image": "reservoir-selected",
-      "icon-size": 0.6,
-      "icon-allow-overlap": true,
-    },
-    filter: ["==", ["get", "type"], "reservoir"],
-    paint: {
-      "icon-opacity": [
-        "case",
-        [
-          "all",
-          ["==", ["feature-state", "selected"], "true"],
-          ["!=", ["feature-state", "hidden"], true],
-        ],
-        1,
-        0,
+        ["==", ["feature-state", "selected"], "true"],
+        POINT_COLORS_SELECTED,
+        symbolization.defaultColor,
       ],
     },
   };

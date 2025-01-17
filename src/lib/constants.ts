@@ -27,12 +27,16 @@ export const DECK_LASSO_ID = "deckgl-lasso";
  * Colors
  */
 export const purple900 = "#312E81";
+export const purple500 = "#a855f7";
+export const indigo500 = "#6366f1";
+export const indigo600 = "#4f46e5";
+export const fuchsia500 = "#d946ef";
 
 export const LINE_COLORS_IDLE = "#8B5CF6";
 export const LINE_COLORS_IDLE_RGBA = hexToArray("#8B5CF6");
 
-export const POINT_COLORS_SELECTED = "#D6409F";
-export const LINE_COLORS_SELECTED = "#D6409F";
+export const POINT_COLORS_SELECTED = fuchsia500;
+export const LINE_COLORS_SELECTED = fuchsia500;
 export const LINE_COLORS_SELECTED_RGB = hexToArray("#D6409F");
 
 // Note, this is also in the database schema.

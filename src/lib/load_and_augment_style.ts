@@ -12,12 +12,7 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
-import {
-  reservoirsLayer,
-  reservoirsSelectedLayer,
-  pipesLayer,
-  junctionsLayer,
-} from "src/map/layers";
+import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { slotLayer } from "src/map/slots";
 import { isFeatureOn } from "src/infra/feature-flags";
@@ -165,18 +160,12 @@ export function makeLayers({
     reservoirsLayer({
       source: "features",
       layerId: "reservoirs",
+      symbolization,
     }),
     reservoirsLayer({
       source: "imported-features",
       layerId: "imported-reservoirs",
-    }),
-    reservoirsSelectedLayer({
-      source: "features",
-      layerId: "reservoirs-selected",
-    }),
-    reservoirsSelectedLayer({
-      source: "imported-features",
-      layerId: "imported-reservoirs-selected",
+      symbolization,
     }),
     ...(typeof previewProperty === "string"
       ? [
