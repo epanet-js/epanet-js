@@ -3,6 +3,9 @@ import { GeoJsonLayer, IconLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { Feature, Position } from "geojson";
 import { Pipe, NodeAsset } from "src/hydraulic-model";
 import { captureWarning } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { hexToArray } from "src/lib/color";
+import { purple900 } from "src/lib/constants";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
@@ -73,6 +76,9 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       pointRadiusUnits: "pixels",
       getLineWidth: 4,
       getFillColor: [255, 255, 255],
+      getLineColor: isFeatureOn("FLAG_CLOSED_PIPES")
+        ? hexToArray(purple900, 0.4)
+        : hexToArray(purple900),
       getPointRadius: 4,
       lineCapRounded: true,
       getDashArray: [3, 3],
