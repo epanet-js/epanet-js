@@ -32,12 +32,14 @@ export const buildOptimizedAssetsSource = (
       const colorMapper = analysis.links.rangeColorMapping;
       const property = colorMapper.symbolization.property;
       const pipe = asset as Pipe;
-      const value = pipe[property as keyof Pipe] || 0;
-      feature.properties!.color = colorMapper.hexaColor(value as number);
+      const value = (pipe[property as keyof Pipe] || 0) as number;
+      const isReverse = value < 0;
+      feature.properties!.color = colorMapper.hexaColor(value);
       feature.properties!.length = convertTo(
         { value: pipe.length, unit: pipe.getUnit("length") },
         "m",
       );
+      feature.properties!.rotation = isReverse ? -180 : 0;
     }
 
     strippedFeatures.push(feature);
