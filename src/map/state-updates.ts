@@ -17,7 +17,10 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
-import { buildOptimizedAssetsSource } from "./data-source";
+import {
+  buildOptimizedAssetsSource,
+  buildOptimizedAssetsSourceDeprecated,
+} from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
@@ -40,6 +43,7 @@ import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import { LinkSegmentsMap } from "./link-segments";
 import { buildArrowsOverlay } from "./overlays/arrows";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -196,34 +200,79 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       await updateLayerStyles(map, mapState.stylesConfig);
     }
 
-    if (hasNewImport || hasNewStyles) {
-      await updateImportSource(
-        map,
-        momentLog,
-        mapState.lastImportPointer,
-        assets,
-        idMap,
-        mapState.stylesConfig,
-      );
+    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")) {
+      if (
+        hasNewImport ||
+        hasNewStyles ||
+        hasNewAnalysis ||
+        (hasNewSimulation && mapState.simulation.status !== "running")
+      ) {
+        await updateImportSource(
+          map,
+          momentLog,
+          mapState.lastImportPointer,
+          assets,
+          idMap,
+          mapState.stylesConfig,
+          mapState.analysis,
+        );
+      }
+    } else {
+      if (hasNewImport || hasNewStyles) {
+        await updateImportSourceDeprecated(
+          map,
+          momentLog,
+          mapState.lastImportPointer,
+          assets,
+          idMap,
+          mapState.stylesConfig,
+        );
+      }
     }
 
-    if (hasNewEditions || hasNewStyles) {
-      const editedAssetIds = await updateEditionsSource(
-        map,
-        momentLog,
-        mapState.lastImportPointer,
-        assets,
-        idMap,
-        mapState.stylesConfig,
-      );
-      const newHiddenFeatures = updateVisibilityFeatureState(
-        map,
-        lastHiddenFeatures.current,
-        editedAssetIds,
-        idMap,
-      );
+    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")) {
+      if (
+        hasNewEditions ||
+        hasNewStyles ||
+        hasNewAnalysis ||
+        (hasNewSimulation && mapState.simulation.status !== "running")
+      ) {
+        const editedAssetIds = await updateEditionsSource(
+          map,
+          momentLog,
+          mapState.lastImportPointer,
+          assets,
+          idMap,
+          mapState.analysis,
+        );
+        const newHiddenFeatures = updateVisibilityFeatureState(
+          map,
+          lastHiddenFeatures.current,
+          editedAssetIds,
+          idMap,
+        );
 
-      lastHiddenFeatures.current = newHiddenFeatures;
+        lastHiddenFeatures.current = newHiddenFeatures;
+      }
+    } else {
+      if (hasNewEditions || hasNewStyles) {
+        const editedAssetIds = await updateEditionsSourceDeprecated(
+          map,
+          momentLog,
+          mapState.lastImportPointer,
+          assets,
+          idMap,
+          mapState.stylesConfig,
+        );
+        const newHiddenFeatures = updateVisibilityFeatureState(
+          map,
+          lastHiddenFeatures.current,
+          editedAssetIds,
+          idMap,
+        );
+
+        lastHiddenFeatures.current = newHiddenFeatures;
+      }
     }
 
     if (hasNewEphemeralState) {
@@ -286,6 +335,7 @@ const updateImportSource = withInstrumentation(
     assets: AssetsMap,
     idMap: IDMap,
     styles: StylesConfig,
+    analysisState: AnalysisState,
   ) => {
     const importMoments =
       latestImportPointer === null
@@ -296,6 +346,38 @@ const updateImportSource = withInstrumentation(
     const importedAssets = filterAssets(assets, importedAssetIds);
 
     const features = buildOptimizedAssetsSource(
+      importedAssets,
+      idMap,
+      analysisState,
+    );
+    await map.setSource("imported-features", features);
+  },
+  {
+    name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
+    maxDurationMs: 10000,
+    maxCalls: 10,
+    callsIntervalMs: 1000,
+  },
+);
+
+const updateImportSourceDeprecated = withInstrumentation(
+  async (
+    map: MapEngine,
+    momentLog: MomentLog,
+    latestImportPointer: number | null,
+    assets: AssetsMap,
+    idMap: IDMap,
+    styles: StylesConfig,
+  ) => {
+    const importMoments =
+      latestImportPointer === null
+        ? []
+        : momentLog.fetchUpToAndIncluding(latestImportPointer);
+
+    const importedAssetIds = getAssetIdsInMoments(importMoments);
+    const importedAssets = filterAssets(assets, importedAssetIds);
+
+    const features = buildOptimizedAssetsSourceDeprecated(
       importedAssets,
       idMap,
       styles.symbolization,
@@ -310,8 +392,39 @@ const updateImportSource = withInstrumentation(
     callsIntervalMs: 1000,
   },
 );
-
 const updateEditionsSource = withInstrumentation(
+  async (
+    map: MapEngine,
+    momentLog: MomentLog,
+    latestImportPointer: number | null,
+    assets: AssetsMap,
+    idMap: IDMap,
+    analysisState: AnalysisState,
+  ): Promise<Set<AssetId>> => {
+    const editionMoments =
+      latestImportPointer === null
+        ? momentLog.fetchAll()
+        : momentLog.fetchAfter(latestImportPointer);
+
+    const editionAssetIds = getAssetIdsInMoments(editionMoments);
+    const editedAssets = filterAssets(assets, editionAssetIds);
+
+    const features = buildOptimizedAssetsSource(
+      editedAssets,
+      idMap,
+      analysisState,
+    );
+    await map.setSource("features", features);
+
+    return editionAssetIds;
+  },
+  {
+    name: "MAP_STATE:UPDATE_EDITIONS_SOURCE",
+    maxDurationMs: 250,
+  },
+);
+
+const updateEditionsSourceDeprecated = withInstrumentation(
   async (
     map: MapEngine,
     momentLog: MomentLog,
@@ -328,7 +441,7 @@ const updateEditionsSource = withInstrumentation(
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(assets, editionAssetIds);
 
-    const features = buildOptimizedAssetsSource(
+    const features = buildOptimizedAssetsSourceDeprecated(
       editedAssets,
       idMap,
       styles.symbolization,
@@ -447,7 +560,10 @@ const buildAnalysisOverlays = withInstrumentation(
     const visibilityFn = (assetId: AssetId) =>
       !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
 
-    if (analysis.links.type === "flows") {
+    if (
+      !isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
+      analysis.links.type === "flows"
+    ) {
       const visibilityFn = (assetId: AssetId) =>
         !movedAssetIds.has(assetId) &&
         !selectedAssetIds.has(assetId) &&
@@ -463,7 +579,10 @@ const buildAnalysisOverlays = withInstrumentation(
         }),
       );
     }
-    if (analysis.links.type === "velocities") {
+    if (
+      !isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
+      analysis.links.type === "velocities"
+    ) {
       const visibilityFn = (assetId: AssetId) =>
         !movedAssetIds.has(assetId) &&
         !selectedAssetIds.has(assetId) &&

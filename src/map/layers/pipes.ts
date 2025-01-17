@@ -4,6 +4,7 @@ import { ISymbolization } from "src/types";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const pipesLayer = ({
   source,
@@ -26,10 +27,18 @@ export const pipesLayer = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
-    "line-color": handleSelected(
-      asColorExpression({ symbolization, part: "stroke" }),
-      LINE_COLORS_SELECTED,
-    ),
+    "line-color": isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")
+      ? [
+          "match",
+          ["feature-state", "selected"],
+          "true",
+          LINE_COLORS_SELECTED,
+          ["coalesce", ["get", "color"], symbolization.defaultColor],
+        ]
+      : handleSelected(
+          asColorExpression({ symbolization, part: "stroke" }),
+          LINE_COLORS_SELECTED,
+        ),
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "closed"],

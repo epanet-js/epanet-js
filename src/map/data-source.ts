@@ -1,6 +1,7 @@
-import { AssetsMap } from "src/hydraulic-model";
+import { AssetsMap, Pipe } from "src/hydraulic-model";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { AnalysisState } from "src/state/analysis";
 import { PreviewProperty } from "src/state/jotai";
 import { Feature, ISymbolization, IWrappedFeature } from "src/types";
 
@@ -9,11 +10,43 @@ export type DataSource = "imported-features" | "features";
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
   idMap: IDMap,
-  symbolization: ISymbolization | null,
-  previewProperty: PreviewProperty,
+  analysis: AnalysisState,
 ): Feature[] => {
   const strippedFeatures = [];
-  const keepProperties = getKeepProperties({
+  const keepProperties: string[] = ["type", "status"];
+
+  for (const asset of assets.values()) {
+    if (asset.feature.properties?.visibility === false) {
+      continue;
+    }
+    const featureId = UIDMap.getIntID(idMap, asset.id);
+    const feature: Feature = {
+      type: "Feature",
+      id: featureId,
+      properties: pick(asset.feature.properties, keepProperties),
+      geometry: asset.feature.geometry,
+    };
+
+    if (asset.type === "pipe" && analysis.links.type !== "none") {
+      const colorMapper = analysis.links.rangeColorMapping;
+      const property = colorMapper.symbolization.property;
+      const value = (asset as Pipe)[property as keyof Pipe] || 0;
+      feature.properties!.color = colorMapper.hexaColor(value as number);
+    }
+
+    strippedFeatures.push(feature);
+  }
+  return strippedFeatures;
+};
+
+export const buildOptimizedAssetsSourceDeprecated = (
+  assets: AssetsMap,
+  idMap: IDMap,
+  symbolization: ISymbolization | null,
+  previewProperty?: PreviewProperty,
+): Feature[] => {
+  const strippedFeatures = [];
+  const keepProperties = getKeepPropertiesDeprecated({
     symbolization,
     previewProperty,
   });
@@ -38,7 +71,7 @@ export const stripFeature = function ({
   idMap,
 }: {
   wrappedFeature: IWrappedFeature;
-  keepProperties: ReturnType<typeof getKeepProperties>;
+  keepProperties: ReturnType<typeof getKeepPropertiesDeprecated>;
   idMap: IDMap;
 }): Feature {
   return stripFeatureExcept(
@@ -48,12 +81,12 @@ export const stripFeature = function ({
   );
 };
 
-export function getKeepProperties({
+export function getKeepPropertiesDeprecated({
   symbolization,
   previewProperty,
 }: {
   symbolization: ISymbolization | null;
-  previewProperty: PreviewProperty;
+  previewProperty?: PreviewProperty;
 }) {
   let keepProperties: string[] = ["type", "status"];
   if (previewProperty) {
