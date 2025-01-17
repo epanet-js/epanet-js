@@ -20,6 +20,8 @@ import {
 } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { slotLayer } from "src/map/slots";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { pipeArrows } from "src/map/layers/pipes";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -138,6 +140,18 @@ export function makeLayers({
       symbolization,
     }),
     slotLayer("after-lines-slot"),
+    isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
+      pipeArrows({
+        source: "imported-features",
+        layerId: "imported-pipe-arrows",
+        symbolization,
+      }),
+    isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
+      pipeArrows({
+        source: "features",
+        layerId: "pipe-arrows",
+        symbolization,
+      }),
     junctionsLayer({
       source: "imported-features",
       layerId: "imported-junctions",
@@ -190,7 +204,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ].filter((l) => !!l);
+  ].filter((l) => !!l) as mapboxgl.AnyLayer[];
 }
 
 function LABEL_PAINT(
