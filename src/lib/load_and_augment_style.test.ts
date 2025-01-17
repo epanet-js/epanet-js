@@ -7,7 +7,7 @@ import loadAndAugmentStyle, {
 import { NIL_PREVIEW } from "test/helpers";
 import { validate } from "@mapbox/mapbox-gl-style-spec";
 import { ILayerConfig, ISymbolization } from "src/types";
-import { purple900 } from "src/lib/constants";
+import { indigo800 } from "src/lib/constants";
 import { exportStyle } from "src/lib/export_style";
 
 vi.mock("src/lib/env_client", () => {
@@ -21,7 +21,7 @@ vi.mock("src/lib/env_client", () => {
 const NONE_NO_SIMPLESTYLE: ISymbolization = {
   type: "none",
   simplestyle: false,
-  defaultColor: purple900,
+  defaultColor: indigo800,
   defaultOpacity: 0.3,
 };
 
@@ -58,7 +58,7 @@ describe.skip("makeLayers", () => {
       simplestyle: false,
       interpolate: "linear",
       rampName: "xx",
-      defaultColor: purple900,
+      defaultColor: indigo800,
       defaultOpacity: 0.3,
       stops: [
         {
@@ -91,7 +91,7 @@ describe.skip("makeLayers", () => {
       type: "categorical",
       simplestyle: false,
       property: "foo",
-      defaultColor: purple900,
+      defaultColor: indigo800,
       defaultOpacity: 0.3,
       stops: [
         {
@@ -120,7 +120,7 @@ describe.skip("makeLayers", () => {
       type: "categorical",
       simplestyle: true,
       property: "foo",
-      defaultColor: purple900,
+      defaultColor: indigo800,
       defaultOpacity: 0.3,
       stops: [
         {

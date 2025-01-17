@@ -4,7 +4,7 @@ import { Feature, Position } from "geojson";
 import { Pipe, NodeAsset } from "src/hydraulic-model";
 import { captureWarning } from "src/infra/error-tracking";
 import { hexToArray } from "src/lib/color";
-import { purple900 } from "src/lib/constants";
+import { indigo300, indigo500 } from "src/lib/constants";
 
 export interface EphemeralDrawPipe {
   type: "drawPipe";
@@ -63,7 +63,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
         getRadius: 14,
         radiusUnits: "pixels",
         stroked: true,
-        getFillColor: [255, 140, 0, 100],
+        getFillColor: hexToArray(indigo300, 0.6),
         getLineColor: [0, 0, 0],
         getLineWidth: 0,
         lineWidthUnits: "pixels",
@@ -75,7 +75,7 @@ export const buildLayers = (state: EphemeralDrawPipe) => {
       pointRadiusUnits: "pixels",
       getLineWidth: 4,
       getFillColor: [255, 255, 255],
-      getLineColor: hexToArray(purple900, 0.4),
+      getLineColor: hexToArray(indigo500),
       getPointRadius: 4,
       lineCapRounded: true,
       getDashArray: [3, 3],
