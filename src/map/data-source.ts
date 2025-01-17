@@ -1,5 +1,4 @@
 import { AssetsMap } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { PreviewProperty } from "src/state/jotai";
@@ -56,9 +55,7 @@ export function getKeepProperties({
   symbolization: ISymbolization | null;
   previewProperty: PreviewProperty;
 }) {
-  let keepProperties: string[] = isFeatureOn("FLAG_CLOSED_PIPES")
-    ? ["type", "status"]
-    : ["type"];
+  let keepProperties: string[] = ["type", "status"];
   if (previewProperty) {
     keepProperties.push(previewProperty);
   }
