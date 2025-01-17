@@ -76,7 +76,13 @@ export const pipeArrows = ({
     },
     filter: ["==", "$type", "LineString"],
     paint: {
-      "icon-color": ["coalesce", ["get", "color"], symbolization.defaultColor],
+      "icon-color": [
+        "match",
+        ["feature-state", "selected"],
+        "true",
+        LINE_COLORS_SELECTED,
+        ["coalesce", ["get", "color"], symbolization.defaultColor],
+      ],
     },
     minzoom: 14,
   };
