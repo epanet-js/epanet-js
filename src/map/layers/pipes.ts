@@ -72,6 +72,7 @@ export const pipeArrows = ({
       "symbol-placement": "line-center",
       "icon-image": "arrow",
       "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.25, 24, 1],
+      "icon-rotate": ["get", "rotation"],
       visibility: "none",
     },
     filter: ["==", "$type", "LineString"],
