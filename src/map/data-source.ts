@@ -1,6 +1,7 @@
 import { AssetsMap, Pipe } from "src/hydraulic-model";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { convertTo } from "src/quantity";
 import { AnalysisState } from "src/state/analysis";
 import { PreviewProperty } from "src/state/jotai";
 import { Feature, ISymbolization, IWrappedFeature } from "src/types";
@@ -30,8 +31,13 @@ export const buildOptimizedAssetsSource = (
     if (asset.type === "pipe" && analysis.links.type !== "none") {
       const colorMapper = analysis.links.rangeColorMapping;
       const property = colorMapper.symbolization.property;
-      const value = (asset as Pipe)[property as keyof Pipe] || 0;
+      const pipe = asset as Pipe;
+      const value = pipe[property as keyof Pipe] || 0;
       feature.properties!.color = colorMapper.hexaColor(value as number);
+      feature.properties!.length = convertTo(
+        { value: pipe.length, unit: pipe.getUnit("length") },
+        "m",
+      );
     }
 
     strippedFeatures.push(feature);
