@@ -53,6 +53,18 @@ export class RangeColorMapping {
     const index = this.ranges.indexOf(range);
     return this.rgbRamp[index];
   }
+
+  hexaColor(value: number): string {
+    const range = this.ranges.find(
+      ([start, end]) => start <= value && value < end,
+    ) as Range;
+    const index = this.ranges.indexOf(range);
+    const rgb = this.rgbRamp[index];
+    const toHex = (value: number) => value.toString(16).padStart(2, "0");
+
+    const [r, g, b] = rgb;
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
 }
 
 const buildRanges = (steps: number[]) => {
