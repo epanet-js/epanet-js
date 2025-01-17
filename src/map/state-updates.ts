@@ -21,7 +21,7 @@ import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
+import { AssetId, AssetsMap, Pipe, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -448,6 +448,10 @@ const buildAnalysisOverlays = withInstrumentation(
       !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
 
     if (analysis.links.type === "flows") {
+      const visibilityFn = (assetId: AssetId) =>
+        !movedAssetIds.has(assetId) &&
+        !selectedAssetIds.has(assetId) &&
+        (assets.get(assetId) as Pipe).status !== "closed";
       analysisLayers.push(
         ...buildArrowsOverlay({
           name: "flows",
@@ -460,6 +464,10 @@ const buildAnalysisOverlays = withInstrumentation(
       );
     }
     if (analysis.links.type === "velocities") {
+      const visibilityFn = (assetId: AssetId) =>
+        !movedAssetIds.has(assetId) &&
+        !selectedAssetIds.has(assetId) &&
+        (assets.get(assetId) as Pipe).status !== "closed";
       analysisLayers.push(
         ...buildArrowsOverlay({
           name: "velocities",
