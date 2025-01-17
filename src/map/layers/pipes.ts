@@ -1,4 +1,4 @@
-import { LineLayer, LinePaint } from "mapbox-gl";
+import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { ISymbolization } from "src/types";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
@@ -52,6 +52,33 @@ export const pipesLayer = ({
     source,
     filter: ["==", "$type", "LineString"],
     paint: paint as LinePaint,
+  };
+};
+
+export const pipeArrows = ({
+  source,
+  layerId,
+  symbolization,
+}: {
+  source: DataSource;
+  layerId: string;
+  symbolization: ISymbolization;
+}): SymbolLayer => {
+  return {
+    id: layerId,
+    type: "symbol",
+    source,
+    layout: {
+      "symbol-placement": "line-center",
+      "icon-image": "arrow",
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.25, 24, 1],
+      visibility: "none",
+    },
+    filter: ["==", "$type", "LineString"],
+    paint: {
+      "icon-color": ["coalesce", ["get", "color"], symbolization.defaultColor],
+    },
+    minzoom: 14,
   };
 };
 

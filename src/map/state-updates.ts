@@ -293,6 +293,21 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
+    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") && hasNewAnalysis) {
+      const analysis = mapState.analysis;
+      if (analysis.links.type === "none") {
+        map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
+        map.map.setLayoutProperty("pipe-arrows", "visibility", "none");
+      } else {
+        map.map.setLayoutProperty(
+          "imported-pipe-arrows",
+          "visibility",
+          "visible",
+        );
+        map.map.setLayoutProperty("pipe-arrows", "visibility", "visible");
+      }
+    }
+
     if (
       hasNewEditions ||
       hasNewAnalysis ||
