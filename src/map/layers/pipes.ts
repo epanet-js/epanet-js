@@ -28,7 +28,6 @@ export const pipesLayer = ({
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
     "line-color": handleSelected(
       asColorExpression({ symbolization, part: "stroke" }),
-      false,
       LINE_COLORS_SELECTED,
     ),
     "line-dasharray": [
@@ -49,16 +48,13 @@ export const pipesLayer = ({
 
 function handleSelected(
   expression: mapboxgl.Expression | string,
-  exp = false,
-  selected: mapboxgl.Expression | string,
+  selectedColor: string,
 ) {
-  return exp
-    ? expression
-    : ([
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        selected,
-        expression,
-      ] as mapboxgl.Expression);
+  return [
+    "match",
+    ["feature-state", "selected"],
+    "true",
+    selectedColor,
+    expression,
+  ] as mapboxgl.Expression;
 }
