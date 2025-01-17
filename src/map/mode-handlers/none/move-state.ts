@@ -11,6 +11,9 @@ export type EphemeralMoveAssets = {
 };
 
 import { getIconsSprite, IconId } from "src/map/icons";
+import { hexToArray } from "src/lib/color";
+import { purple900 } from "src/lib/constants";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type IconData = {
   id: IconId;
@@ -50,8 +53,12 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
       getLineWidth: 4,
-      getFillColor: [0, 0, 0],
-      getLineColor: [0, 0, 0],
+      getFillColor: isFeatureOn("FLAG_CLOSED_PIPES")
+        ? hexToArray(purple900, 0.4)
+        : [0, 0, 0],
+      getLineColor: isFeatureOn("FLAG_CLOSED_PIPES")
+        ? hexToArray(purple900, 0.4)
+        : [0, 0, 0],
       getPointRadius: 4,
       lineCapRounded: true,
     }),
