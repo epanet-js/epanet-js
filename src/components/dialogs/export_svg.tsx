@@ -26,7 +26,7 @@ import { useRootItems } from "src/components/panels/feature_editor/feature_edito
 import { Root } from "@tmcw/togeojson";
 import { usePersistence } from "src/lib/persistence/context";
 import memoizeOne from "memoize-one";
-import { purple900 } from "src/lib/constants";
+import { indigo800 } from "src/lib/constants";
 import { MapContext } from "src/map";
 import { asColorExpression } from "src/lib/symbolization";
 
@@ -50,7 +50,7 @@ function getColor(symbolization: ISymbolization, feature: IFeature) {
   try {
     return getExpr(symbolization)(feature);
   } catch (e) {
-    return purple900;
+    return indigo800;
   }
 }
 

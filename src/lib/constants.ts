@@ -26,8 +26,11 @@ export const DECK_LASSO_ID = "deckgl-lasso";
 /**
  * Colors
  */
-export const purple900 = "#312E81";
 export const purple500 = "#a855f7";
+export const indigo900 = "#312E81";
+export const indigo800 = "#3730a3";
+export const indigo300 = "#a5b4fc";
+export const indigo400 = "#818cf8";
 export const indigo500 = "#6366f1";
 export const indigo600 = "#4f46e5";
 export const fuchsia500 = "#d946ef";
@@ -280,8 +283,6 @@ export const FILE_LIMIT_BYTES = FILE_LIMIT_MB * MB_TO_BYTES;
 export const SCALE_UNITS = ["imperial", "metric", "nautical"] as const;
 export type ScaleUnit = (typeof SCALE_UNITS)[number];
 export const zScaleUnit = z.enum(SCALE_UNITS);
-
-export const purple900a: RGBA = [49, 46, 129, 255];
 
 export const WHITE: RGBA = [255, 255, 255, 255];
 
