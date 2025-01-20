@@ -1,14 +1,18 @@
 import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
+import arrowWhite from "src/map/icons/arrow-white.png";
+import arrowBW from "src/map/icons/arrow-bw.png";
 import triangle from "src/map/icons/triangle.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type IconId =
   | "reservoir"
   | "reservoir-outlined"
   | "reservoir-selected"
-  | "triangle";
+  | "triangle"
+  | "arrow";
 export type TextureProps = {
   width: number;
   height: number;
@@ -33,6 +37,10 @@ const iconUrls: IconUrl[] = [
   { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
   { id: "reservoir-selected", url: reservoirSelectedPng.src },
   {
+    id: "arrow",
+    url: isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") ? arrowBW.src : arrowWhite.src,
+  },
+  {
     id: "triangle",
     url: triangle.src,
   },
@@ -42,6 +50,7 @@ const iconsMapping: IconsMapping = {
   reservoir: { x: 0, y: 0, width: 32, height: 32 },
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
   "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
+  arrow: { x: 96, y: 0, width: 64, height: 64, mask: true },
   triangle: { x: 96, y: 0, width: 64, height: 64, mask: true },
 };
 
