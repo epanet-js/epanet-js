@@ -119,8 +119,9 @@ export class HydraulicModelBuilder {
     this.assets.set(pipe.id, pipe);
     if (simulation) {
       pipe.setSimulation({
-        getFlow: () => simulation.flow || 10,
-        getVelocity: () => simulation.velocity || 10,
+        getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
+        getVelocity: () =>
+          simulation.velocity !== undefined ? simulation.velocity : 10,
       });
     }
     this.topology.addLink(id, startNode.id, endNode.id);
