@@ -172,7 +172,6 @@ export class MemPersistence implements IPersistence {
         return sortAts(a[1], b[1]);
       }),
     );
-    const updatedSegments = ctx.segments;
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
@@ -186,7 +185,6 @@ export class MemPersistence implements IPersistence {
           return sortAts(a[1], b[1]);
         }),
       ),
-      segments: updatedSegments,
       modelMetadata: ctx.modelMetadata,
     });
     return reverseMoment;
