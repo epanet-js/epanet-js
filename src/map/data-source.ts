@@ -34,7 +34,9 @@ export const buildOptimizedAssetsSource = (
       const pipe = asset as Pipe;
       const value = pipe[property as keyof Pipe] as number | null;
       const isReverse = value && value < 0;
-      feature.properties!.color = colorMapper.hexaColor(value || 0);
+      feature.properties!.color = colorMapper.hexaColor(
+        value !== null ? Math.abs(value) : 0,
+      );
       feature.properties!.length = convertTo(
         { value: pipe.length, unit: pipe.getUnit("length") },
         "m",
