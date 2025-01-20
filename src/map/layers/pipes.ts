@@ -58,6 +58,7 @@ export const pipesLayer = ({
 export const pipeArrows = ({
   source,
   layerId,
+  symbolization,
 }: {
   source: DataSource;
   layerId: string;
@@ -69,13 +70,20 @@ export const pipeArrows = ({
     source,
     layout: {
       "symbol-placement": "line-center",
-      "icon-image": "arrow",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.4, 24, 1],
+      "icon-image": "triangle",
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 24, 0.75],
       "icon-rotate": ["get", "rotation"],
       visibility: "none",
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],
     paint: {
+      "icon-color": [
+        "match",
+        ["feature-state", "selected"],
+        "true",
+        LINE_COLORS_SELECTED,
+        ["coalesce", ["get", "color"], symbolization.defaultColor],
+      ],
       "icon-opacity": [
         ...zoomExpression([14, 15, 16, 17, 18, 19], [200, 100, 50, 20, 10, 5]),
         20,
