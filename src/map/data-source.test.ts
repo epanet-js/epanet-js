@@ -72,7 +72,7 @@ describe("build optimized source", () => {
         length: 14,
         hasArrow: true,
         rotation: 0,
-        color: "#68b982",
+        color: "#10b981",
       });
     });
 
@@ -92,7 +92,7 @@ describe("build optimized source", () => {
       const [pipe] = features;
       expect(pipe.properties).toMatchObject({
         rotation: -180,
-        color: "#68b982",
+        color: "#10b981",
       });
     });
 
@@ -112,11 +112,11 @@ describe("build optimized source", () => {
 
       const [p1, p2] = features;
       expect(p1.properties).toMatchObject({
-        color: "#004e64",
+        color: "#0c4a6e",
         hasArrow: true,
       });
       expect(p2.properties).toMatchObject({
-        color: "#004e64",
+        color: "#0c4a6e",
         hasArrow: false,
       });
     });

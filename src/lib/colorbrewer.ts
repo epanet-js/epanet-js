@@ -1,5 +1,3 @@
-import { isFeatureOn } from "src/infra/feature-flags";
-
 export interface CBColors {
   name: string;
   colors: {
@@ -3335,13 +3333,11 @@ const epanetColors: CBColors[] = [
   {
     name: "epanet-ramp",
     colors: {
-      "2": ["#004e64", "#cf597e"],
-      "3": ["#004e64", "#8bc480", "#f1d572"],
-      "4": ["#004e64", "#68b982", "#c3d86b", "#f1d572"],
-      "5": isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")
-        ? ["#0c4a6e", "#10b981", "#84cc16", "#eab308", "#f97316"]
-        : ["#004e64", "#52b684", "#94cd74", "#e8c565", "#f99a5d"],
-      "6": ["#004e64", "#3fb086", "#71c37d", "#c1d76c", "#f3c761", "#f7745d"],
+      "2": ["#0c4a6e", "#f97316"],
+      "3": ["#0c4a6e", "#10b981", "#f97316"],
+      "4": ["#0c4a6e", "#10b981", "#84cc16", "#f97316"],
+      "5": ["#0c4a6e", "#10b981", "#84cc16", "#eab308", "#f97316"],
+      "6": ["#004e64", "#3fb086", "#71c37d", "#c1d76c", "#f3c761", "#f7745d"], //outdated
       "7": [
         "#004e64",
         "#36ab8b",
@@ -3350,7 +3346,7 @@ const epanetColors: CBColors[] = [
         "#edd361",
         "#f89e5d",
         "#cf597e",
-      ],
+      ], //outdated
     },
     tags: ["epanet"],
   },

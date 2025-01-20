@@ -38,9 +38,7 @@ import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
-import { calculateSegments } from "src/map/link-segments";
 import { ModelMetadata } from "src/model-metadata";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -174,15 +172,7 @@ export class MemPersistence implements IPersistence {
         return sortAts(a[1], b[1]);
       }),
     );
-    const updatedSegments = isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")
-      ? ctx.segments
-      : calculateSegments(
-          {
-            putAssets: forwardMoment.putFeatures as unknown as Asset[],
-            deleteAssets: forwardMoment.deleteFeatures,
-          },
-          ctx.segments,
-        );
+    const updatedSegments = ctx.segments;
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
