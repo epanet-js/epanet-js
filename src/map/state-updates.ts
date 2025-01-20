@@ -12,7 +12,6 @@ import {
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
-  segmentsAtom,
   selectionAtom,
   simulationAtom,
 } from "src/state/jotai";
@@ -38,7 +37,6 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
-import { LinkSegmentsMap } from "./link-segments";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -164,7 +162,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const mapState = useAtomValue(mapStateAtom);
 
   const assets = useAtomValue(assetsAtom);
-  const segments = useAtomValue(segmentsAtom);
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
@@ -279,7 +276,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       analysisOverlays.current = buildAnalysisOverlays(
         map,
         assets,
-        segments,
         mapState.analysis,
         mapState.movedAssetIds,
         mapState.selectedAssetIds,
@@ -290,7 +286,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       ...analysisOverlays.current,
       ...ephemeralStateOverlays.current,
     ]);
-  }, [mapState, assets, segments, idMap, map, momentLog]);
+  }, [mapState, assets, idMap, map, momentLog]);
 
   doUpdates().catch((e) => captureError(e));
 };
@@ -462,7 +458,6 @@ const buildAnalysisOverlays = withInstrumentation(
   (
     map: MapEngine,
     assets: AssetsMap,
-    segments: LinkSegmentsMap,
     analysis: AnalysisState,
     movedAssetIds: Set<AssetId>,
     selectedAssetIds: Set<AssetId>,
