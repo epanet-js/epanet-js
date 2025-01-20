@@ -134,7 +134,7 @@ export class MapEngine {
       for (const { id, image } of this.icons) {
         if (map.hasImage(id)) return;
 
-        isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")
+        isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") && id === "reservoir"
           ? map.addImage(id, image, { sdf: true })
           : map.addImage(id, image);
       }
