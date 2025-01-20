@@ -293,7 +293,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") && hasNewAnalysis) {
+    if (
+      isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
+      (hasNewAnalysis || hasNewStyles)
+    ) {
       const analysis = mapState.analysis;
       if (analysis.links.type === "none") {
         map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
