@@ -55,8 +55,9 @@ export class RangeColorMapping {
   }
 
   hexaColor(value: number): string {
+    const absValue = Math.abs(value);
     const range = this.ranges.find(
-      ([start, end]) => start <= value && value < end,
+      ([start, end]) => start <= absValue && absValue < end,
     ) as Range;
     const index = this.ranges.indexOf(range);
     const rgb = this.rgbRamp[index];
