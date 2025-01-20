@@ -17,14 +17,11 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
-import {
-  buildOptimizedAssetsSource,
-  buildOptimizedAssetsSourceDeprecated,
-} from "./data-source";
+import { buildOptimizedAssetsSource } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, Pipe, filterAssets } from "src/hydraulic-model";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -42,8 +39,6 @@ import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
 import { LinkSegmentsMap } from "./link-segments";
-import { buildArrowsOverlay } from "./overlays/arrows";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -200,79 +195,45 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       await updateLayerStyles(map, mapState.stylesConfig);
     }
 
-    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")) {
-      if (
-        hasNewImport ||
-        hasNewStyles ||
-        hasNewAnalysis ||
-        (hasNewSimulation && mapState.simulation.status !== "running")
-      ) {
-        await updateImportSource(
-          map,
-          momentLog,
-          mapState.lastImportPointer,
-          assets,
-          idMap,
-          mapState.stylesConfig,
-          mapState.analysis,
-        );
-      }
-    } else {
-      if (hasNewImport || hasNewStyles) {
-        await updateImportSourceDeprecated(
-          map,
-          momentLog,
-          mapState.lastImportPointer,
-          assets,
-          idMap,
-          mapState.stylesConfig,
-        );
-      }
+    if (
+      hasNewImport ||
+      hasNewStyles ||
+      hasNewAnalysis ||
+      (hasNewSimulation && mapState.simulation.status !== "running")
+    ) {
+      await updateImportSource(
+        map,
+        momentLog,
+        mapState.lastImportPointer,
+        assets,
+        idMap,
+        mapState.stylesConfig,
+        mapState.analysis,
+      );
     }
 
-    if (isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")) {
-      if (
-        hasNewEditions ||
-        hasNewStyles ||
-        hasNewAnalysis ||
-        (hasNewSimulation && mapState.simulation.status !== "running")
-      ) {
-        const editedAssetIds = await updateEditionsSource(
-          map,
-          momentLog,
-          mapState.lastImportPointer,
-          assets,
-          idMap,
-          mapState.analysis,
-        );
-        const newHiddenFeatures = updateVisibilityFeatureState(
-          map,
-          lastHiddenFeatures.current,
-          editedAssetIds,
-          idMap,
-        );
+    if (
+      hasNewEditions ||
+      hasNewStyles ||
+      hasNewAnalysis ||
+      (hasNewSimulation && mapState.simulation.status !== "running")
+    ) {
+      const editedAssetIds = await updateEditionsSource(
+        map,
+        momentLog,
+        mapState.lastImportPointer,
+        assets,
+        idMap,
+        mapState.analysis,
+      );
+      const newHiddenFeatures = updateVisibilityFeatureState(
+        map,
+        lastHiddenFeatures.current,
+        editedAssetIds,
+        idMap,
+      );
 
-        lastHiddenFeatures.current = newHiddenFeatures;
-      }
-    } else {
-      if (hasNewEditions || hasNewStyles) {
-        const editedAssetIds = await updateEditionsSourceDeprecated(
-          map,
-          momentLog,
-          mapState.lastImportPointer,
-          assets,
-          idMap,
-          mapState.stylesConfig,
-        );
-        const newHiddenFeatures = updateVisibilityFeatureState(
-          map,
-          lastHiddenFeatures.current,
-          editedAssetIds,
-          idMap,
-        );
-
-        lastHiddenFeatures.current = newHiddenFeatures;
-      }
+      lastHiddenFeatures.current = newHiddenFeatures;
     }
 
     if (hasNewEphemeralState) {
@@ -293,10 +254,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (
-      isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
-      (hasNewAnalysis || hasNewStyles)
-    ) {
+    if (hasNewAnalysis || hasNewStyles) {
       const analysis = mapState.analysis;
       if (analysis.links.type === "none") {
         map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
@@ -378,38 +336,6 @@ const updateImportSource = withInstrumentation(
   },
 );
 
-const updateImportSourceDeprecated = withInstrumentation(
-  async (
-    map: MapEngine,
-    momentLog: MomentLog,
-    latestImportPointer: number | null,
-    assets: AssetsMap,
-    idMap: IDMap,
-    styles: StylesConfig,
-  ) => {
-    const importMoments =
-      latestImportPointer === null
-        ? []
-        : momentLog.fetchUpToAndIncluding(latestImportPointer);
-
-    const importedAssetIds = getAssetIdsInMoments(importMoments);
-    const importedAssets = filterAssets(assets, importedAssetIds);
-
-    const features = buildOptimizedAssetsSourceDeprecated(
-      importedAssets,
-      idMap,
-      styles.symbolization,
-      styles.previewProperty,
-    );
-    await map.setSource("imported-features", features);
-  },
-  {
-    name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
-    maxDurationMs: 10000,
-    maxCalls: 10,
-    callsIntervalMs: 1000,
-  },
-);
 const updateEditionsSource = withInstrumentation(
   async (
     map: MapEngine,
@@ -431,39 +357,6 @@ const updateEditionsSource = withInstrumentation(
       editedAssets,
       idMap,
       analysisState,
-    );
-    await map.setSource("features", features);
-
-    return editionAssetIds;
-  },
-  {
-    name: "MAP_STATE:UPDATE_EDITIONS_SOURCE",
-    maxDurationMs: 250,
-  },
-);
-
-const updateEditionsSourceDeprecated = withInstrumentation(
-  async (
-    map: MapEngine,
-    momentLog: MomentLog,
-    latestImportPointer: number | null,
-    assets: AssetsMap,
-    idMap: IDMap,
-    styles: StylesConfig,
-  ): Promise<Set<AssetId>> => {
-    const editionMoments =
-      latestImportPointer === null
-        ? momentLog.fetchAll()
-        : momentLog.fetchAfter(latestImportPointer);
-
-    const editionAssetIds = getAssetIdsInMoments(editionMoments);
-    const editedAssets = filterAssets(assets, editionAssetIds);
-
-    const features = buildOptimizedAssetsSourceDeprecated(
-      editedAssets,
-      idMap,
-      styles.symbolization,
-      styles.previewProperty,
     );
     await map.setSource("features", features);
 
@@ -577,45 +470,6 @@ const buildAnalysisOverlays = withInstrumentation(
     const analysisLayers: DeckLayer[] = [];
     const visibilityFn = (assetId: AssetId) =>
       !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
-
-    if (
-      !isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
-      analysis.links.type === "flows"
-    ) {
-      const visibilityFn = (assetId: AssetId) =>
-        !movedAssetIds.has(assetId) &&
-        !selectedAssetIds.has(assetId) &&
-        (assets.get(assetId) as Pipe).status !== "closed";
-      analysisLayers.push(
-        ...buildArrowsOverlay({
-          name: "flows",
-          assets,
-          segments,
-          rangeColorMapping: analysis.links.rangeColorMapping,
-          isVisible: visibilityFn,
-          getValue: (link) => link.flow,
-        }),
-      );
-    }
-    if (
-      !isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
-      analysis.links.type === "velocities"
-    ) {
-      const visibilityFn = (assetId: AssetId) =>
-        !movedAssetIds.has(assetId) &&
-        !selectedAssetIds.has(assetId) &&
-        (assets.get(assetId) as Pipe).status !== "closed";
-      analysisLayers.push(
-        ...buildArrowsOverlay({
-          name: "velocities",
-          assets,
-          segments,
-          rangeColorMapping: analysis.links.rangeColorMapping,
-          isVisible: visibilityFn,
-          getValue: (link) => link.velocity,
-        }),
-      );
-    }
 
     if (analysis.nodes.type === "pressures") {
       analysisLayers.push(
