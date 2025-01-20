@@ -20,3 +20,13 @@ export type LinksAnalysis =
   | { type: "none" }
   | FlowsAnalysis
   | VelocitiesAnalysis;
+
+export type AnalysisState = {
+  nodes: NodesAnalysis;
+  links: LinksAnalysis;
+};
+
+export const nullAnalysis: AnalysisState = {
+  links: { type: "none" },
+  nodes: { type: "none" },
+};

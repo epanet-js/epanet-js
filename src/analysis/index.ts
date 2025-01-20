@@ -3,4 +3,6 @@ export type {
   LinksAnalysis,
   FlowsAnalysis,
   PressuresAnalysis,
+  AnalysisState,
 } from "./analysis-types";
+export { nullAnalysis } from "./analysis-types";

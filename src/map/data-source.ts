@@ -1,3 +1,4 @@
+import { LinksAnalysis } from "src/analysis";
 import { AssetsMap, Pipe } from "src/hydraulic-model";
 import { SIMPLESTYLE_PROPERTIES } from "src/lib/constants";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
@@ -28,26 +29,34 @@ export const buildOptimizedAssetsSource = (
       geometry: asset.feature.geometry,
     };
 
-    if (asset.type === "pipe" && analysis.links.type !== "none") {
-      const colorMapper = analysis.links.rangeColorMapping;
-      const property = colorMapper.symbolization.property;
-      const pipe = asset as Pipe;
-      const value = pipe[property as keyof Pipe] as number | null;
-      const isReverse = value && value < 0;
-      feature.properties!.color = colorMapper.hexaColor(
-        value !== null ? Math.abs(value) : 0,
-      );
-      feature.properties!.length = convertTo(
-        { value: pipe.length, unit: pipe.getUnit("length") },
-        "m",
-      );
-      feature.properties!.hasArrow = pipe.status !== "closed" && value !== null;
-      feature.properties!.rotation = isReverse ? -180 : 0;
-    }
+    if (asset.type === "pipe")
+      appendPipeAnalysisProps(asset as Pipe, feature, analysis.links);
 
     strippedFeatures.push(feature);
   }
   return strippedFeatures;
+};
+
+const appendPipeAnalysisProps = (
+  pipe: Pipe,
+  feature: Feature,
+  linkAnalysis: LinksAnalysis,
+) => {
+  if (linkAnalysis.type === "none") return;
+
+  const colorMapper = linkAnalysis.rangeColorMapping;
+  const property = colorMapper.symbolization.property;
+  const value = pipe[property as keyof Pipe] as number | null;
+  const isReverse = value && value < 0;
+  feature.properties!.color = colorMapper.hexaColor(
+    value !== null ? Math.abs(value) : 0,
+  );
+  feature.properties!.length = convertTo(
+    { value: pipe.length, unit: pipe.getUnit("length") },
+    "m",
+  );
+  feature.properties!.hasArrow = pipe.status !== "closed" && value !== null;
+  feature.properties!.rotation = isReverse ? -180 : 0;
 };
 
 export const buildOptimizedAssetsSourceDeprecated = (
