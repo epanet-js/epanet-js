@@ -134,7 +134,7 @@ export function makeLayers({
       layerId: "pipes",
       symbolization,
     }),
-    slotLayer("after-lines-slot"),
+    !isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") && slotLayer("after-lines-slot"),
     isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") &&
       pipeArrows({
         source: "imported-features",
