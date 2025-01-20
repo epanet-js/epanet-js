@@ -13,6 +13,7 @@ import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { isDebugMapHandlers } from "src/infra/debug-mode";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -133,7 +134,9 @@ export class MapEngine {
       for (const { id, image } of this.icons) {
         if (map.hasImage(id)) return;
 
-        map.addImage(id, image, { sdf: true });
+        isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS")
+          ? map.addImage(id, image, { sdf: true })
+          : map.addImage(id, image);
       }
     });
 
