@@ -2,7 +2,9 @@ import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import arrowWhite from "src/map/icons/arrow-white.png";
+import arrow from "src/map/icons/arrow.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type IconId =
   | "reservoir"
@@ -32,7 +34,10 @@ const iconUrls: IconUrl[] = [
   { id: "reservoir", url: reservoirPng.src },
   { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
   { id: "reservoir-selected", url: reservoirSelectedPng.src },
-  { id: "arrow", url: arrowWhite.src },
+  {
+    id: "arrow",
+    url: isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") ? arrow.src : arrowWhite.src,
+  },
 ];
 
 const iconsMapping: IconsMapping = {
