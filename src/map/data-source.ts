@@ -48,9 +48,7 @@ const appendPipeAnalysisProps = (
   const property = colorMapper.symbolization.property;
   const value = pipe[property as keyof Pipe] as number | null;
   const isReverse = value && value < 0;
-  feature.properties!.color = colorMapper.hexaColor(
-    value !== null ? Math.abs(value) : 0,
-  );
+  feature.properties!.color = colorMapper.hexaColor(value !== null ? value : 0);
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
