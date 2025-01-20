@@ -75,7 +75,7 @@ export const pipeArrows = ({
       "icon-rotate": ["get", "rotation"],
       visibility: "none",
     },
-    filter: ["==", "$type", "LineString"],
+    filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],
     paint: {
       "icon-color": [
         "match",
@@ -85,27 +85,36 @@ export const pipeArrows = ({
         ["coalesce", ["get", "color"], symbolization.defaultColor],
       ],
       "icon-opacity": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        14,
-        ["case", [">", ["get", "length"], 200], 1, 0],
-        15,
-        ["case", [">", ["get", "length"], 100], 1, 0],
-        16,
-        ["case", [">", ["get", "length"], 50], 1, 0],
-        17,
-        ["case", [">", ["get", "length"], 20], 1, 0],
-        18,
-        ["case", [">", ["get", "length"], 10], 1, 0],
-        19,
-        ["case", [">", ["get", "length"], 5], 1, 0],
+        ...zoomExpression([14, 15, 16, 17, 18, 19], [200, 100, 50, 20, 10, 5]),
         20,
         1,
       ],
     },
     minzoom: 14,
   };
+};
+
+const zoomExpression = (
+  steps: number[],
+  lengths: number[],
+): mapboxgl.Expression => {
+  const result: mapboxgl.Expression = ["interpolate", ["linear"], ["zoom"]];
+
+  for (const step of steps) {
+    const index = steps.indexOf(step);
+    const length = lengths[index];
+    result.push(step, [
+      "case",
+      [
+        "all",
+        [">", ["get", "length"], length],
+        ["!", ["boolean", ["feature-state", "hidden"], false]],
+      ],
+      1,
+      0,
+    ]);
+  }
+  return result;
 };
 
 function handleSelected(
