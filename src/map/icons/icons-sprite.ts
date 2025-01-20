@@ -2,7 +2,7 @@ import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import arrowWhite from "src/map/icons/arrow-white.png";
-import arrow from "src/map/icons/arrow.png";
+import arrowBW from "src/map/icons/arrow-bw.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { isFeatureOn } from "src/infra/feature-flags";
 
@@ -36,7 +36,7 @@ const iconUrls: IconUrl[] = [
   { id: "reservoir-selected", url: reservoirSelectedPng.src },
   {
     id: "arrow",
-    url: isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") ? arrow.src : arrowWhite.src,
+    url: isFeatureOn("FLAG_MAPBOX_PIPE_RESULTS") ? arrowBW.src : arrowWhite.src,
   },
 ];
 
