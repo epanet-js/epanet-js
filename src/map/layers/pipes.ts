@@ -65,7 +65,7 @@ export const pipeArrows = ({
     layout: {
       "symbol-placement": "line-center",
       "icon-image": "triangle",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 24, 0.75],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
       visibility: "none",
     },
