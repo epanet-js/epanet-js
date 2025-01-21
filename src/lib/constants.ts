@@ -30,10 +30,12 @@ export const purple500 = "#a855f7";
 export const indigo900 = "#312E81";
 export const indigo800 = "#3730a3";
 export const indigo300 = "#a5b4fc";
+export const indigo200 = "#c7d2fe";
 export const indigo400 = "#818cf8";
 export const indigo500 = "#6366f1";
 export const indigo600 = "#4f46e5";
 export const fuchsia500 = "#d946ef";
+export const fuchsia400 = "#e879f9";
 
 export const LINE_COLORS_IDLE = "#8B5CF6";
 export const LINE_COLORS_IDLE_RGBA = hexToArray("#8B5CF6");
