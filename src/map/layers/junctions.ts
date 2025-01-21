@@ -47,7 +47,15 @@ export const junctionsLayer = ({
           symbolization.defaultColor,
           symbolization.defaultColor,
         ],
-        "circle-stroke-width": 1,
+        "circle-stroke-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          13,
+          0.5,
+          16,
+          1,
+        ],
         "circle-stroke-opacity": opacityExpression(symbolization),
         "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
         "circle-color": [
