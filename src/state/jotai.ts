@@ -26,7 +26,6 @@ import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import { LinkSegmentsMap, nullLinkSegmentsMap } from "src/map/link-segments";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 
@@ -89,7 +88,6 @@ export interface Data {
   selection: Sel;
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
-  segments: LinkSegmentsMap;
 }
 
 /**
@@ -112,13 +110,8 @@ export const nullData: Data = {
   },
   hydraulicModel: hydraulicModel,
   modelMetadata,
-  segments: nullLinkSegmentsMap,
 };
 export const dataAtom = atom<Data>(nullData);
-
-export const segmentsAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("segments"),
-);
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 
