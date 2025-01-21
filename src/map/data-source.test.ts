@@ -5,6 +5,7 @@ import { buildOptimizedAssetsSource } from "./data-source";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetsMap } from "src/hydraulic-model";
 import { presets } from "src/model-metadata/quantities-spec";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build optimized source", () => {
   it("preserves core properties", () => {
@@ -35,6 +36,40 @@ describe("build optimized source", () => {
     expect(pipe.id).not.toEqual(junction.id);
   });
 
+  describe("when nodes analysis enabled", () => {
+    const analysis: AnalysisState = {
+      ...nullAnalysis,
+      nodes: {
+        type: "pressures",
+        rangeColorMapping: RangeColorMapping.build({
+          steps: [0, 10, 20, 30],
+          property: "pressure",
+          unit: "m",
+          paletteName: "epanet-ramp",
+        }),
+      },
+    };
+
+    it("includes props for styling to junctions", () => {
+      stubFeatureOn("FLAG_MAPBOX_JUNCTIONS");
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction("J1", { elevation: 15, simulation: { pressure: 10 } })
+        .build();
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        initIDMap(assets),
+        analysis,
+      );
+
+      const [junction] = features;
+      expect(junction.properties).toEqual({
+        type: "junction",
+        color: "#68b982",
+      });
+    });
+  });
+
   describe("when links analysis enabled", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
@@ -45,6 +80,7 @@ describe("build optimized source", () => {
           property: "flow",
           unit: "l/s",
           paletteName: "epanet-ramp",
+          absoluteValues: true,
         }),
       },
     };

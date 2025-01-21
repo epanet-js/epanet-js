@@ -13,11 +13,13 @@ export class RangeColorMapping {
     property,
     paletteName,
     unit,
+    absoluteValues = false,
   }: {
     steps: number[];
     property: string;
     paletteName: string;
     unit: Unit;
+    absoluteValues?: boolean;
   }) {
     const ranges = buildRanges(steps);
     const symbolization = buildSymbolization(
@@ -29,44 +31,49 @@ export class RangeColorMapping {
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
-    return new RangeColorMapping(ranges, symbolization, rgbRamp);
+    return new RangeColorMapping(
+      ranges,
+      symbolization,
+      rgbRamp,
+      absoluteValues,
+    );
   }
 
   private ranges: Range[];
   public readonly symbolization: ISymbolizationRamp;
   private rgbRamp: Rgb[];
+  private absoluteValues: boolean;
 
   constructor(
     ranges: Range[],
     symbolization: ISymbolizationRamp,
     rgbRamp: Rgb[],
+    absoluteValues: boolean,
   ) {
     this.ranges = ranges;
     this.symbolization = symbolization;
     this.rgbRamp = rgbRamp;
+    this.absoluteValues = absoluteValues;
   }
 
   colorFor(value: number): Rgb {
+    const effectiveValue = this.absoluteValues ? Math.abs(value) : value;
     const range = this.ranges.find(
-      ([start, end]) => start <= value && value < end,
+      ([start, end]) => start <= effectiveValue && effectiveValue < end,
     ) as Range;
     const index = this.ranges.indexOf(range);
     return this.rgbRamp[index];
   }
 
   hexaColor(value: number): string {
-    const absValue = Math.abs(value);
-    const range = this.ranges.find(
-      ([start, end]) => start <= absValue && absValue < end,
-    ) as Range;
-    const index = this.ranges.indexOf(range);
-    const rgb = this.rgbRamp[index];
-    const toHex = (value: number) => value.toString(16).padStart(2, "0");
+    const rgb = this.colorFor(value);
 
     const [r, g, b] = rgb;
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
 }
+
+const toHex = (value: number) => value.toString(16).padStart(2, "0");
 
 const buildRanges = (steps: number[]) => {
   const ranges: Range[] = [];

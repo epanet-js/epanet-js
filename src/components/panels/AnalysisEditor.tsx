@@ -31,6 +31,7 @@ export const AnalysisEditor = () => {
               property: "flow",
               unit: hydraulicModel.units.flow,
               paletteName: "epanet-ramp",
+              absoluteValues: true,
             }),
           },
         }));
@@ -44,6 +45,7 @@ export const AnalysisEditor = () => {
               property: "velocity",
               unit: hydraulicModel.units.velocity,
               paletteName: "epanet-ramp",
+              absoluteValues: true,
             }),
           },
         }));
