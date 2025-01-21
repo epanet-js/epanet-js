@@ -42,7 +42,6 @@ export const junctionsLayer = ({
           ["feature-state", "selected"],
           "true",
           symbolization.defaultColor,
-          //"white",
           symbolization.defaultColor,
         ],
         "circle-stroke-width": 1,
@@ -56,7 +55,7 @@ export const junctionsLayer = ({
           ["coalesce", ["get", "color"], indigo200],
         ],
       },
-      minzoom: 14,
+      minzoom: 13,
     };
   } else {
     return {
@@ -116,9 +115,9 @@ export const junctionResultsLayer = ({
   paint: {
     "circle-opacity": opacityExpression(symbolization),
     "circle-stroke-color": symbolization.defaultColor,
-    "circle-stroke-width": 1,
+    "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0, 14, 1],
     "circle-stroke-opacity": opacityExpression(symbolization),
-    "circle-radius": 5,
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": [
       "match",
       ["feature-state", "selected"],
@@ -127,5 +126,5 @@ export const junctionResultsLayer = ({
       ["coalesce", ["get", "color"], indigo200],
     ],
   },
-  maxzoom: 14.5,
+  maxzoom: 14,
 });
