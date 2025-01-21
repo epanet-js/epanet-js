@@ -55,7 +55,7 @@ export const pipeArrows = ({
   symbolization,
 }: {
   source: DataSource;
-  layerId: string;
+  layerId: LayerId;
   symbolization: ISymbolization;
 }): SymbolLayer => {
   return {

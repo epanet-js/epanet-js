@@ -37,6 +37,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -191,6 +192,41 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     if (hasNewStyles) {
       await updateLayerStyles(map, mapState.stylesConfig);
     }
+    if (hasNewAnalysis || hasNewStyles) {
+      const analysis = mapState.analysis;
+      if (analysis.links.type === "none") {
+        map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
+        map.map.setLayoutProperty("pipe-arrows", "visibility", "none");
+      } else {
+        map.map.setLayoutProperty(
+          "imported-pipe-arrows",
+          "visibility",
+          "visible",
+        );
+        map.map.setLayoutProperty("pipe-arrows", "visibility", "visible");
+      }
+      if (isFeatureOn("FLAG_MAPBOX_JUNCTIONS")) {
+        if (analysis.nodes.type === "none") {
+          map.map.setLayoutProperty(
+            "imported-junction-results",
+            "visibility",
+            "none",
+          );
+          map.map.setLayoutProperty("junction-results", "visibility", "none");
+        } else {
+          map.map.setLayoutProperty(
+            "imported-junction-results",
+            "visibility",
+            "visible",
+          );
+          map.map.setLayoutProperty(
+            "junction-results",
+            "visibility",
+            "visible",
+          );
+        }
+      }
+    }
 
     if (
       hasNewImport ||
@@ -249,21 +285,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
     if (hasNewSelection) {
       updateSelectionFeatureState(map, mapState.selection);
-    }
-
-    if (hasNewAnalysis || hasNewStyles) {
-      const analysis = mapState.analysis;
-      if (analysis.links.type === "none") {
-        map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
-        map.map.setLayoutProperty("pipe-arrows", "visibility", "none");
-      } else {
-        map.map.setLayoutProperty(
-          "imported-pipe-arrows",
-          "visibility",
-          "visible",
-        );
-        map.map.setLayoutProperty("pipe-arrows", "visibility", "visible");
-      }
     }
 
     if (
@@ -477,7 +498,10 @@ const buildAnalysisOverlays = withInstrumentation(
     const visibilityFn = (assetId: AssetId) =>
       !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
 
-    if (analysis.nodes.type === "pressures") {
+    if (
+      !isFeatureOn("FLAG_MAPBOX_JUNCTIONS") &&
+      analysis.nodes.type === "pressures"
+    ) {
       analysisLayers.push(
         ...buildPressuresOverlay(
           assets,
