@@ -24,7 +24,13 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
-import { AssetId, AssetsMap, Pipe, filterAssets } from "src/hydraulic-model";
+import {
+  Asset,
+  AssetId,
+  AssetsMap,
+  Pipe,
+  filterAssets,
+} from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
@@ -360,8 +366,19 @@ const updateImportSource = withInstrumentation(
         ? []
         : momentLog.fetchUpToAndIncluding(latestImportPointer);
 
-    const importedAssetIds = getAssetIdsInMoments(importMoments);
-    const importedAssets = filterAssets(assets, importedAssetIds);
+    if (importMoments.length === 0) {
+      await map.setSource("imported-features", []);
+      return;
+    }
+
+    if (importMoments.length > 1) {
+      throw new Error("Multiple import moments not supported");
+    }
+    const importMoment = importMoments[0];
+    const importedAssets = new AssetsMap();
+    for (const asset of importMoment.putFeatures as Asset[]) {
+      importedAssets.set(asset.id, asset);
+    }
 
     const features = buildOptimizedAssetsSource(
       importedAssets,
