@@ -1,12 +1,15 @@
 import { CircleLayer } from "mapbox-gl";
-import { LINE_COLORS_SELECTED } from "src/lib/constants";
+import {
+  LINE_COLORS_SELECTED,
+  POINT_COLORS_SELECTED,
+  indigo200,
+} from "src/lib/constants";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { isFeatureOn } from "src/infra/feature-flags";
 
-const indigo200 = "#c7d2fe";
 const opacityExpression = (
   symbolization: ISymbolization,
 ): mapboxgl.Expression => [
@@ -51,7 +54,7 @@ export const junctionsLayer = ({
           "match",
           ["feature-state", "selected"],
           "true",
-          LINE_COLORS_SELECTED,
+          POINT_COLORS_SELECTED,
           ["coalesce", ["get", "color"], indigo200],
         ],
       },
@@ -87,7 +90,7 @@ export const junctionsLayer = ({
           "match",
           ["feature-state", "selected"],
           "true",
-          LINE_COLORS_SELECTED,
+          POINT_COLORS_SELECTED,
           asColorExpression({
             symbolization,
             part: "stroke",
@@ -130,7 +133,7 @@ export const junctionResultsLayer = ({
       "match",
       ["feature-state", "selected"],
       "true",
-      LINE_COLORS_SELECTED,
+      POINT_COLORS_SELECTED,
       ["coalesce", ["get", "color"], indigo200],
     ],
   },
