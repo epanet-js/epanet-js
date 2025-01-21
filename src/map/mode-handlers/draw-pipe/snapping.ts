@@ -20,6 +20,8 @@ export const useSnapping = (
         "imported-junctions",
         "reservoirs",
         "imported-reservoirs",
+        "junction-results",
+        "imported-junction-results",
       ],
     });
     if (!pointFeatures.length) return null;

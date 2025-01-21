@@ -3,6 +3,10 @@ export type LayerId =
   | "imported-pipes"
   | "junctions"
   | "imported-junctions"
+  | "junction-results"
+  | "imported-junction-results"
+  | "imported-pipe-arrows"
+  | "pipe-arrows"
   | "reservoirs"
   | "imported-reservoirs"
   | "reservoirs-selected"
@@ -13,6 +17,8 @@ export const assetLayers: LayerId[] = [
   "imported-pipes",
   "junctions",
   "imported-junctions",
+  "junction-results",
+  "imported-junction-results",
   "reservoirs",
   "reservoirs-selected",
   "imported-reservoirs",
