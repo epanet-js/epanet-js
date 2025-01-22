@@ -1,6 +1,7 @@
 import randomColor from "randomcolor";
 import type { IPresence, RampValues } from "src/types";
 import * as d3 from "d3-color";
+import chroma from "chroma-js";
 
 const purple900a: RGBA = [49, 46, 129, 255];
 
@@ -37,3 +38,19 @@ export function linearGradient({
   );
   return `linear-gradient(90deg, ${steps.join(",")}`;
 }
+
+export const strokeColorFor = (hexColor: string): string => {
+  const color = chroma(hexColor);
+
+  const brightness = color.get("hsl.l");
+  const saturation = color.get("hsl.s");
+
+  const brightnessAdjustment = brightness > 0.5 ? -0.3 : 0.3;
+  const saturationAdjustment = saturation > 0.5 ? -0.2 : 0.2;
+
+  const strokeColor = color
+    .set("hsl.l", Math.min(1, Math.max(0, brightness + brightnessAdjustment)))
+    .set("hsl.s", Math.min(1, Math.max(0, saturation + saturationAdjustment)));
+
+  return strokeColor.hex();
+};

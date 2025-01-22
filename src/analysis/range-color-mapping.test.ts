@@ -1,4 +1,4 @@
-import { RangeColorMapping } from "./range-color-mapping";
+import { RangeColorMapping, parseRgb } from "./range-color-mapping";
 
 describe("Range color mapping", () => {
   it("assigns a color to each range", () => {
@@ -16,6 +16,17 @@ describe("Range color mapping", () => {
     expect(mapping.colorFor(15)).not.toEqual(mapping.colorFor(20));
     expect(mapping.colorFor(20)).toEqual(mapping.colorFor(25));
     expect(mapping.colorFor(20)).toEqual(mapping.colorFor(100));
+  });
+
+  it("can get hex representation of colors", () => {
+    const mapping = RangeColorMapping.build({
+      steps: [0, 10, 20],
+      paletteName: "epanet-ramp",
+      unit: "mwc",
+      property: "myprop",
+    });
+
+    expect(parseRgb(mapping.hexaColor(5))).toEqual(mapping.colorFor(5));
   });
 
   it("when specified assigns to absolute values", () => {

@@ -66,6 +66,7 @@ describe("build optimized source", () => {
       expect(junction.properties).toEqual({
         type: "junction",
         color: "#68b982",
+        strokeColor: "#1d6b36",
       });
     });
   });

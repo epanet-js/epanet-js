@@ -93,7 +93,7 @@ const buildRanges = (steps: number[]) => {
   return ranges;
 };
 
-const parseRgb = (color: string): Rgb => {
+export const parseRgb = (color: string): Rgb => {
   if (color.startsWith("#")) {
     const parsed = parseHexColor(color);
     if (parsed === null) throw new Error(`Invalid color ${color}`);
