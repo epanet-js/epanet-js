@@ -1,7 +1,6 @@
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { AssetsMap, Junction, Pipe } from "src/hydraulic-model";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { strokeColorFor } from "src/lib/color";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
 import { AnalysisState } from "src/state/analysis";
@@ -50,7 +49,8 @@ const appendPipeAnalysisProps = (
   const property = colorMapper.symbolization.property;
   const value = pipe[property as keyof Pipe] as number | null;
   const isReverse = value && value < 0;
-  feature.properties!.color = colorMapper.hexaColor(value !== null ? value : 0);
+  const numericValue = value !== null ? value : 0;
+  feature.properties!.color = colorMapper.hexaColor(numericValue);
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
@@ -69,9 +69,11 @@ const appendJunctionAnalysisProps = (
   const colorMapper = nodesAnalysis.rangeColorMapping;
   const property = colorMapper.symbolization.property;
   const value = junction[property as keyof Junction] as number | null;
-  const fillColor = colorMapper.hexaColor(value !== null ? value : 0);
+  const numericValue = value !== null ? value : 0;
+  const fillColor = colorMapper.hexaColor(numericValue);
+  const strokeColor = colorMapper.strokeColor(numericValue);
   feature.properties!.color = fillColor;
-  feature.properties!.strokeColor = strokeColorFor(fillColor);
+  feature.properties!.strokeColor = strokeColor;
 };
 
 function pick(

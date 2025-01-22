@@ -3,6 +3,7 @@ import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { indigo900 } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { parseHexColor } from "src/vendor/mapshaper/color/color-utils";
+import { strokeColorFor } from "src/lib/color";
 
 export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
@@ -31,10 +32,14 @@ export class RangeColorMapping {
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
+    const colorRamp = symbolization.stops.map((s) => s.output);
+    const strokeRamp = symbolization.stops.map((s) => strokeColorFor(s.output));
     return new RangeColorMapping(
       ranges,
       symbolization,
       rgbRamp,
+      colorRamp,
+      strokeRamp,
       absoluteValues,
     );
   }
@@ -42,38 +47,50 @@ export class RangeColorMapping {
   private ranges: Range[];
   public readonly symbolization: ISymbolizationRamp;
   private rgbRamp: Rgb[];
+  private colorRamp: string[];
+  private strokeRamp: string[];
   private absoluteValues: boolean;
 
   constructor(
     ranges: Range[],
     symbolization: ISymbolizationRamp,
     rgbRamp: Rgb[],
+    colorRamp: string[],
+    strokeRamp: string[],
     absoluteValues: boolean,
   ) {
     this.ranges = ranges;
     this.symbolization = symbolization;
     this.rgbRamp = rgbRamp;
+    this.colorRamp = colorRamp;
+    this.strokeRamp = strokeRamp;
     this.absoluteValues = absoluteValues;
   }
 
   colorFor(value: number): Rgb {
+    const index = this.findIndex(value);
+    return this.rgbRamp[index];
+  }
+
+  hexaColor(value: number): string {
+    const index = this.findIndex(value);
+    return this.colorRamp[index];
+  }
+
+  strokeColor(value: number): string {
+    const index = this.findIndex(value);
+    return this.strokeRamp[index];
+  }
+
+  private findIndex(value: number) {
     const effectiveValue = this.absoluteValues ? Math.abs(value) : value;
     const range = this.ranges.find(
       ([start, end]) => start <= effectiveValue && effectiveValue < end,
     ) as Range;
     const index = this.ranges.indexOf(range);
-    return this.rgbRamp[index];
-  }
-
-  hexaColor(value: number): string {
-    const rgb = this.colorFor(value);
-
-    const [r, g, b] = rgb;
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    return index;
   }
 }
-
-const toHex = (value: number) => value.toString(16).padStart(2, "0");
 
 const buildRanges = (steps: number[]) => {
   const ranges: Range[] = [];
