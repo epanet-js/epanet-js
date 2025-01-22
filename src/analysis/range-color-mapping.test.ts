@@ -1,14 +1,13 @@
 import { RangeColorMapping, parseRgb } from "./range-color-mapping";
 
 describe("Range color mapping", () => {
+  const mapping = RangeColorMapping.build({
+    steps: [0, 10, 20],
+    paletteName: "epanet-ramp",
+    unit: "mwc",
+    property: "myprop",
+  });
   it("assigns a color to each range", () => {
-    const mapping = RangeColorMapping.build({
-      steps: [0, 10, 20],
-      paletteName: "epanet-ramp",
-      unit: "mwc",
-      property: "myprop",
-    });
-
     expect(mapping.colorFor(5)).toEqual(mapping.colorFor(0));
     expect(mapping.colorFor(-1)).toEqual(mapping.colorFor(0));
     expect(mapping.colorFor(-10)).toEqual(mapping.colorFor(0));
@@ -19,14 +18,12 @@ describe("Range color mapping", () => {
   });
 
   it("can get hex representation of colors", () => {
-    const mapping = RangeColorMapping.build({
-      steps: [0, 10, 20],
-      paletteName: "epanet-ramp",
-      unit: "mwc",
-      property: "myprop",
-    });
-
     expect(parseRgb(mapping.hexaColor(5))).toEqual(mapping.colorFor(5));
+  });
+
+  it("can generate a stroke color for a value", () => {
+    expect(mapping.hexaColor(5)).toEqual("#004e64");
+    expect(mapping.strokeColor(5)).toEqual("#19b7e4");
   });
 
   it("when specified assigns to absolute values", () => {
