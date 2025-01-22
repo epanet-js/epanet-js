@@ -39,18 +39,27 @@ export function linearGradient({
   return `linear-gradient(90deg, ${steps.join(",")}`;
 }
 
-export const strokeColorFor = (hexColor: string): string => {
-  const color = chroma(hexColor);
+export const strokeColorFor = (fillColor: string): string => {
+  const brightnessAdjust = 0.5;
+  const saturationAdjust = 0.2;
+  const color = chroma(fillColor);
+  const luminance = color.luminance(); // Get luminance (0 = dark, 1 = light)
 
-  const brightness = color.get("hsl.l");
-  const saturation = color.get("hsl.s");
+  let strokeColor = color;
 
-  const brightnessAdjustment = brightness > 0.5 ? -0.3 : 0.3;
-  const saturationAdjustment = saturation > 0.5 ? -0.2 : 0.2;
+  if (luminance > 0.5) {
+    // Light color: Darken the stroke
+    strokeColor = strokeColor.darken(Math.abs(brightnessAdjust));
+  } else {
+    // Dark color: Lighten the stroke
+    strokeColor = strokeColor.brighten(Math.abs(brightnessAdjust + 1));
+  }
 
-  const strokeColor = color
-    .set("hsl.l", Math.min(1, Math.max(0, brightness + brightnessAdjustment)))
-    .set("hsl.s", Math.min(1, Math.max(0, saturation + saturationAdjustment)));
+  // Adjust saturation
+  strokeColor = strokeColor.set(
+    "hsl.s",
+    Math.min(1, Math.max(0, color.get("hsl.s") + saturationAdjust)),
+  );
 
   return strokeColor.hex();
 };
