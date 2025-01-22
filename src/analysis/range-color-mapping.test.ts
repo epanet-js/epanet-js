@@ -23,7 +23,7 @@ describe("Range color mapping", () => {
 
   it("can generate a stroke color for a value", () => {
     expect(mapping.hexaColor(5)).toEqual("#004e64");
-    expect(mapping.strokeColor(5)).toEqual("#02b4ff");
+    expect(mapping.strokeColor(5)).toEqual("#00a5e9");
   });
 
   it("when specified assigns to absolute values", () => {

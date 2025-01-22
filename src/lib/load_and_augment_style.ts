@@ -1,6 +1,6 @@
 import type { PreviewProperty } from "src/state/jotai";
 // TODO: this is a UI concern that should be separate.
-import type { AnyLayer, Style } from "mapbox-gl";
+import type { Style } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
@@ -15,7 +15,6 @@ import {
 import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { pipeArrows } from "src/map/layers/pipes";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 
 function getEmptyStyle() {
@@ -155,18 +154,16 @@ export function makeLayers({
       layerId: "junctions",
       symbolization,
     }),
-    isFeatureOn("FLAG_MAPBOX_JUNCTIONS") &&
-      junctionResultsLayer({
-        source: "imported-features",
-        layerId: "imported-junction-results",
-        symbolization,
-      }),
-    isFeatureOn("FLAG_MAPBOX_JUNCTIONS") &&
-      junctionResultsLayer({
-        source: "features",
-        layerId: "junction-results",
-        symbolization,
-      }),
+    junctionResultsLayer({
+      source: "imported-features",
+      layerId: "imported-junction-results",
+      symbolization,
+    }),
+    junctionResultsLayer({
+      source: "features",
+      layerId: "junction-results",
+      symbolization,
+    }),
     reservoirsLayer({
       source: "features",
       layerId: "reservoirs",
@@ -203,7 +200,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ].filter((l) => !!l) as AnyLayer[];
+  ].filter((l) => !!l);
 }
 
 function LABEL_PAINT(

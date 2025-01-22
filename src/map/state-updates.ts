@@ -35,9 +35,7 @@ import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
-import { buildPressuresOverlay } from "./overlays/pressures";
 import { USelection } from "src/selection";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -144,7 +142,6 @@ const detectChanges = (
   hasNewEphemeralState: boolean;
   hasNewSimulation: boolean;
   hasNewAnalysis: boolean;
-  hasNewMovedAssets: boolean;
 } => {
   return {
     hasNewImport: state.lastImportPointer !== prev.lastImportPointer,
@@ -154,7 +151,6 @@ const detectChanges = (
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewAnalysis: state.analysis !== prev.analysis,
-    hasNewMovedAssets: state.movedAssetIds.size !== prev.movedAssetIds.size,
   };
 };
 
@@ -166,7 +162,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
-  const analysisOverlays = useRef<DeckLayer[]>([]);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
 
   const doUpdates = useCallback(async () => {
@@ -186,7 +181,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewEphemeralState,
       hasNewAnalysis,
       hasNewSimulation,
-      hasNewMovedAssets,
     } = changes;
 
     if (hasNewStyles) {
@@ -208,7 +202,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         mapState.lastImportPointer,
         assets,
         idMap,
-        mapState.stylesConfig,
         mapState.analysis,
       );
     }
@@ -255,26 +248,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       updateSelectionFeatureState(map, mapState.selection);
     }
 
-    if (
-      hasNewEditions ||
-      hasNewAnalysis ||
-      hasNewSimulation ||
-      hasNewMovedAssets ||
-      hasNewSelection
-    ) {
-      analysisOverlays.current = buildAnalysisOverlays(
-        map,
-        assets,
-        mapState.analysis,
-        mapState.movedAssetIds,
-        mapState.selectedAssetIds,
-      );
-    }
-
-    map.setOverlay([
-      ...analysisOverlays.current,
-      ...ephemeralStateOverlays.current,
-    ]);
+    map.setOverlay(ephemeralStateOverlays.current);
   }, [mapState, assets, idMap, map, momentLog]);
 
   doUpdates().catch((e) => captureError(e));
@@ -295,12 +269,10 @@ const toggleAnalysisLayers = withInstrumentation(
     } else {
       map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
     }
-    if (isFeatureOn("FLAG_MAPBOX_JUNCTIONS")) {
-      if (analysis.nodes.type === "none") {
-        map.hideLayers(["imported-junction-results", "junction-results"]);
-      } else {
-        map.showLayers(["imported-junction-results", "junction-results"]);
-      }
+    if (analysis.nodes.type === "none") {
+      map.hideLayers(["imported-junction-results", "junction-results"]);
+    } else {
+      map.showLayers(["imported-junction-results", "junction-results"]);
     }
   },
   { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
@@ -313,7 +285,6 @@ const updateImportSource = withInstrumentation(
     latestImportPointer: number | null,
     assets: AssetsMap,
     idMap: IDMap,
-    styles: StylesConfig,
     analysisState: AnalysisState,
   ) => {
     const importMoments =
@@ -470,42 +441,6 @@ const updateSelectionFeatureState = withInstrumentation(
     map.setOnlySelection(selection);
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
-);
-
-const buildAnalysisOverlays = withInstrumentation(
-  (
-    map: MapEngine,
-    assets: AssetsMap,
-    analysis: AnalysisState,
-    movedAssetIds: Set<AssetId>,
-    selectedAssetIds: Set<AssetId>,
-  ): DeckLayer[] => {
-    const analysisLayers: DeckLayer[] = [];
-    const visibilityFn = (assetId: AssetId) =>
-      !movedAssetIds.has(assetId) && !selectedAssetIds.has(assetId);
-
-    if (
-      !isFeatureOn("FLAG_MAPBOX_JUNCTIONS") &&
-      analysis.nodes.type === "pressures"
-    ) {
-      analysisLayers.push(
-        ...buildPressuresOverlay(
-          assets,
-          analysis.nodes.rangeColorMapping,
-          visibilityFn,
-        ),
-      );
-    }
-
-    return analysisLayers;
-  },
-
-  {
-    name: "MAP_STATE:BUILD_ANALYSIS_OVERLAYS",
-    maxDurationMs: 100,
-    maxCalls: 10,
-    callsIntervalMs: 1000,
-  },
 );
 
 const noMoved: Set<AssetId> = new Set();

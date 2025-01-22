@@ -1,6 +1,5 @@
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { AssetsMap, Junction, Pipe } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
 import { AnalysisState } from "src/state/analysis";
@@ -30,7 +29,7 @@ export const buildOptimizedAssetsSource = (
 
     if (asset.type === "pipe")
       appendPipeAnalysisProps(asset as Pipe, feature, analysis.links);
-    if (isFeatureOn("FLAG_MAPBOX_JUNCTIONS") && asset.type === "junction")
+    if (asset.type === "junction")
       appendJunctionAnalysisProps(asset as Junction, feature, analysis.nodes);
 
     strippedFeatures.push(feature);

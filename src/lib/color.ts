@@ -52,7 +52,7 @@ export const strokeColorFor = (fillColor: string): string => {
     strokeColor = strokeColor.darken(Math.abs(brightnessAdjust));
   } else {
     // Dark color: Lighten the stroke
-    strokeColor = strokeColor.brighten(Math.abs(brightnessAdjust + 1));
+    strokeColor = strokeColor.brighten(Math.abs(brightnessAdjust + 0.75));
   }
 
   // Adjust saturation
