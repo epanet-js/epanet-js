@@ -11,6 +11,9 @@ import { LayerId } from "./layer";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { strokeColorFor } from "src/lib/color";
 
+const defaultInnerColor = indigo200;
+const selectedInnerColor = POINT_COLORS_SELECTED;
+
 export const junctionsLayer = ({
   source,
   layerId,
@@ -28,7 +31,7 @@ export const junctionsLayer = ({
       filter: ["==", ["get", "type"], "junction"],
       paint: {
         "circle-opacity": opacityExpression(symbolization),
-        "circle-stroke-color": strokeColorExpression(symbolization),
+        "circle-stroke-color": strokeColorExpression(),
         "circle-stroke-width": [
           "interpolate",
           ["linear"],
@@ -101,7 +104,7 @@ export const junctionResultsLayer = ({
   layout: { visibility: "none" },
   paint: {
     "circle-opacity": opacityExpression(symbolization),
-    "circle-stroke-color": strokeColorExpression(symbolization),
+    "circle-stroke-color": strokeColorExpression(),
     "circle-stroke-width": [
       "interpolate",
       ["linear"],
@@ -136,23 +139,17 @@ const colorExpression = (): mapboxgl.Expression => {
     "match",
     ["feature-state", "selected"],
     "true",
-    POINT_COLORS_SELECTED,
-    ["coalesce", ["get", "color"], indigo200],
+    selectedInnerColor,
+    ["coalesce", ["get", "color"], defaultInnerColor],
   ];
 };
 
-const strokeColorExpression = (
-  symbolization: ISymbolization,
-): mapboxgl.Expression => {
+const strokeColorExpression = (): mapboxgl.Expression => {
   return [
     "match",
     ["feature-state", "selected"],
     "true",
-    strokeColorFor(POINT_COLORS_SELECTED),
-    [
-      "coalesce",
-      ["get", "strokeColor"],
-      strokeColorFor(symbolization.defaultColor),
-    ],
+    strokeColorFor(selectedInnerColor),
+    ["coalesce", ["get", "strokeColor"], strokeColorFor(defaultInnerColor)],
   ];
 };
