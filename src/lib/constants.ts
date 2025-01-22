@@ -40,7 +40,7 @@ export const fuchsia400 = "#e879f9";
 export const LINE_COLORS_IDLE = "#8B5CF6";
 export const LINE_COLORS_IDLE_RGBA = hexToArray("#8B5CF6");
 
-export const POINT_COLORS_SELECTED = fuchsia500;
+export const POINT_COLORS_SELECTED = fuchsia400;
 export const LINE_COLORS_SELECTED = fuchsia500;
 export const LINE_COLORS_SELECTED_RGB = hexToArray("#D6409F");
 

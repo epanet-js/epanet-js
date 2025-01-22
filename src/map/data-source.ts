@@ -1,6 +1,7 @@
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { AssetsMap, Junction, Pipe } from "src/hydraulic-model";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { strokeColorFor } from "src/lib/color";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
 import { AnalysisState } from "src/state/analysis";
@@ -68,7 +69,9 @@ const appendJunctionAnalysisProps = (
   const colorMapper = nodesAnalysis.rangeColorMapping;
   const property = colorMapper.symbolization.property;
   const value = junction[property as keyof Junction] as number | null;
-  feature.properties!.color = colorMapper.hexaColor(value !== null ? value : 0);
+  const fillColor = colorMapper.hexaColor(value !== null ? value : 0);
+  feature.properties!.color = fillColor;
+  feature.properties!.strokeColor = strokeColorFor(fillColor);
 };
 
 function pick(

@@ -9,6 +9,7 @@ import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { strokeColorFor } from "src/lib/color";
 
 const opacityExpression = (
   symbolization: ISymbolization,
@@ -44,8 +45,12 @@ export const junctionsLayer = ({
           "match",
           ["feature-state", "selected"],
           "true",
-          symbolization.defaultColor,
-          symbolization.defaultColor,
+          strokeColorFor(POINT_COLORS_SELECTED),
+          [
+            "coalesce",
+            ["get", "strokeColor"],
+            strokeColorFor(symbolization.defaultColor),
+          ],
         ],
         "circle-stroke-width": [
           "interpolate",
@@ -125,7 +130,11 @@ export const junctionResultsLayer = ({
   layout: { visibility: "none" },
   paint: {
     "circle-opacity": opacityExpression(symbolization),
-    "circle-stroke-color": symbolization.defaultColor,
+    "circle-stroke-color": [
+      "coalesce",
+      ["get", "strokeColor"],
+      symbolization.defaultColor,
+    ],
     "circle-stroke-width": [
       "interpolate",
       ["linear"],
