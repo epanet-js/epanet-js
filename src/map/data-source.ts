@@ -47,7 +47,7 @@ const appendPipeAnalysisProps = (
   const colorMapper = linkAnalysis.rangeColorMapping;
   const property = colorMapper.symbolization.property;
   const value = pipe[property as keyof Pipe] as number | null;
-  const isReverse = value && value < 0;
+  const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
   feature.properties!.color = colorMapper.hexaColor(numericValue);
   feature.properties!.length = convertTo(

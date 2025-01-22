@@ -83,6 +83,7 @@ describe("build optimized source", () => {
         }),
       },
     };
+
     it("includes props for styling to pipes", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("ID", {
@@ -128,6 +129,38 @@ describe("build optimized source", () => {
       expect(pipe.properties).toMatchObject({
         rotation: -180,
         color: "#68b982",
+      });
+    });
+
+    it("applies the direction based on the flow", () => {
+      const analysis: AnalysisState = {
+        ...nullAnalysis,
+        links: {
+          type: "velocities",
+          rangeColorMapping: RangeColorMapping.build({
+            steps: [0, 10, 20, 30],
+            property: "velocity",
+            unit: "l/s",
+            paletteName: "epanet-ramp",
+            absoluteValues: true,
+          }),
+        },
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe("ID", {
+          simulation: { flow: -10, velocity: 20 },
+        })
+        .build();
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        initIDMap(assets),
+        analysis,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties).toMatchObject({
+        rotation: -180,
       });
     });
 
