@@ -11,19 +11,6 @@ import { LayerId } from "./layer";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { strokeColorFor } from "src/lib/color";
 
-const opacityExpression = (
-  symbolization: ISymbolization,
-): mapboxgl.Expression => [
-  "case",
-  ["boolean", ["feature-state", "hidden"], false],
-  0,
-  asNumberExpression({
-    symbolization,
-    part: "circle-opacity",
-    defaultValue: 1,
-  }),
-];
-
 export const junctionsLayer = ({
   source,
   layerId,
@@ -41,17 +28,7 @@ export const junctionsLayer = ({
       filter: ["==", ["get", "type"], "junction"],
       paint: {
         "circle-opacity": opacityExpression(symbolization),
-        "circle-stroke-color": [
-          "match",
-          ["feature-state", "selected"],
-          "true",
-          strokeColorFor(POINT_COLORS_SELECTED),
-          [
-            "coalesce",
-            ["get", "strokeColor"],
-            strokeColorFor(symbolization.defaultColor),
-          ],
-        ],
+        "circle-stroke-color": strokeColorExpression(symbolization),
         "circle-stroke-width": [
           "interpolate",
           ["linear"],
@@ -63,13 +40,7 @@ export const junctionsLayer = ({
         ],
         "circle-stroke-opacity": opacityExpression(symbolization),
         "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
-        "circle-color": [
-          "match",
-          ["feature-state", "selected"],
-          "true",
-          POINT_COLORS_SELECTED,
-          ["coalesce", ["get", "color"], indigo200],
-        ],
+        "circle-color": colorExpression(),
       },
       minzoom: 13,
     };
@@ -130,11 +101,7 @@ export const junctionResultsLayer = ({
   layout: { visibility: "none" },
   paint: {
     "circle-opacity": opacityExpression(symbolization),
-    "circle-stroke-color": [
-      "coalesce",
-      ["get", "strokeColor"],
-      symbolization.defaultColor,
-    ],
+    "circle-stroke-color": strokeColorExpression(symbolization),
     "circle-stroke-width": [
       "interpolate",
       ["linear"],
@@ -146,13 +113,46 @@ export const junctionResultsLayer = ({
     ],
     "circle-stroke-opacity": opacityExpression(symbolization),
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
-    "circle-color": [
-      "match",
-      ["feature-state", "selected"],
-      "true",
-      POINT_COLORS_SELECTED,
-      ["coalesce", ["get", "color"], indigo200],
-    ],
+    "circle-color": colorExpression(),
   },
   maxzoom: 14,
 });
+
+const opacityExpression = (
+  symbolization: ISymbolization,
+): mapboxgl.Expression => [
+  "case",
+  ["boolean", ["feature-state", "hidden"], false],
+  0,
+  asNumberExpression({
+    symbolization,
+    part: "circle-opacity",
+    defaultValue: 1,
+  }),
+];
+
+const colorExpression = (): mapboxgl.Expression => {
+  return [
+    "match",
+    ["feature-state", "selected"],
+    "true",
+    POINT_COLORS_SELECTED,
+    ["coalesce", ["get", "color"], indigo200],
+  ];
+};
+
+const strokeColorExpression = (
+  symbolization: ISymbolization,
+): mapboxgl.Expression => {
+  return [
+    "match",
+    ["feature-state", "selected"],
+    "true",
+    strokeColorFor(POINT_COLORS_SELECTED),
+    [
+      "coalesce",
+      ["get", "strokeColor"],
+      strokeColorFor(symbolization.defaultColor),
+    ],
+  ];
+};
