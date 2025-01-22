@@ -13,6 +13,7 @@ import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { isDebugMapHandlers } from "src/infra/debug-mode";
+import { LayerId } from "./layers";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -278,6 +279,18 @@ export class MapEngine {
         hidden: true,
       },
     );
+  }
+
+  showLayers(layerIds: LayerId[]) {
+    for (const layerId of layerIds) {
+      this.map.setLayoutProperty(layerId, "visibility", "visible");
+    }
+  }
+
+  hideLayers(layerIds: LayerId[]) {
+    for (const layerId of layerIds) {
+      this.map.setLayoutProperty(layerId, "visibility", "none");
+    }
   }
 
   showFeatures(sourceName: DataSource, featureIds: RawId[]): void {

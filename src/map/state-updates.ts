@@ -193,39 +193,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       await updateLayerStyles(map, mapState.stylesConfig);
     }
     if (hasNewAnalysis || hasNewStyles) {
-      const analysis = mapState.analysis;
-      if (analysis.links.type === "none") {
-        map.map.setLayoutProperty("imported-pipe-arrows", "visibility", "none");
-        map.map.setLayoutProperty("pipe-arrows", "visibility", "none");
-      } else {
-        map.map.setLayoutProperty(
-          "imported-pipe-arrows",
-          "visibility",
-          "visible",
-        );
-        map.map.setLayoutProperty("pipe-arrows", "visibility", "visible");
-      }
-      if (isFeatureOn("FLAG_MAPBOX_JUNCTIONS")) {
-        if (analysis.nodes.type === "none") {
-          map.map.setLayoutProperty(
-            "imported-junction-results",
-            "visibility",
-            "none",
-          );
-          map.map.setLayoutProperty("junction-results", "visibility", "none");
-        } else {
-          map.map.setLayoutProperty(
-            "imported-junction-results",
-            "visibility",
-            "visible",
-          );
-          map.map.setLayoutProperty(
-            "junction-results",
-            "visibility",
-            "visible",
-          );
-        }
-      }
+      toggleAnalysisLayers(map, mapState.analysis);
     }
 
     if (
@@ -318,6 +286,24 @@ const updateLayerStyles = withInstrumentation(
     await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
+);
+
+const toggleAnalysisLayers = withInstrumentation(
+  (map: MapEngine, analysis: AnalysisState) => {
+    if (analysis.links.type === "none") {
+      map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
+    } else {
+      map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
+    }
+    if (isFeatureOn("FLAG_MAPBOX_JUNCTIONS")) {
+      if (analysis.nodes.type === "none") {
+        map.hideLayers(["imported-junction-results", "junction-results"]);
+      } else {
+        map.showLayers(["imported-junction-results", "junction-results"]);
+      }
+    }
+  },
+  { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
 );
 
 const updateImportSource = withInstrumentation(
