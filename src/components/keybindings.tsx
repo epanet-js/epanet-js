@@ -6,6 +6,7 @@ import { useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { dialogAtom } from "src/state/jotai";
 import toast from "react-hot-toast";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function Keybindings() {
   const setDialogState = useSetAtom(dialogAtom);
@@ -63,35 +64,41 @@ export function Keybindings() {
     "CHEATSHEET",
   );
 
-  useHotkeys(
-    ["command+s", "ctrl+s"],
-    (e) => {
-      e.preventDefault();
-      (async () => {
-        const either = await saveNative();
-        return either
-          .ifLeft((error) => toast.error(error?.message || "Could not save"))
-          .map((saved) => {
-            if (saved) return;
-            setDialogState({
-              type: "export",
+  if (!isFeatureOn("FLAG_TOOLBAR")) {
+    // eslint-disable-next-line
+    useHotkeys(
+      ["command+s", "ctrl+s"],
+      (e) => {
+        e.preventDefault();
+        (async () => {
+          const either = await saveNative();
+          return either
+            .ifLeft((error) => toast.error(error?.message || "Could not save"))
+            .map((saved) => {
+              if (saved) return;
+              setDialogState({
+                type: "export",
+              });
             });
-          });
-      })().catch((e) => captureError(e));
-    },
-    [setDialogState, saveNative],
-    "SAVE",
-  );
+        })().catch((e) => captureError(e));
+      },
+      [setDialogState, saveNative],
+      "SAVE",
+    );
+  }
 
-  useHotkeys(
-    ["command+o", "ctrl+o"],
-    (e) => {
-      e.preventDefault();
-      openFiles().catch((e) => captureError(e));
-    },
-    [openFiles],
-    "OPEN",
-  );
+  if (!isFeatureOn("FLAG_TOOLBAR")) {
+    // eslint-disable-next-line
+    useHotkeys(
+      ["command+o", "ctrl+o"],
+      (e) => {
+        e.preventDefault();
+        openFiles().catch((e) => captureError(e));
+      },
+      [openFiles],
+      "OPEN",
+    );
+  }
 
   return null;
 }
