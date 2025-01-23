@@ -51,6 +51,7 @@ import { match } from "ts-pattern";
 import {SimulationButton, SimulationStatusText} from './simulation-components';
 import {isFeatureOn} from 'src/infra/feature-flags';
 import {AnalysisLegends} from './AnalysisLegends';
+import {Toolbar} from './toolbar/Toolbar';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -190,6 +191,8 @@ export function PlacemarkPlay() {
         >
           <div className="h-24">
             <MenuBarPlay />
+            {isFeatureOn('FLAG_TOOLBAR') && <Toolbar /> }
+            {!isFeatureOn('FLAG_TOOLBAR') && (
             <div
               className="flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
@@ -205,6 +208,7 @@ export function PlacemarkPlay() {
                 <Visual />
               </div>
             </div>
+            )}
           </div>
         </ErrorBoundary>
         <div

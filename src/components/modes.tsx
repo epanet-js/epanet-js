@@ -16,7 +16,6 @@ import MenuAction from "src/components/menu_action";
 import { memo } from "react";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { IWrappedFeature } from "src/types";
-import { Divider } from "./menu_bar";
 
 const MODE_OPTIONS = [
   {
@@ -60,38 +59,35 @@ export default memo(function Modes({
   const circleType = useAtomValue(circleTypeAtom);
 
   return (
-    <div className="flex items-center justify-start gap-x-1" role="radiogroup">
+    <div className="flex items-center justify-start" role="radiogroup">
       {MODE_OPTIONS.filter((mode) => {
         if (!replaceGeometryForId) return true;
         return mode.mode !== Mode.NONE;
       }).map(({ mode, hotkey, alwaysMultiple, Icon }, i) => {
         const menuAction = (
-          <>
-            <MenuAction
-              role="radio"
-              key={i}
-              selected={currentMode === mode}
-              hotkey={hotkey}
-              label={MODE_INFO[mode].label}
-              onClick={(e) => {
-                setEphemeralState({ type: "none" });
-                setMode({
-                  mode,
-                  modeOptions: {
-                    multi: alwaysMultiple || !!e?.shiftKey,
-                    replaceGeometryForId,
-                    circleType,
-                  },
-                });
-              }}
-            >
-              <Icon />
-              {currentMode === mode && modeOptions?.multi ? (
-                <PlusIcon className="w-2 h-2 absolute bottom-1 right-1" />
-              ) : null}
-            </MenuAction>
-            {i === 0 && <Divider />}
-          </>
+          <MenuAction
+            role="radio"
+            key={i}
+            selected={currentMode === mode}
+            hotkey={hotkey}
+            label={MODE_INFO[mode].label}
+            onClick={(e) => {
+              setEphemeralState({ type: "none" });
+              setMode({
+                mode,
+                modeOptions: {
+                  multi: alwaysMultiple || !!e?.shiftKey,
+                  replaceGeometryForId,
+                  circleType,
+                },
+              });
+            }}
+          >
+            <Icon />
+            {currentMode === mode && modeOptions?.multi ? (
+              <PlusIcon className="w-2 h-2 absolute bottom-1 right-1" />
+            ) : null}
+          </MenuAction>
         );
         return menuAction;
       })}
