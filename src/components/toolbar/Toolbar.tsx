@@ -8,34 +8,58 @@ import {
 } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
+import { useOpenFiles } from "src/hooks/use_open_files";
+import useFileSave from "src/hooks/use_file_save";
+import toast from "react-hot-toast";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog_state";
 
 export const Toolbar = () => {
+  const openFiles = useOpenFiles();
+  const saveNative = useFileSave();
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const handleExport = async () => {
+    const either = await saveNative();
+    return either
+      .ifLeft((error) => toast.error(error?.message || "Could not save"))
+      .map((saved) => {
+        if (saved) return;
+        setDialogState({
+          type: "export",
+        });
+      });
+  };
+
   return (
     <div
       className="flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
       <MenuAction
-        label={translate("new")}
+        label={translate("newProject")}
         role="button"
-        onClick={() => {}}
-        hotkey={"ctrl+n"}
+        onClick={() => {
+          window.location.reload();
+        }}
       >
         <FileIcon />
       </MenuAction>
       <MenuAction
-        label={translate("open")}
+        label={translate("openProject")}
         role="button"
-        onClick={() => {}}
+        onClick={() => {
+          openFiles();
+        }}
         hotkey={"ctrl+o"}
       >
         <FilePlusIcon />
       </MenuAction>
       <MenuAction
-        label={translate("open")}
+        label={translate("export")}
         role="button"
-        onClick={() => {}}
-        hotkey={"ctrl+o"}
+        onClick={handleExport}
+        hotkey={"ctrl+s"}
       >
         <DownloadIcon />
       </MenuAction>

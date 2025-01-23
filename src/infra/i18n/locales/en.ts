@@ -59,6 +59,9 @@ export const translations = {
   max: "Max",
   mean: "Mean",
   sum: "Sum",
+  newProject: "New",
+  openProject: "Open",
+  export: "Export",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

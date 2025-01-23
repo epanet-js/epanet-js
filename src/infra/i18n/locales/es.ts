@@ -61,6 +61,9 @@ export const translations: Translations = {
   max: "Máx.",
   mean: "Media",
   sum: "Suma",
+  newProject: "Nuevo",
+  openProject: "Abrir",
+  export: "Exportar",
 };
 
 export const units: UnitsLocale = {
