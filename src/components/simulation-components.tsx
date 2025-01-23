@@ -22,6 +22,7 @@ import {
   StyledDialogOverlay,
 } from "./elements";
 import { attachSimulation } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -116,7 +117,9 @@ export const SimulationButton = () => {
         onClick={handleClick}
         hotkey={"shift+enter"}
       >
-        <LightningBoltIcon />
+        <LightningBoltIcon
+          className={isFeatureOn("FLAG_TOOLBAR") ? "text-yellow-600" : ""}
+        />
       </MenuAction>
       {simulation.status === "running" && <LoadingDialog />}
       {!!isSummaryOpen &&
