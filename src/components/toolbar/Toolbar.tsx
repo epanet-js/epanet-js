@@ -1,6 +1,12 @@
 import { translate } from "src/infra/i18n";
 import MenuAction from "../menu_action";
-import { DownloadIcon, FileIcon, FilePlusIcon } from "@radix-ui/react-icons";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DownloadIcon,
+  FileIcon,
+  FilePlusIcon,
+} from "@radix-ui/react-icons";
 import Modes from "../modes";
 import {
   SimulationButton,
@@ -13,11 +19,31 @@ import useFileSave from "src/hooks/use_file_save";
 import toast from "react-hot-toast";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
+import { Mode, modeAtom } from "src/state/mode";
+import { usePersistence } from "src/lib/persistence/context";
+import { ephemeralStateAtom } from "src/state/jotai";
 
 export const Toolbar = () => {
   const openFiles = useOpenFiles();
   const saveNative = useFileSave();
   const setDialogState = useSetAtom(dialogAtom);
+
+  const rep = usePersistence();
+  const historyControl = rep.useHistoryControl();
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const setMode = useSetAtom(modeAtom);
+
+  const handleUndo = () => {
+    historyControl("undo");
+    setEphemeralState({ type: "none" });
+    setMode({ mode: Mode.NONE });
+  };
+
+  const handleRedo = () => {
+    historyControl("redo");
+    setEphemeralState({ type: "none" });
+    setMode({ mode: Mode.NONE });
+  };
 
   const handleExport = async () => {
     const either = await saveNative();
@@ -64,6 +90,23 @@ export const Toolbar = () => {
         <DownloadIcon />
       </MenuAction>
       <Divider />
+      <MenuAction
+        label={translate("undo")}
+        role="button"
+        onClick={handleUndo}
+        hotkey={"ctrl+z"}
+      >
+        <ArrowLeftIcon />
+      </MenuAction>
+      <MenuAction
+        label={translate("redo")}
+        role="button"
+        onClick={handleRedo}
+        hotkey={"ctrl+y"}
+      >
+        <ArrowRightIcon />
+      </MenuAction>
+      <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />
       <SimulationButton />
@@ -79,5 +122,5 @@ export const Toolbar = () => {
 };
 
 const Divider = () => {
-  return <div className="border-r-2 border-gray-100 h-8 mx-2"></div>;
+  return <div className="border-r-2 border-gray-100 h-8 mx-1"></div>;
 };
