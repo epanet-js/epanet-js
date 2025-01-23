@@ -1,11 +1,10 @@
 import { translate } from "src/infra/i18n";
 import MenuAction from "../menu_action";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   DownloadIcon,
   FileIcon,
   FilePlusIcon,
+  ResetIcon,
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
 import {
@@ -96,7 +95,7 @@ export const Toolbar = () => {
         onClick={handleUndo}
         hotkey={"ctrl+z"}
       >
-        <ArrowLeftIcon />
+        <ResetIcon />
       </MenuAction>
       <MenuAction
         label={translate("redo")}
@@ -104,7 +103,7 @@ export const Toolbar = () => {
         onClick={handleRedo}
         hotkey={"ctrl+y"}
       >
-        <ArrowRightIcon />
+        <ResetIcon className="scale-x-[-1]" />
       </MenuAction>
       <Divider />
       <Modes replaceGeometryForId={null} />
