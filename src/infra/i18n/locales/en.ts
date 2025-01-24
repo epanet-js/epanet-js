@@ -64,6 +64,9 @@ export const translations = {
   opening: "Opening...",
   export: "Export",
   cancel: "Cancel",
+  failedToProcessFile: "Failed to process file",
+  understood: "Understood",
+  error: "Error",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

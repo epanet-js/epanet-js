@@ -4,6 +4,30 @@ import { Button } from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
 
+export const AckDialogAction = ({
+  label,
+  onAck,
+  variant = "md",
+}: {
+  label?: string;
+  onAck?: () => void;
+  variant?: "md" | "xs";
+}) => {
+  return (
+    <div
+      className={clsx(
+        variant === "xs" ? "pt-2" : "pt-6",
+        "pb-1 relative",
+        `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
+      )}
+    >
+      <Button type="button" onClick={onAck}>
+        {label ? label : translate("cancel")}
+      </Button>
+    </div>
+  );
+};
+
 export default function SimpleDialogActions({
   action,
   onClose,
