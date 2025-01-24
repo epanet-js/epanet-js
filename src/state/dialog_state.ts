@@ -13,6 +13,11 @@ export type DialogStateImport = {
   files: FileGroups;
 };
 
+export type OpenInpDialogState = {
+  type: "openInp";
+  files: FileGroups;
+};
+
 export type DialogStateExportSVG = {
   type: "export-svg";
 };
@@ -57,6 +62,7 @@ export type DialogStateLoadText = {
 
 export type DialogState =
   | DialogStateImport
+  | OpenInpDialogState
   | DialogStateImportNotes
   | DialogStateCastProperty
   | DialogStateSimplify

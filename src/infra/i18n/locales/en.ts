@@ -61,7 +61,9 @@ export const translations = {
   sum: "Sum",
   newProject: "New",
   openProject: "Open",
+  opening: "Opening...",
   export: "Export",
+  cancel: "Cancel",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

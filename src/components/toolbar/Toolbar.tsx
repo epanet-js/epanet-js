@@ -13,7 +13,7 @@ import {
 } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
-import { useOpenFiles } from "src/hooks/use_open_files";
+import { useOpenInp } from "src/hooks/use_open_files";
 import useFileSave from "src/hooks/use_file_save";
 import toast from "react-hot-toast";
 import { useSetAtom } from "jotai";
@@ -23,7 +23,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
 
 export const Toolbar = () => {
-  const openFiles = useOpenFiles();
+  const openInp = useOpenInp();
   const saveNative = useFileSave();
   const setDialogState = useSetAtom(dialogAtom);
 
@@ -31,6 +31,10 @@ export const Toolbar = () => {
   const historyControl = rep.useHistoryControl();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
+
+  const handleOpen = () => {
+    openInp();
+  };
 
   const handleUndo = () => {
     historyControl("undo");
@@ -58,7 +62,7 @@ export const Toolbar = () => {
 
   return (
     <div
-      className="flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
+      className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
       <MenuAction
@@ -73,9 +77,7 @@ export const Toolbar = () => {
       <MenuAction
         label={translate("openProject")}
         role="button"
-        onClick={() => {
-          openFiles();
-        }}
+        onClick={handleOpen}
         hotkey={"ctrl+o"}
       >
         <FilePlusIcon />

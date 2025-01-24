@@ -2,6 +2,7 @@ import { useFormikContext } from "formik";
 import clsx from "clsx";
 import { Button } from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
+import { translate } from "src/infra/i18n";
 
 export default function SimpleDialogActions({
   action,
@@ -52,7 +53,7 @@ export default function SimpleDialogActions({
       ) : null}
       {onClose ? (
         <Button type="button" onClick={onClose}>
-          Cancel
+          {translate("cancel")}
         </Button>
       ) : null}
       <SymbolIcon
