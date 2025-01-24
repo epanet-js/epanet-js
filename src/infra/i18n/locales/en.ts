@@ -60,7 +60,7 @@ export const translations = {
   mean: "Mean",
   sum: "Sum",
   newProject: "New",
-  openProject: "Open",
+  openProject: "Open INP",
   opening: "Opening...",
   export: "Export",
   cancel: "Cancel",
