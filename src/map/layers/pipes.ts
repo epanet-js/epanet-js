@@ -79,9 +79,10 @@ export const pipeArrows = ({
         ["coalesce", ["get", "color"], symbolization.defaultColor],
       ],
       "icon-opacity": [
-        ...zoomExpression([14, 15, 16, 17, 18, 19], [200, 100, 50, 20, 10, 5]),
-        20,
-        1,
+        ...zoomExpression(
+          [14, 15, 16, 17, 18, 19, 20],
+          [200, 100, 50, 20, 10, 5, 0],
+        ),
       ],
     },
     minzoom: 14,
