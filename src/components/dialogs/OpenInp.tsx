@@ -1,17 +1,16 @@
 import type { ConvertResult, InpResult } from "src/lib/convert/utils";
 import { DialogHeader } from "src/components/dialog";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Maybe, Nothing } from "purify-ts/Maybe";
 import { extendExtent, getExtent } from "src/lib/geometry";
 import { BBox } from "src/types";
 import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
-import addedFeaturesToast from "src/components/added_features_toast";
 import { flattenResult } from "./import_utils";
 import { translate } from "src/infra/i18n";
 import { FileGroup } from "src/lib/group_files";
 import { OpenInpDialogState } from "src/state/dialog_state";
-import { FilePlusIcon } from "@radix-ui/react-icons";
+import { CrossCircledIcon } from "@radix-ui/react-icons";
 import {
   DEFAULT_IMPORT_OPTIONS,
   ImportOptions,
@@ -20,9 +19,9 @@ import {
 import { Form, Formik, FormikHelpers } from "formik";
 import { FileWarning } from "./import/file_warning";
 import { ImportProgressBar } from "./import/import_progress_bar";
-import { AutoDetect } from "./autodetect";
-import SimpleDialogActions from "./simple_dialog_actions";
+import SimpleDialogActions, { AckDialogAction } from "./simple_dialog_actions";
 import { useImportFile } from "src/hooks/use_import";
+import { Loading } from "../elements";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -37,8 +36,11 @@ export function OpenInpDialog({
   const map = useContext(MapContext);
 
   const [extent] = useState<Maybe<BBox>>(Nothing);
+  const [isLoading] = useState(true);
+  const [error, setError] = useState<boolean>(false);
+  const doImport = useImportFile();
 
-  const file = files[0] as FileGroup;
+  const fileGroup = files[0] as FileGroup;
 
   const handleSuccess: OnNext = (result) => {
     let nextExtent = extent;
@@ -50,25 +52,58 @@ export function OpenInpDialog({
         padding: 100,
       });
     });
-    if (result) {
-      addedFeaturesToast(result);
-    }
     return onClose();
   };
 
-  return (
-    <>
-      <DialogHeader
-        title={`${translate("openProject")}:  ${file.file.name}`}
-        titleIcon={FilePlusIcon}
-      />
-      <ImportFileGroup
-        onClose={onClose}
-        onSuccess={handleSuccess}
-        file={file}
-      />
-    </>
-  );
+  const importInp = async () => {
+    try {
+      const options: ImportOptions = {
+        ...DEFAULT_IMPORT_OPTIONS,
+        type: "inp",
+        toast: false,
+      };
+      const res = (await doImport(
+        fileGroup.file,
+        options,
+        (_newProgress) => {},
+      )) as InpResult;
+      if (res.hydraulicModel.assets.size === 0) {
+        setError(true);
+        return;
+      }
+      return handleSuccess(res);
+    } catch (error) {
+      setError(true);
+    }
+  };
+
+  useEffect(() => {
+    importInp();
+  }, []);
+
+  if (error) {
+    return (
+      <>
+        <DialogHeader
+          title={translate("error")}
+          titleIcon={CrossCircledIcon}
+          variant="danger"
+        />
+        <div className="text-sm">
+          <p>
+            {translate("failedToProcessFile")}: {fileGroup.file.name}
+          </p>
+        </div>
+        <AckDialogAction label={translate("understood")} onAck={onClose} />
+      </>
+    );
+  }
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  return null;
 }
 
 export function ImportFileGroup({
@@ -111,7 +146,7 @@ export function ImportFileGroup({
       }}
       initialValues={{
         ...DEFAULT_IMPORT_OPTIONS,
-        type: "geojson",
+        type: "inp",
         text: "",
         toast: true,
         secondary: false,
@@ -127,7 +162,6 @@ export function ImportFileGroup({
           </FileWarning>
           <ImportProgressBar progress={progress} />
         </div>
-        <AutoDetect file={file} />
       </Form>
     </Formik>
   );

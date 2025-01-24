@@ -15,9 +15,11 @@ export function DialogHeader({
   title,
   titleIcon: TitleIcon,
   children,
+  variant = "default",
 }: {
   title?: string;
   titleIcon?: SlottableIcon;
+  variant?: "default" | "danger";
   children?: ReactNode;
 }) {
   return (
@@ -28,7 +30,11 @@ export function DialogHeader({
         text-black dark:text-white"
     >
       {children && children}
-      {TitleIcon && <TitleIcon />}
+      {TitleIcon && (
+        <TitleIcon
+          className={`w-6 h-6 ${variant === "danger" ? "text-red-500" : ""}`}
+        />
+      )}
       {title && <div className="truncate flex-auto">{title}</div>}
       <D.Close
         aria-label="Close"
