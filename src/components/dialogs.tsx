@@ -31,6 +31,16 @@ const ExportSVGDialog = dynamic<{
   },
 );
 
+const OpenInpDialog = dynamic<{
+  modal: dialogState.OpenInpDialogState;
+  onClose: () => void;
+}>(
+  () => import("src/components/dialogs/OpenInp").then((r) => r.OpenInpDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -174,6 +184,9 @@ export const Dialogs = memo(function Dialogs() {
     .with(null, () => null)
     .with({ type: "import" }, (modal) => (
       <ImportDialog modal={modal} onClose={onClose} />
+    ))
+    .with({ type: "openInp" }, (modal) => (
+      <OpenInpDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "import_notes" }, (modal) => (
       <ImportNotesDialog modal={modal} onClose={onClose} />

@@ -63,7 +63,9 @@ export const translations: Translations = {
   sum: "Suma",
   newProject: "Nuevo",
   openProject: "Abrir",
+  opening: "Abriendo...",
   export: "Exportar",
+  cancel: "Cancelar",
 };
 
 export const units: UnitsLocale = {

@@ -6,7 +6,7 @@ import {
 } from "@radix-ui/react-icons";
 import { captureError } from "src/infra/error-tracking";
 import Line from "src/components/icons/line";
-import { useOpenFiles } from "src/hooks/use_open_files";
+import { useOpenFilesDeprecated } from "src/hooks/use_open_files";
 import { useSetAtom } from "jotai";
 import { memo } from "react";
 import { dialogAtom } from "src/state/dialog_state";
@@ -14,7 +14,7 @@ import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
 
 export const NothingSelected = memo(function NothingSelected() {
-  const openFiles = useOpenFiles();
+  const openFiles = useOpenFilesDeprecated();
   const setDialogState = useSetAtom(dialogAtom);
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">

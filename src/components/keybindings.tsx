@@ -1,5 +1,5 @@
 import { useMapKeybindings } from "src/hooks/use_map_keybindings";
-import { useOpenFiles } from "src/hooks/use_open_files";
+import { useOpenFilesDeprecated } from "src/hooks/use_open_files";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import useFileSave from "src/hooks/use_file_save";
 import { useSetAtom } from "jotai";
@@ -11,7 +11,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 export function Keybindings() {
   const setDialogState = useSetAtom(dialogAtom);
   const saveNative = useFileSave();
-  const openFiles = useOpenFiles();
+  const openFiles = useOpenFilesDeprecated();
 
   useMapKeybindings();
 

@@ -1,6 +1,6 @@
 import { dialogAtom, momentLogAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useOpenFiles } from "src/hooks/use_open_files";
+import { useOpenFilesDeprecated } from "src/hooks/use_open_files";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { CaretRightIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import {
@@ -53,7 +53,7 @@ function UndoList() {
 }
 
 export function MenuBarDropdown() {
-  const openFiles = useOpenFiles();
+  const openFiles = useOpenFilesDeprecated();
   const setDialogState = useSetAtom(dialogAtom);
 
   return (
