@@ -1,7 +1,7 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { Store, dataAtom, nullData } from "src/state/jotai";
+import { Store, dataAtom, momentLogAtom, nullData } from "src/state/jotai";
 import { HydraulicModel, Junction } from "src/hydraulic-model";
 import { OpenInpDialogState } from "src/state/dialog_state";
 import { UIDMap } from "src/lib/id_mapper";
@@ -11,8 +11,15 @@ import { OpenInpDialog } from "./OpenInp";
 import { groupFiles } from "src/lib/group_files";
 import { Dialog } from "@radix-ui/react-dialog";
 import userEvent from "@testing-library/user-event";
+import { aTestFile } from "src/__helpers__/file";
+import { MomentLog } from "src/lib/persistence/moment-log";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("OpenInpDialog", () => {
+  beforeEach(() => {
+    stubFeatureOn("FLAG_TOOLBAR");
+  });
+
   it("initializes state from a given inp", async () => {
     const inp = `
     [JUNCTIONS]
@@ -58,14 +65,39 @@ describe("OpenInpDialog", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("resets state when importing again", async () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t10
+    `;
+    const previousMomentLog = new MomentLog();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+      momentLog: previousMomentLog,
+    });
+    const onClose = vi.fn();
+    const file = aTestFile({ filename: "my-network.inp", content: inp });
+
+    renderComponent({ store, file, onClose });
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+    expect(hydraulicModel.assets.get("P1")).toBeFalsy();
+
+    const updatedMomentLog = store.get(momentLogAtom);
+    expect(updatedMomentLog.id).not.toEqual(previousMomentLog.id);
+  });
+
   const renderComponent = ({
     store,
     file = new File(["content"], "anyname"),
-    onClose,
+    onClose = () => {},
   }: {
     store: Store;
     file?: File;
-    onClose: () => void;
+    onClose?: () => void;
   }) => {
     const idMap = UIDMap.empty();
     const modalState: OpenInpDialogState = {
@@ -86,40 +118,18 @@ describe("OpenInpDialog", () => {
   const setInitialState = ({
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
+    momentLog = new MomentLog(),
   }: {
     store?: Store;
     hydraulicModel?: HydraulicModel;
+    momentLog?: MomentLog;
   }): Store => {
     store.set(dataAtom, {
       ...nullData,
       hydraulicModel: hydraulicModel,
       featureMapDeprecated: hydraulicModel.assets,
     });
+    store.set(momentLogAtom, momentLog);
     return store;
   };
 });
-
-const aTestFile = ({
-  filename = "my-file.txt",
-  content = "",
-}: {
-  filename?: string;
-  content?: string | Blob | ArrayBuffer;
-}): File => {
-  const file = new File([content], filename);
-  if (!file.arrayBuffer) {
-    file.arrayBuffer = () => mockArrayBufferImplementation(file);
-  }
-  return file;
-};
-
-const mockArrayBufferImplementation = (file: File): Promise<ArrayBuffer> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (): void => {
-      const content = reader.result;
-      resolve(content as ArrayBuffer);
-    };
-    reader.readAsArrayBuffer(file);
-  });
-};

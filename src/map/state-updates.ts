@@ -36,6 +36,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -59,6 +60,7 @@ type StylesConfig = {
 };
 
 type MapState = {
+  momentLogId: string;
   lastImportPointer: number | null;
   lastChangePointer: number;
   stylesConfig: StylesConfig;
@@ -71,6 +73,7 @@ type MapState = {
 };
 
 const nullMapState: MapState = {
+  momentLogId: "",
   lastImportPointer: null,
   lastChangePointer: 0,
   stylesConfig: {
@@ -102,13 +105,16 @@ const momentLogPointersAtom = atom((get) => {
   const lastImportPointer = momentLog.searchLast(isImportMoment);
   const lastChangePointer = momentLog.getPointer();
   return {
+    momentLogId: momentLog.id,
     lastImportPointer,
     lastChangePointer,
   };
 });
 
 const mapStateAtom = atom<MapState>((get) => {
-  const { lastImportPointer, lastChangePointer } = get(momentLogPointersAtom);
+  const { momentLogId, lastImportPointer, lastChangePointer } = get(
+    momentLogPointersAtom,
+  );
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
@@ -119,6 +125,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const movedAssetIds = getMovedAssets(ephemeralState);
 
   return {
+    momentLogId,
     lastImportPointer,
     lastChangePointer,
     stylesConfig,
@@ -144,7 +151,9 @@ const detectChanges = (
   hasNewAnalysis: boolean;
 } => {
   return {
-    hasNewImport: state.lastImportPointer !== prev.lastImportPointer,
+    hasNewImport: isFeatureOn("FLAG_TOOLBAR")
+      ? state.momentLogId !== prev.momentLogId
+      : state.lastImportPointer !== prev.lastImportPointer,
     hasNewEditions: state.lastChangePointer !== prev.lastChangePointer,
     hasNewStyles: state.stylesConfig !== prev.stylesConfig,
     hasNewSelection: state.selection !== prev.selection,
@@ -245,7 +254,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (hasNewSelection) {
-      updateSelectionFeatureState(map, mapState.selection);
+      updateSelectionFeatureState(map, mapState.selection, idMap);
     }
 
     map.setOverlay(ephemeralStateOverlays.current);
@@ -437,8 +446,8 @@ const buildEphemeralStateOvelay = withInstrumentation(
 );
 
 const updateSelectionFeatureState = withInstrumentation(
-  (map: MapEngine, selection: Sel) => {
-    map.setOnlySelection(selection);
+  (map: MapEngine, selection: Sel, idMap: IDMap) => {
+    map.setOnlySelection(selection, idMap);
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );

@@ -9,14 +9,16 @@ type Action = { stateId: string; forward: Moment; reverse: Moment };
 export class MomentLog {
   protected history: Action[];
   protected pointer: number;
+  readonly id: string;
 
-  constructor() {
+  constructor(id: string = nanoid()) {
+    this.id = id;
     this.history = [];
     this.pointer = -1;
   }
 
   copy() {
-    const newInstance = new MomentLog();
+    const newInstance = new MomentLog(this.id);
     newInstance.history = this.history;
     newInstance.pointer = this.pointer;
     return newInstance;
