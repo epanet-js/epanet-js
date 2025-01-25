@@ -60,7 +60,6 @@ const debugEvent = isDebugMapHandlers
 export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
-  idMap: IDMap;
   lastSelectionIds: Set<RawId>;
   overlay: MapboxOverlay;
   private icons: IconImage[] = [];
@@ -68,15 +67,12 @@ export class MapEngine {
   constructor({
     element,
     handlers,
-    idMap,
     controlsCorner = "bottom-left",
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
-    idMap: IDMap;
     controlsCorner?: Parameters<mapboxgl.Map["addControl"]>[1];
   }) {
-    this.idMap = idMap;
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
       zoom: 15.5,
@@ -309,12 +305,10 @@ export class MapEngine {
     }
   }
 
-  setOnlySelection(selection: Sel) {
+  setOnlySelection(selection: Sel, idMap: IDMap) {
     this.updateSelections(
       new Set(
-        USelection.toIds(selection).map((uuid) =>
-          UIDMap.getIntID(this.idMap, uuid),
-        ),
+        USelection.toIds(selection).map((uuid) => UIDMap.getIntID(idMap, uuid)),
       ),
     );
   }

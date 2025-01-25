@@ -74,10 +74,10 @@ const debug = isDebugOn
     ) => {
       // eslint-disable-next-line no-console
       console.log(
-        `MODE_HANLDER@${method} ${JSON.stringify({
+        `MODE_HANDLDER@${method} ${JSON.stringify({
           event: e.type,
           mode,
-          selection,
+          selection: selection.type,
           dragTargetRef,
           method,
         })}`,
@@ -137,7 +137,6 @@ export const MapCanvas = memo(function MapCanvas({
     mapRef.current = new MapEngine({
       element: mapDivRef.current,
       handlers: mapHandlers as MutableRefObject<MapHandlers>,
-      idMap: idMap,
     });
     setMap(mapRef.current);
 
@@ -148,7 +147,7 @@ export const MapCanvas = memo(function MapCanvas({
       }
       mapRef.current = null;
     };
-  }, [mapRef, mapDivRef, setMap, idMap]);
+  }, [mapRef, mapDivRef, setMap]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
