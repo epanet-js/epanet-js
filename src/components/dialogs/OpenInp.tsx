@@ -55,15 +55,18 @@ export function OpenInpDialog({
           padding: 100,
         });
       });
-      return onClose();
+      onClose();
     } catch (error) {
       setError(true);
     }
   }, [fileGroup.file, map?.map, onClose, transactImport]);
 
-  useEffect(() => {
-    importInp();
-  }, [importInp]);
+  useEffect(
+    function onRender() {
+      importInp();
+    },
+    [importInp],
+  );
 
   if (error) {
     return (

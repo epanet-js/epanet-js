@@ -57,6 +57,10 @@ export class HydraulicModelBuilder {
     return new HydraulicModelBuilder(quantitiesSpec);
   }
 
+  static empty(): HydraulicModel {
+    return HydraulicModelBuilder.with().build();
+  }
+
   constructor(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
     this.assets = new Map();
     const quantities = new Quantities(quantitiesSpec);
