@@ -2,6 +2,7 @@ import { screen, render, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import {
+  Sel,
   SimulationFailure,
   SimulationState,
   Store,
@@ -83,11 +84,17 @@ describe("OpenInpDialog", () => {
       report: "ERROR",
       modelVersion: "10",
     };
+    const previousSelection: Sel = {
+      type: "single",
+      id: "ANY",
+      parts: [],
+    };
     const previousMomentLog = new MomentLog();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
       momentLog: previousMomentLog,
       simulation: previousSimulation,
+      selection: previousSelection,
     });
     const onClose = vi.fn();
     const file = aTestFile({ filename: "my-network.inp", content: inp });
@@ -96,7 +103,7 @@ describe("OpenInpDialog", () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const { hydraulicModel, selection } = store.get(dataAtom);
     expect(hydraulicModel.assets.get("J1")).toBeTruthy();
     expect(hydraulicModel.assets.get("P1")).toBeFalsy();
 
@@ -105,6 +112,8 @@ describe("OpenInpDialog", () => {
 
     const simulation = store.get(simulationAtom);
     expect(simulation.status).toEqual("idle");
+
+    expect(selection.type).toEqual("none");
   });
 
   const renderComponent = ({
@@ -137,14 +146,17 @@ describe("OpenInpDialog", () => {
     hydraulicModel = HydraulicModelBuilder.with().build(),
     momentLog = new MomentLog(),
     simulation = { status: "idle" },
+    selection = { type: "none" },
   }: {
     store?: Store;
     hydraulicModel?: HydraulicModel;
     momentLog?: MomentLog;
     simulation?: SimulationState;
+    selection?: Sel;
   }): Store => {
     store.set(dataAtom, {
       ...nullData,
+      selection,
       hydraulicModel: hydraulicModel,
       featureMapDeprecated: hydraulicModel.assets,
     });
