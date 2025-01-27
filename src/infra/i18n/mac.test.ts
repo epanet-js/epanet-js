@@ -2,8 +2,8 @@ import { expect, test } from "vitest";
 import { cmdSymbol, localizeKeybinding } from "./mac";
 
 test("localizeKeybinding", () => {
-  expect(localizeKeybinding("a", true)).toEqual("a");
-  expect(localizeKeybinding("a", false)).toEqual("a");
-  expect(localizeKeybinding("Command+a", true)).toEqual(`${cmdSymbol}+a`);
-  expect(localizeKeybinding("Command+a", false)).toEqual("Ctrl+a");
+  expect(localizeKeybinding("a", true)).toEqual("A");
+  expect(localizeKeybinding("a", false)).toEqual("A");
+  expect(localizeKeybinding("Command+a", true)).toEqual(`${cmdSymbol}A`);
+  expect(localizeKeybinding("Command+a", false)).toEqual("Ctrl+A");
 });
