@@ -131,12 +131,13 @@ function HeaderResizer({
 
 export function measureColumn(
   column: string,
-  featureMapDeprecated: Data["featureMapDeprecated"],
+  featureMapDeprecated: Data["hydraulicModel"]["assets"],
 ) {
   let maxLength = column.length + 2;
   let measured = 0;
 
   for (const { feature } of featureMapDeprecated.values()) {
+    // @ts-expect-error appears when removing feature map deprecated
     const value = feature.properties?.[column];
     if (typeof value === "string") {
       if (value.length > maxLength) {
@@ -158,7 +159,7 @@ export function filterFeatures({
   filter,
   columns,
 }: {
-  featureMapDeprecated: Data["featureMapDeprecated"];
+  featureMapDeprecated: Data["hydraulicModel"]["assets"];
   filter: FilterOptions;
   columns: string[];
 }): IWrappedFeature[] {
@@ -201,7 +202,10 @@ export function filterFeatures({
 }
 
 export function FeatureTableInner({ data }: { data: Data }) {
-  const { featureMapDeprecated, folderMap } = data;
+  const {
+    hydraulicModel: { assets },
+    folderMap,
+  } = data;
   const panelWidth = useAtomValue(splitsAtom).right;
   const panelIsWide = panelWidth > 300;
 
@@ -244,7 +248,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
   }, [_filter, folderMap]);
 
   let columns = useColumns({
-    featureMapDeprecated,
+    featureMapDeprecated: assets,
     folderId: filter.folderId,
     virtualColumns,
   });
@@ -269,7 +273,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
 
         for (const column of columns) {
           if (oldValue.has(column)) continue;
-          const measurement = measureColumn(column, data.featureMapDeprecated);
+          const measurement = measureColumn(column, data.hydraulicModel.assets);
           newValue.set(column, {
             width: measurement,
           });
@@ -294,10 +298,10 @@ export function FeatureTableInner({ data }: { data: Data }) {
     const features = filterFeatures({
       filter,
       columns,
-      featureMapDeprecated: data.featureMapDeprecated,
+      featureMapDeprecated: data.hydraulicModel.assets,
     });
     return features;
-  }, [filter, columns, data]);
+  }, [filter, columns, data.hydraulicModel.assets]);
 
   const estimateSize = useCallback(
     (index: number) => {
@@ -714,7 +718,7 @@ export function FeatureTableInner({ data }: { data: Data }) {
 
 export default function FeatureTable() {
   const data = useAtomValue(dataAtom);
-  if (data.featureMapDeprecated.size === 0) {
+  if (data.hydraulicModel.assets.size === 0) {
     return <TableEmptyState />;
   }
   return <FeatureTableInner data={data} />;

@@ -278,8 +278,8 @@ function HeaderSelectionsAddresses({
 }
 
 function JoinSettings({ columns }: { columns: Columns }) {
-  const featureMapDeprecated = useAtomValue(dataAtom).featureMapDeprecated;
-  const propertyKeys = extractPropertyKeys(featureMapDeprecated);
+  const { hydraulicModel: { assets } }= useAtomValue(dataAtom)
+  const propertyKeys = extractPropertyKeys(assets);
   return (
     <>
       <SelectHeader

@@ -1,4 +1,5 @@
-import { FeatureMap, FolderMap, IFolder, IWrappedFeature } from "src/types";
+import { HydraulicModel } from "src/hydraulic-model";
+import { FolderMap, IFolder, IWrappedFeature } from "src/types";
 
 type FolderByFolderMap = Map<string | null, IFolder[]>;
 
@@ -103,17 +104,17 @@ export function isFeatureLocked(
 }
 
 export function filterLockedFeatures({
-  featureMapDeprecated,
+  hydraulicModel,
   folderMap,
 }: {
-  featureMapDeprecated: FeatureMap;
+  hydraulicModel: HydraulicModel;
   folderMap: FolderMap;
 }) {
   const lockedSet = generateLockedSet(folderMap);
   const exclude = generateExclude(folderMap);
 
   const features: IWrappedFeature[] = [];
-  for (const feature of featureMapDeprecated.values()) {
+  for (const feature of hydraulicModel.assets.values()) {
     if (feature.feature.properties?.visibility === false) {
       continue;
     }

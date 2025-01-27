@@ -317,10 +317,7 @@ export function importToExportOptions(
  * the results of any format.
  */
 export function fromGeoJSON(
-  {
-    featureMapDeprecated,
-    folderMap,
-  }: Pick<Data, "featureMapDeprecated" | "folderMap">,
+  { hydraulicModel, folderMap }: Pick<Data, "hydraulicModel" | "folderMap">,
   exportOptions: ExportOptions,
 ) {
   return EitherAsync<ConvertError, ExportedData>(
@@ -331,7 +328,7 @@ export function fromGeoJSON(
       }
 
       const { filteredFeatures } = UWrappedFeature.filterMapByFolder(
-        featureMapDeprecated,
+        hydraulicModel.assets,
         folderMap,
         exportOptions.folderId,
       );

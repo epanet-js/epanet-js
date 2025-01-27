@@ -5,65 +5,25 @@ import * as P from "@radix-ui/react-popover";
 import { virtualPositionTop } from "../feature_table";
 import * as E from "src/components/elements";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { dataAtom, virtualColumnsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { deletePropertyKey } from "src/lib/map_operations_deprecated/delete_property_key";
 import without from "lodash/without";
 import { useAtomCallback } from "jotai/utils";
-import renameProperty from "src/lib/rename_property";
 import { Formik, Form } from "formik";
 
-type RenameFormValues = {
-  renameTo: string;
-};
-
 export function RenamePropertyDialog({
-  onClose,
   column,
-  localOrder,
 }: {
   onClose: () => void;
   column: string;
   localOrder: React.MutableRefObject<string[]>;
 }) {
-  const rep = usePersistence();
-  const transact = rep.useTransactDeprecated();
-  const { featureMapDeprecated } = useAtomValue(dataAtom);
-
-  const onSubmit = async (values: RenameFormValues) => {
-    await transact({
-      note: "Renamed a property",
-      track: "property-rename",
-      putFeatures: Array.from(
-        featureMapDeprecated.values(),
-        (wrappedFeature) => {
-          return {
-            ...wrappedFeature,
-            feature: {
-              ...wrappedFeature.feature,
-              properties: renameProperty(
-                wrappedFeature.feature.properties,
-                column,
-                values.renameTo,
-              ),
-            },
-          };
-        },
-      ),
-    });
-    for (let i = 0; i < localOrder.current.length; i++) {
-      if (localOrder.current[i] === column) {
-        localOrder.current[i] = values.renameTo;
-      }
-    }
-    onClose();
-  };
-
   return (
     <Formik
-      onSubmit={onSubmit}
+      onSubmit={() => {}}
       initialValues={{
         renameTo: column,
       }}
@@ -113,7 +73,7 @@ export const Header = memo(function Header({
         transact({
           note: "Deleted a property from all features",
           putFeatures: Array.from(
-            get(dataAtom).featureMapDeprecated.values(),
+            get(dataAtom).hydraulicModel.assets.values(),
             (wrappedFeature) => {
               return {
                 ...wrappedFeature,

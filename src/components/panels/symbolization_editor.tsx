@@ -311,8 +311,10 @@ function RampChoices({
 function RampWizard() {
   const rep = usePersistence();
   const [meta, setMeta] = rep.useMetadata();
-  const { featureMapDeprecated } = useAtomValue(dataAtom);
-  const options = useViablePropertiesForRamp(featureMapDeprecated);
+  const {
+    hydraulicModel: { assets },
+  } = useAtomValue(dataAtom);
+  const options = useViablePropertiesForRamp(assets);
   const [regenerate, setRegenerate] = useAtom(regenerateAtom);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -644,8 +646,10 @@ function RampWizard() {
 
 function CategoryWizard() {
   const rep = usePersistence();
-  const { featureMapDeprecated } = useAtomValue(dataAtom);
-  const options = useViablePropertiesForCategorical(featureMapDeprecated);
+  const {
+    hydraulicModel: { assets },
+  } = useAtomValue(dataAtom);
+  const options = useViablePropertiesForCategorical(assets);
   const [meta, setMeta] = rep.useMetadata();
   const [regenerate, setRegenerate] = useAtom(regenerateAtom);
   const [formError, setFormError] = useState<string | null>(null);

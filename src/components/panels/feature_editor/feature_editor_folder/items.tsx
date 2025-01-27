@@ -494,7 +494,10 @@ function FolderActions({ folder }: { folder: IFolder }) {
   const zoomToFolder = useAtomCallback(
     useCallback(
       (get) => {
-        const { featureMapDeprecated, folderMap } = get(dataAtom);
+        const {
+          hydraulicModel: { assets },
+          folderMap,
+        } = get(dataAtom);
         const folderId = folder.id;
 
         const folderIds = new Set<string>([folderId]);
@@ -503,7 +506,7 @@ function FolderActions({ folder }: { folder: IFolder }) {
 
         collectDescendents(folderId, idMap, folderIds);
 
-        for (const feature of featureMapDeprecated.values()) {
+        for (const feature of assets.values()) {
           if (feature.folderId && folderIds.has(feature.folderId)) {
             zoomIds.push(feature.id);
           }

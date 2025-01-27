@@ -54,7 +54,6 @@ export function ModeHints() {
   }
 
   switch (mode.mode) {
-    case Mode.LASSO:
     case Mode.DRAW_JUNCTION: {
       return null;
     }

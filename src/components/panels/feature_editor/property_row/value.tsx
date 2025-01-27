@@ -244,7 +244,9 @@ export function TextEditor({
   onChangeValue: OnChangeValue;
   readOnly?: boolean;
 } & CoordProps) {
-  const { featureMapDeprecated } = useAtomValue(dataAtom);
+  const {
+    hydraulicModel: { assets },
+  } = useAtomValue(dataAtom);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dirty, setDirty] = useState<boolean>(false);
 
@@ -276,7 +278,8 @@ export function TextEditor({
 
     const currentValue = valueProps.value;
 
-    for (const { feature } of featureMapDeprecated.values()) {
+    for (const { feature } of assets.values()) {
+      // @ts-expect-error appears when changin asset from feature
       const value = feature.properties?.[key];
       if (
         value !== currentValue &&
@@ -300,7 +303,7 @@ export function TextEditor({
       .map((a) => a[0]);
 
     return head;
-  }, [pair, valueProps.value, featureMapDeprecated, enableProperties]);
+  }, [pair, valueProps.value, assets, enableProperties]);
 
   const showOptions = enableProperties && topProperties.length > 0;
 

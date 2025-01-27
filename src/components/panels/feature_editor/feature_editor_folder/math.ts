@@ -12,6 +12,7 @@ import type { Root, Folder as TFolder } from "@tmcw/togeojson";
 import { collectFoldersByFolder } from "src/lib/folder";
 import { Data, SelSingle } from "src/state/jotai";
 import { UniqueIdentifier } from "@dnd-kit/core";
+import { HydraulicModel } from "src/hydraulic-model";
 
 export const indentationWidth = 16;
 
@@ -131,14 +132,14 @@ export function solveRootItems(
  */
 export function useRootItems({
   folderMap,
-  featureMapDeprecated,
+  hydraulicModel,
 }: {
   folderMap: FolderMap;
-  featureMapDeprecated: FeatureMap;
+  hydraulicModel: HydraulicModel;
 }): Root {
   return useMemo(() => {
-    return solveRootItems(featureMapDeprecated, folderMap);
-  }, [featureMapDeprecated, folderMap]);
+    return solveRootItems(hydraulicModel.assets, folderMap);
+  }, [hydraulicModel.assets, folderMap]);
 }
 
 /**
@@ -240,7 +241,9 @@ export function useFlattenedItems({
   activeId: UniqueIdentifier | null;
 }) {
   return useMemo(() => {
-    const featuresByFolder = collectFeaturesByFolder(data.featureMapDeprecated);
+    const featuresByFolder = collectFeaturesByFolder(
+      data.hydraulicModel.assets,
+    );
     const foldersByFolder = collectFoldersByFolder(data.folderMap);
 
     return getLevel(null, 0, featuresByFolder, foldersByFolder, activeId);
@@ -435,7 +438,7 @@ export function getRequiredExpansionsFeature(
   data: Data,
 ): Expansions {
   const expansions: Expansions = [];
-  const feature = data.featureMapDeprecated.get(selection.id);
+  const feature = data.hydraulicModel.assets.get(selection.id);
   if (!feature) return expansions;
 
   let folderId = feature.folderId;
@@ -449,7 +452,7 @@ export function getRequiredExpansionsFeature(
       expansions.push(folder);
     }
 
-    folderId = folder.folderId;
+    folderId = folder.folderId as string;
   }
 
   return expansions;

@@ -33,11 +33,11 @@ export function trackMoment(moment: ModelMoment) {
  */
 export function momentForDeleteFeatures(
   features: readonly IWrappedFeature["id"][],
-  { featureMapDeprecated }: Data,
+  { hydraulicModel }: Data,
 ): Moment {
   const moment = fMoment("Update features");
   for (const id of features) {
-    const feature = featureMapDeprecated.get(id);
+    const feature = hydraulicModel.assets.get(id);
     if (feature) {
       moment.putFeatures.push(feature);
     }
@@ -86,7 +86,7 @@ function getLastAtInMap(map: Map<unknown, IFolder | IWrappedFeature>): string {
  * @returns the last at, or a0
  */
 export function getFreshAt(ctx: Data): string {
-  const a = getLastAtInMap(ctx.featureMapDeprecated);
+  const a = getLastAtInMap(ctx.hydraulicModel.assets);
   const b = getLastAtInMap(ctx.folderMap);
   return a > b ? a : b;
 }

@@ -11,7 +11,7 @@ export const USelection = {
    * we can place a feature in that.
    */
   selectionToFolder(
-    data: Pick<Data, "selection" | "featureMapDeprecated" | "folderMap">,
+    data: Pick<Data, "selection" | "hydraulicModel" | "folderMap">,
   ): Sel {
     const { selection } = data;
 
@@ -92,11 +92,11 @@ export const USelection = {
    */
   getSelectedFeatures({
     selection,
-    featureMapDeprecated,
+    hydraulicModel,
     folderMap,
   }: Pick<
     Data,
-    "selection" | "featureMapDeprecated" | "folderMap"
+    "selection" | "hydraulicModel" | "folderMap"
   >): IWrappedFeature[] {
     switch (selection.type) {
       case "none": {
@@ -105,7 +105,7 @@ export const USelection = {
       case "folder": {
         const folders = getFoldersInTree(folderMap, selection.id);
         const features: IWrappedFeature[] = [];
-        for (const feature of featureMapDeprecated.values()) {
+        for (const feature of hydraulicModel.assets.values()) {
           if (feature.folderId && folders.has(feature.folderId)) {
             features.push(feature);
           }
@@ -115,7 +115,7 @@ export const USelection = {
       default: {
         const features: IWrappedFeature[] = [];
         for (const id of this.toIds(selection)) {
-          const feature = featureMapDeprecated.get(id);
+          const feature = hydraulicModel.assets.get(id);
           if (feature) features.push(feature);
         }
         return features;

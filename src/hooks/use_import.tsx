@@ -190,18 +190,20 @@ export function useImportString() {
 }
 
 export function getTargetMap(
-  { featureMapDeprecated }: Pick<Data, "featureMapDeprecated">,
+  { hydraulicModel }: Pick<Data, "hydraulicModel">,
   joinTargetHeader: string,
 ) {
   const targetMap = new Map<string, IWrappedFeature[]>();
   let sourceMissingFieldCount = 0;
 
-  for (const wrappedFeature of featureMapDeprecated.values()) {
+  for (const wrappedFeature of hydraulicModel.assets.values()) {
+    // @ts-expect-error deprecated method should disappear
     const value = wrappedFeature.feature.properties?.[joinTargetHeader];
     if (value !== undefined) {
       const valueStr = String(value);
       const oldTarget = targetMap.get(valueStr);
       if (oldTarget) {
+        // @ts-expect-error deprecated method should disappear
         targetMap.set(valueStr, [wrappedFeature].concat(oldTarget));
       } else {
         targetMap.set(valueStr, [wrappedFeature]);
