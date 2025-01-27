@@ -13,7 +13,10 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
 import { dialogAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
-import { DebugDropdown, MenuBarDropdown } from "./menu_bar/menu_bar_dropdown";
+import {
+  DebugDropdown,
+  MenuBarDropdownDeprecated,
+} from "./menu_bar/menu_bar_dropdown";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { isDebugOn } from "src/infra/debug-mode";
 
@@ -64,7 +67,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           <GitHubLogoIcon />
           Open Source
         </Link>
-        {!isFeatureOn("FLAG_OPEN") && <MenuBarDropdown />}
+        {!isFeatureOn("FLAG_OPEN") && <MenuBarDropdownDeprecated />}
         {isFeatureOn("FLAG_OPEN") && isDebugOn && <DebugDropdown />}
 
         <HelpDot />
@@ -81,7 +84,8 @@ export const MenuBar = memo(function MenuBar() {
         <FileInfo />
       </div>
       <div className="flex items-center gap-x-2">
-        <MenuBarDropdown />
+        {!isFeatureOn("FLAG_OPEN") && <MenuBarDropdownDeprecated />}
+        {isFeatureOn("FLAG_OPEN") && isDebugOn && <DebugDropdown />}
 
         <HelpDot />
       </div>
