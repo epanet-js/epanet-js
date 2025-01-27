@@ -102,33 +102,9 @@ export function MenuBarDropdownDeprecated() {
                 >
                   Import file
                 </StyledItem>
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({
-                      type: "load_text",
-                    });
-                  }}
-                >
-                  Paste text
-                </StyledItem>
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({
-                      type: "from_url",
-                    });
-                  }}
-                >
-                  From URL
-                </StyledItem>
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({
-                      type: "import_example",
-                    });
-                  }}
-                >
-                  Data library
-                </StyledItem>
+                <StyledItem onSelect={() => {}}>Paste text</StyledItem>
+                <StyledItem onSelect={() => {}}>From URL</StyledItem>
+                <StyledItem onSelect={() => {}}>Data library</StyledItem>
               </DDSubContent>
             </DD.Sub>
             <StyledItem
@@ -138,13 +114,7 @@ export function MenuBarDropdownDeprecated() {
             >
               Export
             </StyledItem>
-            <StyledItem
-              onSelect={() => {
-                setDialogState({ type: "export-svg" });
-              }}
-            >
-              Export SVG
-            </StyledItem>
+            <StyledItem onSelect={() => {}}>Export SVG</StyledItem>
 
             <DDSeparator />
 

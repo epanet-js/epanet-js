@@ -1,25 +1,14 @@
 import { toast } from "react-hot-toast";
 import type { ConvertResult } from "src/lib/convert/utils";
 import { pluralize } from "src/lib/utils";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
 import { Button } from "./elements";
 
 export function AddedFeaturesToast({ result }: { result: ConvertResult }) {
-  const setModal = useSetAtom(dialogAtom);
   return (
     <div className="flex items-center justify-between flex-auto gap-x-4">
       <div className="text-md">Imported</div>
       {result.notes.length ? (
-        <Button
-          type="button"
-          onClick={() => {
-            setModal({
-              type: "import_notes",
-              result,
-            });
-          }}
-        >
+        <Button type="button" onClick={() => {}}>
           {pluralize("issue", result.notes.length)}
         </Button>
       ) : null}

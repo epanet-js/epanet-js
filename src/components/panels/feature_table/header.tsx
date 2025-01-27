@@ -7,7 +7,7 @@ import * as E from "src/components/elements";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
-import { dataAtom, dialogAtom, virtualColumnsAtom } from "src/state/jotai";
+import { dataAtom, virtualColumnsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { deletePropertyKey } from "src/lib/map_operations_deprecated/delete_property_key";
 import without from "lodash/without";
@@ -99,7 +99,6 @@ export const Header = memo(function Header({
 } & React.HTMLAttributes<HTMLButtonElement>) {
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
-  const setDialogState = useSetAtom(dialogAtom);
   const setVirtualColumns = useSetAtom(virtualColumnsAtom);
 
   const onDelete = useAtomCallback(
@@ -149,16 +148,7 @@ export const Header = memo(function Header({
             <DotsHorizontalIcon className="opacity-20 group-hover:opacity-100" />
           </DD.Trigger>
           <E.DDContent align="end">
-            <E.StyledItem
-              onSelect={() => {
-                setDialogState({
-                  type: "cast_property",
-                  column,
-                });
-              }}
-            >
-              Cast
-            </E.StyledItem>
+            <E.StyledItem onSelect={() => {}}>Cast</E.StyledItem>
             <E.StyledItem
               onSelect={(_e) => {
                 setTimeout(() => {
