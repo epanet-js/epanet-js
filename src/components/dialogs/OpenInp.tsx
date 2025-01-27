@@ -54,6 +54,7 @@ export function OpenInpDialog({
       nextExtent.map((importedExtent) => {
         map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
           padding: 100,
+          duration: 0,
         });
       });
       onClose();
