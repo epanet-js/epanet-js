@@ -80,6 +80,7 @@ export class MemPersistence implements IPersistence {
         momentLog.append(forwardMoment, reverseMoment, newStateId);
         this.store.set(dataAtom, {
           ...nullData,
+          folderMap: new Map(),
           featureMapDeprecated: hydraulicModel.assets,
           hydraulicModel,
           modelMetadata,
