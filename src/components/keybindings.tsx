@@ -64,7 +64,7 @@ export function Keybindings() {
     "CHEATSHEET",
   );
 
-  if (!isFeatureOn("FLAG_TOOLBAR")) {
+  if (!isFeatureOn("FLAG_OPEN")) {
     // eslint-disable-next-line
     useHotkeys(
       ["command+s", "ctrl+s"],
@@ -87,7 +87,7 @@ export function Keybindings() {
     );
   }
 
-  if (!isFeatureOn("FLAG_TOOLBAR")) {
+  if (!isFeatureOn("FLAG_OPEN")) {
     // eslint-disable-next-line
     useHotkeys(
       ["command+o", "ctrl+o"],

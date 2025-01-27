@@ -337,6 +337,14 @@ export class MapEngine {
     this.map.remove();
   }
 
+  selectFeature(sourceName: DataSource, featureId: RawId): void {
+    this.setFeatureState(sourceName, featureId, { selected: "true" });
+  }
+
+  unselectFeature(sourceName: DataSource, featureId: RawId): void {
+    this.removeFeatureState(sourceName, featureId, "selected");
+  }
+
   private updateSelections(newSet: Set<RawId>) {
     if (!this.map || !(this.map as any).style) return;
     const oldSet = this.lastSelectionIds;
