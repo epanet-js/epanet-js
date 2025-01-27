@@ -6,7 +6,9 @@ export function localizeKeybinding(
   keys: string,
   isMac: boolean = getIsMac(),
 ): string {
-  return keys.replace("Command", isMac ? cmdSymbol : "Ctrl");
+  return keys
+    .replace("Command", isMac ? cmdSymbol : "Ctrl")
+    .replace("ctrl", isMac ? cmdSymbol : "Ctrl");
 }
 
 const getIsMac = once((): boolean => {

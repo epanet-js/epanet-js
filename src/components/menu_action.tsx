@@ -1,6 +1,7 @@
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { TContent, Keycap, Button } from "./elements";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { localizeKeybinding } from "src/infra/i18n";
 
 export default function MenuAction({
   selected = false,
@@ -55,7 +56,9 @@ export default function MenuAction({
         <TContent side="bottom">
           <div className="flex gap-x-2 items-center">
             {label}
-            {hotkey ? <Keycap size="xs">{hotkey}</Keycap> : null}
+            {hotkey ? (
+              <Keycap size="xs">{localizeKeybinding(hotkey)}</Keycap>
+            ) : null}
           </div>
         </TContent>
       </Tooltip.Root>
