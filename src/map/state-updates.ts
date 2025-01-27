@@ -192,8 +192,18 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSimulation,
     } = changes;
 
-    if (hasNewStyles) {
-      await updateLayerStyles(map, mapState.stylesConfig);
+    if (isFeatureOn("FLAG_OPEN") && hasNewImport) {
+      resetMapState(map);
+    }
+
+    if (isFeatureOn("FLAG_OPEN")) {
+      if (hasNewImport || hasNewStyles) {
+        await updateLayerStyles(map, mapState.stylesConfig);
+      }
+    } else {
+      if (hasNewStyles) {
+        await updateLayerStyles(map, mapState.stylesConfig);
+      }
     }
     if (hasNewAnalysis || hasNewStyles) {
       toggleAnalysisLayers(map, mapState.analysis);
@@ -253,8 +263,18 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       );
     }
 
-    if (hasNewSelection) {
-      updateSelectionFeatureState(map, mapState.selection, idMap);
+    if (isFeatureOn("FLAG_OPEN")) {
+      if (hasNewSelection && !hasNewImport) {
+        updateSelection(
+          map,
+          mapState.selection,
+          previousMapState.selection,
+          idMap,
+        );
+      }
+    } else {
+      if (hasNewSelection)
+        updateSelectionDeprecated(map, mapState.selection, idMap);
     }
 
     map.setOverlay(ephemeralStateOverlays.current);
@@ -262,6 +282,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
   doUpdates().catch((e) => captureError(e));
 };
+
+const resetMapState = withInstrumentation(
+  (map: MapEngine) => {
+    map.removeSource("features");
+    map.removeSource("imported-features");
+  },
+  { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
+);
 
 const updateLayerStyles = withInstrumentation(
   async (map: MapEngine, styles: StylesConfig) => {
@@ -445,7 +473,29 @@ const buildEphemeralStateOvelay = withInstrumentation(
   { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
 );
 
-const updateSelectionFeatureState = withInstrumentation(
+const updateSelection = withInstrumentation(
+  (map: MapEngine, selection: Sel, previousSelection: Sel, idMap: IDMap) => {
+    const prevSet = new Set(USelection.toIds(previousSelection));
+    const newSet = new Set(USelection.toIds(selection));
+
+    for (const assetId of newSet) {
+      const featureId = UIDMap.getIntID(idMap, assetId);
+      map.selectFeature("features", featureId);
+      map.selectFeature("imported-features", featureId);
+    }
+
+    for (const assetId of prevSet) {
+      if (newSet.has(assetId)) continue;
+      const featureId = UIDMap.getIntID(idMap, assetId);
+
+      map.unselectFeature("features", featureId);
+      map.unselectFeature("imported-features", featureId);
+    }
+  },
+  { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
+);
+
+const updateSelectionDeprecated = withInstrumentation(
   (map: MapEngine, selection: Sel, idMap: IDMap) => {
     map.setOnlySelection(selection, idMap);
   },
