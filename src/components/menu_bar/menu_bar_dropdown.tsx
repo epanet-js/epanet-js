@@ -52,7 +52,31 @@ function UndoList() {
   return <DDSubContent>{MomentsList}</DDSubContent>;
 }
 
-export function MenuBarDropdown() {
+export function DebugDropdown() {
+  return (
+    <div className="flex items-center">
+      <DD.Root>
+        <DD.Trigger className={styledButton({ size: "sm", variant: "quiet" })}>
+          <span>Debug</span>
+        </DD.Trigger>
+        <DD.Portal>
+          <DDContent>
+            <DD.Sub>
+              <DDSubTriggerItem>
+                Undo history
+                <div className="flex-auto" />
+                <CaretRightIcon />
+              </DDSubTriggerItem>
+              <UndoList />
+            </DD.Sub>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
+  );
+}
+
+export function MenuBarDropdownDeprecated() {
   const openFiles = useOpenFilesDeprecated();
   const setDialogState = useSetAtom(dialogAtom);
 
