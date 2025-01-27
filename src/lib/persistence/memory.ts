@@ -25,6 +25,7 @@ import {
   Store,
   momentLogAtom,
   nullData,
+  simulationAtom,
 } from "src/state/jotai";
 import {
   getFreshAt,
@@ -84,6 +85,7 @@ export class MemPersistence implements IPersistence {
           modelMetadata,
         });
         this.store.set(momentLogAtom, momentLog);
+        this.store.set(simulationAtom, { status: "idle" });
       } else {
         const momentLog = this.store.get(momentLogAtom).copy();
         const moment = {
