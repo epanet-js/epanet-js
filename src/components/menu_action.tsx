@@ -2,6 +2,7 @@ import { useHotkeys } from "src/keyboard/hotkeys";
 import { TContent, Keycap, Button } from "./elements";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { localizeKeybinding } from "src/infra/i18n";
+import { useRef, useState } from "react";
 
 export default function MenuAction({
   selected = false,
@@ -20,6 +21,7 @@ export default function MenuAction({
   label: string;
   hotkey?: string;
 }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   useHotkeys(
     hotkey || "noop",
     (e) => {
@@ -30,9 +32,17 @@ export default function MenuAction({
     `Menu action ${label}`,
   );
 
+  const [open, setOpen] = useState(false);
+
+  const handleClick = () => {
+    setOpen(false);
+    buttonRef.current && buttonRef.current.blur();
+    onClick();
+  };
+
   return (
     <div className="relative">
-      <Tooltip.Root>
+      <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
         <div
           className={`h-10 w-8 ${
             disabled ? "opacity-50" : ""
@@ -40,7 +50,9 @@ export default function MenuAction({
         >
           <Tooltip.Trigger asChild>
             <Button
-              onClick={onClick}
+              ref={buttonRef}
+              onClick={handleClick}
+              onBlur={() => setOpen(false)}
               variant="quiet/mode"
               role={role}
               disabled={disabled}
