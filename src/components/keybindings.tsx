@@ -16,26 +16,6 @@ export function Keybindings() {
   useMapKeybindings();
 
   useHotkeys(
-    "/",
-    (e) => {
-      e.preventDefault();
-      setDialogState({ type: "quickswitcher" });
-    },
-    [setDialogState],
-    "QUICK SWITCH",
-  );
-
-  useHotkeys(
-    ["command+k", "ctrl+k"],
-    (e) => {
-      e.preventDefault();
-      setDialogState({ type: "quickswitcher" });
-    },
-    [setDialogState],
-    "QUICK SWITCH",
-  );
-
-  useHotkeys(
     ["command+shift+s", "ctrl+shift+s"],
     (e) => {
       // Don't type a / in the input.

@@ -1,7 +1,5 @@
 import { memo, Suspense } from "react";
 import { LayersIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
 import * as T from "@radix-ui/react-tooltip";
 import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";
@@ -10,19 +8,12 @@ import { LayersPopover } from "./layers/popover";
 import { localizeKeybinding } from "src/infra/i18n";
 
 export const Visual = memo(function Visual() {
-  const setDialogState = useSetAtom(dialogAtom);
   return (
     <div className="flex items-center">
       <div className="block h-10 w-10 p-1 flex items-stretch">
         <T.Root>
           <T.Trigger asChild>
-            <E.Button
-              variant="quiet"
-              aria-label="Search"
-              onClick={() => {
-                setDialogState({ type: "quickswitcher" });
-              }}
-            >
+            <E.Button variant="quiet" aria-label="Search" onClick={() => {}}>
               <MagnifyingGlassIcon />
             </E.Button>
           </T.Trigger>

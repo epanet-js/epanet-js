@@ -1,14 +1,12 @@
 import React from "react";
 import type { IWrappedFeature } from "src/types";
-import { useSetAtom } from "jotai";
-import { dialogAtom, panelRawOpen } from "src/state/jotai";
+import { panelRawOpen } from "src/state/jotai";
 import { Button, sharedOutline, TextWell } from "src/components/elements";
 import { FeatureText } from "src/components/panels/feature_editor/raw_editor_text";
 import { PanelDetailsCollapsible } from "src/components/panel_details";
 import clsx from "clsx";
 
 export function RawEditor({ feature }: { feature: IWrappedFeature }) {
-  const setDialogState = useSetAtom(dialogAtom);
   return (
     <PanelDetailsCollapsible title="GeoJSON" atom={panelRawOpen}>
       <>
@@ -19,14 +17,7 @@ export function RawEditor({ feature }: { feature: IWrappedFeature }) {
           <TextWell size="xs">
             This editor edits this feature. You can copy & paste new GeoJSON
             features or feature collections under Menu →{" "}
-            <Button
-              onClick={() => {
-                setDialogState({
-                  type: "load_text",
-                });
-              }}
-              size="xs"
-            >
+            <Button onClick={() => {}} size="xs">
               Paste text
             </Button>
             .
