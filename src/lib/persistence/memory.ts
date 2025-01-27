@@ -58,7 +58,7 @@ export class MemPersistence implements IPersistence {
       modelMetadata: ModelMetadata,
       name: string,
     ) => {
-      if (isFeatureOn("FLAG_TOOLBAR")) {
+      if (isFeatureOn("FLAG_OPEN")) {
         this.idMap = UIDMap.empty();
 
         const momentLog = new MomentLog();

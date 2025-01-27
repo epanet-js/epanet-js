@@ -118,7 +118,7 @@ export const SimulationButton = () => {
         hotkey={"shift+enter"}
       >
         <LightningBoltIcon
-          className={isFeatureOn("FLAG_TOOLBAR") ? "text-yellow-600" : ""}
+          className={isFeatureOn("FLAG_OPEN") ? "text-yellow-600" : ""}
         />
       </MenuAction>
       {simulation.status === "running" && <LoadingDialog />}

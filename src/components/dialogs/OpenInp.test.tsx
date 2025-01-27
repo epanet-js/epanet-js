@@ -17,7 +17,7 @@ import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("OpenInpDialog", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_TOOLBAR");
+    stubFeatureOn("FLAG_OPEN");
   });
 
   it("initializes state from a given inp", async () => {

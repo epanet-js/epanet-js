@@ -151,7 +151,7 @@ const detectChanges = (
   hasNewAnalysis: boolean;
 } => {
   return {
-    hasNewImport: isFeatureOn("FLAG_TOOLBAR")
+    hasNewImport: isFeatureOn("FLAG_OPEN")
       ? state.momentLogId !== prev.momentLogId
       : state.lastImportPointer !== prev.lastImportPointer,
     hasNewEditions: state.lastChangePointer !== prev.lastChangePointer,
