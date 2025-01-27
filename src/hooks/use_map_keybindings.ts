@@ -14,6 +14,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { useSetAtom } from "jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -34,28 +35,34 @@ export function useMapKeybindings() {
   const setMode = useSetAtom(modeAtom);
   const transact = rep.useTransact();
 
-  useHotkeys(
-    ["command+z", "ctrl+z"],
-    () => {
-      historyControl("undo");
-      setEphemeralState({ type: "none" });
-      setMode({ mode: Mode.NONE });
-    },
-    [historyControl],
-    "UNDO",
-  );
+  if (!isFeatureOn("FLAG_OPEN")) {
+    // eslint-disable-next-line
+    useHotkeys(
+      ["command+z", "ctrl+z"],
+      () => {
+        historyControl("undo");
+        setEphemeralState({ type: "none" });
+        setMode({ mode: Mode.NONE });
+      },
+      [historyControl],
+      "UNDO",
+    );
+  }
 
-  useHotkeys(
-    ["command+y", "ctrl+y"],
-    (e) => {
-      historyControl("redo");
-      setEphemeralState({ type: "none" });
-      setMode({ mode: Mode.NONE });
-      e.preventDefault();
-    },
-    [historyControl],
-    "REDO",
-  );
+  if (!isFeatureOn("FLAG_OPEN")) {
+    // eslint-disable-next-line
+    useHotkeys(
+      ["command+y", "ctrl+y"],
+      (e) => {
+        historyControl("redo");
+        setEphemeralState({ type: "none" });
+        setMode({ mode: Mode.NONE });
+        e.preventDefault();
+      },
+      [historyControl],
+      "REDO",
+    );
+  }
 
   const onSelectAll = useAtomCallback(
     useCallback((get, set) => {
