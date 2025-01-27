@@ -81,7 +81,6 @@ export class MemPersistence implements IPersistence {
         this.store.set(dataAtom, {
           ...nullData,
           folderMap: new Map(),
-          featureMapDeprecated: hydraulicModel.assets,
           hydraulicModel,
           modelMetadata,
         });
@@ -201,7 +200,7 @@ export class MemPersistence implements IPersistence {
       this.putFoldersInner(forwardMoment.putFolders, ctx),
     );
 
-    const updatedFeatures = new AssetsMap(
+    const updatedAssets = new AssetsMap(
       Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
         return sortAts(a[1], b[1]);
       }),
@@ -211,9 +210,8 @@ export class MemPersistence implements IPersistence {
       hydraulicModel: {
         ...ctx.hydraulicModel,
         version: stateId,
-        assets: updatedFeatures,
+        assets: updatedAssets,
       },
-      featureMapDeprecated: updatedFeatures,
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
           return sortAts(a[1], b[1]);
@@ -285,7 +283,7 @@ export class MemPersistence implements IPersistence {
     const reverseMoment = fMoment("Put features");
     const ats = once(() =>
       Array.from(
-        ctx.featureMapDeprecated.values(),
+        ctx.hydraulicModel.assets.values(),
         (wrapped) => wrapped.at,
       ).sort(),
     );
@@ -294,7 +292,7 @@ export class MemPersistence implements IPersistence {
     let lastAt: string | null = null;
 
     for (const inputFeature of features) {
-      const oldVersion = ctx.featureMapDeprecated.get(inputFeature.id);
+      const oldVersion = ctx.hydraulicModel.assets.get(inputFeature.id);
       if (inputFeature.at === undefined) {
         if (!lastAt) lastAt = getFreshAt(ctx);
         const at = generateKeyBetween(lastAt, null);

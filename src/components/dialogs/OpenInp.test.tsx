@@ -158,7 +158,6 @@ describe("OpenInpDialog", () => {
       ...nullData,
       selection,
       hydraulicModel: hydraulicModel,
-      featureMapDeprecated: hydraulicModel.assets,
     });
     store.set(momentLogAtom, momentLog);
     store.set(simulationAtom, simulation);

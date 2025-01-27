@@ -464,7 +464,6 @@ describe("AssetEditor", () => {
     store.set(dataAtom, {
       ...nullData,
       hydraulicModel: hydraulicModel,
-      featureMapDeprecated: hydraulicModel.assets,
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
     return store;

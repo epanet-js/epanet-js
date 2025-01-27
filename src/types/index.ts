@@ -406,7 +406,6 @@ export interface HandlerContext {
   dragTargetRef: React.MutableRefObject<DragTarget | null>;
   mode: ModeWithOptions;
   throttledMovePointer: (e: mapboxgl.Point) => void;
-  featureMapDeprecated: FeatureMap;
   hydraulicModel: HydraulicModel;
   folderMap: FolderMap;
   idMap: IDMap;

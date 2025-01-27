@@ -80,7 +80,6 @@ describe("Multi asset viewer", () => {
     store.set(dataAtom, {
       ...nullData,
       hydraulicModel: hydraulicModel,
-      featureMapDeprecated: hydraulicModel.assets,
       selection: { type: "multi", ids: selectedAssetIds },
     });
     return store;

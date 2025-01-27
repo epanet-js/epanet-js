@@ -2,7 +2,7 @@
 import React, { memo, useCallback } from "react";
 import { styledCheckbox } from "src/components/elements";
 import { dataAtom, Sel, selectionAtom } from "src/state/jotai";
-import { USelection } from "src/state/uselection";
+import { USelection } from "src/selection";
 import { HEIGHT } from "../feature_table";
 import type { IWrappedFeature } from "src/types";
 import min from "lodash/min";
@@ -30,12 +30,12 @@ export default memo(function RowActions({
         const { selection } = get(dataAtom);
         const existingIds = USelection.toIds(selection);
         const allIndexes = existingIds
-          .map((id) => {
+          .map((id: string) => {
             return features.findIndex((feature) => feature.id === id);
           })
           .concat(features.findIndex((feature) => feature.id === id));
 
-        const newIds = range(min(allIndexes)!, max(allIndexes)! + 1).map(
+        const newIds = range(min(allIndexes)!, Number(max(allIndexes)) + 1).map(
           (idx) => {
             return features[idx].id;
           },

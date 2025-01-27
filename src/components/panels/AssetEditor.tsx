@@ -1,5 +1,4 @@
 import type { IWrappedFeature } from "src/types";
-import { FeatureEditorProperties } from "./feature_editor/feature_editor_properties";
 import { FeatureEditorId } from "./feature_editor/feature_editor_id";
 import React, {
   ChangeEventHandler,
@@ -24,7 +23,6 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { BaseAsset } from "src/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 import { PipeStatus, pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import {
@@ -48,14 +46,10 @@ export function AssetEditor({
   return (
     <>
       <div className="flex-auto overflow-y-auto placemark-scrollbar">
-        {selectedFeature instanceof BaseAsset ? (
-          <AssetEditorInner
-            asset={selectedFeature as Asset}
-            quantitiesMetadata={quantitiesMetadata}
-          />
-        ) : (
-          <FeatureEditorProperties wrappedFeature={selectedFeature} />
-        )}
+        <AssetEditorInner
+          asset={selectedFeature as Asset}
+          quantitiesMetadata={quantitiesMetadata}
+        />
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-900 border-t border-gray-200 dark:border-gray-900 overflow-auto placemark-scrollbar">
         {isDebugOn && (

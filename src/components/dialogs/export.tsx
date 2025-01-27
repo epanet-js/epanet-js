@@ -221,31 +221,11 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     }
     const { fileSave, supported } = await import("browser-fs-access");
 
-    const exportableFeatures = new Map(
-      Array.from(data.hydraulicModel.assets, ([id, assetOrWrappedFeature]) => {
-        return [
-          id,
-          {
-            id: assetOrWrappedFeature.id,
-            feature: assetOrWrappedFeature.feature,
-            at: assetOrWrappedFeature.at,
-            folderId: assetOrWrappedFeature.folderId,
-          },
-        ];
-      }),
-    );
-
     try {
       const type = findType(exportOptions.type);
       // TODO: remove this workaround.
       if (supported) {
-        const either = await lib.fromGeoJSON(
-          {
-            folderMap: data.folderMap,
-            featureMapDeprecated: exportableFeatures,
-          },
-          exportOptions,
-        );
+        const either = await lib.fromGeoJSON(data, exportOptions);
 
         if (either.isLeft()) {
           either.ifLeft((error) => {
@@ -277,13 +257,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
           captureError(e as Error);
         }
       } else {
-        await fromGeoJSON(
-          {
-            featureMapDeprecated: exportableFeatures,
-            folderMap: data.folderMap,
-          },
-          exportOptions,
-        )
+        await fromGeoJSON(data, exportOptions)
           .ifRight((result) => {
             const type = findType(exportOptions.type);
             fallbackSave(result, type);
@@ -321,14 +295,14 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
                 <div className="space-y-4">
                   <NarrowExport
                     root={root}
-                    featureMapDeprecated={data.featureMapDeprecated}
+                    featureMapDeprecated={data.hydraulicModel.assets}
                   />
                   <SelectFileType exportable />
                   {values.type === "geojson" ? <GeoJSONOptions /> : null}
                   {values.type === "csv" ? (
                     <CSVOptions
                       root={root}
-                      featureMapDeprecated={data.featureMapDeprecated}
+                      featureMapDeprecated={data.hydraulicModel.assets}
                       values={values}
                     />
                   ) : null}

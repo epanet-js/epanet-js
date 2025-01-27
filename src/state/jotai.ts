@@ -3,7 +3,6 @@ import { atomWithStorage, selectAtom } from "jotai/utils";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
 import {
-  FeatureMap,
   FolderMap,
   IFolder,
   IPresence,
@@ -14,7 +13,7 @@ import {
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/lib/convert";
 import { focusAtom } from "jotai-optics";
-import { USelection } from "./uselection";
+import { USelection } from "src/selection/selection";
 import { atomWithMachine } from "jotai-xstate";
 import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
@@ -84,7 +83,6 @@ export const simulationAtom = atom<SimulationState>({ status: "idle" });
  */
 export interface Data {
   folderMap: FolderMap;
-  featureMapDeprecated: FeatureMap; //Use hydraulicModel.assets instead
   selection: Sel;
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
@@ -103,7 +101,6 @@ const hydraulicModel = initializeHydraulicModel({
 });
 
 export const nullData: Data = {
-  featureMapDeprecated: hydraulicModel.assets,
   folderMap: new Map(),
   selection: {
     type: "none",

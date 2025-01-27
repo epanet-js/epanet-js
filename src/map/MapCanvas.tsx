@@ -97,7 +97,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
-  const { featureMapDeprecated, folderMap, hydraulicModel } = data;
+  const { folderMap, hydraulicModel } = data;
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
@@ -173,7 +173,6 @@ export const MapCanvas = memo(function MapCanvas({
     throttledMovePointer,
     mode,
     dragTargetRef,
-    featureMapDeprecated,
     hydraulicModel,
     folderMap,
     idMap,
@@ -270,7 +269,9 @@ export const MapCanvas = memo(function MapCanvas({
   const onContextMenu = useAtomCallback(
     useCallback(
       (get, _set, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        const { featureMapDeprecated } = get(dataAtom);
+        const {
+          hydraulicModel: { assets },
+        } = get(dataAtom);
         const mapDivBox = mapDivRef.current?.getBoundingClientRect();
         const map = mapRef.current;
         if (mapDivBox && map) {
@@ -293,7 +294,7 @@ export const MapCanvas = memo(function MapCanvas({
           setContextInfo({
             features: wrappedFeaturesFromMapFeatures(
               featureUnderMouse,
-              featureMapDeprecated,
+              assets,
               rep.idMap,
             ),
             position,
@@ -326,8 +327,7 @@ export const MapCanvas = memo(function MapCanvas({
     if (
       mode.mode === Mode.DRAW_PIPE ||
       mode.mode === Mode.DRAW_JUNCTION ||
-      mode.mode === Mode.DRAW_RESERVOIR ||
-      mode.mode === Mode.LASSO
+      mode.mode === Mode.DRAW_RESERVOIR
     )
       return "placemark-cursor-crosshair";
     return "auto";

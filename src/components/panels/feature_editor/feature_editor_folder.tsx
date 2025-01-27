@@ -206,7 +206,11 @@ function findAfterAt({
 
 export function FeatureEditorFolderInner() {
   const data = useAtomValue(dataAtom);
-  const { featureMapDeprecated, folderMap, selection } = data;
+  const {
+    hydraulicModel: { assets },
+    folderMap,
+    selection,
+  } = data;
   const rep = usePersistence();
   const [meta] = rep.useMetadata();
   const transact = rep.useTransactDeprecated();
@@ -468,7 +472,7 @@ export function FeatureEditorFolderInner() {
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
-      <FeatureEditorFolderHeader featureMapDeprecated={featureMapDeprecated} />
+      <FeatureEditorFolderHeader featureMapDeprecated={assets} />
       <SortableContext items={tree} strategy={verticalListSortingStrategy}>
         <div
           ref={parentRef}

@@ -7,7 +7,6 @@ import { IWrappedFeature } from "src/types";
  */
 export enum Mode {
   NONE = "NONE",
-  LASSO = "LASSO",
   DRAW_JUNCTION = "DRAW_JUNCTION",
   DRAW_PIPE = "DRAW_PIPE",
   DRAW_RESERVOIR = "DRAW_RESERVOIR",
@@ -59,7 +58,6 @@ export const MODE_INFO: Record<
   [Mode.DRAW_JUNCTION]: { label: translate("junction") },
   [Mode.DRAW_PIPE]: { label: translate("pipe") },
   [Mode.DRAW_RESERVOIR]: { label: translate("reservoir") },
-  [Mode.LASSO]: { label: "Lasso" },
 };
 
 export type ModeWithOptions = {
