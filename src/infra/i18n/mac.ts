@@ -7,8 +7,12 @@ export function localizeKeybinding(
   isMac: boolean = getIsMac(),
 ): string {
   return keys
-    .replace("Command", isMac ? cmdSymbol : "Ctrl")
-    .replace("ctrl", isMac ? cmdSymbol : "Ctrl");
+    .toUpperCase()
+    .replace("ENTER", "Enter")
+    .replace("SHIFT", "Shift")
+    .replace("ESC", "Esc")
+    .replace("COMMAND+", isMac ? cmdSymbol : "Ctrl+")
+    .replace("CTRL+", isMac ? cmdSymbol : "Ctrl+");
 }
 
 const getIsMac = once((): boolean => {
