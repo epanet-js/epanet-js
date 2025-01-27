@@ -42,7 +42,7 @@ export const useOpenInp = () => {
       .fileOpen({
         multiple: false,
         extensions: [".inp"],
-        description: "Open",
+        description: ".INP",
       })
       .then((file) => {
         const files = groupFiles([file]);
