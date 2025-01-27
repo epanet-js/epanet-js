@@ -14,6 +14,7 @@ import { AckDialogAction } from "./simple_dialog_actions";
 import { Loading } from "../elements";
 import { parseInp } from "src/import/parse-inp";
 import { usePersistence } from "src/lib/persistence/context";
+import { captureError } from "src/infra/error-tracking";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -63,7 +64,7 @@ export function OpenInpDialog({
 
   useEffect(
     function onRender() {
-      importInp();
+      importInp().catch((e) => captureError(e));
     },
     [importInp],
   );
