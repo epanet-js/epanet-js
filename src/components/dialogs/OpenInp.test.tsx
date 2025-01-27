@@ -1,7 +1,15 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { Store, dataAtom, momentLogAtom, nullData } from "src/state/jotai";
+import {
+  SimulationFailure,
+  SimulationState,
+  Store,
+  dataAtom,
+  momentLogAtom,
+  nullData,
+  simulationAtom,
+} from "src/state/jotai";
 import { HydraulicModel, Junction } from "src/hydraulic-model";
 import { OpenInpDialogState } from "src/state/dialog_state";
 import { UIDMap } from "src/lib/id_mapper";
@@ -70,10 +78,16 @@ describe("OpenInpDialog", () => {
     [JUNCTIONS]
     J1\t10
     `;
+    const previousSimulation: SimulationFailure = {
+      status: "failure",
+      report: "ERROR",
+      modelVersion: "10",
+    };
     const previousMomentLog = new MomentLog();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
       momentLog: previousMomentLog,
+      simulation: previousSimulation,
     });
     const onClose = vi.fn();
     const file = aTestFile({ filename: "my-network.inp", content: inp });
@@ -88,6 +102,9 @@ describe("OpenInpDialog", () => {
 
     const updatedMomentLog = store.get(momentLogAtom);
     expect(updatedMomentLog.id).not.toEqual(previousMomentLog.id);
+
+    const simulation = store.get(simulationAtom);
+    expect(simulation.status).toEqual("idle");
   });
 
   const renderComponent = ({
@@ -119,10 +136,12 @@ describe("OpenInpDialog", () => {
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
     momentLog = new MomentLog(),
+    simulation = { status: "idle" },
   }: {
     store?: Store;
     hydraulicModel?: HydraulicModel;
     momentLog?: MomentLog;
+    simulation?: SimulationState;
   }): Store => {
     store.set(dataAtom, {
       ...nullData,
@@ -130,6 +149,7 @@ describe("OpenInpDialog", () => {
       featureMapDeprecated: hydraulicModel.assets,
     });
     store.set(momentLogAtom, momentLog);
+    store.set(simulationAtom, simulation);
     return store;
   };
 });
