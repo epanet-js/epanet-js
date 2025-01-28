@@ -22,7 +22,7 @@ export const useSaveInp = () => {
         const newHandle = await fileSave(
           inpBlob,
           {
-            fileName: "my-network.inp",
+            fileName: fileInfo ? fileInfo.name : "my-network.inp",
             extensions: [".inp"],
             description: ".INP",
             mimeTypes: ["text/plain"],
