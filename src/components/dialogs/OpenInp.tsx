@@ -42,13 +42,14 @@ export function OpenInpDialog({
   const importInp = useCallback(async () => {
     try {
       const file = fileGroup.file;
-      const arrayBuffer = await file.arrayBuffer();
-      const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata } = parseInp(content);
-      if (hydraulicModel.assets.size === 0) {
+      if (!file.name.toLowerCase().endsWith(".inp")) {
         setError(true);
         return;
       }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const content = new TextDecoder().decode(arrayBuffer);
+      const { hydraulicModel, modelMetadata } = parseInp(content);
       transactImport(hydraulicModel, modelMetadata, file.name);
       const features: FeatureCollection = {
         type: "FeatureCollection",
