@@ -13,7 +13,6 @@ import {
 } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
-import { useOpenInp } from "src/hooks/use_open_files";
 import toast from "react-hot-toast";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
@@ -22,6 +21,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { useFileSaveDeprecated, useSaveInp } from "src/hooks/use_file_save";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useOpenInp } from "src/hooks/use_open_files";
 
 export const Toolbar = () => {
   const openInp = useOpenInp();

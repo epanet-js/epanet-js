@@ -15,6 +15,9 @@ import { Loading } from "../elements";
 import { parseInp } from "src/import/parse-inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useSetAtom } from "jotai";
+import { fileInfoAtom } from "src/state/jotai";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -32,6 +35,7 @@ export function OpenInpDialog({
   const [error, setError] = useState<boolean>(false);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const setFileInfo = useSetAtom(fileInfoAtom);
 
   const fileGroup = files[0] as FileGroup;
 
@@ -57,11 +61,14 @@ export function OpenInpDialog({
           duration: 0,
         });
       });
+      if (isFeatureOn("FLAG_SAVE")) {
+        setFileInfo(null);
+      }
       onClose();
     } catch (error) {
       setError(true);
     }
-  }, [fileGroup.file, map?.map, onClose, transactImport]);
+  }, [fileGroup.file, map?.map, onClose, transactImport, setFileInfo]);
 
   useEffect(
     function onRender() {
