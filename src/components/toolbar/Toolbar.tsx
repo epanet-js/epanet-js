@@ -20,16 +20,13 @@ import { dialogAtom } from "src/state/dialog_state";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { useFileSave, useFileSaveDeprecated } from "src/hooks/use_file_save";
+import { useFileSaveDeprecated, useSaveInp } from "src/hooks/use_file_save";
 import { isFeatureOn } from "src/infra/feature-flags";
-
-const useFileSaveFn = isFeatureOn("FLAG_SAVE")
-  ? useFileSave
-  : useFileSaveDeprecated;
 
 export const Toolbar = () => {
   const openInp = useOpenInp();
-  const saveNative = useFileSaveFn();
+  const saveNative = useFileSaveDeprecated();
+  const saveInp = useSaveInp();
   const setDialogState = useSetAtom(dialogAtom);
 
   const rep = usePersistence();
@@ -54,15 +51,19 @@ export const Toolbar = () => {
   };
 
   const handleExport = async () => {
-    const either = await saveNative();
-    return either
-      .ifLeft((error) => toast.error(error?.message || "Could not save"))
-      .map((saved) => {
-        if (saved) return;
-        setDialogState({
-          type: isFeatureOn("FLAG_SAVE") ? "saveAs" : "export",
+    if (isFeatureOn("FLAG_SAVE")) {
+      saveInp();
+    } else {
+      const either = await saveNative();
+      return either
+        .ifLeft((error) => toast.error(error?.message || "Could not save"))
+        .map((saved) => {
+          if (saved) return;
+          setDialogState({
+            type: "export",
+          });
         });
-      });
+    }
   };
 
   return (

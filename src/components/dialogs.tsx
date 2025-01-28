@@ -23,16 +23,6 @@ const OpenInpDialog = dynamic<{
   },
 );
 
-const SaveAsDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/SaveAsDialog").then((r) => r.SaveAsDialog),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -77,7 +67,6 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
     ))
-    .with({ type: "saveAs" }, () => <SaveAsDialog onClose={onClose} />)
     .with({ type: "export" }, () => (
       <ExportDialogDeprecated onClose={onClose} />
     ))
