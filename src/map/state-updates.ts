@@ -189,11 +189,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSimulation,
     } = changes;
 
-    if (hasNewImport) {
-      resetMapState(map);
-    }
-
     if (hasNewImport || hasNewStyles) {
+      resetMapState(map);
       await updateLayerStyles(map, mapState.stylesConfig);
     }
 
