@@ -70,6 +70,9 @@ export const translations: Translations = {
   understood: "Entendido",
   error: "Error",
   save: "Guardar",
+  saving: "Guardando...",
+  saved: "Guardado",
+  saveCanceled: "Guardado cancelado",
 };
 
 export const units: UnitsLocale = {
