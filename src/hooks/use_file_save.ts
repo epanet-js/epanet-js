@@ -31,6 +31,7 @@ export const useSaveInp = () => {
         );
         if (newHandle) {
           set(fileInfoAtom, {
+            name: newHandle.name,
             handle: newHandle,
             options: exportOptions,
           });
@@ -75,6 +76,7 @@ export function useFileSaveDeprecated() {
                 send("show");
                 if (newHandle) {
                   set(fileInfoAtom, {
+                    name: newHandle.name,
                     handle: newHandle,
                     options: fileInfo.options,
                   });
