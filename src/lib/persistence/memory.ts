@@ -41,7 +41,6 @@ import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { MomentLog } from "./moment-log";
 
 export class MemPersistence implements IPersistence {
@@ -59,57 +58,32 @@ export class MemPersistence implements IPersistence {
       modelMetadata: ModelMetadata,
       name: string,
     ) => {
-      if (isFeatureOn("FLAG_OPEN")) {
-        this.idMap = UIDMap.empty();
+      this.idMap = UIDMap.empty();
 
-        const momentLog = new MomentLog();
-        const moment = {
-          note: `Import ${name}`,
-          putAssets: [...hydraulicModel.assets.values()],
-        };
-        trackMoment(moment);
-        const forwardMoment = {
-          ...EMPTY_MOMENT,
-          note: moment.note,
-          deleteFeatures: [],
-          putFeatures: moment.putAssets,
-        };
-        const newStateId = nanoid();
+      const momentLog = new MomentLog();
+      const moment = {
+        note: `Import ${name}`,
+        putAssets: [...hydraulicModel.assets.values()],
+      };
+      trackMoment(moment);
+      const forwardMoment = {
+        ...EMPTY_MOMENT,
+        note: moment.note,
+        deleteFeatures: [],
+        putFeatures: moment.putAssets,
+      };
+      const newStateId = nanoid();
 
-        const reverseMoment = this.apply(newStateId, forwardMoment);
-        momentLog.append(forwardMoment, reverseMoment, newStateId);
-        this.store.set(dataAtom, {
-          ...nullData,
-          folderMap: new Map(),
-          hydraulicModel,
-          modelMetadata,
-        });
-        this.store.set(momentLogAtom, momentLog);
-        this.store.set(simulationAtom, { status: "idle" });
-      } else {
-        const momentLog = this.store.get(momentLogAtom).copy();
-        const moment = {
-          note: `Import ${name}`,
-          putAssets: [...hydraulicModel.assets.values()],
-        };
-        trackMoment(moment);
-        const forwardMoment = {
-          ...EMPTY_MOMENT,
-          note: moment.note,
-          deleteFeatures: [],
-          putFeatures: moment.putAssets,
-        };
-        const newStateId = nanoid();
-
-        const reverseMoment = this.apply(newStateId, forwardMoment);
-        momentLog.append(forwardMoment, reverseMoment, newStateId);
-        this.store.set(dataAtom, (prev) => ({
-          ...prev,
-          hydraulicModel,
-          modelMetadata,
-        }));
-        this.store.set(momentLogAtom, momentLog);
-      }
+      const reverseMoment = this.apply(newStateId, forwardMoment);
+      momentLog.append(forwardMoment, reverseMoment, newStateId);
+      this.store.set(dataAtom, {
+        ...nullData,
+        folderMap: new Map(),
+        hydraulicModel,
+        modelMetadata,
+      });
+      this.store.set(momentLogAtom, momentLog);
+      this.store.set(simulationAtom, { status: "idle" });
     };
   }
   useTransact() {

@@ -4,18 +4,15 @@ import {
   DownloadIcon,
   FilePlusIcon,
 } from "@radix-ui/react-icons";
-import { captureError } from "src/infra/error-tracking";
 import Line from "src/components/icons/line";
-import { useOpenFilesDeprecated, useOpenInp } from "src/hooks/use_open_files";
+import { useOpenInp } from "src/hooks/use_open_files";
 import { useSetAtom } from "jotai";
 import { memo } from "react";
 import { dialogAtom } from "src/state/dialog_state";
 import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const NothingSelected = memo(function NothingSelected() {
-  const openFiles = useOpenFilesDeprecated();
   const openInp = useOpenInp();
   const setDialogState = useSetAtom(dialogAtom);
   return (
@@ -61,9 +58,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              isFeatureOn("FLAG_OPEN")
-                ? openInp()
-                : openFiles().catch((e) => captureError(e));
+              openInp();
             }}
           >
             <FilePlusIcon />

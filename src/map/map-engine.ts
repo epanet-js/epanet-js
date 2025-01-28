@@ -1,12 +1,9 @@
 import mapboxgl, { MapboxEvent, Style } from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
 
-import type { Sel } from "src/state/jotai";
-import { CURSOR_DEFAULT, emptySelection } from "src/lib/constants";
+import { CURSOR_DEFAULT } from "src/lib/constants";
 import type { Feature, IFeatureCollection } from "src/types";
-import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { USelection } from "src/selection";
 import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 import { DataSource } from "./data-source";
@@ -60,7 +57,6 @@ const debugEvent = isDebugMapHandlers
 export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
-  lastSelectionIds: Set<RawId>;
   overlay: MapboxOverlay;
   private icons: IconImage[] = [];
 
@@ -134,7 +130,6 @@ export class MapEngine {
       }
     });
 
-    this.lastSelectionIds = emptySelection;
     this.map = map;
   }
 
@@ -305,14 +300,6 @@ export class MapEngine {
     }
   }
 
-  setOnlySelection(selection: Sel, idMap: IDMap) {
-    this.updateSelections(
-      new Set(
-        USelection.toIds(selection).map((uuid) => UIDMap.getIntID(idMap, uuid)),
-      ),
-    );
-  }
-
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
   }
@@ -343,29 +330,6 @@ export class MapEngine {
 
   unselectFeature(sourceName: DataSource, featureId: RawId): void {
     this.removeFeatureState(sourceName, featureId, "selected");
-  }
-
-  private updateSelections(newSet: Set<RawId>) {
-    if (!this.map || !(this.map as any).style) return;
-    const oldSet = this.lastSelectionIds;
-    const tmpSet = new Set(newSet);
-
-    for (const id of tmpSet) {
-      if (!oldSet.has(id)) {
-        this.setFeatureState("features", id, { selected: "true" });
-        this.setFeatureState("imported-features", id, { selected: "true" });
-        tmpSet.delete(id);
-      }
-    }
-
-    for (const id of oldSet) {
-      if (!tmpSet.has(id)) {
-        this.removeFeatureState("features", id, "selected");
-        this.removeFeatureState("imported-features", id, "selected");
-      }
-    }
-
-    this.lastSelectionIds = newSet;
   }
 
   private setFeatureState(
