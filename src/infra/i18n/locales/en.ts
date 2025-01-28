@@ -68,6 +68,9 @@ export const translations = {
   understood: "Understood",
   error: "Error",
   save: "Save",
+  saving: "Saving...",
+  saved: "Saved",
+  saveCanceled: "Canceled saving",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

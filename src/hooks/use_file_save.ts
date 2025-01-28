@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { buildInp } from "src/simulation/build-inp";
 import toast from "react-hot-toast";
+import { translate } from "src/infra/i18n";
 
 export const useSaveInp = () => {
   return useAtomCallback(
@@ -36,15 +37,14 @@ export const useSaveInp = () => {
             options: exportOptions,
           });
         }
-        return true;
       };
 
       toast.promise(
         asyncSave(),
         {
-          loading: "Saving...",
-          success: "Saved",
-          error: "Save canceled",
+          loading: translate("saving"),
+          success: translate("saved"),
+          error: translate("saveCanceled"),
         },
         { style: { minWidth: "120px" }, success: { duration: 2000 } },
       );
