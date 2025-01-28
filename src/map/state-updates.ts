@@ -36,7 +36,6 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -151,9 +150,7 @@ const detectChanges = (
   hasNewAnalysis: boolean;
 } => {
   return {
-    hasNewImport: isFeatureOn("FLAG_OPEN")
-      ? state.momentLogId !== prev.momentLogId
-      : state.lastImportPointer !== prev.lastImportPointer,
+    hasNewImport: state.momentLogId !== prev.momentLogId,
     hasNewEditions: state.lastChangePointer !== prev.lastChangePointer,
     hasNewStyles: state.stylesConfig !== prev.stylesConfig,
     hasNewSelection: state.selection !== prev.selection,
@@ -192,19 +189,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSimulation,
     } = changes;
 
-    if (isFeatureOn("FLAG_OPEN") && hasNewImport) {
+    if (hasNewImport) {
       resetMapState(map);
     }
 
-    if (isFeatureOn("FLAG_OPEN")) {
-      if (hasNewImport || hasNewStyles) {
-        await updateLayerStyles(map, mapState.stylesConfig);
-      }
-    } else {
-      if (hasNewStyles) {
-        await updateLayerStyles(map, mapState.stylesConfig);
-      }
+    if (hasNewImport || hasNewStyles) {
+      await updateLayerStyles(map, mapState.stylesConfig);
     }
+
     if (hasNewAnalysis || hasNewStyles) {
       toggleAnalysisLayers(map, mapState.analysis);
     }
@@ -263,18 +255,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       );
     }
 
-    if (isFeatureOn("FLAG_OPEN")) {
-      if (hasNewSelection && !hasNewImport) {
-        updateSelection(
-          map,
-          mapState.selection,
-          previousMapState.selection,
-          idMap,
-        );
-      }
-    } else {
-      if (hasNewSelection)
-        updateSelectionDeprecated(map, mapState.selection, idMap);
+    if (hasNewSelection && !hasNewImport) {
+      updateSelection(
+        map,
+        mapState.selection,
+        previousMapState.selection,
+        idMap,
+      );
     }
 
     map.setOverlay(ephemeralStateOverlays.current);
@@ -491,13 +478,6 @@ const updateSelection = withInstrumentation(
       map.unselectFeature("features", featureId);
       map.unselectFeature("imported-features", featureId);
     }
-  },
-  { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
-);
-
-const updateSelectionDeprecated = withInstrumentation(
-  (map: MapEngine, selection: Sel, idMap: IDMap) => {
-    map.setOnlySelection(selection, idMap);
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );

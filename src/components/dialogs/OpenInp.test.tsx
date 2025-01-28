@@ -22,13 +22,8 @@ import { Dialog } from "@radix-ui/react-dialog";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("OpenInpDialog", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_OPEN");
-  });
-
   it("initializes state from a given inp", async () => {
     const inp = `
     [JUNCTIONS]
