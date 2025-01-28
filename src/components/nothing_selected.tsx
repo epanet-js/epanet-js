@@ -11,10 +11,14 @@ import { memo } from "react";
 import { dialogAtom } from "src/state/dialog_state";
 import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
+import { translate } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useSaveInp } from "src/hooks/use_file_save";
 
 export const NothingSelected = memo(function NothingSelected() {
   const openInp = useOpenInp();
   const setDialogState = useSetAtom(dialogAtom);
+  const saveInp = useSaveInp();
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
       <div className="text-sm font-semibold pb-2">
@@ -62,16 +66,18 @@ export const NothingSelected = memo(function NothingSelected() {
             }}
           >
             <FilePlusIcon />
-            Open INP
+            {translate("openProject")}
           </Button>
           <Button
             type="button"
             onClick={() => {
-              setDialogState({ type: "export" });
+              isFeatureOn("FLAG_SAVE")
+                ? saveInp()
+                : setDialogState({ type: "export" });
             }}
           >
             <DownloadIcon />
-            Export
+            {translate("save")}
           </Button>
         </div>
       </div>
