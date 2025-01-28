@@ -1,5 +1,4 @@
 import { ExportOptions } from "src/lib/convert";
-import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
 import { dataAtom, fileInfoAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -26,7 +25,7 @@ export function SaveAsDialog({ onClose }: { onClose: () => void }) {
         {
           fileName: "my-network.inp",
           extensions: [".inp"],
-          description: "Save file",
+          description: ".INP",
           mimeTypes: ["text/plain"],
         },
         null,
@@ -37,7 +36,8 @@ export function SaveAsDialog({ onClose }: { onClose: () => void }) {
       toast.success("Saved");
       onClose();
     } catch (e) {
-      captureError(e as Error);
+      toast.error("Save canceled");
+      onClose();
     }
   }, [setFileInfo, onClose, data.hydraulicModel]);
 
