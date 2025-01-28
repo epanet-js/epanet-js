@@ -23,6 +23,16 @@ const OpenInpDialog = dynamic<{
   },
 );
 
+const SaveAsDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/SaveAsDialog").then((r) => r.SaveAsDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -30,11 +40,17 @@ const ImportDialog = dynamic<{
   loading: () => <Loading />,
 });
 
-const ExportDialog = dynamic<{
+const ExportDialogDeprecated = dynamic<{
   onClose: () => void;
-}>(() => import("src/components/dialogs/export").then((r) => r.ExportDialog), {
-  loading: () => <Loading />,
-});
+}>(
+  () =>
+    import("src/components/dialogs/export_deprecated").then(
+      (r) => r.ExportDialogDeprecated,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
 
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
@@ -61,7 +77,10 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
     ))
-    .with({ type: "export" }, () => <ExportDialog onClose={onClose} />)
+    .with({ type: "saveAs" }, () => <SaveAsDialog onClose={onClose} />)
+    .with({ type: "export" }, () => (
+      <ExportDialogDeprecated onClose={onClose} />
+    ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .exhaustive();
 

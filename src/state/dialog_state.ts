@@ -28,6 +28,9 @@ export type DialogState =
   | {
       type: "export";
     }
+  | {
+      type: "saveAs";
+    }
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

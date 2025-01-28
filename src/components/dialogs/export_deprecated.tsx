@@ -26,7 +26,6 @@ import {
 } from "src/components/panels/feature_editor/feature_editor_folder/math";
 import type { Root } from "@tmcw/togeojson";
 import { FeatureMap } from "src/types";
-import { pluralize } from "src/lib/utils";
 import { buildInp } from "src/simulation/build-inp";
 
 export function fallbackSave(result: ExportedData, type: FileType) {
@@ -89,9 +88,8 @@ export function CSVOptions({
       {values.csvOptions?.kind === "lonlat" && omittedFeatureCount ? (
         <E.TextWell variant="destructive">
           CSV exports as "Longitude & latitude columns" will only include Point
-          & MultiPoint features. This export will be missing{" "}
-          {pluralize("feature", omittedFeatureCount)}. To export those features
-          as well, choose a different Geometry representation.
+          & MultiPoint features. This export will be missing features. To export
+          those features as well, choose a different Geometry representation.
         </E.TextWell>
       ) : null}
     </div>
@@ -184,7 +182,7 @@ export function GeoJSONOptions() {
   );
 }
 
-export function ExportDialog({ onClose }: { onClose: () => void }) {
+export function ExportDialogDeprecated({ onClose }: { onClose: () => void }) {
   const data = useAtomValue(dataAtom);
 
   const root = useRootItems(data);
