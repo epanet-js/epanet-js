@@ -62,7 +62,10 @@ export function OpenInpDialog({
         });
       });
       if (isFeatureOn("FLAG_SAVE")) {
-        setFileInfo(null);
+        setFileInfo({
+          name: file.name,
+          options: { type: "inp", folderId: "" },
+        });
       }
       onClose();
     } catch (error) {

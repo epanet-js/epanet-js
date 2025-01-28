@@ -34,7 +34,8 @@ export type Store = ReturnType<typeof createStore>;
 type MapboxLayer = any;
 
 interface FileInfo {
-  handle: FileSystemHandle | FileSystemFileHandle;
+  name: string;
+  handle?: FileSystemHandle | FileSystemFileHandle;
   options: ExportOptions;
 }
 

@@ -359,7 +359,11 @@ export function useImportFile() {
           } else {
             const exportOptions = importToExportOptions(options);
             if (file.handle && exportOptions) {
-              setFileInfo({ handle: file.handle, options: exportOptions });
+              setFileInfo({
+                name: file.handle.name,
+                handle: file.handle,
+                options: exportOptions,
+              });
             }
             const moment = resultToTransact({
               assetBuilder,

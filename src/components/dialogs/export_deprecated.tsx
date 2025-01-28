@@ -208,7 +208,11 @@ export function ExportDialogDeprecated({ onClose }: { onClose: () => void }) {
           null,
         );
         if (newHandle) {
-          setFileInfo({ handle: newHandle, options: exportOptions });
+          setFileInfo({
+            name: newHandle.name,
+            handle: newHandle,
+            options: exportOptions,
+          });
         }
         toast.success("Saved");
         onClose();
@@ -249,7 +253,11 @@ export function ExportDialogDeprecated({ onClose }: { onClose: () => void }) {
             null,
           );
           if (newHandle) {
-            setFileInfo({ handle: newHandle, options: exportOptions });
+            setFileInfo({
+              name: newHandle.name,
+              handle: newHandle,
+              options: exportOptions,
+            });
           }
         } catch (e) {
           captureError(e as Error);

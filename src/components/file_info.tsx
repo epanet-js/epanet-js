@@ -19,9 +19,9 @@ export function FileInfo() {
         </Popover.Anchor>
         <div
           className="text-xs font-mono whitespace-nowrap truncate"
-          title={`Saving as ${fileInfo.handle.name}`}
+          title={fileInfo.name}
         >
-          {truncate(fileInfo.handle.name, 18)}
+          {truncate(fileInfo.name, 50)}
         </div>
       </div>
       <StyledPopoverContent size="xs">
