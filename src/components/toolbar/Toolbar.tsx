@@ -14,17 +14,22 @@ import {
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
 import { useOpenInp } from "src/hooks/use_open_files";
-import useFileSave from "src/hooks/use_file_save";
 import toast from "react-hot-toast";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
+import { useFileSave, useFileSaveDeprecated } from "src/hooks/use_file_save";
+import { isFeatureOn } from "src/infra/feature-flags";
+
+const useFileSaveFn = isFeatureOn("FLAG_SAVE")
+  ? useFileSave
+  : useFileSaveDeprecated;
 
 export const Toolbar = () => {
   const openInp = useOpenInp();
-  const saveNative = useFileSave();
+  const saveNative = useFileSaveFn();
   const setDialogState = useSetAtom(dialogAtom);
 
   const rep = usePersistence();
@@ -55,7 +60,7 @@ export const Toolbar = () => {
       .map((saved) => {
         if (saved) return;
         setDialogState({
-          type: "export",
+          type: isFeatureOn("FLAG_SAVE") ? "saveAs" : "export",
         });
       });
   };
@@ -83,7 +88,9 @@ export const Toolbar = () => {
         <FilePlusIcon />
       </MenuAction>
       <MenuAction
-        label={translate("export")}
+        label={
+          isFeatureOn("FLAG_SAVE") ? translate("save") : translate("export")
+        }
         role="button"
         onClick={handleExport}
         hotkey={"ctrl+s"}

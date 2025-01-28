@@ -3,7 +3,6 @@ import { InlineError } from "./inline_error";
 import { styledSelect } from "./elements";
 import type { Root } from "@tmcw/togeojson";
 import { useFolderSummary } from "./panels/feature_editor/feature_editor_folder/math";
-import { pluralize } from "src/lib/utils";
 import { FeatureMap } from "src/types";
 
 export function NarrowExport({
@@ -30,7 +29,7 @@ export function NarrowExport({
             return (
               <option key={i} value={folder.meta.id as string}>
                 {folder.meta.name as string} (
-                {pluralize("feature", folder.meta.count as number)})
+                {String(folder.meta.count) + " features"})
               </option>
             );
           })}

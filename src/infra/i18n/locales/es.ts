@@ -69,6 +69,7 @@ export const translations: Translations = {
   failedToProcessFile: "No se ha podido procesar el fichero",
   understood: "Entendido",
   error: "Error",
+  save: "Guardar",
 };
 
 export const units: UnitsLocale = {
