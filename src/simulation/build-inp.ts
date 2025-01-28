@@ -107,7 +107,7 @@ export const buildInp = withInstrumentation(
       .filter((f) => !!f)
       .join("\n\n");
   },
-  { name: "BUILD_INP", maxDurationMs: 200 },
+  { name: "BUILD_INP", maxDurationMs: 1000 },
 );
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
