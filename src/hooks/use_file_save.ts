@@ -11,7 +11,11 @@ import { translate } from "src/infra/i18n";
 
 export const useSaveInp = () => {
   return useAtomCallback(
-    useCallback(function saveNative(get, set) {
+    useCallback(function saveNative(
+      get,
+      set,
+      { isSaveAs = false }: { isSaveAs?: boolean } = {},
+    ) {
       const exportOptions: ExportOptions = { type: "inp", folderId: "" };
       const asyncSave = async () => {
         const { fileSave } = await import("browser-fs-access");
@@ -28,7 +32,9 @@ export const useSaveInp = () => {
             description: ".INP",
             mimeTypes: ["text/plain"],
           },
-          fileInfo ? (fileInfo.handle as FileSystemFileHandle) : null,
+          fileInfo && !isSaveAs
+            ? (fileInfo.handle as FileSystemFileHandle)
+            : null,
         );
         if (newHandle) {
           set(fileInfoAtom, {

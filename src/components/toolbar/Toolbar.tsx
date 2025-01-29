@@ -1,6 +1,7 @@
 import { translate } from "src/infra/i18n";
 import MenuAction from "../menu_action";
 import {
+  CopyIcon,
   DownloadIcon,
   FileIcon,
   FilePlusIcon,
@@ -50,20 +51,24 @@ export const Toolbar = () => {
     setMode({ mode: Mode.NONE });
   };
 
+  const handleSave = () => {
+    saveInp();
+  };
+
+  const handleSaveAs = () => {
+    saveInp({ isSaveAs: true });
+  };
+
   const handleExport = async () => {
-    if (isFeatureOn("FLAG_SAVE")) {
-      saveInp();
-    } else {
-      const either = await saveNative();
-      return either
-        .ifLeft((error) => toast.error(error?.message || "Could not save"))
-        .map((saved) => {
-          if (saved) return;
-          setDialogState({
-            type: "export",
-          });
+    const either = await saveNative();
+    return either
+      .ifLeft((error) => toast.error(error?.message || "Could not save"))
+      .map((saved) => {
+        if (saved) return;
+        setDialogState({
+          type: "export",
         });
-    }
+      });
   };
 
   return (
@@ -93,11 +98,21 @@ export const Toolbar = () => {
           isFeatureOn("FLAG_SAVE") ? translate("save") : translate("export")
         }
         role="button"
-        onClick={handleExport}
+        onClick={isFeatureOn("FLAG_SAVE") ? handleSave : handleExport}
         hotkey={"ctrl+s"}
       >
         <DownloadIcon />
       </MenuAction>
+      {isFeatureOn("FLAG_SAVE") && (
+        <MenuAction
+          label={translate("saveAs")}
+          role="button"
+          onClick={handleSaveAs}
+          hotkey={"ctrl+shift+s"}
+        >
+          <CopyIcon />
+        </MenuAction>
+      )}
       <Divider />
       <MenuAction
         label={translate("undo")}
