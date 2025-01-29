@@ -48,6 +48,7 @@ export const useSaveInp = ({
         if (newHandle) {
           set(fileInfoAtom, {
             name: newHandle.name,
+            modelVersion: data.hydraulicModel.version,
             handle: newHandle,
             options: exportOptions,
           });

@@ -63,6 +63,7 @@ export function OpenInpDialog({
       });
       setFileInfo({
         name: file.name,
+        modelVersion: hydraulicModel.version,
         options: { type: "inp", folderId: "" },
       });
       onClose();

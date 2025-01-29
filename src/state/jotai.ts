@@ -35,6 +35,7 @@ type MapboxLayer = any;
 
 interface FileInfo {
   name: string;
+  modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
   options: ExportOptions;
 }
@@ -124,6 +125,13 @@ export const assetsAtom = focusAtom(dataAtom, (optic) =>
 export const selectionAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("selection"),
 );
+
+export const hasUnsavedChangesAtom = atom<boolean>((get) => {
+  const { hydraulicModel } = get(dataAtom);
+  const fileInfo = get(fileInfoAtom);
+
+  return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
+});
 
 /**
  * User presences, keyed by user id
