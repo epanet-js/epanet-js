@@ -130,7 +130,10 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const { hydraulicModel } = get(dataAtom);
   const fileInfo = get(fileInfoAtom);
 
-  return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
+  return (
+    (fileInfo && fileInfo.modelVersion !== hydraulicModel.version) ||
+    (!fileInfo && hydraulicModel.version !== "0")
+  );
 });
 
 /**

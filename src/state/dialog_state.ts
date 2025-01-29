@@ -25,6 +25,9 @@ export type DialogState =
   | {
       type: "cheatsheet";
     }
+  | {
+      type: "unsavedChanges";
+    }
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

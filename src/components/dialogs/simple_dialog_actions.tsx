@@ -28,6 +28,26 @@ export const AckDialogAction = ({
   );
 };
 
+export const DialogButtons = ({
+  variant = "md",
+  children,
+}: {
+  variant?: "md" | "xs";
+  children: React.ReactNode;
+}) => {
+  return (
+    <div
+      className={clsx(
+        variant === "xs" ? "pt-2" : "pt-6",
+        "pb-1 relative",
+        `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
 export default function SimpleDialogActions({
   action,
   onClose,
