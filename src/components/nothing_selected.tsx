@@ -5,7 +5,7 @@ import {
   FilePlusIcon,
 } from "@radix-ui/react-icons";
 import Line from "src/components/icons/line";
-import { useOpenInp } from "src/hooks/use_open_files";
+import { useOpenInp } from "src/hooks/use-open-inp";
 import { useSetAtom } from "jotai";
 import { memo } from "react";
 import { dialogAtom } from "src/state/dialog_state";
