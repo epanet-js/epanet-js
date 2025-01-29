@@ -20,9 +20,10 @@ import { dialogAtom } from "src/state/dialog_state";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { useFileSaveDeprecated, useSaveInp } from "src/hooks/use_file_save";
+import { useFileSaveDeprecated } from "src/hooks/use_file_save";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useOpenInp } from "src/hooks/use_open_files";
+import { useSaveInp } from "src/hooks/use-save-inp";
 
 export const Toolbar = () => {
   const openInp = useOpenInp();

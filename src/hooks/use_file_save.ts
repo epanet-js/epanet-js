@@ -1,62 +1,11 @@
 import { dataAtom, fileInfoAtom, fileInfoMachineAtom } from "src/state/jotai";
-import { ExportOptions, fromGeoJSON } from "src/lib/convert";
+import { fromGeoJSON } from "src/lib/convert";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { ConvertError } from "src/lib/errors";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import { buildInp } from "src/simulation/build-inp";
-import toast from "react-hot-toast";
-import { translate } from "src/infra/i18n";
 
-export const useSaveInp = () => {
-  return useAtomCallback(
-    useCallback(function saveNative(
-      get,
-      set,
-      { isSaveAs = false }: { isSaveAs?: boolean } = {},
-    ) {
-      const exportOptions: ExportOptions = { type: "inp", folderId: "" };
-      const asyncSave = async () => {
-        const { fileSave } = await import("browser-fs-access");
-        const fileInfo = get(fileInfoAtom);
-        const data = get(dataAtom);
-        const inp = buildInp(data.hydraulicModel, { geolocation: true });
-        const inpBlob = new Blob([inp], { type: "text/plain" });
-
-        const newHandle = await fileSave(
-          inpBlob,
-          {
-            fileName: fileInfo ? fileInfo.name : "my-network.inp",
-            extensions: [".inp"],
-            description: ".INP",
-            mimeTypes: ["text/plain"],
-          },
-          fileInfo && !isSaveAs
-            ? (fileInfo.handle as FileSystemFileHandle)
-            : null,
-        );
-        if (newHandle) {
-          set(fileInfoAtom, {
-            name: newHandle.name,
-            handle: newHandle,
-            options: exportOptions,
-          });
-        }
-      };
-
-      toast.promise(
-        asyncSave(),
-        {
-          loading: translate("saving"),
-          success: translate("saved"),
-          error: translate("saveCanceled"),
-        },
-        { style: { minWidth: "120px" }, success: { duration: 2000 } },
-      );
-    }, []),
-  );
-};
 export function useFileSaveDeprecated() {
   const send = useSetAtom(fileInfoMachineAtom);
   return useAtomCallback(

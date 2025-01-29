@@ -13,7 +13,7 @@ import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useSaveInp } from "src/hooks/use_file_save";
+import { useSaveInp } from "src/hooks/use-save-inp";
 
 export const NothingSelected = memo(function NothingSelected() {
   const openInp = useOpenInp();
