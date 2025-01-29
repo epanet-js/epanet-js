@@ -30,18 +30,6 @@ const ImportDialog = dynamic<{
   loading: () => <Loading />,
 });
 
-const ExportDialogDeprecated = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/export_deprecated").then(
-      (r) => r.ExportDialogDeprecated,
-    ),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
@@ -66,9 +54,6 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
-    ))
-    .with({ type: "export" }, () => (
-      <ExportDialogDeprecated onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .exhaustive();

@@ -6,18 +6,14 @@ import {
 } from "@radix-ui/react-icons";
 import Line from "src/components/icons/line";
 import { useOpenInp } from "src/hooks/use-open-inp";
-import { useSetAtom } from "jotai";
 import { memo } from "react";
-import { dialogAtom } from "src/state/dialog_state";
 import { Button } from "./elements";
 import SvgPolygon from "./icons/polygon";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useSaveInp } from "src/hooks/use-save-inp";
 
 export const NothingSelected = memo(function NothingSelected() {
   const openInp = useOpenInp();
-  const setDialogState = useSetAtom(dialogAtom);
   const saveInp = useSaveInp();
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
@@ -71,9 +67,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              isFeatureOn("FLAG_SAVE")
-                ? saveInp()
-                : setDialogState({ type: "export" });
+              saveInp();
             }}
           >
             <DownloadIcon />

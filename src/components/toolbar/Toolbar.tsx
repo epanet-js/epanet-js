@@ -14,22 +14,16 @@ import {
 } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
-import toast from "react-hot-toast";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { useFileSaveDeprecated } from "src/hooks/use_file_save";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useOpenInp } from "src/hooks/use-open-inp";
 import { useSaveInp } from "src/hooks/use-save-inp";
 
 export const Toolbar = () => {
   const openInp = useOpenInp();
-  const saveNative = useFileSaveDeprecated();
   const saveInp = useSaveInp();
-  const setDialogState = useSetAtom(dialogAtom);
 
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
@@ -60,18 +54,6 @@ export const Toolbar = () => {
     saveInp({ isSaveAs: true });
   };
 
-  const handleExport = async () => {
-    const either = await saveNative();
-    return either
-      .ifLeft((error) => toast.error(error?.message || "Could not save"))
-      .map((saved) => {
-        if (saved) return;
-        setDialogState({
-          type: "export",
-        });
-      });
-  };
-
   return (
     <div
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
@@ -95,25 +77,21 @@ export const Toolbar = () => {
         <FilePlusIcon />
       </MenuAction>
       <MenuAction
-        label={
-          isFeatureOn("FLAG_SAVE") ? translate("save") : translate("export")
-        }
+        label={translate("save")}
         role="button"
-        onClick={isFeatureOn("FLAG_SAVE") ? handleSave : handleExport}
+        onClick={handleSave}
         hotkey={"ctrl+s"}
       >
         <DownloadIcon />
       </MenuAction>
-      {isFeatureOn("FLAG_SAVE") && (
-        <MenuAction
-          label={translate("saveAs")}
-          role="button"
-          onClick={handleSaveAs}
-          hotkey={"ctrl+shift+s"}
-        >
-          <CopyIcon />
-        </MenuAction>
-      )}
+      <MenuAction
+        label={translate("saveAs")}
+        role="button"
+        onClick={handleSaveAs}
+        hotkey={"ctrl+shift+s"}
+      >
+        <CopyIcon />
+      </MenuAction>
       <Divider />
       <MenuAction
         label={translate("undo")}

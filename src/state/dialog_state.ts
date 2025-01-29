@@ -25,9 +25,6 @@ export type DialogState =
   | {
       type: "cheatsheet";
     }
-  | {
-      type: "export";
-    }
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);
