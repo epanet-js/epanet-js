@@ -361,6 +361,7 @@ export function useImportFile() {
             if (file.handle && exportOptions) {
               setFileInfo({
                 name: file.handle.name,
+                modelVersion: "ANY",
                 handle: file.handle,
                 options: exportOptions,
               });
