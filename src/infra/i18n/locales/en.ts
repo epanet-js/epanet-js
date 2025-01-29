@@ -70,7 +70,9 @@ export const translations = {
   save: "Save",
   saving: "Saving...",
   saved: "Saved",
+  saveAs: "Save as...",
   saveCanceled: "Canceled saving",
+  menubarFile: "File",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

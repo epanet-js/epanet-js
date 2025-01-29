@@ -72,7 +72,9 @@ export const translations: Translations = {
   save: "Guardar",
   saving: "Guardando...",
   saved: "Guardado",
+  saveAs: "Guardar como...",
   saveCanceled: "Guardado cancelado",
+  menubarFile: "Archivo",
 };
 
 export const units: UnitsLocale = {
