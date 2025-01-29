@@ -21,10 +21,16 @@ describe("Toolbar", () => {
     userEvent.click(screen.getByRole("button", { name: /Open/ }));
   });
 
-  it("displays option to export", () => {
+  it("displays option to save", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /Export/ }));
+    userEvent.click(screen.getByRole("button", { name: "Save" }));
+  });
+
+  it("displays option to save as ", () => {
+    renderComponent();
+
+    userEvent.click(screen.getByRole("button", { name: /Save as/ }));
   });
 
   it("displays option to undo", () => {

@@ -9,19 +9,6 @@ export function Keybindings() {
   useMapKeybindings();
 
   useHotkeys(
-    ["command+shift+s", "ctrl+shift+s"],
-    (e) => {
-      // Don't type a / in the input.
-      e.preventDefault();
-      setDialogState({
-        type: "export",
-      });
-    },
-    [setDialogState],
-    "EXPORT",
-  );
-
-  useHotkeys(
     ["shift+/"],
     (e) => {
       // Don't type a / in the input.

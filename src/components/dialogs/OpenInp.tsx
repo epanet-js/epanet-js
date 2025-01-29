@@ -15,7 +15,6 @@ import { Loading } from "../elements";
 import { parseInp } from "src/import/parse-inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 
@@ -62,12 +61,10 @@ export function OpenInpDialog({
           duration: 0,
         });
       });
-      if (isFeatureOn("FLAG_SAVE")) {
-        setFileInfo({
-          name: file.name,
-          options: { type: "inp", folderId: "" },
-        });
-      }
+      setFileInfo({
+        name: file.name,
+        options: { type: "inp", folderId: "" },
+      });
       onClose();
     } catch (error) {
       setError(true);
