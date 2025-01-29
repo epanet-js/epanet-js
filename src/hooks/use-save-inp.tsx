@@ -20,7 +20,7 @@ export const useSaveInp = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   return useAtomCallback(
-    useCallback(function saveNative(
+    useCallback(async function saveNative(
       get,
       set,
       { isSaveAs = false }: { isSaveAs?: boolean } = {},
@@ -55,15 +55,21 @@ export const useSaveInp = ({
         }
       };
 
-      toast.promise(
-        asyncSave(),
-        {
-          loading: translate("saving"),
-          success: translate("saved"),
-          error: translate("saveCanceled"),
-        },
-        { style: { minWidth: "120px" }, success: { duration: 2000 } },
-      );
+      try {
+        const savePromise = asyncSave();
+        toast.promise(
+          savePromise,
+          {
+            loading: translate("saving"),
+            success: translate("saved"),
+            error: translate("saveCanceled"),
+          },
+          { style: { minWidth: "120px" }, success: { duration: 2000 } },
+        );
+        await savePromise;
+      } catch (error) {
+        return;
+      }
     }, []),
   );
 };

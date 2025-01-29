@@ -30,6 +30,18 @@ const ImportDialog = dynamic<{
   loading: () => <Loading />,
 });
 
+const UnsavedChangesDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/UnsavedChangesDialog").then(
+      (r) => r.UnsavedChangesDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
@@ -51,6 +63,9 @@ export const Dialogs = memo(function Dialogs() {
     .with(null, () => null)
     .with({ type: "import" }, (modal) => (
       <ImportDialog modal={modal} onClose={onClose} />
+    ))
+    .with({ type: "unsavedChanges" }, () => (
+      <UnsavedChangesDialog onClose={onClose} />
     ))
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />

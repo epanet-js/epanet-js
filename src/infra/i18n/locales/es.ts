@@ -70,11 +70,16 @@ export const translations: Translations = {
   understood: "Entendido",
   error: "Error",
   save: "Guardar",
+  saveAndContinue: "Guardar y continuar",
   saving: "Guardando...",
   saved: "Guardado",
   saveAs: "Guardar como...",
   saveCanceled: "Guardado cancelado",
   menubarFile: "Archivo",
+  unsavedChanges: "Cambios sin guardar",
+  unsavedChangesQuestion:
+    "¿Quieres guardar los cambios realizados en el proyecto actual?",
+  discardChanges: "Descartar cambios",
 };
 
 export const units: UnitsLocale = {
