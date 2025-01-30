@@ -30,14 +30,19 @@ export const UnsavedChangesDialog = ({ onClose }: { onClose: () => void }) => {
         <p>{translate("unsavedChangesQuestion")}</p>
       </div>
       <DialogButtons>
-        <Button type="submit" onClick={onClose}>
-          {translate("cancel")}
+        <Button
+          type="submit"
+          autoFocus
+          variant="primary"
+          onClick={handleSaveAndContinue}
+        >
+          {translate("saveAndContinue")}
         </Button>
         <Button type="submit" onClick={handleDiscardChanges}>
           {translate("discardChanges")}
         </Button>
-        <Button type="submit" variant="primary" onClick={handleSaveAndContinue}>
-          {translate("saveAndContinue")}
+        <Button type="submit" onClick={onClose}>
+          {translate("cancel")}
         </Button>
       </DialogButtons>
     </>
