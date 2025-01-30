@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Toolbar } from "./Toolbar";
-import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { UIDMap } from "src/lib/id_mapper";
@@ -12,37 +11,37 @@ describe("Toolbar", () => {
   it("displays button to create new project", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /New/ }));
+    expect(screen.getByRole("button", { name: /New/ })).toBeInTheDocument();
   });
 
   it("displays option to open inp", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /Open/ }));
+    expect(screen.getByRole("button", { name: /Open/ })).toBeInTheDocument();
   });
 
   it("displays option to save", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
   });
 
   it("displays option to save as ", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /Save as/ }));
+    expect(screen.getByRole("button", { name: /Save as/ })).toBeInTheDocument();
   });
 
   it("displays option to undo", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /Undo/ }));
+    expect(screen.getByRole("button", { name: /Undo/ })).toBeInTheDocument();
   });
 
   it("displays option to redo", () => {
     renderComponent();
 
-    userEvent.click(screen.getByRole("button", { name: /Redo/ }));
+    expect(screen.getByRole("button", { name: /Redo/ })).toBeInTheDocument();
   });
 
   const renderComponent = () => {
