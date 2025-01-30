@@ -67,8 +67,9 @@ export const useSaveInp = ({
             },
             { style: { minWidth: "120px" }, success: { duration: 2000 } },
           );
+          return true;
         } catch (error) {
-          return;
+          return false;
         }
       },
       [getFsAccess],

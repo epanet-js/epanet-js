@@ -12,8 +12,8 @@ export const UnsavedChangesDialog = ({ onClose }: { onClose: () => void }) => {
   const openInp = useOpenInp();
 
   const handleSaveAndContinue = async () => {
-    await saveInp({ isSaveAs: true });
-    openInp({ needsConfirm: false }).catch(captureError);
+    const isSaved = await saveInp({ isSaveAs: true });
+    if (isSaved) openInp({ needsConfirm: false }).catch(captureError);
   };
 
   const handleDiscardChanges = () => {
