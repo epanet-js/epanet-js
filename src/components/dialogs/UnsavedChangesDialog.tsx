@@ -5,6 +5,7 @@ import { Button } from "../elements";
 import { DialogButtons } from "./simple_dialog_actions";
 import { useSaveInp } from "src/hooks/use-save-inp";
 import { useOpenInp } from "src/hooks/use-open-inp";
+import { captureError } from "src/infra/error-tracking";
 
 export const UnsavedChangesDialog = ({ onClose }: { onClose: () => void }) => {
   const saveInp = useSaveInp();
@@ -12,11 +13,11 @@ export const UnsavedChangesDialog = ({ onClose }: { onClose: () => void }) => {
 
   const handleSaveAndContinue = async () => {
     await saveInp({ isSaveAs: true });
-    openInp({ needsConfirm: false });
+    openInp({ needsConfirm: false }).catch(captureError);
   };
 
   const handleDiscardChanges = () => {
-    openInp({ needsConfirm: false });
+    openInp({ needsConfirm: false }).catch(captureError);
   };
 
   return (

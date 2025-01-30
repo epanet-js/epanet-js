@@ -15,28 +15,26 @@ export const useOpenInp = () => {
   });
 
   return useCallback(
-    ({ needsConfirm = true } = {}) => {
+    async ({ needsConfirm = true } = {}) => {
       if (isFeatureOn("FLAG_UNSAVED") && hasUnsavedChanges && needsConfirm) {
         return setDialogState({ type: "unsavedChanges" });
       }
 
       if (!fsAccess) throw new Error("Sorry, still loading");
-      return fsAccess
-        .fileOpen({
+      try {
+        const file = await fsAccess.fileOpen({
           multiple: false,
           extensions: [".inp"],
           description: ".INP",
-        })
-        .then((file) => {
-          const files = groupFiles([file]);
-          setDialogState({
-            type: "openInp",
-            files,
-          });
-        })
-        .catch((e) => {
-          captureError(e);
         });
+        const files = groupFiles([file]);
+        setDialogState({
+          type: "openInp",
+          files,
+        });
+      } catch (error) {
+        captureError(error as Error);
+      }
     },
     [setDialogState, fsAccess, hasUnsavedChanges],
   );
