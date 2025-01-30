@@ -20,56 +20,59 @@ export const useSaveInp = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   return useAtomCallback(
-    useCallback(async function saveNative(
-      get,
-      set,
-      { isSaveAs = false }: { isSaveAs?: boolean } = {},
-    ) {
-      const exportOptions: ExportOptions = { type: "inp", folderId: "" };
-      const asyncSave = async () => {
-        const { fileSave } = await getFsAccess();
-        const fileInfo = get(fileInfoAtom);
-        const data = get(dataAtom);
-        const inp = buildInp(data.hydraulicModel, { geolocation: true });
-        const inpBlob = new Blob([inp], { type: "text/plain" });
+    useCallback(
+      async function saveNative(
+        get,
+        set,
+        { isSaveAs = false }: { isSaveAs?: boolean } = {},
+      ) {
+        const exportOptions: ExportOptions = { type: "inp", folderId: "" };
+        const asyncSave = async () => {
+          const { fileSave } = await getFsAccess();
+          const fileInfo = get(fileInfoAtom);
+          const data = get(dataAtom);
+          const inp = buildInp(data.hydraulicModel, { geolocation: true });
+          const inpBlob = new Blob([inp], { type: "text/plain" });
 
-        const newHandle = await fileSave(
-          inpBlob,
-          {
-            fileName: fileInfo ? fileInfo.name : "my-network.inp",
-            extensions: [".inp"],
-            description: ".INP",
-            mimeTypes: ["text/plain"],
-          },
-          fileInfo && !isSaveAs
-            ? (fileInfo.handle as FileSystemFileHandle)
-            : null,
-        );
-        if (newHandle) {
-          set(fileInfoAtom, {
-            name: newHandle.name,
-            modelVersion: data.hydraulicModel.version,
-            handle: newHandle,
-            options: exportOptions,
-          });
+          const newHandle = await fileSave(
+            inpBlob,
+            {
+              fileName: fileInfo ? fileInfo.name : "my-network.inp",
+              extensions: [".inp"],
+              description: ".INP",
+              mimeTypes: ["text/plain"],
+            },
+            fileInfo && !isSaveAs
+              ? (fileInfo.handle as FileSystemFileHandle)
+              : null,
+          );
+          if (newHandle) {
+            set(fileInfoAtom, {
+              name: newHandle.name,
+              modelVersion: data.hydraulicModel.version,
+              handle: newHandle,
+              options: exportOptions,
+            });
+          }
+        };
+
+        try {
+          const savePromise = asyncSave();
+          toast.promise(
+            savePromise,
+            {
+              loading: translate("saving"),
+              success: translate("saved"),
+              error: translate("saveCanceled"),
+            },
+            { style: { minWidth: "120px" }, success: { duration: 2000 } },
+          );
+          await savePromise;
+        } catch (error) {
+          return;
         }
-      };
-
-      try {
-        const savePromise = asyncSave();
-        toast.promise(
-          savePromise,
-          {
-            loading: translate("saving"),
-            success: translate("saved"),
-            error: translate("saveCanceled"),
-          },
-          { style: { minWidth: "120px" }, success: { duration: 2000 } },
-        );
-        await savePromise;
-      } catch (error) {
-        return;
-      }
-    }, []),
+      },
+      [getFsAccess],
+    ),
   );
 };
