@@ -63,11 +63,9 @@ export class MapEngine {
   constructor({
     element,
     handlers,
-    controlsCorner = "bottom-left",
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
-    controlsCorner?: Parameters<mapboxgl.Map["addControl"]>[1];
   }) {
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
@@ -89,6 +87,13 @@ export class MapEngine {
     map.addControl(this.overlay as any);
 
     map.addControl(
+      new mapboxgl.AttributionControl({
+        compact: true,
+      }),
+      "bottom-right",
+    );
+    map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
+    map.addControl(
       new mapboxgl.GeolocateControl({
         showUserLocation: false,
         showAccuracyCircle: false,
@@ -96,13 +101,7 @@ export class MapEngine {
           enableHighAccuracy: true,
         },
       }),
-      controlsCorner,
-    );
-    map.addControl(new mapboxgl.NavigationControl({}), controlsCorner);
-    map.addControl(
-      new mapboxgl.AttributionControl({
-        compact: true,
-      }),
+      "bottom-right",
     );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
     map.on("click", this.onClick);
