@@ -19,15 +19,18 @@ export type DialogStateExamples = {
   type: "import_example";
 };
 
+export type UnsavedChangesDialogState = {
+  type: "unsavedChanges";
+  onContinue: () => void;
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
   | {
       type: "cheatsheet";
     }
-  | {
-      type: "unsavedChanges";
-    }
+  | UnsavedChangesDialogState
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

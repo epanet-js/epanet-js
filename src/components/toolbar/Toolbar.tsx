@@ -20,10 +20,12 @@ import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { useOpenInp } from "src/hooks/use-open-inp";
 import { useSaveInp } from "src/hooks/use-save-inp";
+import { useNewProject } from "src/hooks/use-new-project";
 
 export const Toolbar = () => {
   const openInp = useOpenInp();
   const saveInp = useSaveInp();
+  const createNewProject = useNewProject();
 
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
@@ -63,7 +65,7 @@ export const Toolbar = () => {
         label={translate("newProject")}
         role="button"
         onClick={() => {
-          window.location.reload();
+          createNewProject();
         }}
       >
         <FileIcon />

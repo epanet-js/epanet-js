@@ -14,28 +14,29 @@ export const useOpenInp = () => {
     return import("browser-fs-access");
   });
 
-  return useCallback(
-    async ({ needsConfirm = true } = {}) => {
-      if (isFeatureOn("FLAG_UNSAVED") && hasUnsavedChanges && needsConfirm) {
-        return setDialogState({ type: "unsavedChanges" });
-      }
+  const openInp = useCallback(async () => {
+    if (!fsAccess) throw new Error("Sorry, still loading");
+    try {
+      const file = await fsAccess.fileOpen({
+        multiple: false,
+        extensions: [".inp"],
+        description: ".INP",
+      });
+      const files = groupFiles([file]);
+      setDialogState({
+        type: "openInp",
+        files,
+      });
+    } catch (error) {
+      captureError(error as Error);
+    }
+  }, [fsAccess]);
 
-      if (!fsAccess) throw new Error("Sorry, still loading");
-      try {
-        const file = await fsAccess.fileOpen({
-          multiple: false,
-          extensions: [".inp"],
-          description: ".INP",
-        });
-        const files = groupFiles([file]);
-        setDialogState({
-          type: "openInp",
-          files,
-        });
-      } catch (error) {
-        captureError(error as Error);
-      }
-    },
-    [setDialogState, fsAccess, hasUnsavedChanges],
-  );
+  return useCallback(() => {
+    if (isFeatureOn("FLAG_UNSAVED") && hasUnsavedChanges) {
+      return setDialogState({ type: "unsavedChanges", onContinue: openInp });
+    }
+
+    openInp();
+  }, [setDialogState, fsAccess, hasUnsavedChanges]);
 };
