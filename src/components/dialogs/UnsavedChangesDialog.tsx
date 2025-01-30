@@ -4,20 +4,23 @@ import { translate } from "src/infra/i18n";
 import { Button } from "../elements";
 import { DialogButtons } from "./simple_dialog_actions";
 import { useSaveInp } from "src/hooks/use-save-inp";
-import { useOpenInp } from "src/hooks/use-open-inp";
-import { captureError } from "src/infra/error-tracking";
 
-export const UnsavedChangesDialog = ({ onClose }: { onClose: () => void }) => {
+export const UnsavedChangesDialog = ({
+  onContinue,
+  onClose,
+}: {
+  onContinue: () => void;
+  onClose: () => void;
+}) => {
   const saveInp = useSaveInp();
-  const openInp = useOpenInp();
 
   const handleSaveAndContinue = async () => {
     const isSaved = await saveInp({ isSaveAs: true });
-    if (isSaved) openInp({ needsConfirm: false }).catch(captureError);
+    if (isSaved) onContinue();
   };
 
   const handleDiscardChanges = () => {
-    openInp({ needsConfirm: false }).catch(captureError);
+    onContinue();
   };
 
   return (

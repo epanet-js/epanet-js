@@ -31,6 +31,7 @@ const ImportDialog = dynamic<{
 });
 
 const UnsavedChangesDialog = dynamic<{
+  onContinue: () => void;
   onClose: () => void;
 }>(
   () =>
@@ -64,8 +65,8 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "import" }, (modal) => (
       <ImportDialog modal={modal} onClose={onClose} />
     ))
-    .with({ type: "unsavedChanges" }, () => (
-      <UnsavedChangesDialog onClose={onClose} />
+    .with({ type: "unsavedChanges" }, ({ onContinue }) => (
+      <UnsavedChangesDialog onContinue={onContinue} onClose={onClose} />
     ))
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
