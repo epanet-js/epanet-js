@@ -129,7 +129,7 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const momentLog = get(momentLogAtom);
   const { hydraulicModel } = get(dataAtom);
 
-  if (momentLog.isEmpty) return false;
+  if (momentLog.currentIsImportOrNull) return false;
 
   return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
 });

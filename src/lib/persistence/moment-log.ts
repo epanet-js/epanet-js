@@ -24,7 +24,7 @@ export class MomentLog {
     return newInstance;
   }
 
-  get isEmpty() {
+  get currentIsImportOrNull() {
     if (this.pointer === -1) return true;
     if (this.pointer > 0) return false;
 
