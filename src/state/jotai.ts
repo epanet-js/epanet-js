@@ -97,17 +97,15 @@ const quantities = new Quantities(
   isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
 );
 const modelMetadata = { quantities };
-const hydraulicModel = initializeHydraulicModel({
-  units: quantities.units,
-  defaults: quantities.defaults,
-});
-
 export const nullData: Data = {
   folderMap: new Map(),
   selection: {
     type: "none",
   },
-  hydraulicModel: hydraulicModel,
+  hydraulicModel: initializeHydraulicModel({
+    units: quantities.units,
+    defaults: quantities.defaults,
+  }),
   modelMetadata,
 };
 export const dataAtom = atom<Data>(nullData);
@@ -127,13 +125,13 @@ export const selectionAtom = focusAtom(dataAtom, (optic) =>
 );
 
 export const hasUnsavedChangesAtom = atom<boolean>((get) => {
-  const { hydraulicModel } = get(dataAtom);
   const fileInfo = get(fileInfoAtom);
+  const momentLog = get(momentLogAtom);
+  const { hydraulicModel } = get(dataAtom);
 
-  return (
-    (fileInfo && fileInfo.modelVersion !== hydraulicModel.version) ||
-    (!fileInfo && hydraulicModel.version !== "0")
-  );
+  if (momentLog.isEmpty) return false;
+
+  return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
 });
 
 /**

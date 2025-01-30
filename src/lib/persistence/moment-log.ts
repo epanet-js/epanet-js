@@ -24,6 +24,16 @@ export class MomentLog {
     return newInstance;
   }
 
+  get isEmpty() {
+    if (this.pointer === -1) return true;
+    if (this.pointer > 0) return false;
+
+    const moment = this.history[0];
+    if ((moment.forward.note || "").includes("Import")) return true;
+
+    return false;
+  }
+
   append(
     forward: Moment,
     reverse: Moment,
