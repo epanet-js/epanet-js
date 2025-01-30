@@ -58,7 +58,7 @@ export const useSaveInp = ({
 
         try {
           const savePromise = asyncSave();
-          toast.promise(
+          await toast.promise(
             savePromise,
             {
               loading: translate("saving"),
@@ -67,7 +67,6 @@ export const useSaveInp = ({
             },
             { style: { minWidth: "120px" }, success: { duration: 2000 } },
           );
-          await savePromise;
         } catch (error) {
           return;
         }
