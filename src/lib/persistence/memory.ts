@@ -42,7 +42,6 @@ import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -73,7 +72,7 @@ export class MemPersistence implements IPersistence {
         deleteFeatures: [],
         putFeatures: moment.putAssets,
       };
-      const newStateId = isFeatureOn("FLAG_UNSAVED") ? "0" : nanoid();
+      const newStateId = nanoid();
 
       const reverseMoment = this.apply(newStateId, forwardMoment);
       momentLog.append(forwardMoment, reverseMoment, newStateId);
