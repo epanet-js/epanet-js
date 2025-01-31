@@ -4,7 +4,6 @@ import { dialogAtom, hasUnsavedChangesAtom } from "src/state/jotai";
 import { groupFiles } from "src/lib/group_files";
 import { useQuery } from "react-query";
 import { captureError } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const useOpenInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -33,7 +32,7 @@ export const useOpenInp = () => {
   }, [fsAccess]);
 
   return useCallback(() => {
-    if (isFeatureOn("FLAG_UNSAVED") && hasUnsavedChanges) {
+    if (hasUnsavedChanges) {
       return setDialogState({ type: "unsavedChanges", onContinue: openInp });
     }
 

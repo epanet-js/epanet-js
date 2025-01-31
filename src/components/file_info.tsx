@@ -8,7 +8,6 @@ import { useAtom, useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function FileInfo() {
   const fileInfo = useAtomValue(fileInfoAtom);
@@ -29,7 +28,7 @@ export function FileInfo() {
         >
           {truncate(fileInfo.name, 50)}{" "}
         </div>
-        {isFeatureOn("FLAG_UNSAVED") && hasUnsavedChanges && <DotFilledIcon />}
+        {hasUnsavedChanges && <DotFilledIcon />}
       </div>
       <StyledPopoverContent size="xs">
         <StyledPopoverArrow />
