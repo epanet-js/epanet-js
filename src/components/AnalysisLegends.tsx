@@ -87,7 +87,7 @@ const LegendContainer = ({ children }: { children: React.ReactNode }) => {
       className="space-y-1 text-xs
       bg-white dark:bg-gray-900
       dark:text-white
-      border border-gray-300 dark:border-black w-48 rounded-t"
+      border border-gray-300 dark:border-black w-48 rounded-sm"
     >
       {children}
     </div>
