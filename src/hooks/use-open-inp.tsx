@@ -29,7 +29,7 @@ export const useOpenInp = () => {
     } catch (error) {
       captureError(error as Error);
     }
-  }, [fsAccess]);
+  }, [fsAccess, setDialogState]);
 
   return useCallback(() => {
     if (hasUnsavedChanges) {
