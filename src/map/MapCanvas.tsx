@@ -23,6 +23,7 @@ import {
   Sel,
   Data,
   EphemeralEditingState,
+  layerConfigAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/map";
 import { MapEngine, MapHandlers } from "./map-engine";
@@ -43,6 +44,11 @@ import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
 import { searchNearbyRenderedFeatures } from "./search";
+import { mapboxStaticURL } from "src/lib/mapbox_static_url";
+import LAYERS from "src/lib/default_layers";
+import { newFeatureId } from "src/lib/id";
+import { useLayerConfigState } from "./layer-config";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -348,6 +354,46 @@ export const MapCanvas = memo(function MapCanvas({
       <MapContextMenu contextInfo={contextInfo} />
       <LastSearchResult />
       <ModeHints />
+      {isFeatureOn("FLAG_SATELLITE") && <SatelliteToggle />}
     </CM.Root>
   );
 });
+
+const SatelliteToggle = () => {
+  const layerConfigs = useAtomValue(layerConfigAtom);
+  const { applyChanges } = useLayerConfigState();
+  if (layerConfigs.size !== 1) return null;
+
+  const currentBaseMap = [...layerConfigs.values()][0];
+  const handleToggle = () => {
+    const newBaseMap =
+      currentBaseMap.name === LAYERS.MONOCHROME.name
+        ? LAYERS.SATELLITE
+        : LAYERS.MONOCHROME;
+    applyChanges({
+      deleteLayerConfigs: [currentBaseMap.id],
+      putLayerConfigs: [
+        {
+          ...newBaseMap,
+          visibility: true,
+          tms: false,
+          opacity: newBaseMap.opacity,
+          at: currentBaseMap.at,
+          id: newFeatureId(),
+          labelVisibility: true,
+          poiVisibility: true,
+        },
+      ],
+    });
+  };
+  return (
+    <div
+      className="absolute bottom-[48px] left-[12px] w-[92px] h-[92px] mb-2 bg-white rounded border border-white border-2 shadow-md cursor-pointer"
+      style={{
+        backgroundSize: "cover",
+        backgroundImage: `url(${mapboxStaticURL(currentBaseMap)})`,
+      }}
+      onClick={handleToggle}
+    ></div>
+  );
+};
