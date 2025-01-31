@@ -10,10 +10,6 @@
   cursor: inherit !important;
 }
 
-.mapboxgl-ctrl-logo {
-  margin-left: 2px !important;
-}
-
 .mapboxgl-ctrl-bottom-right {
   min-height: 160px !important;
 }
