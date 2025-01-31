@@ -11,6 +11,7 @@ import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { isDebugMapHandlers } from "src/infra/debug-mode";
 import { LayerId } from "./layers";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -88,7 +89,7 @@ export class MapEngine {
 
     map.addControl(
       new mapboxgl.AttributionControl({
-        compact: true,
+        compact: isFeatureOn("FLAG_SATELLITE") ? false : true,
       }),
       "bottom-right",
     );
