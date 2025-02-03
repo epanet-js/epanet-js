@@ -12,7 +12,7 @@ export const AnalysisLegends = () => {
   const { nodes, links } = useAtomValue(analysisAtom);
 
   return (
-    <div className="space-y-1 absolute top-10 left-2 w-48">
+    <div className="space-y-1 absolute top-10 left-3 w-48">
       {nodes.type !== "none" && (
         <Legend symbolization={nodes.rangeColorMapping.symbolization} />
       )}

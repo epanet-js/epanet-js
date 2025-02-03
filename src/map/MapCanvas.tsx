@@ -388,7 +388,7 @@ const SatelliteToggle = () => {
   };
   return (
     <div
-      className="absolute bottom-8 left-2 w-[92px] h-[92px] mb-2 bg-white rounded border border-white border-2 shadow-md cursor-pointer"
+      className="absolute bottom-8 left-3 w-[92px] h-[92px] mb-2 bg-white rounded border border-white border-2 shadow-md cursor-pointer"
       style={{
         backgroundSize: "cover",
         backgroundImage: `url(${mapboxStaticURL(currentBaseMap)})`,
