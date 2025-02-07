@@ -112,7 +112,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              openInp();
+              void openInp();
             }}
           >
             <FilePlusIcon />
@@ -121,7 +121,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              saveInp();
+              void saveInp();
             }}
           >
             <DownloadIcon />
