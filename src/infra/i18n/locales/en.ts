@@ -78,6 +78,24 @@ export const translations = {
   unsavedChangesQuestion:
     "Do you want to save the changes made to the current project?",
   discardChanges: "Discard changes",
+  onboardingSelectDrawing: "Select a drawing tool from the menu",
+  onboardingDrawReservoir: "Click anywhere to place a reservoir.",
+  onboardingDrawJunctions:
+    "Click to place junctions; elevations are assigned automatically.",
+  onboardingDrawPipe:
+    "Start at an existing node or click to create a new junction. Define vertices by clicking, single-click an existing junction to finish, or double-click to create a new one.",
+  onboardingSelectAsset: "Select any object to view and modify its properties.",
+  onboardingRunningModel: "Running a model and viewing results",
+  onboardingRunSimulation:
+    "Press the Simulation button to run a hydraulic simulation.",
+  onboardingAnalysis:
+    "Switch to the Analysis tab to add visualizations of hydraulic results.",
+  onboardingOtherFeatures: "Other helpful features",
+  onboardingShortcuts:
+    "Most actions have keyboard shortcuts (e.g., press ${1} to draw pipes, ${2} to quickly run a simulation).",
+  onboardingUndoRedo: "Undo or redo with ${1} and ${2}.",
+  onboardingBasemaps: "Change basemaps by clicking the Layers button.",
+  onboardingFiles: "Working with files",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

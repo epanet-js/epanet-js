@@ -2,7 +2,7 @@ import { Translations, UnitsLocale } from "./locales/locale";
 import { captureError } from "../error-tracking";
 import { getLocale, locales } from "./locale";
 
-export const translate = (key: string, variables: string[] = []): string => {
+export const translate = (key: string, ...variables: string[]): string => {
   const locale = getLocale();
   const translations = locales[locale].translations;
   const template = translations[key as keyof Translations];
@@ -28,9 +28,9 @@ export const translateUnit = (key: string): string => {
 };
 
 const compileText = (template: string, variables: string[]): string => {
-  const result = template;
+  let result = template;
   variables.forEach((variable, i) => {
-    result.replace(`${i + 1}`, variable);
+    result = result.replace(`$\{${i + 1}}`, variable);
   });
   return result;
 };

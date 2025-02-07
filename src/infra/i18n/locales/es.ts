@@ -80,6 +80,27 @@ export const translations: Translations = {
   unsavedChangesQuestion:
     "¿Quieres guardar los cambios realizados en el proyecto actual?",
   discardChanges: "Descartar cambios",
+  onboardingSelectDrawing: "Selecciona una herramienta de dibujo del menú.",
+  onboardingDrawReservoir:
+    "Haz clic en cualquier lugar para colocar un embalse.",
+  onboardingDrawJunctions:
+    "Haz clic para colocar nudos; las elevaciones se asignan automáticamente.",
+  onboardingDrawPipe:
+    "Comienza en un nodo existente o haz clic para crear una nueva intersección. Define los vértices haciendo clic, haz un solo clic en una intersección existente para finalizar o haz doble clic para crear una nueva.",
+  onboardingSelectAsset:
+    "Selecciona cualquier objeto para ver y modificar sus propiedades.",
+  onboardingRunningModel:
+    "Ejecución de un modelo y visualización de resultados.",
+  onboardingRunSimulation:
+    "Presiona el botón de Simulación para ejecutar una simulación hidráulica.",
+  onboardingAnalysis:
+    "Cambia a la pestaña de Análisis para visualizar los resultados hidráulicos.",
+  onboardingOtherFeatures: "Otras funciones útiles",
+  onboardingShortcuts:
+    "La mayoría de las acciones tienen atajos de teclado (por ejemplo, presiona ${1} para dibujar tuberías, ${2} para ejecutar rápidamente una simulación).",
+  onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
+  onboardingBasemaps: "Cambia los mapas base haciendo clic en el botón Capas.",
+  onboardingFiles: "Manejo de ficheros",
 };
 
 export const units: UnitsLocale = {
