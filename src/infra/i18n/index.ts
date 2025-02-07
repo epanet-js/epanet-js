@@ -2,16 +2,17 @@ import { Translations, UnitsLocale } from "./locales/locale";
 import { captureError } from "../error-tracking";
 import { getLocale, locales } from "./locale";
 
-export const translate = (key: string): string => {
+export const translate = (key: string, variables: string[] = []): string => {
   const locale = getLocale();
   const translations = locales[locale].translations;
-
-  const text = translations[key as keyof Translations];
-  if (!text) {
+  const template = translations[key as keyof Translations];
+  if (!template) {
     captureError(new Error(`Missing translation for ${key}`));
+    return key;
   }
 
-  return text || key;
+  const text = compileText(template, variables);
+  return text;
 };
 
 export const translateUnit = (key: string): string => {
@@ -24,6 +25,14 @@ export const translateUnit = (key: string): string => {
   }
 
   return text || key;
+};
+
+const compileText = (template: string, variables: string[]): string => {
+  const result = template;
+  variables.forEach((variable, i) => {
+    result.replace(`${i + 1}`, variable);
+  });
+  return result;
 };
 
 export { parseLocaleNumber, reformatWithoutGroups } from "./locale-number";
