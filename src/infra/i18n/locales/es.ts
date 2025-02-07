@@ -88,7 +88,7 @@ export const translations: Translations = {
   onboardingDrawPipe:
     "Comienza en un nodo existente o haz clic para crear una nueva intersección. Define los vértices haciendo clic, haz un solo clic en una intersección existente para finalizar o haz doble clic para crear una nueva.",
   onboardingSelectAsset:
-    "Selecciona cualquier objeto para ver y modificar sus propiedades.",
+    "Selecciona cualquier activo para ver y modificar sus propiedades.",
   onboardingRunningModel:
     "Ejecución de un modelo y visualización de resultados.",
   onboardingRunSimulation:
@@ -101,6 +101,8 @@ export const translations: Translations = {
   onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
   onboardingBasemaps: "Cambia los mapas base haciendo clic en el botón Capas.",
   onboardingFiles: "Manejo de ficheros",
+  onboardingMoveNode:
+    "Arrastra el nudo para cambiar su posición. Las elevaciones y longitudes se actualizan automáticamente.",
 };
 
 export const units: UnitsLocale = {

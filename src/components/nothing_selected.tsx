@@ -2,7 +2,6 @@ import {
   DownloadIcon,
   FilePlusIcon,
   VercelLogoIcon,
-  DotFilledIcon,
   StretchHorizontallyIcon,
   CursorArrowIcon,
   LightningBoltIcon,
@@ -10,6 +9,7 @@ import {
   KeyboardIcon,
   ResetIcon,
   LayersIcon,
+  CircleIcon,
 } from "@radix-ui/react-icons";
 import { useOpenInp } from "src/hooks/use-open-inp";
 import { memo } from "react";
@@ -36,7 +36,7 @@ export const NothingSelected = memo(function NothingSelected() {
         </div>
         <div>{translate("onboardingDrawReservoir")}</div>
         <div className="pt-1">
-          <DotFilledIcon />
+          <CircleIcon />
         </div>
         <div>{translate("onboardingDrawJunctions")}</div>
         <div className="pt-1">

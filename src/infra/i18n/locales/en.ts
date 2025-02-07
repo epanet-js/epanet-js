@@ -84,7 +84,7 @@ export const translations = {
     "Click to place junctions; elevations are assigned automatically.",
   onboardingDrawPipe:
     "Start at an existing node or click to create a new junction. Define vertices by clicking, single-click an existing junction to finish, or double-click to create a new one.",
-  onboardingSelectAsset: "Select any object to view and modify its properties.",
+  onboardingSelectAsset: "Select any asset to view and modify its properties.",
   onboardingRunningModel: "Running a model and viewing results",
   onboardingRunSimulation:
     "Press the Simulation button to run a hydraulic simulation.",
@@ -96,6 +96,8 @@ export const translations = {
   onboardingUndoRedo: "Undo or redo with ${1} and ${2}.",
   onboardingBasemaps: "Change basemaps by clicking the Layers button.",
   onboardingFiles: "Working with files",
+  onboardingMoveNode:
+    "Drag the node to change its position. Elevations and lengths are updated automatically.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
