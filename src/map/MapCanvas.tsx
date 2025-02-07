@@ -48,7 +48,6 @@ import { mapboxStaticURL } from "src/lib/mapbox_static_url";
 import LAYERS from "src/lib/default_layers";
 import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "./layer-config";
-import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -354,7 +353,7 @@ export const MapCanvas = memo(function MapCanvas({
       <MapContextMenu contextInfo={contextInfo} />
       <LastSearchResult />
       <ModeHints />
-      {isFeatureOn("FLAG_SATELLITE") && <SatelliteToggle />}
+      <SatelliteToggle />
     </CM.Root>
   );
 });
