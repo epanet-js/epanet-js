@@ -1,4 +1,3 @@
-import { isFeatureOn } from "src/infra/feature-flags";
 import { env } from "src/lib/env_client";
 import { ILayerConfig } from "src/types";
 
@@ -28,7 +27,7 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     name: "Satellite",
     url: "mapbox://styles/mapbox/satellite-streets-v12",
     ...defaults,
-    opacity: isFeatureOn("FLAG_SATELLITE") ? 0.65 : 0.7,
+    opacity: 0.65,
   },
   STREETS: {
     name: "Streets",
