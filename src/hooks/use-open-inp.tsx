@@ -36,6 +36,6 @@ export const useOpenInp = () => {
       return setDialogState({ type: "unsavedChanges", onContinue: openInp });
     }
 
-    openInp();
-  }, [setDialogState, fsAccess, hasUnsavedChanges]);
+    void openInp();
+  }, [openInp, setDialogState, hasUnsavedChanges]);
 };
