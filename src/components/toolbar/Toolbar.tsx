@@ -21,6 +21,7 @@ import { ephemeralStateAtom } from "src/state/jotai";
 import { useOpenInp } from "src/hooks/use-open-inp";
 import { useSaveInp } from "src/hooks/use-save-inp";
 import { useNewProject } from "src/hooks/use-new-project";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Toolbar = () => {
   const openInp = useOpenInp();
@@ -64,6 +65,7 @@ export const Toolbar = () => {
       <MenuAction
         label={translate("newProject")}
         role="button"
+        expanded={isFeatureOn("FLAG_TOOLBAR_BUTTONS")}
         onClick={() => {
           createNewProject();
         }}
@@ -75,6 +77,7 @@ export const Toolbar = () => {
         role="button"
         onClick={handleOpen}
         hotkey={"ctrl+o"}
+        expanded={isFeatureOn("FLAG_TOOLBAR_BUTTONS")}
       >
         <FilePlusIcon />
       </MenuAction>
