@@ -217,7 +217,7 @@ export const panelSymbolizationExportOpen = atomWithStorage(
 );
 export type PanelAtom = typeof panelIdOpen;
 
-export const hideHintsAtom = atomWithStorage<Mode[]>("hideHints", []);
+export const hideHintsAtom = atomWithStorage<string[]>("hideHints", []);
 
 export const scaleUnitAtom = atomWithStorage<ScaleUnit>(
   "scaleUnit",

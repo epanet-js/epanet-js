@@ -1,44 +1,56 @@
 import { Cross1Icon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { contentLike } from "src/components/elements";
 import { useBreakpoint } from "src/hooks/use_responsive";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
-import { hideHintsAtom, selectionAtom } from "src/state/jotai";
+import {
+  dataAtom,
+  hideHintsAtom,
+  selectionAtom,
+  simulationAtom,
+} from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { translate } from "src/infra/i18n";
+import { analysisAtom } from "src/state/analysis";
+
+export const tipLike = `
+    bg-white dark:bg-gray-900
+    rounded-sm
+    shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
+    ring-1 ring-gray-200 dark:ring-gray-700
+    content-layout z-50`;
 
 function ModeHint({
-  mode,
+  hintId,
   children,
 }: {
-  mode: Mode;
+  hintId: string;
   children: React.ReactNode;
 }) {
   const [hideHints, setHideHints] = useAtom(hideHintsAtom);
 
-  if (hideHints.includes(mode)) {
+  if (hideHints.includes(hintId)) {
     return null;
   }
 
   return (
     <div
       className={clsx(
-        "z-0 absolute top-2 left-2 px-2 text-sm flex gap-x-2 items-center dark:text-white",
-        contentLike,
+        "absolute pl-2 pr-1 py-2 max-w-[600px] top-2 left-3 text-sm flex gap-x-2 items-start dark:text-white rounded-md ",
+        tipLike,
       )}
     >
-      <InfoCircledIcon />
+      <InfoCircledIcon className="shrink-0 w-5 h-5" />
       {children}
 
       <button
+        className="px-1 py-1"
         onClick={() => {
           setHideHints((hints) => {
-            return hints.concat(mode);
+            return hints.concat(hintId);
           });
         }}
-        className="pl-3"
       >
-        <Cross1Icon className="w-2 h-2" />
+        <Cross1Icon className="w-3 h-3 shrink-0" />
       </button>
     </div>
   );
@@ -46,7 +58,10 @@ function ModeHint({
 
 export function ModeHints() {
   const mode = useAtomValue(modeAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
+  const analysis = useAtomValue(analysisAtom);
   const show = useBreakpoint("lg");
 
   if (!show) {
@@ -55,21 +70,50 @@ export function ModeHints() {
 
   switch (mode.mode) {
     case Mode.DRAW_JUNCTION: {
-      return null;
+      return (
+        <ModeHint hintId={"DRAW_JUNCTION"}>
+          {translate("onboardingDrawJunctions")}
+        </ModeHint>
+      );
     }
     case Mode.NONE: {
-      if (selection.type === "single") {
-        if (mode.modeOptions?.hasResizedRectangle) {
+      if (selection.type === "none") {
+        if (hydraulicModel.assets.size === 0) {
           return (
-            <ModeHint mode={mode.mode}>
-              Resizing a rectangle. Hold Cmd to edit as a polygon.
+            <ModeHint hintId={"EMPTY_STATE"}>
+              <div className="flex flex-col gap-y-2">
+                {translate("onboardingSelectDrawing")}
+              </div>
             </ModeHint>
           );
         } else {
+          if (simulation.status === "idle") {
+            return (
+              <ModeHint hintId={"RUN_SIMULATION"}>
+                {translate("onboardingRunSimulation")}
+              </ModeHint>
+            );
+          } else {
+            if (
+              simulation.status === "success" &&
+              analysis.links.type === "none" &&
+              analysis.nodes.type === "none"
+            ) {
+              return (
+                <ModeHint hintId={"ADD_ANALYSIS"}>
+                  {translate("onboardingAnalysis")}
+                </ModeHint>
+              );
+            }
+          }
+        }
+      }
+      if (selection.type === "single") {
+        const asset = hydraulicModel.assets.get(selection.id);
+        if (asset && asset.isNode) {
           return (
-            <ModeHint mode={mode.mode}>
-              Hold space bar & drag to move entire features. Hold option & drag
-              to rotate.
+            <ModeHint hintId={"DRAG_NODE"}>
+              {translate("onboardingMoveNode")}
             </ModeHint>
           );
         }
@@ -78,17 +122,17 @@ export function ModeHints() {
     }
     case Mode.DRAW_PIPE: {
       return (
-        <ModeHint mode={mode.mode}>
-          {selection.type === "single" ? (
-            <>{translate("hintPipeDrawEnd")}</>
-          ) : (
-            <>{translate("hintPipeDrawStart")}</>
-          )}
+        <ModeHint hintId={"DRAW_PIPE"}>
+          {translate("onboardingDrawPipe")}
         </ModeHint>
       );
     }
     case Mode.DRAW_RESERVOIR: {
-      return null;
+      return (
+        <ModeHint hintId={"DRAW_RESERVOIR"}>
+          {translate("onboardingDrawReservoir")}
+        </ModeHint>
+      );
     }
   }
 
