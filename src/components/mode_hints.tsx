@@ -40,7 +40,7 @@ function ModeHint({
       )}
     >
       <InfoCircledIcon className="shrink-0 w-5 h-5" />
-      {children}
+      <div>{children}</div>
 
       <button
         className="px-1 py-1"
@@ -73,6 +73,9 @@ export function ModeHints() {
       return (
         <ModeHint hintId={"DRAW_JUNCTION"}>
           {translate("onboardingDrawJunctions")}
+          <div className="text-gray-500 text-sm">
+            {translate("onboardingAutomaticElevations")}
+          </div>
         </ModeHint>
       );
     }
@@ -113,7 +116,10 @@ export function ModeHints() {
         if (asset && asset.isNode) {
           return (
             <ModeHint hintId={"DRAG_NODE"}>
-              {translate("onboardingMoveNode")}
+              <div>{translate("onboardingMoveNode")}</div>
+              <div className="text-gray-500 text-sm">
+                {translate("onboardingAutomaticCalculations")}
+              </div>
             </ModeHint>
           );
         }

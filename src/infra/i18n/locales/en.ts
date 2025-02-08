@@ -80,8 +80,7 @@ export const translations = {
   discardChanges: "Discard changes",
   onboardingSelectDrawing: "Select a drawing tool from the menu",
   onboardingDrawReservoir: "Click anywhere to place a reservoir.",
-  onboardingDrawJunctions:
-    "Click to place junctions; elevations are assigned automatically.",
+  onboardingDrawJunctions: "Click to place junctions.",
   onboardingDrawPipe:
     "Start at an existing node or click to create a new junction. Define vertices by clicking, single-click an existing junction to finish, or double-click to create a new one.",
   onboardingSelectAsset: "Select any asset to view and modify its properties.",
@@ -96,8 +95,10 @@ export const translations = {
   onboardingUndoRedo: "Undo or redo with ${1} and ${2}.",
   onboardingBasemaps: "Change basemaps by clicking the Layers button.",
   onboardingFiles: "Working with files",
-  onboardingMoveNode:
-    "Drag the node to change its position. Elevations and lengths are updated automatically.",
+  onboardingMoveNode: "Drag the node to change its position.",
+  onboardingAutomaticCalculations:
+    "Elevations and lengths are updated automatically.",
+  onboardingAutomaticElevations: "Elevations are assigned automatically.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
