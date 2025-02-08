@@ -4,12 +4,13 @@ import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import {
   dataAtom,
+  ephemeralStateAtom,
   hideHintsAtom,
   selectionAtom,
   simulationAtom,
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { translate } from "src/infra/i18n";
+import { localizeKeybinding, translate } from "src/infra/i18n";
 import { analysisAtom } from "src/state/analysis";
 
 export const tipLike = `
@@ -62,6 +63,7 @@ export function ModeHints() {
   const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
   const analysis = useAtomValue(analysisAtom);
+  const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
 
   if (!show) {
@@ -118,7 +120,7 @@ export function ModeHints() {
             <ModeHint hintId={"DRAG_NODE"}>
               <div>{translate("onboardingMoveNode")}</div>
               <div className="text-gray-500 text-sm">
-                {translate("onboardingAutomaticCalculations")}
+                {translate("onboardingAutomaticUpdates")}
               </div>
             </ModeHint>
           );
@@ -127,9 +129,20 @@ export function ModeHints() {
       break;
     }
     case Mode.DRAW_PIPE: {
+      if (ephemeralState.type === "drawPipe" && !!ephemeralState.startNode)
+        return (
+          <ModeHint hintId="DRAW_PIPE">
+            <div>{translate("onboardingDrawPipe")}</div>
+            <div className="text-gray-500 text-sm">
+              {translate("onboardingCtrlPipe", localizeKeybinding("ctrl"))}{" "}
+              {translate("onboardingAutomaticCalculations")}
+            </div>
+          </ModeHint>
+        );
+
       return (
-        <ModeHint hintId={"DRAW_PIPE"}>
-          {translate("onboardingDrawPipe")}
+        <ModeHint hintId={"START_PIPE"}>
+          {translate("onboardingStartPipe")}
         </ModeHint>
       );
     }

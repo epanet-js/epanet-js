@@ -11,8 +11,9 @@ export function localizeKeybinding(
     .replace("ENTER", "Enter")
     .replace("SHIFT", "Shift")
     .replace("ESC", "Esc")
-    .replace("COMMAND+", isMac ? cmdSymbol : "Ctrl+")
-    .replace("CTRL+", isMac ? cmdSymbol : "Ctrl+");
+    .replace("COMMAND", isMac ? cmdSymbol : "Ctrl")
+    .replace("CTRL", isMac ? cmdSymbol : "Ctrl")
+    .replace(`${cmdSymbol}+`, cmdSymbol);
 }
 
 const getIsMac = once((): boolean => {

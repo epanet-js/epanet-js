@@ -84,8 +84,12 @@ export const translations: Translations = {
   onboardingDrawReservoir:
     "Haz clic en cualquier lugar para colocar un embalse.",
   onboardingDrawJunctions: "Haz clic para colocar nudos.",
+  onboardingStartPipe:
+    "Haz clic en un nodo existente o donde quieras crear uno nudo nuevo.",
   onboardingDrawPipe:
-    "Comienza en un nodo existente o haz clic para crear una nueva intersección. Define los vértices haciendo clic, haz un solo clic en una intersección existente para finalizar o haz doble clic para crear una nueva.",
+    "Define los vértices haciendo clic, haz un solo clic en un nudo existente para finalizar o haz doble clic para crear uno nuevo.",
+  onboardingCtrlPipe:
+    "Mantén ${1} y haz clic para finalizar aquí y empezar una nueva tubería.",
   onboardingSelectAsset:
     "Selecciona cualquier activo para ver y modificar sus propiedades.",
   onboardingRunningModel:
@@ -100,10 +104,13 @@ export const translations: Translations = {
   onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
   onboardingBasemaps: "Cambia los mapas base haciendo clic en el botón Capas.",
   onboardingFiles: "Manejo de ficheros",
-  onboardingMoveNode: "Arrastra el nudo para cambiar su posición.",
+  onboardingMoveNode: "Arrastra el nodo para cambiar su posición.",
   onboardingAutomaticCalculations:
+    "Las elevaciones y longitudes se asignan automáticamente.",
+  onboardingAutomaticUpdates:
     "Las elevaciones y longitudes se actualizan automáticamente.",
-  onboardingAutomaticElevations: "Las elevaciones se assignan automáticamente.",
+  onboardingAutomaticElevations: "Las elevaciones se asignan automáticamente.",
+  onboardingAutomaticLengths: "La longitud se calcula automáticamente.",
 };
 
 export const units: UnitsLocale = {
