@@ -22,10 +22,12 @@ export const tipLike = `
 
 function Hint({
   hintId,
-  children,
+  text,
+  secondaryText,
 }: {
   hintId: string;
-  children: React.ReactNode;
+  text: string;
+  secondaryText?: string;
 }) {
   const [hideHints, setHideHints] = useAtom(hideHintsAtom);
 
@@ -41,7 +43,13 @@ function Hint({
       )}
     >
       <InfoCircledIcon className="shrink-0 w-5 h-5" />
-      <div>{children}</div>
+      {!!secondaryText && (
+        <div>
+          <div>{text}</div>
+          <div className="text-gray-500 text-sm">{secondaryText}</div>
+        </div>
+      )}
+      {!secondaryText && <div>{text}</div>}
 
       <button
         className="px-1 py-1"
@@ -73,30 +81,29 @@ export function Hints() {
   switch (mode.mode) {
     case Mode.DRAW_JUNCTION: {
       return (
-        <Hint hintId={"DRAW_JUNCTION"}>
-          {translate("onboardingDrawJunctions")}
-          <div className="text-gray-500 text-sm">
-            {translate("onboardingAutomaticElevations")}
-          </div>
-        </Hint>
+        <Hint
+          hintId={"DRAW_JUNCTION"}
+          text={translate("onboardingDrawJunctions")}
+          secondaryText={translate("onboardingAutomaticElevations")}
+        />
       );
     }
     case Mode.NONE: {
       if (selection.type === "none") {
         if (hydraulicModel.assets.size === 0) {
           return (
-            <Hint hintId={"EMPTY_STATE"}>
-              <div className="flex flex-col gap-y-2">
-                {translate("onboardingSelectDrawing")}
-              </div>
-            </Hint>
+            <Hint
+              hintId={"EMPTY_STATE"}
+              text={translate("onboardingSelectDrawing")}
+            />
           );
         } else {
           if (simulation.status === "idle") {
             return (
-              <Hint hintId={"RUN_SIMULATION"}>
-                {translate("onboardingRunSimulation")}
-              </Hint>
+              <Hint
+                hintId={"RUN_SIMULATION"}
+                text={translate("onboardingRunSimulation")}
+              />
             );
           } else {
             if (
@@ -105,9 +112,10 @@ export function Hints() {
               analysis.nodes.type === "none"
             ) {
               return (
-                <Hint hintId={"ADD_ANALYSIS"}>
-                  {translate("onboardingAnalysis")}
-                </Hint>
+                <Hint
+                  hintId={"ADD_ANALYSIS"}
+                  text={translate("onboardingAnalysis")}
+                />
               );
             }
           }
@@ -117,12 +125,11 @@ export function Hints() {
         const asset = hydraulicModel.assets.get(selection.id);
         if (asset && asset.isNode) {
           return (
-            <Hint hintId={"DRAG_NODE"}>
-              <div>{translate("onboardingMoveNode")}</div>
-              <div className="text-gray-500 text-sm">
-                {translate("onboardingAutomaticUpdates")}
-              </div>
-            </Hint>
+            <Hint
+              hintId={"DRAG_NODE"}
+              text={translate("onboardingMoveNode")}
+              secondaryText={translate("onboardingAutomaticUpdates")}
+            />
           );
         }
       }
@@ -131,24 +138,27 @@ export function Hints() {
     case Mode.DRAW_PIPE: {
       if (ephemeralState.type === "drawPipe" && !!ephemeralState.startNode)
         return (
-          <Hint hintId="DRAW_PIPE">
-            <div>{translate("onboardingDrawPipe")}</div>
-            <div className="text-gray-500 text-sm">
-              {translate("onboardingCtrlPipe", localizeKeybinding("ctrl"))}{" "}
-              {translate("onboardingAutomaticCalculations")}
-            </div>
-          </Hint>
+          <Hint
+            hintId="DRAW_PIPE"
+            text={translate("onboardingDrawPipe")}
+            secondaryText={
+              translate("onboardingCtrlPipe", localizeKeybinding("ctrl")) +
+              " " +
+              translate("onboardingAutomaticCalculations")
+            }
+          />
         );
 
       return (
-        <Hint hintId={"START_PIPE"}>{translate("onboardingStartPipe")}</Hint>
+        <Hint hintId={"START_PIPE"} text={translate("onboardingStartPipe")} />
       );
     }
     case Mode.DRAW_RESERVOIR: {
       return (
-        <Hint hintId={"DRAW_RESERVOIR"}>
-          {translate("onboardingDrawReservoir")}
-        </Hint>
+        <Hint
+          hintId={"DRAW_RESERVOIR"}
+          text={translate("onboardingDrawReservoir")}
+        />
       );
     }
   }
