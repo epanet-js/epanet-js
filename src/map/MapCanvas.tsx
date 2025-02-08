@@ -38,12 +38,12 @@ import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "src/components/last_search_result";
-import { ModeHints } from "src/components/mode_hints";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
 import { searchNearbyRenderedFeatures } from "./search";
 import { SatelliteToggle } from "./SatelliteToggle";
+import { Hints } from "src/components/Hints";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -348,7 +348,7 @@ export const MapCanvas = memo(function MapCanvas({
       </CM.Trigger>
       <MapContextMenu contextInfo={contextInfo} />
       <LastSearchResult />
-      <ModeHints />
+      <Hints />
       <SatelliteToggle />
     </CM.Root>
   );

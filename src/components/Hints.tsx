@@ -20,7 +20,7 @@ export const tipLike = `
     ring-1 ring-gray-200 dark:ring-gray-700
     content-layout z-10`;
 
-function ModeHint({
+function Hint({
   hintId,
   children,
 }: {
@@ -57,7 +57,7 @@ function ModeHint({
   );
 }
 
-export function ModeHints() {
+export function Hints() {
   const mode = useAtomValue(modeAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const simulation = useAtomValue(simulationAtom);
@@ -73,30 +73,30 @@ export function ModeHints() {
   switch (mode.mode) {
     case Mode.DRAW_JUNCTION: {
       return (
-        <ModeHint hintId={"DRAW_JUNCTION"}>
+        <Hint hintId={"DRAW_JUNCTION"}>
           {translate("onboardingDrawJunctions")}
           <div className="text-gray-500 text-sm">
             {translate("onboardingAutomaticElevations")}
           </div>
-        </ModeHint>
+        </Hint>
       );
     }
     case Mode.NONE: {
       if (selection.type === "none") {
         if (hydraulicModel.assets.size === 0) {
           return (
-            <ModeHint hintId={"EMPTY_STATE"}>
+            <Hint hintId={"EMPTY_STATE"}>
               <div className="flex flex-col gap-y-2">
                 {translate("onboardingSelectDrawing")}
               </div>
-            </ModeHint>
+            </Hint>
           );
         } else {
           if (simulation.status === "idle") {
             return (
-              <ModeHint hintId={"RUN_SIMULATION"}>
+              <Hint hintId={"RUN_SIMULATION"}>
                 {translate("onboardingRunSimulation")}
-              </ModeHint>
+              </Hint>
             );
           } else {
             if (
@@ -105,9 +105,9 @@ export function ModeHints() {
               analysis.nodes.type === "none"
             ) {
               return (
-                <ModeHint hintId={"ADD_ANALYSIS"}>
+                <Hint hintId={"ADD_ANALYSIS"}>
                   {translate("onboardingAnalysis")}
-                </ModeHint>
+                </Hint>
               );
             }
           }
@@ -117,12 +117,12 @@ export function ModeHints() {
         const asset = hydraulicModel.assets.get(selection.id);
         if (asset && asset.isNode) {
           return (
-            <ModeHint hintId={"DRAG_NODE"}>
+            <Hint hintId={"DRAG_NODE"}>
               <div>{translate("onboardingMoveNode")}</div>
               <div className="text-gray-500 text-sm">
                 {translate("onboardingAutomaticUpdates")}
               </div>
-            </ModeHint>
+            </Hint>
           );
         }
       }
@@ -131,26 +131,24 @@ export function ModeHints() {
     case Mode.DRAW_PIPE: {
       if (ephemeralState.type === "drawPipe" && !!ephemeralState.startNode)
         return (
-          <ModeHint hintId="DRAW_PIPE">
+          <Hint hintId="DRAW_PIPE">
             <div>{translate("onboardingDrawPipe")}</div>
             <div className="text-gray-500 text-sm">
               {translate("onboardingCtrlPipe", localizeKeybinding("ctrl"))}{" "}
               {translate("onboardingAutomaticCalculations")}
             </div>
-          </ModeHint>
+          </Hint>
         );
 
       return (
-        <ModeHint hintId={"START_PIPE"}>
-          {translate("onboardingStartPipe")}
-        </ModeHint>
+        <Hint hintId={"START_PIPE"}>{translate("onboardingStartPipe")}</Hint>
       );
     }
     case Mode.DRAW_RESERVOIR: {
       return (
-        <ModeHint hintId={"DRAW_RESERVOIR"}>
+        <Hint hintId={"DRAW_RESERVOIR"}>
           {translate("onboardingDrawReservoir")}
-        </ModeHint>
+        </Hint>
       );
     }
   }
