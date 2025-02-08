@@ -149,9 +149,18 @@ export function Hints() {
           />
         );
 
-      return (
-        <Hint hintId={"START_PIPE"} text={translate("onboardingStartPipe")} />
-      );
+      if (hydraulicModel.assets.size === 0) {
+        return (
+          <Hint
+            hintId={"START_PIPE"}
+            text={translate("onboardingStartPipeEmpty")}
+          />
+        );
+      } else {
+        return (
+          <Hint hintId={"START_PIPE"} text={translate("onboardingStartPipe")} />
+        );
+      }
     }
     case Mode.DRAW_RESERVOIR: {
       return (

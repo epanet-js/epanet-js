@@ -83,6 +83,7 @@ export const translations = {
   onboardingDrawJunctions: "Click to place junctions.",
   onboardingStartPipe:
     "Click on an existing node or click anywhere to create a new junction.",
+  onboardingStartPipeEmpty: "Click anywhere to start drawing a pipe.",
   onboardingCtrlPipe: "Hold ${1} and click to end here and start a new pipe.",
   onboardingDrawPipe:
     "Define vertices by clicking, single-click an existing junction to finish, or double-click to create a new one.",
