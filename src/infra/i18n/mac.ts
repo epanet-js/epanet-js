@@ -1,6 +1,7 @@
 import once from "lodash/once";
 
 export const cmdSymbol = "⌘";
+export const macShiftSymbol = "⇧";
 
 export function localizeKeybinding(
   keys: string,
@@ -9,11 +10,13 @@ export function localizeKeybinding(
   return keys
     .toUpperCase()
     .replace("ENTER", "Enter")
-    .replace("SHIFT", "Shift")
+    .replace("SHIFT", isMac ? macShiftSymbol : "Shift")
     .replace("ESC", "Esc")
     .replace("COMMAND", isMac ? cmdSymbol : "Ctrl")
     .replace("CTRL", isMac ? cmdSymbol : "Ctrl")
-    .replace(`${cmdSymbol}+`, cmdSymbol);
+    .replace(`${cmdSymbol}+`, cmdSymbol)
+    .replace(`${macShiftSymbol}+`, macShiftSymbol)
+    .replace(`${cmdSymbol}${macShiftSymbol}`, `${macShiftSymbol}${cmdSymbol}`);
 }
 
 const getIsMac = once((): boolean => {
