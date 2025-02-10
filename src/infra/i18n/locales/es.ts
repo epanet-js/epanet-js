@@ -12,6 +12,7 @@ export const translations: Translations = {
   hintPipeDrawEnd: "Finaliza una tubería con doble click o apretando Enter.",
   keyboardShortcuts: "Atajos de teclado",
   help: "Ayuda",
+  helpCenter: "Centro de ayuda",
   exit: "Terminar",
   clearSelection: "Borrar selección",
   selectAll: "Seleccionar todo",
@@ -81,7 +82,7 @@ export const translations: Translations = {
     "¿Quieres guardar los cambios realizados en el proyecto actual?",
   discardChanges: "Descartar cambios",
   shortcuts: "Atajos de teclado",
-  onboardingSelectDrawing: "Selecciona una herramienta de dibujo del menú.",
+  onboardingSelectDrawing: "Selecciona una herramienta de dibujo del menú${1}",
   onboardingDrawReservoir:
     "Haz clic en cualquier lugar para colocar un embalse.",
   onboardingDrawJunctions: "Haz clic para colocar nudos.",
@@ -95,7 +96,7 @@ export const translations: Translations = {
   onboardingSelectAsset:
     "Selecciona cualquier activo para ver y modificar sus propiedades.",
   onboardingRunningModel:
-    "Ejecución de un modelo y visualización de resultados.",
+    "Ejecución de un modelo y visualización de resultados",
   onboardingRunSimulation:
     "Presiona el botón de Simulación para ejecutar una simulación hidráulica.",
   onboardingAnalysis:

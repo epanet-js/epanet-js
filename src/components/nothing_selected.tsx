@@ -90,7 +90,7 @@ export const NothingSelected = memo(function NothingSelected() {
           className="!text-purple-800 hover:underline cursor:pointer"
           onClick={() => setDialogState({ type: "cheatsheet" })}
         >
-          {translate("shortcuts")}
+          {translate("keyboardShortcuts")}
         </a>
         <div className="pt-1">
           <ResetIcon />
