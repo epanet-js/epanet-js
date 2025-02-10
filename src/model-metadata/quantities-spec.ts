@@ -103,7 +103,8 @@ const internationalSpec: AssetQuantitiesSpec = {
   },
 };
 
-export const presets = {
+export type Presets = { [id: AssetQuantitiesSpec["id"]]: AssetQuantitiesSpec };
+export const presets: Presets = {
   si: internationalSpec,
   usCustomary: USCustomarySpec,
 };
