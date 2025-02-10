@@ -7,12 +7,14 @@ export const Selector = <T extends string>({
   selected,
   onChange,
   ariaLabel,
+  tabIndex = 1,
   styleOptions = { border: true, textSize: "text-sm" },
 }: {
   options: { label: string; value: T }[];
   selected: T;
   onChange: (selected: T) => void;
   ariaLabel?: string;
+  tabIndex?: number;
   styleOptions?: { border: boolean; textSize: "text-xs" | "text-sm" };
 }) => {
   const [isOpen, setOpen] = useState(false);
@@ -33,7 +35,7 @@ export const Selector = <T extends string>({
   }, [styleOptions]);
 
   const contentStyles = useMemo(() => {
-    return `bg-white w-full border ${styleOptions.textSize} rounded-md shadow-md`;
+    return `bg-white w-full border ${styleOptions.textSize} rounded-md shadow-md z-50`;
   }, [styleOptions]);
 
   return (
@@ -46,7 +48,7 @@ export const Selector = <T extends string>({
       >
         <Select.Trigger
           aria-label={ariaLabel}
-          tabIndex={1}
+          tabIndex={tabIndex}
           className={triggerStyles}
         >
           <Select.Value />

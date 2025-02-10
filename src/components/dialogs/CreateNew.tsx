@@ -1,6 +1,6 @@
 import { FileIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
-import { Field, Form, Formik } from "formik";
+import { Form, Formik } from "formik";
 import SimpleDialogActions from "./simple_dialog_actions";
 import {
   AssetQuantitiesSpec,
@@ -9,8 +9,8 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
-import { styledSelect } from "../elements";
 import { translate } from "src/infra/i18n";
+import { Selector } from "../form/Selector";
 
 type SubmitProps = {
   unitsSpec: AssetQuantitiesSpec["id"];
@@ -41,34 +41,49 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
           } as SubmitProps
         }
       >
-        <Form>
-          <UnitsSystemSelector />
-          <SimpleDialogActions onClose={onClose} action={translate("create")} />
-        </Form>
+        {({ values, setFieldValue }) => (
+          <Form>
+            <UnitsSystemSelector
+              selected={values.unitsSpec}
+              onChange={(specId) => setFieldValue("unitsSpec", specId)}
+            />
+            <SimpleDialogActions
+              onClose={onClose}
+              action={translate("create")}
+            />
+          </Form>
+        )}
       </Formik>
     </>
   );
 };
+const UnitsSystemSelector = ({
+  selected,
+  onChange,
+}: {
+  selected: AssetQuantitiesSpec["id"];
+  onChange: (specId: AssetQuantitiesSpec["id"]) => void;
+}) => {
+  const options = Object.keys(presets).map(
+    (presetId: AssetQuantitiesSpec["id"]) => ({
+      label: `${presets[presetId].name}: ${presets[presetId].description}`,
+      value: presetId,
+    }),
+  );
 
-const UnitsSystemSelector = () => {
   return (
     <label className="block pt-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("unitsSystem")}
       </div>
 
-      <Field
-        as="select"
-        name="unitsSpec"
-        aria-label={translate("unitsSystem")}
-        className={styledSelect({ size: "sm" }) + "w-full"}
-      >
-        {Object.keys(presets).map((presetId: AssetQuantitiesSpec["id"]) => (
-          <option key={presetId} value={presetId}>
-            {`${presets[presetId].name}: ${presets[presetId].description}`}
-          </option>
-        ))}
-      </Field>
+      <Selector
+        options={options}
+        tabIndex={0}
+        selected={selected}
+        onChange={onChange}
+        ariaLabel={translate("unitsSystem")}
+      />
     </label>
   );
 };
