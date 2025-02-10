@@ -110,7 +110,7 @@ export function StyledDropOverlay({
 }: React.PropsWithChildren<Record<string, unknown>>) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-500 pointer-events-none bg-opacity-75">
-      <div className="px-3 py-2 text-white bg-gray-500 rounded-md max-w-36">
+      <div className="px-3 py-2 text-white bg-gray-500 rounded-md max-w-64">
         {children}
       </div>
     </div>

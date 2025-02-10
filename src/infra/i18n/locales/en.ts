@@ -110,6 +110,7 @@ export const translations = {
   siFlowsExpressed: "International System with flows expressed in ${1}",
   newProject: "New project",
   create: "Create",
+  dropInp: "Drop an .INP file here to open the model.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

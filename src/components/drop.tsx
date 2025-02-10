@@ -6,6 +6,7 @@ import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { groupFiles } from "src/lib/group_files";
 import { StyledDropOverlay } from "./elements";
+import { translate } from "src/infra/i18n";
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -79,6 +80,6 @@ export default memo(function Drop() {
   }, [setDragging, setDialogState]);
 
   return dragging ? (
-    <StyledDropOverlay>Drop files to add to the map</StyledDropOverlay>
+    <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>
   ) : null;
 });
