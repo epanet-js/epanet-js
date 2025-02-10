@@ -10,17 +10,18 @@ import {
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
 import { styledSelect } from "../elements";
+import { translate } from "src/infra/i18n";
+
+type SubmitProps = {
+  unitsSpec: AssetQuantitiesSpec["id"];
+};
 
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
 
-  const handleSumbit = ({
-    unitsSystem,
-  }: {
-    unitsSystem: "si" | "usCustomary";
-  }) => {
-    const quantities = new Quantities(presets[unitsSystem]);
+  const handleSumbit = ({ unitsSpec }: SubmitProps) => {
+    const quantities = new Quantities(presets[unitsSpec]);
     const modelMetadata = { quantities };
     const hydraulicModel = initializeHydraulicModel({
       units: quantities.units,
@@ -31,16 +32,18 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   };
   return (
     <>
-      <DialogHeader title="Create new" titleIcon={FileIcon} />
+      <DialogHeader title={translate("newProject")} titleIcon={FileIcon} />
       <Formik
         onSubmit={handleSumbit}
-        initialValues={{
-          unitsSystem: "si",
-        }}
+        initialValues={
+          {
+            unitsSpec: "lps",
+          } as SubmitProps
+        }
       >
         <Form>
           <UnitsSystemSelector />
-          <SimpleDialogActions onClose={onClose} action="Create" />
+          <SimpleDialogActions onClose={onClose} action={translate("create")} />
         </Form>
       </Formik>
     </>
@@ -51,18 +54,18 @@ const UnitsSystemSelector = () => {
   return (
     <label className="block pt-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-        Units system
+        {translate("unitsSystem")}
       </div>
 
       <Field
         as="select"
-        name="unitsSystem"
-        aria-label={"unitsSystem"}
+        name="unitsSpec"
+        aria-label={translate("unitsSystem")}
         className={styledSelect({ size: "md" }) + "w-full"}
       >
         {Object.keys(presets).map((presetId: AssetQuantitiesSpec["id"]) => (
           <option key={presetId} value={presetId}>
-            {presets[presetId].name}
+            {`${presets[presetId].name}: ${presets[presetId].description}`}
           </option>
         ))}
       </Field>

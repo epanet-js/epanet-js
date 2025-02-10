@@ -94,7 +94,7 @@ export interface Data {
  * Derived list of folders
  */
 const quantities = new Quantities(
-  isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.si,
+  isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.lps,
 );
 const modelMetadata = { quantities };
 export const nullData: Data = {

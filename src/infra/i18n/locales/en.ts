@@ -60,7 +60,6 @@ export const translations = {
   max: "Max",
   mean: "Mean",
   sum: "Sum",
-  newProject: "New",
   openProject: "Open INP",
   opening: "Opening...",
   export: "Export",
@@ -106,6 +105,11 @@ export const translations = {
     "Elevations and lengths are updated automatically.",
   onboardingAutomaticElevations: "Elevations are assigned automatically.",
   onboardingAutomaticLengths: "Length is calculated automatically.",
+  unitsSystem: "Units system",
+  usCustomaryFlowsExpressed: "US Customary with flows expressed in ${1}",
+  siFlowsExpressed: "International System with flows expressed in ${1}",
+  newProject: "New project",
+  create: "Create",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

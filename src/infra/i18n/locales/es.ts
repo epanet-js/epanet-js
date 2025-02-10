@@ -62,7 +62,6 @@ export const translations: Translations = {
   max: "Máx.",
   mean: "Media",
   sum: "Suma",
-  newProject: "Nuevo",
   openProject: "Abrir INP",
   opening: "Abriendo...",
   export: "Exportar",
@@ -111,6 +110,12 @@ export const translations: Translations = {
     "Las elevaciones y longitudes se actualizan automáticamente.",
   onboardingAutomaticElevations: "Las elevaciones se asignan automáticamente.",
   onboardingAutomaticLengths: "La longitud se calcula automáticamente.",
+  unitsSystem: "Sistema de unidades",
+  usCustomaryFlowsExpressed:
+    "Sistema de Medición Estadounidense con flujos en ${1}",
+  siFlowsExpressed: "Sistema de Medición Internacional con flujos en ${1}",
+  newProject: "Nuevo proyecto",
+  create: "Crear",
 };
 
 export const units: UnitsLocale = {
