@@ -1,12 +1,10 @@
-import { memo, useState, useEffect } from "react";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
+import { useState, useEffect } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
-import { groupFiles } from "src/lib/group_files";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
+import { useOpenInp } from "src/hooks/use-open-inp";
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -17,17 +15,14 @@ const stopWindowDrag = (event: DragEvent) => {
   event.preventDefault();
 };
 
-export default memo(function Drop() {
+const Drop = () => {
   const [dragging, setDragging] = useState<boolean>(false);
-  const setDialogState = useSetAtom(dialogAtom);
+  const { openInpFromCandidates } = useOpenInp();
 
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
-      setDialogState({
-        type: "import",
-        files: groupFiles(files),
-      });
+      void openInpFromCandidates(files);
     };
 
     const onDragEnter = () => {
@@ -77,9 +72,11 @@ export default memo(function Drop() {
       window.removeEventListener("dragover", stopWindowDrag);
       window.removeEventListener("drop", stopWindowDrag);
     };
-  }, [setDragging, setDialogState]);
+  }, [setDragging, openInpFromCandidates]);
 
   return dragging ? (
     <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>
   ) : null;
-});
+};
+
+export default Drop;

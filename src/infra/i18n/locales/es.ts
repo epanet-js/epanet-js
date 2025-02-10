@@ -66,7 +66,7 @@ export const translations: Translations = {
   opening: "Abriendo...",
   export: "Exportar",
   cancel: "Cancelar",
-  failedToProcessFile: "No se ha podido procesar el fichero",
+  failedToProcessFile: "No se ha podido procesar el archivo",
   understood: "Entendido",
   error: "Error",
   save: "Guardar",
@@ -102,7 +102,7 @@ export const translations: Translations = {
     "Cambia a la pestaña de Análisis para visualizar los resultados hidráulicos.",
   onboardingOtherFeatures: "Otras funciones útiles",
   onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
-  onboardingFiles: "Manejo de ficheros",
+  onboardingFiles: "Manejo de archivos",
   onboardingMoveNode: "Arrastra el nodo para cambiar su posición.",
   onboardingAutomaticCalculations:
     "Las elevaciones y longitudes se asignan automáticamente.",
@@ -117,6 +117,7 @@ export const translations: Translations = {
   newProject: "Nuevo proyecto",
   create: "Crear",
   dropInp: "Arrastra y suelta un archivo .INP aquí para abrir el modelo.",
+  inpMissing: "Tipo de archivo no soportado. Usa un archivo .INP.",
 };
 
 export const units: UnitsLocale = {
