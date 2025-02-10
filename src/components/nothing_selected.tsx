@@ -23,7 +23,7 @@ export const NothingSelected = memo(function NothingSelected() {
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
       <div className="text-sm font-semibold pb-2">
-        {translate("onboardingSelectDrawing")}
+        {translate("onboardingSelectDrawing", "")}
       </div>
       <div
         className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"

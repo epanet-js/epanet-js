@@ -78,15 +78,16 @@ export const translations = {
   unsavedChangesQuestion:
     "Do you want to save the changes made to the current project?",
   discardChanges: "Discard changes",
-  onboardingSelectDrawing: "Select a drawing tool from the menu",
+  onboardingSelectDrawing: "Select a drawing tool from the menu${1}",
   onboardingDrawReservoir: "Click anywhere to place a reservoir.",
   onboardingDrawJunctions: "Click to place junctions.",
   onboardingStartPipe:
-    "Click on an existing node or click anywhere to create a new junction.",
+    "Click on an existing node to draw a pipe, or click anywhere to start with a new junction.",
   onboardingStartPipeEmpty: "Click anywhere to start drawing a pipe.",
-  onboardingCtrlPipe: "Hold ${1} and click to end here and start a new pipe.",
+  onboardingCtrlPipe:
+    "Hold ${1} and click to end and start a new pipe immediately.",
   onboardingDrawPipe:
-    "Define vertices by clicking, single-click an existing junction to finish, or double-click to create a new one.",
+    "Click to define vertices. Finish at a junction or double-click to add one.",
   onboardingSelectAsset: "Select any asset to view and modify its properties.",
   onboardingRunningModel: "Running a model and viewing results",
   onboardingRunSimulation:
