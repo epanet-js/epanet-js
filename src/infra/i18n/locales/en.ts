@@ -111,6 +111,7 @@ export const translations = {
   newProject: "New project",
   create: "Create",
   dropInp: "Drop an .INP file here to open the model.",
+  inpMissing: "Invalid file type. Use an .INP file.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
