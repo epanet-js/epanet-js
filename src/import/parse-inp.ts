@@ -195,7 +195,7 @@ const buildModel = (
   inpData: InpData,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec =
-    inpData.options.units === "GPM" ? presets.usCustomary : presets.si;
+    inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
   const quantities = new Quantities(spec);
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,

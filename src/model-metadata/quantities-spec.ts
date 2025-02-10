@@ -2,6 +2,7 @@ import { Unit } from "src/quantity";
 import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
+import { translate, translateUnit } from "src/infra/i18n";
 
 export type UnitsSpec = Record<
   | "diameter"
@@ -25,6 +26,7 @@ type DefaultsSpec = {
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
+  description: string;
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
@@ -34,6 +36,7 @@ export type AssetQuantitiesSpec = {
 const USCustomarySpec: AssetQuantitiesSpec = {
   id: "gpm",
   name: "GPM",
+  description: translate("usCustomaryFlowsExpressed", translateUnit("gal/min")),
   units: {
     diameter: "in",
     length: "ft",
@@ -67,9 +70,10 @@ const USCustomarySpec: AssetQuantitiesSpec = {
   },
 };
 
-const internationalSpec: AssetQuantitiesSpec = {
-  id: "si",
-  name: "SI",
+const lpsSpec: AssetQuantitiesSpec = {
+  id: "lps",
+  name: "LPS",
+  description: translate("siFlowsExpressed", translateUnit("l/s")),
   units: {
     diameter: "mm",
     length: "m",
@@ -105,7 +109,7 @@ const internationalSpec: AssetQuantitiesSpec = {
 
 export type Presets = { [id: AssetQuantitiesSpec["id"]]: AssetQuantitiesSpec };
 export const presets: Presets = {
-  si: internationalSpec,
+  lps: lpsSpec,
   usCustomary: USCustomarySpec,
 };
 

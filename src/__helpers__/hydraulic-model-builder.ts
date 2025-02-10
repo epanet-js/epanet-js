@@ -25,8 +25,8 @@ export const buildPipe = (
   unitsOverride: Partial<UnitsSpec> = {},
 ) => {
   const quantitiesSpec: AssetQuantitiesSpec = {
-    ...presets.si,
-    units: { ...presets.si.units, ...unitsOverride },
+    ...presets.lps,
+    units: { ...presets.lps.units, ...unitsOverride },
   };
   const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(quantities.units, quantities.defaults).buildPipe(
@@ -35,13 +35,13 @@ export const buildPipe = (
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
-  const quantities = new Quantities(presets.si);
+  const quantities = new Quantities(presets.lps);
   return new AssetBuilder(quantities.units, quantities.defaults).buildJunction(
     data,
   );
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
-  const quantities = new Quantities(presets.si);
+  const quantities = new Quantities(presets.lps);
   return new AssetBuilder(quantities.units, quantities.defaults).buildReservoir(
     data,
   );
@@ -53,7 +53,7 @@ export class HydraulicModelBuilder {
   private assetBuilder: AssetBuilder;
   private units: UnitsSpec;
 
-  static with(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
+  static with(quantitiesSpec: AssetQuantitiesSpec = presets.lps) {
     return new HydraulicModelBuilder(quantitiesSpec);
   }
 
@@ -61,7 +61,7 @@ export class HydraulicModelBuilder {
     return HydraulicModelBuilder.with().build();
   }
 
-  constructor(quantitiesSpec: AssetQuantitiesSpec = presets.si) {
+  constructor(quantitiesSpec: AssetQuantitiesSpec = presets.lps) {
     this.assets = new Map();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
