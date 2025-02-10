@@ -23,7 +23,7 @@ import { useSaveInp } from "src/hooks/use-save-inp";
 import { useNewProject } from "src/hooks/use-new-project";
 
 export const Toolbar = () => {
-  const openInp = useOpenInp();
+  const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();
 
@@ -33,7 +33,7 @@ export const Toolbar = () => {
   const setMode = useSetAtom(modeAtom);
 
   const handleOpen = () => {
-    openInp();
+    void openInpFromFs();
   };
 
   const handleUndo = () => {
@@ -49,11 +49,11 @@ export const Toolbar = () => {
   };
 
   const handleSave = () => {
-    saveInp();
+    void saveInp();
   };
 
   const handleSaveAs = () => {
-    saveInp({ isSaveAs: true });
+    void saveInp({ isSaveAs: true });
   };
 
   return (
@@ -65,7 +65,7 @@ export const Toolbar = () => {
         label={translate("newProject")}
         role="button"
         onClick={() => {
-          createNewProject();
+          void createNewProject();
         }}
       >
         <FileIcon />

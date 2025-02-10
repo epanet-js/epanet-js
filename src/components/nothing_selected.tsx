@@ -19,7 +19,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
 
 export const NothingSelected = memo(function NothingSelected() {
-  const openInp = useOpenInp();
+  const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const setDialogState = useSetAtom(dialogAtom);
 
@@ -111,7 +111,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              void openInp();
+              void openInpFromFs();
             }}
           >
             <FilePlusIcon />
