@@ -53,6 +53,7 @@ const USCustomarySpec: AssetQuantitiesSpec = {
     flow: 3,
     pressure: 3,
     velocity: 3,
+    elevation: 1,
   },
   defaults: {
     pipe: {
