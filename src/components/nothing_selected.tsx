@@ -8,7 +8,6 @@ import {
   AspectRatioIcon,
   KeyboardIcon,
   ResetIcon,
-  LayersIcon,
   CircleIcon,
 } from "@radix-ui/react-icons";
 import { useOpenInp } from "src/hooks/use-open-inp";
@@ -16,10 +15,14 @@ import { memo } from "react";
 import { Button } from "./elements";
 import { localizeKeybinding, translate } from "src/infra/i18n";
 import { useSaveInp } from "src/hooks/use-save-inp";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog_state";
 
 export const NothingSelected = memo(function NothingSelected() {
   const openInp = useOpenInp();
   const saveInp = useSaveInp();
+  const setDialogState = useSetAtom(dialogAtom);
+
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
       <div className="text-sm font-semibold pb-2">
@@ -82,13 +85,13 @@ export const NothingSelected = memo(function NothingSelected() {
         <div className="pt-1">
           <KeyboardIcon />
         </div>
-        <div>
-          {translate(
-            "onboardingShortcuts",
-            localizeKeybinding("2"),
-            localizeKeybinding("Shift+Enter"),
-          )}
-        </div>
+        <a
+          href="#"
+          className="!text-purple-800 hover:underline cursor:pointer"
+          onClick={() => setDialogState({ type: "cheatsheet" })}
+        >
+          {translate("shortcuts")}
+        </a>
         <div className="pt-1">
           <ResetIcon />
         </div>
@@ -99,10 +102,6 @@ export const NothingSelected = memo(function NothingSelected() {
             localizeKeybinding("ctrl+y"),
           )}
         </div>
-        <div className="pt-1">
-          <LayersIcon />
-        </div>
-        <div>{translate("onboardingBasemaps")}</div>
       </div>
       <div className="pt-4 space-y-3">
         <div className="text-sm font-semibold pb-2">

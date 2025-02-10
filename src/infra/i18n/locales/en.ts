@@ -78,6 +78,7 @@ export const translations = {
   unsavedChangesQuestion:
     "Do you want to save the changes made to the current project?",
   discardChanges: "Discard changes",
+  shortcuts: "Shortcuts",
   onboardingSelectDrawing: "Select a drawing tool from the menu${1}",
   onboardingDrawReservoir: "Click anywhere to place a reservoir.",
   onboardingDrawJunctions: "Click to place junctions.",
@@ -95,10 +96,7 @@ export const translations = {
   onboardingAnalysis:
     "Switch to the Analysis tab to add visualizations of hydraulic results.",
   onboardingOtherFeatures: "Other helpful features",
-  onboardingShortcuts:
-    "Most actions have keyboard shortcuts (e.g., press ${1} to draw pipes, ${2} to quickly run a simulation).",
   onboardingUndoRedo: "Undo or redo with ${1} and ${2}.",
-  onboardingBasemaps: "Change basemaps by clicking the Layers button.",
   onboardingFiles: "Working with files",
   onboardingMoveNode: "Drag the node to change its position.",
   onboardingAutomaticCalculations:
