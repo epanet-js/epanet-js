@@ -94,7 +94,7 @@ export function Hints() {
           return (
             <Hint
               hintId={"EMPTY_STATE"}
-              text={translate("onboardingSelectDrawing")}
+              text={translate("onboardingSelectDrawing", ".")}
             />
           );
         } else {
@@ -141,11 +141,10 @@ export function Hints() {
           <Hint
             hintId="DRAW_PIPE"
             text={translate("onboardingDrawPipe")}
-            secondaryText={
-              translate("onboardingCtrlPipe", localizeKeybinding("ctrl")) +
-              " " +
-              translate("onboardingAutomaticCalculations")
-            }
+            secondaryText={translate(
+              "onboardingCtrlPipe",
+              localizeKeybinding("ctrl"),
+            )}
           />
         );
 

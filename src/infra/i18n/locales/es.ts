@@ -85,10 +85,10 @@ export const translations: Translations = {
     "Haz clic en cualquier lugar para colocar un embalse.",
   onboardingDrawJunctions: "Haz clic para colocar nudos.",
   onboardingStartPipe:
-    "Haz clic en un nodo existente o donde quieras crear uno nudo nuevo.",
+    "Haz clic en un nodo existente para dibujar una tubería o en cualquier lugar para comenzar con un nudo nuevo.",
   onboardingStartPipeEmpty: "Haz clic donde quieras empezar una tubería.",
   onboardingDrawPipe:
-    "Define los vértices haciendo clic, haz un solo clic en un nudo existente para finalizar o haz doble clic para crear uno nuevo.",
+    "Haz clic para definir los vértices. Termina en un nodo o haz doble clic para añadir un nudo nuevo.",
   onboardingCtrlPipe:
     "Mantén ${1} y haz clic para finalizar aquí y empezar una nueva tubería.",
   onboardingSelectAsset:
