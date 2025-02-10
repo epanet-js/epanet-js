@@ -13,7 +13,7 @@ export const useOpenInp = () => {
     return import("browser-fs-access");
   });
 
-  const openInp = useCallback(async () => {
+  const selectAndOpenInp = useCallback(async () => {
     if (!fsAccess) throw new Error("Sorry, still loading");
     try {
       const file = await fsAccess.fileOpen({
@@ -31,11 +31,16 @@ export const useOpenInp = () => {
     }
   }, [fsAccess, setDialogState]);
 
-  return useCallback(() => {
+  const openInpFromFs = useCallback(() => {
     if (hasUnsavedChanges) {
-      return setDialogState({ type: "unsavedChanges", onContinue: openInp });
+      return setDialogState({
+        type: "unsavedChanges",
+        onContinue: selectAndOpenInp,
+      });
     }
 
-    void openInp();
-  }, [openInp, setDialogState, hasUnsavedChanges]);
+    void selectAndOpenInp();
+  }, [selectAndOpenInp, setDialogState, hasUnsavedChanges]);
+
+  return { openInpFromFs };
 };
