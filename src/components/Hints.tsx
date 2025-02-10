@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import {
   dataAtom,
+  dialogAtom,
   ephemeralStateAtom,
   hideHintsAtom,
   selectionAtom,
@@ -70,11 +71,12 @@ export function Hints() {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
+  const dialogState = useAtomValue(dialogAtom);
   const analysis = useAtomValue(analysisAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
 
-  if (!show) {
+  if (!show || !!dialogState) {
     return null;
   }
 
