@@ -31,6 +31,7 @@ export type DialogState =
       type: "cheatsheet";
     }
   | UnsavedChangesDialogState
+  | { type: "createNew" }
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

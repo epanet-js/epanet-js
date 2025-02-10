@@ -23,6 +23,12 @@ const OpenInpDialog = dynamic<{
   },
 );
 
+const CreateNewDialog = dynamic<{
+  onClose: () => void;
+}>(() => import("src/components/dialogs/CreateNew").then((r) => r.CreateNew), {
+  loading: () => <Loading />,
+});
+
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -72,6 +78,7 @@ export const Dialogs = memo(function Dialogs() {
       <OpenInpDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
+    .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
     .exhaustive();
 
   return (
