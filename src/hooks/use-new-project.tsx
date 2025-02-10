@@ -6,9 +6,9 @@ export const useNewProject = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
 
-  const createNew = () => {
+  const createNew = useCallback(() => {
     setDialogState({ type: "createNew" });
-  };
+  }, [setDialogState]);
 
   return useCallback(
     ({ needsConfirm = true } = {}) => {
@@ -21,6 +21,6 @@ export const useNewProject = () => {
 
       createNew();
     },
-    [setDialogState, hasUnsavedChanges],
+    [setDialogState, hasUnsavedChanges, createNew],
   );
 };
