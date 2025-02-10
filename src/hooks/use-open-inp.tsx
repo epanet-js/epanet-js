@@ -58,6 +58,10 @@ export const useOpenInp = () => {
         return;
       }
 
+      if (inps.length > 1) {
+        toast(translate("onlyOneInp"), { icon: "⚠️" });
+      }
+
       const files = groupFiles([inps[0]]);
       setDialogState({
         type: "openInp",
