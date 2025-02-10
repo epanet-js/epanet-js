@@ -10,6 +10,7 @@ export const translations = {
   hintPipeDrawEnd: "End a pipe by double-clicking or hitting Enter.",
   keyboardShortcuts: "Keyboard shortcuts",
   help: "Help",
+  helpCenter: "Help center",
   exit: "Exit",
   clearSelection: "Clear selection",
   selectAll: "Select all",

@@ -27,7 +27,7 @@ export function CheatsheetDialog() {
         titleIcon={KeyboardIcon}
       />
       <div
-        className="grid gap-x-3 gap-y-2"
+        className="grid gap-x-3 gap-y-2 pb-1"
         style={{
           gridTemplateColumns: "min-content 1fr",
         }}

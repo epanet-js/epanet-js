@@ -2,10 +2,9 @@ import Link from "next/link";
 import React, { memo } from "react";
 import { FileInfo } from "src/components/file_info";
 import {
-  EnvelopeClosedIcon,
   GitHubLogoIcon,
   KeyboardIcon,
-  ReaderIcon,
+  QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
 import { MemoryInfo } from "src/components/map_info/memory_info";
 import { usePersistence } from "src/lib/persistence/context";
@@ -15,6 +14,7 @@ import { dialogAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
+import { translate } from "src/infra/i18n";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -91,30 +91,21 @@ export function HelpDot() {
   return (
     <DD.Root>
       <DD.Trigger asChild>
-        <Button variant="quiet">Help</Button>
+        <Button variant="quiet">{translate("help")}</Button>
       </DD.Trigger>
       <DDContent>
+        <a href="https://help.epanetjs.com" target="_blank">
+          <StyledItem>
+            <QuestionMarkCircledIcon /> {translate("helpCenter")}
+          </StyledItem>
+        </a>
         <StyledItem
           onSelect={() => {
             setDialogState({ type: "cheatsheet" });
           }}
         >
           <KeyboardIcon />
-          Keyboard shorcuts
-        </StyledItem>
-        <StyledItem
-          onSelect={() => {
-            window.open("https://www.placemark.io/documentation-index");
-          }}
-        >
-          <ReaderIcon /> Documentation
-        </StyledItem>
-        <StyledItem
-          onSelect={() => {
-            window.open("https://confirmsubscription.com/h/y/13501B63095BB913");
-          }}
-        >
-          <EnvelopeClosedIcon /> Sign up for updates
+          {translate("keyboardShortcuts")}
         </StyledItem>
       </DDContent>
     </DD.Root>
