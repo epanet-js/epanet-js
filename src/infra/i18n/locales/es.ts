@@ -116,6 +116,7 @@ export const translations: Translations = {
   siFlowsExpressed: "Sistema de Medición Internacional con flujos en ${1}",
   newProject: "Nuevo proyecto",
   create: "Crear",
+  dropInp: "Arrastra y suelta un archivo .INP aquí para abrir el modelo.",
 };
 
 export const units: UnitsLocale = {
