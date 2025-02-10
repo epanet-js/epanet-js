@@ -80,6 +80,7 @@ export const translations: Translations = {
   unsavedChangesQuestion:
     "¿Quieres guardar los cambios realizados en el proyecto actual?",
   discardChanges: "Descartar cambios",
+  shortcuts: "Atajos de teclado",
   onboardingSelectDrawing: "Selecciona una herramienta de dibujo del menú.",
   onboardingDrawReservoir:
     "Haz clic en cualquier lugar para colocar un embalse.",
@@ -100,10 +101,7 @@ export const translations: Translations = {
   onboardingAnalysis:
     "Cambia a la pestaña de Análisis para visualizar los resultados hidráulicos.",
   onboardingOtherFeatures: "Otras funciones útiles",
-  onboardingShortcuts:
-    "La mayoría de las acciones tienen atajos de teclado (por ejemplo, presiona ${1} para dibujar tuberías, ${2} para ejecutar rápidamente una simulación).",
   onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
-  onboardingBasemaps: "Cambia los mapas base haciendo clic en el botón Capas.",
   onboardingFiles: "Manejo de ficheros",
   onboardingMoveNode: "Arrastra el nodo para cambiar su posición.",
   onboardingAutomaticCalculations:
