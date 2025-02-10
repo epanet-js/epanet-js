@@ -112,6 +112,8 @@ export const translations = {
   create: "Create",
   dropInp: "Drop an .INP file here to open the model.",
   inpMissing: "Invalid file type. Use an .INP file.",
+  onlyOneInp:
+    "Only one INP file is allowed at a time. The first one will be used.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
