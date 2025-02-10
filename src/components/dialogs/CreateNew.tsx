@@ -61,7 +61,7 @@ const UnitsSystemSelector = () => {
         as="select"
         name="unitsSpec"
         aria-label={translate("unitsSystem")}
-        className={styledSelect({ size: "md" }) + "w-full"}
+        className={styledSelect({ size: "sm" }) + "w-full"}
       >
         {Object.keys(presets).map((presetId: AssetQuantitiesSpec["id"]) => (
           <option key={presetId} value={presetId}>
