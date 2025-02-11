@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom, hasUnsavedChangesAtom } from "src/state/jotai";
-import { groupFiles } from "src/lib/group_files";
 import { useQuery } from "react-query";
 import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
@@ -26,10 +25,9 @@ export const useOpenInp = () => {
         extensions: [inpExtension],
         description: ".INP",
       });
-      const files = groupFiles([file]);
       setDialogState({
         type: "openInp",
-        files,
+        file: file,
       });
     } catch (error) {
       captureError(error as Error);
@@ -62,10 +60,9 @@ export const useOpenInp = () => {
         toast(translate("onlyOneInp"), { icon: "⚠️" });
       }
 
-      const files = groupFiles([inps[0]]);
       setDialogState({
         type: "openInp",
-        files,
+        file: inps[0],
       });
     },
     [setDialogState],

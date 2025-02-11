@@ -17,7 +17,6 @@ import { UIDMap } from "src/lib/id_mapper";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { OpenInpDialog } from "./OpenInp";
-import { groupFiles } from "src/lib/group_files";
 import { Dialog } from "@radix-ui/react-dialog";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
@@ -123,7 +122,7 @@ describe("OpenInpDialog", () => {
     const idMap = UIDMap.empty();
     const modalState: OpenInpDialogState = {
       type: "openInp",
-      files: groupFiles([file]),
+      file: file,
     };
     render(
       <JotaiProvider store={store}>
