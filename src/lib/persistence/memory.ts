@@ -42,6 +42,7 @@ import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -61,21 +62,39 @@ export class MemPersistence implements IPersistence {
       this.idMap = UIDMap.empty();
 
       const momentLog = new MomentLog();
-      const moment = {
-        note: `Import ${name}`,
-        putAssets: [...hydraulicModel.assets.values()],
-      };
-      trackMoment(moment);
-      const forwardMoment = {
-        ...EMPTY_MOMENT,
-        note: moment.note,
-        deleteFeatures: [],
-        putFeatures: moment.putAssets,
-      };
-      const newStateId = nanoid();
+      if (isFeatureOn("FLAG_ONLY_CHANGES")) {
+        const moment = {
+          note: `Import ${name}`,
+          putAssets: [...hydraulicModel.assets.values()],
+        };
+        trackMoment(moment);
+        const forwardMoment = {
+          ...EMPTY_MOMENT,
+          note: moment.note,
+          deleteFeatures: [],
+          putFeatures: moment.putAssets,
+        };
+        moment.putAssets.forEach((asset) => {
+          UIDMap.pushUUID(this.idMap, asset.id);
+        });
+        momentLog.setSnapshot(forwardMoment);
+      } else {
+        const moment = {
+          note: `Import ${name}`,
+          putAssets: [...hydraulicModel.assets.values()],
+        };
+        trackMoment(moment);
+        const forwardMoment = {
+          ...EMPTY_MOMENT,
+          note: moment.note,
+          deleteFeatures: [],
+          putFeatures: moment.putAssets,
+        };
+        const newStateId = nanoid();
 
-      const reverseMoment = this.apply(newStateId, forwardMoment);
-      momentLog.append(forwardMoment, reverseMoment, newStateId);
+        const reverseMoment = this.apply(newStateId, forwardMoment);
+        momentLog.append(forwardMoment, reverseMoment, newStateId);
+      }
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),

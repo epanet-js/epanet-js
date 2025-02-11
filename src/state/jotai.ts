@@ -129,9 +129,17 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const momentLog = get(momentLogAtom);
   const { hydraulicModel } = get(dataAtom);
 
-  if (momentLog.currentIsImportOrNull) return false;
+  if (isFeatureOn("FLAG_ONLY_CHANGES")) {
+    if (fileInfo) {
+      return fileInfo.modelVersion !== hydraulicModel.version;
+    }
 
-  return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
+    return momentLog.fetchAllDeltas().length > 0;
+  } else {
+    if (momentLog.currentIsImportOrNull) return false;
+
+    return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
+  }
 });
 
 /**
