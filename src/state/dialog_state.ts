@@ -1,3 +1,4 @@
+import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import type { FileGroups } from "src/lib/group_files";
 
@@ -12,7 +13,7 @@ export type DialogStateImport = {
 
 export type OpenInpDialogState = {
   type: "openInp";
-  files: FileGroups;
+  file: FileWithHandle;
 };
 
 export type DialogStateExamples = {

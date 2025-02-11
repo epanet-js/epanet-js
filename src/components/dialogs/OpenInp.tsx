@@ -6,7 +6,6 @@ import { FeatureCollection } from "src/types";
 import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { translate } from "src/infra/i18n";
-import { FileGroup } from "src/lib/group_files";
 import { OpenInpDialogState } from "src/state/dialog_state";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
@@ -27,7 +26,7 @@ export function OpenInpDialog({
   modal: OpenInpDialogState;
   onClose: () => void;
 }) {
-  const { files } = modal;
+  const { file } = modal;
   const map = useContext(MapContext);
 
   const [isLoading] = useState(true);
@@ -36,11 +35,8 @@ export function OpenInpDialog({
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
 
-  const fileGroup = files[0] as FileGroup;
-
   const importInp = useCallback(async () => {
     try {
-      const file = fileGroup.file;
       if (!file.name.toLowerCase().endsWith(".inp")) {
         setError(true);
         return;
@@ -50,6 +46,7 @@ export function OpenInpDialog({
       const content = new TextDecoder().decode(arrayBuffer);
       const { hydraulicModel, modelMetadata } = parseInp(content);
       transactImport(hydraulicModel, modelMetadata, file.name);
+
       const features: FeatureCollection = {
         type: "FeatureCollection",
         features: [...hydraulicModel.assets.values()].map((a) => a.feature),
@@ -63,6 +60,7 @@ export function OpenInpDialog({
       });
       setFileInfo({
         name: file.name,
+        handle: file.handle,
         modelVersion: hydraulicModel.version,
         options: { type: "inp", folderId: "" },
       });
@@ -70,7 +68,7 @@ export function OpenInpDialog({
     } catch (error) {
       setError(true);
     }
-  }, [fileGroup.file, map?.map, onClose, transactImport, setFileInfo]);
+  }, [file, map?.map, onClose, transactImport, setFileInfo]);
 
   useEffect(
     function onRender() {
@@ -89,7 +87,7 @@ export function OpenInpDialog({
         />
         <div className="text-sm">
           <p>
-            {translate("failedToProcessFile")}: {fileGroup.file.name}
+            {translate("failedToProcessFile")}: {file.name}
           </p>
         </div>
         <AckDialogAction label={translate("understood")} onAck={onClose} />
