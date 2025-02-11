@@ -1,25 +1,36 @@
 import { nanoid } from "nanoid";
 import { Moment } from "./moment";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const generateStateId = () => nanoid();
-export const initId = nanoid();
+export const initId = isFeatureOn("FLAG_ONLY_CHANGES") ? "0" : nanoid();
 
 type Action = { stateId: string; forward: Moment; reverse: Moment };
 
 export class MomentLog {
-  protected history: Action[];
+  protected deltas: Action[];
   protected pointer: number;
   readonly id: string;
+  private snapshot: Moment | null;
 
   constructor(id: string = nanoid()) {
     this.id = id;
-    this.history = [];
+    this.deltas = [];
     this.pointer = -1;
+    this.snapshot = null;
+  }
+
+  setSnapshot(initialMoment: Moment) {
+    this.snapshot = initialMoment;
+  }
+
+  getSnapshot() {
+    return this.snapshot;
   }
 
   copy() {
     const newInstance = new MomentLog(this.id);
-    newInstance.history = this.history;
+    newInstance.deltas = this.deltas;
     newInstance.pointer = this.pointer;
     return newInstance;
   }
@@ -28,7 +39,7 @@ export class MomentLog {
     if (this.pointer === -1) return true;
     if (this.pointer > 0) return false;
 
-    const moment = this.history[0];
+    const moment = this.deltas[0];
     if ((moment.forward.note || "").includes("Import")) return true;
 
     return false;
@@ -40,11 +51,11 @@ export class MomentLog {
     stateId: string = generateStateId(),
   ) {
     const newPointer = this.pointer + 1;
-    if (this.history.length >= newPointer) {
-      this.history.splice(newPointer);
+    if (this.deltas.length >= newPointer) {
+      this.deltas.splice(newPointer);
     }
 
-    this.history.push({ stateId, forward, reverse });
+    this.deltas.push({ stateId, forward, reverse });
     this.pointer = newPointer;
   }
 
@@ -55,25 +66,25 @@ export class MomentLog {
   }
 
   redo() {
-    if (this.pointer >= this.history.length - 1) return;
+    if (this.pointer >= this.deltas.length - 1) return;
 
     this.pointer++;
   }
 
   nextUndo(): { moment: Moment; stateId: string } | null {
-    const action = this.history[this.pointer];
+    const action = this.deltas[this.pointer];
     if (!action) return null;
 
     return {
       moment: action.reverse,
-      stateId: this.history[this.pointer - 1]
-        ? this.history[this.pointer - 1].stateId
+      stateId: this.deltas[this.pointer - 1]
+        ? this.deltas[this.pointer - 1].stateId
         : initId,
     };
   }
 
   nextRedo(): { stateId: string; moment: Moment } | null {
-    const action = this.history[this.pointer + 1];
+    const action = this.deltas[this.pointer + 1];
     if (!action) return null;
 
     return {
@@ -83,7 +94,7 @@ export class MomentLog {
   }
 
   last(): Moment | null {
-    const action = this.history[this.pointer];
+    const action = this.deltas[this.pointer];
     if (!action) return null;
 
     return action.forward;
@@ -97,7 +108,7 @@ export class MomentLog {
     const result = [];
     let i = 0;
     while (i <= pointer && i <= this.pointer) {
-      result.push(this.history[i].forward);
+      result.push(this.deltas[i].forward);
       i++;
     }
     return result;
@@ -107,23 +118,23 @@ export class MomentLog {
     const result = [];
     let i = pointer + 1;
     while (i <= this.pointer) {
-      result.push(this.history[i].forward);
+      result.push(this.deltas[i].forward);
       i++;
     }
     return result;
   }
 
-  fetchAll(): Moment[] {
+  fetchAllDeltas(): Moment[] {
     const result = [];
     for (let i = 0; i <= this.pointer; i++) {
-      result.push(this.history[i].forward);
+      result.push(this.deltas[i].forward);
     }
     return result;
   }
 
   searchLast(conditionFn: (moment: Moment) => boolean): number | null {
     for (let i = this.pointer; i >= 0; i--) {
-      if (conditionFn(this.history[i].forward) === true) {
+      if (conditionFn(this.deltas[i].forward) === true) {
         return i;
       }
     }
@@ -131,7 +142,7 @@ export class MomentLog {
   }
 
   *[Symbol.iterator]() {
-    for (const [position, action] of this.history.entries()) {
+    for (const [position, action] of this.deltas.entries()) {
       const offset = this.pointer - Number(position);
       yield { moment: action.forward, position, offset };
     }
