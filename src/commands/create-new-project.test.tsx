@@ -5,7 +5,6 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { Dialogs } from "src/components/dialogs";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { useNewProject } from "src/hooks/use-new-project";
 import userEvent from "@testing-library/user-event";
 import {
   FileInfo,
@@ -22,6 +21,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { UIDMap } from "src/lib/id_mapper";
 import { fMoment } from "../lib/persistence/moment";
+import { useNewProject } from "./create-new-project";
 
 const aMoment = (name: string) => {
   return fMoment(name);
