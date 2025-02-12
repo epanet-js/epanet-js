@@ -64,14 +64,36 @@ describe("create new project", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
+    expect(hydraulicModel.units.flow).toEqual("l/s");
 
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);
   });
 
+  it("preseves state when canceled", async () => {
+    const momentLogWithChanges = new MomentLog();
+    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
+      momentLog: momentLogWithChanges,
+    });
+    renderComponent({ store });
+
+    await triggerNew();
+
+    await userEvent.click(screen.getByRole("button", { name: /discard/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.assets.get("J1")).not.toBeUndefined();
+  });
+
   const triggerNew = async () => {
     await userEvent.click(screen.getByRole("button", { name: "createNew" }));
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
