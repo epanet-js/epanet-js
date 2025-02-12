@@ -10,13 +10,13 @@ import {
   ResetIcon,
   CircleIcon,
 } from "@radix-ui/react-icons";
-import { useOpenInp } from "src/hooks/use-open-inp";
 import { memo } from "react";
 import { Button } from "./elements";
 import { localizeKeybinding, translate } from "src/infra/i18n";
 import { useSaveInp } from "src/hooks/use-save-inp";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
+import { useOpenInp } from "src/commands/open-inp";
 
 export const NothingSelected = memo(function NothingSelected() {
   const { openInpFromFs } = useOpenInp();

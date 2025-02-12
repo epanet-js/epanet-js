@@ -20,8 +20,8 @@ export const UnsavedChangesDialog = ({
   };
 
   const handleDiscardChanges = () => {
-    onContinue();
     onClose();
+    onContinue();
   };
 
   return (

@@ -4,7 +4,7 @@ import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
-import { useOpenInp } from "src/hooks/use-open-inp";
+import { useOpenInp } from "src/commands/open-inp";
 
 /**
  * From an event, get files, with handles for re-saving.
