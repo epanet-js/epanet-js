@@ -1,9 +1,8 @@
 import { nanoid } from "nanoid";
 import { Moment } from "./moment";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const generateStateId = () => nanoid();
-export const initId = isFeatureOn("FLAG_ONLY_CHANGES") ? "0" : nanoid();
+export const initId = "0";
 
 type Action = { stateId: string; forward: Moment; reverse: Moment };
 

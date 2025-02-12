@@ -23,7 +23,6 @@ import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-sta
 import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
@@ -124,17 +123,11 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const momentLog = get(momentLogAtom);
   const { hydraulicModel } = get(dataAtom);
 
-  if (isFeatureOn("FLAG_ONLY_CHANGES")) {
-    if (fileInfo) {
-      return fileInfo.modelVersion !== hydraulicModel.version;
-    }
-
-    return momentLog.fetchAllDeltas().length > 0;
-  } else {
-    if (momentLog.currentIsImportOrNull) return false;
-
-    return !fileInfo || fileInfo.modelVersion !== hydraulicModel.version;
+  if (fileInfo) {
+    return fileInfo.modelVersion !== hydraulicModel.version;
   }
+
+  return momentLog.fetchAllDeltas().length > 0;
 });
 
 /**
