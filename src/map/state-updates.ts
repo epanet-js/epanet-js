@@ -56,7 +56,7 @@ type StylesConfig = {
 
 type MapState = {
   momentLogId: string;
-  lastChangePointer: number;
+  momentLogPointer: number;
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
@@ -68,7 +68,7 @@ type MapState = {
 
 const nullMapState: MapState = {
   momentLogId: "",
-  lastChangePointer: 0,
+  momentLogPointer: -1,
   stylesConfig: {
     symbolization: SYMBOLIZATION_NONE,
     previewProperty: null,
@@ -93,17 +93,8 @@ const stylesConfigAtom = atom<StylesConfig>((get) => {
   };
 });
 
-const momentLogPointersAtom = atom((get) => {
-  const momentLog = get(momentLogAtom);
-  const lastChangePointer = momentLog.getPointer();
-  return {
-    momentLogId: momentLog.id,
-    lastChangePointer,
-  };
-});
-
 const mapStateAtom = atom<MapState>((get) => {
-  const { momentLogId, lastChangePointer } = get(momentLogPointersAtom);
+  const momentLog = get(momentLogAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
@@ -114,8 +105,8 @@ const mapStateAtom = atom<MapState>((get) => {
   const movedAssetIds = getMovedAssets(ephemeralState);
 
   return {
-    momentLogId,
-    lastChangePointer,
+    momentLogId: momentLog.id,
+    momentLogPointer: momentLog.getPointer(),
     stylesConfig,
     selection,
     ephemeralState,
@@ -140,7 +131,7 @@ const detectChanges = (
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
-    hasNewEditions: state.lastChangePointer !== prev.lastChangePointer,
+    hasNewEditions: state.momentLogPointer !== prev.momentLogPointer,
     hasNewStyles: state.stylesConfig !== prev.stylesConfig,
     hasNewSelection: state.selection !== prev.selection,
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
