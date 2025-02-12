@@ -15,7 +15,7 @@ export const UnsavedChangesDialog = ({
   const saveInp = useSaveInp();
 
   const handleSaveAndContinue = async () => {
-    const isSaved = await saveInp({ isSaveAs: true });
+    const isSaved = await saveInp();
     if (isSaved) onContinue();
   };
 
