@@ -36,7 +36,6 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const isImportMoment = (moment: Moment) => {
   return !!moment.note && moment.note.startsWith("Import");
@@ -309,51 +308,23 @@ const updateImportSource = withInstrumentation(
     idMap: IDMap,
     analysisState: AnalysisState,
   ) => {
-    if (isFeatureOn("FLAG_ONLY_CHANGES")) {
-      const importMoment = momentLog.getSnapshot();
-      if (!importMoment) {
-        await map.setSource("imported-features", []);
-        return;
-      }
-
-      const importedAssets = new AssetsMap();
-      for (const asset of importMoment.putFeatures as Asset[]) {
-        importedAssets.set(asset.id, asset);
-      }
-
-      const features = buildOptimizedAssetsSource(
-        importedAssets,
-        idMap,
-        analysisState,
-      );
-      await map.setSource("imported-features", features);
-    } else {
-      const importMoments =
-        latestImportPointer === null
-          ? []
-          : momentLog.fetchUpToAndIncluding(latestImportPointer);
-
-      if (importMoments.length === 0) {
-        await map.setSource("imported-features", []);
-        return;
-      }
-
-      if (importMoments.length > 1) {
-        throw new Error("Multiple import moments not supported");
-      }
-      const importMoment = importMoments[0];
-      const importedAssets = new AssetsMap();
-      for (const asset of importMoment.putFeatures as Asset[]) {
-        importedAssets.set(asset.id, asset);
-      }
-
-      const features = buildOptimizedAssetsSource(
-        importedAssets,
-        idMap,
-        analysisState,
-      );
-      await map.setSource("imported-features", features);
+    const importMoment = momentLog.getSnapshot();
+    if (!importMoment) {
+      await map.setSource("imported-features", []);
+      return;
     }
+
+    const importedAssets = new AssetsMap();
+    for (const asset of importMoment.putFeatures as Asset[]) {
+      importedAssets.set(asset.id, asset);
+    }
+
+    const features = buildOptimizedAssetsSource(
+      importedAssets,
+      idMap,
+      analysisState,
+    );
+    await map.setSource("imported-features", features);
   },
   {
     name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
@@ -374,14 +345,7 @@ const updateEditionsSource = withInstrumentation(
   ): Promise<Set<AssetId>> => {
     let editionMoments: Moment[];
 
-    if (isFeatureOn("FLAG_ONLY_CHANGES")) {
-      editionMoments = momentLog.fetchAllDeltas();
-    } else {
-      editionMoments =
-        latestImportPointer === null
-          ? momentLog.fetchAllDeltas()
-          : momentLog.fetchAfter(latestImportPointer);
-    }
+    editionMoments = momentLog.fetchAllDeltas();
 
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(assets, editionAssetIds);
