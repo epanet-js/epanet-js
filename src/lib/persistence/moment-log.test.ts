@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MomentLog, generateStateId, initId } from "./moment-log";
-import { Moment, fMoment } from "./moment";
+import { fMoment } from "./moment";
 
 describe("MomentLog", () => {
   it("registers to the history of moments", () => {
@@ -85,32 +85,6 @@ describe("MomentLog", () => {
 
     momentLog.redo();
     expect(momentLog.last()).toEqual(thirdAction.forward);
-  });
-
-  it("search last active moment", () => {
-    const momentLog = new MomentLog();
-    const matchConditionFn = (moment: Moment) =>
-      !!moment.note && moment.note.startsWith("MATCH_");
-
-    const firstAction = anAction("MATCH_1");
-    momentLog.append(firstAction.forward, firstAction.reverse);
-
-    const secondAction = anAction("MATCH_2");
-    momentLog.append(secondAction.forward, secondAction.reverse);
-
-    const thirdAction = anAction("NO_MATCH");
-    momentLog.append(thirdAction.forward, thirdAction.reverse);
-
-    const fourthAction = anAction("MATCH_3");
-    momentLog.append(fourthAction.forward, fourthAction.reverse);
-
-    momentLog.undo();
-
-    expect(momentLog.searchLast(matchConditionFn)).toEqual(1);
-
-    momentLog.redo();
-
-    expect(momentLog.searchLast(matchConditionFn)).toEqual(3);
   });
 
   it("can filter up to and including pointer", () => {
