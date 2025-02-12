@@ -285,14 +285,15 @@ const updateImportSource = withInstrumentation(
     idMap: IDMap,
     analysisState: AnalysisState,
   ) => {
-    const importMoment = momentLog.getSnapshot();
-    if (!importMoment) {
+    const importSnapshot = momentLog.getSnapshot();
+    if (!importSnapshot) {
       await map.setSource("imported-features", []);
       return;
     }
 
     const importedAssets = new AssetsMap();
-    for (const asset of importMoment.putFeatures as Asset[]) {
+    const { moment } = importSnapshot;
+    for (const asset of moment.putFeatures as Asset[]) {
       importedAssets.set(asset.id, asset);
     }
 

@@ -75,7 +75,7 @@ export class MemPersistence implements IPersistence {
       moment.putAssets.forEach((asset) => {
         UIDMap.pushUUID(this.idMap, asset.id);
       });
-      momentLog.setSnapshot(forwardMoment);
+      momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),

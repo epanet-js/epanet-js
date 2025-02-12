@@ -2,6 +2,7 @@ import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { AssetBuilder, DefaultQuantities } from "./asset-builder";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { nanoid } from "nanoid";
 
 export type HydraulicModel = {
   version: string;
@@ -21,7 +22,7 @@ export const initializeHydraulicModel = ({
   defaults: DefaultQuantities;
 }) => {
   return {
-    version: "0",
+    version: nanoid(),
     assets: new Map(),
     assetBuilder: new AssetBuilder(units, defaults),
     topology: new Topology(),
