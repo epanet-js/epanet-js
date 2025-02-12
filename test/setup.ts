@@ -189,6 +189,17 @@ if (
 
   global.ResizeObserver = resizeObserverMock;
 
+  window.Blob.prototype.text = function () {
+    const reader = new FileReader();
+
+    return new Promise((resolve) => {
+      reader.addEventListener("load", () => {
+        resolve(reader.result as string);
+      });
+      reader.readAsText(this);
+    });
+  };
+
   window.File.prototype.text = function () {
     const reader = new FileReader();
 
