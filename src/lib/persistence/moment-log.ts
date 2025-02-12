@@ -35,16 +35,6 @@ export class MomentLog {
     return newInstance;
   }
 
-  get currentIsImportOrNull() {
-    if (this.pointer === -1) return true;
-    if (this.pointer > 0) return false;
-
-    const moment = this.deltas[0];
-    if ((moment.forward.note || "").includes("Import")) return true;
-
-    return false;
-  }
-
   append(
     forward: Moment,
     reverse: Moment,
@@ -102,26 +92,6 @@ export class MomentLog {
 
   getPointer(): Readonly<number> {
     return this.pointer;
-  }
-
-  fetchUpToAndIncluding(pointer: number): Moment[] {
-    const result = [];
-    let i = 0;
-    while (i <= pointer && i <= this.pointer) {
-      result.push(this.deltas[i].forward);
-      i++;
-    }
-    return result;
-  }
-
-  fetchAfter(pointer: number): Moment[] {
-    const result = [];
-    let i = pointer + 1;
-    while (i <= this.pointer) {
-      result.push(this.deltas[i].forward);
-      i++;
-    }
-    return result;
   }
 
   fetchAllDeltas(): Moment[] {
