@@ -1,0 +1,126 @@
+import { QueryClient, QueryClientProvider } from "react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import { Provider as JotaiProvider, createStore } from "jotai";
+import { PersistenceContext } from "src/lib/persistence/context";
+import { MemPersistence } from "src/lib/persistence/memory";
+import { Dialogs } from "src/components/dialogs";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { useNewProject } from "src/hooks/use-new-project";
+import userEvent from "@testing-library/user-event";
+import {
+  Sel,
+  SimulationState,
+  Store,
+  dataAtom,
+  momentLogAtom,
+  nullData,
+  simulationAtom,
+} from "src/state/jotai";
+import { HydraulicModel } from "src/hydraulic-model";
+import { MomentLog } from "src/lib/persistence/moment-log";
+import { UIDMap } from "src/lib/id_mapper";
+import { fMoment } from "../lib/persistence/moment";
+
+const aMoment = (name: string) => {
+  return fMoment(name);
+};
+
+describe("create new project", () => {
+  it("allows to choose the unit system", async () => {
+    const store = setInitialState({});
+
+    renderComponent({ store });
+
+    await triggerNew();
+
+    await userEvent.click(screen.getByRole("combobox", { name: /units/i }));
+    await userEvent.click(screen.getByRole("option", { name: /GPM/ }));
+
+    await userEvent.click(screen.getByRole("button", { name: /create/i }));
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.units.flow).toEqual("gal/min");
+  });
+
+  it("erases the previous state", async () => {
+    const momentLogWithChanges = new MomentLog();
+    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
+      momentLog: momentLogWithChanges,
+    });
+
+    renderComponent({ store });
+
+    await triggerNew();
+
+    await userEvent.click(screen.getByRole("button", { name: /discard/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole("button", { name: /create/i }));
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.assets.size).toEqual(0);
+
+    const momentLog = store.get(momentLogAtom);
+    expect(momentLog.getDeltas().length).toEqual(0);
+  });
+
+  const triggerNew = async () => {
+    await userEvent.click(screen.getByRole("button", { name: "createNew" }));
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+  };
+
+  const TestableComponent = () => {
+    const createNew = useNewProject();
+
+    return (
+      <button aria-label="createNew" onClick={createNew}>
+        Create new
+      </button>
+    );
+  };
+
+  const renderComponent = ({ store }: { store: Store }) => {
+    const idMap = UIDMap.empty();
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
+            <Dialogs></Dialogs>
+            <TestableComponent />
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>,
+    );
+  };
+
+  const setInitialState = ({
+    store = createStore(),
+    hydraulicModel = HydraulicModelBuilder.with().build(),
+    momentLog = new MomentLog(),
+    simulation = { status: "idle" },
+    selection = { type: "none" },
+  }: {
+    store?: Store;
+    hydraulicModel?: HydraulicModel;
+    momentLog?: MomentLog;
+    simulation?: SimulationState;
+    selection?: Sel;
+  }): Store => {
+    store.set(dataAtom, {
+      ...nullData,
+      selection,
+      hydraulicModel: hydraulicModel,
+    });
+    store.set(momentLogAtom, momentLog);
+    store.set(simulationAtom, simulation);
+    return store;
+  };
+});
