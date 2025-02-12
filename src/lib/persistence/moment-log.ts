@@ -10,7 +10,7 @@ export class MomentLog {
   protected deltas: Action[];
   protected pointer: number;
   readonly id: string;
-  private snapshot: Moment | null;
+  protected snapshot: Moment | null;
 
   constructor(id: string = nanoid()) {
     this.id = id;
@@ -31,6 +31,7 @@ export class MomentLog {
     const newInstance = new MomentLog(this.id);
     newInstance.deltas = this.deltas;
     newInstance.pointer = this.pointer;
+    newInstance.snapshot = this.snapshot;
     return newInstance;
   }
 
