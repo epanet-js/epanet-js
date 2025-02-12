@@ -21,6 +21,7 @@ export const UnsavedChangesDialog = ({
 
   const handleDiscardChanges = () => {
     onContinue();
+    onClose();
   };
 
   return (

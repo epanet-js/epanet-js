@@ -21,6 +21,11 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { Dialogs } from "src/components/dialogs";
+import { fMoment } from "src/lib/persistence/moment";
+
+const aMoment = (name: string) => {
+  return fMoment(name);
+};
 
 vi.mock("browser-fs-access", () => ({
   supported: true,
@@ -135,6 +140,44 @@ describe("open inp", () => {
       expect(simulation.status).toEqual("idle");
 
       expect(selection.type).toEqual("none");
+    });
+
+    it("asks to save changes when opening with previous changes", async () => {
+      const inp = `
+    [JUNCTIONS]
+    J1\t10
+    `;
+      const momentLogWithChanges = new MomentLog();
+      momentLogWithChanges.append(aMoment("A"), aMoment("B"));
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.empty(),
+        momentLog: momentLogWithChanges,
+      });
+      const file = aTestFile({ filename: "my-network.inp", content: inp });
+
+      renderComponent({ store });
+
+      await triggerOpenFromFs();
+
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
+      expect(screen.getByText(/unsaved/i)).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: /discard/i }));
+
+      await waitFor(() =>
+        expect(screen.queryByText(/unsaved/i)).not.toBeInTheDocument(),
+      );
+      await doFileSelection(file);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
+
+      const { hydraulicModel } = store.get(dataAtom);
+      const junction = hydraulicModel.assets.get("J1");
+      expect((junction as Junction).elevation).toEqual(10);
     });
   });
 
