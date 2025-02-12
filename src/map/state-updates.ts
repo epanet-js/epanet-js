@@ -320,7 +320,7 @@ const updateEditionsSource = withInstrumentation(
     idMap: IDMap,
     analysisState: AnalysisState,
   ): Promise<Set<AssetId>> => {
-    const editionMoments = momentLog.fetchAllDeltas();
+    const editionMoments = momentLog.getDeltas();
 
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(assets, editionAssetIds);

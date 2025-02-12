@@ -127,7 +127,7 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
     return fileInfo.modelVersion !== hydraulicModel.version;
   }
 
-  return momentLog.fetchAllDeltas().length > 0;
+  return momentLog.getDeltas().length > 0;
 });
 
 /**
