@@ -37,10 +37,6 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
 
-const isImportMoment = (moment: Moment) => {
-  return !!moment.note && moment.note.startsWith("Import");
-};
-
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -60,7 +56,6 @@ type StylesConfig = {
 
 type MapState = {
   momentLogId: string;
-  lastImportPointer: number | null;
   lastChangePointer: number;
   stylesConfig: StylesConfig;
   selection: Sel;
@@ -73,7 +68,6 @@ type MapState = {
 
 const nullMapState: MapState = {
   momentLogId: "",
-  lastImportPointer: null,
   lastChangePointer: 0,
   stylesConfig: {
     symbolization: SYMBOLIZATION_NONE,
@@ -101,19 +95,15 @@ const stylesConfigAtom = atom<StylesConfig>((get) => {
 
 const momentLogPointersAtom = atom((get) => {
   const momentLog = get(momentLogAtom);
-  const lastImportPointer = momentLog.searchLast(isImportMoment);
   const lastChangePointer = momentLog.getPointer();
   return {
     momentLogId: momentLog.id,
-    lastImportPointer,
     lastChangePointer,
   };
 });
 
 const mapStateAtom = atom<MapState>((get) => {
-  const { momentLogId, lastImportPointer, lastChangePointer } = get(
-    momentLogPointersAtom,
-  );
+  const { momentLogId, lastChangePointer } = get(momentLogPointersAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
@@ -125,7 +115,6 @@ const mapStateAtom = atom<MapState>((get) => {
 
   return {
     momentLogId,
-    lastImportPointer,
     lastChangePointer,
     stylesConfig,
     selection,
@@ -207,7 +196,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       await updateImportSource(
         map,
         momentLog,
-        mapState.lastImportPointer,
         assets,
         idMap,
         mapState.analysis,
@@ -223,7 +211,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const editedAssetIds = await updateEditionsSource(
         map,
         momentLog,
-        mapState.lastImportPointer,
         assets,
         idMap,
         mapState.analysis,
@@ -303,7 +290,6 @@ const updateImportSource = withInstrumentation(
   async (
     map: MapEngine,
     momentLog: MomentLog,
-    latestImportPointer: number | null,
     assets: AssetsMap,
     idMap: IDMap,
     analysisState: AnalysisState,
@@ -338,14 +324,11 @@ const updateEditionsSource = withInstrumentation(
   async (
     map: MapEngine,
     momentLog: MomentLog,
-    latestImportPointer: number | null,
     assets: AssetsMap,
     idMap: IDMap,
     analysisState: AnalysisState,
   ): Promise<Set<AssetId>> => {
-    let editionMoments: Moment[];
-
-    editionMoments = momentLog.fetchAllDeltas();
+    const editionMoments = momentLog.fetchAllDeltas();
 
     const editionAssetIds = getAssetIdsInMoments(editionMoments);
     const editedAssets = filterAssets(assets, editionAssetIds);

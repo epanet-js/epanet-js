@@ -131,15 +131,6 @@ export class MomentLog {
     return result;
   }
 
-  searchLast(conditionFn: (moment: Moment) => boolean): number | null {
-    for (let i = this.pointer; i >= 0; i--) {
-      if (conditionFn(this.deltas[i].forward) === true) {
-        return i;
-      }
-    }
-    return null;
-  }
-
   *[Symbol.iterator]() {
     for (const [position, action] of this.deltas.entries()) {
       const offset = this.pointer - Number(position);
