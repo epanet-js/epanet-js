@@ -32,12 +32,12 @@ export type Store = ReturnType<typeof createStore>;
 // TODO: make this specific
 type MapboxLayer = any;
 
-interface FileInfo {
+export type FileInfo = {
   name: string;
   modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
   options: ExportOptions;
-}
+};
 
 type WalkthroughState =
   | {

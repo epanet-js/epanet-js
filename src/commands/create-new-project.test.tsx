@@ -8,10 +8,12 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { useNewProject } from "src/hooks/use-new-project";
 import userEvent from "@testing-library/user-event";
 import {
+  FileInfo,
   Sel,
   SimulationState,
   Store,
   dataAtom,
+  fileInfoAtom,
   momentLogAtom,
   nullData,
   simulationAtom,
@@ -46,9 +48,16 @@ describe("create new project", () => {
     const momentLogWithChanges = new MomentLog();
     momentLogWithChanges.append(aMoment("A"), aMoment("B"));
 
+    const previousFileInfo: FileInfo = {
+      name: "previous-file",
+      modelVersion: "PREV",
+      options: { type: "inp", folderId: null },
+    };
+
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
       momentLog: momentLogWithChanges,
+      fileInfo: previousFileInfo,
     });
 
     renderComponent({ store });
@@ -68,6 +77,9 @@ describe("create new project", () => {
 
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);
+
+    const fileInfo = store.get(fileInfoAtom);
+    expect(fileInfo).toBeNull();
   });
 
   it("preseves state when canceled", async () => {
@@ -129,12 +141,14 @@ describe("create new project", () => {
     momentLog = new MomentLog(),
     simulation = { status: "idle" },
     selection = { type: "none" },
+    fileInfo = null,
   }: {
     store?: Store;
     hydraulicModel?: HydraulicModel;
     momentLog?: MomentLog;
     simulation?: SimulationState;
     selection?: Sel;
+    fileInfo?: FileInfo | null;
   }): Store => {
     store.set(dataAtom, {
       ...nullData,
@@ -143,6 +157,7 @@ describe("create new project", () => {
     });
     store.set(momentLogAtom, momentLog);
     store.set(simulationAtom, simulation);
+    store.set(fileInfoAtom, fileInfo);
     return store;
   };
 });
