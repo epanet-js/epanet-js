@@ -11,6 +11,8 @@ import { initializeHydraulicModel } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
 import { translate } from "src/infra/i18n";
 import { Selector } from "../form/Selector";
+import { useSetAtom } from "jotai";
+import { fileInfoAtom } from "src/state/jotai";
 
 type SubmitProps = {
   unitsSpec: AssetQuantitiesSpec["id"];
@@ -19,6 +21,7 @@ type SubmitProps = {
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const setFileInfo = useSetAtom(fileInfoAtom);
 
   const handleSumbit = ({ unitsSpec }: SubmitProps) => {
     const quantities = new Quantities(presets[unitsSpec]);
@@ -28,6 +31,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       defaults: quantities.defaults,
     });
     transactImport(hydraulicModel, modelMetadata, "Untitled");
+    setFileInfo(null);
     onClose();
   };
   return (
