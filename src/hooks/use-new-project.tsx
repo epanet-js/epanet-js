@@ -10,17 +10,14 @@ export const useNewProject = () => {
     setDialogState({ type: "createNew" });
   }, [setDialogState]);
 
-  return useCallback(
-    ({ needsConfirm = true } = {}) => {
-      if (hasUnsavedChanges && needsConfirm) {
-        return setDialogState({
-          type: "unsavedChanges",
-          onContinue: createNew,
-        });
-      }
+  return useCallback(() => {
+    if (hasUnsavedChanges) {
+      return setDialogState({
+        type: "unsavedChanges",
+        onContinue: createNew,
+      });
+    }
 
-      createNew();
-    },
-    [setDialogState, hasUnsavedChanges, createNew],
-  );
+    createNew();
+  }, [setDialogState, hasUnsavedChanges, createNew]);
 };
