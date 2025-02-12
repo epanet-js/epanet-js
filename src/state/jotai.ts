@@ -90,12 +90,7 @@ export interface Data {
   modelMetadata: ModelMetadata;
 }
 
-/**
- * Derived list of folders
- */
-const quantities = new Quantities(
-  isFeatureOn("FLAG_US_CUSTOMARY") ? presets.usCustomary : presets.lps,
-);
+const quantities = new Quantities(presets.lps);
 const modelMetadata = { quantities };
 export const nullData: Data = {
   folderMap: new Map(),
