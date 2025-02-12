@@ -94,6 +94,15 @@ describe("MomentLog", () => {
 
     expect(momentLog.getSnapshot()).toEqual(initialState);
 
+    expect(momentLog.nextUndo()).toBeNull();
+
+    const firstAction = anAction("FIRST");
+    momentLog.append(firstAction.forward, firstAction.reverse);
+
+    momentLog.undo();
+
+    expect(momentLog.nextUndo()).toBeNull();
+
     const copy = momentLog.copy();
 
     expect(copy.getSnapshot()).toEqual(initialState);
