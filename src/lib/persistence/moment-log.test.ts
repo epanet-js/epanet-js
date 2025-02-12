@@ -112,6 +112,23 @@ describe("MomentLog", () => {
     expect(snapshotCopy!.stateId).toEqual("s-0");
   });
 
+  it("can obtain deltas after a snapshot", () => {
+    const importMoment = anAction("IMPORT").forward;
+    const momentLog = new MomentLog();
+    momentLog.setSnapshot(importMoment, "s-0");
+
+    const firstAction = anAction("FIRST");
+    momentLog.append(firstAction.forward, firstAction.reverse);
+
+    const deltas = momentLog.getDeltas();
+    expect(deltas).toHaveLength(1);
+    const delta = deltas[0];
+    expect(delta).toEqual(firstAction.forward);
+    const copy = momentLog.copy();
+
+    expect(copy.getDeltas()).toEqual(deltas);
+  });
+
   const anAction = (name = "ANY_ACTION") => {
     return {
       stateId: generateStateId(),

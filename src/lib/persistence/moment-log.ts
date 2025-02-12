@@ -98,7 +98,7 @@ export class MomentLog {
     return this.pointer;
   }
 
-  fetchAllDeltas(): Moment[] {
+  getDeltas(): Moment[] {
     const result = [];
     for (let i = 0; i <= this.pointer; i++) {
       result.push(this.deltas[i].forward);
