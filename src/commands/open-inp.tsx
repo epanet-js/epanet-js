@@ -38,7 +38,7 @@ export const useOpenInp = () => {
     if (hasUnsavedChanges) {
       return setDialogState({
         type: "unsavedChanges",
-        onContinue: findInpInFs,
+        onContinue: () => findInpInFs,
       });
     }
 
