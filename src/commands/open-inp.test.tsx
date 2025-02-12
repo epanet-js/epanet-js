@@ -15,13 +15,13 @@ import { HydraulicModel, Junction } from "src/hydraulic-model";
 import { UIDMap } from "src/lib/id_mapper";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
-import { useOpenInp } from "../hooks/use-open-inp";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { QueryClient, QueryClientProvider } from "react-query";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { Dialogs } from "src/components/dialogs";
 import { fMoment } from "src/lib/persistence/moment";
+import { useOpenInp } from "./open-inp";
 
 const aMoment = (name: string) => {
   return fMoment(name);
