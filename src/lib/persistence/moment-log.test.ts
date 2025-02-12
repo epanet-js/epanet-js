@@ -88,11 +88,13 @@ describe("MomentLog", () => {
   });
 
   it("can define a snapshot as initial state", () => {
-    const initialState = anAction("IMPORT").forward;
+    const importMoment = anAction("IMPORT").forward;
     const momentLog = new MomentLog();
-    momentLog.setSnapshot(initialState);
+    momentLog.setSnapshot(importMoment, "s-0");
 
-    expect(momentLog.getSnapshot()).toEqual(initialState);
+    const snapshot = momentLog.getSnapshot();
+    expect(snapshot!.moment).toEqual(importMoment);
+    expect(snapshot!.stateId).toEqual("s-0");
 
     expect(momentLog.nextUndo()).toBeNull();
 
@@ -105,7 +107,9 @@ describe("MomentLog", () => {
 
     const copy = momentLog.copy();
 
-    expect(copy.getSnapshot()).toEqual(initialState);
+    const snapshotCopy = copy.getSnapshot();
+    expect(snapshotCopy!.moment).toEqual(importMoment);
+    expect(snapshotCopy!.stateId).toEqual("s-0");
   });
 
   const anAction = (name = "ANY_ACTION") => {
