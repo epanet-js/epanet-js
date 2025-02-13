@@ -16,30 +16,11 @@ import { fMoment } from "src/lib/persistence/moment";
 import { useOpenInp } from "./open-inp";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
+import "src/__helpers__/fs-mock";
 
 const aMoment = (name: string) => {
   return fMoment(name);
 };
-
-vi.mock("browser-fs-access", () => ({
-  supported: true,
-  fileOpen: vi.fn(() => {
-    let input = document.querySelector(
-      '[data-testid="file-upload"]',
-    ) as HTMLInputElement;
-    if (!input) {
-      input = document.createElement("input");
-      input.type = "file";
-      input.setAttribute("data-testid", "file-upload");
-      document.body.appendChild(input);
-    }
-    return new Promise((resolve) => {
-      input.addEventListener("change", () => {
-        resolve(input.files![0]);
-      });
-    });
-  }),
-}));
 
 describe("open inp", () => {
   describe("openInpFromFs", () => {
