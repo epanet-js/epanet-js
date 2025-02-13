@@ -18,9 +18,9 @@ import { useSetAtom } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { useSaveInp } from "src/hooks/use-save-inp";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
+import { useSaveInp } from "src/commands/save-inp";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
