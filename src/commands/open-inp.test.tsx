@@ -1,17 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Provider as JotaiProvider, createStore } from "jotai";
+import { Provider as JotaiProvider } from "jotai";
 import {
   Sel,
   SimulationFailure,
-  SimulationState,
   Store,
   dataAtom,
   momentLogAtom,
-  nullData,
   simulationAtom,
 } from "src/state/jotai";
-import { HydraulicModel, Junction } from "src/hydraulic-model";
+import { Junction } from "src/hydraulic-model";
 import { UIDMap } from "src/lib/id_mapper";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -22,6 +20,7 @@ import { aTestFile } from "src/__helpers__/file";
 import { Dialogs } from "src/components/dialogs";
 import { fMoment } from "src/lib/persistence/moment";
 import { useOpenInp } from "./open-inp";
+import { setInitialState } from "src/__helpers__/state";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -213,28 +212,5 @@ describe("open inp", () => {
         </JotaiProvider>
       </QueryClientProvider>,
     );
-  };
-
-  const setInitialState = ({
-    store = createStore(),
-    hydraulicModel = HydraulicModelBuilder.with().build(),
-    momentLog = new MomentLog(),
-    simulation = { status: "idle" },
-    selection = { type: "none" },
-  }: {
-    store?: Store;
-    hydraulicModel?: HydraulicModel;
-    momentLog?: MomentLog;
-    simulation?: SimulationState;
-    selection?: Sel;
-  }): Store => {
-    store.set(dataAtom, {
-      ...nullData,
-      selection,
-      hydraulicModel: hydraulicModel,
-    });
-    store.set(momentLogAtom, momentLog);
-    store.set(simulationAtom, simulation);
-    return store;
   };
 });

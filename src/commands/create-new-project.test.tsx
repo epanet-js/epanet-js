@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "react-query";
 import { render, screen, waitFor } from "@testing-library/react";
-import { Provider as JotaiProvider, createStore } from "jotai";
+import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { Dialogs } from "src/components/dialogs";
@@ -8,20 +8,16 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
 import {
   FileInfo,
-  Sel,
-  SimulationState,
   Store,
   dataAtom,
   fileInfoAtom,
   momentLogAtom,
-  nullData,
-  simulationAtom,
 } from "src/state/jotai";
-import { HydraulicModel } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { UIDMap } from "src/lib/id_mapper";
 import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";
+import { setInitialState } from "src/__helpers__/state";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -133,31 +129,5 @@ describe("create new project", () => {
         </JotaiProvider>
       </QueryClientProvider>,
     );
-  };
-
-  const setInitialState = ({
-    store = createStore(),
-    hydraulicModel = HydraulicModelBuilder.with().build(),
-    momentLog = new MomentLog(),
-    simulation = { status: "idle" },
-    selection = { type: "none" },
-    fileInfo = null,
-  }: {
-    store?: Store;
-    hydraulicModel?: HydraulicModel;
-    momentLog?: MomentLog;
-    simulation?: SimulationState;
-    selection?: Sel;
-    fileInfo?: FileInfo | null;
-  }): Store => {
-    store.set(dataAtom, {
-      ...nullData,
-      selection,
-      hydraulicModel: hydraulicModel,
-    });
-    store.set(momentLogAtom, momentLog);
-    store.set(simulationAtom, simulation);
-    store.set(fileInfoAtom, fileInfo);
-    return store;
   };
 });
