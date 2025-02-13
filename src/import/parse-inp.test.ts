@@ -211,4 +211,18 @@ describe("Parse inp", () => {
     const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("m");
   });
+
+  it("detects headloss formula from inp", () => {
+    const inp = `
+    [OPTIONS]
+    ANY
+    Units\tLPS
+    Headloss\tD-W
+    ANY
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    expect(hydraulicModel.headlossFormula).toEqual("D-W");
+  });
 });

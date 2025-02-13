@@ -1,6 +1,9 @@
 import { Position } from "geojson";
 import { HydraulicModel } from "src/hydraulic-model";
-import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import {
+  HeadlossFormula,
+  PipeStatus,
+} from "src/hydraulic-model/asset-types/pipe";
 import { initializeHydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
@@ -31,7 +34,7 @@ type InpData = {
   coordinates: Record<string, Position>;
   vertices: Record<string, Position[]>;
   demands: Record<string, number>;
-  options: { units: EpanetUnitSystem };
+  options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
 };
 
 export const parseInp = (
@@ -52,7 +55,7 @@ const readAllSections = (inp: string): InpData => {
     coordinates: {},
     vertices: {},
     demands: {},
-    options: { units: "GPM" },
+    options: { units: "GPM", headlossFormula: "H-W" },
   };
   for (const row of rows) {
     const trimmedRow = row.trim();
@@ -186,6 +189,8 @@ const readAllSections = (inp: string): InpData => {
     if (section === "options") {
       const [name, value] = readValues(trimmedRow);
       if (name === "Units") inpData.options.units = value as EpanetUnitSystem;
+      if (name === "Headloss")
+        inpData.options.headlossFormula = value as HeadlossFormula;
     }
   }
   return inpData;
@@ -200,6 +205,7 @@ const buildModel = (
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
+    headlossFormula: inpData.options.headlossFormula,
   });
 
   for (const junctionData of inpData.junctions) {
