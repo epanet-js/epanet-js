@@ -16,7 +16,10 @@ export const UnsavedChangesDialog = ({
 
   const handleSaveAndContinue = async () => {
     const isSaved = await saveInp();
-    if (isSaved) onContinue();
+    if (isSaved) {
+      onClose();
+      onContinue();
+    }
   };
 
   const handleDiscardChanges = () => {
@@ -38,6 +41,7 @@ export const UnsavedChangesDialog = ({
           type="submit"
           autoFocus
           variant="primary"
+          aria-label={translate("saveAndContinue")}
           onClick={handleSaveAndContinue}
         >
           {translate("saveAndContinue")}

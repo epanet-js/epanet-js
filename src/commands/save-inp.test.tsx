@@ -2,8 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, fileInfoAtom } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
-
-import "src/__helpers__/fs-mock";
 import { useSaveInp } from "./save-inp";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
