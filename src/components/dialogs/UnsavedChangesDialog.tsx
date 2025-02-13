@@ -3,7 +3,7 @@ import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { Button } from "../elements";
 import { DialogButtons } from "./simple_dialog_actions";
-import { useSaveInp } from "src/hooks/use-save-inp";
+import { useSaveInp } from "src/commands/save-inp";
 
 export const UnsavedChangesDialog = ({
   onContinue,

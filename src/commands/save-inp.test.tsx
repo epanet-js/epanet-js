@@ -20,7 +20,6 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
-import { useSaveInp } from "src/hooks/use-save-inp";
 
 vi.mock("browser-fs-access", () => ({
   supported: true,
@@ -30,6 +29,7 @@ vi.mock("browser-fs-access", () => ({
 import { fileSave } from "browser-fs-access";
 import { Mock, vi } from "vitest";
 import Notifications from "src/components/notifications";
+import { useSaveInp } from "./save-inp";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
