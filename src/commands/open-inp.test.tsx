@@ -16,7 +16,7 @@ import { fMoment } from "src/lib/persistence/moment";
 import { useOpenInp } from "./open-inp";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import "src/__helpers__/fs-mock";
+import { lastSaveCall, stubFileSave } from "src/__helpers__/browser-fs-mock";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -117,7 +117,55 @@ describe("open inp", () => {
       expect(selection.type).toEqual("none");
     });
 
-    it("asks to save changes when opening with previous changes", async () => {
+    it("can save previous changes before opening", async () => {
+      stubFileSave();
+      const inp = `
+    [JUNCTIONS]
+    J1\t10
+    `;
+      const momentLogWithChanges = new MomentLog();
+      momentLogWithChanges.append(aMoment("A"), aMoment("B"));
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
+        momentLog: momentLogWithChanges,
+      });
+      const file = aTestFile({ filename: "my-network.inp", content: inp });
+
+      renderComponent({ store });
+
+      await triggerOpenFromFs();
+
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
+      expect(screen.getByText(/unsaved/i)).toBeInTheDocument();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /save and continue/i }),
+      );
+
+      const lastSave = lastSaveCall();
+
+      expect(await lastSave.contentBlob.text()).toContain("J1");
+
+      await waitFor(() =>
+        expect(screen.queryByText(/unsaved/i)).not.toBeInTheDocument(),
+      );
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
+      await doFileSelection(file);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
+
+      const { hydraulicModel } = store.get(dataAtom);
+      const junction = hydraulicModel.assets.get("J1");
+      expect((junction as Junction).elevation).toEqual(10);
+    });
+
+    it("can discard changes when opening a new project", async () => {
       const inp = `
     [JUNCTIONS]
     J1\t10
