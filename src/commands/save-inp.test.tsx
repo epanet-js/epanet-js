@@ -3,20 +3,20 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, fileInfoAtom } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 
-vi.mock("browser-fs-access", () => ({
-  supported: true,
-  fileSave: vi.fn(),
-}));
-
-import { fileSave } from "browser-fs-access";
-import { Mock, vi } from "vitest";
+import "src/__helpers__/fs-mock";
 import { useSaveInp } from "./save-inp";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
+import {
+  buildFileSystemHandleMock,
+  lastSaveCall,
+  stubFileSave,
+  stubFileSaveError,
+} from "src/__helpers__/browser-fs-mock";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
-    (fileSave as Mock).mockResolvedValue("NEW_HANDLE");
+    const newHandle = stubFileSave({ fileName: "my-network.inp" });
     const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
     const store = setInitialState({
       hydraulicModel,
@@ -26,22 +26,21 @@ describe("save inp", () => {
 
     await triggerSave();
 
-    const [inpBlob, fileSpec, previousHandle] = (fileSave as Mock).mock
-      .lastCall as any[];
-    expect(await inpBlob.text()).toContain("J1");
-    expect(fileSpec).toEqual({
+    const lastSave = lastSaveCall();
+    expect(await lastSave.contentBlob.text()).toContain("J1");
+    expect(lastSave.options).toEqual({
       fileName: "my-network.inp",
       extensions: [".inp"],
       description: ".INP",
       mimeTypes: ["text/plain"],
     });
-    expect(previousHandle).toEqual(null);
+    expect(lastSave.handle).toEqual(null);
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo).toEqual({
       modelVersion: hydraulicModel.version,
-      name: undefined,
-      handle: "NEW_HANDLE",
+      name: "my-network.inp",
+      handle: newHandle,
       options: { type: "inp", folderId: "" },
     });
 
@@ -49,12 +48,13 @@ describe("save inp", () => {
   });
 
   it("reuses previous file handle when available", async () => {
-    (fileSave as Mock).mockResolvedValue("NEW_HANDLE");
+    const oldHandle = buildFileSystemHandleMock();
+    const newHandle = stubFileSave();
     const store = setInitialState({
       fileInfo: {
         modelVersion: "ANY",
         name: "NAME",
-        handle: "OLD_HANDLE" as unknown as FileSystemFileHandle,
+        handle: oldHandle,
         options: { type: "inp", folderId: "" },
       },
     });
@@ -63,24 +63,24 @@ describe("save inp", () => {
 
     await triggerSave();
 
-    const [, , previousHandle] = (fileSave as Mock).mock.lastCall as any[];
-
+    const lastSave = lastSaveCall();
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
-        handle: "NEW_HANDLE",
+        handle: newHandle,
       }),
     );
-    expect(previousHandle).toEqual("OLD_HANDLE");
+    expect(lastSave.handle).toEqual(oldHandle);
   });
 
   it("forces new handle when saving as", async () => {
-    (fileSave as Mock).mockResolvedValue("NEW_HANDLE");
+    const oldHandle = buildFileSystemHandleMock();
+    const newHandle = stubFileSave();
     const store = setInitialState({
       fileInfo: {
         modelVersion: "ANY",
         name: "NAME",
-        handle: "OLD_HANDLE" as unknown as FileSystemFileHandle,
+        handle: oldHandle,
         options: { type: "inp", folderId: "" },
       },
     });
@@ -89,19 +89,18 @@ describe("save inp", () => {
 
     await triggerSaveAs();
 
-    const [, , previousHandle] = (fileSave as Mock).mock.lastCall as any[];
-
+    const lastSave = lastSaveCall();
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
-        handle: "NEW_HANDLE",
+        handle: newHandle,
       }),
     );
-    expect(previousHandle).toBeNull();
+    expect(lastSave.handle).toBeNull();
   });
 
   it("displays an error when not saved", async () => {
-    (fileSave as Mock).mockRejectedValue("BOOM");
+    stubFileSaveError();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
     const store = setInitialState({
       hydraulicModel,
