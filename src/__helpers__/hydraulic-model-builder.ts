@@ -149,6 +149,7 @@ export class HydraulicModelBuilder {
       assetBuilder: this.assetBuilder,
       topology: this.topology,
       units: this.units,
+      headlossFormula: "H-W",
     };
   }
 
