@@ -98,6 +98,10 @@ export const Dialogs = memo(function Dialogs() {
       <D.Portal>
         <StyledDialogOverlay />
         <Suspense fallback={<Loading />}>
+          {/**radix complains if no title, so at least having an empty one helps**/}
+          <D.Title></D.Title>
+          {/**radix complains if no description, so at least having an empty one helps**/}
+          <D.Description></D.Description>
           <StyledDialogContent
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={dialogSize}
