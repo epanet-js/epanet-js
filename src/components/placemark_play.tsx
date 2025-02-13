@@ -32,7 +32,7 @@ import { ErrorBoundary } from "@sentry/nextjs";
 import { CheckCircledIcon, CheckIcon, CrossCircledIcon, DividerVerticalIcon, MoveIcon, ShadowInnerIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, splitsAtom } from "src/state/jotai";
+import { dataAtom, dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,
@@ -122,7 +122,7 @@ export function PlacemarkPlay() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-            "flex flex-auto relative border-t border-gray-200 dark:border-gray-900",
+            "flex flex-grow pb-8 relative border-t border-gray-200 dark:border-gray-900",
           )}
         >
           <DndContext
@@ -143,17 +143,8 @@ export function PlacemarkPlay() {
               layout={layout}
             />
           </DndContext>
-          {layout === "HORIZONTAL" ? (
-            <>
-              <SidePanel />
-              <Resizer side="right" />
-            </>
-          ) : layout === "VERTICAL" ? (
-            <>
-              <BottomPanel />
-              <BottomResizer />
-            </>
-          ) : null}
+          <SidePanel />
+          <Resizer side="right" />
         </div>
         <Drop />
         <Dialogs />
@@ -161,8 +152,27 @@ export function PlacemarkPlay() {
           <Keybindings />
         </Suspense>
         <Notifications />
+        {isFeatureOn('FLAG_HEADLOSS') && <BottomBar />}
       </MapContext.Provider>
     </main>
+  );
+}
+
+const BottomBar = () => {
+  const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom)
+
+  return (
+    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
+      <div className="flex flex-row items-center text-xs text-gray-500 space-x-1">
+        <span className="px-4">Auto-Length: On</span>
+        <div className="border-r-2 border-gray-100 h-8"></div>
+        <span className="px-4">Units: {modelMetadata.quantities.specName}</span>
+        <div className="border-r-2 border-gray-100 h-8"></div>
+        <span className="px-4">Headloss: {hydraulicModel.headlossFormula}</span>
+        <div className="border-r-2 border-gray-100 h-8"></div>
+        <span className="px-1"><SimulationStatusText /></span>
+      </div>
+    </nav>
   );
 }
 
