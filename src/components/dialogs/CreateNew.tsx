@@ -18,6 +18,7 @@ import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 
 type SubmitProps = {
   unitsSpec: AssetQuantitiesSpec["id"];
@@ -116,8 +117,8 @@ const HeadlossFormulaSelector = ({
   selected: HeadlossFormula;
   onChange: (headlossFormula: HeadlossFormula) => void;
 }) => {
-  const options = Object.values(headlossFormulas).map((headlossFormula) => ({
-    label: headlossFormula,
+  const options = Object.values(headlossFormulas).map((headlossFormula, i) => ({
+    label: `${headlossFormulasFullNames[i]} (${headlossFormula})`,
     value: headlossFormula,
   }));
 
