@@ -7,15 +7,21 @@ import {
   Quantities,
   presets,
 } from "src/model-metadata/quantities-spec";
-import { initializeHydraulicModel } from "src/hydraulic-model";
+import {
+  HeadlossFormula,
+  headlossFormulas,
+  initializeHydraulicModel,
+} from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
 import { translate } from "src/infra/i18n";
 import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type SubmitProps = {
   unitsSpec: AssetQuantitiesSpec["id"];
+  headlossFormula: HeadlossFormula;
 };
 
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
@@ -23,12 +29,13 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
 
-  const handleSumbit = ({ unitsSpec }: SubmitProps) => {
+  const handleSumbit = ({ unitsSpec, headlossFormula }: SubmitProps) => {
     const quantities = new Quantities(presets[unitsSpec]);
     const modelMetadata = { quantities };
     const hydraulicModel = initializeHydraulicModel({
       units: quantities.units,
       defaults: quantities.defaults,
+      headlossFormula,
     });
     transactImport(hydraulicModel, modelMetadata, "Untitled");
     setFileInfo(null);
@@ -42,6 +49,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         initialValues={
           {
             unitsSpec: "lps",
+            headlossFormula: "H-W",
           } as SubmitProps
         }
       >
@@ -51,6 +59,14 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
               selected={values.unitsSpec}
               onChange={(specId) => setFieldValue("unitsSpec", specId)}
             />
+            {isFeatureOn("FLAG_HEADLOSS") && (
+              <HeadlossFormulaSelector
+                selected={values.headlossFormula}
+                onChange={(headlossFormula) =>
+                  setFieldValue("headlossFormula", headlossFormula)
+                }
+              />
+            )}
             <SimpleDialogActions
               onClose={onClose}
               action={translate("create")}
@@ -61,6 +77,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
     </>
   );
 };
+
 const UnitsSystemSelector = ({
   selected,
   onChange,
@@ -76,7 +93,7 @@ const UnitsSystemSelector = ({
   );
 
   return (
-    <label className="block pt-2 space-y-2">
+    <label className="block pt-2 space-y-2 pb-3">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("unitsSystem")}
       </div>
@@ -87,6 +104,35 @@ const UnitsSystemSelector = ({
         selected={selected}
         onChange={onChange}
         ariaLabel={translate("unitsSystem")}
+      />
+    </label>
+  );
+};
+
+const HeadlossFormulaSelector = ({
+  selected,
+  onChange,
+}: {
+  selected: HeadlossFormula;
+  onChange: (headlossFormula: HeadlossFormula) => void;
+}) => {
+  const options = Object.values(headlossFormulas).map((headlossFormula) => ({
+    label: headlossFormula,
+    value: headlossFormula,
+  }));
+
+  return (
+    <label className="block pt-2 space-y-2">
+      <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
+        {translate("headlossFormula")}
+      </div>
+
+      <Selector
+        options={options}
+        tabIndex={0}
+        selected={selected}
+        onChange={onChange}
+        ariaLabel={translate("headlossFormula")}
       />
     </label>
   );

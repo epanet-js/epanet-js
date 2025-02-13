@@ -114,6 +114,7 @@ export const translations = {
   inpMissing: "Invalid file type. Use an .INP file.",
   onlyOneInp:
     "Only one INP file is allowed at a time. The first one will be used.",
+  headlossFormula: "Headloss formula",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
