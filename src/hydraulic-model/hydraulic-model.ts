@@ -19,9 +19,11 @@ export { AssetsMap };
 export const initializeHydraulicModel = ({
   units,
   defaults,
+  headlossFormula = "H-W",
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
+  headlossFormula?: HeadlossFormula;
 }) => {
   return {
     version: nanoid(),
@@ -29,6 +31,6 @@ export const initializeHydraulicModel = ({
     assetBuilder: new AssetBuilder(units, defaults),
     topology: new Topology(),
     units,
-    headlossFormula: "H-W" as HeadlossFormula,
+    headlossFormula,
   };
 };
