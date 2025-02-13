@@ -12,6 +12,7 @@ import {
   ReservoirBuildData,
   NodeAsset,
   AssetId,
+  HeadlossFormula,
 } from "src/hydraulic-model";
 import {
   AssetQuantitiesSpec,
@@ -52,6 +53,7 @@ export class HydraulicModelBuilder {
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
   private units: UnitsSpec;
+  private headlossFormula: HeadlossFormula;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.lps) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -67,6 +69,7 @@ export class HydraulicModelBuilder {
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(this.units, quantities.defaults);
     this.topology = new Topology();
+    this.headlossFormula = "H-W";
   }
 
   aNode(id: string, coordinates: Position = [0, 0]) {
@@ -142,6 +145,11 @@ export class HydraulicModelBuilder {
     return this.aPipe(id, { startNodeId, endNodeId, ...properties });
   }
 
+  setHeadlossFormula(headlossFormula: HeadlossFormula) {
+    this.headlossFormula = headlossFormula;
+    return this;
+  }
+
   build(): HydraulicModel {
     return {
       version: nanoid(),
@@ -149,7 +157,7 @@ export class HydraulicModelBuilder {
       assetBuilder: this.assetBuilder,
       topology: this.topology,
       units: this.units,
-      headlossFormula: "H-W",
+      headlossFormula: this.headlossFormula,
     };
   }
 

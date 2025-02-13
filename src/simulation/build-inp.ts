@@ -25,7 +25,7 @@ export const buildInp = withInstrumentation(
     { geolocation = false }: BuildOptions = {},
   ): string => {
     const defaultUnits = chooseUnitSystem(hydraulicModel.units);
-    const defaultHeadloss = "H-W";
+    const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
     const sections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
@@ -43,7 +43,7 @@ export const buildInp = withInstrumentation(
         "Unbalanced\tCONTINUE 10",
         "Accuracy\t0.01",
         `Units\t${defaultUnits}`,
-        `Headloss\t${defaultHeadloss}`,
+        `Headloss\t${headlossFormula}`,
       ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
