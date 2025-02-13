@@ -1,5 +1,8 @@
 import { Unit } from "src/quantity";
-import { PipeQuantity } from "src/hydraulic-model/asset-types/pipe";
+import {
+  HeadlossFormula,
+  PipeQuantity,
+} from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { translate, translateUnit } from "src/infra/i18n";
@@ -139,5 +142,13 @@ export class Quantities {
 
   getUnit(name: keyof UnitsSpec): Unit {
     return this.spec.units[name];
+  }
+
+  getMinorLossUnit(headlossFormula: HeadlossFormula): Unit {
+    if (headlossFormula === "D-W") {
+      return this.getUnit("length");
+    } else {
+      return null;
+    }
   }
 }

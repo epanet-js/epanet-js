@@ -24,7 +24,11 @@ import { Unit } from "src/quantity";
 
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
-import { PipeStatus, pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
+import {
+  HeadlossFormula,
+  PipeStatus,
+  pipeStatuses,
+} from "src/hydraulic-model/asset-types/pipe";
 import {
   changePipeStatus,
   changeProperty,
@@ -107,6 +111,7 @@ const AssetEditorInner = ({
       return (
         <PipeEditor
           pipe={asset as Pipe}
+          headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
@@ -128,11 +133,13 @@ type OnStatusChange = (newStatus: PipeStatus) => void;
 
 const PipeEditor = ({
   pipe,
+  headlossFormula,
   quantitiesMetadata,
   onPropertyChange,
   onStatusChange,
 }: {
   pipe: Pipe;
+  headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange;
@@ -185,7 +192,7 @@ const PipeEditor = ({
                 position={4}
                 value={pipe.minorLoss}
                 positiveOnly={true}
-                unit={quantitiesMetadata.getUnit("minorLoss")}
+                unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
                 decimals={quantitiesMetadata.getDecimals("minorLoss")}
                 onChange={onPropertyChange}
               />

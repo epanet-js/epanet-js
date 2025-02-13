@@ -15,6 +15,7 @@ describe("AssetEditor", () => {
     it("can show its properties", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
         .aPipe(pipeId, {
           status: "open",
           length: 10,
@@ -36,7 +37,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("diameter (mm)", "100.1");
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
-      expectPropertyDisplayed("loss coeff", "0.1");
+      expectPropertyDisplayed("loss coeff. (m)", "0.1");
       expectPropertyDisplayed("flow", "Not available");
     });
 
