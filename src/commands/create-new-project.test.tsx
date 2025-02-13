@@ -13,6 +13,7 @@ import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -33,6 +34,23 @@ describe("create new project", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.units.flow).toEqual("gal/min");
+  });
+
+  it("allows to chooose the headloss formula", async () => {
+    stubFeatureOn("FLAG_HEADLOSS");
+    const store = setInitialState({});
+
+    renderComponent({ store });
+
+    await triggerNew();
+
+    await userEvent.click(screen.getByRole("combobox", { name: /headloss/i }));
+    await userEvent.click(screen.getByRole("option", { name: /D-W/ }));
+
+    await userEvent.click(screen.getByRole("button", { name: /create/i }));
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.headlossFormula).toEqual("D-W");
   });
 
   it("erases the previous state", async () => {

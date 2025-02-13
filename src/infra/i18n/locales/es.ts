@@ -119,6 +119,7 @@ export const translations: Translations = {
   dropInp: "Arrastra y suelta un archivo .INP aquí para abrir el modelo.",
   inpMissing: "Tipo de archivo no soportado. Usa un archivo .INP.",
   onlyOneInp: "Solo se soporta un archivo INP a la vez. Se usará el primero.",
+  headlossFormula: "Fórmula de pérdida de carga",
 };
 
 export const units: UnitsLocale = {

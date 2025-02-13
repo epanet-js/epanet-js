@@ -22,7 +22,8 @@ export const pipeQuantities = [
 ];
 export type PipeQuantity = (typeof pipeQuantities)[number];
 
-export type HeadlossFormula = "H-W" | "D-W" | "C-M";
+export const headlossFormulas = ["H-W", "D-W", "C-M"] as const;
+export type HeadlossFormula = (typeof headlossFormulas)[number];
 
 interface PipeSimulationProvider {
   getFlow: (id: string) => number | null;
