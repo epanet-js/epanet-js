@@ -124,6 +124,10 @@ export class Quantities {
     this.spec = spec;
   }
 
+  get specName() {
+    return this.spec.name;
+  }
+
   get defaults() {
     return this.spec.defaults;
   }
