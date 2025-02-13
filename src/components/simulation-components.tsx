@@ -28,45 +28,45 @@ export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
 
-  const { icon, colorClass, text } = useMemo(() => {
+  const { Icon, colorClass, text } = useMemo(() => {
     switch (simulation.status) {
       case "idle":
         return {
-          icon: <CircleIcon />,
+          Icon: CircleIcon,
           colorClass: "text-gray-500",
           text: translate("simulationReadyToRun"),
         };
       case "running":
         return {
-          icon: <CircleIcon />,
+          Icon: CircleIcon,
           colorClass: "text-gray-500",
           text: translate("simulationRunning"),
         };
       case "success":
         if (hydraulicModel.version !== simulation.modelVersion) {
           return {
-            icon: <CountdownTimerIcon />,
+            Icon: CountdownTimerIcon,
             colorClass: "text-orange-500",
             text: translate("simulationOutdated"),
           };
         }
 
         return {
-          icon: <CheckCircledIcon />,
+          Icon: CheckCircledIcon,
           colorClass: "text-green-500",
           text: translate("simulationSuccess"),
         };
       case "failure":
         if (hydraulicModel.version !== simulation.modelVersion) {
           return {
-            icon: <CountdownTimerIcon />,
+            Icon: CountdownTimerIcon,
             colorClass: "text-orange-500",
             text: translate("simulationOutdated"),
           };
         }
 
         return {
-          icon: <CrossCircledIcon />,
+          Icon: CrossCircledIcon,
           colorClass: "text-red-500",
           text: translate("simulationFailure"),
         };
@@ -77,8 +77,8 @@ export const SimulationStatusText = () => {
     <div
       className={`flex flex-row items-center space-x-2 ${isFeatureOn("FLAG_HEADLOSS") ? "text-xs" : "text-sm"} ${colorClass}`}
     >
-      {icon}
-      <span>{text}</span>
+      <Icon className="w-4 h-4 mx-1" />
+      {text}
     </div>
   );
 };
