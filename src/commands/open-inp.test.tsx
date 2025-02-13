@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Provider as JotaiProvider } from "jotai";
 import {
   Sel,
   SimulationFailure,
@@ -10,17 +9,13 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model";
-import { UIDMap } from "src/lib/id_mapper";
-import { PersistenceContext } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { QueryClient, QueryClientProvider } from "react-query";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
-import { Dialogs } from "src/components/dialogs";
 import { fMoment } from "src/lib/persistence/moment";
 import { useOpenInp } from "./open-inp";
 import { setInitialState } from "src/__helpers__/state";
+import { CommandContainer } from "./__helpers__/command-container";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -201,16 +196,10 @@ describe("open inp", () => {
   };
 
   const renderComponent = ({ store }: { store: Store }) => {
-    const idMap = UIDMap.empty();
     render(
-      <QueryClientProvider client={new QueryClient()}>
-        <JotaiProvider store={store}>
-          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-            <Dialogs></Dialogs>
-            <TestableComponent />
-          </PersistenceContext.Provider>
-        </JotaiProvider>
-      </QueryClientProvider>,
+      <CommandContainer store={store}>
+        <TestableComponent />
+      </CommandContainer>,
     );
   };
 });

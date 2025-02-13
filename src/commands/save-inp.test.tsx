@@ -1,12 +1,6 @@
-import { QueryClient, QueryClientProvider } from "react-query";
 import { render, screen, waitFor } from "@testing-library/react";
-import { Provider as JotaiProvider } from "jotai";
-import { PersistenceContext } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
-import { Dialogs } from "src/components/dialogs";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, fileInfoAtom } from "src/state/jotai";
-import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("browser-fs-access", () => ({
@@ -16,9 +10,9 @@ vi.mock("browser-fs-access", () => ({
 
 import { fileSave } from "browser-fs-access";
 import { Mock, vi } from "vitest";
-import Notifications from "src/components/notifications";
 import { useSaveInp } from "./save-inp";
 import { setInitialState } from "src/__helpers__/state";
+import { CommandContainer } from "./__helpers__/command-container";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
@@ -149,17 +143,10 @@ describe("save inp", () => {
   };
 
   const renderComponent = ({ store }: { store: Store }) => {
-    const idMap = UIDMap.empty();
     render(
-      <QueryClientProvider client={new QueryClient()}>
-        <JotaiProvider store={store}>
-          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-            <Dialogs></Dialogs>
-            <Notifications duration={1} successDuration={1} />
-            <TestableComponent />
-          </PersistenceContext.Provider>
-        </JotaiProvider>
-      </QueryClientProvider>,
+      <CommandContainer store={store}>
+        <TestableComponent />
+      </CommandContainer>,
     );
   };
 });
