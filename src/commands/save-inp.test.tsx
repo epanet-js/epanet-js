@@ -29,6 +29,7 @@ vi.mock("browser-fs-access", () => ({
 
 import { fileSave } from "browser-fs-access";
 import { Mock, vi } from "vitest";
+import Notifications from "src/components/notifications";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
@@ -58,6 +59,8 @@ describe("save inp", () => {
       handle: "TEST_HANDLE",
       options: { type: "inp", folderId: "" },
     });
+
+    expect(screen.getByText(/saved/i)).toBeInTheDocument();
   });
 
   const triggerSave = async () => {
@@ -84,6 +87,7 @@ describe("save inp", () => {
         <JotaiProvider store={store}>
           <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
             <Dialogs></Dialogs>
+            <Notifications />
             <TestableComponent />
           </PersistenceContext.Provider>
         </JotaiProvider>
