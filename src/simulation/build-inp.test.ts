@@ -96,6 +96,16 @@ describe("build inp", () => {
     expect(rowsFrom(inp).at(-1)).toEqual("[END]");
   });
 
+  it("includes haadloss formula", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .setHeadlossFormula("D-W")
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(rowsFrom(inp)).toContain("Headloss\tD-W");
+  });
+
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(
       presets.usCustomary,
