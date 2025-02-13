@@ -45,7 +45,9 @@ describe("create new project", () => {
     await triggerNew();
 
     await userEvent.click(screen.getByRole("combobox", { name: /headloss/i }));
-    await userEvent.click(screen.getByRole("option", { name: /D-W/ }));
+    await userEvent.click(
+      screen.getByRole("option", { name: /Darcy-Weisbach/ }),
+    );
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 

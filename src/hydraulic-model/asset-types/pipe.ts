@@ -23,6 +23,11 @@ export const pipeQuantities = [
 export type PipeQuantity = (typeof pipeQuantities)[number];
 
 export const headlossFormulas = ["H-W", "D-W", "C-M"] as const;
+export const headlossFormulasFullNames = [
+  "Hazen-Williams",
+  "Darcy-Weisbach",
+  "Chezy-Manning",
+] as const;
 export type HeadlossFormula = (typeof headlossFormulas)[number];
 
 interface PipeSimulationProvider {
