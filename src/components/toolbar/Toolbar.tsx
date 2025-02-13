@@ -64,6 +64,7 @@ export const Toolbar = () => {
       <MenuAction
         label={translate("newProject")}
         role="button"
+        hotkey={"n"}
         onClick={() => {
           void createNewProject();
         }}
