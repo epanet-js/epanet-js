@@ -13,6 +13,7 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { HydraulicModel } from "src/hydraulic-model";
+import { ExportOptions } from "src/lib/convert";
 
 export const setInitialState = ({
   store = createStore(),
@@ -38,4 +39,14 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   return store;
+};
+
+export const aFileInfo = (data: Partial<FileInfo> | null) => {
+  const defaults = {
+    modelVersion: "ANY",
+    name: "NAME",
+    handle: undefined,
+    options: { type: "inp", folderId: "" } as ExportOptions,
+  };
+  return { ...defaults, ...data };
 };

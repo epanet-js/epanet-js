@@ -19,8 +19,30 @@ vi.mock("browser-fs-access", () => ({
   }),
 }));
 
-import { fileSave } from "browser-fs-access";
+import { fileSave, fileOpen, FileWithHandle } from "browser-fs-access";
 import { Mock } from "vitest";
+
+export const stubFileOpen = (handle = buildFileSystemHandleMock()) => {
+  (fileOpen as Mock).mockImplementation(() => {
+    let input = document.querySelector(
+      '[data-testid="file-upload"]',
+    ) as HTMLInputElement;
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "file";
+      input.setAttribute("data-testid", "file-upload");
+      document.body.appendChild(input);
+    }
+    return new Promise((resolve) => {
+      input.addEventListener("change", () => {
+        const fileWithHandle: FileWithHandle = input.files![0];
+        fileWithHandle.handle = handle;
+        resolve(fileWithHandle);
+      });
+    });
+  });
+  return handle;
+};
 
 export const stubFileSave = ({
   handle,

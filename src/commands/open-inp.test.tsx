@@ -5,6 +5,7 @@ import {
   SimulationFailure,
   Store,
   dataAtom,
+  fileInfoAtom,
   momentLogAtom,
   simulationAtom,
 } from "src/state/jotai";
@@ -14,9 +15,14 @@ import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { fMoment } from "src/lib/persistence/moment";
 import { useOpenInp } from "./open-inp";
-import { setInitialState } from "src/__helpers__/state";
+import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { lastSaveCall, stubFileSave } from "src/__helpers__/browser-fs-mock";
+import {
+  buildFileSystemHandleMock,
+  lastSaveCall,
+  stubFileOpen,
+  stubFileSave,
+} from "src/__helpers__/browser-fs-mock";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -25,6 +31,7 @@ const aMoment = (name: string) => {
 describe("open inp", () => {
   describe("openInpFromFs", () => {
     it("initializes state opening an inp from fs", async () => {
+      const newHandle = stubFileOpen();
       const inp = `
     [JUNCTIONS]
     J1\t10
@@ -48,9 +55,12 @@ describe("open inp", () => {
       const { hydraulicModel } = store.get(dataAtom);
       const junction = hydraulicModel.assets.get("J1");
       expect((junction as Junction).elevation).toEqual(10);
+
+      expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
     });
 
     it("displays error when cannot process", async () => {
+      stubFileOpen();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.empty(),
       });
@@ -73,6 +83,7 @@ describe("open inp", () => {
     });
 
     it("removes previous state", async () => {
+      const newHandle = stubFileOpen();
       const inp = `
     [JUNCTIONS]
     J1\t10
@@ -93,11 +104,22 @@ describe("open inp", () => {
         momentLog: previousMomentLog,
         simulation: previousSimulation,
         selection: previousSelection,
+        fileInfo: aFileInfo({
+          handle: buildFileSystemHandleMock({ fileName: "old.inp" }),
+        }),
       });
       const file = aTestFile({ filename: "my-network.inp", content: inp });
 
       renderComponent({ store });
       await triggerOpenFromFs();
+
+      await waitFor(() =>
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+      );
+      await userEvent.click(screen.getByRole("button", { name: /discard/i }));
+      await waitFor(() =>
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+      );
       await doFileSelection(file);
 
       await waitFor(() =>
@@ -115,9 +137,12 @@ describe("open inp", () => {
       expect(simulation.status).toEqual("idle");
 
       expect(selection.type).toEqual("none");
+
+      expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
     });
 
     it("can save previous changes before opening", async () => {
+      const newHandle = stubFileOpen();
       stubFileSave();
       const inp = `
     [JUNCTIONS]
@@ -163,6 +188,8 @@ describe("open inp", () => {
       const { hydraulicModel } = store.get(dataAtom);
       const junction = hydraulicModel.assets.get("J1");
       expect((junction as Junction).elevation).toEqual(10);
+
+      expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
     });
 
     it("can discard changes when opening a new project", async () => {
