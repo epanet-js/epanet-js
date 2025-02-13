@@ -1,6 +1,12 @@
 import { Toaster } from "react-hot-toast";
 
-export default function Notifications() {
+export default function Notifications({
+  duration = 5000,
+  successDuration = 3000,
+}: {
+  duration?: number;
+  successDuration?: number;
+}) {
   return (
     <Toaster
       position="top-center"
@@ -11,9 +17,9 @@ export default function Notifications() {
       toastOptions={{
         className:
           "dark:bg-gray-900 dark:text-white dark:ring-1 dark:ring-gray-500 rounded-md",
-        duration: 5000,
+        duration,
         success: {
-          duration: 3000,
+          duration: successDuration,
           iconTheme: {
             primary: "green",
             secondary: "white",
