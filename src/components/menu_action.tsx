@@ -47,7 +47,7 @@ export default function MenuAction({
     <div className="relative">
       <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
         <div
-          className={`h-10 ${expanded ? "mr-1" : "w-8"} ${
+          className={`h-10 ${expanded ? "" : "w-8"} ${
             disabled ? "opacity-60" : ""
           } group bn flex items-stretch py-1 focus:outline-none`}
         >
