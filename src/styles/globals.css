@@ -2,8 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-.mapboxgl-ctrl-attrib.mapboxgl-compact {
-  min-height: 24px !important;
+
+.mapboxgl-ctrl-attrib {
+  font-size: 12px !important;
+  line-height: 2;
+  letter-spacing: 0px;
+}
+
+.mapboxgl-ctrl-attrib a {
+  font-size: 12px !important;
+}
+
+.mapboxgl-ctrl-attrib button {
+  display: none;
 }
 
 .mapboxgl-canvas {
