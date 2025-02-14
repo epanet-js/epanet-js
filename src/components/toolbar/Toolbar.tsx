@@ -5,6 +5,7 @@ import {
   DownloadIcon,
   FileIcon,
   FilePlusIcon,
+  LightningBoltIcon,
   ResetIcon,
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
@@ -18,11 +19,14 @@ import { ephemeralStateAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
 import { useSaveInp } from "src/commands/save-inp";
+import { useRunSimulation } from "src/commands/run-simulation";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();
+  const runSimulation = useRunSimulation();
 
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
@@ -112,7 +116,18 @@ export const Toolbar = () => {
       <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />
-      <SimulationButton />
+      {isFeatureOn("FLAG_REPORT") && (
+        <MenuAction
+          label={translate("simulate")}
+          role="button"
+          onClick={runSimulation}
+          expanded={true}
+          hotkey={"shift+enter"}
+        >
+          <LightningBoltIcon className="text-yellow-600" />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_REPORT") && <SimulationButton />}
       <div className="flex-auto" />
       <ContextActions />
       <div className="flex-auto" />

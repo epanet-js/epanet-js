@@ -33,10 +33,14 @@ export const translations = {
   head: "Head",
   simulate: "Simulate",
   simulation: "Simulation",
+  simulationReport: "Simulation report",
   simulationReadyToRun: "Ready to run",
   simulationRunning: "Running...",
   simulationSuccess: "Simulation was successful",
   simulationFailure: "Simulation with errors",
+  simulationFailureExplain:
+    "Simulation run was unsuccessful. Review the simulation report for details.",
+  simulationTook: "Simulation run took ${1}s.",
   simulationOutdated: "Simulation outdated",
   runningSimulation: "Running simulation...",
   notAvailable: "Not available",
@@ -106,6 +110,7 @@ export const translations = {
   onboardingAutomaticElevations: "Elevations are assigned automatically.",
   onboardingAutomaticLengths: "Length is calculated automatically.",
   unitsSystem: "Units system",
+  units: "Units",
   usCustomaryFlowsExpressed: "US Customary with flows expressed in ${1}",
   siFlowsExpressed: "International System with flows expressed in ${1}",
   newProject: "New project",
@@ -115,6 +120,12 @@ export const translations = {
   onlyOneInp:
     "Only one INP file is allowed at a time. The first one will be used.",
   headlossFormula: "Headloss formula",
+  headlossShort: "Headloss",
+  autoLengths: "Auto-Lengths",
+  autoElevations: "Auto-Elevations",
+  on: "On",
+  viewReport: "View report",
+  ignore: "Ignore",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
