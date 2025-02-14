@@ -56,7 +56,7 @@ export default function MenuAction({
               ref={buttonRef}
               onClick={handleClick}
               onBlur={() => setOpen(false)}
-              variant={expanded ? "default" : "quiet/mode"}
+              variant={"quiet/mode"}
               role={role}
               disabled={disabled}
               aria-label={label}

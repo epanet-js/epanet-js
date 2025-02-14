@@ -122,17 +122,6 @@ export const Toolbar = () => {
       <Divider />
       {isFeatureOn("FLAG_REPORT") && (
         <MenuAction
-          label={translate("viewReport")}
-          role="button"
-          onClick={showReport}
-          hotkey={"alt+r"}
-          disabled={simulation.status === "idle"}
-        >
-          <FileTextIcon />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_REPORT") && (
-        <MenuAction
           label={translate("simulate")}
           role="button"
           onClick={runSimulation}
@@ -141,6 +130,20 @@ export const Toolbar = () => {
         >
           <LightningBoltIcon className="text-yellow-600" />
         </MenuAction>
+      )}
+      {isFeatureOn("FLAG_REPORT") && (
+        <>
+          <MenuAction
+            label={translate("viewReport")}
+            role="button"
+            onClick={showReport}
+            hotkey={"alt+r"}
+            disabled={simulation.status === "idle"}
+          >
+            <FileTextIcon />
+          </MenuAction>
+          <Divider />
+        </>
       )}
       {!isFeatureOn("FLAG_REPORT") && <SimulationButton />}
       <div className="flex-auto" />
