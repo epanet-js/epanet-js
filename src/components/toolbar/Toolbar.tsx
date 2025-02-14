@@ -8,10 +8,7 @@ import {
   ResetIcon,
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
-import {
-  SimulationButton,
-  SimulationStatusText,
-} from "../simulation-components";
+import { SimulationButton } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
 import { useSetAtom } from "jotai";
@@ -21,7 +18,6 @@ import { ephemeralStateAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
 import { useSaveInp } from "src/commands/save-inp";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
@@ -117,7 +113,6 @@ export const Toolbar = () => {
       <Modes replaceGeometryForId={null} />
       <Divider />
       <SimulationButton />
-      {!isFeatureOn("FLAG_HEADLOSS") && <SimulationStatusText />}
       <div className="flex-auto" />
       <ContextActions />
       <div className="flex-auto" />
