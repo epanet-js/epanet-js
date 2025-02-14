@@ -131,6 +131,7 @@ export const translations: Translations = {
   on: "Activado",
   viewReport: "Ver reporte",
   ignore: "Ignorar",
+  loading: "Cargando...",
 };
 
 export const units: UnitsLocale = {

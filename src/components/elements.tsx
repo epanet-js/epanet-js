@@ -29,6 +29,7 @@ import { SUPPORT_EMAIL } from "src/lib/constants";
 import Placemark from "./icons/placemark";
 import { toast } from "react-hot-toast";
 import { Portal } from "@radix-ui/react-portal";
+import { translate } from "src/infra/i18n";
 
 export function CopiableURL({ url }: { url: string }) {
   return (
@@ -183,7 +184,13 @@ export function DefaultErrorBoundary({
   );
 }
 
-export function Loading({ size = "sm" }: { size?: B3Size }) {
+export function Loading({
+  size = "sm",
+  text = translate("loading"),
+}: {
+  size?: B3Size;
+  text?: string;
+}) {
   return (
     <div
       className={clsx(
@@ -195,7 +202,7 @@ export function Loading({ size = "sm" }: { size?: B3Size }) {
       )}
     >
       <SymbolIcon className="animate-spin" />
-      <span className="ml-2">Loading…</span>
+      <span className="ml-2">{text}</span>
     </div>
   );
 }
