@@ -7,7 +7,7 @@ import { KeyboardIcon } from "@radix-ui/react-icons";
 export const SEARCH_KEYBINDING = "Command+k";
 
 const BINDINGS = {
-  N: translate("newProject"),
+  "Alt+N": translate("newProject"),
   "Command+O": translate("openProject"),
   "Command+S": translate("save"),
   "Command+Shift+S": translate("save"),
