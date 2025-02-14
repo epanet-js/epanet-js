@@ -4,6 +4,7 @@ import LAYERS from "src/lib/default_layers";
 import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
+import { useHotkeys } from "src/keyboard/hotkeys";
 
 export const useToggleSatellite = () => {
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -31,6 +32,16 @@ export const useToggleSatellite = () => {
       ],
     });
   }, [layerConfigs, applyChanges]);
+
+  useHotkeys(
+    "b",
+    (e) => {
+      e.preventDefault();
+      toggleSatellite();
+    },
+    [toggleSatellite],
+    `Toggle satellite`,
+  );
 
   return toggleSatellite;
 };

@@ -133,6 +133,7 @@ export const translations: Translations = {
   ignore: "Ignorar",
   loading: "Cargando...",
   ok: "OK",
+  toggleSatellite: "Alternar vista satelital",
 };
 
 export const units: UnitsLocale = {
