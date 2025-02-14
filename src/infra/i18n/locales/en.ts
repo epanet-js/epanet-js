@@ -96,7 +96,7 @@ export const translations = {
   onboardingSelectAsset: "Select any asset to view and modify its properties.",
   onboardingRunningModel: "Running a model and viewing results",
   onboardingRunSimulation:
-    "Press the Simulation button to run a hydraulic simulation.",
+    "Press Simulate button to run a hydraulic simulation.",
   onboardingAnalysis:
     "Switch to the Analysis tab to add visualizations of hydraulic results.",
   onboardingOtherFeatures: "Other helpful features",
