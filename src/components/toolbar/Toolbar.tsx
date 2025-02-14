@@ -5,6 +5,7 @@ import {
   DownloadIcon,
   FileIcon,
   FilePlusIcon,
+  FileTextIcon,
   LightningBoltIcon,
   ResetIcon,
 } from "@radix-ui/react-icons";
@@ -12,26 +13,29 @@ import Modes from "../modes";
 import { SimulationButton } from "../simulation-components";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { usePersistence } from "src/lib/persistence/context";
-import { ephemeralStateAtom } from "src/state/jotai";
+import { ephemeralStateAtom, simulationAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useRunSimulation } from "src/commands/run-simulation";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useShowReport } from "src/commands/show-report";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();
   const runSimulation = useRunSimulation();
+  const showReport = useShowReport();
 
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
+  const simulation = useAtomValue(simulationAtom);
 
   const handleOpen = () => {
     void openInpFromFs();
@@ -116,6 +120,17 @@ export const Toolbar = () => {
       <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />
+      {isFeatureOn("FLAG_REPORT") && (
+        <MenuAction
+          label={translate("viewReport")}
+          role="button"
+          onClick={showReport}
+          hotkey={"alt+r"}
+          disabled={simulation.status === "idle"}
+        >
+          <FileTextIcon />
+        </MenuAction>
+      )}
       {isFeatureOn("FLAG_REPORT") && (
         <MenuAction
           label={translate("simulate")}

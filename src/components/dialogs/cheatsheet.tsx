@@ -8,6 +8,7 @@ export const SEARCH_KEYBINDING = "Command+k";
 
 const BINDINGS = {
   "Alt+N": translate("newProject"),
+  "Alt+R": translate("viewReport"),
   "Command+O": translate("openProject"),
   "Command+S": translate("save"),
   "Command+Shift+S": translate("save"),
