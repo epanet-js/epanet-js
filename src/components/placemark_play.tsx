@@ -49,11 +49,10 @@ import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
-import {SimulationButton, SimulationStatusText} from './simulation-components';
-import {isFeatureOn} from 'src/infra/feature-flags';
 import {AnalysisLegends} from './AnalysisLegends';
 import {Toolbar} from './toolbar/Toolbar';
 import {translate} from 'src/infra/i18n';
+import {Footer} from './footer';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -154,36 +153,9 @@ export function PlacemarkPlay() {
           <Keybindings />
         </Suspense>
         <Notifications />
-        <BottomBar />
+        <Footer />
       </MapContext.Provider>
     </main>
-  );
-}
-
-const BottomBar = () => {
-  const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom)
-
-  const items: string[] = useMemo(() => [
-        `${translate('autoLengths')}: ${translate('on')}`,
-        `${translate('autoElevations')}: ${translate('on')}`,
-        `${translate('units')}: ${modelMetadata.quantities.specName}`,
-        `${translate('headlossShort')}: ${hydraulicModel.headlossFormula}`,
-
-  ], [hydraulicModel, modelMetadata])
-
-  return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
-      <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
-        {items.map((item, i) => (
-          <>
-        <span key={i} className="px-4 py-2">{item}</span>
-        <div className="border-r-2 border-gray-100 h-10"></div>
-          </>
-
-            ))}
-        <span className="px-1"><SimulationStatusText /></span>
-      </div>
-    </nav>
   );
 }
 
