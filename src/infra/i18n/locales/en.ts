@@ -128,6 +128,7 @@ export const translations = {
   ignore: "Ignore",
   loading: "Loading...",
   ok: "OK",
+  toggleSatellite: "Toggle satellite basemap",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
