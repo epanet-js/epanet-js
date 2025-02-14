@@ -71,7 +71,7 @@ export default function MenuAction({
 
         <TContent side="bottom">
           <div className="flex gap-x-2 items-center">
-            {label}
+            {!expanded ? label : null}
             {hotkey ? (
               <Keycap size="xs">{localizeKeybinding(hotkey)}</Keycap>
             ) : null}
