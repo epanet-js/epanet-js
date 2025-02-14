@@ -52,10 +52,12 @@ export default function SimpleDialogActions({
   action,
   onClose,
   fullWidthSubmit = false,
+  autoFocusSubmit = true,
   secondary,
   variant = "md",
 }: {
   action?: string;
+  autoFocusSubmit?: boolean;
   onClose?: () => void;
   fullWidthSubmit?: boolean;
   secondary?: {
@@ -80,6 +82,7 @@ export default function SimpleDialogActions({
           type="submit"
           disabled={isSubmitting}
           variant="primary"
+          autoFocus={autoFocusSubmit}
           size={fullWidthSubmit ? "full-width" : "sm"}
         >
           {action}

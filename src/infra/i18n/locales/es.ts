@@ -35,10 +35,14 @@ export const translations: Translations = {
   head: "Carga",
   simulate: "Simular",
   simulation: "Simulación",
+  simulationReport: "Reporte de la simulación",
   simulationReadyToRun: "Lista para ejecutar",
   simulationRunning: "Ejecutando...",
   simulationSuccess: "Simulación exitosa",
+  simulationTook: "La ejecución ha durado ${1}s.",
   simulationFailure: "Simulación con errores",
+  simulationFailureExplain:
+    "La ejecución de la simulación no fue exitosa. Revisa el reporte de la simulación para más detalles.",
   simulationOutdated: "Simulación desactualizada",
   runningSimulation: "Ejecutando simulación",
   pressure: "Presión",
@@ -111,6 +115,7 @@ export const translations: Translations = {
   onboardingAutomaticElevations: "Las elevaciones se asignan automáticamente.",
   onboardingAutomaticLengths: "La longitud se calcula automáticamente.",
   unitsSystem: "Sistema de unidades",
+  units: "Unidades",
   usCustomaryFlowsExpressed:
     "Sistema de Medición Estadounidense con flujos en ${1}",
   siFlowsExpressed: "Sistema de Medición Internacional con flujos en ${1}",
@@ -120,6 +125,12 @@ export const translations: Translations = {
   inpMissing: "Tipo de archivo no soportado. Usa un archivo .INP.",
   onlyOneInp: "Solo se soporta un archivo INP a la vez. Se usará el primero.",
   headlossFormula: "Fórmula de pérdida de carga",
+  headlossShort: "Perd. carga",
+  autoLengths: "Auto Longitudes",
+  autoElevations: "Auto Elevaciones",
+  on: "Activado",
+  viewReport: "Ver reporte",
+  ignore: "Ignorar",
 };
 
 export const units: UnitsLocale = {

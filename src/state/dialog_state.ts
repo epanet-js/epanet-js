@@ -25,6 +25,16 @@ export type UnsavedChangesDialogState = {
   onContinue: () => void;
 };
 
+export type RunSimulationDialogSate = {
+  type: "runSimulation";
+  status: "running" | "success" | "failure";
+  duration?: number;
+};
+
+export type SimulationReportDialogState = {
+  type: "simulationReport";
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -33,6 +43,8 @@ export type DialogState =
     }
   | UnsavedChangesDialogState
   | { type: "createNew" }
+  | RunSimulationDialogSate
+  | SimulationReportDialogState
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

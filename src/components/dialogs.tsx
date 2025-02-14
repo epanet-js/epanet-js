@@ -29,6 +29,27 @@ const CreateNewDialog = dynamic<{
   loading: () => <Loading />,
 });
 
+const RunSimulationDialog = dynamic<{
+  modal: dialogState.RunSimulationDialogSate;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/commands/run-simulation").then((r) => r.RunSimulationDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
+const SimulationReportDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/commands/show-report").then((r) => r.SimulationReportDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -79,6 +100,12 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
+    .with({ type: "runSimulation" }, (modal) => (
+      <RunSimulationDialog modal={modal} onClose={onClose} />
+    ))
+    .with({ type: "simulationReport" }, () => (
+      <SimulationReportDialog onClose={onClose} />
+    ))
     .exhaustive();
 
   return (
@@ -105,6 +132,11 @@ export const Dialogs = memo(function Dialogs() {
           <StyledDialogContent
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={dialogSize}
+            widthClasses={
+              dialog && dialog.type === "simulationReport"
+                ? "max-w-620"
+                : undefined
+            }
           >
             <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
           </StyledDialogContent>

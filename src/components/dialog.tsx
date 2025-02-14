@@ -19,7 +19,7 @@ export function DialogHeader({
 }: {
   title?: string;
   titleIcon?: SlottableIcon;
-  variant?: "default" | "danger";
+  variant?: "default" | "danger" | "success";
   children?: ReactNode;
 }) {
   return (
@@ -32,7 +32,7 @@ export function DialogHeader({
       {children && children}
       {TitleIcon && (
         <TitleIcon
-          className={`w-6 h-6 ${variant === "danger" ? "text-red-500" : ""}`}
+          className={`w-6 h-6 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : ""}`}
         />
       )}
       {title && <div className="truncate flex-auto">{title}</div>}

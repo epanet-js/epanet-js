@@ -52,6 +52,7 @@ import {SimulationButton, SimulationStatusText} from './simulation-components';
 import {isFeatureOn} from 'src/infra/feature-flags';
 import {AnalysisLegends} from './AnalysisLegends';
 import {Toolbar} from './toolbar/Toolbar';
+import {translate} from 'src/infra/i18n';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -164,11 +165,13 @@ const BottomBar = () => {
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
       <div className="flex flex-row items-center text-xs text-gray-500 space-x-1">
-        <span className="px-4">Auto-Length: On</span>
+        <span className="px-4">{translate('autoLengths')}: {translate('on')}</span>
         <div className="border-r-2 border-gray-100 h-8"></div>
-        <span className="px-4">Units: {modelMetadata.quantities.specName}</span>
+        <span className="px-4">{translate('autoElevations')}: {translate('on')}</span>
         <div className="border-r-2 border-gray-100 h-8"></div>
-        <span className="px-4">Headloss: {hydraulicModel.headlossFormula}</span>
+        <span className="px-4">{translate('units')}: {modelMetadata.quantities.specName}</span>
+        <div className="border-r-2 border-gray-100 h-8"></div>
+        <span className="px-4">{translate('headlossShort')}: {hydraulicModel.headlossFormula}</span>
         <div className="border-r-2 border-gray-100 h-8"></div>
         <span className="px-1"><SimulationStatusText /></span>
       </div>
