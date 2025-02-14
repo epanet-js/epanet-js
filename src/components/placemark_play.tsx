@@ -14,6 +14,7 @@ import React, {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -123,7 +124,7 @@ export function PlacemarkPlay() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-              "flex flex-grow pb-8 relative border-t border-gray-200 dark:border-gray-900"
+              "flex flex-grow pb-10 relative border-t border-gray-200 dark:border-gray-900"
           )}
         >
           <DndContext
@@ -162,17 +163,24 @@ export function PlacemarkPlay() {
 const BottomBar = () => {
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom)
 
+  const items: string[] = useMemo(() => [
+        `${translate('autoLengths')}: ${translate('on')}`,
+        `${translate('autoElevations')}: ${translate('on')}`,
+        `${translate('units')}: ${modelMetadata.quantities.specName}`,
+        `${translate('headlossShort')}: ${hydraulicModel.headlossFormula}`,
+
+  ], [hydraulicModel, modelMetadata])
+
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
-      <div className="flex flex-row items-center text-xs text-gray-500 space-x-1">
-        <span className="px-4">{translate('autoLengths')}: {translate('on')}</span>
-        <div className="border-r-2 border-gray-100 h-8"></div>
-        <span className="px-4">{translate('autoElevations')}: {translate('on')}</span>
-        <div className="border-r-2 border-gray-100 h-8"></div>
-        <span className="px-4">{translate('units')}: {modelMetadata.quantities.specName}</span>
-        <div className="border-r-2 border-gray-100 h-8"></div>
-        <span className="px-4">{translate('headlossShort')}: {hydraulicModel.headlossFormula}</span>
-        <div className="border-r-2 border-gray-100 h-8"></div>
+      <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
+        {items.map((item, i) => (
+          <>
+        <span key={i} className="px-4 py-2">{item}</span>
+        <div className="border-r-2 border-gray-100 h-10"></div>
+          </>
+
+            ))}
         <span className="px-1"><SimulationStatusText /></span>
       </div>
     </nav>

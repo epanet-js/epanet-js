@@ -74,7 +74,7 @@ export const SimulationStatusText = () => {
 
   return (
     <div
-      className={`flex flex-row items-center space-x-2 text-xs ${colorClass}`}
+      className={`flex flex-row items-center space-x-2 text-sm ${colorClass}`}
     >
       <Icon className="w-4 h-4 mx-1" />
       {text}
