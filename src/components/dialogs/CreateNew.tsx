@@ -17,7 +17,6 @@ import { translate } from "src/infra/i18n";
 import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 
 type SubmitProps = {
@@ -60,14 +59,12 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
               selected={values.unitsSpec}
               onChange={(specId) => setFieldValue("unitsSpec", specId)}
             />
-            {isFeatureOn("FLAG_HEADLOSS") && (
-              <HeadlossFormulaSelector
-                selected={values.headlossFormula}
-                onChange={(headlossFormula) =>
-                  setFieldValue("headlossFormula", headlossFormula)
-                }
-              />
-            )}
+            <HeadlossFormulaSelector
+              selected={values.headlossFormula}
+              onChange={(headlossFormula) =>
+                setFieldValue("headlossFormula", headlossFormula)
+              }
+            />
             <SimpleDialogActions
               onClose={onClose}
               action={translate("create")}

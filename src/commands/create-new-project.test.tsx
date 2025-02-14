@@ -13,7 +13,6 @@ import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -37,7 +36,6 @@ describe("create new project", () => {
   });
 
   it("allows to chooose the headloss formula", async () => {
-    stubFeatureOn("FLAG_HEADLOSS");
     const store = setInitialState({});
 
     renderComponent({ store });

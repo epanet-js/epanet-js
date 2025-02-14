@@ -22,7 +22,6 @@ import {
   StyledDialogOverlay,
 } from "./elements";
 import { attachSimulation } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -75,7 +74,7 @@ export const SimulationStatusText = () => {
 
   return (
     <div
-      className={`flex flex-row items-center space-x-2 ${isFeatureOn("FLAG_HEADLOSS") ? "text-xs" : "text-sm"} ${colorClass}`}
+      className={`flex flex-row items-center space-x-2 text-xs ${colorClass}`}
     >
       <Icon className="w-4 h-4 mx-1" />
       {text}

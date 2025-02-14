@@ -122,8 +122,7 @@ export function PlacemarkPlay() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-            isFeatureOn('FLAG_HEADLOSS') ?
-              "flex flex-grow pb-8 relative border-t border-gray-200 dark:border-gray-900": "flex flex-auto relative border-t border-gray-200 dark:border-gray-900",
+              "flex flex-grow pb-8 relative border-t border-gray-200 dark:border-gray-900"
           )}
         >
           <DndContext
@@ -153,7 +152,7 @@ export function PlacemarkPlay() {
           <Keybindings />
         </Suspense>
         <Notifications />
-        {isFeatureOn('FLAG_HEADLOSS') && <BottomBar />}
+        <BottomBar />
       </MapContext.Provider>
     </main>
   );
