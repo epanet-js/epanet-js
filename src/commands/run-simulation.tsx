@@ -106,7 +106,7 @@ export const RunSimulationDialog = ({
                 action: translate("viewReport"),
                 onClick: showReport,
               }}
-              action={translate("understood")}
+              action={translate("ok")}
             />
           </Form>
         </Formik>

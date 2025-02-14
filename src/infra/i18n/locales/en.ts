@@ -127,6 +127,7 @@ export const translations = {
   viewReport: "View report",
   ignore: "Ignore",
   loading: "Loading...",
+  ok: "OK",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
