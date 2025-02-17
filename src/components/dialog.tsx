@@ -36,14 +36,20 @@ export function DialogHeader({
         />
       )}
       {title && <div className="truncate flex-auto">{title}</div>}
-      <D.Close
-        aria-label="Close"
-        className="text-gray-500 shrink-0
-                  focus:bg-gray-200 dark:focus:bg-black
-                  hover:text-black dark:hover:text-white"
-      >
-        <Cross1Icon />
-      </D.Close>
+      <DialogCloseX />
     </div>
   );
 }
+
+export const DialogCloseX = () => {
+  return (
+    <D.Close
+      aria-label="Close"
+      className="text-gray-500 shrink-0
+                  focus:bg-gray-200 dark:focus:bg-black
+                  hover:text-black dark:hover:text-white"
+    >
+      <Cross1Icon />
+    </D.Close>
+  );
+};
