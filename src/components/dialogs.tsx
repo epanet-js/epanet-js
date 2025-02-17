@@ -114,6 +114,7 @@ export const Dialogs = memo(function Dialogs() {
       <SimulationReportDialog onClose={onClose} />
     ))
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
+    .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
 
   return (
