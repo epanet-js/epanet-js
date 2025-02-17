@@ -10,6 +10,7 @@ import {
   StyledDialogContent,
   Loading,
   DefaultErrorBoundary,
+  WelcomeDialogContent,
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
 
@@ -49,6 +50,12 @@ const SimulationReportDialog = dynamic<{
     loading: () => <Loading />,
   },
 );
+
+const WelcomeDialog = dynamic<{
+  onClose: () => void;
+}>(() => import("src/commands/show-welcome").then((r) => r.WelcomeDialog), {
+  loading: () => <Loading />,
+});
 
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
@@ -106,6 +113,7 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "simulationReport" }, () => (
       <SimulationReportDialog onClose={onClose} />
     ))
+    .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .exhaustive();
 
   return (
@@ -129,17 +137,24 @@ export const Dialogs = memo(function Dialogs() {
           <D.Title></D.Title>
           {/**radix complains if no description, so at least having an empty one helps**/}
           <D.Description></D.Description>
-          <StyledDialogContent
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            size={dialogSize}
-            widthClasses={
-              dialog && dialog.type === "simulationReport"
-                ? "max-w-620"
-                : undefined
-            }
-          >
-            <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
-          </StyledDialogContent>
+          {dialog && dialog.type === "welcome" && (
+            <WelcomeDialogContent>
+              <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
+            </WelcomeDialogContent>
+          )}
+          {(!dialog || dialog.type !== "welcome") && (
+            <StyledDialogContent
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              size={dialogSize}
+              widthClasses={
+                dialog && dialog.type === "simulationReport"
+                  ? "max-w-[80vw]"
+                  : undefined
+              }
+            >
+              <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
+            </StyledDialogContent>
+          )}
         </Suspense>
       </D.Portal>
     </D.Root>

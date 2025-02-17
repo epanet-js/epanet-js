@@ -1,5 +1,6 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
+import { isFeatureOn } from "src/infra/feature-flags";
 import type { FileGroups } from "src/lib/group_files";
 
 /**
@@ -35,6 +36,10 @@ export type SimulationReportDialogState = {
   type: "simulationReport";
 };
 
+export type WelcomeDialogState = {
+  type: "welcome";
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -45,6 +50,9 @@ export type DialogState =
   | { type: "createNew" }
   | RunSimulationDialogSate
   | SimulationReportDialogState
+  | WelcomeDialogState
   | null;
 
-export const dialogAtom = atomWithReset<DialogState>(null);
+export const dialogAtom = atomWithReset<DialogState>(
+  isFeatureOn("FLAG_WELCOME") ? { type: "welcome" } : null,
+);

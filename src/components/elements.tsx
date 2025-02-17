@@ -245,7 +245,30 @@ const styledDialogContent = ({
       `,
   );
 
+const customWelcomeDialogContent = () => {
+  return clsx(
+    `fixed inline-block
+      max-h-[720px]
+      h-full
+      w-[1024px]
+      text-left
+      align-bottom
+      bg-white dark:bg-gray-900
+      dark:text-white
+      shadow-md dark:shadow-none dark:border dark:border-black
+      sm:rounded sm:align-middle w-full
+      left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
+      overflow-y-auto placemark-scrollbar
+      p-0
+      z-50
+      `,
+  );
+};
+
 export const StyledDialogContent = classed(Dialog.Content)(styledDialogContent);
+export const WelcomeDialogContent = classed(Dialog.Content)(
+  customWelcomeDialogContent,
+);
 export const StyledAlertDialogContent = classed(AlertDialog.Content)(
   styledDialogContent,
 );
