@@ -4,6 +4,26 @@ import { DialogCloseX } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { BrandLogo } from "src/components/menu_bar";
 import { dialogAtom } from "src/state/dialog_state";
+import { useNewProject } from "./create-new-project";
+import { useOpenInp } from "./open-inp";
+
+type DemoModel = {
+  name: string;
+  description: string;
+  url: string;
+};
+const demoModels: DemoModel[] = [
+  {
+    name: "UK Style Network",
+    description: "Sample network for demo purposes",
+    url: "/example-models/01-uk-style.inp",
+  },
+  {
+    name: "US Style Network",
+    description: "Sample network for demo purposes",
+    url: "/example-models/02-us-style.inp",
+  },
+];
 
 export const useShowWelcome = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -15,6 +35,15 @@ export const useShowWelcome = () => {
 };
 
 export const WelcomeDialog = ({}: { onClose: () => void }) => {
+  const createNew = useNewProject();
+  const { openInpFromFs, openInpFromCandidates } = useOpenInp();
+
+  const handleOpenDemoNetwork = async (url: string) => {
+    const response = await fetch(url);
+    const demoFile = new File([await response.blob()], "my-network.inp");
+    openInpFromCandidates([demoFile]);
+  };
+
   const imageUrl = "https://placehold.co/512x720";
   return (
     <div className="w-full flex flex-row h-full">
@@ -23,7 +52,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
       </div>
       <div className="w-1/2 h-full flex flex-col p-4 justify-between">
         <div className="flex flex-col flex-grow">
-          <div className="w-full flex flex-row justify-between items-center pb-3">
+          <div className="w-full flex flex-row justify-between items-center pb-4">
             <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
             <DialogCloseX />
           </div>
@@ -42,21 +71,25 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               Example networks
             </p>
             <div className="grid grid-cols-2 gap-4 pb-3">
-              <DemoNetworkCard
-                title="UK Style Network"
-                description="Sample network for demo purposes"
-              />
-              <DemoNetworkCard
-                title="US Style Network"
-                description="Sample network for demo purposes"
-              />
+              {demoModels.map((demoModel, i) => (
+                <DemoNetworkCard
+                  key={i}
+                  title={demoModel.name}
+                  description={demoModel.description}
+                  onClick={() => handleOpenDemoNetwork(demoModel.url)}
+                />
+              ))}
             </div>
             <p className="text-gray-500 text-lg font-semibold pb-2">
               Build & Develop
             </p>
             <div className="flex flex-col gap-y-2 pb-3">
-              <Button size="full-width">Create New</Button>
-              <Button size="full-width">Open INP</Button>
+              <Button size="full-width" onClick={createNew}>
+                Create New
+              </Button>
+              <Button size="full-width" onClick={openInpFromFs}>
+                Open INP
+              </Button>
             </div>
             <p className="text-gray-500 text-lg font-semibold pb-2">
               Helpful links
@@ -85,14 +118,19 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
 const DemoNetworkCard = ({
   title,
   description,
+  onClick,
 }: {
   title: string;
   description: string;
+  onClick: () => void;
 }) => {
   const demoPlaceholder = "https://placehold.co/64x96";
 
   return (
-    <div className="flex items-center gap-x-2 bg-white shadow-md  rounded-lg border">
+    <div
+      className="flex items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      onClick={onClick}
+    >
       <img
         src={demoPlaceholder}
         alt="Demo network 1"
