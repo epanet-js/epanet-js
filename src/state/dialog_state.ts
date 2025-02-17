@@ -51,6 +51,7 @@ export type DialogState =
   | RunSimulationDialogSate
   | SimulationReportDialogState
   | WelcomeDialogState
+  | { type: "loading" }
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(

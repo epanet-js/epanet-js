@@ -6,6 +6,7 @@ import { BrandLogo } from "src/components/menu_bar";
 import { dialogAtom } from "src/state/dialog_state";
 import { useNewProject } from "./create-new-project";
 import { useOpenInp } from "./open-inp";
+import { useOpenInpFromUrl } from "./open-inp-from-url";
 
 type DemoModel = {
   name: string;
@@ -36,13 +37,8 @@ export const useShowWelcome = () => {
 
 export const WelcomeDialog = ({}: { onClose: () => void }) => {
   const createNew = useNewProject();
-  const { openInpFromFs, openInpFromCandidates } = useOpenInp();
-
-  const handleOpenDemoNetwork = async (url: string) => {
-    const response = await fetch(url);
-    const demoFile = new File([await response.blob()], "my-network.inp");
-    openInpFromCandidates([demoFile]);
-  };
+  const { openInpFromFs } = useOpenInp();
+  const { openInpFromUrl } = useOpenInpFromUrl();
 
   const imageUrl = "https://placehold.co/512x720";
   return (
@@ -76,7 +72,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   key={i}
                   title={demoModel.name}
                   description={demoModel.description}
-                  onClick={() => handleOpenDemoNetwork(demoModel.url)}
+                  onClick={() => openInpFromUrl(demoModel.url)}
                 />
               ))}
             </div>

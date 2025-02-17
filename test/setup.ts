@@ -213,6 +213,17 @@ if (
     });
   };
 
+  window.File.prototype.arrayBuffer = function () {
+    const reader = new FileReader();
+
+    return new Promise((resolve) => {
+      reader.addEventListener("load", () => {
+        resolve(reader.result as ArrayBuffer);
+      });
+      reader.readAsArrayBuffer(this);
+    });
+  };
+
   window.File.prototype.text = function () {
     const reader = new FileReader();
 
