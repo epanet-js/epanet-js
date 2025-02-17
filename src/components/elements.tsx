@@ -250,7 +250,8 @@ const customWelcomeDialogContent = () => {
     `fixed inline-block
       max-h-[720px]
       h-full
-      w-[1024px]
+      max-w-[1024px]
+      w-full
       text-left
       align-bottom
       bg-white dark:bg-gray-900
