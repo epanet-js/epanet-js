@@ -2,20 +2,37 @@ import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog_state";
 import { useOpenInp } from "./open-inp";
+import toast from "react-hot-toast";
+import { captureError } from "src/infra/error-tracking";
 
 export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { openInpFromCandidates } = useOpenInp();
+
+  const handleDownloadError = useCallback(() => {
+    toast.error("Download failed. Try again, please!");
+    setDialogState({ type: "welcome" });
+  }, [setDialogState]);
+
   const openInpFromUrl = useCallback(
     async (url: string) => {
-      setDialogState({ type: "loading" });
+      try {
+        setDialogState({ type: "loading" });
 
-      const response = await fetch(url);
-      const name = parseName(url);
-      const inpFile = new File([await response.blob()], name);
-      openInpFromCandidates([inpFile]);
+        const response = await fetch(url);
+        if (!response.ok) {
+          return handleDownloadError();
+        }
+
+        const name = parseName(url);
+        const inpFile = new File([await response.blob()], name);
+        openInpFromCandidates([inpFile]);
+      } catch (error) {
+        captureError(error as Error);
+        handleDownloadError();
+      }
     },
-    [setDialogState],
+    [setDialogState, handleDownloadError],
   );
 
   return { openInpFromUrl };
