@@ -4,6 +4,7 @@ import {
   splitsAtom,
   TabOption,
   tabAtom,
+  dialogAtom,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
@@ -133,6 +134,9 @@ export const FullPanel = memo(function FullPanelInner() {
 
 export const Panel = memo(function PanelInner() {
   const [activeTab, setTab] = useAtom(tabAtom);
+  const dialog = useAtomValue(dialogAtom);
+
+  if (dialog && dialog.type === "welcome") return null;
 
   return (
     <div className="absolute inset-0 flex flex-col">
