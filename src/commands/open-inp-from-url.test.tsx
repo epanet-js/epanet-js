@@ -15,6 +15,7 @@ describe("open inp from url", () => {
     `;
     window.fetch = vi.fn(() =>
       Promise.resolve({
+        ok: true,
         blob: () => Promise.resolve(inp),
       } as unknown as Response),
     );
@@ -37,6 +38,28 @@ describe("open inp from url", () => {
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
+  });
+
+  it("shows an error if fetch fails", async () => {
+    window.fetch = vi.fn().mockRejectedValue(new Error("Booom"));
+    const inpUrl = "http://example.org/network-001.inp";
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    renderComponent({ store, inpUrl });
+
+    await triggerOpenInpFromUrl();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/failed/i)).toBeInTheDocument();
+
+    expect(screen.getByText(/welcome/i)).toBeInTheDocument();
+
+    const fileInfo = store.get(fileInfoAtom);
+    expect(fileInfo).toBeNull();
   });
 
   const triggerOpenInpFromUrl = async () => {
