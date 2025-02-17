@@ -1,4 +1,4 @@
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { DialogCloseX } from "src/components/dialog";
 import { Button } from "src/components/elements";
@@ -7,6 +7,7 @@ import { dialogAtom } from "src/state/dialog_state";
 import { useNewProject } from "./create-new-project";
 import { useOpenInp } from "./open-inp";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
+import { userSettingsAtom } from "src/state/user-settings";
 
 type DemoModel = {
   name: string;
@@ -36,6 +37,7 @@ export const useShowWelcome = () => {
 };
 
 export const WelcomeDialog = ({}: { onClose: () => void }) => {
+  const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
   const { openInpFromFs } = useOpenInp();
   const { openInpFromUrl } = useOpenInpFromUrl();
@@ -95,8 +97,18 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <Button size="full-width">Help center</Button>
               <Button size="full-width">Source code</Button>
             </div>
-            <div className="text-sm pb-3 flex items-center gap-x-1">
-              <input type="checkbox" checked />
+            <div className="text-sm pb-3 flex items-center gap-x-2">
+              <input
+                className="cursor-pointer"
+                type="checkbox"
+                checked={userSettings.showWelcomeOnStart}
+                onChange={() => {
+                  setUserSettings((prev) => ({
+                    ...prev,
+                    showWelcomeOnStart: !prev.showWelcomeOnStart,
+                  }));
+                }}
+              />
               Always show at startup
             </div>
           </div>

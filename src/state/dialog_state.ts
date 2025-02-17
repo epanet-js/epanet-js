@@ -2,6 +2,7 @@ import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { isFeatureOn } from "src/infra/feature-flags";
 import type { FileGroups } from "src/lib/group_files";
+import { settingsFromStorage } from "./user-settings";
 
 /**
  * Modal state, controlled by dragging and dropping,
@@ -55,5 +56,7 @@ export type DialogState =
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(
-  isFeatureOn("FLAG_WELCOME") ? { type: "welcome" } : null,
+  isFeatureOn("FLAG_WELCOME") && settingsFromStorage().showWelcomeOnStart
+    ? { type: "welcome" }
+    : null,
 );
