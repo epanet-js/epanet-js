@@ -130,7 +130,7 @@ const DemoNetworkCard = ({
       <img
         src={demoPlaceholder}
         alt="Demo network 1"
-        className="w-[64px] h-[96px] object-cover"
+        className="w-[64px] h-[96px] rounded-l-md object-cover"
       />
       <div className="flex flex-col p-1">
         <span className="text-gray-600 font-bold text-sm">{title}</span>
