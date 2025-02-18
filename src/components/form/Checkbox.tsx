@@ -1,9 +1,7 @@
 export const Checkbox = ({
   size = 4,
   ...props
-}: {
-  size: number & React.InputHTMLAttributes<HTMLInputElement>;
-}) => {
+}: { size?: number } & React.InputHTMLAttributes<HTMLInputElement>) => {
   return (
     <input
       type="checkbox"
