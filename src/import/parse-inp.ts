@@ -39,12 +39,18 @@ type InpData = {
 
 export const parseInp = (
   inp: string,
-): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
-  const inpData = readAllSections(inp);
-  return buildModel(inpData);
+): {
+  hydraulicModel: HydraulicModel;
+  modelMetadata: ModelMetadata;
+  hasUnsupported: boolean;
+} => {
+  const { inpData, hasUnsupported } = readAllSections(inp);
+  return { ...buildModel(inpData), hasUnsupported };
 };
 
-const readAllSections = (inp: string): InpData => {
+const readAllSections = (
+  inp: string,
+): { inpData: InpData; hasUnsupported: boolean } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -57,20 +63,13 @@ const readAllSections = (inp: string): InpData => {
     demands: {},
     options: { units: "GPM", headlossFormula: "H-W" },
   };
+  let hasUnsupported = false;
   for (const row of rows) {
     const trimmedRow = row.trim();
 
     if (trimmedRow.startsWith(";")) continue;
     if (trimmedRow === "" || trimmedRow.includes("[END]")) {
       section = null;
-      continue;
-    }
-    if (trimmedRow.includes("[VALVES]")) {
-      section = "valves";
-      continue;
-    }
-    if (trimmedRow.includes("[PUMPS]")) {
-      section = "pumps";
       continue;
     }
 
@@ -80,10 +79,6 @@ const readAllSections = (inp: string): InpData => {
     }
     if (trimmedRow.includes("[RESERVOIRS]")) {
       section = "reservoir";
-      continue;
-    }
-    if (trimmedRow.includes("[TANKS]")) {
-      section = "tanks";
       continue;
     }
     if (trimmedRow.includes("[COORDINATES]")) {
@@ -102,12 +97,20 @@ const readAllSections = (inp: string): InpData => {
       section = "vertices";
       continue;
     }
+    if (trimmedRow.includes("[TIMES]")) {
+      section = "times";
+      continue;
+    }
+    if (trimmedRow.includes("[REPORT]")) {
+      section = "report";
+      continue;
+    }
     if (trimmedRow.includes("[OPTIONS]")) {
       section = "options";
       continue;
     }
     if (trimmedRow.startsWith("[")) {
-      section = null;
+      section = "unsupported";
       continue;
     }
 
@@ -147,28 +150,6 @@ const readAllSections = (inp: string): InpData => {
       });
     }
 
-    if (section === "tanks") {
-      const [
-        id,
-        elevation,
-        initialLevel,
-        minimumLevel,
-        maximumLevel,
-        diameter,
-        minimumVolume,
-      ] = readValues(trimmedRow);
-
-      inpData.tanks.push({
-        id,
-        elevation: parseFloat(elevation),
-        initialLevel: parseFloat(initialLevel),
-        minimumLevel: parseFloat(minimumLevel),
-        maximumLevel: parseFloat(maximumLevel),
-        diameter: parseFloat(diameter),
-        minimumVolume: parseFloat(minimumVolume),
-      });
-    }
-
     if (section === "coordinates") {
       const [nodeId, lng, lat] = readValues(trimmedRow);
       inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
@@ -192,8 +173,12 @@ const readAllSections = (inp: string): InpData => {
       if (name === "Headloss")
         inpData.options.headlossFormula = value as HeadlossFormula;
     }
+
+    if (section === "unsupported") {
+      hasUnsupported = true;
+    }
   }
-  return inpData;
+  return { inpData, hasUnsupported };
 };
 
 const buildModel = (
@@ -223,15 +208,6 @@ const buildModel = (
       id: reservoirData.id,
       coordinates: inpData.coordinates[reservoirData.id],
       head: reservoirData.head,
-    });
-    hydraulicModel.assets.set(reservoir.id, reservoir);
-  }
-
-  for (const tankData of inpData.tanks) {
-    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-      id: tankData.id,
-      coordinates: inpData.coordinates[tankData.id],
-      head: tankData.elevation + tankData.initialLevel,
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
   }
