@@ -152,26 +152,6 @@ describe("Parse inp", () => {
     expect(hydraulicModel.assets.size).toEqual(1);
   });
 
-  it("[temporary] converts tanks to reservoirs", () => {
-    const tankId = "t1";
-    const elevation = 100;
-    const initLevel = 20;
-    const lng = 10;
-    const lat = 20;
-    const inp = `
-    [TANKS]
-    ${tankId}\t${elevation}\t${initLevel}\tANY
-
-    [COORDINATES]
-    ${tankId}\t${lng}\t${lat}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const tankAsReservoir = hydraulicModel.assets.get(tankId) as Reservoir;
-    expect(tankAsReservoir.head).toEqual(elevation + initLevel);
-  });
-
   it("detects the us customary unit system", () => {
     const anyId = "R1";
     const head = 100;
@@ -224,5 +204,16 @@ describe("Parse inp", () => {
     const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.headlossFormula).toEqual("D-W");
+  });
+
+  it("says when inp contains unsupported sections", () => {
+    const inp = `
+    [VALVES]
+    ANY
+    `;
+
+    const { hasUnsupported } = parseInp(inp);
+
+    expect(hasUnsupported).toBeTruthy();
   });
 });
