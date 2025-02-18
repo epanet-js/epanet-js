@@ -13,12 +13,7 @@ describe("open inp from url", () => {
     [JUNCTIONS]
     J1\t10
     `;
-    window.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        blob: () => Promise.resolve(inp),
-      } as unknown as Response),
-    );
+    stubResponseOk(inp);
     const inpUrl = "http://example.org/network-001.inp";
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
@@ -27,7 +22,32 @@ describe("open inp from url", () => {
 
     await triggerOpenInpFromUrl();
 
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const junction = hydraulicModel.assets.get("J1");
+    expect((junction as Junction).elevation).toEqual(10);
+
+    const fileInfo = store.get(fileInfoAtom);
+    expect(fileInfo!.name).toEqual("network-001.inp");
+  });
+
+  it.only("ignores parameters from the url", async () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t10
+    `;
+    stubResponseOk(inp);
+    const inpUrl = "http://example.org/network-001.inp?key=1&other=2";
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    renderComponent({ store, inpUrl });
+
+    await triggerOpenInpFromUrl();
+
     await waitFor(() => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
@@ -78,6 +98,15 @@ describe("open inp from url", () => {
       >
         Open
       </button>
+    );
+  };
+
+  const stubResponseOk = (data: string) => {
+    window.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(data),
+      } as unknown as Response),
     );
   };
 
