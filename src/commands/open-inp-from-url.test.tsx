@@ -34,7 +34,7 @@ describe("open inp from url", () => {
     expect(fileInfo!.name).toEqual("network-001.inp");
   });
 
-  it.only("ignores parameters from the url", async () => {
+  it("ignores parameters from the url", async () => {
     const inp = `
     [JUNCTIONS]
     J1\t10
