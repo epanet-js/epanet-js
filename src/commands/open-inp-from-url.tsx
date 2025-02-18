@@ -39,5 +39,8 @@ export const useOpenInpFromUrl = () => {
 };
 
 const parseName = (url: string): string => {
-  return url.split("/").pop() || "my-network.inp";
+  const fileNameWithParams = url.split("/").pop();
+  if (!fileNameWithParams) return "my-network.inp";
+
+  return fileNameWithParams.split("?")[0];
 };
