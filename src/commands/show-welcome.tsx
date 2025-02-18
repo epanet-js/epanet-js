@@ -13,7 +13,7 @@ import {
   FileIcon,
   FilePlusIcon,
   GitHubLogoIcon,
-  QuestionMarkIcon,
+  QuestionMarkCircledIcon,
   VideoIcon,
 } from "@radix-ui/react-icons";
 import { helpCenterUrl, quickStartTutorialUrl } from "src/global-config";
@@ -121,7 +121,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                 </Button>
                 <a href={helpCenterUrl} target="_blank">
                   <Button variant="quiet">
-                    <QuestionMarkIcon />
+                    <QuestionMarkCircledIcon />
                     Help Center
                   </Button>
                 </a>
