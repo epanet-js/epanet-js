@@ -17,27 +17,26 @@ import {
   VideoIcon,
 } from "@radix-ui/react-icons";
 import { helpCenterUrl, quickStartTutorialUrl } from "src/global-config";
+import Image from "next/image";
 
 type DemoModel = {
   name: string;
   description: string;
   url: string;
+  thumbnailUrl: string;
 };
 const demoModels: DemoModel[] = [
   {
     name: "UK Style Network",
     description: "Sample network for demo purposes",
     url: "/example-models/01-uk-style.inp",
+    thumbnailUrl: "/example-models/01-uk-style.png",
   },
   {
     name: "US Style Network",
     description: "Sample network for demo purposes",
     url: "/example-models/02-us-style.inp",
-  },
-  {
-    name: "US Style Network",
-    description: "Sample network for demo purposes",
-    url: "/example-models/02-us-style.inp",
+    thumbnailUrl: "/example-models/02-us-style.png",
   },
 ];
 
@@ -92,7 +91,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   </Button>
                 </a>
               </p>
-              <p className="text-sm pb-2">
+              <p className="text-sm pb-3">
                 Explore the app by opening a sample network:
               </p>
               <div className="flex items-center gap-x-4  pb-3">
@@ -101,6 +100,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     key={i}
                     title={demoModel.name}
                     description={demoModel.description}
+                    thumbnailUrl={demoModel.thumbnailUrl}
                     onClick={() => openInpFromUrl(demoModel.url)}
                   />
                 ))}
@@ -160,23 +160,25 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
 const DemoNetworkCard = ({
   title,
   description,
+  thumbnailUrl,
   onClick,
 }: {
   title: string;
   description: string;
+  thumbnailUrl: string;
   onClick: () => void;
 }) => {
-  const demoPlaceholder = "https://placehold.co/198x160";
-
   return (
     <div
       className="flex flex-col w-[200px] h-[240px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
-      <img
-        src={demoPlaceholder}
-        alt="Demo network 1"
-        className="w-full h-[160px] rounded-t-md object-cover"
+      <Image
+        src={thumbnailUrl}
+        alt={title}
+        width={198}
+        height={160}
+        className="rounded-t-md object-cover"
       />
       <div className="flex flex-col p-2">
         <span className="text-gray-600 font-bold text-sm">{title}</span>
