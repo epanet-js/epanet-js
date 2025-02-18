@@ -8,6 +8,7 @@ import { useNewProject } from "./create-new-project";
 import { useOpenInp } from "./open-inp";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { userSettingsAtom } from "src/state/user-settings";
+import { Checkbox } from "src/components/form/Checkbox";
 
 type DemoModel = {
   name: string;
@@ -98,9 +99,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <Button size="full-width">Source code</Button>
             </div>
             <div className="text-sm pb-3 flex items-center gap-x-2">
-              <input
-                className="cursor-pointer"
-                type="checkbox"
+              <Checkbox
                 checked={userSettings.showWelcomeOnStart}
                 onChange={() => {
                   setUserSettings((prev) => ({
