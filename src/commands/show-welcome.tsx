@@ -16,6 +16,7 @@ import {
   QuestionMarkIcon,
   VideoIcon,
 } from "@radix-ui/react-icons";
+import { helpCenterUrl, quickStartTutorialUrl } from "src/global-config";
 
 type DemoModel = {
   name: string;
@@ -79,15 +80,12 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 Getting started
               </p>
-              <p className="text-sm pb-2">
+              <p className="text-sm pb-3">
                 New here? Watch our Quick Start Tutorial to learn the basics in
                 just a few minutes!
               </p>
               <p className="text-sm pb-6">
-                <a
-                  href="https://www.youtube.com/watch?v=7u4EPdP7WgA"
-                  target="_blank"
-                >
+                <a href={quickStartTutorialUrl} target="_blank">
                   <Button variant="primary">
                     <VideoIcon />
                     Quick Start Tutorial
@@ -121,10 +119,12 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   <FilePlusIcon />
                   Open INP
                 </Button>
-                <Button variant="quiet" onClick={openInpFromFs}>
-                  <QuestionMarkIcon />
-                  Help Center
-                </Button>
+                <a href={helpCenterUrl} target="_blank">
+                  <Button variant="quiet">
+                    <QuestionMarkIcon />
+                    Help Center
+                  </Button>
+                </a>
                 <Button variant="quiet" onClick={openInpFromFs}>
                   <GitHubLogoIcon />
                   Source Code

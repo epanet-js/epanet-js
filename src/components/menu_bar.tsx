@@ -15,6 +15,7 @@ import { useSetAtom } from "jotai";
 import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
+import { helpCenterUrl } from "src/global-config";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -103,7 +104,7 @@ export function HelpDot() {
         <Button variant="quiet">{translate("help")}</Button>
       </DD.Trigger>
       <DDContent>
-        <a href="https://help.epanetjs.com" target="_blank">
+        <a href={helpCenterUrl} target="_blank">
           <StyledItem>
             <QuestionMarkCircledIcon /> {translate("helpCenter")}
           </StyledItem>
