@@ -10,6 +10,35 @@ import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
+const epanetSections = [
+  "[TITLE]",
+  "[CURVES]",
+  "[QUALITY]",
+  "[OPTIONS]",
+  "[BACKDROP]",
+  "[JUNCTIONS]",
+  "[PATTERNS]",
+  "[REACTIONS]",
+  "[TIMES]",
+  "[COORDINATES]",
+  "[RESERVOIRS]",
+  "[ENERGY]",
+  "[SOURCES]",
+  "[REPORT]",
+  "[VERTICES]",
+  "[TANKS]",
+  "[STATUS]",
+  "[MIXING]",
+  "[LABELS]",
+  "[PIPES]",
+  "[CONTROLS]",
+  "[PUMPS]",
+  "[RULES]",
+  "[VALVES]",
+  "[DEMANDS]",
+  "[EMITTERS]",
+];
+
 type InpData = {
   junctions: { id: string; elevation: number }[];
   reservoirs: { id: string; head: number }[];
@@ -38,42 +67,45 @@ type InpData = {
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
 };
 
+export type ParserIssues = {
+  unsupportedSections: Set<string>;
+};
+
 export const parseInp = (
   inp: string,
 ): {
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
   hasUnsupported: boolean;
+  issues: ParserIssues;
 } => {
-  const { inpData, hasUnsupported } = isFeatureOn("FLAG_UNSUPPORTED")
-    ? readAllSections(inp)
-    : readAllSectionsDeprecated(inp);
-  return { ...buildModel(inpData), hasUnsupported };
+  if (isFeatureOn("FLAG_UNSUPPORTED")) {
+    const { inpData, issues } = readAllSections(inp);
+    return {
+      ...buildModel(inpData),
+      issues,
+      hasUnsupported: issues.unsupportedSections.size > 0,
+    };
+  } else {
+    const dummyParserIssues = { unsupportedSections: new Set<string>() };
+    const { inpData, hasUnsupported } = readAllSectionsDeprecated(inp);
+    return {
+      ...buildModel(inpData),
+      hasUnsupported,
+      issues: dummyParserIssues,
+    };
+  }
 };
-
-const supportedSectionNames = [
-  "[JUNCTIONS]",
-  "[RESERVOIRS]",
-  "[COORDINATES]",
-  "[DEMANDS]",
-  "[PIPES]",
-  "[VERTICES]",
-  "[TIMES]",
-  "[REPORT]",
-  "[OPTIONS]",
-];
 
 const detectNewSectionName = (trimmedRow: string): string | null => {
   if (!trimmedRow.startsWith("[")) return null;
-  const sectionName = supportedSectionNames.find((name) =>
-    trimmedRow.includes(name),
-  );
+  const sectionName = epanetSections.find((name) => trimmedRow.includes(name));
   return sectionName || null;
 };
 
 const readAllSections = (
   inp: string,
-): { inpData: InpData; hasUnsupported: boolean } => {
+): { inpData: InpData; hasUnsupported: boolean; issues: ParserIssues } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -86,7 +118,10 @@ const readAllSections = (
     demands: {},
     options: { units: "GPM", headlossFormula: "H-W" },
   };
-  let hasUnsupported = false;
+  const issues: ParserIssues = {
+    unsupportedSections: new Set<string>(),
+  };
+  const hasUnsupported = false;
   for (const row of rows) {
     const trimmedRow = row.trim();
 
@@ -110,12 +145,14 @@ const readAllSections = (
       const [id, elevation] = readValues(trimmedRow);
 
       inpData.junctions.push({ id, elevation: parseFloat(elevation) });
+      continue;
     }
 
     if (section === "reservoirs") {
       const [id, head] = readValues(trimmedRow);
 
       inpData.reservoirs.push({ id, head: parseFloat(head) });
+      continue;
     }
 
     if (section === "pipes") {
@@ -140,11 +177,13 @@ const readAllSections = (
         minorLoss: parseFloat(minorLoss),
         status: status.toLowerCase() === "open" ? "open" : "closed",
       });
+      continue;
     }
 
     if (section === "coordinates") {
       const [nodeId, lng, lat] = readValues(trimmedRow);
       inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+      continue;
     }
 
     if (section === "vertices") {
@@ -152,11 +191,13 @@ const readAllSections = (
       if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
 
       inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
+      continue;
     }
 
     if (section === "demands") {
       const [nodeId, demand] = readValues(trimmedRow);
       inpData.demands[nodeId] = parseFloat(demand);
+      continue;
     }
 
     if (section === "options") {
@@ -164,13 +205,20 @@ const readAllSections = (
       if (name === "Units") inpData.options.units = value as EpanetUnitSystem;
       if (name === "Headloss")
         inpData.options.headlossFormula = value as HeadlossFormula;
+      continue;
+    }
+    if (section === "report") {
+      continue;
+    }
+    if (section === "times") {
+      continue;
     }
 
-    if (section === "unsupported") {
-      hasUnsupported = true;
+    if (section !== null) {
+      issues.unsupportedSections.add(section);
     }
   }
-  return { inpData, hasUnsupported };
+  return { inpData, hasUnsupported, issues };
 };
 
 const readAllSectionsDeprecated = (
