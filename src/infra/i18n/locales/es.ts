@@ -153,6 +153,7 @@ export const translations: Translations = {
   termsAndConditions: "Términos y condiciones",
   privacyPolicy: "Política de privacidad",
   openSource: "Open Source",
+  downloadFailed: "No se ha podido descargar. Por favor, inténtalo de nuevo.",
 };
 
 export const units: UnitsLocale = {

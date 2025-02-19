@@ -146,6 +146,7 @@ export const translations = {
   termsAndConditions: "Terms and conditions",
   privacyPolicy: "Privacy policy",
   openSource: "Open Source",
+  downloadFailed: "Download failed. Try again, please!",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
