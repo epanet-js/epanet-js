@@ -212,7 +212,7 @@ export const CapsLabel = classed.label(
 );
 
 const overlayClasses =
-  "fixed inset-0 bg-black/20 dark:bg-white/20 z-50 placemark-fadein";
+  "fixed inset-0 bg-black/20 dark:bg-white/20 z-40 placemark-fadein";
 
 export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
   overlayClasses,
@@ -241,7 +241,7 @@ const styledDialogContent = ({
       sm:rounded sm:align-middle ${widthClasses}
       left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
       overflow-y-auto placemark-scrollbar
-      z-50
+      z-40
       `,
   );
 
@@ -261,7 +261,7 @@ const customWelcomeDialogContent = () => {
       left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
       overflow-y-auto placemark-scrollbar
       p-0
-      z-50
+      z-40
       `,
   );
 };
