@@ -71,6 +71,7 @@ export type ParserIssues = {
   unsupportedSections: Set<string>;
   extendedPeriodSimulation: boolean;
   patternStartNotInZero: boolean;
+  nodesMissingCoordinates: Set<string>;
 };
 
 export const parseInp = (
@@ -78,26 +79,32 @@ export const parseInp = (
 ): {
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
-  hasUnsupported: boolean;
   issues: ParserIssues;
 } => {
   if (isFeatureOn("FLAG_UNSUPPORTED")) {
-    const { inpData, issues } = readAllSections(inp);
+    const issues: ParserIssues = {
+      unsupportedSections: new Set<string>(),
+      extendedPeriodSimulation: false,
+      patternStartNotInZero: false,
+      nodesMissingCoordinates: new Set<string>(),
+    };
+    const inpData = readAllSections(inp, issues);
+    const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
     return {
-      ...buildModel(inpData),
+      hydraulicModel,
+      modelMetadata,
       issues,
-      hasUnsupported: issues.unsupportedSections.size > 0,
     };
   } else {
     const dummyParserIssues = {
       unsupportedSections: new Set<string>(),
       extendedPeriodSimulation: false,
       patternStartNotInZero: false,
+      nodesMissingCoordinates: new Set<string>(),
     };
-    const { inpData, hasUnsupported } = readAllSectionsDeprecated(inp);
+    const { inpData } = readAllSectionsDeprecated(inp);
     return {
-      ...buildModel(inpData),
-      hasUnsupported,
+      ...buildModelDeprecated(inpData),
       issues: dummyParserIssues,
     };
   }
@@ -109,9 +116,7 @@ const detectNewSectionName = (trimmedRow: string): string | null => {
   return sectionName || null;
 };
 
-const readAllSections = (
-  inp: string,
-): { inpData: InpData; issues: ParserIssues } => {
+const readAllSections = (inp: string, issues: ParserIssues): InpData => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -123,11 +128,6 @@ const readAllSections = (
     vertices: {},
     demands: {},
     options: { units: "GPM", headlossFormula: "H-W" },
-  };
-  const issues: ParserIssues = {
-    unsupportedSections: new Set<string>(),
-    extendedPeriodSimulation: false,
-    patternStartNotInZero: false,
   };
 
   for (const row of rows) {
@@ -236,7 +236,8 @@ const readAllSections = (
       issues.unsupportedSections.add(section);
     }
   }
-  return { inpData, issues };
+
+  return inpData;
 };
 
 const readAllSectionsDeprecated = (
@@ -373,6 +374,77 @@ const readAllSectionsDeprecated = (
 };
 
 const buildModel = (
+  inpData: InpData,
+  issues: ParserIssues,
+): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
+  const spec =
+    inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
+  const quantities = new Quantities(spec);
+  const hydraulicModel = initializeHydraulicModel({
+    units: quantities.units,
+    defaults: quantities.defaults,
+    headlossFormula: inpData.options.headlossFormula,
+  });
+
+  for (const junctionData of inpData.junctions) {
+    const junction = hydraulicModel.assetBuilder.buildJunction({
+      id: junctionData.id,
+      coordinates: getNodeCoordinates(inpData, junctionData.id, issues),
+      elevation: junctionData.elevation,
+      demand: inpData.demands[junctionData.id],
+    });
+    hydraulicModel.assets.set(junction.id, junction);
+  }
+
+  for (const reservoirData of inpData.reservoirs) {
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+      id: reservoirData.id,
+      coordinates: getNodeCoordinates(inpData, reservoirData.id, issues),
+      head: reservoirData.head,
+    });
+    hydraulicModel.assets.set(reservoir.id, reservoir);
+  }
+
+  for (const pipeData of inpData.pipes) {
+    const pipe = hydraulicModel.assetBuilder.buildPipe({
+      id: pipeData.id,
+      length: pipeData.length,
+      diameter: pipeData.diameter,
+      minorLoss: pipeData.minorLoss,
+      roughness: pipeData.roughness,
+      connections: [pipeData.startNode, pipeData.endNode],
+      status: pipeData.status,
+      coordinates: [
+        getNodeCoordinates(inpData, pipeData.startNode, issues),
+        ...(inpData.vertices[pipeData.id] || []),
+        getNodeCoordinates(inpData, pipeData.endNode, issues),
+      ],
+    });
+    hydraulicModel.assets.set(pipe.id, pipe);
+    hydraulicModel.topology.addLink(
+      pipe.id,
+      pipeData.startNode,
+      pipeData.endNode,
+    );
+  }
+
+  return { hydraulicModel, modelMetadata: { quantities } };
+};
+
+const getNodeCoordinates = (
+  inpData: InpData,
+  nodeId: string,
+  issues: ParserIssues,
+): Position => {
+  const nodeCoordinates = inpData.coordinates[nodeId];
+  if (!nodeCoordinates) {
+    issues.nodesMissingCoordinates.add(nodeId);
+    return [0, 0];
+  }
+  return nodeCoordinates;
+};
+
+const buildModelDeprecated = (
   inpData: InpData,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec =
