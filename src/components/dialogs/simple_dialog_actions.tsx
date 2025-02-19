@@ -21,7 +21,7 @@ export const AckDialogAction = ({
         `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
       )}
     >
-      <Button type="button" onClick={onAck}>
+      <Button autoFocus={true} type="button" onClick={onAck}>
         {label ? label : translate("cancel")}
       </Button>
     </div>

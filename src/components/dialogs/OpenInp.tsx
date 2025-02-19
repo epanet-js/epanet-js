@@ -6,7 +6,7 @@ import { FeatureCollection } from "src/types";
 import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { translate } from "src/infra/i18n";
-import { OpenInpDialogState } from "src/state/dialog_state";
+import { OpenInpDialogState, dialogAtom } from "src/state/dialog_state";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 import { AckDialogAction } from "./simple_dialog_actions";
@@ -16,6 +16,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -31,6 +32,7 @@ export function OpenInpDialog({
 
   const [isLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
+  const setDialogState = useSetAtom(dialogAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
@@ -44,7 +46,7 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata } = parseInp(content);
+      const { hydraulicModel, modelMetadata, issues } = parseInp(content);
       transactImport(hydraulicModel, modelMetadata, file.name);
 
       const features: FeatureCollection = {
@@ -64,11 +66,18 @@ export function OpenInpDialog({
         modelVersion: hydraulicModel.version,
         options: { type: "inp", folderId: "" },
       });
-      onClose();
+      if (
+        isFeatureOn("FLAG_UNSUPPORTED") &&
+        issues.unsupportedSections.size > 0
+      ) {
+        setDialogState({ type: "inpIssues", issues });
+      } else {
+        onClose();
+      }
     } catch (error) {
       setError(true);
     }
-  }, [file, map?.map, onClose, transactImport, setFileInfo]);
+  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
 
   useEffect(
     function onRender() {
