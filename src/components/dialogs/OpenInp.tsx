@@ -17,6 +17,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { parseInpDeprecated } from "src/import/parse-inp-deprecated";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -46,7 +47,11 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata, issues } = parseInp(content);
+      const { hydraulicModel, modelMetadata, issues } = isFeatureOn(
+        "FLAG_UNSUPPORTED",
+      )
+        ? parseInp(content)
+        : parseInpDeprecated(content);
       transactImport(hydraulicModel, modelMetadata, file.name);
 
       const features: FeatureCollection = {

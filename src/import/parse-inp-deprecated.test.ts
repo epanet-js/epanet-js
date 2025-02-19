@@ -1,5 +1,5 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
-import { parseInp } from "./parse-inp";
+import { parseInpDeprecated } from "./parse-inp-deprecated";
 
 describe("Parse inp", () => {
   it("includes junctions in the model", () => {
@@ -19,7 +19,7 @@ describe("Parse inp", () => {
     ${junctionId}\t${demand}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     const junction = hydraulicModel.assets.get(junctionId) as Junction;
     expect(junction.id).toEqual(junctionId);
@@ -42,7 +42,7 @@ describe("Parse inp", () => {
 
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -78,7 +78,7 @@ describe("Parse inp", () => {
     ${pipeId}\t${60}\t${70}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
     expect(pipe.id).toEqual(pipeId);
@@ -118,7 +118,7 @@ describe("Parse inp", () => {
     ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -145,7 +145,7 @@ describe("Parse inp", () => {
     ANYTHING
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
@@ -163,7 +163,7 @@ describe("Parse inp", () => {
     Units\tGPM
     ANY
     `;
-    const { hydraulicModel, modelMetadata } = parseInp(inp);
+    const { hydraulicModel, modelMetadata } = parseInpDeprecated(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
@@ -184,7 +184,7 @@ describe("Parse inp", () => {
     Units\tLPS
     ANY
     `;
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
@@ -201,7 +201,7 @@ describe("Parse inp", () => {
     ANY
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpDeprecated(inp);
 
     expect(hydraulicModel.headlossFormula).toEqual("D-W");
   });
