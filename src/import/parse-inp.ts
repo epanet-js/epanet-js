@@ -51,6 +51,26 @@ export const parseInp = (
   return { ...buildModel(inpData), hasUnsupported };
 };
 
+const supportedSectionNames = [
+  "[JUNCTIONS]",
+  "[RESERVOIRS]",
+  "[COORDINATES]",
+  "[DEMANDS]",
+  "[PIPES]",
+  "[VERTICES]",
+  "[TIMES]",
+  "[REPORT]",
+  "[OPTIONS]",
+];
+
+const detectNewSectionName = (trimmedRow: string): string | null => {
+  if (!trimmedRow.startsWith("[")) return null;
+  const sectionName = supportedSectionNames.find((name) =>
+    trimmedRow.includes(name),
+  );
+  return sectionName || null;
+};
+
 const readAllSections = (
   inp: string,
 ): { inpData: InpData; hasUnsupported: boolean } => {
@@ -76,40 +96,9 @@ const readAllSections = (
       continue;
     }
 
-    if (trimmedRow.includes("[JUNCTIONS]")) {
-      section = "junctions";
-      continue;
-    }
-    if (trimmedRow.includes("[RESERVOIRS]")) {
-      section = "reservoir";
-      continue;
-    }
-    if (trimmedRow.includes("[COORDINATES]")) {
-      section = "coordinates";
-      continue;
-    }
-    if (trimmedRow.includes("[DEMANDS]")) {
-      section = "demands";
-      continue;
-    }
-    if (trimmedRow.includes("[PIPES]")) {
-      section = "pipes";
-      continue;
-    }
-    if (trimmedRow.includes("[VERTICES]")) {
-      section = "vertices";
-      continue;
-    }
-    if (trimmedRow.includes("[TIMES]")) {
-      section = "times";
-      continue;
-    }
-    if (trimmedRow.includes("[REPORT]")) {
-      section = "report";
-      continue;
-    }
-    if (trimmedRow.includes("[OPTIONS]")) {
-      section = "options";
+    const newSectionName = detectNewSectionName(trimmedRow);
+    if (newSectionName) {
+      section = newSectionName.toLowerCase().replace("[", "").replace("]", "");
       continue;
     }
     if (trimmedRow.startsWith("[")) {
@@ -123,7 +112,7 @@ const readAllSections = (
       inpData.junctions.push({ id, elevation: parseFloat(elevation) });
     }
 
-    if (section === "reservoir") {
+    if (section === "reservoirs") {
       const [id, head] = readValues(trimmedRow);
 
       inpData.reservoirs.push({ id, head: parseFloat(head) });
