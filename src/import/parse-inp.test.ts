@@ -219,7 +219,7 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues.unsupportedSections.values()).toContain("valves");
+    expect(issues!.unsupportedSections!.values()).toContain("valves");
   });
 
   it("ignores default sections", () => {
@@ -232,7 +232,7 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues.unsupportedSections.size).toEqual(0);
+    expect(issues).toBeNull();
   });
 
   it("says when inp contains invalid duration settigs", () => {
@@ -243,7 +243,7 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues.extendedPeriodSimulation).toEqual(true);
+    expect(issues!.extendedPeriodSimulation).toEqual(true);
   });
 
   it("says when invalid pattern start", () => {
@@ -254,7 +254,7 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues.patternStartNotInZero).toEqual(true);
+    expect(issues!.patternStartNotInZero).toEqual(true);
   });
 
   it("says when coordinates are missing", () => {
@@ -271,6 +271,6 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues.nodesMissingCoordinates.values()).toContain(junctionId);
+    expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
   });
 });
