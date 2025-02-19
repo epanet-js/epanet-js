@@ -23,6 +23,7 @@ import {
 } from "src/global-config";
 import Image from "next/image";
 import { translate } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type DemoModel = {
   name: string;
@@ -78,17 +79,24 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 {translate("gettingStarted")}
               </p>
-              <p className="text-sm pb-3">
-                {translate("welcomeNewHere", translate("quickStartTutorial"))}
-              </p>
-              <p className="text-sm pb-6">
-                <a href={quickStartTutorialUrl} target="_blank">
-                  <Button variant="primary">
-                    <VideoIcon />
-                    {translate("quickStartTutorial")}
-                  </Button>
-                </a>
-              </p>
+              {isFeatureOn("FLAG_WELCOME") && (
+                <>
+                  <p className="text-sm pb-3">
+                    {translate(
+                      "welcomeNewHere",
+                      translate("quickStartTutorial"),
+                    )}
+                  </p>
+                  <p className="text-sm pb-6">
+                    <a href={quickStartTutorialUrl} target="_blank">
+                      <Button variant="primary">
+                        <VideoIcon />
+                        {translate("quickStartTutorial")}
+                      </Button>
+                    </a>
+                  </p>
+                </>
+              )}
               <p className="text-sm pb-3">
                 {translate("welcomeExploreWithSamples")}:
               </p>
@@ -123,12 +131,14 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     {translate("helpCenter")}
                   </Button>
                 </a>
-                <a href={sourceCodeUrl} target="_blank">
-                  <Button variant="quiet">
-                    <GitHubLogoIcon />
-                    {translate("openSource")}
-                  </Button>
-                </a>
+                {isFeatureOn("FLAG_WELCOME") && (
+                  <a href={sourceCodeUrl} target="_blank">
+                    <Button variant="quiet">
+                      <GitHubLogoIcon />
+                      {translate("openSource")}
+                    </Button>
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -145,11 +155,13 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               />
               {translate("alwaysShowAtStart")}
             </div>
-            <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
-              <span>{translate("termsAndConditions")}</span>
-              <span>|</span>
-              <span>{translate("privacyPolicy")}</span>
-            </div>
+            {isFeatureOn("FLAG_WELCOME") && (
+              <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
+                <span>{translate("termsAndConditions")}</span>
+                <span>|</span>
+                <span>{translate("privacyPolicy")}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

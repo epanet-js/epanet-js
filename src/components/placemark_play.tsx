@@ -104,7 +104,7 @@ export function PlacemarkPlay() {
   );
 
   useHydrateAtoms([[dialogAtom,
-  isFeatureOn("FLAG_WELCOME") && settingsFromStorage().showWelcomeOnStart
+  settingsFromStorage().showWelcomeOnStart
     ? { type: "welcome" }
     : null,
   ]])
