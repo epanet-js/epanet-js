@@ -12,7 +12,7 @@ export const translations: Translations = {
   hintPipeDrawEnd: "Finaliza una tubería con doble click o apretando Enter.",
   keyboardShortcuts: "Atajos de teclado",
   help: "Ayuda",
-  helpCenter: "Centro de ayuda",
+  helpCenter: "Centro de Ayuda",
   exit: "Terminar",
   clearSelection: "Borrar selección",
   selectAll: "Seleccionar todo",
@@ -121,6 +121,7 @@ export const translations: Translations = {
   siFlowsExpressed: "Sistema de Medición Internacional con flujos en ${1}",
   newProject: "Nuevo proyecto",
   create: "Crear",
+  createNew: "Crear nuevo",
   dropInp: "Arrastra y suelta un archivo .INP aquí para abrir el modelo.",
   inpMissing: "Tipo de archivo no soportado. Usa un archivo .INP.",
   onlyOneInp: "Solo se soporta un archivo INP a la vez. Se usará el primero.",
@@ -134,6 +135,24 @@ export const translations: Translations = {
   loading: "Cargando...",
   ok: "OK",
   toggleSatellite: "Alternar vista satelital",
+  welcomeToEpanetJs: "¡Bienvenido a epanet-js!",
+  welcomeIntro:
+    "Estamos creando una nueva forma de construir y ejecutar modelos hidráulicos, directamente desde tu navegador en una plataforma moderna, web y de código abierto. Abre, edita y analiza rápidamente tus redes en tu ordenador sin instalar ningún software. Todas las simulaciones se ejecutan directamente en tu máquina, manteniendo tus datos privados—no se requiere la nube.",
+  welcomeNewHere:
+    "¿Eres nuevo aquí? Mira nuestro ${1} para aprender lo básico en solo unos minutos.",
+  welcomeBuildAndDevelop: "Crear y desarrollar",
+  welcomeExploreWithSamples:
+    "Explora la aplicación abriendo una red de muestra",
+  quickStartTutorial: "Tutorial de Inicio Rápido",
+  gettingStarted: "Primeros pasos",
+  demoUKStyleDescription:
+    "Red de estilo del Reino Unido con unidades métricas y caudal en l/s.",
+  demoUSStyleDescription:
+    "Red de estilo norteamericano con unidades estadounidenses y caudal en GPM.",
+  alwaysShowAtStart: "Mostrar siempre al inicio",
+  termsAndConditions: "Términos y condiciones",
+  privacyPolicy: "Política de privacidad",
+  openSource: "Open Source",
 };
 
 export const units: UnitsLocale = {

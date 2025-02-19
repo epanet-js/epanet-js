@@ -10,7 +10,7 @@ export const translations = {
   hintPipeDrawEnd: "End a pipe by double-clicking or hitting Enter.",
   keyboardShortcuts: "Keyboard shortcuts",
   help: "Help",
-  helpCenter: "Help center",
+  helpCenter: "Help Center",
   exit: "Exit",
   clearSelection: "Clear selection",
   selectAll: "Select all",
@@ -115,6 +115,7 @@ export const translations = {
   siFlowsExpressed: "International System with flows expressed in ${1}",
   newProject: "New project",
   create: "Create",
+  createNew: "Create new",
   dropInp: "Drop an .INP file here to open the model.",
   inpMissing: "Invalid file type. Use an .INP file.",
   onlyOneInp:
@@ -129,6 +130,22 @@ export const translations = {
   loading: "Loading...",
   ok: "OK",
   toggleSatellite: "Toggle satellite basemap",
+  welcomeToEpanetJs: "Welcome to epanet-js!",
+  welcomeIntro:
+    "We're creating a new way to build and run hydraulic models—right from your browser in a modern, web-based, open source platform. Quickly open, edit, and analyze your networks on your computer without installing any software. All simulations run directly on your machine, keeping your data private—no cloud required.",
+  welcomeNewHere:
+    "New here? Watch our ${1} to learn the basics in just a few minutes!",
+  welcomeExploreWithSamples: "Explore the app by opening a sample network",
+  welcomeBuildAndDevelop: "Build and develop",
+  quickStartTutorial: "Quick Start Tutorial",
+  gettingStarted: "Getting started",
+  demoUKStyleDescription: "UK style network with metric units and flow in l/s.",
+  demoUSStyleDescription:
+    "North American style network with US units and flow in GPM.",
+  alwaysShowAtStart: "Always show at start up",
+  termsAndConditions: "Terms and conditions",
+  privacyPolicy: "Privacy policy",
+  openSource: "Open Source",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

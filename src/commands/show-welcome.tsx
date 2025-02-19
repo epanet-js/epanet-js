@@ -16,8 +16,13 @@ import {
   QuestionMarkCircledIcon,
   VideoIcon,
 } from "@radix-ui/react-icons";
-import { helpCenterUrl, quickStartTutorialUrl } from "src/global-config";
+import {
+  helpCenterUrl,
+  quickStartTutorialUrl,
+  sourceCodeUrl,
+} from "src/global-config";
 import Image from "next/image";
+import { translate } from "src/infra/i18n";
 
 type DemoModel = {
   name: string;
@@ -27,14 +32,14 @@ type DemoModel = {
 };
 const demoModels: DemoModel[] = [
   {
-    name: "UK Style Network",
-    description: "Sample network for demo purposes",
+    name: "Drumchapel",
+    description: translate("demoUKStyleDescription"),
     url: "/example-models/01-uk-style.inp",
     thumbnailUrl: "/example-models/01-uk-style.png",
   },
   {
-    name: "US Style Network",
-    description: "Sample network for demo purposes",
+    name: "Waterdown",
+    description: translate("demoUSStyleDescription"),
     url: "/example-models/02-us-style.inp",
     thumbnailUrl: "/example-models/02-us-style.png",
   },
@@ -64,37 +69,30 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
         </div>
         <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
           <p className="text-gray-500 text-lg font-semibold pb-2">
-            Welcome to epanet-js!
+            {translate("welcomeToEpanetJs")}
           </p>
-          <p className="text-sm pb-4">
-            epanet-js is a modern web-based EPANET platform, designed for
-            utilities and those tackling complex distribution modeling. We’re
-            reimagining the way planning engineers manage the future of their
-            networks by replacing cumbersome, traditional desktop software with
-            an intuitive, web-based tool.
-          </p>
+          <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
           <hr className="mb-4" />
           <div className="flex-grow grid grid-cols-4 gap-4 pb-3">
             <div className="col-span-3">
               <p className="text-gray-500 text-lg font-semibold pb-2">
-                Getting started
+                {translate("gettingStarted")}
               </p>
               <p className="text-sm pb-3">
-                New here? Watch our Quick Start Tutorial to learn the basics in
-                just a few minutes!
+                {translate("welcomeNewHere", translate("quickStartTutorial"))}
               </p>
               <p className="text-sm pb-6">
                 <a href={quickStartTutorialUrl} target="_blank">
                   <Button variant="primary">
                     <VideoIcon />
-                    Quick Start Tutorial
+                    {translate("quickStartTutorial")}
                   </Button>
                 </a>
               </p>
               <p className="text-sm pb-3">
-                Explore the app by opening a sample network:
+                {translate("welcomeExploreWithSamples")}:
               </p>
-              <div className="flex items-center gap-x-4  pb-3">
+              <div className="flex items-center gap-x-5  pb-3">
                 {demoModels.map((demoModel, i) => (
                   <DemoNetworkCard
                     key={i}
@@ -108,27 +106,29 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
             </div>
             <div className="col-span-1">
               <p className="text-gray-500 text-lg font-semibold pb-2">
-                Build and develop
+                {translate("welcomeBuildAndDevelop")}
               </p>
               <div className="flex flex-col items-start gap-y-2 pb-3">
                 <Button variant="quiet" onClick={createNew}>
                   <FileIcon />
-                  Create New
+                  {translate("createNew")}
                 </Button>
                 <Button variant="quiet" onClick={openInpFromFs}>
                   <FilePlusIcon />
-                  Open INP
+                  {translate("openProject")}
                 </Button>
                 <a href={helpCenterUrl} target="_blank">
                   <Button variant="quiet">
                     <QuestionMarkCircledIcon />
-                    Help Center
+                    {translate("helpCenter")}
                   </Button>
                 </a>
-                <Button variant="quiet" onClick={openInpFromFs}>
-                  <GitHubLogoIcon />
-                  Source Code
-                </Button>
+                <a href={sourceCodeUrl} target="_blank">
+                  <Button variant="quiet">
+                    <GitHubLogoIcon />
+                    {translate("openSource")}
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
@@ -143,12 +143,12 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   }));
                 }}
               />
-              Always show at startup
+              {translate("alwaysShowAtStart")}
             </div>
             <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
-              <span>Terms and Conditions</span>
+              <span>{translate("termsAndConditions")}</span>
               <span>|</span>
-              <span>Privacy policy</span>
+              <span>{translate("privacyPolicy")}</span>
             </div>
           </div>
         </div>
@@ -170,17 +170,17 @@ const DemoNetworkCard = ({
 }) => {
   return (
     <div
-      className="flex flex-col w-[200px] h-[240px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col w-[250px] h-[300px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
       <Image
         src={thumbnailUrl}
         alt={title}
-        width={198}
-        height={160}
+        width={247}
+        height={200}
         className="rounded-t-md object-cover"
       />
-      <div className="flex flex-col p-2">
+      <div className="flex flex-col p-3">
         <span className="text-gray-600 font-bold text-sm">{title}</span>
         <span className="text-xs">{description}</span>
       </div>
