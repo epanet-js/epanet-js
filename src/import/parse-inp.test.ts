@@ -226,10 +226,34 @@ describe("Parse inp", () => {
     const inp = `
     [TITLE]
     ANY
+    [REPORT]
+    ANY
     `;
 
     const { issues } = parseInp(inp);
 
     expect(issues.unsupportedSections.size).toEqual(0);
+  });
+
+  it("says when inp contains invalid duration settigs", () => {
+    const inp = `
+    [TIMES]
+    Duration\t20
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues.extendedPeriodSimulation).toEqual(true);
+  });
+
+  it("says when invalid pattern start", () => {
+    const inp = `
+    [TIMES]
+    Pattern Start\t1
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues.patternStartNotInZero).toEqual(true);
   });
 });

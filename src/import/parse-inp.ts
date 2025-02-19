@@ -69,6 +69,8 @@ type InpData = {
 
 export type ParserIssues = {
   unsupportedSections: Set<string>;
+  extendedPeriodSimulation: boolean;
+  patternStartNotInZero: boolean;
 };
 
 export const parseInp = (
@@ -87,7 +89,11 @@ export const parseInp = (
       hasUnsupported: issues.unsupportedSections.size > 0,
     };
   } else {
-    const dummyParserIssues = { unsupportedSections: new Set<string>() };
+    const dummyParserIssues = {
+      unsupportedSections: new Set<string>(),
+      extendedPeriodSimulation: false,
+      patternStartNotInZero: false,
+    };
     const { inpData, hasUnsupported } = readAllSectionsDeprecated(inp);
     return {
       ...buildModel(inpData),
@@ -105,7 +111,7 @@ const detectNewSectionName = (trimmedRow: string): string | null => {
 
 const readAllSections = (
   inp: string,
-): { inpData: InpData; hasUnsupported: boolean; issues: ParserIssues } => {
+): { inpData: InpData; issues: ParserIssues } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -120,8 +126,10 @@ const readAllSections = (
   };
   const issues: ParserIssues = {
     unsupportedSections: new Set<string>(),
+    extendedPeriodSimulation: false,
+    patternStartNotInZero: false,
   };
-  const hasUnsupported = false;
+
   for (const row of rows) {
     const trimmedRow = row.trim();
 
@@ -211,6 +219,13 @@ const readAllSections = (
       continue;
     }
     if (section === "times") {
+      const [name, value] = readValues(trimmedRow);
+      if (name === "Duration" && parseInt(value) !== 0) {
+        issues.extendedPeriodSimulation = true;
+      }
+      if (name === "Pattern Start" && value !== "00:00") {
+        issues.patternStartNotInZero = true;
+      }
       continue;
     }
     if (section === "title") {
@@ -221,7 +236,7 @@ const readAllSections = (
       issues.unsupportedSections.add(section);
     }
   }
-  return { inpData, hasUnsupported, issues };
+  return { inpData, issues };
 };
 
 const readAllSectionsDeprecated = (
