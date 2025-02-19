@@ -53,6 +53,9 @@ import {AnalysisLegends} from './AnalysisLegends';
 import {Toolbar} from './toolbar/Toolbar';
 import {translate} from 'src/infra/i18n';
 import {Footer} from './footer';
+import {useHydrateAtoms} from 'jotai/utils';
+import {isFeatureOn} from 'src/infra/feature-flags';
+import {settingsFromStorage} from 'src/state/user-settings';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -99,6 +102,12 @@ export function PlacemarkPlay() {
   const [persistentTransform, setPersistentTransform] = useAtom(
     persistentTransformAtom,
   );
+
+  useHydrateAtoms([[dialogAtom,
+  isFeatureOn("FLAG_WELCOME") && settingsFromStorage().showWelcomeOnStart
+    ? { type: "welcome" }
+    : null,
+  ]])
 
   return (
     <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
