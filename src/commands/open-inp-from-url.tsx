@@ -4,13 +4,14 @@ import { dialogAtom } from "src/state/dialog_state";
 import { useOpenInp } from "./open-inp";
 import toast from "react-hot-toast";
 import { captureError } from "src/infra/error-tracking";
+import { translate } from "src/infra/i18n";
 
 export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { openInpFromCandidates } = useOpenInp();
 
   const handleDownloadError = useCallback(() => {
-    toast.error("Download failed. Try again, please!");
+    toast.error(translate("downloadFailed"));
     setDialogState({ type: "welcome" });
   }, [setDialogState]);
 
