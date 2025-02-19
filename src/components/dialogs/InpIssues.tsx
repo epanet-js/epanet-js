@@ -46,6 +46,20 @@ export const InpIssuesDialog = ({
                 {JSON.stringify(Array.from(issues.nodesMissingCoordinates))}
               </p>
             )}
+            {issues.nonDefaultOptions && (
+              <p>
+                Non default options:{" "}
+                {JSON.stringify(Array.from(issues.nonDefaultOptions))}
+              </p>
+            )}
+            {issues.accuracyDiff && (
+              <p>Different accuracy: {JSON.stringify(issues.accuracyDiff)}</p>
+            )}
+            {issues.unbalancedDiff && (
+              <p>
+                Different unbalanced: {JSON.stringify(issues.unbalancedDiff)}
+              </p>
+            )}
           </>
         )}
       </div>

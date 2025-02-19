@@ -273,4 +273,55 @@ describe("Parse inp", () => {
 
     expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
   });
+
+  it("says when using non default options", () => {
+    const inp = `
+    [OPTIONS]
+    Specific Gravity\t2
+    Tolerance\t0.00001
+    DIFFUSIVITY\t1.0
+    TANK MIXING\tMIXED
+    Quality\tNONE
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect([...issues!.nonDefaultOptions!.values()]).toEqual([
+      "Specific Gravity",
+      "Tolerance",
+    ]);
+  });
+
+  it("supports demo network options", () => {
+    const inp = `
+    [OPTIONS]
+    Quality\tNONE
+    Unbalanced\tCONTINUE 10
+    Accuracy\t0.01
+    Units\tLPS
+    Headloss\tH-W
+ `;
+    const { issues } = parseInp(inp);
+
+    expect(issues).toBeNull();
+  });
+
+  it("says when override defaults aren't the same", () => {
+    const inp = `
+    [OPTIONS]
+    Accuracy\t0.001
+    Unbalanced\tContinue 20
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues!.accuracyDiff).toEqual({
+      defaultValue: 0.01,
+      customValue: 0.001,
+    });
+    expect(issues!.unbalancedDiff).toEqual({
+      defaultSetting: "CONTINUE 10",
+      customSetting: "CONTINUE 20",
+    });
+  });
 });

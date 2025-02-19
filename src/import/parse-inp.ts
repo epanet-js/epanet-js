@@ -38,6 +38,33 @@ const epanetSections = [
   "[EMITTERS]",
 ];
 
+const defaultAccuracy = 0.01;
+const defaultUnbalanced = "CONTINUE 10";
+
+const epanetDefaultOptions = {
+  UNITS: "CFS",
+  HEADLOSS: "H-W",
+  ACCURACY: 0.001,
+  UNBALANCED: "STOP",
+  "SPECIFIC GRAVITY": 1.0,
+  VISCOSITY: 1.0,
+  TRIALS: 40,
+  PATTERN: 1,
+  "DEMAND MULTIPLIER": 1.0,
+  "EMITTER EXPONENT": 0.5,
+  QUALITY: "NONE",
+  DIFFUSIVITY: 1.0,
+  TOLERANCE: 0.01,
+  "TANK MIXING": "MIXED",
+};
+
+const defaultOptions = {
+  ...epanetDefaultOptions,
+  UNITS: "LPS",
+  ACCURACY: defaultAccuracy,
+  UNBALANCED: defaultUnbalanced,
+};
+
 type InpData = {
   junctions: { id: string; elevation: number }[];
   reservoirs: { id: string; head: number }[];
@@ -71,6 +98,15 @@ export type ParserIssues = {
   extendedPeriodSimulation?: boolean;
   patternStartNotInZero?: boolean;
   nodesMissingCoordinates?: Set<string>;
+  nonDefaultOptions?: Set<string>;
+  accuracyDiff?: {
+    defaultValue: number;
+    customValue: number;
+  };
+  unbalancedDiff?: {
+    defaultSetting: string;
+    customSetting: string;
+  };
 };
 
 class IssuesAccumulator {
@@ -87,6 +123,13 @@ class IssuesAccumulator {
     this.issues.unsupportedSections.add(sectionName);
   }
 
+  addUsedOption(optionName: string) {
+    if (!this.issues.nonDefaultOptions)
+      this.issues.nonDefaultOptions = new Set<string>();
+
+    this.issues.nonDefaultOptions.add(optionName);
+  }
+
   addEPS() {
     this.issues.extendedPeriodSimulation = true;
   }
@@ -100,6 +143,14 @@ class IssuesAccumulator {
       this.issues.nodesMissingCoordinates = new Set<string>();
 
     this.issues.nodesMissingCoordinates.add(nodeId);
+  }
+
+  hasDifferentAccuracy(customValue: number, defaultValue: number) {
+    this.issues.accuracyDiff = { customValue, defaultValue };
+  }
+
+  hasUnbalancedDiff(customSetting: string, defaultSetting: string) {
+    this.issues.unbalancedDiff = { customSetting, defaultSetting };
   }
 
   buildResult(): ParserIssues | null {
@@ -226,9 +277,39 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
 
     if (section === "options") {
       const [name, value] = readValues(trimmedRow);
-      if (name === "Units") inpData.options.units = value as EpanetUnitSystem;
-      if (name === "Headloss")
+      if (!value) continue;
+      const normalizedName = name.toUpperCase() as keyof typeof defaultOptions;
+      if (normalizedName === "UNITS") {
+        inpData.options.units = value as EpanetUnitSystem;
+        continue;
+      }
+      if (normalizedName === "HEADLOSS") {
         inpData.options.headlossFormula = value as HeadlossFormula;
+        continue;
+      }
+
+      if (normalizedName === "ACCURACY") {
+        const accuracyValue = parseFloat(value);
+        if (accuracyValue !== defaultAccuracy) {
+          issues.hasDifferentAccuracy(accuracyValue, defaultAccuracy);
+        }
+        continue;
+      }
+
+      if (normalizedName === "UNBALANCED") {
+        const normalizedValue = value.toUpperCase();
+        if (normalizedValue !== defaultUnbalanced) {
+          issues.hasUnbalancedDiff(normalizedValue, defaultUnbalanced);
+        }
+        continue;
+      }
+
+      const defaultValue = defaultOptions[normalizedName];
+      if (typeof defaultValue === "number") {
+        if (parseFloat(value) !== defaultValue) issues.addUsedOption(name);
+      } else {
+        if (defaultValue !== value.toUpperCase()) issues.addUsedOption(name);
+      }
       continue;
     }
     if (section === "report") {
