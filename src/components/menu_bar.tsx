@@ -5,6 +5,7 @@ import {
   GitHubLogoIcon,
   KeyboardIcon,
   QuestionMarkCircledIcon,
+  SunIcon,
 } from "@radix-ui/react-icons";
 import { MemoryInfo } from "src/components/map_info/memory_info";
 import { usePersistence } from "src/lib/persistence/context";
@@ -104,6 +105,14 @@ export function HelpDot() {
         <Button variant="quiet">{translate("help")}</Button>
       </DD.Trigger>
       <DDContent>
+        <StyledItem
+          onSelect={() => {
+            setDialogState({ type: "welcome" });
+          }}
+        >
+          <SunIcon />
+          {translate("welcomePage")}
+        </StyledItem>
         <a href={helpCenterUrl} target="_blank">
           <StyledItem>
             <QuestionMarkCircledIcon /> {translate("helpCenter")}
