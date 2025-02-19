@@ -9,35 +9,6 @@ import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
-const epanetSections = [
-  "[TITLE]",
-  "[CURVES]",
-  "[QUALITY]",
-  "[OPTIONS]",
-  "[BACKDROP]",
-  "[JUNCTIONS]",
-  "[PATTERNS]",
-  "[REACTIONS]",
-  "[TIMES]",
-  "[COORDINATES]",
-  "[RESERVOIRS]",
-  "[ENERGY]",
-  "[SOURCES]",
-  "[REPORT]",
-  "[VERTICES]",
-  "[TANKS]",
-  "[STATUS]",
-  "[MIXING]",
-  "[LABELS]",
-  "[PIPES]",
-  "[CONTROLS]",
-  "[PUMPS]",
-  "[RULES]",
-  "[VALVES]",
-  "[DEMANDS]",
-  "[EMITTERS]",
-];
-
 type InpData = {
   junctions: { id: string; elevation: number }[];
   reservoirs: { id: string; head: number }[];
@@ -73,35 +44,29 @@ export type ParserIssues = {
   nodesMissingCoordinates: Set<string>;
 };
 
-export const parseInp = (
+export const parseInpDeprecated = (
   inp: string,
 ): {
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
   issues: ParserIssues;
 } => {
-  const issues: ParserIssues = {
+  const dummyParserIssues = {
     unsupportedSections: new Set<string>(),
     extendedPeriodSimulation: false,
     patternStartNotInZero: false,
     nodesMissingCoordinates: new Set<string>(),
   };
-  const inpData = readAllSections(inp, issues);
-  const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
+  const { inpData } = readAllSectionsDeprecated(inp);
   return {
-    hydraulicModel,
-    modelMetadata,
-    issues,
+    ...buildModelDeprecated(inpData),
+    issues: dummyParserIssues,
   };
 };
 
-const detectNewSectionName = (trimmedRow: string): string | null => {
-  if (!trimmedRow.startsWith("[")) return null;
-  const sectionName = epanetSections.find((name) => trimmedRow.includes(name));
-  return sectionName || null;
-};
-
-const readAllSections = (inp: string, issues: ParserIssues): InpData => {
+const readAllSectionsDeprecated = (
+  inp: string,
+): { inpData: InpData; hasUnsupported: boolean } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -114,7 +79,7 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
     demands: {},
     options: { units: "GPM", headlossFormula: "H-W" },
   };
-
+  let hasUnsupported = false;
   for (const row of rows) {
     const trimmedRow = row.trim();
 
@@ -124,9 +89,40 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
       continue;
     }
 
-    const newSectionName = detectNewSectionName(trimmedRow);
-    if (newSectionName) {
-      section = newSectionName.toLowerCase().replace("[", "").replace("]", "");
+    if (trimmedRow.includes("[JUNCTIONS]")) {
+      section = "junctions";
+      continue;
+    }
+    if (trimmedRow.includes("[RESERVOIRS]")) {
+      section = "reservoir";
+      continue;
+    }
+    if (trimmedRow.includes("[COORDINATES]")) {
+      section = "coordinates";
+      continue;
+    }
+    if (trimmedRow.includes("[DEMANDS]")) {
+      section = "demands";
+      continue;
+    }
+    if (trimmedRow.includes("[PIPES]")) {
+      section = "pipes";
+      continue;
+    }
+    if (trimmedRow.includes("[VERTICES]")) {
+      section = "vertices";
+      continue;
+    }
+    if (trimmedRow.includes("[TIMES]")) {
+      section = "times";
+      continue;
+    }
+    if (trimmedRow.includes("[REPORT]")) {
+      section = "report";
+      continue;
+    }
+    if (trimmedRow.includes("[OPTIONS]")) {
+      section = "options";
       continue;
     }
     if (trimmedRow.startsWith("[")) {
@@ -138,14 +134,12 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
       const [id, elevation] = readValues(trimmedRow);
 
       inpData.junctions.push({ id, elevation: parseFloat(elevation) });
-      continue;
     }
 
-    if (section === "reservoirs") {
+    if (section === "reservoir") {
       const [id, head] = readValues(trimmedRow);
 
       inpData.reservoirs.push({ id, head: parseFloat(head) });
-      continue;
     }
 
     if (section === "pipes") {
@@ -170,13 +164,11 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
         minorLoss: parseFloat(minorLoss),
         status: status.toLowerCase() === "open" ? "open" : "closed",
       });
-      continue;
     }
 
     if (section === "coordinates") {
       const [nodeId, lng, lat] = readValues(trimmedRow);
       inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
-      continue;
     }
 
     if (section === "vertices") {
@@ -184,13 +176,11 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
       if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
 
       inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
-      continue;
     }
 
     if (section === "demands") {
       const [nodeId, demand] = readValues(trimmedRow);
       inpData.demands[nodeId] = parseFloat(demand);
-      continue;
     }
 
     if (section === "options") {
@@ -198,36 +188,17 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
       if (name === "Units") inpData.options.units = value as EpanetUnitSystem;
       if (name === "Headloss")
         inpData.options.headlossFormula = value as HeadlossFormula;
-      continue;
-    }
-    if (section === "report") {
-      continue;
-    }
-    if (section === "times") {
-      const [name, value] = readValues(trimmedRow);
-      if (name === "Duration" && parseInt(value) !== 0) {
-        issues.extendedPeriodSimulation = true;
-      }
-      if (name === "Pattern Start" && value !== "00:00") {
-        issues.patternStartNotInZero = true;
-      }
-      continue;
-    }
-    if (section === "title") {
-      continue;
     }
 
-    if (section !== null) {
-      issues.unsupportedSections.add(section);
+    if (section === "unsupported") {
+      hasUnsupported = true;
     }
   }
-
-  return inpData;
+  return { inpData, hasUnsupported };
 };
 
-const buildModel = (
+const buildModelDeprecated = (
   inpData: InpData,
-  issues: ParserIssues,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec =
     inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
@@ -241,7 +212,7 @@ const buildModel = (
   for (const junctionData of inpData.junctions) {
     const junction = hydraulicModel.assetBuilder.buildJunction({
       id: junctionData.id,
-      coordinates: getNodeCoordinates(inpData, junctionData.id, issues),
+      coordinates: inpData.coordinates[junctionData.id],
       elevation: junctionData.elevation,
       demand: inpData.demands[junctionData.id],
     });
@@ -251,7 +222,7 @@ const buildModel = (
   for (const reservoirData of inpData.reservoirs) {
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
       id: reservoirData.id,
-      coordinates: getNodeCoordinates(inpData, reservoirData.id, issues),
+      coordinates: inpData.coordinates[reservoirData.id],
       head: reservoirData.head,
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
@@ -267,9 +238,9 @@ const buildModel = (
       connections: [pipeData.startNode, pipeData.endNode],
       status: pipeData.status,
       coordinates: [
-        getNodeCoordinates(inpData, pipeData.startNode, issues),
+        inpData.coordinates[pipeData.startNode],
         ...(inpData.vertices[pipeData.id] || []),
-        getNodeCoordinates(inpData, pipeData.endNode, issues),
+        inpData.coordinates[pipeData.endNode],
       ],
     });
     hydraulicModel.assets.set(pipe.id, pipe);
@@ -281,19 +252,6 @@ const buildModel = (
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
-};
-
-const getNodeCoordinates = (
-  inpData: InpData,
-  nodeId: string,
-  issues: ParserIssues,
-): Position => {
-  const nodeCoordinates = inpData.coordinates[nodeId];
-  if (!nodeCoordinates) {
-    issues.nodesMissingCoordinates.add(nodeId);
-    return [0, 0];
-  }
-  return nodeCoordinates;
 };
 
 const readValues = (row: string): string[] => {
