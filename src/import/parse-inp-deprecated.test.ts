@@ -205,15 +205,4 @@ describe("Parse inp", () => {
 
     expect(hydraulicModel.headlossFormula).toEqual("D-W");
   });
-
-  it("says when inp contains unsupported sections", () => {
-    const inp = `
-    [VALVES]
-    ANY
-    `;
-
-    const { hasUnsupported } = parseInp(inp);
-
-    expect(hasUnsupported).toBeTruthy();
-  });
 });

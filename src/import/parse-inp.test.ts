@@ -256,4 +256,21 @@ describe("Parse inp", () => {
 
     expect(issues.patternStartNotInZero).toEqual(true);
   });
+
+  it("says when coordinates are missing", () => {
+    const junctionId = "j1";
+    const elevation = 100;
+    const demand = 0.1;
+    const inp = `
+    [JUNCTIONS]
+    ${junctionId}\t${elevation}
+
+    [DEMANDS]
+    ${junctionId}\t${demand}
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues.nodesMissingCoordinates.values()).toContain(junctionId);
+  });
 });
