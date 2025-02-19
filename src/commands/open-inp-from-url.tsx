@@ -33,7 +33,7 @@ export const useOpenInpFromUrl = () => {
         handleDownloadError();
       }
     },
-    [setDialogState, handleDownloadError],
+    [setDialogState, handleDownloadError, openInpFromCandidates],
   );
 
   return { openInpFromUrl };
