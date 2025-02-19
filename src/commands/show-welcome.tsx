@@ -182,7 +182,7 @@ const DemoNetworkCard = ({
 }) => {
   return (
     <div
-      className="flex flex-col w-[250px] h-[300px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col w-[250px] h-[290px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
       <Image
