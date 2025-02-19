@@ -135,6 +135,7 @@ export const translations: Translations = {
   loading: "Cargando...",
   ok: "OK",
   toggleSatellite: "Alternar vista satelital",
+  welcomePage: "Página de bienvenida",
   welcomeToEpanetJs: "¡Bienvenido a epanet-js!",
   welcomeIntro:
     "Estamos creando una nueva forma de construir y ejecutar modelos hidráulicos, directamente desde tu navegador en una plataforma moderna, web y de código abierto. Abre, edita y analiza rápidamente tus redes en tu ordenador sin instalar ningún software. Todas las simulaciones se ejecutan directamente en tu máquina, manteniendo tus datos privados—no se requiere la nube.",
