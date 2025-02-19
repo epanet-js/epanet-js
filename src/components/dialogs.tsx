@@ -13,12 +13,24 @@ import {
   WelcomeDialogContent,
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
+import { ParserIssues } from "src/import/parse-inp";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
   onClose: () => void;
 }>(
   () => import("src/components/dialogs/OpenInp").then((r) => r.OpenInpDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
+const InpIssuesDialog = dynamic<{
+  issues: ParserIssues;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/InpIssues").then((r) => r.InpIssuesDialog),
   {
     loading: () => <Loading />,
   },
@@ -112,6 +124,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "simulationReport" }, () => (
       <SimulationReportDialog onClose={onClose} />
+    ))
+    .with({ type: "inpIssues" }, ({ issues }) => (
+      <InpIssuesDialog issues={issues} onClose={onClose} />
     ))
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .with({ type: "loading" }, () => <Loading />)

@@ -1,5 +1,6 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
+import { ParserIssues } from "src/import/parse-inp";
 import type { FileGroups } from "src/lib/group_files";
 
 /**
@@ -39,6 +40,11 @@ export type WelcomeDialogState = {
   type: "welcome";
 };
 
+export type InpIssuesDialogState = {
+  type: "inpIssues";
+  issues: ParserIssues;
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -50,6 +56,7 @@ export type DialogState =
   | RunSimulationDialogSate
   | SimulationReportDialogState
   | WelcomeDialogState
+  | InpIssuesDialogState
   | { type: "loading" }
   | null;
 
