@@ -67,31 +67,62 @@ type InpData = {
 };
 
 export type ParserIssues = {
-  unsupportedSections: Set<string>;
-  extendedPeriodSimulation: boolean;
-  patternStartNotInZero: boolean;
-  nodesMissingCoordinates: Set<string>;
+  unsupportedSections?: Set<string>;
+  extendedPeriodSimulation?: boolean;
+  patternStartNotInZero?: boolean;
+  nodesMissingCoordinates?: Set<string>;
 };
+
+class IssuesAccumulator {
+  private issues: ParserIssues;
+
+  constructor() {
+    this.issues = {};
+  }
+
+  addUsedSection(sectionName: string) {
+    if (!this.issues.unsupportedSections)
+      this.issues.unsupportedSections = new Set<string>();
+
+    this.issues.unsupportedSections.add(sectionName);
+  }
+
+  addEPS() {
+    this.issues.extendedPeriodSimulation = true;
+  }
+
+  addPatternStartNonZero() {
+    this.issues.patternStartNotInZero = true;
+  }
+
+  addMissingCoordinates(nodeId: string) {
+    if (!this.issues.nodesMissingCoordinates)
+      this.issues.nodesMissingCoordinates = new Set<string>();
+
+    this.issues.nodesMissingCoordinates.add(nodeId);
+  }
+
+  buildResult(): ParserIssues | null {
+    if (Object.keys(this.issues).length === 0) return null;
+
+    return this.issues;
+  }
+}
 
 export const parseInp = (
   inp: string,
 ): {
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
-  issues: ParserIssues;
+  issues: ParserIssues | null;
 } => {
-  const issues: ParserIssues = {
-    unsupportedSections: new Set<string>(),
-    extendedPeriodSimulation: false,
-    patternStartNotInZero: false,
-    nodesMissingCoordinates: new Set<string>(),
-  };
+  const issues = new IssuesAccumulator();
   const inpData = readAllSections(inp, issues);
   const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
   return {
     hydraulicModel,
     modelMetadata,
-    issues,
+    issues: issues.buildResult(),
   };
 };
 
@@ -101,7 +132,7 @@ const detectNewSectionName = (trimmedRow: string): string | null => {
   return sectionName || null;
 };
 
-const readAllSections = (inp: string, issues: ParserIssues): InpData => {
+const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -206,10 +237,10 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
     if (section === "times") {
       const [name, value] = readValues(trimmedRow);
       if (name === "Duration" && parseInt(value) !== 0) {
-        issues.extendedPeriodSimulation = true;
+        issues.addEPS();
       }
       if (name === "Pattern Start" && value !== "00:00") {
-        issues.patternStartNotInZero = true;
+        issues.addPatternStartNonZero();
       }
       continue;
     }
@@ -218,7 +249,7 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
     }
 
     if (section !== null) {
-      issues.unsupportedSections.add(section);
+      issues.addUsedSection(section);
     }
   }
 
@@ -227,7 +258,7 @@ const readAllSections = (inp: string, issues: ParserIssues): InpData => {
 
 const buildModel = (
   inpData: InpData,
-  issues: ParserIssues,
+  issues: IssuesAccumulator,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec =
     inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
@@ -286,11 +317,11 @@ const buildModel = (
 const getNodeCoordinates = (
   inpData: InpData,
   nodeId: string,
-  issues: ParserIssues,
+  issues: IssuesAccumulator,
 ): Position => {
   const nodeCoordinates = inpData.coordinates[nodeId];
   if (!nodeCoordinates) {
-    issues.nodesMissingCoordinates.add(nodeId);
+    issues.addMissingCoordinates(nodeId);
     return [0, 0];
   }
   return nodeCoordinates;

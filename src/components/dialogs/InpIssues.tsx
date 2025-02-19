@@ -29,7 +29,24 @@ export const InpIssuesDialog = ({
           subscribing to our newsletter!
         </p>
         {isDebugOn && (
-          <p>{JSON.stringify(Array.from(issues.unsupportedSections))}</p>
+          <>
+            {issues.extendedPeriodSimulation && (
+              <p>Extended period simulation</p>
+            )}
+            {issues.patternStartNotInZero && <p>Pattern start non zero</p>}
+            {issues.unsupportedSections && (
+              <p>
+                Unsupported sections:{" "}
+                {JSON.stringify(Array.from(issues.unsupportedSections))}
+              </p>
+            )}
+            {issues.nodesMissingCoordinates && (
+              <p>
+                Missing coordinates:{" "}
+                {JSON.stringify(Array.from(issues.nodesMissingCoordinates))}
+              </p>
+            )}
+          </>
         )}
       </div>
       <AckDialogAction label={translate("understood")} onAck={onClose} />

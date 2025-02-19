@@ -71,10 +71,7 @@ export function OpenInpDialog({
         modelVersion: hydraulicModel.version,
         options: { type: "inp", folderId: "" },
       });
-      if (
-        isFeatureOn("FLAG_UNSUPPORTED") &&
-        issues.unsupportedSections.size > 0
-      ) {
+      if (isFeatureOn("FLAG_UNSUPPORTED") && !!issues) {
         setDialogState({ type: "inpIssues", issues });
       } else {
         onClose();
