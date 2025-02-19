@@ -213,6 +213,9 @@ const readAllSections = (
     if (section === "times") {
       continue;
     }
+    if (section === "title") {
+      continue;
+    }
 
     if (section !== null) {
       issues.unsupportedSections.add(section);
