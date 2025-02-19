@@ -190,6 +190,7 @@ const DemoNetworkCard = ({
         alt={title}
         width={247}
         height={200}
+        quality={90}
         className="rounded-t-md object-cover"
       />
       <div className="flex flex-col p-3">
