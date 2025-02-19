@@ -217,8 +217,19 @@ describe("Parse inp", () => {
     ANY
     `;
 
-    const { hasUnsupported } = parseInp(inp);
+    const { issues } = parseInp(inp);
 
-    expect(hasUnsupported).toBeTruthy();
+    expect(issues.unsupportedSections.values()).toContain("valves");
+  });
+
+  it("ignores default sections", () => {
+    const inp = `
+    [TITLE]
+    ANY
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues.unsupportedSections.size).toEqual(0);
   });
 });
