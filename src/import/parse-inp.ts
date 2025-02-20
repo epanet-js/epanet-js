@@ -97,15 +97,10 @@ type InpData = {
 export type ParserIssues = {
   unsupportedSections?: Set<string>;
   extendedPeriodSimulation?: boolean;
-  patternStartNotInZero?: boolean;
   nodesMissingCoordinates?: Set<string>;
   invalidCoordinates?: Set<string>;
   invalidVertices?: Set<string>;
-  nonDefaultOptions?: Set<string>;
-  accuracyDiff?: {
-    defaultValue: number;
-    customValue: number;
-  };
+  nonDefaultOptions?: Map<string, string | number>;
   unbalancedDiff?: {
     defaultSetting: string;
     customSetting: string;
@@ -126,19 +121,15 @@ class IssuesAccumulator {
     this.issues.unsupportedSections.add(sectionName);
   }
 
-  addUsedOption(optionName: string) {
+  addUsedOption(optionName: string, defaultValue: number | string) {
     if (!this.issues.nonDefaultOptions)
-      this.issues.nonDefaultOptions = new Set<string>();
+      this.issues.nonDefaultOptions = new Map<string, string | number>();
 
-    this.issues.nonDefaultOptions.add(optionName);
+    this.issues.nonDefaultOptions.set(optionName, defaultValue);
   }
 
   addEPS() {
     this.issues.extendedPeriodSimulation = true;
-  }
-
-  addPatternStartNonZero() {
-    this.issues.patternStartNotInZero = true;
   }
 
   addMissingCoordinates(nodeId: string) {
@@ -160,10 +151,6 @@ class IssuesAccumulator {
       this.issues.invalidVertices = new Set<string>();
 
     this.issues.invalidVertices.add(linkId);
-  }
-
-  hasDifferentAccuracy(customValue: number, defaultValue: number) {
-    this.issues.accuracyDiff = { customValue, defaultValue };
   }
 
   hasUnbalancedDiff(customSetting: string, defaultSetting: string) {
@@ -305,14 +292,6 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
         continue;
       }
 
-      if (normalizedName === "ACCURACY") {
-        const accuracyValue = parseFloat(value);
-        if (accuracyValue !== defaultAccuracy) {
-          issues.hasDifferentAccuracy(accuracyValue, defaultAccuracy);
-        }
-        continue;
-      }
-
       if (normalizedName === "UNBALANCED") {
         const normalizedValue = value.toUpperCase();
         if (normalizedValue !== defaultUnbalanced) {
@@ -323,9 +302,11 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
 
       const defaultValue = defaultOptions[normalizedName];
       if (typeof defaultValue === "number") {
-        if (parseFloat(value) !== defaultValue) issues.addUsedOption(name);
+        if (parseFloat(value) !== defaultValue)
+          issues.addUsedOption(normalizedName, defaultValue);
       } else {
-        if (defaultValue !== value.toUpperCase()) issues.addUsedOption(name);
+        if (defaultValue !== value.toUpperCase())
+          issues.addUsedOption(normalizedName, defaultValue);
       }
       continue;
     }
@@ -336,9 +317,6 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
       const [name, value] = readValues(trimmedRow);
       if (name === "Duration" && parseInt(value) !== 0) {
         issues.addEPS();
-      }
-      if (name === "Pattern Start" && value !== "00:00") {
-        issues.addPatternStartNonZero();
       }
       continue;
     }

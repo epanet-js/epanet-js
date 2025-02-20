@@ -251,17 +251,6 @@ describe("Parse inp", () => {
     expect(issues!.extendedPeriodSimulation).toEqual(true);
   });
 
-  it("says when invalid pattern start", () => {
-    const inp = `
-    [TIMES]
-    Pattern Start\t1
-    `;
-
-    const { issues } = parseInp(inp);
-
-    expect(issues!.patternStartNotInZero).toEqual(true);
-  });
-
   it("says when coordinates are missing", () => {
     const junctionId = "j1";
     const otherJunctionId = "j2";
@@ -363,9 +352,9 @@ describe("Parse inp", () => {
 
     const { issues } = parseInp(inp);
 
-    expect([...issues!.nonDefaultOptions!.values()]).toEqual([
-      "Specific Gravity",
-      "Tolerance",
+    expect([...issues!.nonDefaultOptions!.keys()]).toEqual([
+      "SPECIFIC GRAVITY",
+      "TOLERANCE",
     ]);
   });
 
@@ -386,16 +375,11 @@ describe("Parse inp", () => {
   it("says when override defaults aren't the same", () => {
     const inp = `
     [OPTIONS]
-    Accuracy\t0.01
     Unbalanced\tContinue 20
     `;
 
     const { issues } = parseInp(inp);
 
-    expect(issues!.accuracyDiff).toEqual({
-      defaultValue: 0.001,
-      customValue: 0.01,
-    });
     expect(issues!.unbalancedDiff).toEqual({
       defaultSetting: "CONTINUE 10",
       customSetting: "CONTINUE 20",
