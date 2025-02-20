@@ -13,6 +13,8 @@ import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
 import { newsletterUrl } from "src/global-config";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog_state";
 
 export const InpIssuesDialog = ({
   issues,
@@ -21,6 +23,13 @@ export const InpIssuesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const goToWelcome = () => {
+    setDialogState({
+      type: "welcome",
+    });
+  };
   if (issues.invalidVertices || issues.invalidCoordinates) {
     return (
       <>
@@ -38,6 +47,10 @@ export const InpIssuesDialog = ({
             <SimpleDialogActions
               autoFocusSubmit={true}
               action={translate("understood")}
+              secondary={{
+                action: translate("seeDemoNetworks"),
+                onClick: goToWelcome,
+              }}
             />
           </Form>
         </Formik>
@@ -60,6 +73,10 @@ export const InpIssuesDialog = ({
             <SimpleDialogActions
               autoFocusSubmit={true}
               action={translate("understood")}
+              secondary={{
+                action: translate("seeDemoNetworks"),
+                onClick: goToWelcome,
+              }}
             />
           </Form>
         </Formik>
@@ -84,6 +101,10 @@ export const InpIssuesDialog = ({
           <SimpleDialogActions
             autoFocusSubmit={true}
             action={translate("understood")}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
           />
         </Form>
       </Formik>
