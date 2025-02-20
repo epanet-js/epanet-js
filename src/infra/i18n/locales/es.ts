@@ -167,6 +167,7 @@ export const translations: Translations = {
   newFeaturesEveryDay:
     "¡Estamos añadiendo nuevas funciones y mejoras continuamente! Mantente informado sobre las últimas actualizaciones suscribiéndote a nuestra newsletter.",
   subscribeForUpdates: "Recibir actualizaciones",
+  seeDemoNetworks: "Ver redes de ejemplo",
 };
 
 export const units: UnitsLocale = {

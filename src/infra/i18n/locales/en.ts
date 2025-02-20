@@ -160,6 +160,7 @@ export const translations = {
   newFeaturesEveryDay:
     "We're continuously adding new features and improvements! Stay informed about the latest updates by subscribing to our newsletter!",
   subscribeForUpdates: "Subscribe for updates",
+  seeDemoNetworks: "See demo networks",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
