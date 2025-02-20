@@ -46,6 +46,12 @@ export const InpIssuesDialog = ({
                 {JSON.stringify(Array.from(issues.nodesMissingCoordinates))}
               </p>
             )}
+            {issues.invalidCoordinates && (
+              <p>
+                Invalid coordinates:{" "}
+                {JSON.stringify(Array.from(issues.invalidCoordinates))}
+              </p>
+            )}
             {issues.nonDefaultOptions && (
               <p>
                 Non default options:{" "}

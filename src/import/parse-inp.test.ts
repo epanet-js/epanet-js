@@ -116,6 +116,7 @@ describe("Parse inp", () => {
 
     [COORDINATES]
     ${reservoirId}\t${lng}\t${lat};__anothercomment
+    ${junctionId}\t1\t1
 
     [JUNCTIONS]
     ${junctionId}\t10
@@ -167,6 +168,8 @@ describe("Parse inp", () => {
     ANY
     Units\tGPM
     ANY
+    [COORDINATES]
+    ${anyId}\t1\t1
     `;
     const { hydraulicModel, modelMetadata } = parseInp(inp);
     expect(hydraulicModel.units).toMatchObject({
@@ -188,6 +191,8 @@ describe("Parse inp", () => {
     ANY
     Units\tLPS
     ANY
+    [COORDINATES]
+    ${anyId}\t1\t1
     `;
     const { hydraulicModel } = parseInp(inp);
     expect(hydraulicModel.units).toMatchObject({
@@ -259,6 +264,34 @@ describe("Parse inp", () => {
 
   it("says when coordinates are missing", () => {
     const junctionId = "j1";
+    const otherJunctionId = "j2";
+    const elevation = 100;
+    const demand = 0.1;
+    const inp = `
+    [JUNCTIONS]
+    ${junctionId}\t${elevation}
+    ${otherJunctionId}\t${elevation}
+
+    [DEMANDS]
+    ${junctionId}\t${demand}
+    ${otherJunctionId}\t${demand}
+
+    [COORDINATES]
+    ${otherJunctionId}\t10\t10
+    `;
+
+    const {
+      hydraulicModel: { assets },
+      issues,
+    } = parseInp(inp);
+
+    expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
+    expect(assets.get(junctionId)).toBeUndefined();
+    expect(assets.get(otherJunctionId)).not.toBeUndefined();
+  });
+
+  it("says when coordinates are invalid", () => {
+    const junctionId = "j1";
     const elevation = 100;
     const demand = 0.1;
     const inp = `
@@ -267,11 +300,18 @@ describe("Parse inp", () => {
 
     [DEMANDS]
     ${junctionId}\t${demand}
+
+    [COORDINATES]
+    ${junctionId}\t1000\t2000
     `;
 
-    const { issues } = parseInp(inp);
+    const {
+      hydraulicModel: { assets },
+      issues,
+    } = parseInp(inp);
 
-    expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
+    expect(issues!.invalidCoordinates!.values()).toContain(junctionId);
+    expect(assets.get(junctionId)).toBeUndefined();
   });
 
   it("says when using non default options", () => {

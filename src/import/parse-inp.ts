@@ -99,6 +99,7 @@ export type ParserIssues = {
   extendedPeriodSimulation?: boolean;
   patternStartNotInZero?: boolean;
   nodesMissingCoordinates?: Set<string>;
+  invalidCoordinates?: Set<string>;
   nonDefaultOptions?: Set<string>;
   accuracyDiff?: {
     defaultValue: number;
@@ -144,6 +145,13 @@ class IssuesAccumulator {
       this.issues.nodesMissingCoordinates = new Set<string>();
 
     this.issues.nodesMissingCoordinates.add(nodeId);
+  }
+
+  addInvalidCoordinates(nodeId: string) {
+    if (!this.issues.invalidCoordinates)
+      this.issues.invalidCoordinates = new Set<string>();
+
+    this.issues.invalidCoordinates.add(nodeId);
   }
 
   hasDifferentAccuracy(customValue: number, defaultValue: number) {
@@ -352,9 +360,12 @@ const buildModel = (
   });
 
   for (const junctionData of inpData.junctions) {
+    const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
+    if (!coordinates) continue;
+
     const junction = hydraulicModel.assetBuilder.buildJunction({
       id: junctionData.id,
-      coordinates: getNodeCoordinates(inpData, junctionData.id, issues),
+      coordinates,
       elevation: junctionData.elevation,
       demand: inpData.demands[junctionData.id],
     });
@@ -362,15 +373,30 @@ const buildModel = (
   }
 
   for (const reservoirData of inpData.reservoirs) {
+    const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
+    if (!coordinates) continue;
+
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
       id: reservoirData.id,
-      coordinates: getNodeCoordinates(inpData, reservoirData.id, issues),
+      coordinates,
       head: reservoirData.head,
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
   }
 
   for (const pipeData of inpData.pipes) {
+    const startCoordinates = getNodeCoordinates(
+      inpData,
+      pipeData.startNode,
+      issues,
+    );
+    const endCoordinates = getNodeCoordinates(
+      inpData,
+      pipeData.endNode,
+      issues,
+    );
+    if (!startCoordinates || !endCoordinates) continue;
+
     const pipe = hydraulicModel.assetBuilder.buildPipe({
       id: pipeData.id,
       length: pipeData.length,
@@ -380,9 +406,9 @@ const buildModel = (
       connections: [pipeData.startNode, pipeData.endNode],
       status: pipeData.status,
       coordinates: [
-        getNodeCoordinates(inpData, pipeData.startNode, issues),
+        startCoordinates,
         ...(inpData.vertices[pipeData.id] || []),
-        getNodeCoordinates(inpData, pipeData.endNode, issues),
+        endCoordinates,
       ],
     });
     hydraulicModel.assets.set(pipe.id, pipe);
@@ -400,14 +426,24 @@ const getNodeCoordinates = (
   inpData: InpData,
   nodeId: string,
   issues: IssuesAccumulator,
-): Position => {
+): Position | null => {
   const nodeCoordinates = inpData.coordinates[nodeId];
   if (!nodeCoordinates) {
     issues.addMissingCoordinates(nodeId);
-    return [0, 0];
+    return null;
+  }
+  if (!isWgs84(nodeCoordinates)) {
+    issues.addInvalidCoordinates(nodeId);
+    return null;
   }
   return nodeCoordinates;
 };
+
+const isWgs84 = (coordinates: Position) =>
+  coordinates[0] >= -180 &&
+  coordinates[0] <= 180 &&
+  coordinates[1] >= -90 &&
+  coordinates[1] <= 90;
 
 const readValues = (row: string): string[] => {
   const rowWithoutComments = row.split(";")[0];
