@@ -145,13 +145,13 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         className="cursor-pointer text-md inline-flex items-center"
       >
         {isExpaned ? <TriangleDownIcon /> : <TriangleRightIcon />}
-        Issues summary{" "}
+        {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
         <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 text-gray-700 max-h-[300px] overflow-y-auto">
           {issues.unsupportedSections && (
             <div>
-              <p>Use of unsupported sections:</p>
+              <p>{translate("useOfUnsupported")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {Array.from(issues.unsupportedSections).map((sectionName) => (
                   <span key={sectionName}>- [{sectionName.toUpperCase()}]</span>
@@ -161,22 +161,29 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
           )}
           {issues.extendedPeriodSimulation && (
             <div>
-              <p>Non-default epanet [TIMES] values detected:</p>
+              <p>{translate("nonDefaultEpanetValues", "[TIMES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {issues.extendedPeriodSimulation && (
-                  <span>- Custom DURATION not supported (using 0)</span>
+                  <span>
+                    - ${translate("customValueNotSupport", "DURATION", "0")}
+                  </span>
                 )}
               </div>
             </div>
           )}
           {issues.nonDefaultOptions && (
             <div>
-              <p>Non-default epanet [OPTIONS] values detected:</p>
+              <p>{translate("nonDefaultEpanetValues", "[OPTIONS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {[...issues.nonDefaultOptions.entries()].map(
                   ([optionName, defaultValue]) => (
                     <span key={optionName}>
-                      - {optionName.toUpperCase()} (using {defaultValue})
+                      -{" "}
+                      {translate(
+                        "customValueNotSupport",
+                        optionName.toUpperCase(),
+                        String(defaultValue),
+                      )}
                     </span>
                   ),
                 )}
@@ -185,9 +192,16 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
           )}
           {issues.unbalancedDiff && (
             <div>
-              <p>Ignored [OPTIONS] values detected:</p>
+              <p>{translate("ignoredValuesDetected", "[OPTIONS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                <span>- UNBALANCED value is ignored (using CONTINUE 10)</span>
+                <span>
+                  -{" "}
+                  {translate(
+                    "valueIgnored",
+                    "UNBALANCED",
+                    issues.unbalancedDiff.defaultSetting,
+                  )}
+                </span>
               </div>
             </div>
           )}
