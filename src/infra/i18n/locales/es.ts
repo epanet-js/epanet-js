@@ -155,6 +155,18 @@ export const translations: Translations = {
   privacyPolicy: "Política de privacidad",
   openSource: "Open Source",
   downloadFailed: "No se ha podido descargar. Por favor, inténtalo de nuevo.",
+  geocodingNotSupported: "Proyección no soportada",
+  geocodingNotSupportedDetail:
+    "Tu INP incluye coordenadas o vértices que utilizan un sistema de proyección que aún no es compatible. Asegúrate de que todos los activos estén geocodificados utilizando el estándar WGS84.",
+  missingCoordinates: "Coordenadas faltantes",
+  missingCoordinatesDetail:
+    "Tu INP no tiene las coordenadas requeridas. Asegúrate de que todos los activos incluyan información geocodificada utilizando el estándar WGS84.",
+  inpNotFullySupported: "Tu INP no está totalmente soportado",
+  inpNotFullySupportedDetail:
+    "Algunas funciones de tu archivo INP aún no estan soportadas, lo que podría afectar los resultados.",
+  newFeaturesEveryDay:
+    "¡Estamos añadiendo nuevas funciones y mejoras continuamente! Mantente informado sobre las últimas actualizaciones suscribiéndote a nuestra newsletter.",
+  subscribeForUpdates: "Recibir actualizaciones",
 };
 
 export const units: UnitsLocale = {
