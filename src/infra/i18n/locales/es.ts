@@ -168,6 +168,12 @@ export const translations: Translations = {
     "¡Estamos añadiendo nuevas funciones y mejoras continuamente! Mantente informado sobre las últimas actualizaciones suscribiéndote a nuestra newsletter.",
   subscribeForUpdates: "Recibir actualizaciones",
   seeDemoNetworks: "Ver redes de ejemplo",
+  issuesSummary: "Resumen de las causas",
+  useOfUnsupported: "Uso de secciones no soportadas",
+  nonDefaultEpanetValues: "Se han detectado valores no por defecto de ${1}",
+  customValueNotSupport: "Valor ${1} no soportado (usando ${2})",
+  ignoredValuesDetected: "Se han detectado valores ignorados de ${1}",
+  valueIgnored: "Valor de ${1} es ignorado (usando ${2})",
 };
 
 export const units: UnitsLocale = {

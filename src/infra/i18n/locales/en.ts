@@ -161,6 +161,12 @@ export const translations = {
     "We're continuously adding new features and improvements! Stay informed about the latest updates by subscribing to our newsletter!",
   subscribeForUpdates: "Subscribe for updates",
   seeDemoNetworks: "See demo networks",
+  issuesSummary: "Issues summary",
+  useOfUnsupported: "Use of unsupported sections",
+  nonDefaultEpanetValues: "Non-default epanet ${1} values detected",
+  customValueNotSupport: "Custom ${1} not supported (using ${2})",
+  ignoredValuesDetected: "Ignored ${1} values detected",
+  valueIgnored: "${1} value is ignored (using ${2})",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
