@@ -362,7 +362,7 @@ Page	0
 [OPTIONS]
 Quality	NONE
 Unbalanced	CONTINUE 10
-Accuracy	0.01
+Accuracy	0.001
 Units	LPS
 Headloss	H-W
 

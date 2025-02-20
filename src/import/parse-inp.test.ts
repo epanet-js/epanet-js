@@ -297,7 +297,7 @@ describe("Parse inp", () => {
     [OPTIONS]
     Quality\tNONE
     Unbalanced\tCONTINUE 10
-    Accuracy\t0.01
+    Accuracy\t0.001
     Units\tLPS
     Headloss\tH-W
  `;
@@ -309,15 +309,15 @@ describe("Parse inp", () => {
   it("says when override defaults aren't the same", () => {
     const inp = `
     [OPTIONS]
-    Accuracy\t0.001
+    Accuracy\t0.01
     Unbalanced\tContinue 20
     `;
 
     const { issues } = parseInp(inp);
 
     expect(issues!.accuracyDiff).toEqual({
-      defaultValue: 0.01,
-      customValue: 0.001,
+      defaultValue: 0.001,
+      customValue: 0.01,
     });
     expect(issues!.unbalancedDiff).toEqual({
       defaultSetting: "CONTINUE 10",

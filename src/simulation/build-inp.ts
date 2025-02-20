@@ -10,6 +10,9 @@ type BuildOptions = {
 
 export type EpanetUnitSystem = "LPS" | "GPM";
 
+export const defaultAccuracy = 0.001;
+export const defaultUnbalanced = "CONTINUE 10";
+
 const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   const flowUnit = units.flow;
   if (flowUnit === "l/s") return "LPS";
@@ -24,7 +27,7 @@ export const buildInp = withInstrumentation(
     hydraulicModel: HydraulicModel,
     { geolocation = false }: BuildOptions = {},
   ): string => {
-    const defaultUnits = chooseUnitSystem(hydraulicModel.units);
+    const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
     const sections = {
@@ -40,9 +43,9 @@ export const buildInp = withInstrumentation(
       options: [
         "[OPTIONS]",
         "Quality\tNONE",
-        "Unbalanced\tCONTINUE 10",
-        "Accuracy\t0.01",
-        `Units\t${defaultUnits}`,
+        `Unbalanced\t${defaultUnbalanced}`,
+        `Accuracy\t${defaultAccuracy}`,
+        `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
       ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
