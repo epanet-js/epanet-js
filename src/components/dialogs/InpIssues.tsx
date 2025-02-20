@@ -13,6 +13,7 @@ import { ParserIssues } from "src/import/parse-inp";
 import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
+import { newsletterUrl } from "src/global-config";
 
 export const InpIssuesDialog = ({
   issues,
@@ -96,12 +97,16 @@ const SubscribeCTA = () => {
     <>
       <p className="pb-3">{translate("newFeaturesEveryDay")}</p>
       <p className="text-purple-800">
-        <a href="" target="_blank">
-          <Button variant="quiet">
-            <BellIcon />
-            {translate("subscribeForUpdates")}
-          </Button>
-        </a>
+        <Button
+          variant="quiet"
+          onClick={(e) => {
+            e.preventDefault();
+            window.open(newsletterUrl);
+          }}
+        >
+          <BellIcon />
+          {translate("subscribeForUpdates")}
+        </Button>
       </p>
     </>
   );
