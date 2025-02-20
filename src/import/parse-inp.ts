@@ -7,7 +7,11 @@ import {
 import { initializeHydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import { EpanetUnitSystem } from "src/simulation/build-inp";
+import {
+  EpanetUnitSystem,
+  defaultAccuracy,
+  defaultUnbalanced,
+} from "src/simulation/build-inp";
 
 const epanetSections = [
   "[TITLE]",
@@ -37,9 +41,6 @@ const epanetSections = [
   "[DEMANDS]",
   "[EMITTERS]",
 ];
-
-const defaultAccuracy = 0.01;
-const defaultUnbalanced = "CONTINUE 10";
 
 const epanetDefaultOptions = {
   UNITS: "CFS",
