@@ -4,7 +4,6 @@ import SimpleDialogActions from "./simple_dialog_actions";
 import {
   BellIcon,
   CrossCircledIcon,
-  DotFilledIcon,
   ExclamationTriangleIcon,
   TriangleDownIcon,
   TriangleRightIcon,
@@ -128,67 +127,51 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         Issues summary{" "}
       </Button>
       {isExpaned && (
-        <div className="p-1  ml-3 mt-2 border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
-          {issues.invalidCoordinates && (
-            <IssueText variant="error">
-              Assets with invalid coordinates.
-            </IssueText>
-          )}
-          {issues.invalidVertices && (
-            <IssueText variant="error">Links with invalid vertices</IssueText>
-          )}
-          {issues.nodesMissingCoordinates && (
-            <IssueText variant="error">
-              Assets with missing coordinates.
-            </IssueText>
-          )}
+        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 text-gray-700">
           {issues.unsupportedSections && (
-            <IssueText variant="warning">
-              Use of unsupported sections.
-            </IssueText>
+            <div>
+              <p>Use of unsupported sections:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                {Array.from(issues.unsupportedSections).map((sectionName) => (
+                  <span key={sectionName}>- [{sectionName.toUpperCase()}]</span>
+                ))}
+              </div>
+            </div>
           )}
           {issues.extendedPeriodSimulation && (
-            <IssueText variant="warning">
-              Custom duration not supported (using 0).
-            </IssueText>
-          )}
-          {issues.patternStartNotInZero && (
-            <IssueText variant="warning">
-              Custom pattern start not supported (using 00:00).
-            </IssueText>
+            <div>
+              <p>Non-default epanet [TIMES] values detected:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                {issues.extendedPeriodSimulation && (
+                  <span>- Custom DURATION not supported (using 0)</span>
+                )}
+              </div>
+            </div>
           )}
           {issues.nonDefaultOptions && (
-            <IssueText variant="warning">
-              Non default epanet options detected.
-            </IssueText>
-          )}
-          {issues.accuracyDiff && (
-            <IssueText variant="warning">
-              Custom ACCURACY not supported (using 0.001).
-            </IssueText>
+            <div>
+              <p>Non-default epanet [OPTIONS] values detected:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                {[...issues.nonDefaultOptions.entries()].map(
+                  ([optionName, defaultValue]) => (
+                    <span key={optionName}>
+                      - {optionName.toUpperCase()} (using {defaultValue})
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
           )}
           {issues.unbalancedDiff && (
-            <IssueText variant="warning">
-              Custom UNBALANCED not supported (using CONTINUE 10).
-            </IssueText>
+            <div>
+              <p>Ignored [OPTIONS] values detected:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>- UNBALANCED value is ignored (using CONTINUE 10)</span>
+              </div>
+            </div>
           )}
         </div>
       )}
     </div>
   );
 };
-
-const IssueText = ({
-  variant,
-  children,
-}: {
-  variant: "error" | "warning";
-  children: React.ReactNode;
-}) => (
-  <p className="inline-flex items-center">
-    <DotFilledIcon
-      className={`mr-1 ${variant === "error" ? "text-red-500" : "text-yellow-500"}`}
-    />
-    {children}
-  </p>
-);
