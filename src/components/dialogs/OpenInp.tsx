@@ -47,33 +47,60 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata, issues } = isFeatureOn(
-        "FLAG_UNSUPPORTED",
-      )
-        ? parseInp(content)
-        : parseInpDeprecated(content);
-      transactImport(hydraulicModel, modelMetadata, file.name);
+      if (isFeatureOn("FLAG_UNSUPPORTED")) {
+        const { hydraulicModel, modelMetadata, issues } = parseInp(content);
+        if (
+          !issues ||
+          (!issues.nodesMissingCoordinates &&
+            !issues.invalidCoordinates &&
+            !issues.invalidVertices)
+        ) {
+          transactImport(hydraulicModel, modelMetadata, file.name);
 
-      const features: FeatureCollection = {
-        type: "FeatureCollection",
-        features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-      };
-      const nextExtent = getExtent(features);
-      nextExtent.map((importedExtent) => {
-        map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-          padding: 100,
-          duration: 0,
-        });
-      });
-      setFileInfo({
-        name: file.name,
-        handle: file.handle,
-        modelVersion: hydraulicModel.version,
-        options: { type: "inp", folderId: "" },
-      });
-      if (isFeatureOn("FLAG_UNSUPPORTED") && !!issues) {
-        setDialogState({ type: "inpIssues", issues });
+          const features: FeatureCollection = {
+            type: "FeatureCollection",
+            features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+          };
+          const nextExtent = getExtent(features);
+          nextExtent.map((importedExtent) => {
+            map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+              padding: 100,
+              duration: 0,
+            });
+          });
+          setFileInfo({
+            name: file.name,
+            handle: file.handle,
+            modelVersion: hydraulicModel.version,
+            options: { type: "inp", folderId: "" },
+          });
+        }
+        if (!!issues) {
+          setDialogState({ type: "inpIssues", issues });
+        } else {
+          onClose();
+        }
       } else {
+        const { hydraulicModel, modelMetadata } = parseInpDeprecated(content);
+        transactImport(hydraulicModel, modelMetadata, file.name);
+
+        const features: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+        };
+        const nextExtent = getExtent(features);
+        nextExtent.map((importedExtent) => {
+          map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+            padding: 100,
+            duration: 0,
+          });
+        });
+        setFileInfo({
+          name: file.name,
+          handle: file.handle,
+          modelVersion: hydraulicModel.version,
+          options: { type: "inp", folderId: "" },
+        });
         onClose();
       }
     } catch (error) {

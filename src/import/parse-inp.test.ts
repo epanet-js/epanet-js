@@ -314,6 +314,43 @@ describe("Parse inp", () => {
     expect(assets.get(junctionId)).toBeUndefined();
   });
 
+  it("says when vertices  are invalid", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pipeId = "p1";
+    const length = 10;
+    const diameter = 100;
+    const roughness = 0.1;
+    const minorLoss = 0.2;
+    const status = "Open";
+    const anyNumber = 10;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}\t${status}
+
+    [COORDINATES]
+    ${reservoirId}\t${10}\t${20}
+    ${junctionId}\t${30}\t${40}
+
+
+    [VERTICES]
+    ${pipeId}\t${1000}\t${60}
+    ${pipeId}\t${60}\t${700}
+    `;
+
+    const {
+      hydraulicModel: { assets },
+      issues,
+    } = parseInp(inp);
+
+    expect(issues!.invalidVertices!.values()).toContain(pipeId);
+    expect(assets.get(pipeId)).not.toBeUndefined();
+  });
+
   it("says when using non default options", () => {
     const inp = `
     [OPTIONS]

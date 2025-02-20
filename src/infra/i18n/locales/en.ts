@@ -148,6 +148,18 @@ export const translations = {
   privacyPolicy: "Privacy policy",
   openSource: "Open Source",
   downloadFailed: "Download failed. Try again, please!",
+  geocodingNotSupported: "Geocoding not supported",
+  geocodingNotSupportedDetail:
+    "Your INP includes coordinates or vertices that use a projection system that is not supported yet. Please ensure all assets are geocoded using the WGS84 standard.",
+  missingCoordinates: "Coordinates Missing",
+  missingCoordinatesDetail:
+    "Your INP is missing required coordinates. Please ensure all assets include geocoded information using the WGS84 standard.",
+  inpNotFullySupported: "Your INP is not fully supported",
+  inpNotFullySupportedDetail:
+    "Some features of your INP file are not fully supported yet, which could affect the results.",
+  newFeaturesEveryDay:
+    "We're continuously adding new features and improvements! Stay informed about the latest updates by subscribing to our newsletter!",
+  subscribeForUpdates: "Subscribe for updates",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

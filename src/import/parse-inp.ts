@@ -100,6 +100,7 @@ export type ParserIssues = {
   patternStartNotInZero?: boolean;
   nodesMissingCoordinates?: Set<string>;
   invalidCoordinates?: Set<string>;
+  invalidVertices?: Set<string>;
   nonDefaultOptions?: Set<string>;
   accuracyDiff?: {
     defaultValue: number;
@@ -152,6 +153,13 @@ class IssuesAccumulator {
       this.issues.invalidCoordinates = new Set<string>();
 
     this.issues.invalidCoordinates.add(nodeId);
+  }
+
+  addInvalidVertices(linkId: string) {
+    if (!this.issues.invalidVertices)
+      this.issues.invalidVertices = new Set<string>();
+
+    this.issues.invalidVertices.add(linkId);
   }
 
   hasDifferentAccuracy(customValue: number, defaultValue: number) {
@@ -395,6 +403,7 @@ const buildModel = (
       pipeData.endNode,
       issues,
     );
+    const vertices = getVertices(inpData, pipeData.id, issues);
     if (!startCoordinates || !endCoordinates) continue;
 
     const pipe = hydraulicModel.assetBuilder.buildPipe({
@@ -405,11 +414,7 @@ const buildModel = (
       roughness: pipeData.roughness,
       connections: [pipeData.startNode, pipeData.endNode],
       status: pipeData.status,
-      coordinates: [
-        startCoordinates,
-        ...(inpData.vertices[pipeData.id] || []),
-        endCoordinates,
-      ],
+      coordinates: [startCoordinates, ...vertices, endCoordinates],
     });
     hydraulicModel.assets.set(pipe.id, pipe);
     hydraulicModel.topology.addLink(
@@ -420,6 +425,20 @@ const buildModel = (
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
+};
+
+const getVertices = (
+  inpData: InpData,
+  linkId: string,
+  issues: IssuesAccumulator,
+) => {
+  const candidates = inpData.vertices[linkId] || [];
+  const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
+  if (candidates.length !== vertices.length) {
+    issues.addInvalidVertices(linkId);
+    return [];
+  }
+  return vertices;
 };
 
 const getNodeCoordinates = (
