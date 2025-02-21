@@ -6,6 +6,7 @@ export type Unit =
   | "in"
   | "ft"
   | "l/s"
+  | "l/min"
   | "l/h"
   | "km"
   | "gal/min"
@@ -13,6 +14,7 @@ export type Unit =
   | "psi"
   | "m/s"
   | "ft/s"
+  | "ft^3/s"
   | null;
 
 export type Quantity = {

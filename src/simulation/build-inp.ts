@@ -8,7 +8,7 @@ type BuildOptions = {
   geolocation?: boolean;
 };
 
-export type EpanetUnitSystem = "LPS" | "GPM";
+export type EpanetUnitSystem = "LPS" | "GPM" | "CFS" | "LPM";
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
@@ -17,6 +17,8 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   const flowUnit = units.flow;
   if (flowUnit === "l/s") return "LPS";
   if (flowUnit === "gal/min") return "GPM";
+  if (flowUnit === "ft^3/s") return "CFS";
+  if (flowUnit === "l/min") return "LPM";
 
   captureWarning(`Flow unit not supported ${flowUnit}, fallback to default`);
   return "LPS";

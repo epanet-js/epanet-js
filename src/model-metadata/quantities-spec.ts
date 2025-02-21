@@ -6,6 +6,7 @@ import {
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { translate, translateUnit } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type UnitsSpec = Record<
   | "diameter"
@@ -121,8 +122,18 @@ const GPMSpec: AssetQuantitiesSpec = {
     flow: "gal/min",
   },
 };
+const CFSSpec: AssetQuantitiesSpec = {
+  ...usCustomarySpec,
+  id: "cfs",
+  name: "CFS",
+  description: translate("usCustomaryFlowsExpressed", translateUnit("ft^3/s")),
+  units: {
+    ...usCustomarySpec.units,
+    flow: "ft^3/s",
+  },
+};
 
-const lpsSpec: AssetQuantitiesSpec = {
+const LPSSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "lps",
   name: "LPS",
@@ -132,12 +143,31 @@ const lpsSpec: AssetQuantitiesSpec = {
     flow: "l/s",
   },
 };
+const LPMSpec: AssetQuantitiesSpec = {
+  ...metricSpec,
+  id: "lpm",
+  name: "LPM",
+  description: translate("siFlowsExpressed", translateUnit("l/min")),
+  units: {
+    ...metricSpec.units,
+    flow: "l/min",
+  },
+};
 
 type Presets = { [id: AssetQuantitiesSpec["id"]]: AssetQuantitiesSpec };
-export const presets: Presets = {
-  lps: lpsSpec,
+const deprecatedPresets: Presets = {
+  lps: LPSSpec,
   gpm: GPMSpec,
 };
+const newPresets: Presets = {
+  lps: LPSSpec,
+  lpm: LPMSpec,
+  gpm: GPMSpec,
+  cfs: CFSSpec,
+};
+export const presets = isFeatureOn("FLAG_EPANET_UNITS")
+  ? newPresets
+  : deprecatedPresets;
 
 export class Quantities {
   private spec: AssetQuantitiesSpec;

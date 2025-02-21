@@ -182,4 +182,6 @@ export const units: Record<Exclude<Unit, null>, string> = {
   mwc: "m",
   "m/s": "m/s",
   "ft/s": "ft/s",
+  "ft^3/s": "ft³/s",
+  "l/min": "l/min",
 };
