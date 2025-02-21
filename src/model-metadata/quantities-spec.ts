@@ -163,6 +163,16 @@ const LPMSpec: AssetQuantitiesSpec = {
     flow: "l/min",
   },
 };
+const MLDSpec: AssetQuantitiesSpec = {
+  ...metricSpec,
+  id: "mld",
+  name: "MLD",
+  description: translate("siFlowsExpressed", translateUnit("Ml/d")),
+  units: {
+    ...metricSpec.units,
+    flow: "Ml/d",
+  },
+};
 
 type Presets = { [id: AssetQuantitiesSpec["id"]]: AssetQuantitiesSpec };
 const deprecatedPresets: Presets = {
@@ -172,6 +182,7 @@ const deprecatedPresets: Presets = {
 const newPresets: Presets = {
   lps: LPSSpec,
   lpm: LPMSpec,
+  mld: MLDSpec,
   gpm: GPMSpec,
   cfs: CFSSpec,
   mgd: MGDSpec,
