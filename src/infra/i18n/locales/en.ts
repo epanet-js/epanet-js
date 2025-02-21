@@ -177,7 +177,7 @@ export const units: Record<Exclude<Unit, null>, string> = {
   "l/s": "l/s",
   "l/h": "l/h",
   km: "km",
-  "gal/min": "gpm",
+  "gal/min": "gal/min",
   psi: "psi",
   mwc: "m",
   "m/s": "m/s",
@@ -187,4 +187,5 @@ export const units: Record<Exclude<Unit, null>, string> = {
   "Mgal/d": "Mgal/d",
   "IMgal/d": "IMgal/d",
   "Ml/d": "Ml/d",
+  "m^3/h": "m³/h",
 };

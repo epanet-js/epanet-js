@@ -15,7 +15,8 @@ export type EpanetUnitSystem =
   | "LPM"
   | "MGD"
   | "MLD"
-  | "IMGD";
+  | "IMGD"
+  | "CMH";
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
@@ -29,6 +30,7 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   if (flowUnit === "Mgal/d") return "MGD";
   if (flowUnit === "IMgal/d") return "IMGD";
   if (flowUnit === "Ml/d") return "MLD";
+  if (flowUnit === "m^3/h") return "CMH";
 
   captureError(
     new Error(`Flow unit not supported ${flowUnit}, fallback to default`),
