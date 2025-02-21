@@ -143,6 +143,17 @@ const MGDSpec: AssetQuantitiesSpec = {
   },
 };
 
+const IMGDSpec: AssetQuantitiesSpec = {
+  ...usCustomarySpec,
+  id: "imgd",
+  name: "IMGD",
+  description: translate("usCustomaryFlowsExpressed", translateUnit("IMgal/d")),
+  units: {
+    ...usCustomarySpec.units,
+    flow: "IMgal/d",
+  },
+};
+
 const LPSSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "lps",
@@ -186,7 +197,9 @@ const newPresets: Presets = {
   gpm: GPMSpec,
   cfs: CFSSpec,
   mgd: MGDSpec,
+  imgd: IMGDSpec,
 };
+
 export const presets = isFeatureOn("FLAG_EPANET_UNITS")
   ? newPresets
   : deprecatedPresets;
