@@ -188,5 +188,6 @@ export const units: Record<Exclude<Unit, null>, string> = {
   "IMgal/d": "IMgal/d",
   "Ml/d": "Ml/d",
   "m^3/h": "m³/h",
+  "m^3/d": "m³/d",
   "acft/d": "acft/d",
 };
