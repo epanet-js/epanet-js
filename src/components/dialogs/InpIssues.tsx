@@ -154,7 +154,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("useOfUnsupported")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {Array.from(issues.unsupportedSections).map((sectionName) => (
-                  <span key={sectionName}>- [{sectionName.toUpperCase()}]</span>
+                  <span key={sectionName}>- {sectionName}</span>
                 ))}
               </div>
             </div>

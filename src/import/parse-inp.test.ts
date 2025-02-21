@@ -220,11 +220,13 @@ describe("Parse inp", () => {
     const inp = `
     [VALVES]
     ANY
+    [NEW]
     `;
 
     const { issues } = parseInp(inp);
 
-    expect(issues!.unsupportedSections!.values()).toContain("valves");
+    expect(issues!.unsupportedSections!.values()).toContain("[VALVES]");
+    expect(issues!.unsupportedSections!.values()).toContain("[NEW]");
   });
 
   it("ignores default sections", () => {
