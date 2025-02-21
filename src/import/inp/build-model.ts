@@ -9,8 +9,7 @@ export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
-  const spec =
-    inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
+  const spec = inpData.options.units === "GPM" ? presets.gpm : presets.lps;
   const quantities = new Quantities(spec);
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
