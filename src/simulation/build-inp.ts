@@ -68,6 +68,7 @@ export const buildInp = withInstrumentation(
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
       ],
+      backdrop: ["[BACKDROP]", "Units\tDEGREES"],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
     };
@@ -123,6 +124,7 @@ export const buildInp = withInstrumentation(
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
+      geolocation && sections.backdrop.join("\n"),
       geolocation && sections.coordinates.join("\n"),
       geolocation && sections.vertices.join("\n"),
       "[END]",
