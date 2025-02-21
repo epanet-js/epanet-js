@@ -215,6 +215,27 @@ describe("open inp", () => {
     });
   });
 
+  it("doesnt create model when coordinates not supported", async () => {
+    const inp = inpWithoutCoordinates();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    const file = aTestFile({ filename: "my-network.inp", content: inp });
+
+    renderComponent({ store });
+
+    await triggerOpenFromFs();
+
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.assets.size).toEqual(0);
+  });
+
   const triggerOpenFromFs = async () => {
     await userEvent.click(
       screen.getByRole("button", { name: "openInpFromFs" }),
@@ -244,6 +265,17 @@ describe("open inp", () => {
     ${junctionId}\t10
     [COORDINATES]
     ${junctionId}\t1\t2
+    `;
+  };
+
+  const inpWithoutCoordinates = ({
+    junctionId = "J1",
+  }: {
+    junctionId?: string;
+  } = {}): string => {
+    return `
+    [JUNCTIONS]
+    ${junctionId}\t10
     `;
   };
 
