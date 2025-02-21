@@ -19,6 +19,7 @@ export type Unit =
   | "Mgal/d"
   | "IMgal/d"
   | "Ml/d"
+  | "acft/d"
   | null;
 
 export type Quantity = {
