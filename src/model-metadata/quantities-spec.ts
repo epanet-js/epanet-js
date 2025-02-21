@@ -120,6 +120,7 @@ const GPMSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "gal/min",
+    demand: "gal/min",
   },
 };
 const CFSSpec: AssetQuantitiesSpec = {
@@ -130,6 +131,7 @@ const CFSSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "ft^3/s",
+    demand: "ft^3/s",
   },
 };
 const MGDSpec: AssetQuantitiesSpec = {
@@ -140,6 +142,7 @@ const MGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "Mgal/d",
+    demand: "Mgal/d",
   },
 };
 
@@ -151,6 +154,19 @@ const IMGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "IMgal/d",
+    demand: "IMgal/d",
+  },
+};
+
+const AFDSpec: AssetQuantitiesSpec = {
+  ...usCustomarySpec,
+  id: "afd",
+  name: "AFD",
+  description: translate("usCustomaryFlowsExpressed", translateUnit("acft/d")),
+  units: {
+    ...usCustomarySpec.units,
+    flow: "acft/d",
+    demand: "acft/d",
   },
 };
 
@@ -162,6 +178,7 @@ const LPSSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "l/s",
+    demand: "l/s",
   },
 };
 const LPMSpec: AssetQuantitiesSpec = {
@@ -172,6 +189,7 @@ const LPMSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "l/min",
+    demand: "l/min",
   },
 };
 const MLDSpec: AssetQuantitiesSpec = {
@@ -182,6 +200,7 @@ const MLDSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "Ml/d",
+    demand: "Ml/d",
   },
 };
 const CMHSpec: AssetQuantitiesSpec = {
@@ -192,6 +211,7 @@ const CMHSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "m^3/h",
+    demand: "m^3/h",
   },
 };
 
@@ -209,6 +229,7 @@ const newPresets: Presets = {
   cfs: CFSSpec,
   mgd: MGDSpec,
   imgd: IMGDSpec,
+  afd: AFDSpec,
 };
 
 export const presets = isFeatureOn("FLAG_EPANET_UNITS")
