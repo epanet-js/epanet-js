@@ -31,6 +31,9 @@ const epanetDefaultOptions = {
   DIFFUSIVITY: 1.0,
   TOLERANCE: 0.01,
   "TANK MIXING": "MIXED",
+  CHECKFREQ: 2,
+  MAXCHECK: 10,
+  DAMPLIMIT: 0,
 };
 
 const defaultOptions = {
