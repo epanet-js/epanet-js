@@ -32,3 +32,16 @@ export type InpData = {
   demands: Record<string, number>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
 };
+
+export const nullInpData = (): InpData => {
+  return {
+    junctions: [],
+    reservoirs: [],
+    tanks: [],
+    pipes: [],
+    coordinates: {},
+    vertices: {},
+    demands: {},
+    options: { units: "GPM", headlossFormula: "H-W" },
+  };
+};

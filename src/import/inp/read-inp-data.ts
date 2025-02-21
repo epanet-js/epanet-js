@@ -4,37 +4,143 @@ import {
   defaultAccuracy,
   defaultUnbalanced,
 } from "src/simulation/build-inp";
-import { InpData } from "./inp-data";
+import { InpData, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 
-const epanetSections = [
-  "[TITLE]",
-  "[CURVES]",
-  "[QUALITY]",
-  "[OPTIONS]",
-  "[BACKDROP]",
-  "[JUNCTIONS]",
-  "[PATTERNS]",
-  "[REACTIONS]",
-  "[TIMES]",
-  "[COORDINATES]",
-  "[RESERVOIRS]",
-  "[ENERGY]",
-  "[SOURCES]",
-  "[REPORT]",
-  "[VERTICES]",
-  "[TANKS]",
-  "[STATUS]",
-  "[MIXING]",
-  "[LABELS]",
-  "[PIPES]",
-  "[CONTROLS]",
-  "[PUMPS]",
-  "[RULES]",
-  "[VALVES]",
-  "[DEMANDS]",
-  "[EMITTERS]",
-];
+const commentIdentifier = ";";
+
+type RowParser = (params: {
+  sectionName: string;
+  trimmedRow: string;
+  inpData: InpData;
+  issues: IssuesAccumulator;
+}) => void;
+
+const ignore: RowParser = () => {};
+const unsupported: RowParser = ({ sectionName, issues }) => {
+  issues.addUsedSection(sectionName);
+};
+const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, head] = readValues(trimmedRow);
+
+  inpData.reservoirs.push({ id, head: parseFloat(head) });
+};
+
+const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, elevation] = readValues(trimmedRow);
+
+  inpData.junctions.push({ id, elevation: parseFloat(elevation) });
+};
+
+const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
+  const [
+    id,
+    startNode,
+    endNode,
+    length,
+    diameter,
+    roughness,
+    minorLoss,
+    status,
+  ] = readValues(trimmedRow);
+
+  inpData.pipes.push({
+    id,
+    startNode,
+    endNode,
+    length: parseFloat(length),
+    diameter: parseFloat(diameter),
+    roughness: parseFloat(roughness),
+    minorLoss: parseFloat(minorLoss),
+    status: status.toLowerCase() === "open" ? "open" : "closed",
+  });
+};
+
+const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
+  const [nodeId, demand] = readValues(trimmedRow);
+  inpData.demands[nodeId] = parseFloat(demand);
+};
+
+const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
+  const [nodeId, lng, lat] = readValues(trimmedRow);
+  inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+};
+
+const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
+  const [linkId, lng, lat] = readValues(trimmedRow);
+  if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
+
+  inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
+};
+
+const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
+  const [name, value] = readValues(trimmedRow);
+  const normalizedName = name.toUpperCase();
+  if (normalizedName === "DURATION" && parseInt(value) !== 0) {
+    issues.addEPS();
+  }
+};
+
+const parseOption: RowParser = ({ trimmedRow, inpData, issues }): void => {
+  const [name, value] = readValues(trimmedRow);
+  if (!value) return;
+
+  const normalizedName = name.toUpperCase() as keyof typeof defaultOptions;
+  if (normalizedName === "UNITS") {
+    inpData.options.units = value as EpanetUnitSystem;
+    return;
+  }
+  if (normalizedName === "HEADLOSS") {
+    inpData.options.headlossFormula = value as HeadlossFormula;
+    return;
+  }
+
+  if (normalizedName === "UNBALANCED") {
+    const normalizedValue = value.toUpperCase();
+    if (normalizedValue !== defaultUnbalanced) {
+      issues.hasUnbalancedDiff(normalizedValue, defaultUnbalanced);
+    }
+    return;
+  }
+
+  const defaultValue = defaultOptions[normalizedName];
+  if (typeof defaultValue === "number") {
+    if (parseFloat(value) !== defaultValue)
+      issues.addUsedOption(normalizedName, defaultValue);
+  } else {
+    if (defaultValue !== value.toUpperCase())
+      issues.addUsedOption(normalizedName, defaultValue);
+  }
+};
+
+const sectionParsers: Record<string, RowParser> = {
+  "[TITLE]": ignore,
+  "[CURVES]": unsupported,
+  "[QUALITY]": unsupported,
+  "[OPTIONS]": parseOption,
+  "[BACKDROP]": unsupported,
+  "[JUNCTIONS]": parseJunction,
+  "[PATTERNS]": unsupported,
+  "[REACTIONS]": unsupported,
+  "[TIMES]": parseTimeSetting,
+  "[COORDINATES]": parsePosition,
+  "[RESERVOIRS]": parseReservoir,
+  "[ENERGY]": unsupported,
+  "[SOURCES]": unsupported,
+  "[REPORT]": ignore,
+  "[VERTICES]": parseVertex,
+  "[TANKS]": unsupported,
+  "[STATUS]": unsupported,
+  "[MIXING]": unsupported,
+  "[LABELS]": unsupported,
+  "[PIPES]": parsePipe,
+  "[CONTROLS]": unsupported,
+  "[PUMPS]": unsupported,
+  "[RULES]": unsupported,
+  "[VALVES]": unsupported,
+  "[DEMANDS]": parseDemand,
+  "[EMITTERS]": unsupported,
+};
 
 const epanetDefaultOptions = {
   UNITS: "CFS",
@@ -66,156 +172,54 @@ export const readInpData = (
 ): InpData => {
   const rows = inp.split("\n");
   let section = null;
-  const inpData: InpData = {
-    junctions: [],
-    reservoirs: [],
-    tanks: [],
-    pipes: [],
-    coordinates: {},
-    vertices: {},
-    demands: {},
-    options: { units: "GPM", headlossFormula: "H-W" },
-  };
+  const inpData = nullInpData();
 
   for (const row of rows) {
     const trimmedRow = row.trim();
 
-    if (trimmedRow.startsWith(";")) continue;
-    if (trimmedRow === "" || trimmedRow.includes("[END]")) {
+    if (trimmedRow.startsWith(commentIdentifier)) continue;
+    if (isSectionEnded(trimmedRow)) {
       section = null;
       continue;
     }
 
-    const newSectionName = detectNewSectionName(trimmedRow);
+    const newSectionName = detectNewSectionName(trimmedRow, issues);
     if (newSectionName) {
-      section = newSectionName.toLowerCase().replace("[", "").replace("]", "");
+      section = newSectionName;
       continue;
     }
-    if (trimmedRow.startsWith("[")) {
-      section = "unsupported";
-      continue;
-    }
+    if (!section) continue;
 
-    if (section === "junctions") {
-      const [id, elevation] = readValues(trimmedRow);
+    const rowParserFn = sectionParsers[section];
+    if (!rowParserFn) continue;
 
-      inpData.junctions.push({ id, elevation: parseFloat(elevation) });
-      continue;
-    }
-
-    if (section === "reservoirs") {
-      const [id, head] = readValues(trimmedRow);
-
-      inpData.reservoirs.push({ id, head: parseFloat(head) });
-      continue;
-    }
-
-    if (section === "pipes") {
-      const [
-        id,
-        startNode,
-        endNode,
-        length,
-        diameter,
-        roughness,
-        minorLoss,
-        status,
-      ] = readValues(trimmedRow);
-
-      inpData.pipes.push({
-        id,
-        startNode,
-        endNode,
-        length: parseFloat(length),
-        diameter: parseFloat(diameter),
-        roughness: parseFloat(roughness),
-        minorLoss: parseFloat(minorLoss),
-        status: status.toLowerCase() === "open" ? "open" : "closed",
-      });
-      continue;
-    }
-
-    if (section === "coordinates") {
-      const [nodeId, lng, lat] = readValues(trimmedRow);
-      inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
-      continue;
-    }
-
-    if (section === "vertices") {
-      const [linkId, lng, lat] = readValues(trimmedRow);
-      if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
-
-      inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
-      continue;
-    }
-
-    if (section === "demands") {
-      const [nodeId, demand] = readValues(trimmedRow);
-      inpData.demands[nodeId] = parseFloat(demand);
-      continue;
-    }
-
-    if (section === "options") {
-      const [name, value] = readValues(trimmedRow);
-      if (!value) continue;
-      const normalizedName = name.toUpperCase() as keyof typeof defaultOptions;
-      if (normalizedName === "UNITS") {
-        inpData.options.units = value as EpanetUnitSystem;
-        continue;
-      }
-      if (normalizedName === "HEADLOSS") {
-        inpData.options.headlossFormula = value as HeadlossFormula;
-        continue;
-      }
-
-      if (normalizedName === "UNBALANCED") {
-        const normalizedValue = value.toUpperCase();
-        if (normalizedValue !== defaultUnbalanced) {
-          issues.hasUnbalancedDiff(normalizedValue, defaultUnbalanced);
-        }
-        continue;
-      }
-
-      const defaultValue = defaultOptions[normalizedName];
-      if (typeof defaultValue === "number") {
-        if (parseFloat(value) !== defaultValue)
-          issues.addUsedOption(normalizedName, defaultValue);
-      } else {
-        if (defaultValue !== value.toUpperCase())
-          issues.addUsedOption(normalizedName, defaultValue);
-      }
-      continue;
-    }
-    if (section === "report") {
-      continue;
-    }
-    if (section === "times") {
-      const [name, value] = readValues(trimmedRow);
-      const normalizedName = name.toUpperCase();
-      if (normalizedName === "DURATION" && parseInt(value) !== 0) {
-        issues.addEPS();
-      }
-      continue;
-    }
-    if (section === "title") {
-      continue;
-    }
-
-    if (section !== null) {
-      issues.addUsedSection(section);
-    }
+    rowParserFn({ sectionName: section, trimmedRow, inpData, issues });
   }
 
   return inpData;
 };
 
-const detectNewSectionName = (trimmedRow: string): string | null => {
+const isSectionEnded = (trimmedRow: string) => {
+  return trimmedRow === "" || trimmedRow.includes("[END]");
+};
+
+const detectNewSectionName = (
+  trimmedRow: string,
+  issues: IssuesAccumulator,
+): string | null => {
   if (!trimmedRow.startsWith("[")) return null;
-  const sectionName = epanetSections.find((name) => trimmedRow.includes(name));
-  return sectionName || null;
+
+  const sectionName = Object.keys(sectionParsers).find((name) =>
+    trimmedRow.includes(name),
+  );
+  if (sectionName === undefined) {
+    issues.addUsedSection(trimmedRow);
+    return trimmedRow;
+  }
+  return sectionName;
 };
 
 const readValues = (row: string): string[] => {
-  const rowWithoutComments = row.split(";")[0];
+  const rowWithoutComments = row.split(commentIdentifier)[0];
   return rowWithoutComments.split("\t").map((s) => s.trim());
 };
