@@ -96,6 +96,15 @@ describe("build inp", () => {
     expect(rowsFrom(inp).at(-1)).toEqual("[END]");
   });
 
+  it("includes visualization settings for epanet", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const inp = buildInp(hydraulicModel, { geolocation: true });
+
+    expect(rowsFrom(inp)).toContain("[BACKDROP]");
+    expect(rowsFrom(inp)).toContain("Units\tDEGREES");
+  });
+
   it("includes haadloss formula", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .setHeadlossFormula("D-W")
