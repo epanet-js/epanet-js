@@ -315,7 +315,8 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
     }
     if (section === "times") {
       const [name, value] = readValues(trimmedRow);
-      if (name === "Duration" && parseInt(value) !== 0) {
+      const normalizedName = name.toUpperCase();
+      if (normalizedName === "DURATION" && parseInt(value) !== 0) {
         issues.addEPS();
       }
       continue;
