@@ -2,14 +2,24 @@ import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import {
+  AssetQuantitiesSpec,
+  Quantities,
+  presets,
+} from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
-  const spec = inpData.options.units === "GPM" ? presets.gpm : presets.lps;
+  let spec: AssetQuantitiesSpec;
+  if (isFeatureOn("FLAG_EPANET_UNITS")) {
+    spec = presets[inpData.options.units];
+  } else {
+    spec = inpData.options.units === "GPM" ? presets.gpm : presets.lps;
+  }
   const quantities = new Quantities(spec);
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
