@@ -232,8 +232,39 @@ describe("open inp", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
+    expect(screen.getByText(/coordinates missing/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+
+    expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
+  });
+
+  it("shows warning when using unsupported features", async () => {
+    const inp = inpWithUnsupportedFeatures({ junctionId: "J1" });
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    const file = aTestFile({ filename: "my-network.inp", content: inp });
+
+    renderComponent({ store });
+
+    await triggerOpenFromFs();
+
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/not fully supported yet/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+
+    expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
   });
 
   const triggerOpenFromFs = async () => {
@@ -263,6 +294,20 @@ describe("open inp", () => {
     return `
     [JUNCTIONS]
     ${junctionId}\t10
+    [COORDINATES]
+    ${junctionId}\t1\t2
+    `;
+  };
+  const inpWithUnsupportedFeatures = ({
+    junctionId = "J1",
+  }: {
+    junctionId?: string;
+  }): string => {
+    return `
+    [JUNCTIONS]
+    ${junctionId}\t10
+    [VALVES]
+    ANY
     [COORDINATES]
     ${junctionId}\t1\t2
     `;
