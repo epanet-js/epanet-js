@@ -15,6 +15,7 @@ export type Unit =
   | "m/s"
   | "ft/s"
   | "ft^3/s"
+  | "Mgal/d"
   | null;
 
 export type Quantity = {
