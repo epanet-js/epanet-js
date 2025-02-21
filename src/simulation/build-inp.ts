@@ -8,7 +8,14 @@ type BuildOptions = {
   geolocation?: boolean;
 };
 
-export type EpanetUnitSystem = "LPS" | "GPM" | "CFS" | "LPM" | "MGD" | "MLD";
+export type EpanetUnitSystem =
+  | "LPS"
+  | "GPM"
+  | "CFS"
+  | "LPM"
+  | "MGD"
+  | "MLD"
+  | "IMGD";
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
@@ -20,6 +27,7 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   if (flowUnit === "ft^3/s") return "CFS";
   if (flowUnit === "l/min") return "LPM";
   if (flowUnit === "Mgal/d") return "MGD";
+  if (flowUnit === "IMgal/d") return "IMGD";
   if (flowUnit === "Ml/d") return "MLD";
 
   captureError(
