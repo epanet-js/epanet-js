@@ -1,5 +1,5 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
-import { captureWarning } from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 
 type SimulationPipeStatus = "Open" | "Closed";
@@ -8,7 +8,7 @@ type BuildOptions = {
   geolocation?: boolean;
 };
 
-export type EpanetUnitSystem = "LPS" | "GPM" | "CFS" | "LPM" | "MGD";
+export type EpanetUnitSystem = "LPS" | "GPM" | "CFS" | "LPM" | "MGD" | "MLD";
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
@@ -20,8 +20,11 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   if (flowUnit === "ft^3/s") return "CFS";
   if (flowUnit === "l/min") return "LPM";
   if (flowUnit === "Mgal/d") return "MGD";
+  if (flowUnit === "Ml/d") return "MLD";
 
-  captureWarning(`Flow unit not supported ${flowUnit}, fallback to default`);
+  captureError(
+    new Error(`Flow unit not supported ${flowUnit}, fallback to default`),
+  );
   return "LPS";
 };
 
