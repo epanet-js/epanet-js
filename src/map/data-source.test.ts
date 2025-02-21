@@ -190,7 +190,7 @@ describe("build optimized source", () => {
     });
 
     it("assigns lengths in meters", () => {
-      const { assets } = HydraulicModelBuilder.with(presets.usCustomary)
+      const { assets } = HydraulicModelBuilder.with(presets.gpm)
         .aPipe("p1", { length: 10 })
         .build();
 
