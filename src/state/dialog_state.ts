@@ -1,6 +1,6 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
-import { ParserIssues } from "src/import/parse-inp";
+import { ParserIssues } from "src/import/inp";
 import type { FileGroups } from "src/lib/group_files";
 
 /**

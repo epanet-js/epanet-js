@@ -13,7 +13,7 @@ import {
   WelcomeDialogContent,
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
-import { ParserIssues } from "src/import/parse-inp";
+import { ParserIssues } from "src/import/inp";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
