@@ -16,8 +16,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
-import { parseInpDeprecated } from "src/import/parse-inp-deprecated";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -47,41 +45,13 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      if (isFeatureOn("FLAG_UNSUPPORTED")) {
-        const { hydraulicModel, modelMetadata, issues } = parseInp(content);
-        if (
-          !issues ||
-          (!issues.nodesMissingCoordinates &&
-            !issues.invalidCoordinates &&
-            !issues.invalidVertices)
-        ) {
-          transactImport(hydraulicModel, modelMetadata, file.name);
-
-          const features: FeatureCollection = {
-            type: "FeatureCollection",
-            features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-          };
-          const nextExtent = getExtent(features);
-          nextExtent.map((importedExtent) => {
-            map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-              padding: 100,
-              duration: 0,
-            });
-          });
-          setFileInfo({
-            name: file.name,
-            handle: file.handle,
-            modelVersion: hydraulicModel.version,
-            options: { type: "inp", folderId: "" },
-          });
-        }
-        if (!!issues) {
-          setDialogState({ type: "inpIssues", issues });
-        } else {
-          onClose();
-        }
-      } else {
-        const { hydraulicModel, modelMetadata } = parseInpDeprecated(content);
+      const { hydraulicModel, modelMetadata, issues } = parseInp(content);
+      if (
+        !issues ||
+        (!issues.nodesMissingCoordinates &&
+          !issues.invalidCoordinates &&
+          !issues.invalidVertices)
+      ) {
         transactImport(hydraulicModel, modelMetadata, file.name);
 
         const features: FeatureCollection = {
@@ -101,6 +71,10 @@ export function OpenInpDialog({
           modelVersion: hydraulicModel.version,
           options: { type: "inp", folderId: "" },
         });
+      }
+      if (!!issues) {
+        setDialogState({ type: "inpIssues", issues });
+      } else {
         onClose();
       }
     } catch (error) {

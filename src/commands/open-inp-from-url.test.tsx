@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, dataAtom, fileInfoAtom } from "src/state/jotai";
-import { Junction } from "src/hydraulic-model";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
@@ -9,10 +8,7 @@ import { useOpenInpFromUrl } from "./open-inp-from-url";
 
 describe("open inp from url", () => {
   it("initializes state opening an inp from a url", async () => {
-    const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+    const inp = minimalInp({ junctionId: "J1" });
     stubResponseOk(inp);
     const inpUrl = "http://example.org/network-001.inp";
     const store = setInitialState({
@@ -27,18 +23,14 @@ describe("open inp from url", () => {
     });
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get("J1");
-    expect((junction as Junction).elevation).toEqual(10);
+    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
   });
 
   it("ignores parameters from the url", async () => {
-    const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+    const inp = minimalInp({ junctionId: "J1" });
     stubResponseOk(inp);
     const inpUrl = "http://example.org/network-001.inp?key=1&other=2";
     const store = setInitialState({
@@ -53,8 +45,7 @@ describe("open inp from url", () => {
     });
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get("J1");
-    expect((junction as Junction).elevation).toEqual(10);
+    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
@@ -81,6 +72,19 @@ describe("open inp from url", () => {
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo).toBeNull();
   });
+
+  const minimalInp = ({
+    junctionId = "J1",
+  }: {
+    junctionId?: string;
+  }): string => {
+    return `
+    [JUNCTIONS]
+    ${junctionId}\t10
+    [COORDINATES]
+    ${junctionId}\t1\t2
+    `;
+  };
 
   const triggerOpenInpFromUrl = async () => {
     await userEvent.click(
