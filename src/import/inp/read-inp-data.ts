@@ -21,7 +21,7 @@ const sectionParsers: Record<string, RowParser> = {
   "[CURVES]": unsupported,
   "[QUALITY]": unsupported,
   "[OPTIONS]": parseOption,
-  "[BACKDROP]": unsupported,
+  "[BACKDROP]": ignore,
   "[JUNCTIONS]": parseJunction,
   "[PATTERNS]": unsupported,
   "[REACTIONS]": unsupported,
