@@ -16,6 +16,7 @@ export type Unit =
   | "ft/s"
   | "ft^3/s"
   | "m^3/h"
+  | "m^3/d"
   | "Mgal/d"
   | "IMgal/d"
   | "Ml/d"
