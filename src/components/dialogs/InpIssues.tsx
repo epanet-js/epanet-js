@@ -165,7 +165,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <div className="flex flex-col gap-y-1 items-start">
                 {issues.extendedPeriodSimulation && (
                   <span>
-                    - ${translate("customValueNotSupport", "DURATION", "0")}
+                    - {translate("customValueNotSupport", "DURATION", "0")}
                   </span>
                 )}
               </div>
