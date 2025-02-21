@@ -1,5 +1,5 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
-import { parseInp } from "./parse-inp";
+import { parseInp } from "./inp";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Parse inp", () => {
