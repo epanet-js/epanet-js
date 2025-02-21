@@ -107,7 +107,7 @@ describe("build inp", () => {
   });
 
   it("detects units based on the flow units of the model", () => {
-    const hydraulicModel = HydraulicModelBuilder.with(presets.gpm).build();
+    const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
     const inp = buildInp(hydraulicModel);
 

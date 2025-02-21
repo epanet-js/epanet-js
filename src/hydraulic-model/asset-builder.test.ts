@@ -3,7 +3,7 @@ import { AssetBuilder } from "./asset-builder";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
-    const quantities = new Quantities(presets.lps);
+    const quantities = new Quantities(presets.LPS);
     const assetBuilder = new AssetBuilder(
       quantities.units,
       quantities.defaults,

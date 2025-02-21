@@ -6,7 +6,7 @@ import {
 } from "./asset-property-stats";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 
-const defaultQuantities = new Quantities(presets.lps);
+const defaultQuantities = new Quantities(presets.LPS);
 
 describe("Asset property stats", () => {
   it("can compute stats of a quantity", () => {
@@ -69,7 +69,7 @@ describe("Asset property stats", () => {
       .aJunction("J3", { simulation: { pressure: -0.00001 } })
       .build();
     const selection = [...assets.values()];
-    const quantities = new Quantities(presets.lps);
+    const quantities = new Quantities(presets.LPS);
 
     const statsMap = computePropertyStats(selection, quantities);
 

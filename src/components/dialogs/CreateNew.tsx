@@ -3,7 +3,7 @@ import { DialogHeader } from "../dialog";
 import { Form, Formik } from "formik";
 import SimpleDialogActions from "./simple_dialog_actions";
 import {
-  AssetQuantitiesSpec,
+  Presets,
   Quantities,
   presets,
 } from "src/model-metadata/quantities-spec";
@@ -18,10 +18,9 @@ import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type SubmitProps = {
-  unitsSpec: AssetQuantitiesSpec["id"];
+  unitsSpec: keyof Presets;
   headlossFormula: HeadlossFormula;
 };
 
@@ -49,7 +48,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         onSubmit={handleSumbit}
         initialValues={
           {
-            unitsSpec: isFeatureOn("FLAG_EPANET_UNITS") ? "LPS" : "lps",
+            unitsSpec: "LPS",
             headlossFormula: "H-W",
           } as SubmitProps
         }
@@ -81,15 +80,13 @@ const UnitsSystemSelector = ({
   selected,
   onChange,
 }: {
-  selected: AssetQuantitiesSpec["id"];
-  onChange: (specId: AssetQuantitiesSpec["id"]) => void;
+  selected: keyof Presets;
+  onChange: (specId: keyof Presets) => void;
 }) => {
-  const options = Object.keys(presets).map(
-    (presetId: AssetQuantitiesSpec["id"]) => ({
-      label: `${presets[presetId].name}: ${presets[presetId].description}`,
-      value: presetId,
-    }),
-  );
+  const options = Object.entries(presets).map(([presetId, spec]) => ({
+    label: `${spec.name}: ${spec.description}`,
+    value: presetId as keyof Presets,
+  }));
 
   return (
     <label className="block pt-2 space-y-2 pb-3">

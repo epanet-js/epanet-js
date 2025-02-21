@@ -18,7 +18,7 @@ export const buildModel = (
   if (isFeatureOn("FLAG_EPANET_UNITS")) {
     spec = presets[inpData.options.units];
   } else {
-    spec = inpData.options.units === "GPM" ? presets.gpm : presets.lps;
+    spec = inpData.options.units === "GPM" ? presets.GPM : presets.LPS;
   }
   const quantities = new Quantities(spec);
   const hydraulicModel = initializeHydraulicModel({
