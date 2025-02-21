@@ -232,16 +232,16 @@ const deprecatedPresets: Presets = {
   gpm: GPMSpec,
 };
 const newPresets: Presets = {
-  lps: LPSSpec,
-  lpm: LPMSpec,
-  mld: MLDSpec,
-  cmh: CMHSpec,
-  cmd: CMDSpec,
-  gpm: GPMSpec,
-  cfs: CFSSpec,
-  mgd: MGDSpec,
-  imgd: IMGDSpec,
-  afd: AFDSpec,
+  LPS: LPSSpec,
+  LPM: LPMSpec,
+  MLD: MLDSpec,
+  CMH: CMHSpec,
+  CMD: CMDSpec,
+  GPM: GPMSpec,
+  CFS: CFSSpec,
+  MGD: MGDSpec,
+  IMGD: IMGDSpec,
+  AFD: AFDSpec,
 };
 
 export const presets = isFeatureOn("FLAG_EPANET_UNITS")

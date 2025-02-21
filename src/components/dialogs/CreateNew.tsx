@@ -18,6 +18,7 @@ import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type SubmitProps = {
   unitsSpec: AssetQuantitiesSpec["id"];
@@ -48,7 +49,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         onSubmit={handleSumbit}
         initialValues={
           {
-            unitsSpec: "lps",
+            unitsSpec: isFeatureOn("FLAG_EPANET_UNITS") ? "LPS" : "lps",
             headlossFormula: "H-W",
           } as SubmitProps
         }
