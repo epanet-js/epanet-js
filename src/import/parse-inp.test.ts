@@ -1,12 +1,7 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Parse inp", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNSUPPORTED");
-  });
-
   it("includes junctions in the model", () => {
     const junctionId = "j1";
     const elevation = 100;

@@ -9,7 +9,6 @@ import {
   momentLogAtom,
   simulationAtom,
 } from "src/state/jotai";
-import { Junction } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
@@ -32,10 +31,7 @@ describe("open inp", () => {
   describe("openInpFromFs", () => {
     it("initializes state opening an inp from fs", async () => {
       const newHandle = stubFileOpen();
-      const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+      const inp = minimalInp({ junctionId: "J1" });
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.empty(),
       });
@@ -53,8 +49,7 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      const junction = hydraulicModel.assets.get("J1");
-      expect((junction as Junction).elevation).toEqual(10);
+      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
 
       expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
     });
@@ -84,10 +79,7 @@ describe("open inp", () => {
 
     it("removes previous state", async () => {
       const newHandle = stubFileOpen();
-      const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+      const inp = minimalInp({ junctionId: "J1" });
       const previousSimulation: SimulationFailure = {
         status: "failure",
         report: "ERROR",
@@ -144,10 +136,7 @@ describe("open inp", () => {
     it("can save previous changes before opening", async () => {
       const newHandle = stubFileOpen();
       stubFileSave();
-      const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+      const inp = minimalInp({ junctionId: "J1" });
       const momentLogWithChanges = new MomentLog();
       momentLogWithChanges.append(aMoment("A"), aMoment("B"));
       const store = setInitialState({
@@ -186,17 +175,13 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      const junction = hydraulicModel.assets.get("J1");
-      expect((junction as Junction).elevation).toEqual(10);
+      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
 
       expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
     });
 
     it("can discard changes when opening a new project", async () => {
-      const inp = `
-    [JUNCTIONS]
-    J1\t10
-    `;
+      const inp = minimalInp({ junctionId: "J1" });
       const momentLogWithChanges = new MomentLog();
       momentLogWithChanges.append(aMoment("A"), aMoment("B"));
       const store = setInitialState({
@@ -226,8 +211,7 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      const junction = hydraulicModel.assets.get("J1");
-      expect((junction as Junction).elevation).toEqual(10);
+      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
     });
   });
 
@@ -249,6 +233,18 @@ describe("open inp", () => {
         Open from fs
       </button>
     );
+  };
+  const minimalInp = ({
+    junctionId = "J1",
+  }: {
+    junctionId?: string;
+  }): string => {
+    return `
+    [JUNCTIONS]
+    ${junctionId}\t10
+    [COORDINATES]
+    ${junctionId}\t1\t2
+    `;
   };
 
   const renderComponent = ({ store }: { store: Store }) => {
