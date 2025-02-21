@@ -37,31 +37,14 @@ type InpData = {
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
 };
 
-export type ParserIssues = {
-  unsupportedSections: Set<string>;
-  extendedPeriodSimulation: boolean;
-  patternStartNotInZero: boolean;
-  nodesMissingCoordinates: Set<string>;
-};
-
 export const parseInpDeprecated = (
   inp: string,
 ): {
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
-  issues: ParserIssues;
 } => {
-  const dummyParserIssues = {
-    unsupportedSections: new Set<string>(),
-    extendedPeriodSimulation: false,
-    patternStartNotInZero: false,
-    nodesMissingCoordinates: new Set<string>(),
-  };
   const { inpData } = readAllSectionsDeprecated(inp);
-  return {
-    ...buildModelDeprecated(inpData),
-    issues: dummyParserIssues,
-  };
+  return buildModelDeprecated(inpData);
 };
 
 const readAllSectionsDeprecated = (

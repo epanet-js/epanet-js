@@ -8,13 +8,13 @@ import {
   TriangleDownIcon,
   TriangleRightIcon,
 } from "@radix-ui/react-icons";
-import { ParserIssues } from "src/import/parse-inp";
 import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
 import { newsletterUrl } from "src/global-config";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
+import { ParserIssues } from "src/import/inp";
 
 export const InpIssuesDialog = ({
   issues,
