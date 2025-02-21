@@ -1,18 +1,11 @@
-import { Position } from "geojson";
-import { HydraulicModel } from "src/hydraulic-model";
-import {
-  HeadlossFormula,
-  PipeStatus,
-} from "src/hydraulic-model/asset-types/pipe";
-import { initializeHydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { ModelMetadata } from "src/model-metadata";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 import {
   EpanetUnitSystem,
   defaultAccuracy,
   defaultUnbalanced,
 } from "src/simulation/build-inp";
-import { IssuesAccumulator, ParserIssues } from "./inp/issues";
+import { InpData } from "./inp-data";
+import { IssuesAccumulator } from "./issues";
 
 const epanetSections = [
   "[TITLE]",
@@ -67,58 +60,10 @@ const defaultOptions = {
   UNBALANCED: defaultUnbalanced,
 };
 
-type InpData = {
-  junctions: { id: string; elevation: number }[];
-  reservoirs: { id: string; head: number }[];
-  tanks: {
-    id: string;
-    elevation: number;
-    initialLevel: number;
-    minimumLevel: number;
-    maximumLevel: number;
-    diameter: number;
-    minimumVolume: number;
-  }[];
-  pipes: {
-    id: string;
-    startNode: string;
-    endNode: string;
-    length: number;
-    diameter: number;
-    roughness: number;
-    minorLoss: number;
-    status: PipeStatus;
-  }[];
-  coordinates: Record<string, Position>;
-  vertices: Record<string, Position[]>;
-  demands: Record<string, number>;
-  options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
-};
-
-export const parseInp = (
+export const readInpData = (
   inp: string,
-): {
-  hydraulicModel: HydraulicModel;
-  modelMetadata: ModelMetadata;
-  issues: ParserIssues | null;
-} => {
-  const issues = new IssuesAccumulator();
-  const inpData = readAllSections(inp, issues);
-  const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
-  return {
-    hydraulicModel,
-    modelMetadata,
-    issues: issues.buildResult(),
-  };
-};
-
-const detectNewSectionName = (trimmedRow: string): string | null => {
-  if (!trimmedRow.startsWith("[")) return null;
-  const sectionName = epanetSections.find((name) => trimmedRow.includes(name));
-  return sectionName || null;
-};
-
-const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
+  issues: IssuesAccumulator,
+): InpData => {
   const rows = inp.split("\n");
   let section = null;
   const inpData: InpData = {
@@ -264,115 +209,11 @@ const readAllSections = (inp: string, issues: IssuesAccumulator): InpData => {
   return inpData;
 };
 
-const buildModel = (
-  inpData: InpData,
-  issues: IssuesAccumulator,
-): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
-  const spec =
-    inpData.options.units === "GPM" ? presets.usCustomary : presets.lps;
-  const quantities = new Quantities(spec);
-  const hydraulicModel = initializeHydraulicModel({
-    units: quantities.units,
-    defaults: quantities.defaults,
-    headlossFormula: inpData.options.headlossFormula,
-  });
-
-  for (const junctionData of inpData.junctions) {
-    const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
-    if (!coordinates) continue;
-
-    const junction = hydraulicModel.assetBuilder.buildJunction({
-      id: junctionData.id,
-      coordinates,
-      elevation: junctionData.elevation,
-      demand: inpData.demands[junctionData.id],
-    });
-    hydraulicModel.assets.set(junction.id, junction);
-  }
-
-  for (const reservoirData of inpData.reservoirs) {
-    const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
-    if (!coordinates) continue;
-
-    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-      id: reservoirData.id,
-      coordinates,
-      head: reservoirData.head,
-    });
-    hydraulicModel.assets.set(reservoir.id, reservoir);
-  }
-
-  for (const pipeData of inpData.pipes) {
-    const startCoordinates = getNodeCoordinates(
-      inpData,
-      pipeData.startNode,
-      issues,
-    );
-    const endCoordinates = getNodeCoordinates(
-      inpData,
-      pipeData.endNode,
-      issues,
-    );
-    const vertices = getVertices(inpData, pipeData.id, issues);
-    if (!startCoordinates || !endCoordinates) continue;
-
-    const pipe = hydraulicModel.assetBuilder.buildPipe({
-      id: pipeData.id,
-      length: pipeData.length,
-      diameter: pipeData.diameter,
-      minorLoss: pipeData.minorLoss,
-      roughness: pipeData.roughness,
-      connections: [pipeData.startNode, pipeData.endNode],
-      status: pipeData.status,
-      coordinates: [startCoordinates, ...vertices, endCoordinates],
-    });
-    hydraulicModel.assets.set(pipe.id, pipe);
-    hydraulicModel.topology.addLink(
-      pipe.id,
-      pipeData.startNode,
-      pipeData.endNode,
-    );
-  }
-
-  return { hydraulicModel, modelMetadata: { quantities } };
+const detectNewSectionName = (trimmedRow: string): string | null => {
+  if (!trimmedRow.startsWith("[")) return null;
+  const sectionName = epanetSections.find((name) => trimmedRow.includes(name));
+  return sectionName || null;
 };
-
-const getVertices = (
-  inpData: InpData,
-  linkId: string,
-  issues: IssuesAccumulator,
-) => {
-  const candidates = inpData.vertices[linkId] || [];
-  const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
-  if (candidates.length !== vertices.length) {
-    issues.addInvalidVertices(linkId);
-    return [];
-  }
-  return vertices;
-};
-
-const getNodeCoordinates = (
-  inpData: InpData,
-  nodeId: string,
-  issues: IssuesAccumulator,
-): Position | null => {
-  const nodeCoordinates = inpData.coordinates[nodeId];
-  if (!nodeCoordinates) {
-    issues.addMissingCoordinates(nodeId);
-    return null;
-  }
-  if (!isWgs84(nodeCoordinates)) {
-    issues.addInvalidCoordinates(nodeId);
-    return null;
-  }
-  return nodeCoordinates;
-};
-
-const isWgs84 = (coordinates: Position) =>
-  coordinates[0] >= -180 &&
-  coordinates[0] <= 180 &&
-  coordinates[1] >= -90 &&
-  coordinates[1] <= 90;
 
 const readValues = (row: string): string[] => {
   const rowWithoutComments = row.split(";")[0];

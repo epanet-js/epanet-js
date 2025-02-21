@@ -30,7 +30,7 @@ import { pluralize, truncate } from "src/lib/utils";
 import { ModelMoment } from "src/hydraulic-model";
 import { AssetBuilder } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
-import { parseInp } from "src/import/parse-inp";
+import { parseInp } from "src/import/inp";
 
 /**
  * Creates the _input_ to a transact() operation,

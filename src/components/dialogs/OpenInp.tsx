@@ -11,7 +11,7 @@ import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 import { AckDialogAction } from "./simple_dialog_actions";
 import { Loading } from "../elements";
-import { parseInp } from "src/import/parse-inp";
+import { parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
