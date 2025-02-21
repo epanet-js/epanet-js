@@ -26,7 +26,6 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -90,9 +89,7 @@ export interface Data {
   modelMetadata: ModelMetadata;
 }
 
-const quantities = new Quantities(
-  isFeatureOn("FLAG_EPANET_UNITS") ? presets.LPS : presets.lps,
-);
+const quantities = new Quantities(presets.LPS);
 const modelMetadata = { quantities };
 export const nullData: Data = {
   folderMap: new Map(),
