@@ -132,6 +132,16 @@ const CFSSpec: AssetQuantitiesSpec = {
     flow: "ft^3/s",
   },
 };
+const MGDSpec: AssetQuantitiesSpec = {
+  ...usCustomarySpec,
+  id: "mgd",
+  name: "MGD",
+  description: translate("usCustomaryFlowsExpressed", translateUnit("Mgal/d")),
+  units: {
+    ...usCustomarySpec.units,
+    flow: "Mgal/d",
+  },
+};
 
 const LPSSpec: AssetQuantitiesSpec = {
   ...metricSpec,
@@ -164,6 +174,7 @@ const newPresets: Presets = {
   lpm: LPMSpec,
   gpm: GPMSpec,
   cfs: CFSSpec,
+  mgd: MGDSpec,
 };
 export const presets = isFeatureOn("FLAG_EPANET_UNITS")
   ? newPresets
