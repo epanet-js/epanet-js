@@ -27,7 +27,6 @@ export const useToggleSatellite = () => {
           at: currentBaseMap.at,
           id: newFeatureId(),
           labelVisibility: true,
-          poiVisibility: true,
         },
       ],
     });
