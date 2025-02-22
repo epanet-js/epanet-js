@@ -38,10 +38,8 @@ export async function addMapboxStyle(
 
   const updatedStyle = updateMapboxStyle(style, {
     labelVisibility: layer.labelVisibility,
-    poiVisibility: layer.poiVisibility,
     rasterOpacity: layer.opacity,
   });
-
   return updatedStyle;
 }
 
@@ -124,15 +122,10 @@ function updateMapboxStyle(
   style: mapboxgl.Style,
   options: {
     labelVisibility?: boolean;
-    poiVisibility?: boolean;
     rasterOpacity?: number;
   },
 ): mapboxgl.Style {
-  const {
-    labelVisibility = true,
-    poiVisibility = true,
-    rasterOpacity,
-  } = options;
+  const { labelVisibility = true, rasterOpacity } = options;
 
   if (!style.layers) {
     return style;
@@ -144,14 +137,11 @@ function updateMapboxStyle(
 
   const updatedLayers = style.layers
     .map((layer) => {
-      if (
-        !labelVisibility &&
-        layer.id.includes("-label") &&
-        layer.id !== "poi-label"
-      ) {
-        return null;
-      }
-      if (!poiVisibility && layer.id.includes("poi-label")) {
+      // Identify label layers
+      const isLabelLayer =
+        layer.type === "symbol" && layer.layout?.["text-field"] !== undefined;
+
+      if (!labelVisibility && isLabelLayer) {
         return null;
       }
 

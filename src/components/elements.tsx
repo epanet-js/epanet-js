@@ -22,8 +22,6 @@ import {
   EyeOpenIcon,
   TextIcon,
   TextNoneIcon,
-  DrawingPinIcon,
-  DrawingPinFilledIcon,
 } from "@radix-ui/react-icons";
 import { SUPPORT_EMAIL } from "src/lib/constants";
 import Placemark from "./icons/placemark";
@@ -944,8 +942,4 @@ export const VisibilityToggleIcon = ({
 };
 export const LabelToggleIcon = ({ visibility }: { visibility: boolean }) => {
   return visibility ? <TextIcon /> : <TextNoneIcon />;
-};
-
-export const PoiToggleIcon = ({ visibility }: { visibility: boolean }) => {
-  return visibility ? <DrawingPinFilledIcon /> : <DrawingPinIcon />;
 };
