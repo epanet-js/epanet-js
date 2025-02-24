@@ -441,6 +441,21 @@ describe("Parse inp", () => {
     expect(issues).toBeNull();
   });
 
+  it("can read settings with spaces", () => {
+    const inp = `
+    [OPTIONS]
+    Quality NONE
+    Unbalanced CONTINUE 10
+    Accuracy\t0.001
+    Units     MGD
+    Headloss H-W
+ `;
+    const { modelMetadata, issues } = parseInp(inp);
+
+    expect(issues).toBeNull();
+    expect(modelMetadata.quantities.specName).toEqual("MGD");
+  });
+
   it("says when override defaults aren't the same", () => {
     const inp = `
     [OPTIONS]

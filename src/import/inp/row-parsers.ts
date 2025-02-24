@@ -101,9 +101,11 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const [name, value] = readSetting(trimmedRow);
-  const normalizedName = name.toUpperCase();
-  if (normalizedName === "DURATION" && parseInt(value) !== 0) {
+  const setting = readSetting(trimmedRow, { DURATION: 0 });
+  if (!setting) return;
+
+  const { name, value } = setting;
+  if (name === "DURATION" && value !== 0) {
     issues.addEPS();
   }
 };
@@ -113,7 +115,7 @@ export const parseOption: RowParser = ({
   inpData,
   issues,
 }): void => {
-  const option = readOption(trimmedRow, defaultOptions);
+  const option = readSetting(trimmedRow, defaultOptions);
   if (!option) return;
 
   const { name, value, defaultValue } = option;
@@ -144,30 +146,26 @@ const readValues = (row: string): string[] => {
   return rowWithoutComments.split(/\s+/).map((s) => s.trim());
 };
 
-const readSetting = (row: string): string[] => {
-  const rowWithoutComments = row.split(commentIdentifier)[0];
-  return rowWithoutComments.split("\t").map((s) => s.trim());
-};
-const readOption = (
+const readSetting = <T extends Record<string, string | number>>(
   trimmedRow: string,
-  options: typeof defaultOptions,
+  settings: T,
 ):
   | { name: string; value: number; defaultValue: number }
   | { name: string; value: string; defaultValue: string }
   | null => {
   const rowWithoutComments = trimmedRow.split(commentIdentifier)[0];
   const upperCaseRow = rowWithoutComments.toUpperCase();
-  const option = Object.keys(options).find((option) =>
-    upperCaseRow.startsWith(option),
-  ) as keyof typeof defaultOptions | undefined;
+  const name = Object.keys(settings).find((name) =>
+    upperCaseRow.startsWith(name),
+  );
 
-  if (!option) return null;
-  const value = upperCaseRow.replace(new RegExp(`^${option}\\s*`), "").trim();
+  if (!name) return null;
+  const value = upperCaseRow.replace(new RegExp(`^${name}\\s*`), "").trim();
 
-  const defaultValue = options[option];
+  const defaultValue = settings[name];
   if (typeof defaultValue === "number") {
-    return { name: option, value: parseFloat(value), defaultValue };
+    return { name, value: parseFloat(value), defaultValue };
   } else {
-    return { name: option, value, defaultValue };
+    return { name, value, defaultValue };
   }
 };
