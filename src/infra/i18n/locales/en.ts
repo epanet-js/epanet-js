@@ -169,6 +169,9 @@ export const translations = {
   valueIgnored: "${1} value is ignored (using ${2})",
   nodesMissingCoordinates: "Nodes missing coordinates",
   andXMore: "and ${1} more...",
+  alertInpOutput: "Some sections and settings may be lost",
+  alertInpOutputDetail:
+    "We've detected your INP was created with another application. Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy and not override the original content.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
