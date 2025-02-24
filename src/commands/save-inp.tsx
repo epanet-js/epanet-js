@@ -6,6 +6,7 @@ import { buildInp } from "src/simulation/build-inp";
 import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -31,7 +32,10 @@ export const useSaveInp = ({
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
           const data = get(dataAtom);
-          const inp = buildInp(data.hydraulicModel, { geolocation: true });
+          const inp = buildInp(data.hydraulicModel, {
+            geolocation: true,
+            madeBy: isFeatureOn("FLAG_MADE_BY"),
+          });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(

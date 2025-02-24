@@ -1,11 +1,14 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { captureError } from "src/infra/error-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import crc32 from "crc/crc32";
 
 type SimulationPipeStatus = "Open" | "Closed";
 
 type BuildOptions = {
   geolocation?: boolean;
+  madeBy?: boolean;
 };
 
 export type EpanetUnitSystem =
@@ -45,7 +48,7 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
 export const buildInp = withInstrumentation(
   (
     hydraulicModel: HydraulicModel,
-    { geolocation = false }: BuildOptions = {},
+    { geolocation = false, madeBy = false }: BuildOptions = {},
   ): string => {
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
@@ -116,7 +119,7 @@ export const buildInp = withInstrumentation(
       }
     }
 
-    return [
+    let content = [
       sections.junctions.join("\n"),
       sections.reservoirs.join("\n"),
       sections.pipes.join("\n"),
@@ -131,6 +134,11 @@ export const buildInp = withInstrumentation(
     ]
       .filter((f) => !!f)
       .join("\n\n");
+
+    if (isFeatureOn("FLAG_MADE_BY") && madeBy) {
+      content = `;MADE BY EPANET-JS [${checksum(content)}]`;
+    }
+    return content;
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
@@ -142,4 +150,8 @@ const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
     case "closed":
       return "Closed";
   }
+};
+
+const checksum = (content: string): string => {
+  return crc32(content).toString(16);
 };
