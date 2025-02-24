@@ -136,7 +136,7 @@ export const buildInp = withInstrumentation(
       .join("\n\n");
 
     if (isFeatureOn("FLAG_MADE_BY") && madeBy) {
-      content = `;MADE BY EPANET-JS [${checksum(content)}]`;
+      content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }
     return content;
   },
