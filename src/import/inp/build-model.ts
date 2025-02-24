@@ -8,6 +8,7 @@ import {
   presets,
 } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const buildModel = (
   inpData: InpData,
@@ -26,13 +27,34 @@ export const buildModel = (
     const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
     if (!coordinates) continue;
 
-    const junction = hydraulicModel.assetBuilder.buildJunction({
-      id: junctionData.id,
-      coordinates,
-      elevation: junctionData.elevation,
-      demand: inpData.demands[junctionData.id],
-    });
-    hydraulicModel.assets.set(junction.id, junction);
+    if (isFeatureOn("FLAG_JUNCTION_DEMANDS")) {
+      const demand = calculateJunctionDemand(
+        junctionData,
+        inpData.demands,
+        inpData.patterns,
+      );
+
+      const junction = hydraulicModel.assetBuilder.buildJunction({
+        id: junctionData.id,
+        coordinates,
+        elevation: junctionData.elevation,
+        demand,
+      });
+      hydraulicModel.assets.set(junction.id, junction);
+    } else {
+      const junctionDemands = inpData.demands[junctionData.id];
+      let demand = 0;
+      if (junctionDemands) {
+        demand = junctionDemands[0].baseDemand;
+      }
+      const junction = hydraulicModel.assetBuilder.buildJunction({
+        id: junctionData.id,
+        coordinates,
+        elevation: junctionData.elevation,
+        demand,
+      });
+      hydraulicModel.assets.set(junction.id, junction);
+    }
   }
 
   for (const reservoirData of inpData.reservoirs) {
@@ -118,3 +140,32 @@ const isWgs84 = (coordinates: Position) =>
   coordinates[0] <= 180 &&
   coordinates[1] >= -90 &&
   coordinates[1] <= 90;
+
+const defaultPatternId = "1";
+
+const getPattern = (
+  patterns: InpData["patterns"],
+  patternId: string | undefined,
+): number[] => {
+  return patterns[patternId || defaultPatternId] || [1];
+};
+
+const calculateJunctionDemand = (
+  junction: { id: string; baseDemand?: number; patternId?: string },
+  demands: InpData["demands"],
+  patterns: InpData["patterns"],
+): number => {
+  let demand = 0;
+  if (junction.baseDemand) {
+    const pattern = getPattern(patterns, junction.patternId);
+    demand += junction.baseDemand * pattern[0];
+  }
+
+  const junctionDemands = demands[junction.id] || [];
+  junctionDemands.forEach(({ baseDemand, patternId }) => {
+    const pattern = getPattern(patterns, patternId);
+    demand += baseDemand * pattern[0];
+  });
+
+  return demand;
+};
