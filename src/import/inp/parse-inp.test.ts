@@ -1,6 +1,8 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildInp } from "src/simulation/build-inp";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
@@ -453,5 +455,19 @@ describe("Parse inp", () => {
       defaultSetting: "CONTINUE 10",
       customSetting: "CONTINUE 20",
     });
+  });
+
+  it.only("detects when the inp has been made by the app", () => {
+    stubFeatureOn("FLAG_MADE_BY");
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("junction1", { coordinates: [10, 1] })
+      .build();
+    let inp = buildInp(hydraulicModel, { madeBy: true });
+
+    expect(parseInp(inp).isMadeByApp).toBeTruthy();
+
+    inp += ";some other stuff";
+
+    expect(parseInp(inp).isMadeByApp).toBeFalsy();
   });
 });

@@ -164,6 +164,7 @@ describe("build inp", () => {
     let inp = buildInp(hydraulicModel, { madeBy: true });
 
     expect(rowsFrom(inp)).toContain(";MADE BY EPANET-JS [41f4f1d3]");
+    expect(inp).toContain("junction1");
     hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
       .aJunction("junction2", { coordinates: [10, 1] })
