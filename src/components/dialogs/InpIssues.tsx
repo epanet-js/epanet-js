@@ -69,6 +69,7 @@ export const InpIssuesDialog = ({
           <Form>
             <div className="text-sm">
               <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
+              <CoordinatesIssues issues={issues} />
             </div>
             <SimpleDialogActions
               autoFocusSubmit={true}
@@ -129,6 +130,47 @@ const SubscribeCTA = () => {
         </Button>
       </p>
     </>
+  );
+};
+
+const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
+  const [isExpaned, setExpanded] = useState(false);
+  return (
+    <div className="pb-4">
+      <Button
+        variant="quiet"
+        onClick={(e) => {
+          e.preventDefault();
+          setExpanded(!isExpaned);
+        }}
+        className="cursor-pointer text-md inline-flex items-center"
+      >
+        {isExpaned ? <TriangleDownIcon /> : <TriangleRightIcon />}
+        {translate("issuesSummary")}{" "}
+      </Button>
+      {isExpaned && (
+        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 text-gray-700 max-h-[300px] overflow-y-auto">
+          {issues.nodesMissingCoordinates && (
+            <div>
+              <p>{translate("nodesMissingCoordinates")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                {Array.from(issues.nodesMissingCoordinates)
+                  .slice(0, 4)
+                  .map((nodeId) => (
+                    <span key={nodeId}>- {nodeId}</span>
+                  ))}
+                {issues.nodesMissingCoordinates.size > 4 && (
+                  <span>
+                    {" "}
+                    and {issues.nodesMissingCoordinates.size - 4} more...
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

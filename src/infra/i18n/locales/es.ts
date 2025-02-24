@@ -174,6 +174,8 @@ export const translations: Translations = {
   customValueNotSupport: "Valor ${1} no soportado (usando ${2})",
   ignoredValuesDetected: "Se han detectado valores ignorados de ${1}",
   valueIgnored: "Valor de ${1} es ignorado (usando ${2})",
+  nodesMissingCoordinates: "Nudos sin coordenadas",
+  andXMore: "y ${1} más...",
 };
 
 export const units: UnitsLocale = {
