@@ -6,6 +6,7 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -54,9 +55,23 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
-  const [id, elevation] = readValues(trimmedRow);
+  if (isFeatureOn("FLAG_JUNCTION_DEMANDS")) {
+    const [id, elevation, baseDemand, patternId] = readValues(trimmedRow);
 
-  inpData.junctions.push({ id, elevation: parseFloat(elevation) });
+    inpData.junctions.push({
+      id,
+      elevation: parseFloat(elevation),
+      baseDemand: baseDemand ? parseFloat(baseDemand) : undefined,
+      patternId: patternId ? patternId : undefined,
+    });
+  } else {
+    const [id, elevation] = readValues(trimmedRow);
+
+    inpData.junctions.push({
+      id,
+      elevation: parseFloat(elevation),
+    });
+  }
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
@@ -84,13 +99,28 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
-  const [nodeId, demand] = readValues(trimmedRow);
-  inpData.demands[nodeId] = parseFloat(demand);
+  const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+  if (!inpData.demands[nodeId]) {
+    inpData.demands[nodeId] = [];
+  }
+
+  inpData.demands[nodeId].push({
+    baseDemand: parseFloat(baseDemand),
+    patternId: patternId ? patternId : undefined,
+  });
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
   const [nodeId, lng, lat] = readValues(trimmedRow);
   inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+};
+
+export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
+  const [patternId, ...values] = readValues(trimmedRow);
+  if (!inpData.patterns[patternId]) {
+    inpData.patterns[patternId] = [];
+  }
+  inpData.patterns[patternId].push(...values.map((v) => parseFloat(v)));
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {

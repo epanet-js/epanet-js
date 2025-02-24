@@ -6,7 +6,12 @@ import {
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type InpData = {
-  junctions: { id: string; elevation: number }[];
+  junctions: {
+    id: string;
+    elevation: number;
+    baseDemand?: number | undefined;
+    patternId?: string | undefined;
+  }[];
   reservoirs: { id: string; head: number }[];
   tanks: {
     id: string;
@@ -29,7 +34,8 @@ export type InpData = {
   }[];
   coordinates: Record<string, Position>;
   vertices: Record<string, Position[]>;
-  demands: Record<string, number>;
+  demands: Record<string, { baseDemand: number; patternId?: string }[]>;
+  patterns: Record<string, number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
 };
 
@@ -42,6 +48,7 @@ export const nullInpData = (): InpData => {
     coordinates: {},
     vertices: {},
     demands: {},
+    patterns: {},
     options: { units: "GPM", headlossFormula: "H-W" },
   };
 };
