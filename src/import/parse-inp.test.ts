@@ -97,6 +97,52 @@ describe("Parse inp", () => {
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
 
+  it("can handle a pipe without status", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pipeId = "p1";
+    const length = 10;
+    const diameter = 100;
+    const roughness = 0.1;
+    const minorLoss = 0.2;
+    const anyNumber = 10;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}
+
+    [COORDINATES]
+    ${reservoirId}\t${10}\t${20}
+    ${junctionId}\t${30}\t${40}
+
+
+    [VERTICES]
+    ${pipeId}\t${50}\t${60}
+    ${pipeId}\t${60}\t${70}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    expect(pipe.id).toEqual(pipeId);
+    expect(pipe.length).toEqual(length);
+    expect(pipe.diameter).toEqual(diameter);
+    expect(pipe.roughness).toEqual(roughness);
+    expect(pipe.minorLoss).toEqual(minorLoss);
+    expect(pipe.status).toEqual("open");
+    expect(pipe.connections).toEqual([reservoirId, junctionId]);
+    expect(pipe.coordinates).toEqual([
+      [10, 20],
+      [50, 60],
+      [60, 70],
+      [30, 40],
+    ]);
+    expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
+  });
+
   it("ignores comments", () => {
     const reservoirId = "r1";
     const junctionId = "j1";

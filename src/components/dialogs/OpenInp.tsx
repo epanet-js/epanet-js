@@ -78,6 +78,7 @@ export function OpenInpDialog({
         onClose();
       }
     } catch (error) {
+      captureError(error as Error);
       setError(true);
     }
   }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
