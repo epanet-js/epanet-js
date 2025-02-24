@@ -257,6 +257,9 @@ importers:
       core-js:
         specifier: ^3.37.1
         version: 3.37.1
+      crc:
+        specifier: ^4.3.2
+        version: 4.3.2
       d3-array:
         specifier: ^2.12.1
         version: 2.12.1
@@ -3614,6 +3617,15 @@ packages:
     resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
     engines: {node: '>=0.8'}
     hasBin: true
+
+  crc@4.3.2:
+    resolution: {integrity: sha512-uGDHf4KLLh2zsHa8D8hIQ1H/HtFQhyHrc0uhHBcoKGol/Xnb+MPYfUMw7cvON6ze/GUESTudKayDcJC5HnJv1A==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      buffer: '>=6.0.3'
+    peerDependenciesMeta:
+      buffer:
+        optional: true
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
@@ -10192,6 +10204,8 @@ snapshots:
   core-js@3.37.1: {}
 
   crc-32@1.2.2: {}
+
+  crc@4.3.2: {}
 
   create-require@1.1.1: {}
 

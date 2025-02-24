@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -152,6 +153,25 @@ describe("build inp", () => {
     expect(rowsFrom(inp)).toContain("[VERTICES]");
     expect(rowsFrom(inp)).toContain("pipe1\t30\t3");
     expect(rowsFrom(inp)).toContain("pipe1\t40\t4");
+  });
+
+  it("signals that inp has been built by this app", () => {
+    stubFeatureOn("FLAG_MADE_BY");
+    let hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("junction1", { coordinates: [10, 1] })
+      .build();
+
+    let inp = buildInp(hydraulicModel, { madeBy: true });
+
+    expect(rowsFrom(inp)).toContain(";MADE BY EPANET-JS [41f4f1d3]");
+    hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("junction1", { coordinates: [10, 1] })
+      .aJunction("junction2", { coordinates: [10, 1] })
+      .build();
+
+    inp = buildInp(hydraulicModel, { madeBy: true });
+
+    expect(rowsFrom(inp)).toContain(";MADE BY EPANET-JS [51a3b5c9]");
   });
 
   const rowsFrom = (inp: string) => inp.split("\n");
