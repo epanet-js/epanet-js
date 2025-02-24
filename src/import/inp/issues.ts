@@ -5,6 +5,7 @@ export type ParserIssues = {
   invalidCoordinates?: Set<string>;
   invalidVertices?: Set<string>;
   nonDefaultOptions?: Map<string, string | number>;
+  nonDefaultTimes?: Map<string, string | number>;
   unbalancedDiff?: {
     defaultSetting: string;
     customSetting: string;
@@ -30,6 +31,13 @@ export class IssuesAccumulator {
       this.issues.nonDefaultOptions = new Map<string, string | number>();
 
     this.issues.nonDefaultOptions.set(optionName, defaultValue);
+  }
+
+  addUsedTimeSetting(optionName: string, defaultValue: number | string) {
+    if (!this.issues.nonDefaultTimes)
+      this.issues.nonDefaultTimes = new Map<string, string | number>();
+
+    this.issues.nonDefaultTimes.set(optionName, defaultValue);
   }
 
   addEPS() {

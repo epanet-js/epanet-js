@@ -1,5 +1,6 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
@@ -284,14 +285,20 @@ describe("Parse inp", () => {
   });
 
   it("says when inp contains invalid duration settigs", () => {
+    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const inp = `
     [TIMES]
     Duration\t20
+    Pattern Start\t10 SEC
     `;
 
     const { issues } = parseInp(inp);
 
     expect(issues!.extendedPeriodSimulation).toEqual(true);
+    expect([...issues!.nonDefaultTimes!.keys()]).toEqual([
+      "DURATION",
+      "PATTERN START",
+    ]);
   });
 
   it("says when coordinates are missing", () => {
@@ -401,7 +408,7 @@ describe("Parse inp", () => {
     ]);
   });
 
-  it("supports demo network options", () => {
+  it("supports demo network settings", () => {
     const inp = `
     [OPTIONS]
     Quality\tNONE
@@ -409,6 +416,10 @@ describe("Parse inp", () => {
     Accuracy\t0.001
     Units\tLPS
     Headloss\tH-W
+
+    [TIMES]
+    Duration\t0
+    Pattern Start\t0 SEC
  `;
     const { issues } = parseInp(inp);
 
