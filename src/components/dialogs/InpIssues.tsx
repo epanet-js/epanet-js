@@ -114,7 +114,7 @@ export const InpIssuesDialog = ({
   );
 };
 
-const SubscribeCTA = () => {
+export const SubscribeCTA = () => {
   return (
     <>
       <p className="pb-3">{translate("newFeaturesEveryDay")}</p>

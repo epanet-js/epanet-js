@@ -1,4 +1,4 @@
-import { dataAtom, fileInfoAtom } from "src/state/jotai";
+import { dataAtom, dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { ExportOptions } from "src/lib/convert";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useAtomValue, useSetAtom } from "jotai";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -20,7 +21,10 @@ type FileAccess = {
 export const useSaveInp = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
-  return useAtomCallback(
+  const setDialogState = useSetAtom(dialogAtom);
+  const fileInfo = useAtomValue(fileInfoAtom);
+
+  const saveInp = useAtomCallback(
     useCallback(
       async function saveNative(
         get,
@@ -31,6 +35,7 @@ export const useSaveInp = ({
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
+
           const data = get(dataAtom);
           const inp = buildInp(data.hydraulicModel, {
             geolocation: true,
@@ -77,7 +82,23 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess],
+      [getFsAccess, setDialogState],
     ),
   );
+
+  const saveAlerting = useCallback(
+    ({ isSaveAs = false }: { isSaveAs?: boolean } = {}) => {
+      if (isFeatureOn("FLAG_MADE_BY") && fileInfo && !fileInfo.isMadeByApp) {
+        setDialogState({
+          type: "alertInpOutput",
+          onContinue: () => saveInp({ isSaveAs }),
+        });
+      } else {
+        return saveInp({ isSaveAs });
+      }
+    },
+    [fileInfo, setDialogState, saveInp],
+  );
+
+  return isFeatureOn("FLAG_MADE_BY") ? saveAlerting : saveInp;
 };

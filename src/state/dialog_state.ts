@@ -45,6 +45,11 @@ export type InpIssuesDialogState = {
   issues: ParserIssues;
 };
 
+export type AlertInpOutputState = {
+  type: "alertInpOutput";
+  onContinue: () => void;
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -58,6 +63,7 @@ export type DialogState =
   | WelcomeDialogState
   | InpIssuesDialogState
   | { type: "loading" }
+  | AlertInpOutputState
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);
