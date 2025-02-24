@@ -36,6 +36,7 @@ export type FileInfo = {
   name: string;
   modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
+  isMadeByApp: boolean;
   options: ExportOptions;
 };
 

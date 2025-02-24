@@ -364,6 +364,7 @@ export function useImportFile() {
                 modelVersion: "ANY",
                 handle: file.handle,
                 options: exportOptions,
+                isMadeByApp: false,
               });
             }
             const moment = resultToTransact({

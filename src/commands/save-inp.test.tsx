@@ -3,7 +3,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, fileInfoAtom } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 import { useSaveInp } from "./save-inp";
-import { setInitialState } from "src/__helpers__/state";
+import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import {
   buildFileSystemHandleMock,
@@ -40,6 +40,7 @@ describe("save inp", () => {
       name: "my-network.inp",
       handle: newHandle,
       options: { type: "inp", folderId: "" },
+      isMadeByApp: true,
     });
 
     expect(screen.getByText(/saved/i)).toBeInTheDocument();
@@ -49,12 +50,12 @@ describe("save inp", () => {
     const oldHandle = buildFileSystemHandleMock();
     const newHandle = stubFileSave();
     const store = setInitialState({
-      fileInfo: {
+      fileInfo: aFileInfo({
         modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
         options: { type: "inp", folderId: "" },
-      },
+      }),
     });
 
     renderComponent({ store });
@@ -75,12 +76,12 @@ describe("save inp", () => {
     const oldHandle = buildFileSystemHandleMock();
     const newHandle = stubFileSave();
     const store = setInitialState({
-      fileInfo: {
+      fileInfo: aFileInfo({
         modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
         options: { type: "inp", folderId: "" },
-      },
+      }),
     });
 
     renderComponent({ store });

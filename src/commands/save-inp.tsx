@@ -56,6 +56,7 @@ export const useSaveInp = ({
               modelVersion: data.hydraulicModel.version,
               handle: newHandle,
               options: exportOptions,
+              isMadeByApp: true,
             });
           }
         };
