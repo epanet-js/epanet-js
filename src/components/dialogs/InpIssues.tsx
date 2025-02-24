@@ -15,6 +15,7 @@ import { newsletterUrl } from "src/global-config";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const InpIssuesDialog = ({
   issues,
@@ -201,14 +202,34 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {issues.extendedPeriodSimulation && (
+          {!isFeatureOn("FLAG_JUNCTION_DEMANDS") &&
+            issues.extendedPeriodSimulation && (
+              <div>
+                <p>{translate("nonDefaultEpanetValues", "[TIMES]")}:</p>
+                <div className="flex flex-col gap-y-1 items-start">
+                  {issues.extendedPeriodSimulation && (
+                    <span>
+                      - {translate("customValueNotSupport", "DURATION", "0")}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          {isFeatureOn("FLAG_JUNCTION_DEMANDS") && issues.nonDefaultTimes && (
             <div>
               <p>{translate("nonDefaultEpanetValues", "[TIMES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                {issues.extendedPeriodSimulation && (
-                  <span>
-                    - {translate("customValueNotSupport", "DURATION", "0")}
-                  </span>
+                {[...issues.nonDefaultTimes.entries()].map(
+                  ([name, defaultValue]) => (
+                    <span key={name}>
+                      -{" "}
+                      {translate(
+                        "customValueNotSupport",
+                        name.toUpperCase(),
+                        String(defaultValue),
+                      )}
+                    </span>
+                  ),
                 )}
               </div>
             </div>
