@@ -457,7 +457,7 @@ describe("Parse inp", () => {
     });
   });
 
-  it.only("detects when the inp has been made by the app", () => {
+  it("detects when the inp has been made by the app", () => {
     stubFeatureOn("FLAG_MADE_BY");
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
