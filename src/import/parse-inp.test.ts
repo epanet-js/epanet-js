@@ -28,6 +28,32 @@ describe("Parse inp", () => {
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
+  it("can read values separated by spaces", () => {
+    const junctionId = "j1";
+    const elevation = 100;
+    const lat = 10;
+    const lng = 20;
+    const demand = 0.1;
+    const inp = `
+    [JUNCTIONS]
+    ${junctionId} ${elevation}
+
+    [COORDINATES]
+    ${junctionId} ${lng} ${lat}
+
+    [DEMANDS]
+    ${junctionId} ${demand}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
+    expect(junction.elevation).toEqual(elevation);
+    expect(junction.demand).toEqual(demand);
+    expect(junction.coordinates).toEqual([20, 10]);
+  });
+
   it("includes reservoirs in the model", () => {
     const reservoirId = "r1";
     const head = 100;

@@ -101,7 +101,7 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const [name, value] = readValues(trimmedRow);
+  const [name, value] = readSetting(trimmedRow);
   const normalizedName = name.toUpperCase();
   if (normalizedName === "DURATION" && parseInt(value) !== 0) {
     issues.addEPS();
@@ -113,38 +113,61 @@ export const parseOption: RowParser = ({
   inpData,
   issues,
 }): void => {
-  const [name, value] = readValues(trimmedRow);
-  if (!value) return;
+  const option = readOption(trimmedRow, defaultOptions);
+  if (!option) return;
 
-  const normalizedName = name.toUpperCase() as keyof typeof defaultOptions;
-  if (normalizedName === "UNITS") {
+  const { name, value, defaultValue } = option;
+
+  if (name === "UNITS") {
     inpData.options.units = value as EpanetUnitSystem;
     return;
   }
-  if (normalizedName === "HEADLOSS") {
+  if (name === "HEADLOSS") {
     inpData.options.headlossFormula = value as HeadlossFormula;
     return;
   }
 
-  if (normalizedName === "UNBALANCED") {
-    const normalizedValue = value.toUpperCase();
-    if (normalizedValue !== defaultUnbalanced) {
-      issues.hasUnbalancedDiff(normalizedValue, defaultUnbalanced);
+  if (name === "UNBALANCED") {
+    if (value !== defaultValue) {
+      issues.hasUnbalancedDiff(value as string, defaultValue as string);
     }
     return;
   }
 
-  const defaultValue = defaultOptions[normalizedName];
-  if (typeof defaultValue === "number") {
-    if (parseFloat(value) !== defaultValue)
-      issues.addUsedOption(normalizedName, defaultValue);
-  } else {
-    if (defaultValue !== value.toUpperCase())
-      issues.addUsedOption(normalizedName, defaultValue);
+  if (defaultValue !== value) {
+    issues.addUsedOption(name, defaultValue);
   }
 };
 
 const readValues = (row: string): string[] => {
   const rowWithoutComments = row.split(commentIdentifier)[0];
+  return rowWithoutComments.split(/\s+/).map((s) => s.trim());
+};
+
+const readSetting = (row: string): string[] => {
+  const rowWithoutComments = row.split(commentIdentifier)[0];
   return rowWithoutComments.split("\t").map((s) => s.trim());
+};
+const readOption = (
+  trimmedRow: string,
+  options: typeof defaultOptions,
+):
+  | { name: string; value: number; defaultValue: number }
+  | { name: string; value: string; defaultValue: string }
+  | null => {
+  const rowWithoutComments = trimmedRow.split(commentIdentifier)[0];
+  const upperCaseRow = rowWithoutComments.toUpperCase();
+  const option = Object.keys(options).find((option) =>
+    upperCaseRow.startsWith(option),
+  ) as keyof typeof defaultOptions | undefined;
+
+  if (!option) return null;
+  const value = upperCaseRow.replace(new RegExp(`^${option}\\s*`), "").trim();
+
+  const defaultValue = options[option];
+  if (typeof defaultValue === "number") {
+    return { name: option, value: parseFloat(value), defaultValue };
+  } else {
+    return { name: option, value, defaultValue };
+  }
 };
