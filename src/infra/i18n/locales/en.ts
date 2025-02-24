@@ -167,6 +167,8 @@ export const translations = {
   customValueNotSupport: "Custom ${1} not supported (using ${2})",
   ignoredValuesDetected: "Ignored ${1} values detected",
   valueIgnored: "${1} value is ignored (using ${2})",
+  nodesMissingCoordinates: "Nodes missing coordinates",
+  andXMore: "and ${1} more...",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
