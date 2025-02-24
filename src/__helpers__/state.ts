@@ -29,7 +29,7 @@ export const setInitialState = ({
   simulation?: SimulationState;
   selection?: Sel;
   fileInfo?: FileInfo | null;
-}): Store => {
+} = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
     selection,
@@ -46,6 +46,7 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
     modelVersion: "ANY",
     name: "NAME",
     handle: undefined,
+    isMadeByApp: false,
     options: { type: "inp", folderId: "" } as ExportOptions,
   };
   return { ...defaults, ...data };

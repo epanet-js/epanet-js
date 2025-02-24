@@ -16,6 +16,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -45,7 +46,8 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata, issues } = parseInp(content);
+      const { hydraulicModel, modelMetadata, issues, isMadeByApp } =
+        parseInp(content);
       if (
         !issues ||
         (!issues.nodesMissingCoordinates &&
@@ -65,12 +67,23 @@ export function OpenInpDialog({
             duration: 0,
           });
         });
-        setFileInfo({
-          name: file.name,
-          handle: file.handle,
-          modelVersion: hydraulicModel.version,
-          options: { type: "inp", folderId: "" },
-        });
+        if (isFeatureOn("FLAG_MADE_BY")) {
+          setFileInfo({
+            name: file.name,
+            handle: isMadeByApp ? file.handle : undefined,
+            modelVersion: hydraulicModel.version,
+            isMadeByApp,
+            options: { type: "inp", folderId: "" },
+          });
+        } else {
+          setFileInfo({
+            name: file.name,
+            handle: file.handle,
+            modelVersion: hydraulicModel.version,
+            isMadeByApp,
+            options: { type: "inp", folderId: "" },
+          });
+        }
       }
       if (!!issues) {
         setDialogState({ type: "inpIssues", issues });

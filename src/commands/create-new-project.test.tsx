@@ -1,17 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
-import {
-  FileInfo,
-  Store,
-  dataAtom,
-  fileInfoAtom,
-  momentLogAtom,
-} from "src/state/jotai";
+import { Store, dataAtom, fileInfoAtom, momentLogAtom } from "src/state/jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";
-import { setInitialState } from "src/__helpers__/state";
+import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 
 const aMoment = (name: string) => {
@@ -57,11 +51,11 @@ describe("create new project", () => {
     const momentLogWithChanges = new MomentLog();
     momentLogWithChanges.append(aMoment("A"), aMoment("B"));
 
-    const previousFileInfo: FileInfo = {
+    const previousFileInfo = aFileInfo({
       name: "previous-file",
       modelVersion: "PREV",
       options: { type: "inp", folderId: null },
-    };
+    });
 
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
