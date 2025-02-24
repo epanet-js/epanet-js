@@ -131,12 +131,26 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const setting = readSetting(trimmedRow, { DURATION: 0 });
+  const setting = readSetting(trimmedRow, {
+    DURATION: "0 SEC",
+    "PATTERN START": "0 SEC",
+  });
   if (!setting) return;
 
-  const { name, value } = setting;
-  if (name === "DURATION" && value !== 0) {
-    issues.addEPS();
+  if (setting.name === "DURATION") {
+    const [value] = readValues(setting.value as string);
+    if (parseInt(value) !== 0) {
+      issues.addEPS();
+      isFeatureOn("FLAG_JUNCTION_DEMANDS") &&
+        issues.addUsedTimeSetting("DURATION", setting.defaultValue);
+    }
+  }
+  if (setting.name === "PATTERN START") {
+    const [value] = readValues(setting.value as string);
+    if (parseInt(value) !== 0) {
+      isFeatureOn("FLAG_JUNCTION_DEMANDS") &&
+        issues.addUsedTimeSetting(setting.name, setting.defaultValue);
+    }
   }
 };
 
