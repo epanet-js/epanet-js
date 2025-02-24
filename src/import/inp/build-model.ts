@@ -8,18 +8,13 @@ import {
   presets,
 } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   let spec: AssetQuantitiesSpec;
-  if (isFeatureOn("FLAG_EPANET_UNITS")) {
-    spec = presets[inpData.options.units];
-  } else {
-    spec = inpData.options.units === "GPM" ? presets.GPM : presets.LPS;
-  }
+  spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,

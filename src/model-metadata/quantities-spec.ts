@@ -6,7 +6,6 @@ import {
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { translate, translateUnit } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type UnitsSpec = Record<
@@ -228,11 +227,7 @@ const CMDSpec: AssetQuantitiesSpec = {
 };
 
 export type Presets = Record<EpanetUnitSystem, AssetQuantitiesSpec>;
-const deprecatedPresets = {
-  LPS: LPSSpec,
-  GPM: GPMSpec,
-} as unknown as Presets;
-const newPresets: Presets = {
+export const presets: Presets = {
   LPS: LPSSpec,
   LPM: LPMSpec,
   MLD: MLDSpec,
@@ -244,10 +239,6 @@ const newPresets: Presets = {
   IMGD: IMGDSpec,
   AFD: AFDSpec,
 };
-
-export const presets = isFeatureOn("FLAG_EPANET_UNITS")
-  ? newPresets
-  : deprecatedPresets;
 
 export class Quantities {
   private spec: AssetQuantitiesSpec;
