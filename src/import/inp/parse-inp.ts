@@ -27,15 +27,17 @@ export const parseInp = (
 
 const checksumRegexp = /\[([0-9A-Fa-f]{8})\]/;
 const validateChecksum = (inp: string): boolean => {
-  if (!inp.trim().startsWith(";MADE BY EPANET-JS")) return false;
+  const newLineIndex = inp.indexOf("\n");
+  if (newLineIndex === -1) return false;
 
-  const [checksumRow, ...rows] = inp.split("\n");
+  const checksumRow = inp.substring(0, newLineIndex);
+  if (!checksumRow.includes(";MADE BY EPANET-JS")) return false;
 
   const match = checksumRow.match(checksumRegexp);
   if (!match) return false;
 
   const inputChecksum = match[1];
 
-  const computedChecksum = checksum(rows.join("\n"));
+  const computedChecksum = checksum(inp.substring(newLineIndex + 1));
   return inputChecksum === computedChecksum;
 };
