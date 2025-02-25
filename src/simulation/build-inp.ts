@@ -1,6 +1,5 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { captureError } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import crc32 from "crc/crc32";
 
@@ -135,7 +134,7 @@ export const buildInp = withInstrumentation(
       .filter((f) => !!f)
       .join("\n\n");
 
-    if (isFeatureOn("FLAG_MADE_BY") && madeBy) {
+    if (madeBy) {
       content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }
     return content;

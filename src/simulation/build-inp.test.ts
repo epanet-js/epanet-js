@@ -1,7 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -156,7 +155,6 @@ describe("build inp", () => {
   });
 
   it("signals that inp has been built by this app", () => {
-    stubFeatureOn("FLAG_MADE_BY");
     let hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
       .build();

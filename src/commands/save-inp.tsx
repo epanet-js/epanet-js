@@ -6,7 +6,6 @@ import { buildInp } from "src/simulation/build-inp";
 import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useAtomValue, useSetAtom } from "jotai";
 
 const getDefaultFsAccess = async () => {
@@ -39,7 +38,7 @@ export const useSaveInp = ({
           const data = get(dataAtom);
           const inp = buildInp(data.hydraulicModel, {
             geolocation: true,
-            madeBy: isFeatureOn("FLAG_MADE_BY"),
+            madeBy: true,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
@@ -88,7 +87,7 @@ export const useSaveInp = ({
 
   const saveAlerting = useCallback(
     ({ isSaveAs = false }: { isSaveAs?: boolean } = {}) => {
-      if (isFeatureOn("FLAG_MADE_BY") && fileInfo && !fileInfo.isMadeByApp) {
+      if (fileInfo && !fileInfo.isMadeByApp) {
         setDialogState({
           type: "alertInpOutput",
           onContinue: () => saveInp({ isSaveAs }),
@@ -100,5 +99,5 @@ export const useSaveInp = ({
     [fileInfo, setDialogState, saveInp],
   );
 
-  return isFeatureOn("FLAG_MADE_BY") ? saveAlerting : saveInp;
+  return saveAlerting;
 };

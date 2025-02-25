@@ -11,6 +11,7 @@ import {
   stubFileSave,
   stubFileSaveError,
 } from "src/__helpers__/browser-fs-mock";
+import { waitForNotLoading } from "src/__helpers__/ui-expects";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
@@ -55,12 +56,17 @@ describe("save inp", () => {
         name: "NAME",
         handle: oldHandle,
         options: { type: "inp", folderId: "" },
+        isMadeByApp: false,
       }),
     });
 
     renderComponent({ store });
 
     await triggerSave();
+
+    expect(screen.getByText(/another app/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+    await waitForNotLoading();
 
     const lastSave = lastSaveCall();
     const fileInfo = store.get(fileInfoAtom);
