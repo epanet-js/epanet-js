@@ -56,6 +56,7 @@ import {Footer} from './footer';
 import {useHydrateAtoms} from 'jotai/utils';
 import {isFeatureOn} from 'src/infra/feature-flags';
 import {settingsFromStorage} from 'src/state/user-settings';
+import {TabCloseGuard} from './tab-close-guard';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -164,6 +165,7 @@ export function PlacemarkPlay() {
         <Notifications />
         <Footer />
       </MapContext.Provider>
+      <TabCloseGuard />
     </main>
   );
 }
