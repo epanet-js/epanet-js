@@ -165,16 +165,19 @@ const calculateJunctionDemand = (
   patterns: InpData["patterns"],
 ): number => {
   let demand = 0;
-  if (junction.baseDemand) {
-    const pattern = getPattern(patterns, junction.patternId);
-    demand += junction.baseDemand * pattern[0];
-  }
 
   const junctionDemands = demands[junction.id] || [];
-  junctionDemands.forEach(({ baseDemand, patternId }) => {
-    const pattern = getPattern(patterns, patternId);
-    demand += baseDemand * pattern[0];
-  });
+  if (!!junctionDemands.length) {
+    junctionDemands.forEach(({ baseDemand, patternId }) => {
+      const pattern = getPattern(patterns, patternId);
+      demand += baseDemand * pattern[0];
+    });
+  } else {
+    if (junction.baseDemand) {
+      const pattern = getPattern(patterns, junction.patternId);
+      demand += junction.baseDemand * pattern[0];
+    }
+  }
 
   return demand;
 };
