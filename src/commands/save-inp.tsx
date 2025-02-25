@@ -81,7 +81,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, setDialogState],
+      [getFsAccess],
     ),
   );
 
