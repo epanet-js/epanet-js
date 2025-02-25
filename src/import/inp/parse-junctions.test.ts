@@ -52,6 +52,32 @@ describe("parse junctions", () => {
     expect(junction.demand).toEqual(demand);
   });
 
+  it("can apply a custom default pattern", () => {
+    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
+    const junctionId = "j1";
+    const elevation = 100;
+    const lat = 10;
+    const lng = 20;
+    const demand = 0.1;
+    const inp = `
+    [JUNCTIONS]
+    ${junctionId}\t${elevation}\t${demand}
+
+    [COORDINATES]
+    ${junctionId}\t${lng}\t${lat}
+
+    [PATTERNS]
+    1\t14
+
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
+    expect(junction.demand).toBeCloseTo(1.4);
+  });
+
   it("assign the initial demand of the pattern", () => {
     stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
@@ -78,7 +104,7 @@ describe("parse junctions", () => {
     expect(junction.demand).toEqual(0.2);
   });
 
-  it("can apply multiple demands to the same junction", () => {
+  it("ignores demand defined in junction when in demands", () => {
     stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
@@ -105,7 +131,7 @@ describe("parse junctions", () => {
 
     const junction = hydraulicModel.assets.get(junctionId) as Junction;
     expect(junction.id).toEqual(junctionId);
-    expect(junction.demand).toEqual(-3.8);
+    expect(junction.demand).toEqual(-4);
   });
 
   it("defaults to default pattern when not specified", () => {
@@ -134,6 +160,6 @@ describe("parse junctions", () => {
 
     const junction = hydraulicModel.assets.get(junctionId) as Junction;
     expect(junction.id).toEqual(junctionId);
-    expect(junction.demand).toEqual(8.2);
+    expect(junction.demand).toEqual(8);
   });
 });
