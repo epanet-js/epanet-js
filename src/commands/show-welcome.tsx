@@ -79,24 +79,17 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 {translate("gettingStarted")}
               </p>
-              {isFeatureOn("FLAG_WELCOME") && (
-                <>
-                  <p className="text-sm pb-3">
-                    {translate(
-                      "welcomeNewHere",
-                      translate("quickStartTutorial"),
-                    )}
-                  </p>
-                  <p className="text-sm pb-6">
-                    <a href={quickStartTutorialUrl} target="_blank">
-                      <Button variant="primary">
-                        <VideoIcon />
-                        {translate("quickStartTutorial")}
-                      </Button>
-                    </a>
-                  </p>
-                </>
-              )}
+              <p className="text-sm pb-3">
+                {translate("welcomeNewHere", translate("quickStartTutorial"))}
+              </p>
+              <p className="text-sm pb-6">
+                <a href={quickStartTutorialUrl} target="_blank">
+                  <Button variant="primary">
+                    <VideoIcon />
+                    {translate("quickStartTutorial")}
+                  </Button>
+                </a>
+              </p>
               <p className="text-sm pb-3">
                 {translate("welcomeExploreWithSamples")}:
               </p>
