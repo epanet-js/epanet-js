@@ -176,9 +176,10 @@ export const translations: Translations = {
   valueIgnored: "Valor de ${1} es ignorado (usando ${2})",
   nodesMissingCoordinates: "Nudos sin coordenadas",
   andXMore: "y ${1} más...",
-  alertInpOutput: "Algunas secciones pueden cambiar o perderse",
+  alertInpOutput: "Parte de la información puede perderse",
+  alertInpOutputSubtitle: "Tu INP fue creado con otra aplicación.",
   alertInpOutputDetail:
-    "Hemos detectado que tu INP fue creado con otra aplicación. Ten en cuenta que algunas secciones y configuraciones pueden tener un formato diferente o ser omitidas. Te recomendamos guardar una copia y no sobrescribir el contenido original.",
+    "Ten en cuenta que algunas secciones y configuraciones pueden tener un formato diferente o ser omitidas. Te recomendamos guardar una copia para no sobrescribir el contenido original.",
 };
 
 export const units: UnitsLocale = {
