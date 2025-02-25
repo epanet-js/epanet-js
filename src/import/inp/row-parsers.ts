@@ -154,6 +154,21 @@ export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
   }
 };
 
+export const parseTankPartially: RowParser = ({
+  sectionName,
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  issues.addUsedSection(sectionName);
+  const [tankId, elevation, initialLevel] = readValues(trimmedRow);
+  inpData.tanks.push({
+    id: tankId,
+    elevation: parseFloat(elevation),
+    initialLevel: parseFloat(initialLevel),
+  });
+};
+
 export const parseOption: RowParser = ({
   trimmedRow,
   inpData,

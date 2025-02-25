@@ -1,3 +1,4 @@
+import { isFeatureOn } from "src/infra/feature-flags";
 import { InpData, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import {
@@ -10,6 +11,7 @@ import {
   parsePipe,
   parsePosition,
   parseReservoir,
+  parseTankPartially,
   parseTimeSetting,
   parseVertex,
   unsupported,
@@ -17,7 +19,9 @@ import {
 
 const commentIdentifier = ";";
 
-const sectionParsers: Record<string, RowParser> = {
+type SectionParsers = Record<string, RowParser>;
+
+const buildSectionParsers = (): SectionParsers => ({
   "[TITLE]": ignore,
   "[CURVES]": unsupported,
   "[QUALITY]": unsupported,
@@ -33,7 +37,7 @@ const sectionParsers: Record<string, RowParser> = {
   "[SOURCES]": unsupported,
   "[REPORT]": ignore,
   "[VERTICES]": parseVertex,
-  "[TANKS]": unsupported,
+  "[TANKS]": isFeatureOn("FLAG_TANKS") ? parseTankPartially : unsupported,
   "[STATUS]": unsupported,
   "[MIXING]": unsupported,
   "[LABELS]": unsupported,
@@ -44,7 +48,7 @@ const sectionParsers: Record<string, RowParser> = {
   "[VALVES]": unsupported,
   "[DEMANDS]": parseDemand,
   "[EMITTERS]": unsupported,
-};
+});
 
 export const readInpData = (
   inp: string,
@@ -53,6 +57,7 @@ export const readInpData = (
   const rows = inp.split("\n");
   let section = null;
   const inpData = nullInpData();
+  const sectionParsers = buildSectionParsers();
 
   for (const row of rows) {
     const trimmedRow = row.trim();
@@ -63,7 +68,11 @@ export const readInpData = (
       continue;
     }
 
-    const newSectionName = detectNewSectionName(trimmedRow, issues);
+    const newSectionName = detectNewSectionName(
+      trimmedRow,
+      issues,
+      sectionParsers,
+    );
     if (newSectionName) {
       section = newSectionName;
       continue;
@@ -86,6 +95,7 @@ const isSectionEnded = (trimmedRow: string) => {
 const detectNewSectionName = (
   trimmedRow: string,
   issues: IssuesAccumulator,
+  sectionParsers: SectionParsers,
 ): string | null => {
   if (!trimmedRow.startsWith("[")) return null;
 
