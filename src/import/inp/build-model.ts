@@ -59,7 +59,7 @@ export const buildModel = (
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
       id: reservoirData.id,
       coordinates,
-      head: reservoirData.head,
+      head: calculateReservoirHead(reservoirData, inpData.patterns),
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
   }
@@ -177,4 +177,16 @@ const calculateJunctionDemand = (
   });
 
   return demand;
+};
+
+const calculateReservoirHead = (
+  reservoir: { id: string; baseHead: number; patternId?: string },
+  patterns: InpData["patterns"],
+): number => {
+  let head = reservoir.baseHead;
+  if (reservoir.patternId) {
+    const pattern = getPattern(patterns, reservoir.patternId);
+    head = reservoir.baseHead * pattern[0];
+  }
+  return head;
 };
