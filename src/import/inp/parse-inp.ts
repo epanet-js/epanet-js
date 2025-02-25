@@ -4,7 +4,6 @@ import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import crc32 from "crc/crc32";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const parseInp = (
   inp: string,
@@ -28,8 +27,6 @@ export const parseInp = (
 
 const checksumRegexp = /\[([0-9A-Fa-f]{8})\]/;
 const validateChecksum = (inp: string): boolean => {
-  if (!isFeatureOn("FLAG_MADE_BY")) return false;
-
   if (!inp.trim().startsWith(";MADE BY EPANET-JS")) return false;
 
   const [checksumRow, ...rows] = inp.split("\n");

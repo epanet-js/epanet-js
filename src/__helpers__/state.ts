@@ -46,7 +46,7 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
     modelVersion: "ANY",
     name: "NAME",
     handle: undefined,
-    isMadeByApp: false,
+    isMadeByApp: true,
     options: { type: "inp", folderId: "" } as ExportOptions,
   };
   return { ...defaults, ...data };

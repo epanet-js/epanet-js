@@ -16,7 +16,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -67,23 +66,13 @@ export function OpenInpDialog({
             duration: 0,
           });
         });
-        if (isFeatureOn("FLAG_MADE_BY")) {
-          setFileInfo({
-            name: file.name,
-            handle: isMadeByApp ? file.handle : undefined,
-            modelVersion: hydraulicModel.version,
-            isMadeByApp,
-            options: { type: "inp", folderId: "" },
-          });
-        } else {
-          setFileInfo({
-            name: file.name,
-            handle: file.handle,
-            modelVersion: hydraulicModel.version,
-            isMadeByApp,
-            options: { type: "inp", folderId: "" },
-          });
-        }
+        setFileInfo({
+          name: file.name,
+          handle: isMadeByApp ? file.handle : undefined,
+          modelVersion: hydraulicModel.version,
+          isMadeByApp,
+          options: { type: "inp", folderId: "" },
+        });
       }
       if (!!issues) {
         setDialogState({ type: "inpIssues", issues });
