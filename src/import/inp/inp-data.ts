@@ -17,10 +17,6 @@ export type InpData = {
     id: string;
     elevation: number;
     initialLevel: number;
-    minimumLevel: number;
-    maximumLevel: number;
-    diameter: number;
-    minimumVolume: number;
   }[];
   pipes: {
     id: string;
