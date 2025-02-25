@@ -2,7 +2,6 @@ import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { Form, Formik } from "formik";
 import SimpleDialogActions from "./simple_dialog_actions";
-import { SubscribeCTA } from "./InpIssues";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export const AlertInpOutputDialog = ({
@@ -27,16 +26,12 @@ export const AlertInpOutputDialog = ({
           variant="warning"
         />
         <div className="text-sm">
-          <p className="pb-2">{translate("alertInpOutputDetail")}</p>
-          <SubscribeCTA />
+          <p className="text-base font-semibold text-gray-700 pb-4">
+            {translate("alertInpOutputSubtitle")}
+          </p>
+          <p className="text-sm">{translate("alertInpOutputDetail")}</p>
         </div>
-        <SimpleDialogActions
-          action={translate("understood")}
-          secondary={{
-            action: translate("cancel"),
-            onClick: onClose,
-          }}
-        />
+        <SimpleDialogActions action={translate("understood")} />
       </Form>
     </Formik>
   );
