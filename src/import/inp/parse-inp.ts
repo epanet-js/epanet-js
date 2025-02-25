@@ -3,7 +3,7 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import crc32 from "crc/crc32";
+import { checksum } from "src/infra/checksum";
 
 export const parseInp = (
   inp: string,
@@ -38,8 +38,4 @@ const validateChecksum = (inp: string): boolean => {
 
   const computedChecksum = checksum(rows.join("\n"));
   return inputChecksum === computedChecksum;
-};
-
-const checksum = (content: string): string => {
-  return crc32(content).toString(16);
 };

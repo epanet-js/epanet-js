@@ -1,7 +1,7 @@
 import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import crc32 from "crc/crc32";
 
 type SimulationPipeStatus = "Open" | "Closed";
 
@@ -149,8 +149,4 @@ const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
     case "closed":
       return "Closed";
   }
-};
-
-const checksum = (content: string): string => {
-  return crc32(content).toString(16);
 };
