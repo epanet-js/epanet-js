@@ -64,8 +64,11 @@ export const stubFileSaveError = () => {
 };
 
 export const lastSaveCall = () => {
-  const [contentBlob, options, handle] = (fileSave as Mock).mock
-    .lastCall as any[];
+  const [contentBlob, options, handle] = (fileSave as Mock).mock.lastCall as [
+    Blob,
+    Record<string, string>,
+    FileSystemFileHandle | undefined,
+  ];
 
   return {
     contentBlob,
