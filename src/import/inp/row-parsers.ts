@@ -49,9 +49,9 @@ export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
 export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
-  const [id, head] = readValues(trimmedRow);
+  const [id, baseHead, patternId] = readValues(trimmedRow);
 
-  inpData.reservoirs.push({ id, head: parseFloat(head) });
+  inpData.reservoirs.push({ id, baseHead: parseFloat(baseHead), patternId });
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {

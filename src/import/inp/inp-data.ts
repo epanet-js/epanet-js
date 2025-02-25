@@ -12,7 +12,7 @@ export type InpData = {
     baseDemand?: number | undefined;
     patternId?: string | undefined;
   }[];
-  reservoirs: { id: string; head: number }[];
+  reservoirs: { id: string; baseHead: number; patternId?: string }[];
   tanks: {
     id: string;
     elevation: number;
