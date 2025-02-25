@@ -169,7 +169,7 @@ export const translations = {
   valueIgnored: "${1} value is ignored (using ${2})",
   nodesMissingCoordinates: "Nodes missing coordinates",
   andXMore: "and ${1} more...",
-  alertInpOutput: "Parte de la información puede perderse",
+  alertInpOutput: "Some data may be lost",
   alertInpOutputSubtitle: "Your INP file was created with another application.",
   alertInpOutputDetail:
     "Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy instead of overriding the original content.",

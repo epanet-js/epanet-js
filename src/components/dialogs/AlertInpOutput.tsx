@@ -29,7 +29,9 @@ export const AlertInpOutputDialog = ({
           <p className="text-base font-semibold text-gray-700 pb-4">
             {translate("alertInpOutputSubtitle")}
           </p>
-          <p className="text-sm">{translate("alertInpOutputDetail")}</p>
+          <p className="text-sm text-gray-700">
+            {translate("alertInpOutputDetail")}
+          </p>
         </div>
         <SimpleDialogActions action={translate("understood")} />
       </Form>
