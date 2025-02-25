@@ -20,9 +20,7 @@ import { AutoDetect } from "../autodetect";
 import SimpleDialogActions from "../simple_dialog_actions";
 import { FileWarning } from "./file_warning";
 import { ImportProgressBar } from "./import_progress_bar";
-import { ConvertResult, InpResult } from "src/lib/convert/utils";
-import { Either } from "purify-ts/Either";
-import { ConvertError } from "src/lib/errors";
+import { ConvertResult } from "src/lib/convert/utils";
 
 type SecondaryAction = React.ComponentProps<
   typeof SimpleDialogActions
@@ -81,14 +79,8 @@ export function ImportFileGroup({
           const res = await doImport(file, options, (newProgress) => {
             setProgress(newProgress);
           });
-          if (
-            (res as ConvertResult).type &&
-            (res as ConvertResult).type === "inp"
-          ) {
-            return onNext(res as InpResult);
-          }
 
-          await (res as Either<ConvertError, Promise<ConvertResult>>).caseOf({
+          await res.caseOf({
             Left(err: Error) {
               setProgress(null);
               helpers.setErrors({ type: err.message });

@@ -4,7 +4,7 @@ import {
   importToExportOptions,
   RawProgressCb,
 } from "src/lib/convert";
-import type { ConvertResult, InpResult } from "src/lib/convert/utils";
+import type { ConvertResult } from "src/lib/convert/utils";
 import type { ImportOptions } from "src/lib/convert";
 import { Data, dataAtom, fileInfoAtom } from "src/state/jotai";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -30,7 +30,6 @@ import { pluralize, truncate } from "src/lib/utils";
 import { ModelMoment } from "src/hydraulic-model";
 import { AssetBuilder } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
-import { parseInp } from "src/import/inp";
 
 /**
  * Creates the _input_ to a transact() operation,
@@ -324,13 +323,6 @@ export function useImportFile() {
       progress: RawProgressCb,
     ) => {
       const arrayBuffer = await file.arrayBuffer();
-
-      if (options.type === "inp") {
-        const content = new TextDecoder().decode(arrayBuffer);
-        const { hydraulicModel, modelMetadata } = parseInp(content);
-        transactImport(hydraulicModel, modelMetadata, file.name);
-        return { type: "inp", notes: [], hydraulicModel } as InpResult;
-      }
 
       const either = (
         await lib.fileToGeoJSON(
