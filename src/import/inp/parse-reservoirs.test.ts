@@ -1,5 +1,6 @@
 import { Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse reservoirs", () => {
   it("includes reservoirs in the model", () => {
@@ -46,6 +47,31 @@ describe("parse reservoirs", () => {
 
     const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
     expect(reservoir.id).toEqual(reservoirId);
+    expect(reservoir.head).toEqual(1400);
+    expect(reservoir.coordinates).toEqual([20, 10]);
+  });
+
+  it("tolerates references with different case", () => {
+    stubFeatureOn("FLAG_UNIQUE_IDS");
+    const baseHead = 100;
+    const lat = 10;
+    const lng = 20;
+    const inp = `
+    [RESERVOIRS]
+    r1\t${baseHead}\tp_1
+
+    [PATTERNS]
+    P_1\t14\t12\t19
+
+    [COORDINATES]
+    R1\t${lng}\t${lat}
+
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const reservoir = hydraulicModel.assets.get("r1") as Reservoir;
+    expect(reservoir.id).toEqual("r1");
     expect(reservoir.head).toEqual(1400);
     expect(reservoir.coordinates).toEqual([20, 10]);
   });
