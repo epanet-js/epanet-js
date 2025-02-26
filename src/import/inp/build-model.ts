@@ -151,8 +151,7 @@ const calculateJunctionDemand = (
 ): number => {
   let demand = 0;
 
-  const junctionRef = normalizeRef(junction.id);
-  const junctionDemands = demands[junctionRef] || [];
+  const junctionDemands = demands.get(junction.id) || [];
   if (!!junctionDemands.length) {
     junctionDemands.forEach(({ baseDemand, patternId }) => {
       const pattern = getPattern(patterns, patternId);

@@ -111,15 +111,12 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
-  const nodeRef = normalizeRef(nodeId);
-  if (!inpData.demands[nodeRef]) {
-    inpData.demands[nodeRef] = [];
-  }
-
-  inpData.demands[nodeRef].push({
+  const demands = inpData.demands.get(nodeId) || [];
+  demands.push({
     baseDemand: parseFloat(baseDemand),
     patternId: patternId ? normalizeRef(patternId) : undefined,
   });
+  inpData.demands.set(nodeId, demands);
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {

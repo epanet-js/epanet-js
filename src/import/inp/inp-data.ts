@@ -30,7 +30,7 @@ export type InpData = {
   }[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
-  demands: Record<string, { baseDemand: number; patternId?: string }[]>;
+  demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
   patterns: Record<string, number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
   nodeIds: Map<string, string>;
@@ -66,9 +66,9 @@ export const nullInpData = (): InpData => {
     reservoirs: [],
     tanks: [],
     pipes: [],
-    coordinates: new ItemData<Position>(),
-    vertices: new ItemData<Position[]>(),
-    demands: {},
+    coordinates: new ItemData(),
+    vertices: new ItemData(),
+    demands: new ItemData(),
     patterns: {},
     options: { units: "GPM", headlossFormula: "H-W" },
     nodeIds: new Map(),
