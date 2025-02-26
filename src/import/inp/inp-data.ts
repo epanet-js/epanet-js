@@ -33,6 +33,7 @@ export type InpData = {
   demands: Record<string, { baseDemand: number; patternId?: string }[]>;
   patterns: Record<string, number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
+  nodeIds: Map<string, string>;
 };
 
 export const nullInpData = (): InpData => {
@@ -46,5 +47,6 @@ export const nullInpData = (): InpData => {
     demands: {},
     patterns: {},
     options: { units: "GPM", headlossFormula: "H-W" },
+    nodeIds: new Map(),
   };
 };

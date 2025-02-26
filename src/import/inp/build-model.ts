@@ -94,41 +94,89 @@ export const buildModel = (
   }
 
   for (const pipeData of inpData.pipes) {
-    const startCoordinates = getNodeCoordinatesDeprecated(
-      inpData,
-      pipeData.startNode,
-      issues,
-    );
-    const endCoordinates = getNodeCoordinatesDeprecated(
-      inpData,
-      pipeData.endNode,
-      issues,
-    );
-    const vertices = getVertices(inpData, pipeData.id, issues);
-    if (!startCoordinates || !endCoordinates) continue;
+    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+      const startCoordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        pipeData.startNode,
+        issues,
+      );
+      const endCoordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        pipeData.endNode,
+        issues,
+      );
+      const vertices = getVertices(inpData, pipeData.id, issues);
+      if (!startCoordinates || !endCoordinates) continue;
 
-    const pipe = hydraulicModel.assetBuilder.buildPipe({
-      id: pipeData.id,
-      length: pipeData.length,
-      diameter: pipeData.diameter,
-      minorLoss: pipeData.minorLoss,
-      roughness: pipeData.roughness,
-      connections: [pipeData.startNode, pipeData.endNode],
-      status: pipeData.status,
-      coordinates: [startCoordinates, ...vertices, endCoordinates],
-    });
-    hydraulicModel.assets.set(pipe.id, pipe);
-    hydraulicModel.topology.addLink(
-      pipe.id,
-      pipeData.startNode,
-      pipeData.endNode,
-    );
+      const startNodeId = inpData.nodeIds.get(normalizeRef(pipeData.startNode));
+      const endNodeId = inpData.nodeIds.get(normalizeRef(pipeData.endNode));
+
+      if (!startNodeId || !endNodeId) continue;
+
+      const pipe = hydraulicModel.assetBuilder.buildPipe({
+        id: pipeData.id,
+        length: pipeData.length,
+        diameter: pipeData.diameter,
+        minorLoss: pipeData.minorLoss,
+        roughness: pipeData.roughness,
+        connections: [startNodeId, endNodeId],
+        status: pipeData.status,
+        coordinates: [startCoordinates, ...vertices, endCoordinates],
+      });
+      hydraulicModel.assets.set(pipe.id, pipe);
+      hydraulicModel.topology.addLink(pipe.id, startNodeId, endNodeId);
+    } else {
+      const startCoordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        pipeData.startNode,
+        issues,
+      );
+      const endCoordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        pipeData.endNode,
+        issues,
+      );
+      const vertices = getVerticesDeprecated(inpData, pipeData.id, issues);
+      if (!startCoordinates || !endCoordinates) continue;
+
+      const pipe = hydraulicModel.assetBuilder.buildPipe({
+        id: pipeData.id,
+        length: pipeData.length,
+        diameter: pipeData.diameter,
+        minorLoss: pipeData.minorLoss,
+        roughness: pipeData.roughness,
+        connections: [pipeData.startNode, pipeData.endNode],
+        status: pipeData.status,
+        coordinates: [startCoordinates, ...vertices, endCoordinates],
+      });
+      hydraulicModel.assets.set(pipe.id, pipe);
+      hydraulicModel.topology.addLink(
+        pipe.id,
+        pipeData.startNode,
+        pipeData.endNode,
+      );
+    }
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };
 
 const getVertices = (
+  inpData: InpData,
+  linkId: string,
+  issues: IssuesAccumulator,
+) => {
+  const linkRef = normalizeRef(linkId);
+  const candidates = inpData.vertices[linkRef] || [];
+  const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
+  if (candidates.length !== vertices.length) {
+    issues.addInvalidVertices(linkId);
+    return [];
+  }
+  return vertices;
+};
+
+const getVerticesDeprecated = (
   inpData: InpData,
   linkId: string,
   issues: IssuesAccumulator,
