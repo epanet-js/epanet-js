@@ -126,11 +126,9 @@ export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
 
 export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   const [patternId, ...values] = readValues(trimmedRow);
-  const patternRef = normalizeRef(patternId);
-  if (!inpData.patterns[patternRef]) {
-    inpData.patterns[patternRef] = [];
-  }
-  inpData.patterns[patternRef].push(...values.map((v) => parseFloat(v)));
+  const factors = inpData.patterns.get(patternId) || [];
+  factors.push(...values.map((v) => parseFloat(v)));
+  inpData.patterns.set(patternId, factors);
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
