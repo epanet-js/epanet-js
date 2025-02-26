@@ -1,6 +1,5 @@
 import { Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse reservoirs", () => {
   it("includes reservoirs in the model", () => {
@@ -52,7 +51,6 @@ describe("parse reservoirs", () => {
   });
 
   it("tolerates references with different case", () => {
-    stubFeatureOn("FLAG_CASE_IDS");
     const baseHead = 100;
     const lat = 10;
     const lng = 20;

@@ -4,7 +4,6 @@ import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { normalizeRef } from "./row-parsers";
 
 export const buildModel = (
@@ -20,166 +19,80 @@ export const buildModel = (
   });
 
   for (const junctionData of inpData.junctions) {
-    if (isFeatureOn("FLAG_CASE_IDS")) {
-      const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
-      if (!coordinates) continue;
+    const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
+    if (!coordinates) continue;
 
-      const demand = calculateJunctionDemand(
-        junctionData,
-        inpData.demands,
-        inpData.patterns,
-      );
+    const demand = calculateJunctionDemand(
+      junctionData,
+      inpData.demands,
+      inpData.patterns,
+    );
 
-      const junction = hydraulicModel.assetBuilder.buildJunction({
-        id: junctionData.id,
-        label: junctionData.id,
-        coordinates,
-        elevation: junctionData.elevation,
-        demand,
-      });
-      hydraulicModel.assets.set(junction.id, junction);
-    } else {
-      const coordinates = getNodeCoordinatesDeprecated(
-        inpData,
-        junctionData.id,
-        issues,
-      );
-      if (!coordinates) continue;
-
-      const demand = calculateJunctionDemandDeprecated(
-        junctionData,
-        inpData.demands,
-        inpData.patterns,
-      );
-      const junction = hydraulicModel.assetBuilder.buildJunction({
-        id: junctionData.id,
-        coordinates,
-        elevation: junctionData.elevation,
-        demand,
-      });
-      hydraulicModel.assets.set(junction.id, junction);
-    }
+    const junction = hydraulicModel.assetBuilder.buildJunction({
+      id: junctionData.id,
+      label: junctionData.id,
+      coordinates,
+      elevation: junctionData.elevation,
+      demand,
+    });
+    hydraulicModel.assets.set(junction.id, junction);
   }
 
   for (const reservoirData of inpData.reservoirs) {
-    if (isFeatureOn("FLAG_CASE_IDS")) {
-      const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
-      if (!coordinates) continue;
+    const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
+    if (!coordinates) continue;
 
-      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-        id: reservoirData.id,
-        coordinates,
-        head: calculateReservoirHead(reservoirData, inpData.patterns),
-      });
-      hydraulicModel.assets.set(reservoir.id, reservoir);
-    } else {
-      const coordinates = getNodeCoordinatesDeprecated(
-        inpData,
-        reservoirData.id,
-        issues,
-      );
-      if (!coordinates) continue;
-
-      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-        id: reservoirData.id,
-        coordinates,
-        head: calculateReservoirHeadDeprecated(reservoirData, inpData.patterns),
-      });
-      hydraulicModel.assets.set(reservoir.id, reservoir);
-    }
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+      id: reservoirData.id,
+      coordinates,
+      head: calculateReservoirHead(reservoirData, inpData.patterns),
+    });
+    hydraulicModel.assets.set(reservoir.id, reservoir);
   }
 
   for (const tankData of inpData.tanks) {
-    if (isFeatureOn("FLAG_CASE_IDS")) {
-      const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
-      if (!coordinates) continue;
+    const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
+    if (!coordinates) continue;
 
-      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-        id: tankData.id,
-        coordinates,
-        head: tankData.elevation + tankData.initialLevel,
-      });
-      hydraulicModel.assets.set(reservoir.id, reservoir);
-    } else {
-      const coordinates = getNodeCoordinatesDeprecated(
-        inpData,
-        tankData.id,
-        issues,
-      );
-      if (!coordinates) continue;
-
-      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-        id: tankData.id,
-        coordinates,
-        head: tankData.elevation + tankData.initialLevel,
-      });
-      hydraulicModel.assets.set(tankData.id, reservoir);
-    }
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+      id: tankData.id,
+      coordinates,
+      head: tankData.elevation + tankData.initialLevel,
+    });
+    hydraulicModel.assets.set(reservoir.id, reservoir);
   }
 
   for (const pipeData of inpData.pipes) {
-    if (isFeatureOn("FLAG_CASE_IDS")) {
-      const startCoordinates = getNodeCoordinates(
-        inpData,
-        pipeData.startNode,
-        issues,
-      );
-      const endCoordinates = getNodeCoordinates(
-        inpData,
-        pipeData.endNode,
-        issues,
-      );
-      const vertices = getVertices(inpData, pipeData.id, issues);
-      if (!startCoordinates || !endCoordinates) continue;
+    const startCoordinates = getNodeCoordinates(
+      inpData,
+      pipeData.startNode,
+      issues,
+    );
+    const endCoordinates = getNodeCoordinates(
+      inpData,
+      pipeData.endNode,
+      issues,
+    );
+    const vertices = getVertices(inpData, pipeData.id, issues);
+    if (!startCoordinates || !endCoordinates) continue;
 
-      const startNodeId = inpData.nodeIds.get(normalizeRef(pipeData.startNode));
-      const endNodeId = inpData.nodeIds.get(normalizeRef(pipeData.endNode));
+    const startNodeId = inpData.nodeIds.get(normalizeRef(pipeData.startNode));
+    const endNodeId = inpData.nodeIds.get(normalizeRef(pipeData.endNode));
 
-      if (!startNodeId || !endNodeId) continue;
+    if (!startNodeId || !endNodeId) continue;
 
-      const pipe = hydraulicModel.assetBuilder.buildPipe({
-        id: pipeData.id,
-        length: pipeData.length,
-        diameter: pipeData.diameter,
-        minorLoss: pipeData.minorLoss,
-        roughness: pipeData.roughness,
-        connections: [startNodeId, endNodeId],
-        status: pipeData.status,
-        coordinates: [startCoordinates, ...vertices, endCoordinates],
-      });
-      hydraulicModel.assets.set(pipe.id, pipe);
-      hydraulicModel.topology.addLink(pipe.id, startNodeId, endNodeId);
-    } else {
-      const startCoordinates = getNodeCoordinatesDeprecated(
-        inpData,
-        pipeData.startNode,
-        issues,
-      );
-      const endCoordinates = getNodeCoordinatesDeprecated(
-        inpData,
-        pipeData.endNode,
-        issues,
-      );
-      const vertices = getVerticesDeprecated(inpData, pipeData.id, issues);
-      if (!startCoordinates || !endCoordinates) continue;
-
-      const pipe = hydraulicModel.assetBuilder.buildPipe({
-        id: pipeData.id,
-        length: pipeData.length,
-        diameter: pipeData.diameter,
-        minorLoss: pipeData.minorLoss,
-        roughness: pipeData.roughness,
-        connections: [pipeData.startNode, pipeData.endNode],
-        status: pipeData.status,
-        coordinates: [startCoordinates, ...vertices, endCoordinates],
-      });
-      hydraulicModel.assets.set(pipe.id, pipe);
-      hydraulicModel.topology.addLink(
-        pipe.id,
-        pipeData.startNode,
-        pipeData.endNode,
-      );
-    }
+    const pipe = hydraulicModel.assetBuilder.buildPipe({
+      id: pipeData.id,
+      length: pipeData.length,
+      diameter: pipeData.diameter,
+      minorLoss: pipeData.minorLoss,
+      roughness: pipeData.roughness,
+      connections: [startNodeId, endNodeId],
+      status: pipeData.status,
+      coordinates: [startCoordinates, ...vertices, endCoordinates],
+    });
+    hydraulicModel.assets.set(pipe.id, pipe);
+    hydraulicModel.topology.addLink(pipe.id, startNodeId, endNodeId);
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
@@ -192,20 +105,6 @@ const getVertices = (
 ) => {
   const linkRef = normalizeRef(linkId);
   const candidates = inpData.vertices[linkRef] || [];
-  const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
-  if (candidates.length !== vertices.length) {
-    issues.addInvalidVertices(linkId);
-    return [];
-  }
-  return vertices;
-};
-
-const getVerticesDeprecated = (
-  inpData: InpData,
-  linkId: string,
-  issues: IssuesAccumulator,
-) => {
-  const candidates = inpData.vertices[linkId] || [];
   const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
   if (candidates.length !== vertices.length) {
     issues.addInvalidVertices(linkId);
@@ -230,24 +129,6 @@ const getNodeCoordinates = (
   }
   return nodeCoordinates;
 };
-
-const getNodeCoordinatesDeprecated = (
-  inpData: InpData,
-  nodeId: string,
-  issues: IssuesAccumulator,
-): Position | null => {
-  const nodeCoordinates = inpData.coordinates.get(nodeId);
-  if (!nodeCoordinates) {
-    issues.addMissingCoordinates(nodeId);
-    return null;
-  }
-  if (!isWgs84(nodeCoordinates)) {
-    issues.addInvalidCoordinates(nodeId);
-    return null;
-  }
-  return nodeCoordinates;
-};
-
 const isWgs84 = (coordinates: Position) =>
   coordinates[0] >= -180 &&
   coordinates[0] <= 180 &&
@@ -255,13 +136,6 @@ const isWgs84 = (coordinates: Position) =>
   coordinates[1] <= 90;
 
 const defaultPatternId = "1";
-
-const getPatternDeprecated = (
-  patterns: InpData["patterns"],
-  patternId: string | undefined,
-): number[] => {
-  return patterns[patternId || defaultPatternId] || [1];
-};
 
 const getPattern = (
   patterns: InpData["patterns"],
@@ -295,29 +169,6 @@ const calculateJunctionDemand = (
   return demand;
 };
 
-const calculateJunctionDemandDeprecated = (
-  junction: { id: string; baseDemand?: number; patternId?: string },
-  demands: InpData["demands"],
-  patterns: InpData["patterns"],
-): number => {
-  let demand = 0;
-
-  const junctionDemands = demands[junction.id] || [];
-  if (!!junctionDemands.length) {
-    junctionDemands.forEach(({ baseDemand, patternId }) => {
-      const pattern = getPatternDeprecated(patterns, patternId);
-      demand += baseDemand * pattern[0];
-    });
-  } else {
-    if (junction.baseDemand) {
-      const pattern = getPatternDeprecated(patterns, junction.patternId);
-      demand += junction.baseDemand * pattern[0];
-    }
-  }
-
-  return demand;
-};
-
 const calculateReservoirHead = (
   reservoir: { id: string; baseHead: number; patternId?: string },
   patterns: InpData["patterns"],
@@ -325,18 +176,6 @@ const calculateReservoirHead = (
   let head = reservoir.baseHead;
   if (reservoir.patternId) {
     const pattern = getPattern(patterns, reservoir.patternId);
-    head = reservoir.baseHead * pattern[0];
-  }
-  return head;
-};
-
-const calculateReservoirHeadDeprecated = (
-  reservoir: { id: string; baseHead: number; patternId?: string },
-  patterns: InpData["patterns"],
-): number => {
-  let head = reservoir.baseHead;
-  if (reservoir.patternId) {
-    const pattern = getPatternDeprecated(patterns, reservoir.patternId);
     head = reservoir.baseHead * pattern[0];
   }
   return head;

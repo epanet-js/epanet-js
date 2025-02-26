@@ -1,4 +1,3 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { parseInp } from "./parse-inp";
 import { Reservoir } from "src/hydraulic-model";
 
@@ -29,7 +28,6 @@ describe("parse tanks", () => {
   });
 
   it("tolerates references with different case", () => {
-    stubFeatureOn("FLAG_CASE_IDS");
     const elevation = 100;
     const initialLevel = 20;
     const lat = 10;

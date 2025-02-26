@@ -3,7 +3,6 @@ import {
   HeadlossFormula,
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type InpData = {
@@ -53,11 +52,7 @@ class ItemData<T> {
   }
 
   private normalize(dirtyId: string) {
-    if (isFeatureOn("FLAG_CASE_IDS")) {
-      return dirtyId.toUpperCase();
-    } else {
-      return dirtyId;
-    }
+    return dirtyId.toUpperCase();
   }
 }
 

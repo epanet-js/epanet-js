@@ -6,7 +6,6 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -52,9 +51,7 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
 
   inpData.reservoirs.push({ id, baseHead: parseFloat(baseHead), patternId });
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    inpData.nodeIds.set(normalizeRef(id), id);
-  }
+  inpData.nodeIds.set(normalizeRef(id), id);
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
@@ -68,9 +65,7 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   };
   inpData.junctions.push(junctionData);
 
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    inpData.nodeIds.set(normalizeRef(id), id);
-  }
+  inpData.nodeIds.set(normalizeRef(id), id);
 };
 
 export const parseTankPartially: RowParser = ({
@@ -87,124 +82,66 @@ export const parseTankPartially: RowParser = ({
     initialLevel: parseFloat(initialLevel),
   });
 
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    inpData.nodeIds.set(normalizeRef(id), id);
-  }
+  inpData.nodeIds.set(normalizeRef(id), id);
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    const [
-      id,
-      startNode,
-      endNode,
-      length,
-      diameter,
-      roughness,
-      minorLoss,
-      status,
-    ] = readValues(trimmedRow);
+  const [
+    id,
+    startNode,
+    endNode,
+    length,
+    diameter,
+    roughness,
+    minorLoss,
+    status,
+  ] = readValues(trimmedRow);
 
-    inpData.pipes.push({
-      id,
-      startNode,
-      endNode,
-      length: parseFloat(length),
-      diameter: parseFloat(diameter),
-      roughness: parseFloat(roughness),
-      minorLoss: parseFloat(minorLoss),
-      status: status && status.toLowerCase() === "closed" ? "closed" : "open",
-    });
-  } else {
-    const [
-      id,
-      startNode,
-      endNode,
-      length,
-      diameter,
-      roughness,
-      minorLoss,
-      status,
-    ] = readValues(trimmedRow);
-
-    inpData.pipes.push({
-      id,
-      startNode,
-      endNode,
-      length: parseFloat(length),
-      diameter: parseFloat(diameter),
-      roughness: parseFloat(roughness),
-      minorLoss: parseFloat(minorLoss),
-      status: status && status.toLowerCase() === "closed" ? "closed" : "open",
-    });
-  }
+  inpData.pipes.push({
+    id,
+    startNode,
+    endNode,
+    length: parseFloat(length),
+    diameter: parseFloat(diameter),
+    roughness: parseFloat(roughness),
+    minorLoss: parseFloat(minorLoss),
+    status: status && status.toLowerCase() === "closed" ? "closed" : "open",
+  });
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
-    const nodeRef = normalizeRef(nodeId);
-    if (!inpData.demands[nodeRef]) {
-      inpData.demands[nodeRef] = [];
-    }
-
-    inpData.demands[nodeRef].push({
-      baseDemand: parseFloat(baseDemand),
-      patternId: patternId ? normalizeRef(patternId) : undefined,
-    });
-  } else {
-    const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
-    if (!inpData.demands[nodeId]) {
-      inpData.demands[nodeId] = [];
-    }
-
-    inpData.demands[nodeId].push({
-      baseDemand: parseFloat(baseDemand),
-      patternId: patternId ? patternId : undefined,
-    });
+  const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+  const nodeRef = normalizeRef(nodeId);
+  if (!inpData.demands[nodeRef]) {
+    inpData.demands[nodeRef] = [];
   }
+
+  inpData.demands[nodeRef].push({
+    baseDemand: parseFloat(baseDemand),
+    patternId: patternId ? normalizeRef(patternId) : undefined,
+  });
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    const [nodeId, lng, lat] = readValues(trimmedRow);
-    inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
-  } else {
-    const [nodeId, lng, lat] = readValues(trimmedRow);
-    inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
-  }
+  const [nodeId, lng, lat] = readValues(trimmedRow);
+  inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
 };
 
 export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    const [patternId, ...values] = readValues(trimmedRow);
-    const patternRef = normalizeRef(patternId);
-    if (!inpData.patterns[patternRef]) {
-      inpData.patterns[patternRef] = [];
-    }
-    inpData.patterns[patternRef].push(...values.map((v) => parseFloat(v)));
-  } else {
-    const [patternId, ...values] = readValues(trimmedRow);
-    if (!inpData.patterns[patternId]) {
-      inpData.patterns[patternId] = [];
-    }
-    inpData.patterns[patternId].push(...values.map((v) => parseFloat(v)));
+  const [patternId, ...values] = readValues(trimmedRow);
+  const patternRef = normalizeRef(patternId);
+  if (!inpData.patterns[patternRef]) {
+    inpData.patterns[patternRef] = [];
   }
+  inpData.patterns[patternRef].push(...values.map((v) => parseFloat(v)));
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_CASE_IDS")) {
-    const [linkId, lng, lat] = readValues(trimmedRow);
-    const linkRef = normalizeRef(linkId);
-    if (!inpData.vertices[linkRef]) inpData.vertices[linkRef] = [];
+  const [linkId, lng, lat] = readValues(trimmedRow);
+  const linkRef = normalizeRef(linkId);
+  if (!inpData.vertices[linkRef]) inpData.vertices[linkRef] = [];
 
-    inpData.vertices[linkRef].push([parseFloat(lng), parseFloat(lat)]);
-  } else {
-    const [linkId, lng, lat] = readValues(trimmedRow);
-    if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
-
-    inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
-  }
+  inpData.vertices[linkRef].push([parseFloat(lng), parseFloat(lat)]);
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
