@@ -62,19 +62,31 @@ export const buildModel = (
   }
 
   for (const reservoirData of inpData.reservoirs) {
-    const coordinates = getNodeCoordinatesDeprecated(
-      inpData,
-      reservoirData.id,
-      issues,
-    );
-    if (!coordinates) continue;
+    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+      const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
+      if (!coordinates) continue;
 
-    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-      id: reservoirData.id,
-      coordinates,
-      head: calculateReservoirHead(reservoirData, inpData.patterns),
-    });
-    hydraulicModel.assets.set(reservoir.id, reservoir);
+      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+        id: reservoirData.id,
+        coordinates,
+        head: calculateReservoirHead(reservoirData, inpData.patterns),
+      });
+      hydraulicModel.assets.set(reservoir.id, reservoir);
+    } else {
+      const coordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        reservoirData.id,
+        issues,
+      );
+      if (!coordinates) continue;
+
+      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+        id: reservoirData.id,
+        coordinates,
+        head: calculateReservoirHeadDeprecated(reservoirData, inpData.patterns),
+      });
+      hydraulicModel.assets.set(reservoir.id, reservoir);
+    }
   }
 
   for (const tankData of inpData.tanks) {
@@ -95,12 +107,12 @@ export const buildModel = (
 
   for (const pipeData of inpData.pipes) {
     if (isFeatureOn("FLAG_UNIQUE_IDS")) {
-      const startCoordinates = getNodeCoordinatesDeprecated(
+      const startCoordinates = getNodeCoordinates(
         inpData,
         pipeData.startNode,
         issues,
       );
-      const endCoordinates = getNodeCoordinatesDeprecated(
+      const endCoordinates = getNodeCoordinates(
         inpData,
         pipeData.endNode,
         issues,
@@ -296,6 +308,18 @@ const calculateJunctionDemandDeprecated = (
 };
 
 const calculateReservoirHead = (
+  reservoir: { id: string; baseHead: number; patternId?: string },
+  patterns: InpData["patterns"],
+): number => {
+  let head = reservoir.baseHead;
+  if (reservoir.patternId) {
+    const pattern = getPattern(patterns, reservoir.patternId);
+    head = reservoir.baseHead * pattern[0];
+  }
+  return head;
+};
+
+const calculateReservoirHeadDeprecated = (
   reservoir: { id: string; baseHead: number; patternId?: string },
   patterns: InpData["patterns"],
 ): number => {
