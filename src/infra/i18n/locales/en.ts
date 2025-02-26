@@ -135,10 +135,10 @@ export const translations = {
   welcomeIntro:
     "We're creating a new way to build and run hydraulic models—right from your browser in a modern, web-based, open source platform. Quickly open, edit, and analyze your networks on your computer without installing any software. All simulations run directly on your machine, keeping your data private—no cloud required.",
   welcomeNewHere:
-    "New here? Watch our ${1} to learn the basics in just a few minutes!",
+    "New here? Check out our ${1} to learn the basics in just a few minutes!",
   welcomeExploreWithSamples: "Explore the app by opening a sample network",
   welcomeBuildAndDevelop: "Build and develop",
-  quickStartTutorial: "Quick Start Tutorial",
+  quickStartTutorial: "Quick Start Guide",
   gettingStarted: "Getting started",
   demoUKStyleDescription: "UK style network with metric units and flow in l/s.",
   demoUSStyleDescription:
