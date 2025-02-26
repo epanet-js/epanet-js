@@ -7,6 +7,7 @@ import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
 
 export type JunctionBuildData = {
   id?: AssetId;
+  label?: string;
   coordinates?: Position;
   elevation?: number;
   demand?: number;
@@ -84,6 +85,7 @@ export class AssetBuilder {
 
   buildJunction({
     id = generateId(),
+    label = "",
     coordinates = [0, 0],
     elevation,
     demand,
@@ -93,6 +95,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "junction",
+        label,
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },

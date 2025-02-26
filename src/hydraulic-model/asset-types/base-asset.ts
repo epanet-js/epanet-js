@@ -9,6 +9,7 @@ type AssetGeometry = LineString | Point;
 export type AssetProperties = {
   type: "pipe" | "junction" | "reservoir";
   visibility?: boolean;
+  label?: string;
 };
 
 export type AssetUnits = Record<string, Unit>;
@@ -37,6 +38,10 @@ export class BaseAsset<T> {
 
   get type() {
     return this.feature.properties.type;
+  }
+
+  get label() {
+    return this.feature.properties.label;
   }
 
   setProperty(name: string, value: number) {

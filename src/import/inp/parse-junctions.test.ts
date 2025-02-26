@@ -1,5 +1,6 @@
 import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse junctions", () => {
   it("includes junctions in the model", () => {
@@ -154,6 +155,36 @@ describe("parse junctions", () => {
 
     const junction = hydraulicModel.assets.get(junctionId) as Junction;
     expect(junction.id).toEqual(junctionId);
+    expect(junction.demand).toEqual(8);
+  });
+
+  it("tolerates references with different case", () => {
+    stubFeatureOn("FLAG_UNIQUE_IDS");
+    const junctionId = "j1";
+    const elevation = 100;
+    const lat = 10;
+    const lng = 20;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${elevation}\t${0.1}
+
+    [DEMANDS]
+    J1\t0.5\tPt2
+    j1\t3
+
+    [COORDINATES]
+    J1\t${lng}\t${lat}
+
+    [PATTERNS]
+    1\t2
+    pT2\t4\t10
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual("j1");
+    expect(junction.label).toEqual("j1");
     expect(junction.demand).toEqual(8);
   });
 });

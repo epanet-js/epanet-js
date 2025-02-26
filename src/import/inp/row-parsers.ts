@@ -6,6 +6,7 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -89,28 +90,56 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
-  const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
-  if (!inpData.demands[nodeId]) {
-    inpData.demands[nodeId] = [];
-  }
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+    const nodeRef = normalizeRef(nodeId);
+    if (!inpData.demands[nodeRef]) {
+      inpData.demands[nodeRef] = [];
+    }
 
-  inpData.demands[nodeId].push({
-    baseDemand: parseFloat(baseDemand),
-    patternId: patternId ? patternId : undefined,
-  });
+    inpData.demands[nodeRef].push({
+      baseDemand: parseFloat(baseDemand),
+      patternId: patternId ? normalizeRef(patternId) : undefined,
+    });
+  } else {
+    const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+    if (!inpData.demands[nodeId]) {
+      inpData.demands[nodeId] = [];
+    }
+
+    inpData.demands[nodeId].push({
+      baseDemand: parseFloat(baseDemand),
+      patternId: patternId ? patternId : undefined,
+    });
+  }
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
-  const [nodeId, lng, lat] = readValues(trimmedRow);
-  inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    const [nodeId, lng, lat] = readValues(trimmedRow);
+    const nodeRef = normalizeRef(nodeId);
+    inpData.coordinates[nodeRef] = [parseFloat(lng), parseFloat(lat)];
+  } else {
+    const [nodeId, lng, lat] = readValues(trimmedRow);
+    inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+  }
 };
 
 export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
-  const [patternId, ...values] = readValues(trimmedRow);
-  if (!inpData.patterns[patternId]) {
-    inpData.patterns[patternId] = [];
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    const [patternId, ...values] = readValues(trimmedRow);
+    const patternRef = normalizeRef(patternId);
+    if (!inpData.patterns[patternRef]) {
+      inpData.patterns[patternRef] = [];
+    }
+    inpData.patterns[patternRef].push(...values.map((v) => parseFloat(v)));
+  } else {
+    const [patternId, ...values] = readValues(trimmedRow);
+    if (!inpData.patterns[patternId]) {
+      inpData.patterns[patternId] = [];
+    }
+    inpData.patterns[patternId].push(...values.map((v) => parseFloat(v)));
   }
-  inpData.patterns[patternId].push(...values.map((v) => parseFloat(v)));
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
@@ -216,3 +245,5 @@ const readSetting = <T extends Record<string, string | number>>(
     return { name, value, defaultValue };
   }
 };
+
+export const normalizeRef = (id: string) => id.toUpperCase();

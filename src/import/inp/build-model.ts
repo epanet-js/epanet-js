@@ -4,6 +4,8 @@ import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { normalizeRef } from "./row-parsers";
 
 export const buildModel = (
   inpData: InpData,
@@ -18,26 +20,53 @@ export const buildModel = (
   });
 
   for (const junctionData of inpData.junctions) {
-    const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
-    if (!coordinates) continue;
+    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+      const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
+      if (!coordinates) continue;
 
-    const demand = calculateJunctionDemand(
-      junctionData,
-      inpData.demands,
-      inpData.patterns,
-    );
+      const demand = calculateJunctionDemand(
+        junctionData,
+        inpData.demands,
+        inpData.patterns,
+      );
 
-    const junction = hydraulicModel.assetBuilder.buildJunction({
-      id: junctionData.id,
-      coordinates,
-      elevation: junctionData.elevation,
-      demand,
-    });
-    hydraulicModel.assets.set(junction.id, junction);
+      const junction = hydraulicModel.assetBuilder.buildJunction({
+        id: junctionData.id,
+        label: junctionData.id,
+        coordinates,
+        elevation: junctionData.elevation,
+        demand,
+      });
+      hydraulicModel.assets.set(junction.id, junction);
+    } else {
+      const coordinates = getNodeCoordinatesDeprecated(
+        inpData,
+        junctionData.id,
+        issues,
+      );
+      if (!coordinates) continue;
+
+      const demand = calculateJunctionDemandDeprecated(
+        junctionData,
+        inpData.demands,
+        inpData.patterns,
+      );
+      const junction = hydraulicModel.assetBuilder.buildJunction({
+        id: junctionData.id,
+        coordinates,
+        elevation: junctionData.elevation,
+        demand,
+      });
+      hydraulicModel.assets.set(junction.id, junction);
+    }
   }
 
   for (const reservoirData of inpData.reservoirs) {
-    const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
+    const coordinates = getNodeCoordinatesDeprecated(
+      inpData,
+      reservoirData.id,
+      issues,
+    );
     if (!coordinates) continue;
 
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
@@ -49,7 +78,11 @@ export const buildModel = (
   }
 
   for (const tankData of inpData.tanks) {
-    const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
+    const coordinates = getNodeCoordinatesDeprecated(
+      inpData,
+      tankData.id,
+      issues,
+    );
     if (!coordinates) continue;
 
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
@@ -61,12 +94,12 @@ export const buildModel = (
   }
 
   for (const pipeData of inpData.pipes) {
-    const startCoordinates = getNodeCoordinates(
+    const startCoordinates = getNodeCoordinatesDeprecated(
       inpData,
       pipeData.startNode,
       issues,
     );
-    const endCoordinates = getNodeCoordinates(
+    const endCoordinates = getNodeCoordinatesDeprecated(
       inpData,
       pipeData.endNode,
       issues,
@@ -114,6 +147,24 @@ const getNodeCoordinates = (
   nodeId: string,
   issues: IssuesAccumulator,
 ): Position | null => {
+  const nodeRef = normalizeRef(nodeId);
+  const nodeCoordinates = inpData.coordinates[nodeRef];
+  if (!nodeCoordinates) {
+    issues.addMissingCoordinates(nodeId);
+    return null;
+  }
+  if (!isWgs84(nodeCoordinates)) {
+    issues.addInvalidCoordinates(nodeId);
+    return null;
+  }
+  return nodeCoordinates;
+};
+
+const getNodeCoordinatesDeprecated = (
+  inpData: InpData,
+  nodeId: string,
+  issues: IssuesAccumulator,
+): Position | null => {
   const nodeCoordinates = inpData.coordinates[nodeId];
   if (!nodeCoordinates) {
     issues.addMissingCoordinates(nodeId);
@@ -134,11 +185,19 @@ const isWgs84 = (coordinates: Position) =>
 
 const defaultPatternId = "1";
 
-const getPattern = (
+const getPatternDeprecated = (
   patterns: InpData["patterns"],
   patternId: string | undefined,
 ): number[] => {
   return patterns[patternId || defaultPatternId] || [1];
+};
+
+const getPattern = (
+  patterns: InpData["patterns"],
+  patternId: string | undefined,
+): number[] => {
+  const patternRef = patternId ? normalizeRef(patternId) : defaultPatternId;
+  return patterns[patternRef] || [1];
 };
 
 const calculateJunctionDemand = (
@@ -148,7 +207,8 @@ const calculateJunctionDemand = (
 ): number => {
   let demand = 0;
 
-  const junctionDemands = demands[junction.id] || [];
+  const junctionRef = normalizeRef(junction.id);
+  const junctionDemands = demands[junctionRef] || [];
   if (!!junctionDemands.length) {
     junctionDemands.forEach(({ baseDemand, patternId }) => {
       const pattern = getPattern(patterns, patternId);
@@ -164,13 +224,36 @@ const calculateJunctionDemand = (
   return demand;
 };
 
+const calculateJunctionDemandDeprecated = (
+  junction: { id: string; baseDemand?: number; patternId?: string },
+  demands: InpData["demands"],
+  patterns: InpData["patterns"],
+): number => {
+  let demand = 0;
+
+  const junctionDemands = demands[junction.id] || [];
+  if (!!junctionDemands.length) {
+    junctionDemands.forEach(({ baseDemand, patternId }) => {
+      const pattern = getPatternDeprecated(patterns, patternId);
+      demand += baseDemand * pattern[0];
+    });
+  } else {
+    if (junction.baseDemand) {
+      const pattern = getPatternDeprecated(patterns, junction.patternId);
+      demand += junction.baseDemand * pattern[0];
+    }
+  }
+
+  return demand;
+};
+
 const calculateReservoirHead = (
   reservoir: { id: string; baseHead: number; patternId?: string },
   patterns: InpData["patterns"],
 ): number => {
   let head = reservoir.baseHead;
   if (reservoir.patternId) {
-    const pattern = getPattern(patterns, reservoir.patternId);
+    const pattern = getPatternDeprecated(patterns, reservoir.patternId);
     head = reservoir.baseHead * pattern[0];
   }
   return head;
