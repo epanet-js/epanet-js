@@ -1,6 +1,5 @@
 import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse junctions", () => {
   it("includes junctions in the model", () => {
@@ -30,7 +29,6 @@ describe("parse junctions", () => {
   });
 
   it("can read demand from junction row", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -53,7 +51,6 @@ describe("parse junctions", () => {
   });
 
   it("can apply a custom default pattern", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -79,7 +76,6 @@ describe("parse junctions", () => {
   });
 
   it("assign the initial demand of the pattern", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -105,7 +101,6 @@ describe("parse junctions", () => {
   });
 
   it("ignores demand defined in junction when in demands", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -135,7 +130,6 @@ describe("parse junctions", () => {
   });
 
   it("defaults to default pattern when not specified", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;

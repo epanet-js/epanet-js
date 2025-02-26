@@ -4,7 +4,6 @@ import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const buildModel = (
   inpData: InpData,
@@ -22,34 +21,19 @@ export const buildModel = (
     const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
     if (!coordinates) continue;
 
-    if (isFeatureOn("FLAG_JUNCTION_DEMANDS")) {
-      const demand = calculateJunctionDemand(
-        junctionData,
-        inpData.demands,
-        inpData.patterns,
-      );
+    const demand = calculateJunctionDemand(
+      junctionData,
+      inpData.demands,
+      inpData.patterns,
+    );
 
-      const junction = hydraulicModel.assetBuilder.buildJunction({
-        id: junctionData.id,
-        coordinates,
-        elevation: junctionData.elevation,
-        demand,
-      });
-      hydraulicModel.assets.set(junction.id, junction);
-    } else {
-      const junctionDemands = inpData.demands[junctionData.id];
-      let demand = 0;
-      if (junctionDemands) {
-        demand = junctionDemands[0].baseDemand;
-      }
-      const junction = hydraulicModel.assetBuilder.buildJunction({
-        id: junctionData.id,
-        coordinates,
-        elevation: junctionData.elevation,
-        demand,
-      });
-      hydraulicModel.assets.set(junction.id, junction);
-    }
+    const junction = hydraulicModel.assetBuilder.buildJunction({
+      id: junctionData.id,
+      coordinates,
+      elevation: junctionData.elevation,
+      demand,
+    });
+    hydraulicModel.assets.set(junction.id, junction);
   }
 
   for (const reservoirData of inpData.reservoirs) {
