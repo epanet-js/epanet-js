@@ -10,11 +10,11 @@ import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { userSettingsAtom } from "src/state/user-settings";
 import { Checkbox } from "src/components/form/Checkbox";
 import {
+  ArrowRightIcon,
   FileIcon,
   FilePlusIcon,
   GitHubLogoIcon,
   QuestionMarkCircledIcon,
-  VideoIcon,
 } from "@radix-ui/react-icons";
 import {
   helpCenterUrl,
@@ -85,7 +85,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <p className="text-sm pb-6">
                 <a href={quickStartTutorialUrl} target="_blank">
                   <Button variant="primary">
-                    <VideoIcon />
+                    <ArrowRightIcon />
                     {translate("quickStartTutorial")}
                   </Button>
                 </a>

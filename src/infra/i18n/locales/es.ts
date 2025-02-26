@@ -140,11 +140,11 @@ export const translations: Translations = {
   welcomeIntro:
     "Estamos creando una nueva forma de construir y ejecutar modelos hidráulicos, directamente desde tu navegador en una plataforma moderna, web y de código abierto. Abre, edita y analiza rápidamente tus redes en tu ordenador sin instalar ningún software. Todas las simulaciones se ejecutan directamente en tu máquina, manteniendo tus datos privados—no se requiere la nube.",
   welcomeNewHere:
-    "¿Eres nuevo aquí? Mira nuestro ${1} para aprender lo básico en solo unos minutos.",
+    "¿Eres nuevo aquí? Sigue nuestra ${1} para aprender lo básico en solo unos minutos.",
   welcomeBuildAndDevelop: "Crear y desarrollar",
   welcomeExploreWithSamples:
     "Explora la aplicación abriendo una red de muestra",
-  quickStartTutorial: "Tutorial de Inicio Rápido",
+  quickStartTutorial: "Guía de Inicio Rápido",
   gettingStarted: "Primeros pasos",
   demoUKStyleDescription:
     "Red de estilo del Reino Unido con unidades métricas y caudal en l/s.",
