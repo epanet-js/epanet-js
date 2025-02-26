@@ -6,7 +6,6 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -55,23 +54,14 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_JUNCTION_DEMANDS")) {
-    const [id, elevation, baseDemand, patternId] = readValues(trimmedRow);
+  const [id, elevation, baseDemand, patternId] = readValues(trimmedRow);
 
-    inpData.junctions.push({
-      id,
-      elevation: parseFloat(elevation),
-      baseDemand: baseDemand ? parseFloat(baseDemand) : undefined,
-      patternId: patternId ? patternId : undefined,
-    });
-  } else {
-    const [id, elevation] = readValues(trimmedRow);
-
-    inpData.junctions.push({
-      id,
-      elevation: parseFloat(elevation),
-    });
-  }
+  inpData.junctions.push({
+    id,
+    elevation: parseFloat(elevation),
+    baseDemand: baseDemand ? parseFloat(baseDemand) : undefined,
+    patternId: patternId ? patternId : undefined,
+  });
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
@@ -141,15 +131,13 @@ export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
     const [value] = readValues(setting.value as string);
     if (parseInt(value) !== 0) {
       issues.addEPS();
-      isFeatureOn("FLAG_JUNCTION_DEMANDS") &&
-        issues.addUsedTimeSetting("DURATION", setting.defaultValue);
+      issues.addUsedTimeSetting("DURATION", setting.defaultValue);
     }
   }
   if (setting.name === "PATTERN START") {
     const [value] = readValues(setting.value as string);
     if (parseInt(value) !== 0) {
-      isFeatureOn("FLAG_JUNCTION_DEMANDS") &&
-        issues.addUsedTimeSetting(setting.name, setting.defaultValue);
+      issues.addUsedTimeSetting(setting.name, setting.defaultValue);
     }
   }
 };

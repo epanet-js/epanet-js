@@ -1,6 +1,5 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
 
@@ -310,7 +309,6 @@ describe("Parse inp", () => {
   });
 
   it("says when inp contains invalid duration settigs", () => {
-    stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const inp = `
     [TIMES]
     Duration\t20
