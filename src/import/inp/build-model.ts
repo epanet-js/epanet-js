@@ -64,18 +64,16 @@ export const buildModel = (
     hydraulicModel.assets.set(reservoir.id, reservoir);
   }
 
-  if (isFeatureOn("FLAG_TANKS")) {
-    for (const tankData of inpData.tanks) {
-      const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
-      if (!coordinates) continue;
+  for (const tankData of inpData.tanks) {
+    const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
+    if (!coordinates) continue;
 
-      const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-        id: tankData.id,
-        coordinates,
-        head: tankData.elevation + tankData.initialLevel,
-      });
-      hydraulicModel.assets.set(tankData.id, reservoir);
-    }
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+      id: tankData.id,
+      coordinates,
+      head: tankData.elevation + tankData.initialLevel,
+    });
+    hydraulicModel.assets.set(tankData.id, reservoir);
   }
 
   for (const pipeData of inpData.pipes) {
