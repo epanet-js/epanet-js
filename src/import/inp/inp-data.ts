@@ -31,7 +31,7 @@ export type InpData = {
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
-  patterns: Record<string, number[]>;
+  patterns: ItemData<number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
   nodeIds: Map<string, string>;
 };
@@ -69,7 +69,7 @@ export const nullInpData = (): InpData => {
     coordinates: new ItemData(),
     vertices: new ItemData(),
     demands: new ItemData(),
-    patterns: {},
+    patterns: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W" },
     nodeIds: new Map(),
   };

@@ -140,8 +140,7 @@ const getPattern = (
   patterns: InpData["patterns"],
   patternId: string | undefined,
 ): number[] => {
-  const patternRef = patternId ? normalizeRef(patternId) : defaultPatternId;
-  return patterns[patternRef] || [1];
+  return patterns.get(patternId || defaultPatternId) || [1];
 };
 
 const calculateJunctionDemand = (
