@@ -64,19 +64,19 @@ export const buildModel = (
   for (const pipeData of inpData.pipes) {
     const startCoordinates = getNodeCoordinates(
       inpData,
-      pipeData.startNode,
+      pipeData.startNodeDirtyId,
       issues,
     );
     const endCoordinates = getNodeCoordinates(
       inpData,
-      pipeData.endNode,
+      pipeData.endNodeDirtyId,
       issues,
     );
     const vertices = getVertices(inpData, pipeData.id, issues);
     if (!startCoordinates || !endCoordinates) continue;
 
-    const startNodeId = inpData.nodeIds.get(pipeData.startNode);
-    const endNodeId = inpData.nodeIds.get(pipeData.endNode);
+    const startNodeId = inpData.nodeIds.get(pipeData.startNodeDirtyId);
+    const endNodeId = inpData.nodeIds.get(pipeData.endNodeDirtyId);
 
     if (!startNodeId || !endNodeId) continue;
 
