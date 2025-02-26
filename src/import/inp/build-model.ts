@@ -20,7 +20,7 @@ export const buildModel = (
   });
 
   for (const junctionData of inpData.junctions) {
-    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    if (isFeatureOn("FLAG_CASE_IDS")) {
       const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
       if (!coordinates) continue;
 
@@ -62,7 +62,7 @@ export const buildModel = (
   }
 
   for (const reservoirData of inpData.reservoirs) {
-    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    if (isFeatureOn("FLAG_CASE_IDS")) {
       const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
       if (!coordinates) continue;
 
@@ -106,7 +106,7 @@ export const buildModel = (
   }
 
   for (const pipeData of inpData.pipes) {
-    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    if (isFeatureOn("FLAG_CASE_IDS")) {
       const startCoordinates = getNodeCoordinates(
         inpData,
         pipeData.startNode,
