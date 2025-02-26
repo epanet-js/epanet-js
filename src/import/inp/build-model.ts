@@ -103,8 +103,7 @@ const getVertices = (
   linkId: string,
   issues: IssuesAccumulator,
 ) => {
-  const linkRef = normalizeRef(linkId);
-  const candidates = inpData.vertices[linkRef] || [];
+  const candidates = inpData.vertices.get(linkId) || [];
   const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
   if (candidates.length !== vertices.length) {
     issues.addInvalidVertices(linkId);

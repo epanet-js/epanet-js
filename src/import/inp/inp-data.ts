@@ -29,7 +29,7 @@ export type InpData = {
     status: PipeStatus;
   }[];
   coordinates: ItemData<Position>;
-  vertices: Record<string, Position[]>;
+  vertices: ItemData<Position[]>;
   demands: Record<string, { baseDemand: number; patternId?: string }[]>;
   patterns: Record<string, number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
@@ -51,6 +51,10 @@ class ItemData<T> {
     return this.map.get(this.normalize(dirtyId));
   }
 
+  has(dirtyId: string) {
+    return this.map.has(this.normalize(dirtyId));
+  }
+
   private normalize(dirtyId: string) {
     return dirtyId.toUpperCase();
   }
@@ -63,7 +67,7 @@ export const nullInpData = (): InpData => {
     tanks: [],
     pipes: [],
     coordinates: new ItemData<Position>(),
-    vertices: {},
+    vertices: new ItemData<Position[]>(),
     demands: {},
     patterns: {},
     options: { units: "GPM", headlossFormula: "H-W" },
