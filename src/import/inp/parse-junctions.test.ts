@@ -29,7 +29,7 @@ describe("parse junctions", () => {
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
-  it("can read demadn from junction row", () => {
+  it("can read demand from junction row", () => {
     stubFeatureOn("FLAG_JUNCTION_DEMANDS");
     const junctionId = "j1";
     const elevation = 100;
