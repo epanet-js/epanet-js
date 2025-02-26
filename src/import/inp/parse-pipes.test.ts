@@ -1,6 +1,5 @@
 import { Pipe } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse pipes", () => {
   it("includes pipes in the model", () => {
@@ -51,7 +50,6 @@ describe("parse pipes", () => {
   });
 
   it("supports case insensitive references", () => {
-    stubFeatureOn("FLAG_CASE_IDS");
     const length = 10;
     const diameter = 100;
     const roughness = 0.1;

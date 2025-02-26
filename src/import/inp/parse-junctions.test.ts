@@ -1,6 +1,5 @@
 import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse junctions", () => {
   it("includes junctions in the model", () => {
@@ -159,7 +158,6 @@ describe("parse junctions", () => {
   });
 
   it("tolerates references with different case", () => {
-    stubFeatureOn("FLAG_CASE_IDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
