@@ -88,8 +88,8 @@ export const parseTankPartially: RowParser = ({
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
   const [
     id,
-    startNode,
-    endNode,
+    startNodeDirtyId,
+    endNodeDirtyId,
     length,
     diameter,
     roughness,
@@ -99,8 +99,8 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 
   inpData.pipes.push({
     id,
-    startNode,
-    endNode,
+    startNodeDirtyId,
+    endNodeDirtyId,
     length: parseFloat(length),
     diameter: parseFloat(diameter),
     roughness: parseFloat(roughness),

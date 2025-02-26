@@ -20,8 +20,8 @@ export type InpData = {
   }[];
   pipes: {
     id: string;
-    startNode: string;
-    endNode: string;
+    startNodeDirtyId: string;
+    endNodeDirtyId: string;
     length: number;
     diameter: number;
     roughness: number;
