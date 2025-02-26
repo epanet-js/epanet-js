@@ -1,4 +1,3 @@
-import { isFeatureOn } from "src/infra/feature-flags";
 import { InpData, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import {
@@ -37,7 +36,7 @@ const buildSectionParsers = (): SectionParsers => ({
   "[SOURCES]": unsupported,
   "[REPORT]": ignore,
   "[VERTICES]": parseVertex,
-  "[TANKS]": isFeatureOn("FLAG_TANKS") ? parseTankPartially : unsupported,
+  "[TANKS]": parseTankPartially,
   "[STATUS]": unsupported,
   "[MIXING]": unsupported,
   "[LABELS]": unsupported,

@@ -1,10 +1,8 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { parseInp } from "./parse-inp";
 import { Reservoir } from "src/hydraulic-model";
 
 describe("parse tanks", () => {
   it("creates a reservoir from the tank data", () => {
-    stubFeatureOn("FLAG_TANKS");
     const tankId = "t1";
     const elevation = 100;
     const initialLevel = 20;
