@@ -51,7 +51,7 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
 
   inpData.reservoirs.push({ id, baseHead: parseFloat(baseHead), patternId });
-  inpData.nodeIds.set(normalizeRef(id), id);
+  inpData.nodeIds.add(id);
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
@@ -65,7 +65,7 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   };
   inpData.junctions.push(junctionData);
 
-  inpData.nodeIds.set(normalizeRef(id), id);
+  inpData.nodeIds.add(id);
 };
 
 export const parseTankPartially: RowParser = ({
@@ -82,7 +82,7 @@ export const parseTankPartially: RowParser = ({
     initialLevel: parseFloat(initialLevel),
   });
 
-  inpData.nodeIds.set(normalizeRef(id), id);
+  inpData.nodeIds.add(id);
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {

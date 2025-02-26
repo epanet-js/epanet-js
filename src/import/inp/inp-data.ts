@@ -33,8 +33,20 @@ export type InpData = {
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
   patterns: ItemData<number[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
-  nodeIds: Map<string, string>;
+  nodeIds: NodeIds;
 };
+
+class NodeIds {
+  private data = new Map<string, string>();
+
+  add(dirtyId: string) {
+    this.data.set(normalizeRef(dirtyId), dirtyId);
+  }
+
+  get(dirtyId: string) {
+    return this.data.get(normalizeRef(dirtyId));
+  }
+}
 
 class ItemData<T> {
   private map: Map<string, T>;
@@ -44,19 +56,15 @@ class ItemData<T> {
   }
 
   set(dirtyId: string, data: T): void {
-    this.map.set(this.normalize(dirtyId), data);
+    this.map.set(normalizeRef(dirtyId), data);
   }
 
   get(dirtyId: string): T | undefined {
-    return this.map.get(this.normalize(dirtyId));
+    return this.map.get(normalizeRef(dirtyId));
   }
 
   has(dirtyId: string) {
-    return this.map.has(this.normalize(dirtyId));
-  }
-
-  private normalize(dirtyId: string) {
-    return dirtyId.toUpperCase();
+    return this.map.has(normalizeRef(dirtyId));
   }
 }
 
@@ -71,6 +79,7 @@ export const nullInpData = (): InpData => {
     demands: new ItemData(),
     patterns: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W" },
-    nodeIds: new Map(),
+    nodeIds: new NodeIds(),
   };
 };
+export const normalizeRef = (id: string) => id.toUpperCase();
