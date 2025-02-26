@@ -16,7 +16,7 @@ describe("Parse inp", () => {
     ${junctionId} ${elevation}
 
     [COORDINATES]
-    ${junctionId} ${lng} ${lat}
+    ${junctionId} ${lng}        ${lat}
 
     [DEMANDS]
     ${junctionId} ${demand}
@@ -31,26 +31,49 @@ describe("Parse inp", () => {
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
-  it("includes reservoirs in the model", () => {
-    const reservoirId = "r1";
-    const head = 100;
-    const lat = 10;
-    const lng = 20;
+  it("ignores white lines when reading a section", () => {
+    const junctionId = "j1";
+    const otherJunctionId = "j2";
+    const elevation = 100;
+    const otherElevation = 200;
+    const coordintes = { lat: 10, lng: 20 };
+    const otherCoordinates = { lat: 30, lng: 40 };
+    const demand = 0.1;
+    const otherDemand = 0.2;
+
     const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${head}
+    [JUNCTIONS]
+    ${junctionId} ${elevation}
+
+    ${otherJunctionId} ${otherElevation}
 
     [COORDINATES]
-    ${reservoirId}\t${lng}\t${lat}
+    ${junctionId} ${coordintes.lng}        ${coordintes.lat}
 
+
+
+    ${otherJunctionId} ${otherCoordinates.lng}        ${otherCoordinates.lat}
+    [DEMANDS]
+    ${junctionId} ${demand}
+
+    ${otherJunctionId} ${otherDemand}
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
-    const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
-    expect(reservoir.id).toEqual(reservoirId);
-    expect(reservoir.head).toEqual(head);
-    expect(reservoir.coordinates).toEqual([20, 10]);
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
+    expect(junction.elevation).toEqual(elevation);
+    expect(junction.demand).toEqual(demand);
+    expect(junction.coordinates).toEqual([20, 10]);
+
+    const otherJunction = hydraulicModel.assets.get(
+      otherJunctionId,
+    ) as Junction;
+    expect(otherJunction.id).toEqual(otherJunctionId);
+    expect(otherJunction.elevation).toEqual(otherElevation);
+    expect(otherJunction.demand).toEqual(otherDemand);
+    expect(otherJunction.coordinates).toEqual([40, 30]);
   });
 
   it("includes pipes in the model", () => {
@@ -432,8 +455,8 @@ describe("Parse inp", () => {
     const inp = `
     [OPTIONS]
     Quality NONE
-    Unbalanced CONTINUE 10
-    Accuracy\t0.001
+    Unbalanced     CONTINUE 10
+    Accuracy   0.001
     Units     MGD
     Headloss H-W
  `;

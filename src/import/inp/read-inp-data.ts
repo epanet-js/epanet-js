@@ -61,8 +61,8 @@ export const readInpData = (
   for (const row of rows) {
     const trimmedRow = row.trim();
 
-    if (trimmedRow.startsWith(commentIdentifier)) continue;
-    if (isSectionEnded(trimmedRow)) {
+    if (isLineComment(trimmedRow) || isEmpty(trimmedRow)) continue;
+    if (isEnd(trimmedRow)) {
       section = null;
       continue;
     }
@@ -87,9 +87,14 @@ export const readInpData = (
   return inpData;
 };
 
-const isSectionEnded = (trimmedRow: string) => {
-  return trimmedRow === "" || trimmedRow.includes("[END]");
+const isEnd = (trimmedRow: string) => {
+  return trimmedRow.includes("[END]");
 };
+
+const isLineComment = (trimmedRow: string) =>
+  trimmedRow.startsWith(commentIdentifier);
+
+const isEmpty = (trimmedRow: string) => trimmedRow === "";
 
 const detectNewSectionName = (
   trimmedRow: string,
