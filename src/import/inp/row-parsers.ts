@@ -138,10 +138,9 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   const [linkId, lng, lat] = readValues(trimmedRow);
-  const linkRef = normalizeRef(linkId);
-  if (!inpData.vertices[linkRef]) inpData.vertices[linkRef] = [];
-
-  inpData.vertices[linkRef].push([parseFloat(lng), parseFloat(lat)]);
+  const vertices = inpData.vertices.get(linkId) || [];
+  vertices.push([parseFloat(lng), parseFloat(lat)]);
+  inpData.vertices.set(linkId, vertices);
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
