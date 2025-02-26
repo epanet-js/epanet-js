@@ -168,11 +168,10 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
   if (isFeatureOn("FLAG_CASE_IDS")) {
     const [nodeId, lng, lat] = readValues(trimmedRow);
-    const nodeRef = normalizeRef(nodeId);
-    inpData.coordinates[nodeRef] = [parseFloat(lng), parseFloat(lat)];
+    inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
   } else {
     const [nodeId, lng, lat] = readValues(trimmedRow);
-    inpData.coordinates[nodeId] = [parseFloat(lng), parseFloat(lat)];
+    inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
   }
 };
 

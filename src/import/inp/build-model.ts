@@ -219,8 +219,7 @@ const getNodeCoordinates = (
   nodeId: string,
   issues: IssuesAccumulator,
 ): Position | null => {
-  const nodeRef = normalizeRef(nodeId);
-  const nodeCoordinates = inpData.coordinates[nodeRef];
+  const nodeCoordinates = inpData.coordinates.get(nodeId);
   if (!nodeCoordinates) {
     issues.addMissingCoordinates(nodeId);
     return null;
@@ -237,7 +236,7 @@ const getNodeCoordinatesDeprecated = (
   nodeId: string,
   issues: IssuesAccumulator,
 ): Position | null => {
-  const nodeCoordinates = inpData.coordinates[nodeId];
+  const nodeCoordinates = inpData.coordinates.get(nodeId);
   if (!nodeCoordinates) {
     issues.addMissingCoordinates(nodeId);
     return null;

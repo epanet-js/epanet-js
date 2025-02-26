@@ -3,6 +3,7 @@ import {
   HeadlossFormula,
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type InpData = {
@@ -28,7 +29,7 @@ export type InpData = {
     minorLoss: number;
     status: PipeStatus;
   }[];
-  coordinates: Record<string, Position>;
+  coordinates: ItemData<Position>;
   vertices: Record<string, Position[]>;
   demands: Record<string, { baseDemand: number; patternId?: string }[]>;
   patterns: Record<string, number[]>;
@@ -36,13 +37,37 @@ export type InpData = {
   nodeIds: Map<string, string>;
 };
 
+class ItemData<T> {
+  private map: Map<string, T>;
+
+  constructor() {
+    this.map = new Map<string, T>();
+  }
+
+  set(dirtyId: string, data: T): void {
+    this.map.set(this.normalize(dirtyId), data);
+  }
+
+  get(dirtyId: string): T | undefined {
+    return this.map.get(this.normalize(dirtyId));
+  }
+
+  private normalize(dirtyId: string) {
+    if (isFeatureOn("FLAG_CASE_IDS")) {
+      return dirtyId.toUpperCase();
+    } else {
+      return dirtyId;
+    }
+  }
+}
+
 export const nullInpData = (): InpData => {
   return {
     junctions: [],
     reservoirs: [],
     tanks: [],
     pipes: [],
-    coordinates: {},
+    coordinates: new ItemData<Position>(),
     vertices: {},
     demands: {},
     patterns: {},
