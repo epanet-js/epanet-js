@@ -52,41 +52,92 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
 
   inpData.reservoirs.push({ id, baseHead: parseFloat(baseHead), patternId });
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    inpData.nodeIds.set(normalizeRef(id), id);
+  }
 };
 
 export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   const [id, elevation, baseDemand, patternId] = readValues(trimmedRow);
 
-  inpData.junctions.push({
+  const junctionData = {
     id,
     elevation: parseFloat(elevation),
     baseDemand: baseDemand ? parseFloat(baseDemand) : undefined,
     patternId: patternId ? patternId : undefined,
+  };
+  inpData.junctions.push(junctionData);
+
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    inpData.nodeIds.set(normalizeRef(id), id);
+  }
+};
+
+export const parseTankPartially: RowParser = ({
+  sectionName,
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  issues.addUsedSection(sectionName);
+  const [id, elevation, initialLevel] = readValues(trimmedRow);
+  inpData.tanks.push({
+    id,
+    elevation: parseFloat(elevation),
+    initialLevel: parseFloat(initialLevel),
   });
+
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    inpData.nodeIds.set(normalizeRef(id), id);
+  }
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
-  const [
-    id,
-    startNode,
-    endNode,
-    length,
-    diameter,
-    roughness,
-    minorLoss,
-    status,
-  ] = readValues(trimmedRow);
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    const [
+      id,
+      startNode,
+      endNode,
+      length,
+      diameter,
+      roughness,
+      minorLoss,
+      status,
+    ] = readValues(trimmedRow);
 
-  inpData.pipes.push({
-    id,
-    startNode,
-    endNode,
-    length: parseFloat(length),
-    diameter: parseFloat(diameter),
-    roughness: parseFloat(roughness),
-    minorLoss: parseFloat(minorLoss),
-    status: status && status.toLowerCase() === "closed" ? "closed" : "open",
-  });
+    inpData.pipes.push({
+      id,
+      startNode,
+      endNode,
+      length: parseFloat(length),
+      diameter: parseFloat(diameter),
+      roughness: parseFloat(roughness),
+      minorLoss: parseFloat(minorLoss),
+      status: status && status.toLowerCase() === "closed" ? "closed" : "open",
+    });
+  } else {
+    const [
+      id,
+      startNode,
+      endNode,
+      length,
+      diameter,
+      roughness,
+      minorLoss,
+      status,
+    ] = readValues(trimmedRow);
+
+    inpData.pipes.push({
+      id,
+      startNode,
+      endNode,
+      length: parseFloat(length),
+      diameter: parseFloat(diameter),
+      roughness: parseFloat(roughness),
+      minorLoss: parseFloat(minorLoss),
+      status: status && status.toLowerCase() === "closed" ? "closed" : "open",
+    });
+  }
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
@@ -143,10 +194,18 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
-  const [linkId, lng, lat] = readValues(trimmedRow);
-  if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
+  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+    const [linkId, lng, lat] = readValues(trimmedRow);
+    const linkRef = normalizeRef(linkId);
+    if (!inpData.vertices[linkRef]) inpData.vertices[linkRef] = [];
 
-  inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
+    inpData.vertices[linkRef].push([parseFloat(lng), parseFloat(lat)]);
+  } else {
+    const [linkId, lng, lat] = readValues(trimmedRow);
+    if (!inpData.vertices[linkId]) inpData.vertices[linkId] = [];
+
+    inpData.vertices[linkId].push([parseFloat(lng), parseFloat(lat)]);
+  }
 };
 
 export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
@@ -169,21 +228,6 @@ export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
       issues.addUsedTimeSetting(setting.name, setting.defaultValue);
     }
   }
-};
-
-export const parseTankPartially: RowParser = ({
-  sectionName,
-  trimmedRow,
-  inpData,
-  issues,
-}) => {
-  issues.addUsedSection(sectionName);
-  const [tankId, elevation, initialLevel] = readValues(trimmedRow);
-  inpData.tanks.push({
-    id: tankId,
-    elevation: parseFloat(elevation),
-    initialLevel: parseFloat(initialLevel),
-  });
 };
 
 export const parseOption: RowParser = ({
