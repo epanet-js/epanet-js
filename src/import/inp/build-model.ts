@@ -4,7 +4,6 @@ import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
-import { normalizeRef } from "./row-parsers";
 
 export const buildModel = (
   inpData: InpData,
@@ -76,8 +75,8 @@ export const buildModel = (
     const vertices = getVertices(inpData, pipeData.id, issues);
     if (!startCoordinates || !endCoordinates) continue;
 
-    const startNodeId = inpData.nodeIds.get(normalizeRef(pipeData.startNode));
-    const endNodeId = inpData.nodeIds.get(normalizeRef(pipeData.endNode));
+    const startNodeId = inpData.nodeIds.get(pipeData.startNode);
+    const endNodeId = inpData.nodeIds.get(pipeData.endNode);
 
     if (!startNodeId || !endNodeId) continue;
 
