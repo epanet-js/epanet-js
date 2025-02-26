@@ -52,7 +52,7 @@ export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
 
   inpData.reservoirs.push({ id, baseHead: parseFloat(baseHead), patternId });
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     inpData.nodeIds.set(normalizeRef(id), id);
   }
 };
@@ -68,7 +68,7 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   };
   inpData.junctions.push(junctionData);
 
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     inpData.nodeIds.set(normalizeRef(id), id);
   }
 };
@@ -87,13 +87,13 @@ export const parseTankPartially: RowParser = ({
     initialLevel: parseFloat(initialLevel),
   });
 
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     inpData.nodeIds.set(normalizeRef(id), id);
   }
 };
 
 export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     const [
       id,
       startNode,
@@ -141,7 +141,7 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
     const nodeRef = normalizeRef(nodeId);
     if (!inpData.demands[nodeRef]) {
@@ -166,7 +166,7 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     const [nodeId, lng, lat] = readValues(trimmedRow);
     const nodeRef = normalizeRef(nodeId);
     inpData.coordinates[nodeRef] = [parseFloat(lng), parseFloat(lat)];
@@ -177,7 +177,7 @@ export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     const [patternId, ...values] = readValues(trimmedRow);
     const patternRef = normalizeRef(patternId);
     if (!inpData.patterns[patternRef]) {
@@ -194,7 +194,7 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
-  if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+  if (isFeatureOn("FLAG_CASE_IDS")) {
     const [linkId, lng, lat] = readValues(trimmedRow);
     const linkRef = normalizeRef(linkId);
     if (!inpData.vertices[linkRef]) inpData.vertices[linkRef] = [];

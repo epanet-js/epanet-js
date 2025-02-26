@@ -52,7 +52,7 @@ describe("parse reservoirs", () => {
   });
 
   it("tolerates references with different case", () => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
+    stubFeatureOn("FLAG_CASE_IDS");
     const baseHead = 100;
     const lat = 10;
     const lng = 20;

@@ -51,7 +51,7 @@ describe("parse pipes", () => {
   });
 
   it("supports case insensitive references", () => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
+    stubFeatureOn("FLAG_CASE_IDS");
     const length = 10;
     const diameter = 100;
     const roughness = 0.1;

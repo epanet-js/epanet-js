@@ -159,7 +159,7 @@ describe("parse junctions", () => {
   });
 
   it("tolerates references with different case", () => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
+    stubFeatureOn("FLAG_CASE_IDS");
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
