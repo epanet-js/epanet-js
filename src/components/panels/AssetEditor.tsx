@@ -18,7 +18,10 @@ import {
   translate,
   translateUnit,
 } from "src/infra/i18n";
-import { PropertyRow } from "./feature_editor/property_row";
+import {
+  PropertyRow,
+  PropertyRowReadonly,
+} from "./feature_editor/property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -39,6 +42,7 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -151,6 +155,9 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
+              {isFeatureOn("FLAG_UNIQUE_IDS") && (
+                <TextRow name="label" value={pipe.label || ""} position={0} />
+              )}
               <StatusRow
                 name={"status"}
                 status={pipe.status}
@@ -305,6 +312,25 @@ const ReservoirEditor = ({
         </div>
       </div>
     </PanelDetails>
+  );
+};
+
+const TextRow = ({
+  name,
+  value,
+  position,
+}: {
+  name: string;
+  value: string;
+  position: number;
+}) => {
+  const label = translate(name);
+  return (
+    <PropertyRowReadonly
+      pair={[label, value]}
+      y={position}
+      even={position % 2 === 0}
+    />
   );
 };
 

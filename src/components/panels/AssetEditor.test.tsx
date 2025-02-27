@@ -9,9 +9,14 @@ import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
+    beforeEach(() => {
+      stubFeatureOff("FLAG_UNIQUE_IDS");
+    });
     it("can show its properties", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -34,6 +39,38 @@ describe("AssetEditor", () => {
       expect(screen.getByText(/pipe/i)).toBeInTheDocument();
 
       expectStatusDisplayed("Open");
+      expectPropertyDisplayed("diameter (mm)", "100.1");
+      expectPropertyDisplayed("roughness", "1");
+      expectPropertyDisplayed("length", "10");
+      expectPropertyDisplayed("loss coeff. (m)", "0.1");
+      expectPropertyDisplayed("flow", "Not available");
+    });
+
+    it("[FLAG] can show its properties", () => {
+      stubFeatureOn("FLAG_UNIQUE_IDS");
+      const pipeId = "P1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
+        .aPipe(pipeId, {
+          label: "MY_PIPE",
+          status: "open",
+          length: 10,
+          diameter: 100.1,
+          roughness: 1,
+          minorLoss: 0.1,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pipeId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/pipe/i)).toBeInTheDocument();
+
+      expectStatusDisplayed("Open");
+      expectPropertyDisplayed("label", "MY_PIPE");
       expectPropertyDisplayed("diameter (mm)", "100.1");
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
@@ -473,11 +510,13 @@ describe("AssetEditor", () => {
     const idMap = UIDMap.empty();
     const persistence = new MemPersistence(idMap, store);
     render(
-      <JotaiProvider store={store}>
-        <PersistenceContext.Provider value={persistence}>
-          <FeatureEditor />
-        </PersistenceContext.Provider>
-      </JotaiProvider>,
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={persistence}>
+            <FeatureEditor />
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>,
     );
 
     const historyControl = persistence.useHistoryControl();
