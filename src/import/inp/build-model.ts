@@ -29,13 +29,22 @@ export const buildModel = (
       inpData.patterns,
     );
 
-    const junction = hydraulicModel.assetBuilder.buildJunction({
-      id: junctionData.id,
-      label: junctionData.id,
-      coordinates,
-      elevation: junctionData.elevation,
-      demand,
-    });
+    const junction = hydraulicModel.assetBuilder.buildJunction(
+      isFeatureOn("FLAG_UNIQUE_IDS")
+        ? {
+            label: junctionData.id,
+            coordinates,
+            elevation: junctionData.elevation,
+            demand,
+          }
+        : {
+            id: junctionData.id,
+            label: junctionData.id,
+            coordinates,
+            elevation: junctionData.elevation,
+            demand,
+          },
+    );
     hydraulicModel.assets.set(junction.id, junction);
     nodeIds.set(junctionData.id, junction.id);
   }
@@ -44,12 +53,20 @@ export const buildModel = (
     const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
     if (!coordinates) continue;
 
-    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-      id: reservoirData.id,
-      label: reservoirData.id,
-      coordinates,
-      head: calculateReservoirHead(reservoirData, inpData.patterns),
-    });
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir(
+      isFeatureOn("FLAG_UNIQUE_IDS")
+        ? {
+            label: reservoirData.id,
+            coordinates,
+            head: calculateReservoirHead(reservoirData, inpData.patterns),
+          }
+        : {
+            id: reservoirData.id,
+            label: reservoirData.id,
+            coordinates,
+            head: calculateReservoirHead(reservoirData, inpData.patterns),
+          },
+    );
     hydraulicModel.assets.set(reservoir.id, reservoir);
     nodeIds.set(reservoirData.id, reservoir.id);
   }
@@ -58,12 +75,20 @@ export const buildModel = (
     const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
     if (!coordinates) continue;
 
-    const reservoir = hydraulicModel.assetBuilder.buildReservoir({
-      id: tankData.id,
-      label: tankData.id,
-      coordinates,
-      head: tankData.elevation + tankData.initialLevel,
-    });
+    const reservoir = hydraulicModel.assetBuilder.buildReservoir(
+      isFeatureOn("FLAG_UNIQUE_IDS")
+        ? {
+            label: tankData.id,
+            coordinates,
+            head: tankData.elevation + tankData.initialLevel,
+          }
+        : {
+            id: tankData.id,
+            label: tankData.id,
+            coordinates,
+            head: tankData.elevation + tankData.initialLevel,
+          },
+    );
     hydraulicModel.assets.set(reservoir.id, reservoir);
     nodeIds.set(tankData.id, reservoir.id);
   }
@@ -91,17 +116,30 @@ export const buildModel = (
 
     if (!startNodeId || !endNodeId) continue;
 
-    const pipe = hydraulicModel.assetBuilder.buildPipe({
-      id: pipeData.id,
-      label: pipeData.id,
-      length: pipeData.length,
-      diameter: pipeData.diameter,
-      minorLoss: pipeData.minorLoss,
-      roughness: pipeData.roughness,
-      connections: [startNodeId, endNodeId],
-      status: pipeData.status,
-      coordinates: [startCoordinates, ...vertices, endCoordinates],
-    });
+    const pipe = hydraulicModel.assetBuilder.buildPipe(
+      isFeatureOn("FLAG_UNIQUE_IDS")
+        ? {
+            label: pipeData.id,
+            length: pipeData.length,
+            diameter: pipeData.diameter,
+            minorLoss: pipeData.minorLoss,
+            roughness: pipeData.roughness,
+            connections: [startNodeId, endNodeId],
+            status: pipeData.status,
+            coordinates: [startCoordinates, ...vertices, endCoordinates],
+          }
+        : {
+            id: pipeData.id,
+            label: pipeData.id,
+            length: pipeData.length,
+            diameter: pipeData.diameter,
+            minorLoss: pipeData.minorLoss,
+            roughness: pipeData.roughness,
+            connections: [startNodeId, endNodeId],
+            status: pipeData.status,
+            coordinates: [startCoordinates, ...vertices, endCoordinates],
+          },
+    );
     hydraulicModel.assets.set(pipe.id, pipe);
     hydraulicModel.topology.addLink(pipe.id, startNodeId, endNodeId);
   }
