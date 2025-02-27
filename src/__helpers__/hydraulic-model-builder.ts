@@ -15,6 +15,7 @@ import {
   HeadlossFormula,
 } from "src/hydraulic-model";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,
   Quantities,
@@ -35,6 +36,7 @@ export const buildPipe = (
     quantities.units,
     quantities.defaults,
     new IdGenerator(),
+    new LabelManager(),
   ).buildPipe(data);
 };
 
@@ -44,6 +46,7 @@ export const buildJunction = (data: JunctionBuildData = {}) => {
     quantities.units,
     quantities.defaults,
     new IdGenerator(),
+    new LabelManager(),
   ).buildJunction(data);
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
@@ -52,6 +55,7 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
     quantities.units,
     quantities.defaults,
     new IdGenerator(),
+    new LabelManager(),
   ).buildReservoir(data);
 };
 
@@ -78,6 +82,7 @@ export class HydraulicModelBuilder {
       this.units,
       quantities.defaults,
       new IdGenerator(),
+      new LabelManager(),
     );
     this.topology = new Topology();
     this.headlossFormula = "H-W";

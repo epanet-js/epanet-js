@@ -38,6 +38,8 @@ import { customAlphabet } from "nanoid";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { LabelManager } from "./label-manager";
+
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -53,22 +55,25 @@ export class AssetBuilder {
   private units: UnitsSpec;
   private defaults: DefaultQuantities;
   private idGenerator: IdGenerator;
+  private labelManager: LabelManager;
 
   constructor(
     units: UnitsSpec,
     defaults: DefaultQuantities,
     idGenerator: IdGenerator,
+    labelManager: LabelManager,
   ) {
     this.units = units;
     this.defaults = defaults;
     this.idGenerator = idGenerator;
+    this.labelManager = labelManager;
   }
 
   buildPipe({
     id = isFeatureOn("FLAG_UNIQUE_IDS")
       ? this.idGenerator.newId()
       : generateId(),
-    label = "",
+    label,
     coordinates = [
       [0, 0],
       [0, 0],
@@ -85,7 +90,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "pipe",
-        label,
+        label: label ? label : this.labelManager.generateFor(id),
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -101,7 +106,7 @@ export class AssetBuilder {
     id = isFeatureOn("FLAG_UNIQUE_IDS")
       ? this.idGenerator.newId()
       : generateId(),
-    label = "",
+    label,
     coordinates = [0, 0],
     elevation,
     demand,
@@ -111,7 +116,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "junction",
-        label,
+        label: label ? label : this.labelManager.generateFor(id),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
@@ -123,7 +128,7 @@ export class AssetBuilder {
     id = isFeatureOn("FLAG_UNIQUE_IDS")
       ? this.idGenerator.newId()
       : generateId(),
-    label = "",
+    label,
     coordinates = [0, 0],
     elevation,
     head,
@@ -146,7 +151,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "reservoir",
-        label,
+        label: label ? label : this.labelManager.generateFor(id),
         head: headValue,
         elevation: elevationValue,
       },

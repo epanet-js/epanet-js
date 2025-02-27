@@ -5,6 +5,7 @@ import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
 import { IdGenerator } from "./id-generator";
+import { LabelManager } from "./label-manager";
 
 export type HydraulicModel = {
   version: string;
@@ -29,7 +30,12 @@ export const initializeHydraulicModel = ({
   return {
     version: nanoid(),
     assets: new Map(),
-    assetBuilder: new AssetBuilder(units, defaults, new IdGenerator()),
+    assetBuilder: new AssetBuilder(
+      units,
+      defaults,
+      new IdGenerator(),
+      new LabelManager(),
+    ),
     topology: new Topology(),
     units,
     headlossFormula,
