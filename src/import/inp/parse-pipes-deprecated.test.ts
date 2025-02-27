@@ -1,18 +1,7 @@
-import {
-  Asset,
-  AssetsMap,
-  Junction,
-  Pipe,
-  Reservoir,
-} from "src/hydraulic-model";
+import { Pipe } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse pipes", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("includes pipes in the model", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
@@ -43,18 +32,14 @@ describe("parse pipes", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    const reservoir = getByLabel(
-      hydraulicModel.assets,
-      reservoirId,
-    ) as Reservoir;
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    expect(pipe.id).toEqual(pipeId);
     expect(pipe.length).toEqual(length);
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
     expect(pipe.minorLoss).toEqual(minorLoss);
     expect(pipe.status).toEqual("open");
-    expect(pipe.connections).toEqual([reservoir.id, junction.id]);
+    expect(pipe.connections).toEqual([reservoirId, junctionId]);
     expect(pipe.coordinates).toEqual([
       [10, 20],
       [50, 60],
@@ -91,9 +76,8 @@ describe("parse pipes", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
-    const junction = getByLabel(hydraulicModel.assets, "j1") as Junction;
-    const reservoir = getByLabel(hydraulicModel.assets, "r1") as Reservoir;
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    expect(pipe.id).toEqual("P1");
     expect(pipe.length).toEqual(length);
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
@@ -105,11 +89,7 @@ describe("parse pipes", () => {
       [60, 70],
       [30, 40],
     ]);
-    expect(pipe.connections).toEqual([reservoir.id, junction.id]);
+    expect(pipe.connections).toEqual(["r1", "j1"]);
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
-
-  const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
-    return [...assets.values()].find((a) => a.label === label);
-  };
 });

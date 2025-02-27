@@ -15,6 +15,7 @@ export type JunctionBuildData = {
 
 export type PipeBuildData = {
   id?: AssetId;
+  label?: string;
   coordinates?: Position[];
   connections?: LinkConnections;
   status?: PipeStatus;
@@ -26,6 +27,7 @@ export type PipeBuildData = {
 
 export type ReservoirBuildData = {
   id?: AssetId;
+  label?: string;
   coordinates?: Position;
   head?: number;
   relativeHead?: number;
@@ -64,6 +66,7 @@ export class AssetBuilder {
 
   buildPipe({
     id = generateId(),
+    label = "",
     coordinates = [
       [0, 0],
       [0, 0],
@@ -76,10 +79,11 @@ export class AssetBuilder {
     roughness,
   }: PipeBuildData = {}) {
     return new Pipe(
-      id,
+      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
       coordinates,
       {
         type: "pipe",
+        label,
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -113,6 +117,7 @@ export class AssetBuilder {
 
   buildReservoir({
     id = generateId(),
+    label = "",
     coordinates = [0, 0],
     elevation,
     head,
@@ -135,6 +140,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "reservoir",
+        label,
         head: headValue,
         elevation: elevationValue,
       },
