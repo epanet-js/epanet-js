@@ -1,12 +1,7 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { parseInp } from "./parse-inp";
-import { Asset, AssetsMap, Reservoir } from "src/hydraulic-model";
+import { Reservoir } from "src/hydraulic-model";
 
 describe("parse tanks", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("creates a reservoir from the tank data", () => {
     const tankId = "t1";
     const elevation = 100;
@@ -23,9 +18,9 @@ describe("parse tanks", () => {
 
     const { hydraulicModel, issues } = parseInp(inp);
 
-    const reservoir = getByLabel(hydraulicModel.assets, tankId) as Reservoir;
-    expect(reservoir.id).not.toBeUndefined();
-    expect(reservoir.id).not.toEqual(tankId);
+    const reservoir = hydraulicModel.assets.get(tankId) as Reservoir;
+    expect(reservoir.id).toEqual(tankId);
+    expect(reservoir.type).toEqual("reservoir");
     expect(reservoir.head).toEqual(120);
     expect(reservoir.coordinates).toEqual([-10, 10]);
 
@@ -47,15 +42,12 @@ describe("parse tanks", () => {
 
     const { hydraulicModel, issues } = parseInp(inp);
 
-    const reservoir = getByLabel(hydraulicModel.assets, "t1") as Reservoir;
+    const reservoir = hydraulicModel.assets.get("t1") as Reservoir;
+    expect(reservoir.id).toEqual("t1");
     expect(reservoir.type).toEqual("reservoir");
     expect(reservoir.head).toEqual(120);
     expect(reservoir.coordinates).toEqual([-10, 10]);
 
     expect(issues!.unsupportedSections?.has("[TANKS]")).toBeTruthy();
   });
-
-  const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
-    return [...assets.values()].find((a) => a.label === label);
-  };
 });

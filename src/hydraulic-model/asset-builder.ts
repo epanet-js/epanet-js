@@ -136,7 +136,7 @@ export class AssetBuilder {
     }
 
     return new Reservoir(
-      id,
+      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
       coordinates,
       {
         type: "reservoir",
