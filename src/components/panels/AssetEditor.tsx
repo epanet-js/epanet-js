@@ -298,6 +298,13 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
+              {isFeatureOn("FLAG_UNIQUE_IDS") && (
+                <TextRow
+                  name="label"
+                  value={reservoir.label || ""}
+                  position={0}
+                />
+              )}
               <QuantityRow
                 name="elevation"
                 position={0}
