@@ -20,10 +20,13 @@ export class LabelManager {
   }
 
   remove(label: string, id: AssetId) {
-    this.labels.set(
-      label,
-      (this.labels.get(label) || []).filter((i) => i === id),
-    );
+    const ids = (this.labels.get(label) || []).filter((i) => i !== id);
+    if (!ids.length) {
+      this.labels.delete(label);
+      return;
+    }
+
+    this.labels.set(label, ids);
   }
 
   private ensureUnique(candidate: string, count = 0): string {

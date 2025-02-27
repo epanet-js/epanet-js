@@ -47,5 +47,10 @@ describe("label manager", () => {
     labelManager.remove("LABEL_1", "ID_1");
 
     expect(labelManager.count("LABEL_1")).toEqual(1);
+
+    labelManager.remove("LABEL_1", "ID_2");
+    expect(labelManager.count("LABEL_1")).toEqual(0);
+
+    expect(labelManager.generateFor("LABEL_1")).toEqual("LABEL_1");
   });
 });

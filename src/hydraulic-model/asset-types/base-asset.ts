@@ -9,7 +9,7 @@ type AssetGeometry = LineString | Point;
 export type AssetProperties = {
   type: "pipe" | "junction" | "reservoir";
   visibility?: boolean;
-  label?: string;
+  label: string;
 };
 
 export type AssetUnits = Record<string, Unit>;

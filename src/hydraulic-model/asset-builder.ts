@@ -55,7 +55,7 @@ export class AssetBuilder {
   private units: UnitsSpec;
   private defaults: DefaultQuantities;
   private idGenerator: IdGenerator;
-  private labelManager: LabelManager;
+  readonly labelManager: LabelManager;
 
   constructor(
     units: UnitsSpec,
