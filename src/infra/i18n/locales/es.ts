@@ -180,6 +180,7 @@ export const translations: Translations = {
   alertInpOutputSubtitle: "Tu INP fue creado con otra aplicación.",
   alertInpOutputDetail:
     "Ten en cuenta que algunas secciones y configuraciones pueden tener un formato diferente o ser omitidas. Te recomendamos guardar una copia para no sobrescribir el contenido original.",
+  label: "Etiqueta",
 };
 
 export const units: UnitsLocale = {
