@@ -118,6 +118,31 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("pressure (m)", "Not available");
     });
 
+    it("[FLAG] shows its properties", () => {
+      stubFeatureOn("FLAG_UNIQUE_IDS");
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          label: "MY_JUNCTION",
+          elevation: 10,
+          demand: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_JUNCTION");
+      expectPropertyDisplayed("elevation (m)", "10");
+      expectPropertyDisplayed("demand (l/s)", "100");
+      expectPropertyDisplayed("pressure (m)", "Not available");
+    });
+
     it("can show simulation results", () => {
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
