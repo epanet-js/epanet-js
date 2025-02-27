@@ -114,7 +114,7 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   const demands = inpData.demands.get(nodeId) || [];
   demands.push({
     baseDemand: parseFloat(baseDemand),
-    patternId: patternId ? normalizeRef(patternId) : undefined,
+    patternId,
   });
   inpData.demands.set(nodeId, demands);
 };
@@ -219,5 +219,3 @@ const readSetting = <T extends Record<string, string | number>>(
     return { name, value, defaultValue };
   }
 };
-
-export const normalizeRef = (id: string) => id.toUpperCase();
