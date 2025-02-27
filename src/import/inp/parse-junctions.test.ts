@@ -78,7 +78,7 @@ describe("parse junctions", () => {
     expect(junction.demand).toBeCloseTo(1.4);
   });
 
-  it.only("assign the initial demand of the pattern", () => {
+  it("assign the initial demand of the pattern", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -102,7 +102,7 @@ describe("parse junctions", () => {
     expect(junction.demand).toEqual(0.2);
   });
 
-  it.only("ignores demand defined in junction when in demands", () => {
+  it("ignores demand defined in junction when in demands", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -130,7 +130,7 @@ describe("parse junctions", () => {
     expect(junction.demand).toEqual(-4);
   });
 
-  it.only("defaults to default pattern when not specified", () => {
+  it("defaults to default pattern when not specified", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
