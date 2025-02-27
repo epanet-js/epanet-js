@@ -184,6 +184,30 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("head (m)", "100");
     });
+
+    it("[FLAG] shows its properties", () => {
+      stubFeatureOn("FLAG_UNIQUE_IDS");
+      const reservoirId = "R1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(reservoirId, {
+          label: "MY_RESERVOIR",
+          elevation: 10,
+          head: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: reservoirId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_RESERVOIR");
+      expectPropertyDisplayed("elevation (m)", "10");
+      expectPropertyDisplayed("head (m)", "100");
+    });
   });
 
   it("can change its status", async () => {
