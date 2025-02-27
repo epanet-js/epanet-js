@@ -65,7 +65,9 @@ export class AssetBuilder {
   }
 
   buildPipe({
-    id = generateId(),
+    id = isFeatureOn("FLAG_UNIQUE_IDS")
+      ? this.idGenerator.newId()
+      : generateId(),
     label = "",
     coordinates = [
       [0, 0],
@@ -79,7 +81,7 @@ export class AssetBuilder {
     roughness,
   }: PipeBuildData = {}) {
     return new Pipe(
-      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
+      id,
       coordinates,
       {
         type: "pipe",
@@ -96,14 +98,16 @@ export class AssetBuilder {
   }
 
   buildJunction({
-    id = generateId(),
+    id = isFeatureOn("FLAG_UNIQUE_IDS")
+      ? this.idGenerator.newId()
+      : generateId(),
     label = "",
     coordinates = [0, 0],
     elevation,
     demand,
   }: JunctionBuildData = {}) {
     return new Junction(
-      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
+      id,
       coordinates,
       {
         type: "junction",
@@ -116,7 +120,9 @@ export class AssetBuilder {
   }
 
   buildReservoir({
-    id = generateId(),
+    id = isFeatureOn("FLAG_UNIQUE_IDS")
+      ? this.idGenerator.newId()
+      : generateId(),
     label = "",
     coordinates = [0, 0],
     elevation,
@@ -136,7 +142,7 @@ export class AssetBuilder {
     }
 
     return new Reservoir(
-      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
+      id,
       coordinates,
       {
         type: "reservoir",
