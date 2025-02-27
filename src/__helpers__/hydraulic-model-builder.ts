@@ -14,6 +14,7 @@ import {
   AssetId,
   HeadlossFormula,
 } from "src/hydraulic-model";
+import { IdGenerator } from "src/hydraulic-model/id-generator";
 import {
   AssetQuantitiesSpec,
   Quantities,
@@ -30,22 +31,28 @@ export const buildPipe = (
     units: { ...presets.LPS.units, ...unitsOverride },
   };
   const quantities = new Quantities(quantitiesSpec);
-  return new AssetBuilder(quantities.units, quantities.defaults).buildPipe(
-    data,
-  );
+  return new AssetBuilder(
+    quantities.units,
+    quantities.defaults,
+    new IdGenerator(),
+  ).buildPipe(data);
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
   const quantities = new Quantities(presets.LPS);
-  return new AssetBuilder(quantities.units, quantities.defaults).buildJunction(
-    data,
-  );
+  return new AssetBuilder(
+    quantities.units,
+    quantities.defaults,
+    new IdGenerator(),
+  ).buildJunction(data);
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
   const quantities = new Quantities(presets.LPS);
-  return new AssetBuilder(quantities.units, quantities.defaults).buildReservoir(
-    data,
-  );
+  return new AssetBuilder(
+    quantities.units,
+    quantities.defaults,
+    new IdGenerator(),
+  ).buildReservoir(data);
 };
 
 export class HydraulicModelBuilder {
@@ -67,7 +74,11 @@ export class HydraulicModelBuilder {
     this.assets = new Map();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
-    this.assetBuilder = new AssetBuilder(this.units, quantities.defaults);
+    this.assetBuilder = new AssetBuilder(
+      this.units,
+      quantities.defaults,
+      new IdGenerator(),
+    );
     this.topology = new Topology();
     this.headlossFormula = "H-W";
   }

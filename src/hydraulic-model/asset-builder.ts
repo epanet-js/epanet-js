@@ -34,6 +34,8 @@ export type ReservoirBuildData = {
 
 import { customAlphabet } from "nanoid";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { IdGenerator } from "./id-generator";
+import { isFeatureOn } from "src/infra/feature-flags";
 const epanetCompatibleAlphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
@@ -48,10 +50,16 @@ export type DefaultQuantities = {
 export class AssetBuilder {
   private units: UnitsSpec;
   private defaults: DefaultQuantities;
+  private idGenerator: IdGenerator;
 
-  constructor(units: UnitsSpec, defaults: DefaultQuantities) {
+  constructor(
+    units: UnitsSpec,
+    defaults: DefaultQuantities,
+    idGenerator: IdGenerator,
+  ) {
     this.units = units;
     this.defaults = defaults;
+    this.idGenerator = idGenerator;
   }
 
   buildPipe({
@@ -91,7 +99,7 @@ export class AssetBuilder {
     demand,
   }: JunctionBuildData = {}) {
     return new Junction(
-      id,
+      isFeatureOn("FLAG_UNIQUE_IDS") ? this.idGenerator.newId() : id,
       coordinates,
       {
         type: "junction",
