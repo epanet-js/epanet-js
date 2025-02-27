@@ -1,9 +1,10 @@
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
-import { InpData } from "./inp-data";
+import { InpData, ItemData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const buildModel = (
   inpData: InpData,
@@ -11,6 +12,7 @@ export const buildModel = (
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
+  const nodeIds = new ItemData<string>();
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
@@ -35,6 +37,7 @@ export const buildModel = (
       demand,
     });
     hydraulicModel.assets.set(junction.id, junction);
+    nodeIds.set(junctionData.id, junction.id);
   }
 
   for (const reservoirData of inpData.reservoirs) {
@@ -43,10 +46,12 @@ export const buildModel = (
 
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
       id: reservoirData.id,
+      label: reservoirData.id,
       coordinates,
       head: calculateReservoirHead(reservoirData, inpData.patterns),
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
+    nodeIds.set(reservoirData.id, reservoir.id);
   }
 
   for (const tankData of inpData.tanks) {
@@ -55,10 +60,12 @@ export const buildModel = (
 
     const reservoir = hydraulicModel.assetBuilder.buildReservoir({
       id: tankData.id,
+      label: tankData.id,
       coordinates,
       head: tankData.elevation + tankData.initialLevel,
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
+    nodeIds.set(tankData.id, reservoir.id);
   }
 
   for (const pipeData of inpData.pipes) {
@@ -75,13 +82,18 @@ export const buildModel = (
     const vertices = getVertices(inpData, pipeData.id, issues);
     if (!startCoordinates || !endCoordinates) continue;
 
-    const startNodeId = inpData.nodeIds.get(pipeData.startNodeDirtyId);
-    const endNodeId = inpData.nodeIds.get(pipeData.endNodeDirtyId);
+    const startNodeId = isFeatureOn("FLAG_UNIQUE_IDS")
+      ? nodeIds.get(pipeData.startNodeDirtyId)
+      : inpData.nodeIds.get(pipeData.startNodeDirtyId);
+    const endNodeId = isFeatureOn("FLAG_UNIQUE_IDS")
+      ? nodeIds.get(pipeData.endNodeDirtyId)
+      : inpData.nodeIds.get(pipeData.endNodeDirtyId);
 
     if (!startNodeId || !endNodeId) continue;
 
     const pipe = hydraulicModel.assetBuilder.buildPipe({
       id: pipeData.id,
+      label: pipeData.id,
       length: pipeData.length,
       diameter: pipeData.diameter,
       minorLoss: pipeData.minorLoss,

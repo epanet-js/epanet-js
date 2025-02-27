@@ -48,7 +48,7 @@ class NodeIds {
   }
 }
 
-class ItemData<T> {
+export class ItemData<T> {
   private map: Map<string, T>;
 
   constructor() {
