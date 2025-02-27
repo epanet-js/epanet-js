@@ -1,12 +1,7 @@
-import { Asset, AssetsMap, Junction } from "src/hydraulic-model";
+import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse junctions", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("includes junctions in the model", () => {
     const junctionId = "j1";
     const elevation = 100;
@@ -26,8 +21,8 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, "j1") as Junction;
-    expect(junction.id).not.toBeUndefined();
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.elevation).toEqual(elevation);
     expect(junction.demand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
@@ -50,7 +45,8 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.demand).toEqual(demand);
   });
 
@@ -74,11 +70,12 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.demand).toBeCloseTo(1.4);
   });
 
-  it.only("assign the initial demand of the pattern", () => {
+  it("assign the initial demand of the pattern", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -98,11 +95,12 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.demand).toEqual(0.2);
   });
 
-  it.only("ignores demand defined in junction when in demands", () => {
+  it("ignores demand defined in junction when in demands", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -126,11 +124,12 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.demand).toEqual(-4);
   });
 
-  it.only("defaults to default pattern when not specified", () => {
+  it("defaults to default pattern when not specified", () => {
     const junctionId = "j1";
     const elevation = 100;
     const lat = 10;
@@ -153,7 +152,8 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual(junctionId);
     expect(junction.demand).toEqual(8);
   });
 
@@ -180,12 +180,9 @@ describe("parse junctions", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = hydraulicModel.assets.get(junctionId) as Junction;
+    expect(junction.id).toEqual("j1");
     expect(junction.label).toEqual("j1");
     expect(junction.demand).toEqual(8);
   });
-
-  const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
-    return [...assets.values()].find((a) => a.label === label);
-  };
 });

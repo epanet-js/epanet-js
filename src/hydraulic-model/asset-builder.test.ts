@@ -1,5 +1,6 @@
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
+import { IdGenerator } from "./id-generator";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
@@ -7,6 +8,7 @@ describe("asset builder", () => {
     const assetBuilder = new AssetBuilder(
       quantities.units,
       quantities.defaults,
+      new IdGenerator(),
     );
 
     const pipe = assetBuilder.buildPipe();
