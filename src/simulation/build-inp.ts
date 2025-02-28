@@ -74,7 +74,7 @@ class EpanetIds {
         const id = this.ensureUnique(this.linkIds, link.label);
         this.linkIds.add(id);
         this.assetIds.set(link.id, id);
-        return link.label;
+        return id;
     }
   }
 
