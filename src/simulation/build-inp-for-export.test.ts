@@ -198,5 +198,35 @@ describe("build inp export ", () => {
     expect(rowsFrom(inp)).toContain("SAME_LABEL.1\t20\t20");
   });
 
+  it("avoid collision of same labels between links", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", {
+        label: "J_1",
+      })
+      .aJunction("j2", {
+        label: "J_2",
+      })
+      .aJunction("j3", {
+        label: "J_3",
+      })
+      .aPipe("pipe1", {
+        label: "SAME_LABEL",
+        startNodeId: "j1",
+        endNodeId: "j2",
+      })
+      .aPipe("pipe2", {
+        label: "SAME_LABEL",
+        startNodeId: "j2",
+        endNodeId: "j3",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, exportOptions);
+
+    expect(inp).toContain("[PIPES]");
+    expect(inp).toContain("SAME_LABEL\tJ_1\tJ_2");
+    expect(inp).toContain("SAME_LABEL.1\tJ_2\tJ_3");
+  });
+
   const rowsFrom = (inp: string) => inp.split("\n");
 });
