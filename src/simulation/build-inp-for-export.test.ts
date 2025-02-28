@@ -161,5 +161,42 @@ describe("build inp export ", () => {
     expect(rowsFrom(inp)).toContain("P_1\t40\t4");
   });
 
+  it("avoids collision of same labels between nodes", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", {
+        label: "SAME_LABEL",
+        elevation: 10,
+        coordinates: [10, 10],
+      })
+      .aJunction("j2", {
+        label: "SAME_LABEL",
+        elevation: 20,
+        coordinates: [20, 20],
+      })
+      .aPipe("pipe1", {
+        label: "SAME_LABEL",
+        startNodeId: "j1",
+        endNodeId: "j2",
+        length: 10,
+        diameter: 100,
+        roughness: 1,
+        status: "open",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, exportOptions);
+
+    expect(rowsFrom(inp)).toContain("[PIPES]");
+    expect(rowsFrom(inp)).toContain(
+      "SAME_LABEL\tSAME_LABEL\tSAME_LABEL.1\t10\t100\t1\t0\tOpen",
+    );
+    expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
+    expect(rowsFrom(inp)).toContain("SAME_LABEL\t10");
+    expect(rowsFrom(inp)).toContain("SAME_LABEL.1\t20");
+    expect(rowsFrom(inp)).toContain("[COORDINATES]");
+    expect(rowsFrom(inp)).toContain("SAME_LABEL\t10\t10");
+    expect(rowsFrom(inp)).toContain("SAME_LABEL.1\t20\t20");
+  });
+
   const rowsFrom = (inp: string) => inp.split("\n");
 });

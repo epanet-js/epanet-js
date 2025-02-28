@@ -54,9 +54,15 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
 
 class EpanetIds {
   private strategy: "id" | "label";
+  private assetIds: Map<string, string>;
+  private linkIds: Set<string>;
+  private nodeIds: Set<string>;
 
   constructor({ strategy }: { strategy: "id" | "label" }) {
     this.strategy = strategy;
+    this.nodeIds = new Set();
+    this.linkIds = new Set();
+    this.assetIds = new Map();
   }
 
   linkId(link: LinkAsset) {
@@ -64,6 +70,10 @@ class EpanetIds {
       case "id":
         return link.id;
       case "label":
+        if (this.assetIds.has(link.id)) return this.assetIds.get(link.id);
+        const id = this.ensureUnique(this.linkIds, link.label);
+        this.linkIds.add(id);
+        this.assetIds.set(link.id, id);
         return link.label;
     }
   }
@@ -73,7 +83,24 @@ class EpanetIds {
       case "id":
         return node.id;
       case "label":
-        return node.label;
+        if (this.assetIds.has(node.id)) return this.assetIds.get(node.id);
+        const id = this.ensureUnique(this.nodeIds, node.label);
+        this.nodeIds.add(id);
+        this.assetIds.set(node.id, id);
+        return id;
+    }
+  }
+
+  private ensureUnique(
+    takenIds: Set<string>,
+    candidate: string,
+    count = 0,
+  ): string {
+    const newCandidate = count > 0 ? `${candidate}.${count}` : candidate;
+    if (!takenIds.has(newCandidate)) {
+      return newCandidate;
+    } else {
+      return this.ensureUnique(takenIds, candidate, count + 1);
     }
   }
 }
