@@ -1,4 +1,11 @@
-import { HydraulicModel, Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import {
+  HydraulicModel,
+  LinkAsset,
+  NodeAsset,
+  Junction,
+  Pipe,
+  Reservoir,
+} from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
@@ -8,6 +15,7 @@ type SimulationPipeStatus = "Open" | "Closed";
 type BuildOptions = {
   geolocation?: boolean;
   madeBy?: boolean;
+  labelIds?: boolean;
 };
 
 export type EpanetUnitSystem =
@@ -44,11 +52,42 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   return "LPS";
 };
 
+class EpanetIds {
+  private strategy: "id" | "label";
+
+  constructor({ strategy }: { strategy: "id" | "label" }) {
+    this.strategy = strategy;
+  }
+
+  linkId(link: LinkAsset) {
+    switch (this.strategy) {
+      case "id":
+        return link.id;
+      case "label":
+        return link.label;
+    }
+  }
+
+  nodeId(node: NodeAsset) {
+    switch (this.strategy) {
+      case "id":
+        return node.id;
+      case "label":
+        return node.label;
+    }
+  }
+}
+
 export const buildInp = withInstrumentation(
   (
     hydraulicModel: HydraulicModel,
-    { geolocation = false, madeBy = false }: BuildOptions = {},
+    {
+      geolocation = false,
+      madeBy = false,
+      labelIds = false,
+    }: BuildOptions = {},
   ): string => {
+    const idMap = new EpanetIds({ strategy: labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
@@ -78,31 +117,37 @@ export const buildInp = withInstrumentation(
     for (const asset of hydraulicModel.assets.values()) {
       if (asset.type === "reservoir") {
         const reservoir = asset as Reservoir;
-        sections.reservoirs.push([reservoir.id, reservoir.head].join("\t"));
+        const reservoirId = idMap.nodeId(reservoir);
+
+        sections.reservoirs.push([reservoirId, reservoir.head].join("\t"));
         if (geolocation) {
           sections.coordinates.push(
-            [reservoir.id, ...reservoir.coordinates].join("\t"),
+            [reservoirId, ...reservoir.coordinates].join("\t"),
           );
         }
       }
+
       if (asset.type === "junction") {
         const junction = asset as Junction;
-        sections.junctions.push([junction.id, junction.elevation].join("\t"));
-        sections.demands.push([junction.id, junction.demand].join("\t"));
+        const junctionId = idMap.nodeId(junction);
+
+        sections.junctions.push([junctionId, junction.elevation].join("\t"));
+        sections.demands.push([junctionId, junction.demand].join("\t"));
         if (geolocation) {
           sections.coordinates.push(
-            [junction.id, ...junction.coordinates].join("\t"),
+            [junctionId, ...junction.coordinates].join("\t"),
           );
         }
       }
+
       if (asset.type === "pipe") {
         const pipe = asset as Pipe;
         const [nodeStart, nodeEnd] = pipe.connections;
         sections.pipes.push(
           [
-            pipe.id,
-            nodeStart,
-            nodeEnd,
+            idMap.linkId(pipe),
+            idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
+            idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
             pipe.length,
             pipe.diameter,
             pipe.roughness,
@@ -112,7 +157,7 @@ export const buildInp = withInstrumentation(
         );
         if (geolocation) {
           for (const vertex of pipe.intermediateVertices) {
-            sections.vertices.push([pipe.id, ...vertex].join("\t"));
+            sections.vertices.push([idMap.linkId(pipe), ...vertex].join("\t"));
           }
         }
       }
