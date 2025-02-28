@@ -2,9 +2,11 @@ import { FileTextIcon } from "@radix-ui/react-icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { DialogHeader } from "src/components/dialog";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
+import { replaceIdWithLabels } from "src/simulation/report";
 import { dialogAtom } from "src/state/dialog_state";
-import { simulationAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom } from "src/state/jotai";
 
 export const useShowReport = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -17,21 +19,45 @@ export const useShowReport = () => {
 
 export const SimulationReportDialog = ({}: { onClose: () => void }) => {
   const simulation = useAtomValue(simulationAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
 
   const formattedReport = useMemo(() => {
-    if (simulation.status !== "success" && simulation.status !== "failure")
-      return "";
+    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
+      if (simulation.status !== "success" && simulation.status !== "failure")
+        return "";
 
-    const rows = simulation.report.split("\n");
-    return rows.map((row, i) => {
-      const trimmedRow = row.slice(2);
-      return (
-        <pre key={i}>
-          {trimmedRow.startsWith("  Error") ? trimmedRow.slice(2) : trimmedRow}
-        </pre>
+      const reportWithLabels = replaceIdWithLabels(
+        simulation.report,
+        hydraulicModel.assets,
       );
-    });
-  }, [simulation]);
+      const rows = reportWithLabels.split("\n");
+      return rows.map((row, i) => {
+        const trimmedRow = row.slice(2);
+        return (
+          <pre key={i}>
+            {trimmedRow.startsWith("  Error")
+              ? trimmedRow.slice(2)
+              : trimmedRow}
+          </pre>
+        );
+      });
+    } else {
+      if (simulation.status !== "success" && simulation.status !== "failure")
+        return "";
+
+      const rows = simulation.report.split("\n");
+      return rows.map((row, i) => {
+        const trimmedRow = row.slice(2);
+        return (
+          <pre key={i}>
+            {trimmedRow.startsWith("  Error")
+              ? trimmedRow.slice(2)
+              : trimmedRow}
+          </pre>
+        );
+      });
+    }
+  }, [simulation, hydraulicModel]);
 
   return (
     <>
