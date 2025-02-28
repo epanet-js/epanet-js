@@ -18,10 +18,7 @@ import {
   translate,
   translateUnit,
 } from "src/infra/i18n";
-import {
-  PropertyRow,
-  PropertyRowReadonly,
-} from "./feature_editor/property_row";
+import { PropertyRow } from "./feature_editor/property_row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -82,7 +79,7 @@ const AssetEditorInner = ({
   const rep = usePersistence();
   const transact = rep.useTransact();
 
-  const handlePropertyChange = (name: string, value: number) => {
+  const handlePropertyChange = (name: string, value: number | string) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
       property: name,
@@ -132,7 +129,7 @@ const AssetEditorInner = ({
   }
 };
 
-type OnPropertyChange = (name: string, value: number) => void;
+type OnPropertyChange = (name: string, value: number | string) => void;
 type OnStatusChange = (newStatus: PipeStatus) => void;
 
 const PipeEditor = ({
@@ -156,7 +153,12 @@ const PipeEditor = ({
             <PropertyTableHead />
             <tbody>
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow name="label" value={pipe.label || ""} position={0} />
+                <TextRow
+                  name="label"
+                  value={pipe.label}
+                  position={0}
+                  onChange={onPropertyChange}
+                />
               )}
               <StatusRow
                 name={"status"}
@@ -246,8 +248,9 @@ const JunctionEditor = ({
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
                 <TextRow
                   name="label"
-                  value={junction.label || ""}
+                  value={junction.label}
                   position={0}
+                  onChange={onPropertyChange}
                 />
               )}
               <QuantityRow
@@ -301,8 +304,9 @@ const ReservoirEditor = ({
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
                 <TextRow
                   name="label"
-                  value={reservoir.label || ""}
+                  value={reservoir.label}
                   position={0}
+                  onChange={onPropertyChange}
                 />
               )}
               <QuantityRow
@@ -333,18 +337,24 @@ const TextRow = ({
   name,
   value,
   position,
+  onChange,
 }: {
   name: string;
   value: string;
   position: number;
+  onChange: (name: string, updatedText: string) => void;
 }) => {
   const label = translate(name);
   return (
-    <PropertyRowReadonly
-      pair={[label, value]}
-      y={position}
-      even={position % 2 === 0}
-    />
+    <PropertyRow label={label} y={position} even={position % 2 === 0}>
+      <div className="relative group-1">
+        <TextField
+          label={label}
+          displayValue={value}
+          onChangeValue={(newValue: string) => onChange(name, newValue)}
+        />
+      </div>
+    </PropertyRow>
   );
 };
 
@@ -452,6 +462,105 @@ export function PropertyTableHead() {
     </thead>
   );
 }
+
+export const TextField = ({
+  label,
+  displayValue,
+  onChangeValue,
+  readOnly = false,
+}: {
+  label: string;
+  displayValue: string;
+  onChangeValue?: (newValue: string) => void;
+  readOnly?: boolean;
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState(displayValue);
+  const [hasError, setError] = useState(false);
+  const [isDirty, setDirty] = useState(false);
+
+  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === "Escape") {
+      resetInput();
+      return;
+    }
+    if (e.key === "Enter" && !hasError) {
+      handleCommitLastChange();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {
+      e.preventDefault();
+    }
+  };
+
+  const resetInput = () => {
+    setInputValue(displayValue);
+    setDirty(false);
+    setError(false);
+    blurInput();
+  };
+
+  const handleBlur = () => {
+    if (isDirty && !hasError) {
+      handleCommitLastChange();
+    } else {
+      resetInput();
+    }
+  };
+
+  const handleFocus: FocusEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    setInputValue(reformatWithoutGroups(displayValue));
+    setTimeout(() => inputRef.current && inputRef.current.select(), 0);
+  };
+
+  const handleCommitLastChange = () => {
+    setInputValue(inputValue);
+    onChangeValue && onChangeValue(inputValue);
+
+    setDirty(false);
+    setError(false);
+    blurInput();
+  };
+
+  const blurInput = () => {
+    if (inputRef.current !== document.activeElement) return;
+
+    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
+  };
+
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const newInputValue = e.target.value;
+    setInputValue(newInputValue);
+    setDirty(true);
+  };
+
+  if (hasError && inputRef.current) {
+    inputRef.current.className = E.styledPropertyInputWithError("right");
+  }
+  if (!hasError && inputRef.current) {
+    inputRef.current.className = E.styledPropertyInput("right");
+  }
+
+  return (
+    <div className="relative group-1">
+      <input
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        spellCheck="false"
+        type="text"
+        className={E.styledPropertyInput("right")}
+        aria-label={`Value for: ${label}`}
+        readOnly={readOnly}
+        onBlur={handleBlur}
+        ref={inputRef}
+        value={inputValue}
+        onFocus={handleFocus}
+        tabIndex={1}
+      />
+    </div>
+  );
+};
 
 export const NumericField = ({
   label,
