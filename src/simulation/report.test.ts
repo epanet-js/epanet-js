@@ -37,6 +37,7 @@ describe("report utils", () => {
     WARNING: Node 19 disconnected at 0:00:00 hrs
       maximum  flow change = 0.0001 for Link 56
       Node 19 and Pipe 56
+    Pump not working today
     `;
 
     const output = replaceIdWithLabels(report, assets);
@@ -47,5 +48,6 @@ describe("report utils", () => {
       "  maximum  flow change = 0.0001 for Link P56_LABEL",
     );
     expect(output).toContain("Node J_19 and Pipe P56_LABEL");
+    expect(output).toContain("Pump not working today");
   });
 });
