@@ -4,7 +4,7 @@ import { ModelOperation } from "../model-operation";
 type InputData = {
   assetIds: AssetId[];
   property: string;
-  value: number | string;
+  value: number;
 };
 
 export const changeProperty: ModelOperation<InputData> = (
