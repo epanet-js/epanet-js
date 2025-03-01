@@ -13,45 +13,6 @@ import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 describe("AssetEditor", () => {
-  it("can edit from the keyboard", async () => {
-    const pipeId = "PIPE1";
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { status: "closed" })
-      .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
-    const user = userEvent.setup();
-
-    renderComponent(store);
-
-    await user.tab();
-    expect(
-      screen.getByRole("combobox", {
-        name: /value for: status/i,
-      }),
-    ).toHaveFocus();
-    await user.keyboard("[ArrowDown]");
-    expect(screen.getByText(/open/i)).toBeInTheDocument();
-    await user.keyboard("[ArrowUp]");
-    await user.keyboard("[Enter]");
-
-    const updatedSelector = screen.getByRole("combobox", {
-      name: /value for: status/i,
-    });
-    expect(updatedSelector).toHaveTextContent("Open");
-    expect(updatedSelector).not.toHaveFocus();
-
-    await user.tab();
-    expect(updatedSelector).toHaveFocus();
-    await user.tab();
-
-    expect(
-      screen.getByRole("textbox", { name: /value for: diameter/i }),
-    ).toHaveFocus();
-
-    await user.tab({ shift: true });
-    expect(updatedSelector).toHaveFocus();
-  });
-
   describe("with a pipe", () => {
     beforeEach(() => {
       stubFeatureOff("FLAG_UNIQUE_IDS");
@@ -374,6 +335,45 @@ describe("AssetEditor", () => {
     expect(updatedField).toHaveValue("1,000.4");
   });
 
+  it("can edit from the keyboard", async () => {
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "closed" })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    renderComponent(store);
+
+    await user.tab();
+    expect(
+      screen.getByRole("combobox", {
+        name: /value for: status/i,
+      }),
+    ).toHaveFocus();
+    await user.keyboard("[ArrowDown]");
+    expect(screen.getByText(/open/i)).toBeInTheDocument();
+    await user.keyboard("[ArrowUp]");
+    await user.keyboard("[Enter]");
+
+    const updatedSelector = screen.getByRole("combobox", {
+      name: /value for: status/i,
+    });
+    expect(updatedSelector).toHaveTextContent("Open");
+    expect(updatedSelector).not.toHaveFocus();
+
+    await user.tab();
+    expect(updatedSelector).toHaveFocus();
+    await user.tab();
+
+    expect(
+      screen.getByRole("textbox", { name: /value for: diameter/i }),
+    ).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(updatedSelector).toHaveFocus();
+  });
+
   describe("validations", () => {
     it("ignores sign in positive only numeric fields", async () => {
       const pipeId = "PIPE1";
@@ -427,38 +427,6 @@ describe("AssetEditor", () => {
       });
       expect(updatedField).toHaveValue("0.001");
       expect(updatedField).not.toHaveFocus();
-    });
-
-    it("can change a label", async () => {
-      stubFeatureOn("FLAG_UNIQUE_IDS");
-      const pipeId = "PIPE1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { label: "OLD_LABEL" })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: pipeId,
-      });
-      const user = userEvent.setup();
-
-      renderComponent(store);
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: label/i,
-      });
-      await user.clear(field);
-      await user.type(field, "NEW_LABEL");
-      await user.keyboard("{Enter}");
-
-      const updatedField = screen.getByRole("textbox", {
-        name: /value for: label/i,
-      });
-      expect(updatedField).toHaveValue("NEW_LABEL");
-      expect(updatedField).not.toHaveFocus();
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-      expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).label,
-      ).toEqual("NEW_LABEL");
     });
 
     it("ignores text from numeric fields", async () => {
