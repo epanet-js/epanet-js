@@ -156,7 +156,7 @@ const PipeEditor = ({
             <PropertyTableHead />
             <tbody>
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow name="label" value={pipe.label || ""} position={0} />
+                <TextRow name="label" value={pipe.label} position={0} />
               )}
               <StatusRow
                 name={"status"}
@@ -244,11 +244,7 @@ const JunctionEditor = ({
             <PropertyTableHead />
             <tbody>
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow
-                  name="label"
-                  value={junction.label || ""}
-                  position={0}
-                />
+                <TextRow name="label" value={junction.label} position={0} />
               )}
               <QuantityRow
                 name="elevation"
@@ -299,11 +295,7 @@ const ReservoirEditor = ({
             <PropertyTableHead />
             <tbody>
               {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow
-                  name="label"
-                  value={reservoir.label || ""}
-                  position={0}
-                />
+                <TextRow name="label" value={reservoir.label} position={0} />
               )}
               <QuantityRow
                 name="elevation"
