@@ -1,4 +1,10 @@
-import { AssetId } from "./asset-types";
+import { Asset, AssetId } from "./asset-types";
+
+const typeToPrefix: Record<Asset["type"], string> = {
+  pipe: "P",
+  junction: "J",
+  reservoir: "R",
+};
 
 export class LabelManager {
   private labels: Map<string, AssetId[]>;
@@ -15,8 +21,9 @@ export class LabelManager {
     return (this.labels.get(label) || []).length;
   }
 
-  generateFor(id: AssetId) {
-    return this.ensureUnique(id);
+  generateFor(id: AssetId, type: Asset["type"]) {
+    const candidate = `${typeToPrefix[type]}${id}`;
+    return this.ensureUnique(candidate);
   }
 
   remove(label: string, id: AssetId) {
