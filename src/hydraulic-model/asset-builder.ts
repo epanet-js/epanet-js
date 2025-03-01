@@ -90,7 +90,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "pipe",
-        label: label ? label : this.labelManager.generateFor(id),
+        label: label ? label : this.labelManager.generateFor(id, "pipe"),
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -116,7 +116,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "junction",
-        label: label ? label : this.labelManager.generateFor(id),
+        label: label ? label : this.labelManager.generateFor(id, "junction"),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
@@ -151,7 +151,7 @@ export class AssetBuilder {
       coordinates,
       {
         type: "reservoir",
-        label: label ? label : this.labelManager.generateFor(id),
+        label: label ? label : this.labelManager.generateFor(id, "reservoir"),
         head: headValue,
         elevation: elevationValue,
       },
