@@ -42,7 +42,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -155,9 +154,7 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow name="label" value={pipe.label} position={0} />
-              )}
+              <TextRow name="label" value={pipe.label} position={0} />
               <StatusRow
                 name={"status"}
                 status={pipe.status}
@@ -243,9 +240,7 @@ const JunctionEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow name="label" value={junction.label} position={0} />
-              )}
+              <TextRow name="label" value={junction.label} position={0} />
               <QuantityRow
                 name="elevation"
                 position={0}
@@ -294,9 +289,7 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              {isFeatureOn("FLAG_UNIQUE_IDS") && (
-                <TextRow name="label" value={reservoir.label} position={0} />
-              )}
+              <TextRow name="label" value={reservoir.label} position={0} />
               <QuantityRow
                 name="elevation"
                 position={0}

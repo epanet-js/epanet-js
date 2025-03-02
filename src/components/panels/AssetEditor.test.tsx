@@ -9,14 +9,11 @@ import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
-    beforeEach(() => {
-      stubFeatureOff("FLAG_UNIQUE_IDS");
-    });
     it("can show its properties", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -47,7 +44,6 @@ describe("AssetEditor", () => {
     });
 
     it("[FLAG] can show its properties", () => {
-      stubFeatureOn("FLAG_UNIQUE_IDS");
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .setHeadlossFormula("D-W")

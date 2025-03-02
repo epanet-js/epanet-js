@@ -23,9 +23,6 @@ describe("Junction", () => {
     expect(junction.elevation).toEqual(0);
     expect(junction.demand).toEqual(0);
     expect(junction.id).not.toBeUndefined();
-
-    const otherJunction = buildJunction();
-    expect(otherJunction.id).not.toEqual(junction.id);
   });
 
   it("can assign values", () => {

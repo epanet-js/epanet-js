@@ -34,16 +34,9 @@ export type ReservoirBuildData = {
   elevation?: number;
 };
 
-import { customAlphabet } from "nanoid";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { LabelManager } from "./label-manager";
-
-const epanetCompatibleAlphabet =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-const nanoId = customAlphabet(epanetCompatibleAlphabet, 21);
-const generateId = () => nanoId();
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -70,9 +63,7 @@ export class AssetBuilder {
   }
 
   buildPipe({
-    id = isFeatureOn("FLAG_UNIQUE_IDS")
-      ? this.idGenerator.newId()
-      : generateId(),
+    id = this.idGenerator.newId(),
     label,
     coordinates = [
       [0, 0],
@@ -103,9 +94,7 @@ export class AssetBuilder {
   }
 
   buildJunction({
-    id = isFeatureOn("FLAG_UNIQUE_IDS")
-      ? this.idGenerator.newId()
-      : generateId(),
+    id = this.idGenerator.newId(),
     label,
     coordinates = [0, 0],
     elevation,
@@ -125,9 +114,7 @@ export class AssetBuilder {
   }
 
   buildReservoir({
-    id = isFeatureOn("FLAG_UNIQUE_IDS")
-      ? this.idGenerator.newId()
-      : generateId(),
+    id = this.idGenerator.newId(),
     label,
     coordinates = [0, 0],
     elevation,

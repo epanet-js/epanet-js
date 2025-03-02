@@ -1,12 +1,7 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { parseInp } from "./parse-inp";
 import { Asset, AssetsMap, Reservoir } from "src/hydraulic-model";
 
 describe("parse tanks", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("creates a reservoir from the tank data", () => {
     const tankId = "t1";
     const elevation = 100;

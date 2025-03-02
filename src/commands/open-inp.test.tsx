@@ -24,6 +24,7 @@ import {
 } from "src/__helpers__/browser-fs-mock";
 import { buildInp } from "src/simulation/build-inp";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
+import { getByLabel } from "src/__helpers__/asset-queries";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -48,7 +49,7 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+      expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
       expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
       expect(store.get(fileInfoAtom)!.isMadeByApp).toEqual(true);
@@ -71,7 +72,7 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+      expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
       expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
       expect(store.get(fileInfoAtom)!.isMadeByApp).toEqual(false);
@@ -141,8 +142,8 @@ describe("open inp", () => {
       );
 
       const { hydraulicModel, selection } = store.get(dataAtom);
-      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
-      expect(hydraulicModel.assets.get("P1")).toBeFalsy();
+      expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
+      expect(getByLabel(hydraulicModel.assets, "P1")).toBeFalsy();
 
       const updatedMomentLog = store.get(momentLogAtom);
       expect(updatedMomentLog.id).not.toEqual(previousMomentLog.id);
@@ -193,7 +194,7 @@ describe("open inp", () => {
       await waitForNotLoading();
 
       const { hydraulicModel } = store.get(dataAtom);
-      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+      expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
       expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
     });
@@ -229,7 +230,7 @@ describe("open inp", () => {
       });
 
       const { hydraulicModel } = store.get(dataAtom);
-      expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+      expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
     });
   });
 
@@ -282,7 +283,7 @@ describe("open inp", () => {
 
     expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+    expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
   });
 
   const triggerOpenFromFs = async () => {
