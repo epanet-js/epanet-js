@@ -48,7 +48,6 @@ export const PropertyColumn = memo(function PropertyColumn({
         onFocus={() => zoomTo([feature])}
         onDeleteKey={() => {}}
         onCast={() => {}}
-        even={false}
       />
     </div>
   );

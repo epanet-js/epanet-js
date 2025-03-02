@@ -73,7 +73,6 @@ export function FeatureEditorPropertiesMulti({
                 y={y}
                 key={pair[0]}
                 pair={pair}
-                even={y % 2 === 0}
                 quantitiesMetadata={quantitiesMetadata}
               />
             );
@@ -85,12 +84,10 @@ export function FeatureEditorPropertiesMulti({
 }
 const PropertyRowMulti = ({
   pair,
-  even,
   y,
   quantitiesMetadata,
 }: {
   pair: [string, PropertyStats];
-  even: boolean;
   y: number;
   quantitiesMetadata: Quantities;
 }) => {
@@ -105,7 +102,7 @@ const PropertyRowMulti = ({
   const { value } = stats.values.keys().next();
 
   return (
-    <PropertyRow label={label} y={y} even={even}>
+    <PropertyRow label={label} y={y}>
       {hasMulti ? (
         <MultiValueField
           x={1}
@@ -121,7 +118,6 @@ const PropertyRowMulti = ({
           readOnly={true}
           pair={[label, formatValue(value)]}
           onChangeValue={() => {}}
-          even={even}
           onDeleteKey={() => {}}
           onCast={() => {}}
         />
@@ -296,9 +292,8 @@ function ValueList({ pair }: { pair: MultiPair }) {
             height: `${rowVirtualizer.getTotalSize()}px`,
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow, i) => {
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const [value, times] = values[virtualRow.index];
-            const isEven = i % 2 == 0;
             return (
               <button
                 type="button"
@@ -307,7 +302,7 @@ function ValueList({ pair }: { pair: MultiPair }) {
                 aria-label={`Value row: ${value as number}`}
                 className={`top-0 left-0 block text-left w-full absolute py-2 px-2 flex items-center
                 hover:bg-gray-200 dark:hover:bg-gray-700
-                gap-x-2 cursor-default ${isEven ? "bg-gray-100" : ""} `}
+                gap-x-2 cursor-default even:bg-gray-100`}
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
