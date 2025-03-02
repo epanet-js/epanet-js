@@ -29,16 +29,15 @@ export interface PropertyRowPropsDeprecated {
 
 type PropertyRowProps = {
   label: string;
-  y: number;
   children: ReactNode;
 };
 
-export const PropertyRow = ({ label, y, children }: PropertyRowProps) => {
+export const PropertyRow = ({ label, children }: PropertyRowProps) => {
   return (
     <P.Root>
       <tr className={"even:bg-gray-100"}>
         <td className={`border-r border-b border-t ${styledTd}`}>
-          <PropertyRowKeyReadonly x={0} y={y} pair={[label, "any"]} />
+          <PropertyRowKeyReadonly x={0} y={0} pair={[label, "any"]} />
         </td>
         <td className={`border-l border-b border-t relative ${styledTd}`}>
           {children}
@@ -50,13 +49,12 @@ export const PropertyRow = ({ label, y, children }: PropertyRowProps) => {
 
 export function PropertyRowReadonly({
   pair,
-  y,
-}: Pick<PropertyRowPropsDeprecated, "pair" | "y">) {
+}: Pick<PropertyRowPropsDeprecated, "pair">) {
   return (
     <P.Root>
       <tr className="even:bg-gray-100">
         <td className={`border-r border-b border-t ${styledTd}`}>
-          <PropertyRowKeyReadonly x={0} y={y} pair={pair} />
+          <PropertyRowKeyReadonly x={0} y={1} pair={pair} />
         </td>
         <td className={`border-l border-b border-t relative ${styledTd}`}>
           <PropertyRowValue
@@ -64,8 +62,6 @@ export function PropertyRowReadonly({
             onChangeValue={() => {}}
             onDeleteKey={() => {}}
             onCast={() => {}}
-            x={1}
-            y={y}
             pair={pair}
           />
         </td>

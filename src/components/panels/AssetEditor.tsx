@@ -154,17 +154,15 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={pipe.label} position={0} />
+              <TextRow name="label" value={pipe.label} />
               <StatusRow
                 name={"status"}
                 status={pipe.status}
                 availableStatuses={pipeStatuses}
-                position={0}
                 onChange={onStatusChange}
               />
               <QuantityRow
                 name="diameter"
-                position={1}
                 value={pipe.diameter}
                 positiveOnly={true}
                 isNullable={false}
@@ -174,7 +172,6 @@ const PipeEditor = ({
               />
               <QuantityRow
                 name="length"
-                position={2}
                 value={pipe.length}
                 positiveOnly={true}
                 isNullable={false}
@@ -184,7 +181,6 @@ const PipeEditor = ({
               />
               <QuantityRow
                 name="roughness"
-                position={3}
                 value={pipe.roughness}
                 positiveOnly={true}
                 unit={quantitiesMetadata.getUnit("roughness")}
@@ -193,7 +189,6 @@ const PipeEditor = ({
               />
               <QuantityRow
                 name="minorLoss"
-                position={4}
                 value={pipe.minorLoss}
                 positiveOnly={true}
                 unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
@@ -202,7 +197,6 @@ const PipeEditor = ({
               />
               <QuantityRow
                 name="flow"
-                position={5}
                 value={pipe.flow}
                 unit={quantitiesMetadata.getUnit("flow")}
                 decimals={quantitiesMetadata.getDecimals("flow")}
@@ -210,7 +204,6 @@ const PipeEditor = ({
               />
               <QuantityRow
                 name="velocity"
-                position={6}
                 value={pipe.velocity}
                 unit={quantitiesMetadata.getUnit("velocity")}
                 decimals={quantitiesMetadata.getDecimals("velocity")}
@@ -240,10 +233,9 @@ const JunctionEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={junction.label} position={0} />
+              <TextRow name="label" value={junction.label} />
               <QuantityRow
                 name="elevation"
-                position={0}
                 value={junction.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals("elevation")}
@@ -251,7 +243,6 @@ const JunctionEditor = ({
               />
               <QuantityRow
                 name="demand"
-                position={1}
                 value={junction.demand}
                 unit={quantitiesMetadata.getUnit("demand")}
                 decimals={quantitiesMetadata.getDecimals("demand")}
@@ -259,7 +250,6 @@ const JunctionEditor = ({
               />
               <QuantityRow
                 name="pressure"
-                position={2}
                 value={junction.pressure}
                 unit={quantitiesMetadata.getUnit("pressure")}
                 decimals={quantitiesMetadata.getDecimals("pressure")}
@@ -289,10 +279,9 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={reservoir.label} position={0} />
+              <TextRow name="label" value={reservoir.label} />
               <QuantityRow
                 name="elevation"
-                position={0}
                 value={reservoir.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals("elevation")}
@@ -300,7 +289,6 @@ const ReservoirEditor = ({
               />
               <QuantityRow
                 name="head"
-                position={1}
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("head")}
                 decimals={quantitiesMetadata.getDecimals("head")}
@@ -314,30 +302,20 @@ const ReservoirEditor = ({
   );
 };
 
-const TextRow = ({
-  name,
-  value,
-  position,
-}: {
-  name: string;
-  value: string;
-  position: number;
-}) => {
+const TextRow = ({ name, value }: { name: string; value: string }) => {
   const label = translate(name);
-  return <PropertyRowReadonly pair={[label, value]} y={position} />;
+  return <PropertyRowReadonly pair={[label, value]} />;
 };
 
 const StatusRow = ({
   name,
   status,
   availableStatuses,
-  position,
   onChange,
 }: {
   name: string;
   status: AssetStatus;
   availableStatuses: readonly AssetStatus[];
-  position: number;
   onChange: (newStatus: AssetStatus) => void;
 }) => {
   const label = translate(name);
@@ -351,7 +329,7 @@ const StatusRow = ({
   }, [availableStatuses]);
 
   return (
-    <PropertyRow label={label} y={position}>
+    <PropertyRow label={label}>
       <div className="relative group-1">
         <Selector
           ariaLabel={"Value for: Status"}
@@ -373,13 +351,11 @@ const QuantityRow = ({
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
-  position,
   onChange,
 }: {
   name: string;
   value: number | null;
   unit: Unit;
-  position: number;
   positiveOnly?: boolean;
   isNullable?: boolean;
   readOnly?: boolean;
@@ -403,7 +379,7 @@ const QuantityRow = ({
   };
 
   return (
-    <PropertyRow label={label} y={position}>
+    <PropertyRow label={label}>
       <NumericField
         key={lastChange.current + (value === null ? "NULL" : displayValue)}
         label={label}

@@ -1,4 +1,4 @@
-import { CoordProps, IWrappedFeature } from "src/types";
+import { IWrappedFeature } from "src/types";
 import { MultiPair } from "src/lib/multi_properties";
 import { KeyboardEventHandler, useRef, useState } from "react";
 import { PanelDetails } from "../panel_details";
@@ -7,10 +7,7 @@ import { onArrow } from "src/lib/arrow_navigation";
 import { PropertyTableHead } from "./AssetEditor";
 import { translate, translateUnit } from "src/infra/i18n";
 import * as P from "@radix-ui/react-popover";
-import {
-  PropertyRowValue,
-  coordPropsAttr,
-} from "./feature_editor/property_row/value";
+import { PropertyRowValue } from "./feature_editor/property_row/value";
 import { PropertyRow } from "./feature_editor/property_row";
 import { CardStackIcon } from "@radix-ui/react-icons";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
@@ -67,10 +64,9 @@ export function FeatureEditorPropertiesMulti({
       <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
         <PropertyTableHead />
         <tbody>
-          {pairs.map((pair, y) => {
+          {pairs.map((pair) => {
             return (
               <PropertyRowMulti
-                y={y}
                 key={pair[0]}
                 pair={pair}
                 quantitiesMetadata={quantitiesMetadata}
@@ -84,11 +80,9 @@ export function FeatureEditorPropertiesMulti({
 }
 const PropertyRowMulti = ({
   pair,
-  y,
   quantitiesMetadata,
 }: {
   pair: [string, PropertyStats];
-  y: number;
   quantitiesMetadata: Quantities;
 }) => {
   const [property, stats] = pair;
@@ -102,19 +96,15 @@ const PropertyRowMulti = ({
   const { value } = stats.values.keys().next();
 
   return (
-    <PropertyRow label={label} y={y}>
+    <PropertyRow label={label}>
       {hasMulti ? (
         <MultiValueField
-          x={1}
-          y={y}
           pair={[label, stats.values]}
           propertyStats={stats}
           onAccept={() => {}}
         />
       ) : (
         <PropertyRowValue
-          x={1}
-          y={y}
           readOnly={true}
           pair={[label, formatValue(value)]}
           onChangeValue={() => {}}
@@ -126,7 +116,7 @@ const PropertyRowMulti = ({
   );
 };
 
-function MultiValueField({ pair, propertyStats, x, y }: MultiValueProps) {
+function MultiValueField({ pair, propertyStats }: MultiValueProps) {
   const [label, value] = pair;
   const [isOpen, setOpen] = useState(false);
 
@@ -156,7 +146,6 @@ function MultiValueField({ pair, propertyStats, x, y }: MultiValueProps) {
     <div>
       <P.Root open={isOpen} onOpenChange={handleOpenChange}>
         <P.Trigger
-          {...coordPropsAttr({ x, y })}
           aria-label={`Values for: ${label}`}
           onKeyDown={handleTriggerKeyDown}
           className="group
@@ -245,7 +234,7 @@ const formatValue = (value: JsonValue | undefined): string => {
   return translate(value);
 };
 
-type MultiValueProps = CoordProps & {
+type MultiValueProps = {
   pair: MultiPair;
   propertyStats: PropertyStats;
   onAccept: (arg0: JsonValue | undefined) => void;

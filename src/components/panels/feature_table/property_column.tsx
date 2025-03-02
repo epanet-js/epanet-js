@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { updatePropertyValue } from "src/lib/map_operations_deprecated/update_property_value";
 import { captureError } from "src/infra/error-tracking";
-import type { CoordProps, IWrappedFeature } from "src/types";
+import type { IWrappedFeature } from "src/types";
 import { usePersistence } from "src/lib/persistence/context";
 import { useZoomTo } from "src/hooks/use_zoom_to";
 import { PropertyRowValue } from "../feature_editor/property_row/value";
@@ -10,12 +10,10 @@ import { JsonValue } from "type-fest";
 export const PropertyColumn = memo(function PropertyColumn({
   feature,
   column,
-  x,
-  y,
 }: {
   feature: IWrappedFeature;
   column: string;
-} & CoordProps) {
+}) {
   const zoomTo = useZoomTo();
   const rep = usePersistence();
   const transact = rep.useTransactDeprecated();
@@ -40,8 +38,6 @@ export const PropertyColumn = memo(function PropertyColumn({
   return (
     <div className="group">
       <PropertyRowValue
-        x={x}
-        y={y}
         pair={[column, value]}
         table
         onChangeValue={(_key, value) => onChangeValue(value)}

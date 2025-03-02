@@ -54,8 +54,8 @@ export function FeatureEditorPropertiesReadonly({
       <table className="pb-2 w-full">
         <PropertyTableHead />
         <tbody>
-          {pairs.map((pair, y) => {
-            return <PropertyRowReadonly key={pair[0]} pair={pair} y={y} />;
+          {pairs.map((pair) => {
+            return <PropertyRowReadonly key={pair[0]} pair={pair} />;
           })}
         </tbody>
       </table>
