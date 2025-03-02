@@ -324,13 +324,7 @@ const TextRow = ({
   position: number;
 }) => {
   const label = translate(name);
-  return (
-    <PropertyRowReadonly
-      pair={[label, value]}
-      y={position}
-      even={position % 2 === 0}
-    />
-  );
+  return <PropertyRowReadonly pair={[label, value]} y={position} />;
 };
 
 const StatusRow = ({
@@ -357,7 +351,7 @@ const StatusRow = ({
   }, [availableStatuses]);
 
   return (
-    <PropertyRow label={label} y={position} even={position % 2 === 0}>
+    <PropertyRow label={label} y={position}>
       <div className="relative group-1">
         <Selector
           ariaLabel={"Value for: Status"}
@@ -409,7 +403,7 @@ const QuantityRow = ({
   };
 
   return (
-    <PropertyRow label={label} y={position} even={position % 2 === 0}>
+    <PropertyRow label={label} y={position}>
       <NumericField
         key={lastChange.current + (value === null ? "NULL" : displayValue)}
         label={label}

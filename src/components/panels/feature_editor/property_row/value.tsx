@@ -383,7 +383,6 @@ export function PropertyRowValue({
   onFocus?: () => void;
   table?: boolean;
   readOnly?: boolean;
-  even: boolean;
   onCast: OnCast;
 } & CoordProps) {
   // Some of the editors don’t change values
