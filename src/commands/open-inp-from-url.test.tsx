@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
+import { getByLabel } from "src/__helpers__/asset-queries";
 
 describe("open inp from url", () => {
   it("initializes state opening an inp from a url", async () => {
@@ -23,7 +24,7 @@ describe("open inp from url", () => {
     });
 
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+    expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
@@ -45,7 +46,7 @@ describe("open inp from url", () => {
     });
 
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.assets.get("J1")).toBeTruthy();
+    expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");

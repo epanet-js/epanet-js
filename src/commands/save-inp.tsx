@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -40,7 +39,7 @@ export const useSaveInp = ({
           const inp = buildInp(data.hydraulicModel, {
             geolocation: true,
             madeBy: true,
-            labelIds: isFeatureOn("FLAG_UNIQUE_IDS"),
+            labelIds: true,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 

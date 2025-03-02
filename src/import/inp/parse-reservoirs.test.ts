@@ -1,12 +1,7 @@
 import { Asset, AssetsMap, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse reservoirs", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("includes reservoirs in the model", () => {
     const reservoirId = "r1";
     const head = 100;

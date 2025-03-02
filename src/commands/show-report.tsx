@@ -2,7 +2,6 @@ import { FileTextIcon } from "@radix-ui/react-icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { DialogHeader } from "src/components/dialog";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { replaceIdWithLabels } from "src/simulation/report";
 import { dialogAtom } from "src/state/dialog_state";
@@ -22,41 +21,22 @@ export const SimulationReportDialog = ({}: { onClose: () => void }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
 
   const formattedReport = useMemo(() => {
-    if (isFeatureOn("FLAG_UNIQUE_IDS")) {
-      if (simulation.status !== "success" && simulation.status !== "failure")
-        return "";
+    if (simulation.status !== "success" && simulation.status !== "failure")
+      return "";
 
-      const reportWithLabels = replaceIdWithLabels(
-        simulation.report,
-        hydraulicModel.assets,
+    const reportWithLabels = replaceIdWithLabels(
+      simulation.report,
+      hydraulicModel.assets,
+    );
+    const rows = reportWithLabels.split("\n");
+    return rows.map((row, i) => {
+      const trimmedRow = row.slice(2);
+      return (
+        <pre key={i}>
+          {trimmedRow.startsWith("  Error") ? trimmedRow.slice(2) : trimmedRow}
+        </pre>
       );
-      const rows = reportWithLabels.split("\n");
-      return rows.map((row, i) => {
-        const trimmedRow = row.slice(2);
-        return (
-          <pre key={i}>
-            {trimmedRow.startsWith("  Error")
-              ? trimmedRow.slice(2)
-              : trimmedRow}
-          </pre>
-        );
-      });
-    } else {
-      if (simulation.status !== "success" && simulation.status !== "failure")
-        return "";
-
-      const rows = simulation.report.split("\n");
-      return rows.map((row, i) => {
-        const trimmedRow = row.slice(2);
-        return (
-          <pre key={i}>
-            {trimmedRow.startsWith("  Error")
-              ? trimmedRow.slice(2)
-              : trimmedRow}
-          </pre>
-        );
-      });
-    }
+    });
   }, [simulation, hydraulicModel]);
 
   return (

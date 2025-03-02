@@ -1,12 +1,7 @@
 import { Asset, AssetsMap, Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse junctions", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UNIQUE_IDS");
-  });
-
   it("includes junctions in the model", () => {
     const junctionId = "j1";
     const elevation = 100;

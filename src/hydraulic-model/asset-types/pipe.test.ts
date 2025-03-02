@@ -135,10 +135,6 @@ describe("Pipe", () => {
     expect(pipe.length).toEqual(1000);
     expect(pipe.roughness).toEqual(130);
     expect(pipe.minorLoss).toEqual(0);
-
-    const otherPipe = buildPipe({});
-
-    expect(otherPipe.id).not.toEqual(pipe.id);
   });
 
   it("can assign values", () => {

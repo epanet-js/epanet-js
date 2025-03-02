@@ -2,6 +2,7 @@ import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
+import { getByLabel } from "src/__helpers__/asset-queries";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
@@ -23,8 +24,7 @@ describe("Parse inp", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = hydraulicModel.assets.get(junctionId) as Junction;
-    expect(junction.id).toEqual(junctionId);
+    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(junction.demand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
@@ -60,112 +60,18 @@ describe("Parse inp", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = hydraulicModel.assets.get(junctionId) as Junction;
-    expect(junction.id).toEqual(junctionId);
+    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(junction.demand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
-    const otherJunction = hydraulicModel.assets.get(
+    const otherJunction = getByLabel(
+      hydraulicModel.assets,
       otherJunctionId,
     ) as Junction;
-    expect(otherJunction.id).toEqual(otherJunctionId);
     expect(otherJunction.elevation).toEqual(otherElevation);
     expect(otherJunction.demand).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
-  });
-
-  it("includes pipes in the model", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
-    const length = 10;
-    const diameter = 100;
-    const roughness = 0.1;
-    const minorLoss = 0.2;
-    const status = "Open";
-    const anyNumber = 10;
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}\t${status}
-
-    [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
-
-
-    [VERTICES]
-    ${pipeId}\t${50}\t${60}
-    ${pipeId}\t${60}\t${70}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
-    expect(pipe.id).toEqual(pipeId);
-    expect(pipe.length).toEqual(length);
-    expect(pipe.diameter).toEqual(diameter);
-    expect(pipe.roughness).toEqual(roughness);
-    expect(pipe.minorLoss).toEqual(minorLoss);
-    expect(pipe.status).toEqual("open");
-    expect(pipe.connections).toEqual([reservoirId, junctionId]);
-    expect(pipe.coordinates).toEqual([
-      [10, 20],
-      [50, 60],
-      [60, 70],
-      [30, 40],
-    ]);
-    expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
-  });
-
-  it("can handle a pipe without status", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
-    const length = 10;
-    const diameter = 100;
-    const roughness = 0.1;
-    const minorLoss = 0.2;
-    const anyNumber = 10;
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}
-
-    [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
-
-
-    [VERTICES]
-    ${pipeId}\t${50}\t${60}
-    ${pipeId}\t${60}\t${70}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
-    expect(pipe.id).toEqual(pipeId);
-    expect(pipe.length).toEqual(length);
-    expect(pipe.diameter).toEqual(diameter);
-    expect(pipe.roughness).toEqual(roughness);
-    expect(pipe.minorLoss).toEqual(minorLoss);
-    expect(pipe.status).toEqual("open");
-    expect(pipe.connections).toEqual([reservoirId, junctionId]);
-    expect(pipe.coordinates).toEqual([
-      [10, 20],
-      [50, 60],
-      [60, 70],
-      [30, 40],
-    ]);
-    expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
 
   it("ignores comments", () => {
@@ -192,11 +98,14 @@ describe("Parse inp", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
-    expect(reservoir.id).toEqual(reservoirId);
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      reservoirId,
+    ) as Reservoir;
+    expect(reservoir.id).not.toBeUndefined();
     expect(reservoir.head).toEqual(100);
     expect(reservoir.coordinates).toEqual([lng, lat]);
-    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.status).toEqual("open");
     expect(hydraulicModel.assets.size).toEqual(3);
   });
@@ -219,8 +128,11 @@ describe("Parse inp", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const reservoir = hydraulicModel.assets.get(reservoirId) as Reservoir;
-    expect(reservoir.id).toEqual(reservoirId);
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      reservoirId,
+    ) as Reservoir;
+    expect(reservoir.id).not.toBeUndefined();
     expect(hydraulicModel.assets.size).toEqual(1);
   });
 
@@ -241,7 +153,7 @@ describe("Parse inp", () => {
     expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
-    const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
+    const reservoir = getByLabel(hydraulicModel.assets, anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
 
     expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
@@ -264,7 +176,7 @@ describe("Parse inp", () => {
     expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
-    const reservoir = hydraulicModel.assets.get(anyId) as Reservoir;
+    const reservoir = getByLabel(hydraulicModel.assets, anyId) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("m");
   });
 
@@ -348,8 +260,8 @@ describe("Parse inp", () => {
     } = parseInp(inp);
 
     expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
-    expect(assets.get(junctionId)).toBeUndefined();
-    expect(assets.get(otherJunctionId)).not.toBeUndefined();
+    expect(getByLabel(assets, junctionId)).toBeUndefined();
+    expect(getByLabel(assets, otherJunctionId)).not.toBeUndefined();
   });
 
   it("says when coordinates are invalid", () => {
@@ -410,7 +322,7 @@ describe("Parse inp", () => {
     } = parseInp(inp);
 
     expect(issues!.invalidVertices!.values()).toContain(pipeId);
-    expect(assets.get(pipeId)).not.toBeUndefined();
+    expect(getByLabel(assets, pipeId)).not.toBeUndefined();
   });
 
   it("says when using non default options", () => {
