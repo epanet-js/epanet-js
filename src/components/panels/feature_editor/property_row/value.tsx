@@ -375,8 +375,6 @@ export function PropertyRowValue({
    */
   table = false,
   readOnly = false,
-  x,
-  y,
 }: {
   pair: PropertyPair;
   onChangeValue: OnChangeValue;
@@ -385,7 +383,7 @@ export function PropertyRowValue({
   table?: boolean;
   readOnly?: boolean;
   onCast: OnCast;
-} & CoordProps) {
+}) {
   // Some of the editors don’t change values
   // immediately, like the color picker. So
   // we create a sort of "transient" value here.
@@ -403,13 +401,13 @@ export function PropertyRowValue({
         }}
       >
         {isObject(value) ? (
-          <PropertyJSONPreview value={value} x={x} y={y} readOnly={readOnly} />
+          <PropertyJSONPreview value={value} x={0} y={0} readOnly={readOnly} />
         ) : typeof value === "boolean" ? (
           <BooleanEditor
             pair={pair}
             onChangeValue={onChangeValue}
-            x={x}
-            y={y}
+            x={0}
+            y={0}
           />
         ) : (
           <TextEditor
@@ -417,8 +415,8 @@ export function PropertyRowValue({
             pair={pair}
             onChangeValue={onChangeValue}
             readOnly={readOnly}
-            x={x}
-            y={y}
+            x={0}
+            y={0}
           />
         )}
       </P.Root>

@@ -662,8 +662,6 @@ export function FeatureTableInner({ data }: { data: Data }) {
                         style={style}
                       >
                         <PropertyColumn
-                          x={virtualColumn.index}
-                          y={virtualRow.index}
                           column={columns[virtualColumn.index - 1]}
                           feature={feature}
                         />
