@@ -9,41 +9,11 @@ import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
     it("can show its properties", () => {
-      const pipeId = "P1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
-        .aPipe(pipeId, {
-          status: "open",
-          length: 10,
-          diameter: 100.1,
-          roughness: 1,
-          minorLoss: 0.1,
-        })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: pipeId,
-      });
-
-      renderComponent(store);
-
-      expect(screen.getByText(/pipe/i)).toBeInTheDocument();
-
-      expectStatusDisplayed("Open");
-      expectPropertyDisplayed("diameter (mm)", "100.1");
-      expectPropertyDisplayed("roughness", "1");
-      expectPropertyDisplayed("length", "10");
-      expectPropertyDisplayed("loss coeff. (m)", "0.1");
-      expectPropertyDisplayed("flow", "Not available");
-    });
-
-    it("[FLAG] can show its properties", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .setHeadlossFormula("D-W")
@@ -96,29 +66,6 @@ describe("AssetEditor", () => {
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(junctionId, {
-          elevation: 10,
-          demand: 100,
-        })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: junctionId,
-      });
-
-      renderComponent(store);
-
-      expect(screen.getByText(/junction/i)).toBeInTheDocument();
-
-      expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("demand (l/s)", "100");
-      expectPropertyDisplayed("pressure (m)", "Not available");
-    });
-
-    it("[FLAG] shows its properties", () => {
-      stubFeatureOn("FLAG_UNIQUE_IDS");
-      const junctionId = "J1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
           label: "MY_JUNCTION",
           elevation: 10,
           demand: 100,
@@ -161,28 +108,6 @@ describe("AssetEditor", () => {
 
   describe("with a reservoir", () => {
     it("shows its properties", () => {
-      const reservoirId = "R1";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(reservoirId, {
-          elevation: 10,
-          head: 100,
-        })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: reservoirId,
-      });
-
-      renderComponent(store);
-
-      expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
-
-      expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("head (m)", "100");
-    });
-
-    it("[FLAG] shows its properties", () => {
-      stubFeatureOn("FLAG_UNIQUE_IDS");
       const reservoirId = "R1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(reservoirId, {
@@ -343,6 +268,12 @@ describe("AssetEditor", () => {
 
     await user.tab();
     expect(
+      screen.getByRole("textbox", {
+        name: /value for: label/i,
+      }),
+    ).toHaveFocus();
+    await user.tab();
+    expect(
       screen.getByRole("combobox", {
         name: /value for: status/i,
       }),
@@ -359,7 +290,12 @@ describe("AssetEditor", () => {
     expect(updatedSelector).not.toHaveFocus();
 
     await user.tab();
-    expect(updatedSelector).toHaveFocus();
+    expect(
+      screen.getByRole("textbox", {
+        name: /value for: label/i,
+      }),
+    ).toHaveFocus();
+    await user.tab();
     await user.tab();
 
     expect(

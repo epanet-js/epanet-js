@@ -317,6 +317,7 @@ export function TextEditor({
           className={E.styledPropertyInput(table ? "table" : "right")}
           aria-label={`Value for: ${key}`}
           readOnly={readOnly}
+          tabIndex={1}
           {...valueProps}
           ref={inputRef}
         />
