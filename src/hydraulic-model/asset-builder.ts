@@ -82,11 +82,12 @@ export class AssetBuilder {
       coordinates,
       {
         type: "pipe",
-        label: label
-          ? label
-          : isFeatureOn("FLAG_LABEL_TYPE")
-            ? this.labelManager.generateFor("pipe")
-            : this.labelManager.generateForDeprecated(id, "pipe"),
+        label:
+          label !== undefined || label === ""
+            ? label
+            : isFeatureOn("FLAG_LABEL_TYPE")
+              ? this.labelManager.generateFor("pipe")
+              : this.labelManager.generateForDeprecated(id, "pipe"),
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -110,11 +111,12 @@ export class AssetBuilder {
       coordinates,
       {
         type: "junction",
-        label: label
-          ? label
-          : isFeatureOn("FLAG_LABEL_TYPE")
-            ? this.labelManager.generateFor("junction")
-            : this.labelManager.generateForDeprecated(id, "junction"),
+        label:
+          label !== undefined || label === ""
+            ? label
+            : isFeatureOn("FLAG_LABEL_TYPE")
+              ? this.labelManager.generateFor("junction")
+              : this.labelManager.generateForDeprecated(id, "junction"),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
@@ -147,11 +149,12 @@ export class AssetBuilder {
       coordinates,
       {
         type: "reservoir",
-        label: label
-          ? label
-          : isFeatureOn("FLAG_LABEL_TYPE")
-            ? this.labelManager.generateFor("reservoir")
-            : this.labelManager.generateForDeprecated(id, "reservoir"),
+        label:
+          label !== undefined || label === ""
+            ? label
+            : isFeatureOn("FLAG_LABEL_TYPE")
+              ? this.labelManager.generateFor("reservoir")
+              : this.labelManager.generateForDeprecated(id, "reservoir"),
         head: headValue,
         elevation: elevationValue,
       },

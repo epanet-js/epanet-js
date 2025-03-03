@@ -6,6 +6,7 @@ import {
   buildPipe,
 } from "../../__helpers__/hydraulic-model-builder";
 import { Pipe } from "../asset-types";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("addPipe", () => {
   it("updates connections", () => {
@@ -117,5 +118,47 @@ describe("addPipe", () => {
     const pipeToCreate = putAssets![0] as Pipe;
     expect(pipeToCreate.id).toEqual("PIPE");
     expect(pipeToCreate.length).toBeCloseTo(195.04);
+  });
+
+  it("adds a label to the pipe", () => {
+    stubFeatureOn("FLAG_LABEL_TYPE");
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = buildJunction();
+    const endNode = buildJunction();
+    const pipe = buildPipe({
+      id: "PIPE",
+      label: "",
+    });
+
+    const { putAssets } = addPipe(hydraulicModel, {
+      startNode,
+      endNode,
+      pipe,
+    });
+
+    const pipeToCreate = putAssets![0] as Pipe;
+    expect(pipeToCreate.id).toEqual("PIPE");
+    expect(pipeToCreate.label).toEqual("P1");
+  });
+
+  it("adds a label to the nodes when missing", () => {
+    stubFeatureOn("FLAG_LABEL_TYPE");
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = buildJunction({ label: "" });
+    const endNode = buildJunction({ label: "CUSTOM" });
+    const pipe = buildPipe({
+      id: "PIPE",
+      label: "",
+    });
+
+    const { putAssets } = addPipe(hydraulicModel, {
+      startNode,
+      endNode,
+      pipe,
+    });
+
+    const [, nodeA, nodeB] = putAssets || [];
+    expect(nodeA.label).toEqual("J1");
+    expect(nodeB.label).toEqual("CUSTOM");
   });
 });

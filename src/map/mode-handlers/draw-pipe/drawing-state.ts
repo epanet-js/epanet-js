@@ -1,6 +1,7 @@
 import { useAtom } from "jotai";
 import { AssetBuilder } from "src/hydraulic-model";
 import { NodeAsset, Pipe } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
@@ -35,7 +36,10 @@ export const useDrawingState = (assetBuilder: AssetBuilder) => {
       if (prev.type !== "drawPipe")
         return {
           type: "drawPipe",
-          pipe: assetBuilder.buildPipe({ coordinates: [] }),
+          pipe: assetBuilder.buildPipe({
+            label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
+            coordinates: [],
+          }),
           snappingCandidate,
         };
 

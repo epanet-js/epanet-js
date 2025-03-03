@@ -2,6 +2,7 @@ import { Pipe, NodeAsset, LinkAsset } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type InputData = {
   pipe: Pipe;
@@ -14,13 +15,35 @@ export const addPipe: ModelOperation<InputData> = (
   { pipe, startNode, endNode },
 ) => {
   const pipeCopy = pipe.copy();
-  pipeCopy.setConnections(startNode.id, endNode.id);
+  const startNodeCopy = startNode.copy();
+  const endNodeCopy = endNode.copy();
+  if (isFeatureOn("FLAG_LABEL_TYPE")) {
+    pipeCopy.setProperty(
+      "label",
+      hydraulicModel.assetBuilder.labelManager.generateFor("pipe"),
+    );
+    if (startNodeCopy.label === "") {
+      startNodeCopy.setProperty(
+        "label",
+        hydraulicModel.assetBuilder.labelManager.generateFor(
+          startNodeCopy.type,
+        ),
+      );
+    }
+    if (endNodeCopy.label === "") {
+      endNodeCopy.setProperty(
+        "label",
+        hydraulicModel.assetBuilder.labelManager.generateFor(endNodeCopy.type),
+      );
+    }
+  }
+  pipeCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   removeRedundantVertices(pipeCopy);
-  forceSpatialConnectivity(pipeCopy, startNode, endNode);
+  forceSpatialConnectivity(pipeCopy, startNodeCopy, endNodeCopy);
 
   return {
     note: "Add pipe",
-    putAssets: [pipeCopy, startNode, endNode],
+    putAssets: [pipeCopy, startNodeCopy, endNodeCopy],
   };
 };
 const removeRedundantVertices = (link: LinkAsset) => {
