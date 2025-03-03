@@ -42,6 +42,7 @@ import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -74,10 +75,17 @@ export class MemPersistence implements IPersistence {
       };
       moment.putAssets.forEach((asset) => {
         UIDMap.pushUUID(this.idMap, asset.id);
-        hydraulicModel.assetBuilder.labelManager.register(
-          asset.label,
-          asset.id,
-        );
+        if (isFeatureOn("FLAG_LABEL_TYPE")) {
+          hydraulicModel.assetBuilder.labelManager.register(
+            asset.label,
+            asset.type,
+          );
+        } else {
+          hydraulicModel.assetBuilder.labelManager.registerDeprecated(
+            asset.label,
+            asset.id,
+          );
+        }
       });
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
       this.store.set(dataAtom, {
@@ -223,7 +231,17 @@ export class MemPersistence implements IPersistence {
       hydraulicModel.assets.delete(id);
       hydraulicModel.topology.removeNode(id);
       hydraulicModel.topology.removeLink(id);
-      hydraulicModel.assetBuilder.labelManager.remove(asset.label, asset.id);
+      if (isFeatureOn("FLAG_LABEL_TYPE")) {
+        hydraulicModel.assetBuilder.labelManager.remove(
+          asset.label,
+          asset.type,
+        );
+      } else {
+        hydraulicModel.assetBuilder.labelManager.removeDeprecated(
+          asset.label,
+          asset.id,
+        );
+      }
     }
     return moment;
   }
@@ -304,10 +322,17 @@ export class MemPersistence implements IPersistence {
         const oldConnections = oldLink.connections;
 
         oldConnections && topology.removeLink(oldVersion.id);
-        ctx.hydraulicModel.assetBuilder.labelManager.remove(
-          oldVersion.label,
-          oldVersion.id,
-        );
+        if (isFeatureOn("FLAG_LABEL_TYPE")) {
+          ctx.hydraulicModel.assetBuilder.labelManager.remove(
+            oldVersion.label,
+            oldVersion.type,
+          );
+        } else {
+          ctx.hydraulicModel.assetBuilder.labelManager.removeDeprecated(
+            oldVersion.label,
+            oldVersion.id,
+          );
+        }
       }
 
       if (
@@ -319,10 +344,12 @@ export class MemPersistence implements IPersistence {
         topology.addLink(inputFeature.id, start, end);
       }
 
-      ctx.hydraulicModel.assetBuilder.labelManager.register(
-        (inputFeature as Asset).label,
-        inputFeature.id,
-      );
+      if (!isFeatureOn("FLAG_LABEL_TYPE")) {
+        ctx.hydraulicModel.assetBuilder.labelManager.registerDeprecated(
+          (inputFeature as Asset).label,
+          inputFeature.id,
+        );
+      }
       UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
 
