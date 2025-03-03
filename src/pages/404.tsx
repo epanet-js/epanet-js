@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
 import { HomeIcon } from "@radix-ui/react-icons";
-import Placemark from "src/components/icons/placemark";
 import { formatTitle } from "src/lib/utils";
 
 export default function Page404() {
@@ -12,7 +11,7 @@ export default function Page404() {
       </Head>
       <div className="h-screen flex items-center justify-center">
         <div className="w-64">
-          <Placemark className="w-30" />
+          <div className="text-4xl font-bold">epanet-js</div>
           <div className="pt-4 text-lg">Sorry, we couldn’t find that page.</div>
           <div className="pt-4 text-lg">
             <Link
