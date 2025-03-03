@@ -16,6 +16,7 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { NodeAsset, Pipe } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -37,6 +38,7 @@ export function useDrawPipeHandlers({
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = startNode.coordinates;
     const pipe = assetBuilder.buildPipe({
+      label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
       coordinates: [coordinates, coordinates],
     });
 
@@ -100,6 +102,7 @@ export function useDrawPipeHandlers({
           const startNode = snappingNode
             ? snappingNode
             : assetBuilder.buildJunction({
+                label: "",
                 coordinates: clickPosition,
                 elevation: pointElevation,
               });
@@ -117,6 +120,7 @@ export function useDrawPipeHandlers({
 
         if (isEndAndContinueOn()) {
           const endJunction = assetBuilder.buildJunction({
+            label: "",
             coordinates: clickPosition,
             elevation: pointElevation,
           });
@@ -175,6 +179,7 @@ export function useDrawPipeHandlers({
       const { startNode, pipe } = drawing;
 
       const endJunction = assetBuilder.buildJunction({
+        label: "",
         coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),
