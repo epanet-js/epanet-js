@@ -1,38 +1,35 @@
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { LabelManager } from "./label-manager";
 
 describe("label manager", () => {
-  it("defaults to the id as the label", () => {
-    const labelManager = new LabelManager();
-    expect(labelManager.generateFor("1", "pipe")).toEqual("P1");
-    expect(labelManager.generateFor("1", "junction")).toEqual("J1");
+  beforeEach(() => {
+    stubFeatureOn("FLAG_LABEL_TYPE");
   });
 
-  it("appends a suffix when the id as label is already taken", () => {
+  it("defaults to the type count and prefixes", () => {
     const labelManager = new LabelManager();
-    const otherId = "otherID";
-
-    labelManager.register("P1", otherId);
-
-    const newLabel = labelManager.generateFor("1", "pipe");
-
-    expect(newLabel).toEqual("P1.1");
+    expect(labelManager.generateFor("pipe")).toEqual("P1");
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
+    expect(labelManager.generateFor("pipe")).toEqual("P3");
+    expect(labelManager.generateFor("junction")).toEqual("J1");
   });
 
-  it("increases suffix when already taken", () => {
+  it("skips until not taken", () => {
     const labelManager = new LabelManager();
-    const otherId = "otherID";
-    const otherId2 = "otherID2";
-    labelManager.register("P1", otherId);
-    labelManager.register("P1.1", otherId2);
 
-    expect(labelManager.generateFor("1", "pipe")).toEqual("P1.2");
+    labelManager.register("P1", "pipe");
+    labelManager.register("P3", "pipe");
+
+    expect(labelManager.generateFor("pipe")).toEqual("P4");
+    expect(labelManager.generateFor("pipe")).toEqual("P5");
+    expect(labelManager.generateFor("junction")).toEqual("J1");
   });
 
   it("can have the same label registerd for multiple ids", () => {
     const labelManager = new LabelManager();
 
-    labelManager.register("LABEL_1", "ID_1");
-    labelManager.register("LABEL_1", "ID_2");
+    labelManager.register("LABEL_1", "junction");
+    labelManager.register("LABEL_1", "junction");
 
     expect(labelManager.count("LABEL_1")).toEqual(2);
   });
@@ -40,16 +37,16 @@ describe("label manager", () => {
   it("can delete a previous labels", () => {
     const labelManager = new LabelManager();
 
-    labelManager.register("P1", "ID_1");
-    labelManager.register("P1", "ID_2");
+    labelManager.register("P1", "pipe");
+    labelManager.register("P1", "pipe");
 
-    labelManager.remove("P1", "ID_1");
+    labelManager.remove("P1", "pipe");
 
     expect(labelManager.count("P1")).toEqual(1);
 
-    labelManager.remove("P1", "ID_2");
+    labelManager.remove("P1", "pipe");
     expect(labelManager.count("P1")).toEqual(0);
 
-    expect(labelManager.generateFor("1", "pipe")).toEqual("P1");
+    expect(labelManager.generateFor("pipe")).toEqual("P1");
   });
 });
