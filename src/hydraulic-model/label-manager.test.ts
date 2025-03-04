@@ -20,8 +20,8 @@ describe("label manager", () => {
     labelManager.register("P1", "pipe");
     labelManager.register("P3", "pipe");
 
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
     expect(labelManager.generateFor("pipe")).toEqual("P4");
-    expect(labelManager.generateFor("pipe")).toEqual("P5");
     expect(labelManager.generateFor("junction")).toEqual("J1");
   });
 
@@ -48,5 +48,35 @@ describe("label manager", () => {
     expect(labelManager.count("P1")).toEqual(0);
 
     expect(labelManager.generateFor("pipe")).toEqual("P1");
+  });
+
+  it("fills gaps when removing labels", () => {
+    const labelManager = new LabelManager();
+
+    expect(labelManager.generateFor("pipe")).toEqual("P1");
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
+    expect(labelManager.generateFor("pipe")).toEqual("P3");
+
+    labelManager.remove("P2", "pipe");
+
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
+    expect(labelManager.generateFor("pipe")).toEqual("P4");
+
+    labelManager.remove("P2", "pipe");
+    labelManager.remove("P4", "pipe");
+
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
+    expect(labelManager.generateFor("pipe")).toEqual("P4");
+  });
+
+  it("fills gaps after registering labels", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("P1", "pipe");
+    labelManager.register("P3", "pipe");
+    labelManager.register("FOO", "pipe");
+
+    expect(labelManager.generateFor("pipe")).toEqual("P2");
+    expect(labelManager.generateFor("pipe")).toEqual("P4");
   });
 });
