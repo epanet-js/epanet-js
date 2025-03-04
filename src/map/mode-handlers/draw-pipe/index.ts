@@ -130,12 +130,17 @@ export function useDrawPipeHandlers({
         }
 
         if (isEndAndContinueOn()) {
-          const endJunction = assetBuilder.buildJunction({
+          let endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
+            label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
             coordinates: clickPosition,
             elevation: pointElevation,
           });
-          submitPipe(drawing.startNode, drawing.pipe, endJunction);
-          startDrawing(endJunction);
+          endJunction = submitPipe(
+            drawing.startNode,
+            drawing.pipe,
+            endJunction,
+          );
+          endJunction && startDrawing(endJunction);
         } else {
           addVertex(clickPosition);
         }
@@ -188,7 +193,8 @@ export function useDrawPipeHandlers({
 
       const { startNode, pipe } = drawing;
 
-      const endJunction = assetBuilder.buildJunction({
+      const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
+        label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
         coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),
