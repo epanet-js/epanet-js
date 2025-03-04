@@ -86,7 +86,7 @@ export class AssetBuilder {
           label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("pipe")
+              ? this.labelManager.generateFor("pipe", id)
               : this.labelManager.generateForDeprecated(id, "pipe"),
         connections,
         status,
@@ -115,7 +115,7 @@ export class AssetBuilder {
           label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("junction")
+              ? this.labelManager.generateFor("junction", id)
               : this.labelManager.generateForDeprecated(id, "junction"),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
@@ -153,7 +153,7 @@ export class AssetBuilder {
           label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("reservoir")
+              ? this.labelManager.generateFor("reservoir", id)
               : this.labelManager.generateForDeprecated(id, "reservoir"),
         head: headValue,
         elevation: elevationValue,

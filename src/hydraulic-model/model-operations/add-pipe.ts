@@ -20,20 +20,24 @@ export const addPipe: ModelOperation<InputData> = (
   if (isFeatureOn("FLAG_LABEL_TYPE")) {
     pipeCopy.setProperty(
       "label",
-      hydraulicModel.assetBuilder.labelManager.generateFor("pipe"),
+      hydraulicModel.assetBuilder.labelManager.generateFor("pipe", pipeCopy.id),
     );
     if (startNodeCopy.label === "") {
       startNodeCopy.setProperty(
         "label",
         hydraulicModel.assetBuilder.labelManager.generateFor(
           startNodeCopy.type,
+          startNodeCopy.id,
         ),
       );
     }
     if (endNodeCopy.label === "") {
       endNodeCopy.setProperty(
         "label",
-        hydraulicModel.assetBuilder.labelManager.generateFor(endNodeCopy.type),
+        hydraulicModel.assetBuilder.labelManager.generateFor(
+          endNodeCopy.type,
+          endNodeCopy.id,
+        ),
       );
     }
   }
