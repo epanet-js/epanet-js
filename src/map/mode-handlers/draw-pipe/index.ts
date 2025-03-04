@@ -71,6 +71,9 @@ export function useDrawPipeHandlers({
     const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
 
     transact(moment);
+
+    const [, , endNodeUpdated] = moment.putAssets || [];
+    return endNodeUpdated as NodeAsset;
   };
 
   const isSnapping = () => !isShiftHeld();
@@ -102,7 +105,7 @@ export function useDrawPipeHandlers({
           const startNode = snappingNode
             ? snappingNode
             : assetBuilder.buildJunction({
-                label: "",
+                label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
                 coordinates: clickPosition,
                 elevation: pointElevation,
               });
@@ -113,14 +116,21 @@ export function useDrawPipeHandlers({
         }
 
         if (!!snappingNode) {
-          submitPipe(drawing.startNode, drawing.pipe, snappingNode);
-          isEndAndContinueOn() ? startDrawing(snappingNode) : resetDrawing();
+          const endNode = submitPipe(
+            drawing.startNode,
+            drawing.pipe,
+            snappingNode,
+          );
+          isEndAndContinueOn() && endNode
+            ? startDrawing(
+                isFeatureOn("FLAG_LABEL_TYPE") ? endNode : snappingNode,
+              )
+            : resetDrawing();
           return;
         }
 
         if (isEndAndContinueOn()) {
           const endJunction = assetBuilder.buildJunction({
-            label: "",
             coordinates: clickPosition,
             elevation: pointElevation,
           });
@@ -179,7 +189,6 @@ export function useDrawPipeHandlers({
       const { startNode, pipe } = drawing;
 
       const endJunction = assetBuilder.buildJunction({
-        label: "",
         coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),
