@@ -6,15 +6,17 @@ const typeToPrefix: Record<Asset["type"], string> = {
   reservoir: "R",
 };
 
+type AssetData = Pick<Asset, "type" | "id">;
+
 export class LabelManager {
   private labelsDeprecated: Map<string, AssetId[]>;
   private indexPerType: Map<Asset["type"], number>;
-  private countsPerLabel: Map<string, number>;
+  private assetIndex: Map<string, AssetData[]>;
 
   constructor() {
-    this.countsPerLabel = new Map();
     this.indexPerType = new Map();
     this.labelsDeprecated = new Map();
+    this.assetIndex = new Map();
   }
 
   registerDeprecated(label: string, id: AssetId) {
@@ -24,27 +26,9 @@ export class LabelManager {
     ]);
   }
 
-  register(label: string, _type: Asset["type"]) {
-    this.countsPerLabel.set(label, (this.countsPerLabel.get(label) || 0) + 1);
-  }
+  register(label: string, type: Asset["type"], id: Asset["id"]) {
+    if ((this.assetIndex.get(label) || []).some((a) => a.id === id)) return;
 
-  count(label: string) {
-    return this.countsPerLabel.get(label) || 0;
-  }
-
-  countDeprecated(label: string) {
-    return (this.labelsDeprecated.get(label) || []).length;
-  }
-
-  generateFor(type: Asset["type"]) {
-    const nextIndex = this.indexPerType.get(type) || 1;
-    const { label, index: effectiveIndex } = this.ensureUnique(type, nextIndex);
-    this.indexPerType.set(type, effectiveIndex);
-    this.countsPerLabel.set(label, (this.countsPerLabel.get(label) || 0) + 1);
-    return label;
-  }
-
-  remove(label: string, type: Asset["type"]) {
     const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`);
     const match = label.match(regexp);
     if (match) {
@@ -55,7 +39,47 @@ export class LabelManager {
         Math.min(this.indexPerType.get(type) as number, index),
       );
     }
-    this.countsPerLabel.set(label, (this.countsPerLabel.get(label) || 1) - 1);
+
+    this.assetIndex.set(label, [
+      ...(this.assetIndex.get(label) || []),
+      { type, id },
+    ]);
+  }
+
+  count(label: string) {
+    return (this.assetIndex.get(label) || []).length;
+  }
+
+  countDeprecated(label: string) {
+    return (this.labelsDeprecated.get(label) || []).length;
+  }
+
+  generateFor(type: Asset["type"], id: Asset["id"]) {
+    const nextIndex = this.indexPerType.get(type) || 1;
+    const { label, index: effectiveIndex } = this.ensureUnique(type, nextIndex);
+    this.indexPerType.set(type, effectiveIndex);
+    this.assetIndex.set(label, [
+      ...(this.assetIndex.get(label) || []),
+      { id, type },
+    ]);
+    return label;
+  }
+
+  remove(label: string, type: Asset["type"], id: Asset["id"]) {
+    const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`);
+    const match = label.match(regexp);
+    if (match) {
+      const index = parseInt(match[1]);
+
+      this.indexPerType.set(
+        type,
+        Math.min(this.indexPerType.get(type) as number, index),
+      );
+    }
+    this.assetIndex.set(
+      label,
+      (this.assetIndex.get(label) || []).filter((a) => a.id !== id),
+    );
   }
 
   generateForDeprecated(id: AssetId, type: Asset["type"]) {
@@ -80,7 +104,7 @@ export class LabelManager {
     index: number,
   ): { label: string; index: number } {
     const candidate = `${typeToPrefix[type]}${index}`;
-    if (!this.countsPerLabel.get(candidate)) {
+    if (!(this.assetIndex.get(candidate) || []).some((a) => a.type === type)) {
       return { label: candidate, index: index };
     }
 

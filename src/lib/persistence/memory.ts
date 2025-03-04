@@ -79,6 +79,7 @@ export class MemPersistence implements IPersistence {
           hydraulicModel.assetBuilder.labelManager.register(
             asset.label,
             asset.type,
+            asset.id,
           );
         } else {
           hydraulicModel.assetBuilder.labelManager.registerDeprecated(
@@ -235,6 +236,7 @@ export class MemPersistence implements IPersistence {
         hydraulicModel.assetBuilder.labelManager.remove(
           asset.label,
           asset.type,
+          asset.id,
         );
       } else {
         hydraulicModel.assetBuilder.labelManager.removeDeprecated(
@@ -326,6 +328,7 @@ export class MemPersistence implements IPersistence {
           ctx.hydraulicModel.assetBuilder.labelManager.remove(
             oldVersion.label,
             oldVersion.type,
+            oldVersion.id,
           );
         } else {
           ctx.hydraulicModel.assetBuilder.labelManager.removeDeprecated(
@@ -344,7 +347,13 @@ export class MemPersistence implements IPersistence {
         topology.addLink(inputFeature.id, start, end);
       }
 
-      if (!isFeatureOn("FLAG_LABEL_TYPE")) {
+      if (isFeatureOn("FLAG_LABEL_TYPE")) {
+        ctx.hydraulicModel.assetBuilder.labelManager.register(
+          (inputFeature as Asset).label,
+          (inputFeature as Asset).type,
+          (inputFeature as Asset).id,
+        );
+      } else {
         ctx.hydraulicModel.assetBuilder.labelManager.registerDeprecated(
           (inputFeature as Asset).label,
           inputFeature.id,
