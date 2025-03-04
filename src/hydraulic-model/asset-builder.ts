@@ -83,7 +83,7 @@ export class AssetBuilder {
       {
         type: "pipe",
         label:
-          label !== undefined || label === ""
+          label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
               ? this.labelManager.generateFor("pipe")
@@ -112,7 +112,7 @@ export class AssetBuilder {
       {
         type: "junction",
         label:
-          label !== undefined || label === ""
+          label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
               ? this.labelManager.generateFor("junction")
@@ -150,7 +150,7 @@ export class AssetBuilder {
       {
         type: "reservoir",
         label:
-          label !== undefined || label === ""
+          label !== undefined
             ? label
             : isFeatureOn("FLAG_LABEL_TYPE")
               ? this.labelManager.generateFor("reservoir")
