@@ -174,6 +174,7 @@ export const translations = {
   alertInpOutputDetail:
     "Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy instead of overriding the original content.",
   label: "Label",
+  signIn: "Sign in",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

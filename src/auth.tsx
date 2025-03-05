@@ -9,6 +9,7 @@ import {
 import { captureWarning } from "./infra/error-tracking";
 import { Button } from "./components/elements";
 import { PersonIcon } from "@radix-ui/react-icons";
+import { translate } from "./infra/i18n";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const SignInButton = () => (
   <ClerkSignInButton>
     <Button variant="primary">
-      <PersonIcon /> Sign in
+      <PersonIcon /> {translate("signIn")}
     </Button>
   </ClerkSignInButton>
 );

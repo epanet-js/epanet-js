@@ -181,6 +181,7 @@ export const translations: Translations = {
   alertInpOutputDetail:
     "Ten en cuenta que algunas secciones y configuraciones pueden tener un formato diferente o ser omitidas. Te recomendamos guardar una copia para no sobrescribir el contenido original.",
   label: "Etiqueta",
+  signIn: "Iniciar sesión",
 };
 
 export const units: UnitsLocale = {
