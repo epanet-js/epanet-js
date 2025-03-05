@@ -182,7 +182,7 @@ export const translations: Translations = {
   label: "Etiqueta",
   login: "Iniciar sesión",
   register: "Registrarse",
-  openSource: "OpenSource",
+  openSource: "Open Source",
 };
 
 export const units: UnitsLocale = {
