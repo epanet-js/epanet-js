@@ -24,6 +24,7 @@
     "not ie 11"
   ],
   "dependencies": {
+    "@clerk/nextjs": "^6.12.3",
     "@codemirror/commands": "^6.5.0",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.10.1",
