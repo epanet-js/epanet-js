@@ -146,7 +146,6 @@ export const translations = {
   alwaysShowAtStart: "Always show at start up",
   termsAndConditions: "Terms and conditions",
   privacyPolicy: "Privacy policy",
-  openSource: "Open Source",
   downloadFailed: "Download failed. Try again, please!",
   geocodingNotSupported: "Geocoding not supported",
   geocodingNotSupportedDetail:
@@ -174,7 +173,9 @@ export const translations = {
   alertInpOutputDetail:
     "Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy instead of overriding the original content.",
   label: "Label",
-  signIn: "Sign in",
+  login: "Log in",
+  register: "Register",
+  openSource: "Open Source",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

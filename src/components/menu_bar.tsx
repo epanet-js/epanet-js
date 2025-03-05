@@ -16,8 +16,14 @@ import { useSetAtom } from "jotai";
 import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
-import { helpCenterUrl } from "src/global-config";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "src/auth";
+import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "src/auth";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export function MenuBarFallback() {
@@ -68,14 +74,13 @@ export const MenuBarPlay = memo(function MenuBar() {
         </div>
         <FileInfo />
       </div>
-      <div className="flex items-center gap-x-2">
-        <Link
-          href="https://github.com/epanet-js/epanet-js"
-          className="text-purple-600 hover:text-purple-700 flex items-center gap-1 text-sm bg-purple-100 px-2 py-1 rounded"
-        >
-          <GitHubLogoIcon />
-          Open Source
-        </Link>
+      <div className="flex items-center gap-x-1">
+        <a href={sourceCodeUrl} target="_blank">
+          <Button variant="quiet">
+            <GitHubLogoIcon />
+            {translate("openSource")}
+          </Button>
+        </a>
         {isDebugOn && <DebugDropdown />}
 
         <HelpDot />
@@ -85,7 +90,11 @@ export const MenuBarPlay = memo(function MenuBar() {
               <UserButton />
             </SignedIn>
             <SignedOut>
-              <SignInButton />
+              <Divider />
+              <div className="flex items-center gap-x-2">
+                <SignInButton />
+                <SignUpButton />
+              </div>
             </SignedOut>
           </>
         )}
