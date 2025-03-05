@@ -8,6 +8,7 @@ import { Store, layerConfigAtom } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
 import LAYERS from "src/lib/default_layers";
 import dynamic from "next/dynamic";
+import { AuthProvider } from "src/auth";
 
 const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
@@ -28,7 +29,9 @@ function ScratchpadInner({ store }: { store: Store }) {
           <title>epanet-js</title>
         </Head>
         <Suspense fallback={null}>
-          <PlacemarkPlay />
+          <AuthProvider>
+            <PlacemarkPlay />
+          </AuthProvider>
         </Suspense>
       </>
     </PersistenceContext.Provider>

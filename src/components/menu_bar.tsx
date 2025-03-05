@@ -17,6 +17,8 @@ import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
 import { helpCenterUrl } from "src/global-config";
+import { SignInButton, SignedIn, SignedOut, UserButton } from "src/auth";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -77,6 +79,16 @@ export const MenuBarPlay = memo(function MenuBar() {
         {isDebugOn && <DebugDropdown />}
 
         <HelpDot />
+        {isFeatureOn("FLAG_AUTH") && (
+          <>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
+          </>
+        )}
       </div>
     </div>
   );
