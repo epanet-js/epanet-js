@@ -4,14 +4,15 @@ import {
   SignedIn as ClerkSignedIn,
   SignedOut as ClerkSignedOut,
   SignInButton as ClerkSignInButton,
+  SignUpButton as ClerkSignUpButton,
   UserButton as ClerkUserButton,
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
 import { Button } from "./components/elements";
 import { PersonIcon } from "@radix-ui/react-icons";
-import { translate } from "./infra/i18n";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
+import { translate } from "./infra/i18n";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -29,10 +30,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const SignInButton = () => (
   <ClerkSignInButton>
-    <Button variant="primary">
-      <PersonIcon /> {translate("signIn")}
+    <Button variant="quiet" className="text-purple-500 font-semibold">
+      {translate("login")}
     </Button>
   </ClerkSignInButton>
+);
+
+export const SignUpButton = () => (
+  <ClerkSignUpButton>
+    <Button variant="primary">
+      <PersonIcon /> {translate("register")}
+    </Button>
+  </ClerkSignUpButton>
 );
 
 export const SignedIn = ({ children }: { children: React.ReactNode }) => {

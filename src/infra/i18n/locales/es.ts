@@ -153,7 +153,6 @@ export const translations: Translations = {
   alwaysShowAtStart: "Mostrar siempre al inicio",
   termsAndConditions: "Términos y condiciones",
   privacyPolicy: "Política de privacidad",
-  openSource: "Open Source",
   downloadFailed: "No se ha podido descargar. Por favor, inténtalo de nuevo.",
   geocodingNotSupported: "Proyección no soportada",
   geocodingNotSupportedDetail:
@@ -181,7 +180,9 @@ export const translations: Translations = {
   alertInpOutputDetail:
     "Ten en cuenta que algunas secciones y configuraciones pueden tener un formato diferente o ser omitidas. Te recomendamos guardar una copia para no sobrescribir el contenido original.",
   label: "Etiqueta",
-  signIn: "Iniciar sesión",
+  login: "Iniciar sesión",
+  register: "Registrarse",
+  openSource: "OpenSource",
 };
 
 export const units: UnitsLocale = {
