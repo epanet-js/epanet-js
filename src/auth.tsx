@@ -7,6 +7,8 @@ import {
   UserButton as ClerkUserButton,
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
+import { Button } from "./components/elements";
+import { PersonIcon } from "@radix-ui/react-icons";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -18,7 +20,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const SignInButton = () => (
   <ClerkSignInButton>
-    <button className="button button--secondary button--lg">Sign In</button>
+    <Button variant="primary">
+      <PersonIcon /> Sign in
+    </Button>
   </ClerkSignInButton>
 );
 

@@ -96,7 +96,7 @@ export const MenuBarPlay = memo(function MenuBar() {
 
 export const MenuBar = memo(function MenuBar() {
   return (
-    <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
+    <div className="flex justify-between h-12 pr-3 text-black dark:text-white">
       <div className="flex items-center">
         <WrappedFeatureCollectionInfo />
         <FileInfo />
