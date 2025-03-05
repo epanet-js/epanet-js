@@ -10,13 +10,21 @@ import { captureWarning } from "./infra/error-tracking";
 import { Button } from "./components/elements";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { translate } from "./infra/i18n";
+import { enUS, esES } from "@clerk/localizations";
+import { getLocale } from "./infra/i18n/locale";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
     captureWarning(error.message);
   }, []);
-  // @ts-expect-error need to fix @types/react https://github.com/reduxjs/react-redux/issues/1886
-  return <ClerkProvider onError={handleError}>{children}</ClerkProvider>;
+  const clerkLocalization = getLocale() === "es" ? esES : enUS;
+
+  return (
+    // @ts-expect-error need to fix @types/react https://github.com/reduxjs/react-redux/issues/1886
+    <ClerkProvider localization={clerkLocalization} onError={handleError}>
+      {children}
+    </ClerkProvider>
+  );
 };
 
 export const SignInButton = () => (
