@@ -1,4 +1,20 @@
-import Head from "next/head";
+"use client";
+
+import { QueryClient, QueryClientProvider } from "react-query";
+//import Play from "src/pages/index-deprecated";
+import "src/styles/globals.css";
+import * as T from "@radix-ui/react-tooltip";
+
+const queryClient = new QueryClient();
+export default function HomePage({}) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <T.Provider>
+        <Play />
+      </T.Provider>
+    </QueryClientProvider>
+  );
+}
 import { Suspense, useRef } from "react";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -7,8 +23,8 @@ import { UIDMap } from "src/lib/id_mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
 import LAYERS from "src/lib/default_layers";
-import dynamic from "next/dynamic";
 import { AuthProvider } from "src/auth";
+import dynamic from "next/dynamic";
 
 const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
@@ -24,16 +40,11 @@ function ScratchpadInner({ store }: { store: Store }) {
     <PersistenceContext.Provider
       value={new MemPersistence(idMap.current, store)}
     >
-      <>
-        <Head>
-          <title>epanet-js</title>
-        </Head>
-        <Suspense fallback={null}>
-          <AuthProvider>
-            <PlacemarkPlay />
-          </AuthProvider>
-        </Suspense>
-      </>
+      <Suspense fallback={null}>
+        <AuthProvider>
+          <PlacemarkPlay />
+        </AuthProvider>
+      </Suspense>
     </PersistenceContext.Provider>
   );
 }
@@ -66,5 +77,3 @@ const Play = () => {
     </Provider>
   );
 };
-
-export default Play;
