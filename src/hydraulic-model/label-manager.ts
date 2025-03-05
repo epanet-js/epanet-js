@@ -103,12 +103,16 @@ export class LabelManager {
     type: Asset["type"],
     index: number,
   ): { label: string; index: number } {
-    const candidate = `${typeToPrefix[type]}${index}`;
-    if (!(this.assetIndex.get(candidate) || []).some((a) => a.type === type)) {
-      return { label: candidate, index: index };
+    let iterationIndex = index;
+    while (true) {
+      const candidate = `${typeToPrefix[type]}${iterationIndex}`;
+      if (
+        !(this.assetIndex.get(candidate) || []).some((a) => a.type === type)
+      ) {
+        return { label: candidate, index: iterationIndex };
+      }
+      iterationIndex++;
     }
-
-    return this.ensureUnique(type, index + 1);
   }
 
   private ensureUniqueDeprecated(candidate: string, count = 0): string {
