@@ -58,7 +58,7 @@ export function DebugDropdown() {
           <span>Debug</span>
         </DD.Trigger>
         <DD.Portal>
-          <DDContent>
+          <DDContent align="end">
             <DD.Sub>
               <DDSubTriggerItem>
                 Undo history

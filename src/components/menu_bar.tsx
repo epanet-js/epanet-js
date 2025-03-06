@@ -127,7 +127,7 @@ export function HelpDot() {
       <DD.Trigger asChild>
         <Button variant="quiet">{translate("help")}</Button>
       </DD.Trigger>
-      <DDContent>
+      <DDContent side="bottom" align="end">
         <StyledItem
           onSelect={() => {
             setDialogState({ type: "welcome" });
