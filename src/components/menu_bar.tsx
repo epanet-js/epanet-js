@@ -86,12 +86,14 @@ export const MenuBarPlay = memo(function MenuBar() {
         <HelpDot />
         {isFeatureOn("FLAG_AUTH") && (
           <>
+            <Divider />
             <SignedIn>
-              <UserButton />
+              <div className="flex items-center px-2">
+                <UserButton />
+              </div>
             </SignedIn>
             <SignedOut>
-              <Divider />
-              <div className="flex items-center gap-x-2">
+              <div className="flex items-center gap-x-1">
                 <SignInButton />
                 <SignUpButton />
               </div>
@@ -153,5 +155,5 @@ export function HelpDot() {
 }
 
 export const Divider = () => {
-  return <div className="border-r-2 border-gray-100 h-8"></div>;
+  return <div className="border-r-2 border-gray-100 h-8 mr-1"></div>;
 };
