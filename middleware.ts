@@ -5,6 +5,8 @@ const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || "password";
 
 export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.endsWith("js.map")) return NextResponse.next();
+  if (request.nextUrl.pathname.startsWith("/api/auth-webhook"))
+    return NextResponse.next();
 
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) {
