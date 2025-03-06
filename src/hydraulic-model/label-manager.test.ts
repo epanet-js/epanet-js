@@ -1,14 +1,9 @@
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { LabelManager } from "./label-manager";
 import { nanoid } from "nanoid";
 
 const anId = () => nanoid();
 
 describe("label manager", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_LABEL_TYPE");
-  });
-
   it("defaults to the type count and prefixes", () => {
     const labelManager = new LabelManager();
     expect(labelManager.generateFor("pipe", anId())).toEqual("P1");

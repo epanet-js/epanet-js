@@ -6,7 +6,6 @@ import {
   buildPipe,
 } from "../../__helpers__/hydraulic-model-builder";
 import { Pipe } from "../asset-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("addPipe", () => {
   it("updates connections", () => {
@@ -121,7 +120,6 @@ describe("addPipe", () => {
   });
 
   it("adds a label to the pipe", () => {
-    stubFeatureOn("FLAG_LABEL_TYPE");
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction();
     const endNode = buildJunction();
@@ -142,7 +140,6 @@ describe("addPipe", () => {
   });
 
   it("adds a label to the nodes when missing", () => {
-    stubFeatureOn("FLAG_LABEL_TYPE");
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction({ label: "" });
     const endNode = buildJunction({ label: "CUSTOM" });
