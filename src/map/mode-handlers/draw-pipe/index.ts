@@ -16,7 +16,6 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { NodeAsset, Pipe } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -38,7 +37,7 @@ export function useDrawPipeHandlers({
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = startNode.coordinates;
     const pipe = assetBuilder.buildPipe({
-      label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
+      label: "",
       coordinates: [coordinates, coordinates],
     });
 
@@ -105,7 +104,7 @@ export function useDrawPipeHandlers({
           const startNode = snappingNode
             ? snappingNode
             : assetBuilder.buildJunction({
-                label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
+                label: "",
                 coordinates: clickPosition,
                 elevation: pointElevation,
               });
@@ -122,16 +121,14 @@ export function useDrawPipeHandlers({
             snappingNode,
           );
           isEndAndContinueOn() && endNode
-            ? startDrawing(
-                isFeatureOn("FLAG_LABEL_TYPE") ? endNode : snappingNode,
-              )
+            ? startDrawing(endNode)
             : resetDrawing();
           return;
         }
 
         if (isEndAndContinueOn()) {
           let endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
-            label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
+            label: "",
             coordinates: clickPosition,
             elevation: pointElevation,
           });
@@ -194,7 +191,7 @@ export function useDrawPipeHandlers({
       const { startNode, pipe } = drawing;
 
       const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
-        label: isFeatureOn("FLAG_LABEL_TYPE") ? "" : undefined,
+        label: "",
         coordinates: pipe.lastVertex,
         elevation: await fetchElevationForPoint(
           coordinatesToLngLat(pipe.lastVertex),

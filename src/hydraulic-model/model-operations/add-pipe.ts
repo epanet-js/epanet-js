@@ -2,7 +2,7 @@ import { Pipe, NodeAsset, LinkAsset } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
-import { isFeatureOn } from "src/infra/feature-flags";
+import { LabelManager } from "../label-manager";
 
 type InputData = {
   pipe: Pipe;
@@ -17,30 +17,12 @@ export const addPipe: ModelOperation<InputData> = (
   const pipeCopy = pipe.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
-  if (isFeatureOn("FLAG_LABEL_TYPE")) {
-    pipeCopy.setProperty(
-      "label",
-      hydraulicModel.assetBuilder.labelManager.generateFor("pipe", pipeCopy.id),
-    );
-    if (startNodeCopy.label === "") {
-      startNodeCopy.setProperty(
-        "label",
-        hydraulicModel.assetBuilder.labelManager.generateFor(
-          startNodeCopy.type,
-          startNodeCopy.id,
-        ),
-      );
-    }
-    if (endNodeCopy.label === "") {
-      endNodeCopy.setProperty(
-        "label",
-        hydraulicModel.assetBuilder.labelManager.generateFor(
-          endNodeCopy.type,
-          endNodeCopy.id,
-        ),
-      );
-    }
-  }
+  addMissingLabels(
+    hydraulicModel.assetBuilder.labelManager,
+    pipeCopy,
+    startNodeCopy,
+    endNodeCopy,
+  );
   pipeCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   removeRedundantVertices(pipeCopy);
   forceSpatialConnectivity(pipeCopy, startNodeCopy, endNodeCopy);
@@ -50,6 +32,28 @@ export const addPipe: ModelOperation<InputData> = (
     putAssets: [pipeCopy, startNodeCopy, endNodeCopy],
   };
 };
+
+const addMissingLabels = (
+  labelManager: LabelManager,
+  pipe: Pipe,
+  startNode: NodeAsset,
+  endNode: NodeAsset,
+) => {
+  pipe.setProperty("label", labelManager.generateFor("pipe", pipe.id));
+  if (startNode.label === "") {
+    startNode.setProperty(
+      "label",
+      labelManager.generateFor(startNode.type, startNode.id),
+    );
+  }
+  if (endNode.label === "") {
+    endNode.setProperty(
+      "label",
+      labelManager.generateFor(endNode.type, endNode.id),
+    );
+  }
+};
+
 const removeRedundantVertices = (link: LinkAsset) => {
   const vertices = link.coordinates;
   let previous: Position | null = null;

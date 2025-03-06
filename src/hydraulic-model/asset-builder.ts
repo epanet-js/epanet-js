@@ -37,7 +37,6 @@ export type ReservoirBuildData = {
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -85,9 +84,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("pipe", id)
-              : this.labelManager.generateForDeprecated(id, "pipe"),
+            : this.labelManager.generateFor("pipe", id),
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -114,9 +111,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("junction", id)
-              : this.labelManager.generateForDeprecated(id, "junction"),
+            : this.labelManager.generateFor("junction", id),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
@@ -152,9 +147,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : isFeatureOn("FLAG_LABEL_TYPE")
-              ? this.labelManager.generateFor("reservoir", id)
-              : this.labelManager.generateForDeprecated(id, "reservoir"),
+            : this.labelManager.generateFor("reservoir", id),
         head: headValue,
         elevation: elevationValue,
       },
