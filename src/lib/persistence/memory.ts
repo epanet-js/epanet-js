@@ -74,11 +74,7 @@ export class MemPersistence implements IPersistence {
       };
       moment.putAssets.forEach((asset) => {
         UIDMap.pushUUID(this.idMap, asset.id);
-        hydraulicModel.assetBuilder.labelManager.register(
-          asset.label,
-          asset.type,
-          asset.id,
-        );
+        hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
       });
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
       this.store.set(dataAtom, {
@@ -224,11 +220,7 @@ export class MemPersistence implements IPersistence {
       hydraulicModel.assets.delete(id);
       hydraulicModel.topology.removeNode(id);
       hydraulicModel.topology.removeLink(id);
-      hydraulicModel.assetBuilder.labelManager.remove(
-        asset.label,
-        asset.type,
-        asset.id,
-      );
+      hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
     }
     return moment;
   }
@@ -309,7 +301,7 @@ export class MemPersistence implements IPersistence {
         const oldConnections = oldLink.connections;
 
         oldConnections && topology.removeLink(oldVersion.id);
-        ctx.hydraulicModel.assetBuilder.labelManager.remove(
+        ctx.hydraulicModel.labelManager.remove(
           oldVersion.label,
           oldVersion.type,
           oldVersion.id,
@@ -325,7 +317,7 @@ export class MemPersistence implements IPersistence {
         topology.addLink(inputFeature.id, start, end);
       }
 
-      ctx.hydraulicModel.assetBuilder.labelManager.register(
+      ctx.hydraulicModel.labelManager.register(
         (inputFeature as Asset).label,
         (inputFeature as Asset).type,
         (inputFeature as Asset).id,

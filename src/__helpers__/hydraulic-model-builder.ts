@@ -65,6 +65,7 @@ export class HydraulicModelBuilder {
   private assetBuilder: AssetBuilder;
   private units: UnitsSpec;
   private headlossFormula: HeadlossFormula;
+  private labelManager: LabelManager;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -76,13 +77,14 @@ export class HydraulicModelBuilder {
 
   constructor(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     this.assets = new Map();
+    this.labelManager = new LabelManager();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(
       this.units,
       quantities.defaults,
       new IdGenerator(),
-      new LabelManager(),
+      this.labelManager,
     );
     this.topology = new Topology();
     this.headlossFormula = "H-W";
@@ -171,6 +173,7 @@ export class HydraulicModelBuilder {
       version: nanoid(),
       assets: this.assets,
       assetBuilder: this.assetBuilder,
+      labelManager: this.labelManager,
       topology: this.topology,
       units: this.units,
       headlossFormula: this.headlossFormula,

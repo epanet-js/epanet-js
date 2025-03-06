@@ -36,7 +36,7 @@ export type ReservoirBuildData = {
 
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
-import { LabelManager } from "./label-manager";
+import { LabelGenerator } from "./label-manager";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -48,18 +48,18 @@ export class AssetBuilder {
   private units: UnitsSpec;
   private defaults: DefaultQuantities;
   private idGenerator: IdGenerator;
-  readonly labelManager: LabelManager;
+  readonly labelGenerator: LabelGenerator;
 
   constructor(
     units: UnitsSpec,
     defaults: DefaultQuantities,
     idGenerator: IdGenerator,
-    labelManager: LabelManager,
+    labelGenerator: LabelGenerator,
   ) {
     this.units = units;
     this.defaults = defaults;
     this.idGenerator = idGenerator;
-    this.labelManager = labelManager;
+    this.labelGenerator = labelGenerator;
   }
 
   buildPipe({
@@ -84,7 +84,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : this.labelManager.generateFor("pipe", id),
+            : this.labelGenerator.generateFor("pipe", id),
         connections,
         status,
         length: this.getPipeValue("length", length),
@@ -111,7 +111,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : this.labelManager.generateFor("junction", id),
+            : this.labelGenerator.generateFor("junction", id),
         elevation: this.getJunctionValue("elevation", elevation),
         demand: this.getJunctionValue("demand", demand),
       },
@@ -147,7 +147,7 @@ export class AssetBuilder {
         label:
           label !== undefined
             ? label
-            : this.labelManager.generateFor("reservoir", id),
+            : this.labelGenerator.generateFor("reservoir", id),
         head: headValue,
         elevation: elevationValue,
       },

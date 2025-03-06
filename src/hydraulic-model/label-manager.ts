@@ -8,7 +8,11 @@ const typeToPrefix: Record<Asset["type"], string> = {
 
 type AssetData = Pick<Asset, "type" | "id">;
 
-export class LabelManager {
+export interface LabelGenerator {
+  generateFor: (type: Asset["type"], id: Asset["id"]) => string;
+}
+
+export class LabelManager implements LabelGenerator {
   private labelsDeprecated: Map<string, AssetId[]>;
   private indexPerType: Map<Asset["type"], number>;
   private assetIndex: Map<string, AssetData[]>;
