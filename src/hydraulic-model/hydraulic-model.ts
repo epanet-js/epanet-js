@@ -14,6 +14,7 @@ export type HydraulicModel = {
   topology: Topology;
   units: UnitsSpec;
   headlossFormula: HeadlossFormula;
+  labelManager: LabelManager;
 };
 
 export { AssetsMap };
@@ -27,6 +28,7 @@ export const initializeHydraulicModel = ({
   defaults: DefaultQuantities;
   headlossFormula?: HeadlossFormula;
 }) => {
+  const labelManager = new LabelManager();
   return {
     version: nanoid(),
     assets: new Map(),
@@ -34,10 +36,11 @@ export const initializeHydraulicModel = ({
       units,
       defaults,
       new IdGenerator(),
-      new LabelManager(),
+      labelManager,
     ),
     topology: new Topology(),
     units,
+    labelManager,
     headlossFormula,
   };
 };

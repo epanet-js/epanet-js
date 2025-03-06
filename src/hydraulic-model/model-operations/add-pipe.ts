@@ -2,7 +2,7 @@ import { Pipe, NodeAsset, LinkAsset } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
-import { LabelManager } from "../label-manager";
+import { LabelGenerator } from "../label-manager";
 
 type InputData = {
   pipe: Pipe;
@@ -18,7 +18,7 @@ export const addPipe: ModelOperation<InputData> = (
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
   addMissingLabels(
-    hydraulicModel.assetBuilder.labelManager,
+    hydraulicModel.labelManager,
     pipeCopy,
     startNodeCopy,
     endNodeCopy,
@@ -34,22 +34,22 @@ export const addPipe: ModelOperation<InputData> = (
 };
 
 const addMissingLabels = (
-  labelManager: LabelManager,
+  labelGenerator: LabelGenerator,
   pipe: Pipe,
   startNode: NodeAsset,
   endNode: NodeAsset,
 ) => {
-  pipe.setProperty("label", labelManager.generateFor("pipe", pipe.id));
+  pipe.setProperty("label", labelGenerator.generateFor("pipe", pipe.id));
   if (startNode.label === "") {
     startNode.setProperty(
       "label",
-      labelManager.generateFor(startNode.type, startNode.id),
+      labelGenerator.generateFor(startNode.type, startNode.id),
     );
   }
   if (endNode.label === "") {
     endNode.setProperty(
       "label",
-      labelManager.generateFor(endNode.type, endNode.id),
+      labelGenerator.generateFor(endNode.type, endNode.id),
     );
   }
 };
