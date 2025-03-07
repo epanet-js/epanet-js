@@ -35,6 +35,13 @@ type AssetCreated = {
   type: Asset["type"];
 };
 
+type AssetEdited = {
+  name: "asset.edited";
+  type: Asset["type"];
+  property: string;
+  newValue: string | number | null;
+};
+
 type AnalysisApplied = {
   name: "analysis.applied";
   type: "links" | "nodes";
@@ -46,7 +53,11 @@ type SatelliteViewToggled = {
   source: "button" | "shortcut";
 };
 
-type UserEvent = AssetCreated | AnalysisApplied | SatelliteViewToggled;
+type UserEvent =
+  | AssetCreated
+  | AssetEdited
+  | AnalysisApplied
+  | SatelliteViewToggled;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
