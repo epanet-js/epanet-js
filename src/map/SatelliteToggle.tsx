@@ -1,5 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 import { mapboxStaticURL } from "src/lib/mapbox_static_url";
 import { layerConfigAtom } from "src/state/jotai";
 
@@ -7,6 +9,7 @@ export const SatelliteToggle = () => {
   const toggleSatellite = useToggleSatellite();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const currentBaseMap = [...layerConfigs.values()][0];
+  const userTracking = useUserTracking();
 
   if (layerConfigs.size !== 1) return null;
 
@@ -17,7 +20,14 @@ export const SatelliteToggle = () => {
         backgroundSize: "cover",
         backgroundImage: `url(${mapboxStaticURL(currentBaseMap)})`,
       }}
-      onClick={() => toggleSatellite()}
+      onClick={() => {
+        isFeatureOn("FLAG_TRACKING") &&
+          userTracking.capture({
+            name: "satelliteView.toggled",
+            source: "button",
+          });
+        toggleSatellite();
+      }}
     ></div>
   );
 };
