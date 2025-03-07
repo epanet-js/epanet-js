@@ -69,7 +69,7 @@ export function useMapKeybindings() {
         transact(moment);
         return false;
       },
-      [transact],
+      [transact, userTracking],
     ),
   );
 

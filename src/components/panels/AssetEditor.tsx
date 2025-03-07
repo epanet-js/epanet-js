@@ -117,7 +117,7 @@ const AssetEditorInner = ({
         });
       }
     },
-    [hydraulicModel, asset.id, asset.type, transact],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   switch (asset.type) {
