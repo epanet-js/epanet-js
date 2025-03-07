@@ -147,6 +147,7 @@
     "polygon-clipping": "^0.15.7",
     "polylabel": "^1.1.0",
     "postcss": "^8.4.38",
+    "posthog-js": "^1.229.3",
     "proj4": "^2.11.0",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-dropcursor": "^1.8.1",
