@@ -42,6 +42,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function AssetEditor({
   selectedFeature,
@@ -80,6 +82,7 @@ const AssetEditorInner = ({
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const userTracking = useUserTracking();
 
   const handlePropertyChange = (name: string, value: number) => {
     const moment = changeProperty(hydraulicModel, {
@@ -88,6 +91,14 @@ const AssetEditorInner = ({
       value,
     });
     transact(moment);
+    if (isFeatureOn("FLAG_TRACKING")) {
+      userTracking.capture({
+        name: "asset.edited",
+        type: asset.type,
+        property: name,
+        newValue: value,
+      });
+    }
   };
 
   const handleStatusChange = useCallback(
@@ -97,8 +108,16 @@ const AssetEditorInner = ({
         newStatus,
       });
       transact(moment);
+      if (isFeatureOn("FLAG_TRACKING")) {
+        userTracking.capture({
+          name: "asset.edited",
+          type: asset.type,
+          property: "status",
+          newValue: newStatus,
+        });
+      }
     },
-    [hydraulicModel, asset.id, transact],
+    [hydraulicModel, asset.id, asset.type, transact],
   );
 
   switch (asset.type) {

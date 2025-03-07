@@ -142,6 +142,7 @@ export function useNoneHandlers({
         setMode({ mode: Mode.NONE });
         return;
       }
+
       if (isShiftHeld()) {
         if (isSelected(clickedAsset.id)) {
           removeFromSelection(clickedAsset.id);
