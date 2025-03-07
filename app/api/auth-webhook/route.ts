@@ -1,6 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
-import { WebhookEvent, UserJSON } from "@clerk/nextjs/server";
-import { buildUserCreatedMessage, sendWithoutCrashing } from "src/infra/slack";
+import {
+  WebhookEvent,
+  UserJSON,
+  UserWebhookEvent,
+  DeletedObjectJSON,
+} from "@clerk/nextjs/server";
+import {
+  buildUserCreatedMessage,
+  buildUserDeletedMessage,
+  sendWithoutCrashing,
+} from "src/infra/slack";
 import { captureError } from "src/infra/error-tracking";
 import { addToSubscribers } from "src/infra/newsletter";
 import { logger } from "src/infra/server-logger";
@@ -23,30 +32,51 @@ export async function POST(request: NextRequest) {
 
   const payload: WebhookEvent = await request.json();
   if (payload.type === "user.created") {
-    const userData = parseData(payload.data);
-
-    const message = buildUserCreatedMessage(
-      userData.email,
-      userData.firstName || "",
-      userData.lastName || "",
-    );
-    await sendWithoutCrashing(message);
-
-    const result = await addToSubscribers(
-      userData.email,
-      userData.firstName,
-      userData.lastName,
-    );
-
-    if (result.status === "failure") {
-      captureError(new Error(`Unable to add ${userData.email} to subscribers`));
-
-      return new NextResponse("Error", { status: 500 });
-    }
+    return handleUserCreated(payload);
+  }
+  if (payload.type === "user.deleted") {
+    return handleUserDeleted(payload);
   }
 
   return NextResponse.json({ status: "success" });
 }
+
+const handleUserCreated = async (
+  payload: UserWebhookEvent,
+): Promise<NextResponse> => {
+  const userData = parseData(payload.data as UserJSON);
+
+  const message = buildUserCreatedMessage(
+    userData.email,
+    userData.firstName || "",
+    userData.lastName || "",
+  );
+  await sendWithoutCrashing(message);
+
+  const result = await addToSubscribers(
+    userData.email,
+    userData.firstName,
+    userData.lastName,
+  );
+
+  if (result.status === "failure") {
+    captureError(new Error(`Unable to add ${userData.email} to subscribers`));
+
+    return new NextResponse("Error", { status: 500 });
+  }
+
+  return NextResponse.json({ status: "success" });
+};
+
+const handleUserDeleted = async (
+  payload: UserWebhookEvent,
+): Promise<NextResponse> => {
+  const deleteData = payload.data as DeletedObjectJSON;
+
+  const message = buildUserDeletedMessage(deleteData.id || "");
+  await sendWithoutCrashing(message);
+  return NextResponse.json({ status: "success" });
+};
 
 const parseData = (data: UserJSON): UserData => ({
   email: data.email_addresses[0].email_address,
