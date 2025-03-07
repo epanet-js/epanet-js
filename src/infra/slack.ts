@@ -60,3 +60,21 @@ export const buildUserCreatedMessage = (
     ],
   });
 };
+
+export const buildUserDeletedMessage = (userId: string) => {
+  return JSON.stringify({
+    text: ":cry: User Deleted!",
+    attachments: [
+      {
+        title: "User Details",
+        fields: [
+          {
+            title: "Id",
+            value: userId,
+            short: false,
+          },
+        ],
+      },
+    ],
+  });
+};
