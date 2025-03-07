@@ -53,11 +53,18 @@ type SatelliteViewToggled = {
   source: "button" | "shortcut";
 };
 
+type AssetsDeleted = {
+  name: "assets.deleted";
+  source: "shortcut" | "toolbar" | "context-menu";
+  count: number;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
   | AnalysisApplied
-  | SatelliteViewToggled;
+  | SatelliteViewToggled
+  | AssetsDeleted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

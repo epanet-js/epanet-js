@@ -7,6 +7,8 @@ import { USelection } from "src/selection";
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
+import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -23,6 +25,7 @@ export const keybindingOptions: Options = {
 export function useMapKeybindings() {
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const userTracking = useUserTracking();
 
   const onSelectAll = useAtomCallback(
     useCallback((get, set) => {
@@ -51,9 +54,17 @@ export function useMapKeybindings() {
         set(selectionAtom, USelection.none());
         const { hydraulicModel, selection } = data;
 
+        const assetIds = USelection.toIds(selection);
         const moment = deleteAssets(hydraulicModel, {
-          assetIds: USelection.toIds(selection),
+          assetIds,
         });
+        if (isFeatureOn("FLAG_TRACKING")) {
+          userTracking.capture({
+            name: "assets.deleted",
+            source: "shortcut",
+            count: assetIds.length,
+          });
+        }
 
         transact(moment);
         return false;
