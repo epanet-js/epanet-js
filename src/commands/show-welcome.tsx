@@ -24,6 +24,7 @@ import {
 import Image from "next/image";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type DemoModel = {
   name: string;
@@ -48,8 +49,13 @@ const demoModels: DemoModel[] = [
 
 export const useShowWelcome = () => {
   const setDialogState = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
+
   const showWelcome = useCallback(() => {
     setDialogState({ type: "welcome" });
+    if (isFeatureOn("FLAG_TRACKING")) {
+      userTracking.capture({ name: "welcome.opened" });
+    }
   }, [setDialogState]);
 
   return showWelcome;
@@ -60,6 +66,17 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
   const createNew = useNewProject();
   const { openInpFromFs } = useOpenInp();
   const { openInpFromUrl } = useOpenInpFromUrl();
+  const userTracking = useUserTracking();
+
+  const handleOpenDemoModel = (demoModel: DemoModel) => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      userTracking.capture({
+        name: "exampleModel.opened",
+        modelName: demoModel.name,
+      });
+    }
+    openInpFromUrl(demoModel.url);
+  };
 
   return (
     <div className="w-full flex flex-col h-full p-5 justify-between">
@@ -100,7 +117,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     title={demoModel.name}
                     description={demoModel.description}
                     thumbnailUrl={demoModel.thumbnailUrl}
-                    onClick={() => openInpFromUrl(demoModel.url)}
+                    onClick={() => handleOpenDemoModel(demoModel)}
                   />
                 ))}
               </div>
@@ -140,6 +157,11 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <Checkbox
                 checked={userSettings.showWelcomeOnStart}
                 onChange={() => {
+                  if (isFeatureOn("FLAG_TRACKING")) {
+                    userSettings.showWelcomeOnStart
+                      ? userTracking.capture({ name: "welcome.hidden" })
+                      : userTracking.capture({ name: "welcome.enabled" });
+                  }
                   setUserSettings((prev) => ({
                     ...prev,
                     showWelcomeOnStart: !prev.showWelcomeOnStart,
