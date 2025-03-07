@@ -59,12 +59,33 @@ type AssetsDeleted = {
   count: number;
 };
 
+type WelcomeOpened = {
+  name: "welcome.opened";
+};
+
+type WelcomeHidden = {
+  name: "welcome.hidden";
+};
+
+type WelcomeEnabled = {
+  name: "welcome.enabled";
+};
+
+type ExampleModelOpened = {
+  name: "exampleModel.opened";
+  modelName: string;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
   | AnalysisApplied
   | SatelliteViewToggled
-  | AssetsDeleted;
+  | AssetsDeleted
+  | WelcomeOpened
+  | WelcomeHidden
+  | WelcomeEnabled
+  | ExampleModelOpened;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

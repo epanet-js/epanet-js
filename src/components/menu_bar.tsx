@@ -25,6 +25,7 @@ import {
   UserButton,
 } from "src/auth";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useShowWelcome } from "src/commands/show-welcome";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -122,6 +123,8 @@ export const MenuBar = memo(function MenuBar() {
 
 export function HelpDot() {
   const setDialogState = useSetAtom(dialogAtom);
+  const showWelcome = useShowWelcome();
+
   return (
     <DD.Root>
       <DD.Trigger asChild>
@@ -130,7 +133,7 @@ export function HelpDot() {
       <DDContent side="bottom" align="end">
         <StyledItem
           onSelect={() => {
-            setDialogState({ type: "welcome" });
+            showWelcome();
           }}
         >
           <SunIcon />
