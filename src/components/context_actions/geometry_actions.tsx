@@ -14,13 +14,17 @@ import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { translate } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
+  source: ActionProps["as"],
 ): Action[] {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const zoomTo = useZoomTo();
+  const userTracking = useUserTracking();
 
   const onDelete = useAtomCallback(
     useCallback(
@@ -28,14 +32,24 @@ export function useActions(
         const { hydraulicModel, selection } = get(dataAtom);
         set(selectionAtom, USelection.none());
 
+        const assetIds = USelection.toIds(selection);
         const moment = deleteAssets(hydraulicModel, {
-          assetIds: USelection.toIds(selection),
+          assetIds,
         });
+        if (isFeatureOn("FLAG_TRACKING")) {
+          const eventSource =
+            source === "context-item" ? "context-menu" : "toolbar";
+          userTracking.capture({
+            name: "assets.deleted",
+            source: eventSource,
+            count: assetIds.length,
+          });
+        }
 
         transact(moment);
         return Promise.resolve();
       },
-      [transact],
+      [transact, userTracking, source],
     ),
   );
 
@@ -66,7 +80,7 @@ export function GeometryActions({
   as: ActionProps["as"];
   selectedWrappedFeatures: IWrappedFeature[];
 }) {
-  const actions = useActions(selectedWrappedFeatures);
+  const actions = useActions(selectedWrappedFeatures, as);
 
   return (
     <>
