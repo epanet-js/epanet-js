@@ -41,7 +41,12 @@ type AnalysisApplied = {
   subtype: "none" | "flows" | "velocities" | "pressures";
 };
 
-type UserEvent = AssetCreated | AnalysisApplied;
+type SatelliteViewToggled = {
+  name: "satelliteView.toggled";
+  source: "button" | "shortcut";
+};
+
+type UserEvent = AssetCreated | AnalysisApplied | SatelliteViewToggled;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
