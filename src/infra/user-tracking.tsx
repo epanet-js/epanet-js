@@ -35,7 +35,13 @@ type AssetCreated = {
   type: Asset["type"];
 };
 
-type UserEvent = AssetCreated;
+type AnalysisApplied = {
+  name: "analysis.applied";
+  type: "links" | "nodes";
+  subtype: "none" | "flows" | "velocities" | "pressures";
+};
+
+type UserEvent = AssetCreated | AnalysisApplied;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
