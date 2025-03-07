@@ -16,6 +16,8 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { NodeAsset, Pipe } from "src/hydraulic-model";
+import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function useDrawPipeHandlers({
   rep,
@@ -26,6 +28,7 @@ export function useDrawPipeHandlers({
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
+  const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
@@ -69,6 +72,8 @@ export function useDrawPipeHandlers({
 
     const moment = addPipe(hydraulicModel, { pipe, startNode, endNode });
 
+    if (isFeatureOn("FLAG_TRACKING"))
+      userTracking.capture({ name: "asset.created", type: "pipe" });
     transact(moment);
 
     const [, , endNodeUpdated] = moment.putAssets || [];

@@ -1,0 +1,60 @@
+import { PostHogProvider, usePostHog } from "posthog-js/react";
+import { useCallback } from "react";
+import { Asset } from "src/hydraulic-model";
+import { isDebugOn } from "./debug-mode";
+type Metadata = {
+  [key: string]: boolean | string | number | string[];
+};
+
+export const trackUserAction = (event: string, metadata: Metadata = {}) => {
+  if (process.env.NEXT_PUBLIC_SKIP_USER_TRACKING === "true") return;
+
+  // eslint-disable-next-line no-console
+  console.log(`USER_TRACKING: ${event}`, metadata);
+};
+
+const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY as string;
+const options = {
+  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST as string,
+};
+
+export const UserTrackingProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <PostHogProvider apiKey={apiKey} options={options}>
+      {children}
+    </PostHogProvider>
+  );
+};
+
+type AssetCreated = {
+  name: "asset.created";
+  type: Asset["type"];
+};
+
+type UserEvent = AssetCreated;
+
+const debugPostHog = {
+  capture: (...data: any[]) => {
+    // eslint-disable-next-line
+    console.log("USER_TRACKING", ...data);
+  },
+};
+
+export const useUserTracking = () => {
+  const posthog = usePostHog();
+
+  const capture = useCallback(
+    (event: UserEvent) => {
+      const { name, ...metadata } = event;
+      posthog.capture(name, metadata);
+      isDebugOn && debugPostHog.capture(name, metadata);
+    },
+    [posthog],
+  );
+
+  return { capture };
+};
