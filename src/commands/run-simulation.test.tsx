@@ -15,6 +15,8 @@ import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runSimulation as runSimulationInWorker } from "src/simulation/epanet/worker";
 import { getPipe } from "src/hydraulic-model/assets-map";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { triggerShortcut } from "src/__helpers__/shortcuts";
 vi.mock("src/lib/worker", () => ({
   lib: {
     runSimulation: vi.fn(),
@@ -134,6 +136,19 @@ describe("Run simulation", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/not enough/i)).toBeInTheDocument();
+    });
+  });
+
+  it("can run from a shortcut", async () => {
+    stubFeatureOn("FLAG_TRACKING");
+    const hydraulicModel = aSimulableModel();
+    const store = setInitialState({ hydraulicModel });
+    renderComponent({ store });
+
+    triggerShortcut("shift+enter");
+
+    await waitFor(() => {
+      expect(screen.getByText(/success/i)).toBeInTheDocument();
     });
   });
 

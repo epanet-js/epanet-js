@@ -19,13 +19,19 @@ import { ephemeralStateAtom, simulationAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
 import { useSaveInp } from "src/commands/save-inp";
-import { useRunSimulation } from "src/commands/run-simulation";
+import {
+  runSimulationShortcut,
+  useRunSimulation,
+} from "src/commands/run-simulation";
 import { useShowReport } from "src/commands/show-report";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();
+  const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
   const showReport = useShowReport();
 
@@ -118,15 +124,34 @@ export const Toolbar = () => {
       <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />
-      <MenuAction
-        label={translate("simulate")}
-        role="button"
-        onClick={runSimulation}
-        expanded={true}
-        hotkey={"shift+enter"}
-      >
-        <LightningBoltIcon className="text-yellow-600" />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("simulate")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "simulation.executed",
+              source: "toolbar",
+            });
+            runSimulation();
+          }}
+          expanded={true}
+          readOnlyHotkey={runSimulationShortcut}
+        >
+          <LightningBoltIcon className="text-yellow-600" />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("simulate")}
+          role="button"
+          onClick={runSimulation}
+          expanded={true}
+          hotkey={"shift+enter"}
+        >
+          <LightningBoltIcon className="text-yellow-600" />
+        </MenuAction>
+      )}
       <MenuAction
         label={translate("viewReport")}
         role="button"
