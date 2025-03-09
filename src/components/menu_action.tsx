@@ -13,6 +13,7 @@ export default function MenuAction({
   role = undefined,
   label,
   hotkey,
+  readOnlyHotkey,
 }: {
   selected?: boolean;
   onClick: (e?: Pick<React.MouseEvent, "shiftKey">) => void;
@@ -22,6 +23,7 @@ export default function MenuAction({
   role?: React.HTMLAttributes<HTMLButtonElement>["role"];
   label: string;
   hotkey?: string;
+  readOnlyHotkey?: string;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   useHotkeys(
@@ -74,6 +76,9 @@ export default function MenuAction({
             {!expanded ? label : null}
             {hotkey ? (
               <Keycap size="xs">{localizeKeybinding(hotkey)}</Keycap>
+            ) : null}
+            {readOnlyHotkey ? (
+              <Keycap size="xs">{localizeKeybinding(readOnlyHotkey)}</Keycap>
             ) : null}
           </div>
         </TContent>

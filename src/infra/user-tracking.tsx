@@ -76,6 +76,11 @@ type ExampleModelOpened = {
   modelName: string;
 };
 
+type SimulationExecuted = {
+  name: "simulation.executed";
+  source: "shortcut" | "toolbar";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
@@ -85,7 +90,8 @@ type UserEvent =
   | WelcomeOpened
   | WelcomeHidden
   | WelcomeEnabled
-  | ExampleModelOpened;
+  | ExampleModelOpened
+  | SimulationExecuted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
