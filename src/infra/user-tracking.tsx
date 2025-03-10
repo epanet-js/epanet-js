@@ -48,6 +48,25 @@ type AssetSelected = {
   type: Asset["type"];
 };
 
+type MultiSelectUpdated = {
+  name: "multiSelect.updated";
+  count: number;
+};
+
+type FullSelectionEnabled = {
+  name: "fullSelection.enabled";
+  source: "shortcut";
+};
+
+type SelectionCleared = {
+  name: "selection.cleared";
+};
+
+type AssetDeselected = {
+  name: "asset.deselected";
+  type: Asset["type"];
+};
+
 type AnalysisApplied = {
   name: "analysis.applied";
   type: "links" | "nodes";
@@ -127,6 +146,7 @@ type DrawingModeEnabled = {
 type UserEvent =
   | AssetCreated
   | AssetSelected
+  | AssetDeselected
   | AssetEdited
   | AnalysisApplied
   | SatelliteViewToggled
@@ -142,7 +162,10 @@ type UserEvent =
   | ModelSaved
   | OperationUndone
   | OperationRedone
-  | DrawingModeEnabled;
+  | DrawingModeEnabled
+  | MultiSelectUpdated
+  | FullSelectionEnabled
+  | SelectionCleared;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

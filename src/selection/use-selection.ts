@@ -13,12 +13,10 @@ export const useSelection = (selection: Sel) => {
 
   const toggleSingleSelection = (id: AssetId, type: Asset["type"]) => {
     if (isFeatureOn("FLAG_TRACKING")) {
-      if (!isSelected(id)) {
-        userTracking.capture({
-          name: "asset.selected",
-          type,
-        });
-      }
+      userTracking.capture({
+        name: isSelected(id) ? "asset.deselected" : "asset.selected",
+        type,
+      });
       setSelection(USelection.toggleSingleSelectionId(selection, id));
       setTab(TabOption.Asset);
     } else {
@@ -28,6 +26,12 @@ export const useSelection = (selection: Sel) => {
   };
 
   const extendSelection = (featureId: IWrappedFeature["id"]) => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      userTracking.capture({
+        name: "multiSelect.updated",
+        count: getSelectionIds().length + 1,
+      });
+    }
     setSelection(USelection.addSelectionId(selection, featureId));
     setTab(TabOption.Asset);
   };
@@ -42,10 +46,21 @@ export const useSelection = (selection: Sel) => {
   };
 
   const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      userTracking.capture({
+        name: "multiSelect.updated",
+        count: getSelectionIds().length - 1,
+      });
+    }
     setSelection(USelection.removeFeatureFromSelection(selection, featureId));
   };
 
   const clearSelection = () => {
+    if (isFeatureOn("FLAG_TRACKING") && getSelectionIds().length > 0) {
+      userTracking.capture({
+        name: "selection.cleared",
+      });
+    }
     setSelection(USelection.none());
   };
 
