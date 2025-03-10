@@ -131,10 +131,27 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   <FileIcon />
                   {translate("createNew")}
                 </Button>
-                <Button variant="quiet" onClick={openInpFromFs}>
-                  <FilePlusIcon />
-                  {translate("openProject")}
-                </Button>
+                {isFeatureOn("FLAG_TRACKING") && (
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "openModel.started",
+                        source: "welcome",
+                      });
+                      void openInpFromFs();
+                    }}
+                  >
+                    <FilePlusIcon />
+                    {translate("openProject")}
+                  </Button>
+                )}
+                {!isFeatureOn("FLAG_TRACKING") && (
+                  <Button variant="quiet" onClick={openInpFromFs}>
+                    <FilePlusIcon />
+                    {translate("openProject")}
+                  </Button>
+                )}
                 <a href={helpCenterUrl} target="_blank">
                   <Button variant="quiet">
                     <QuestionMarkCircledIcon />

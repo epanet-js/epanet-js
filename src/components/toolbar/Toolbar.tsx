@@ -80,14 +80,32 @@ export const Toolbar = () => {
       >
         <FileIcon />
       </MenuAction>
-      <MenuAction
-        label={translate("openProject")}
-        role="button"
-        onClick={handleOpen}
-        hotkey={"ctrl+o"}
-      >
-        <FilePlusIcon />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("openProject")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "openModel.started",
+              source: "toolbar",
+            });
+            void openInpFromFs();
+          }}
+          readOnlyHotkey={"ctrl+o"}
+        >
+          <FilePlusIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("openProject")}
+          role="button"
+          onClick={handleOpen}
+          hotkey={"ctrl+o"}
+        >
+          <FilePlusIcon />
+        </MenuAction>
+      )}
       <MenuAction
         label={translate("save")}
         role="button"
