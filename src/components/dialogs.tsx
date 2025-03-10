@@ -45,7 +45,7 @@ const CreateNewDialog = dynamic<{
 });
 
 const RunSimulationDialog = dynamic<{
-  modal: dialogState.RunSimulationDialogSate;
+  modal: dialogState.SimulationSummaryState;
   onClose: () => void;
 }>(
   () =>
@@ -138,7 +138,7 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
-    .with({ type: "runSimulation" }, (modal) => (
+    .with({ type: "simulationSummary" }, (modal) => (
       <RunSimulationDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "simulationReport" }, () => (
@@ -167,6 +167,13 @@ export const Dialogs = memo(function Dialogs() {
             name: "inpIssues.seen",
             issues: Object.keys(dialog.issues),
           } as InpIssuesSeen);
+        }
+        if (dialog.type === "simulationSummary") {
+          userTracking.capture({
+            name: "simulationSummary.seen",
+            status: dialog.status,
+            duration: dialog.duration,
+          });
         }
       }
       previousDialog.current = dialog;

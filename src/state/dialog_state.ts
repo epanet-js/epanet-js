@@ -26,9 +26,9 @@ export type UnsavedChangesDialogState = {
   onContinue: () => void;
 };
 
-export type RunSimulationDialogSate = {
-  type: "runSimulation";
-  status: "running" | "success" | "failure";
+export type SimulationSummaryState = {
+  type: "simulationSummary";
+  status: "success" | "failure";
   duration?: number;
 };
 
@@ -58,7 +58,7 @@ export type DialogState =
     }
   | UnsavedChangesDialogState
   | { type: "createNew" }
-  | RunSimulationDialogSate
+  | SimulationSummaryState
   | SimulationReportDialogState
   | WelcomeDialogState
   | InpIssuesDialogState
