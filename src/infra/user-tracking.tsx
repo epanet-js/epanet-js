@@ -81,6 +81,11 @@ type SimulationExecuted = {
   source: "shortcut" | "toolbar";
 };
 
+type ReportOpened = {
+  name: "report.opened";
+  source: "shortcut" | "result-dialog" | "toolbar";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
@@ -91,7 +96,8 @@ type UserEvent =
   | WelcomeHidden
   | WelcomeEnabled
   | ExampleModelOpened
-  | SimulationExecuted;
+  | SimulationExecuted
+  | ReportOpened;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

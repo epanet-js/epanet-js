@@ -7,8 +7,11 @@ import { replaceIdWithLabels } from "src/simulation/report";
 import { dialogAtom } from "src/state/dialog_state";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 
+export const showReportShorcut = "alt+r";
+
 export const useShowReport = () => {
   const setDialogState = useSetAtom(dialogAtom);
+
   const showReport = useCallback(() => {
     setDialogState({ type: "simulationReport" });
   }, [setDialogState]);
