@@ -17,6 +17,9 @@ type FileAccess = {
   fileSave: typeof fileSaveType;
 };
 
+export const saveShortcut = "ctrl+s";
+export const saveAsShortcut = "ctrl+shift+s";
+
 export const useSaveInp = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
