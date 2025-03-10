@@ -51,13 +51,14 @@ export interface ModeOptions {
 export const MODE_INFO: Record<
   Mode,
   {
+    name: string;
     label: string;
   }
 > = {
-  [Mode.NONE]: { label: translate("select") },
-  [Mode.DRAW_JUNCTION]: { label: translate("junction") },
-  [Mode.DRAW_PIPE]: { label: translate("pipe") },
-  [Mode.DRAW_RESERVOIR]: { label: translate("reservoir") },
+  [Mode.NONE]: { name: "select", label: translate("select") },
+  [Mode.DRAW_JUNCTION]: { name: "junction", label: translate("junction") },
+  [Mode.DRAW_PIPE]: { name: "pipe", label: translate("pipe") },
+  [Mode.DRAW_RESERVOIR]: { name: "reservoir", label: translate("reservoir") },
 };
 
 export type ModeWithOptions = {
