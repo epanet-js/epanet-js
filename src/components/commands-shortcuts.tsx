@@ -20,6 +20,11 @@ import {
   undoShortcut,
   useHistoryControl,
 } from "src/commands/history-control";
+import {
+  drawingModeShorcuts,
+  useDrawingMode,
+} from "src/commands/set-drawing-mode";
+import { MODE_INFO } from "src/state/mode";
 
 export const CommandShortcuts = () => {
   const showReport = useShowReport();
@@ -29,6 +34,7 @@ export const CommandShortcuts = () => {
   const saveInp = useSaveInp();
   const { undo, redo } = useHistoryControl();
   const userTracking = useUserTracking();
+  const setDrawingMode = useDrawingMode();
 
   useHotkeys(
     showReportShorcut,
@@ -39,7 +45,7 @@ export const CommandShortcuts = () => {
         name: "report.opened",
         source: "shortcut",
       });
-      showReport();
+      void showReport();
     },
     [showReportShorcut, showReport],
     "Show report",
@@ -54,7 +60,7 @@ export const CommandShortcuts = () => {
         name: "simulation.executed",
         source: "shortcut",
       });
-      runSimulation();
+      void runSimulation();
     },
     [runSimulationShortcut, runSimulation],
     "Run simulation",
@@ -150,6 +156,40 @@ export const CommandShortcuts = () => {
     [redoShortcut, redo],
     "Redo",
   );
+
+  useHotkeys(
+    redoShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "operation.redone",
+        source: "shortcut",
+      });
+      void redo();
+    },
+    [redoShortcut, redo],
+    "Redo",
+  );
+
+  for (const [shortcut, mode] of Object.entries(drawingModeShorcuts)) {
+    // eslint-disable-next-line
+    useHotkeys(
+      shortcut,
+      (e) => {
+        if (e.preventDefault) e.preventDefault();
+
+        userTracking.capture({
+          name: "drawingMode.enabled",
+          source: "shortcut",
+          type: MODE_INFO[mode].name,
+        });
+        void setDrawingMode(mode);
+      },
+      [shortcut, mode, setDrawingMode],
+      `Set ${mode} mode`,
+    );
+  }
 
   return null;
 };

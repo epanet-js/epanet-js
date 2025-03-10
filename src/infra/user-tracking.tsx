@@ -2,6 +2,7 @@ import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { useCallback } from "react";
 import { Asset } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
+import { MODE_INFO } from "src/state/jotai";
 type Metadata = {
   [key: string]: boolean | string | number | string[];
 };
@@ -112,6 +113,12 @@ type OperationRedone = {
   source: "shortcut" | "toolbar";
 };
 
+type DrawingModeEnabled = {
+  name: "drawingMode.enabled";
+  source: "toolbar" | "shortcut";
+  type: (typeof MODE_INFO)[keyof typeof MODE_INFO]["name"];
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
@@ -128,7 +135,8 @@ type UserEvent =
   | NewModelStarted
   | ModelSaved
   | OperationUndone
-  | OperationRedone;
+  | OperationRedone
+  | DrawingModeEnabled;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
