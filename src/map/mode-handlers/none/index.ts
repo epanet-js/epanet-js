@@ -150,7 +150,7 @@ export function useNoneHandlers({
           extendSelection(clickedAsset.id);
         }
       } else {
-        toggleSingleSelection(clickedAsset.id);
+        toggleSingleSelection(clickedAsset.id, clickedAsset.type);
       }
     },
     exit() {
