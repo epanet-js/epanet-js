@@ -2,14 +2,29 @@ import { useSetAtom } from "jotai";
 import { USelection } from "./selection";
 import { Sel, TabOption, selectionAtom, tabAtom } from "src/state/jotai";
 import { IWrappedFeature } from "src/types";
+import { Asset, AssetId } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const useSelection = (selection: Sel) => {
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
+  const userTracking = useUserTracking();
 
-  const toggleSingleSelection = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.toggleSingleSelectionId(selection, featureId));
-    setTab(TabOption.Asset);
+  const toggleSingleSelection = (id: AssetId, type: Asset["type"]) => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      if (!isSelected(id)) {
+        userTracking.capture({
+          name: "asset.selected",
+          type,
+        });
+      }
+      setSelection(USelection.toggleSingleSelectionId(selection, id));
+      setTab(TabOption.Asset);
+    } else {
+      setSelection(USelection.toggleSingleSelectionId(selection, id));
+      setTab(TabOption.Asset);
+    }
   };
 
   const extendSelection = (featureId: IWrappedFeature["id"]) => {

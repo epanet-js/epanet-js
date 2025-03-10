@@ -43,6 +43,11 @@ type AssetEdited = {
   newValue: string | number | null;
 };
 
+type AssetSelected = {
+  name: "asset.selected";
+  type: Asset["type"];
+};
+
 type AnalysisApplied = {
   name: "analysis.applied";
   type: "links" | "nodes";
@@ -121,6 +126,7 @@ type DrawingModeEnabled = {
 
 type UserEvent =
   | AssetCreated
+  | AssetSelected
   | AssetEdited
   | AnalysisApplied
   | SatelliteViewToggled
