@@ -10,7 +10,11 @@ import {
   createNewShortcut,
   useNewProject,
 } from "src/commands/create-new-project";
-import { saveShortcut, useSaveInp } from "src/commands/save-inp";
+import {
+  saveAsShortcut,
+  saveShortcut,
+  useSaveInp,
+} from "src/commands/save-inp";
 
 export const CommandShortcuts = () => {
   const showReport = useShowReport();
@@ -92,6 +96,22 @@ export const CommandShortcuts = () => {
       void saveInp();
     },
     [saveShortcut, saveInp],
+    "Save",
+  );
+
+  useHotkeys(
+    saveAsShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "model.saved",
+        source: "shortcut",
+        isSaveAs: true,
+      });
+      void saveInp({ isSaveAs: true });
+    },
+    [saveAsShortcut, saveInp],
     "Save",
   );
 
