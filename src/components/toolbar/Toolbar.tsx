@@ -152,15 +152,34 @@ export const Toolbar = () => {
           <LightningBoltIcon className="text-yellow-600" />
         </MenuAction>
       )}
-      <MenuAction
-        label={translate("viewReport")}
-        role="button"
-        onClick={showReport}
-        hotkey={"alt+r"}
-        disabled={simulation.status === "idle"}
-      >
-        <FileTextIcon />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("viewReport")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "report.opened",
+              source: "toolbar",
+            });
+            showReport();
+          }}
+          readOnlyHotkey={"alt+r"}
+          disabled={simulation.status === "idle"}
+        >
+          <FileTextIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("viewReport")}
+          role="button"
+          onClick={showReport}
+          hotkey={"alt+r"}
+          disabled={simulation.status === "idle"}
+        >
+          <FileTextIcon />
+        </MenuAction>
+      )}
       <Divider />
       <div className="flex-auto" />
       <ContextActions />

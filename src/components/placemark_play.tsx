@@ -57,6 +57,7 @@ import {useHydrateAtoms} from 'jotai/utils';
 import {isFeatureOn} from 'src/infra/feature-flags';
 import {settingsFromStorage} from 'src/state/user-settings';
 import {TabCloseGuard} from './tab-close-guard';
+import {CommandShortcuts} from './commands-shortcuts';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -212,6 +213,7 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <AnalysisLegends />
+      {isFeatureOn('FLAG_TRACKING') && <CommandShortcuts />}
     </div>
   );
 }
