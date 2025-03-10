@@ -15,6 +15,11 @@ import {
   saveShortcut,
   useSaveInp,
 } from "src/commands/save-inp";
+import {
+  redoShortcut,
+  undoShortcut,
+  useHistoryControl,
+} from "src/commands/history-control";
 
 export const CommandShortcuts = () => {
   const showReport = useShowReport();
@@ -22,6 +27,7 @@ export const CommandShortcuts = () => {
   const createNew = useNewProject();
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
+  const { undo, redo } = useHistoryControl();
   const userTracking = useUserTracking();
 
   useHotkeys(
@@ -113,6 +119,36 @@ export const CommandShortcuts = () => {
     },
     [saveAsShortcut, saveInp],
     "Save",
+  );
+
+  useHotkeys(
+    undoShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "operation.undone",
+        source: "shortcut",
+      });
+      void undo();
+    },
+    [undoShortcut, undo],
+    "Undo",
+  );
+
+  useHotkeys(
+    redoShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "operation.redone",
+        source: "shortcut",
+      });
+      void redo();
+    },
+    [redoShortcut, redo],
+    "Redo",
   );
 
   return null;

@@ -30,6 +30,7 @@ import {
 import { useShowReport } from "src/commands/show-report";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useHistoryControl } from "src/commands/history-control";
 
 export const Toolbar = () => {
   const { openInpFromFs } = useOpenInp();
@@ -38,6 +39,8 @@ export const Toolbar = () => {
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
   const showReport = useShowReport();
+
+  const { undo, redo } = useHistoryControl();
 
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
@@ -183,22 +186,59 @@ export const Toolbar = () => {
         </MenuAction>
       )}
       <Divider />
-      <MenuAction
-        label={translate("undo")}
-        role="button"
-        onClick={handleUndo}
-        hotkey={"ctrl+z"}
-      >
-        <ResetIcon />
-      </MenuAction>
-      <MenuAction
-        label={translate("redo")}
-        role="button"
-        onClick={handleRedo}
-        hotkey={"ctrl+y"}
-      >
-        <ResetIcon className="scale-x-[-1]" />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("undo")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "operation.undone",
+              source: "toolbar",
+            });
+
+            void undo();
+          }}
+          readOnlyHotkey={"ctrl+z"}
+        >
+          <ResetIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("undo")}
+          role="button"
+          onClick={handleUndo}
+          hotkey={"ctrl+z"}
+        >
+          <ResetIcon />
+        </MenuAction>
+      )}
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("redo")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "operation.redone",
+              source: "toolbar",
+            });
+            void redo();
+          }}
+          readOnlyHotkey={"ctrl+y"}
+        >
+          <ResetIcon className="scale-x-[-1]" />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("redo")}
+          role="button"
+          onClick={handleRedo}
+          hotkey={"ctrl+y"}
+        >
+          <ResetIcon className="scale-x-[-1]" />
+        </MenuAction>
+      )}
       <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />

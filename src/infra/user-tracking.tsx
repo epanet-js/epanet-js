@@ -102,6 +102,16 @@ type ModelSaved = {
   isSaveAs?: boolean;
 };
 
+type OperationUndone = {
+  name: "operation.undone";
+  source: "shortcut" | "toolbar";
+};
+
+type OperationRedone = {
+  name: "operation.redone";
+  source: "shortcut" | "toolbar";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
@@ -116,7 +126,9 @@ type UserEvent =
   | ReportOpened
   | OpenModelStarted
   | NewModelStarted
-  | ModelSaved;
+  | ModelSaved
+  | OperationUndone
+  | OperationRedone;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
