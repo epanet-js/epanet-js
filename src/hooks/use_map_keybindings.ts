@@ -29,6 +29,12 @@ export function useMapKeybindings() {
 
   const onSelectAll = useAtomCallback(
     useCallback((get, set) => {
+      if (isFeatureOn("FLAG_TRACKING")) {
+        userTracking.capture({
+          name: "fullSelection.enabled",
+          source: "shortcut",
+        });
+      }
       const data = get(dataAtom);
       set(selectionAtom, {
         type: "multi",
