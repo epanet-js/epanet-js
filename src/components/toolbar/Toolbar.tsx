@@ -18,7 +18,11 @@ import { usePersistence } from "src/lib/persistence/context";
 import { ephemeralStateAtom, simulationAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
-import { useSaveInp } from "src/commands/save-inp";
+import {
+  saveAsShortcut,
+  saveShortcut,
+  useSaveInp,
+} from "src/commands/save-inp";
 import {
   runSimulationShortcut,
   useRunSimulation,
@@ -135,7 +139,7 @@ export const Toolbar = () => {
             });
             void saveInp();
           }}
-          readOnlyHotkey={"ctrl+s"}
+          readOnlyHotkey={saveShortcut}
         >
           <DownloadIcon />
         </MenuAction>
@@ -150,14 +154,34 @@ export const Toolbar = () => {
           <DownloadIcon />
         </MenuAction>
       )}
-      <MenuAction
-        label={translate("saveAs")}
-        role="button"
-        onClick={handleSaveAs}
-        hotkey={"ctrl+shift+s"}
-      >
-        <CopyIcon />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("saveAs")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "model.saved",
+              source: "toolbar",
+              isSaveAs: true,
+            });
+
+            void saveInp({ isSaveAs: true });
+          }}
+          readOnlyHotkey={saveAsShortcut}
+        >
+          <CopyIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("saveAs")}
+          role="button"
+          onClick={handleSaveAs}
+          hotkey={"ctrl+shift+s"}
+        >
+          <CopyIcon />
+        </MenuAction>
+      )}
       <Divider />
       <MenuAction
         label={translate("undo")}

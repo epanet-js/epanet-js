@@ -99,6 +99,7 @@ type NewModelStarted = {
 type ModelSaved = {
   name: "model.saved";
   source: "shortcut" | "toolbar" | "onboarding" | "unsaved-dialog";
+  isSaveAs?: boolean;
 };
 
 type UserEvent =
