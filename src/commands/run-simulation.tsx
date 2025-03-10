@@ -12,9 +12,6 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
-import { isFeatureOn } from "src/infra/feature-flags";
-import { useHotkeys } from "src/keyboard/hotkeys";
-import { useUserTracking } from "src/infra/user-tracking";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -23,7 +20,6 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
-  const userTracking = useUserTracking();
 
   const runSimulation = useCallback(async () => {
     setSimulationState({ status: "running" });
@@ -54,22 +50,6 @@ export const useRunSimulation = () => {
       duration,
     });
   }, [hydraulicModel, setSimulationState, setData, setDialogState]);
-
-  useHotkeys(
-    runSimulationShortcut,
-    (e) => {
-      if (!isFeatureOn("FLAG_TRACKING")) return;
-      if (e.preventDefault) e.preventDefault();
-
-      userTracking.capture({
-        name: "simulation.executed",
-        source: "shortcut",
-      });
-      runSimulation();
-    },
-    [runSimulationShortcut, runSimulation],
-    "Run simulation",
-  );
 
   return runSimulation;
 };
