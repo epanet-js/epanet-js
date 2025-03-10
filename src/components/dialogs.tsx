@@ -14,7 +14,7 @@ import {
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
-import { useUserTracking } from "src/infra/user-tracking";
+import { InpIssuesSeen, useUserTracking } from "src/infra/user-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 const OpenInpDialog = dynamic<{
@@ -161,6 +161,12 @@ export const Dialogs = memo(function Dialogs() {
         }
         if (dialog.type === "unsavedChanges") {
           userTracking.capture({ name: "unsavedChanges.seen" });
+        }
+        if (dialog.type === "inpIssues") {
+          userTracking.capture({
+            name: "inpIssues.seen",
+            issues: Object.keys(dialog.issues),
+          } as InpIssuesSeen);
         }
       }
       previousDialog.current = dialog;
