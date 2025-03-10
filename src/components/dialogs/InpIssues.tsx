@@ -15,6 +15,8 @@ import { newsletterUrl } from "src/global-config";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useShowWelcome } from "src/commands/show-welcome";
 
 export const InpIssuesDialog = ({
   issues,
@@ -24,11 +26,16 @@ export const InpIssuesDialog = ({
   onClose: () => void;
 }) => {
   const setDialogState = useSetAtom(dialogAtom);
+  const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
-    setDialogState({
-      type: "welcome",
-    });
+    if (isFeatureOn("FLAG_TRACKING")) {
+      showWelcome();
+    } else {
+      setDialogState({
+        type: "welcome",
+      });
+    }
   };
 
   if (issues.invalidVertices || issues.invalidCoordinates) {
