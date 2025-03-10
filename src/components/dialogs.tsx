@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { memo, Suspense, useCallback } from "react";
+import { memo, Suspense, useCallback, useRef } from "react";
 import { useAtom } from "jotai";
 import { dialogAtom } from "src/state/jotai";
 import { match } from "ts-pattern";
@@ -14,6 +14,8 @@ import {
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
+import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -112,6 +114,7 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
+  const userTracking = useUserTracking();
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -147,6 +150,22 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
+
+  const previousDialog = useRef<dialogState.DialogState>(null);
+
+  if (isFeatureOn("FLAG_TRACKING")) {
+    if (previousDialog.current !== dialog && !!dialog) {
+      if (previousDialog.current?.type !== dialog.type) {
+        if (dialog.type === "welcome") {
+          userTracking.capture({ name: "welcome.seen" });
+        }
+        if (dialog.type === "unsavedChanges") {
+          userTracking.capture({ name: "unsavedChanges.seen" });
+        }
+      }
+      previousDialog.current = dialog;
+    }
+  }
 
   return (
     <D.Root

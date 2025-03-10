@@ -30,6 +30,7 @@ export const InpIssuesDialog = ({
       type: "welcome",
     });
   };
+
   if (issues.invalidVertices || issues.invalidCoordinates) {
     return (
       <>

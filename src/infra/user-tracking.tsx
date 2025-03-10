@@ -84,6 +84,10 @@ type AssetsDeleted = {
   count: number;
 };
 
+type WelcomeSeen = {
+  name: "welcome.seen";
+};
+
 type WelcomeOpened = {
   name: "welcome.opened";
 };
@@ -143,6 +147,10 @@ type DrawingModeEnabled = {
   type: (typeof MODE_INFO)[keyof typeof MODE_INFO]["name"];
 };
 
+type UnsavedChangesSeen = {
+  name: "unsavedChanges.seen";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -151,9 +159,11 @@ type UserEvent =
   | AnalysisApplied
   | SatelliteViewToggled
   | AssetsDeleted
+  | WelcomeSeen
   | WelcomeOpened
   | WelcomeHidden
   | WelcomeEnabled
+  | UnsavedChangesSeen
   | ExampleModelOpened
   | SimulationExecuted
   | ReportOpened
