@@ -151,6 +151,19 @@ type UnsavedChangesSeen = {
   name: "unsavedChanges.seen";
 };
 
+export type InpIssuesSeen = {
+  name: "inpIssues.seen";
+  issues:
+    | "unsupportedSections"
+    | "extendedPeriodSimulation"
+    | "nodesMissingCoordinates"
+    | "invalidVertices"
+    | "invalidCoordinates"
+    | "nonDefaultOptions"
+    | "nonDefaultTimes"
+    | "unbalancedDiff"[];
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -175,7 +188,8 @@ type UserEvent =
   | DrawingModeEnabled
   | MultiSelectUpdated
   | FullSelectionEnabled
-  | SelectionCleared;
+  | SelectionCleared
+  | InpIssuesSeen;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
