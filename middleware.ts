@@ -7,6 +7,8 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.endsWith("js.map")) return NextResponse.next();
   if (request.nextUrl.pathname.startsWith("/api/auth-webhook"))
     return NextResponse.next();
+  if (request.nextUrl.pathname.startsWith("/.well-known/"))
+    return NextResponse.next();
 
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) {
@@ -19,7 +21,7 @@ export function middleware(request: NextRequest) {
   }
   const base64Credentials = authHeader.split(" ")[1];
   const credentials = Buffer.from(base64Credentials, "base64").toString(
-    "utf-8",
+    "utf-8"
   );
   const [username, password] = credentials.split(":");
 
