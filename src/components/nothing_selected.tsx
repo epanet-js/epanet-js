@@ -17,11 +17,14 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog_state";
 import { useOpenInp } from "src/commands/open-inp";
 import { useSaveInp } from "src/commands/save-inp";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const NothingSelected = memo(function NothingSelected() {
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
   const setDialogState = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
@@ -111,6 +114,12 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
+              if (isFeatureOn("FLAG_TRACKING"))
+                userTracking.capture({
+                  name: "openModel.started",
+                  source: "onboarding",
+                });
+
               void openInpFromFs();
             }}
           >

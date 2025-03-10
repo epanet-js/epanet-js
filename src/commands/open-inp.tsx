@@ -9,6 +9,8 @@ import { translate } from "src/infra/i18n";
 
 const inpExtension = ".inp";
 
+export const openInpShortcut = "ctrl+o";
+
 export const useOpenInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);

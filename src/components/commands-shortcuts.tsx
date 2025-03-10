@@ -5,10 +5,12 @@ import {
   runSimulationShortcut,
   useRunSimulation,
 } from "src/commands/run-simulation";
+import { openInpShortcut, useOpenInp } from "src/commands/open-inp";
 
 export const CommandShortcuts = () => {
   const showReport = useShowReport();
   const runSimulation = useRunSimulation();
+  const { openInpFromFs } = useOpenInp();
   const userTracking = useUserTracking();
 
   useHotkeys(
@@ -39,6 +41,21 @@ export const CommandShortcuts = () => {
     },
     [runSimulationShortcut, runSimulation],
     "Run simulation",
+  );
+
+  useHotkeys(
+    openInpShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "openModel.started",
+        source: "shortcut",
+      });
+      openInpFromFs();
+    },
+    [openInpShortcut, openInpFromFs],
+    "Open inp",
   );
 
   return null;
