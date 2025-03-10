@@ -124,14 +124,32 @@ export const Toolbar = () => {
           <FilePlusIcon />
         </MenuAction>
       )}
-      <MenuAction
-        label={translate("save")}
-        role="button"
-        onClick={handleSave}
-        hotkey={"ctrl+s"}
-      >
-        <DownloadIcon />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("save")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "model.saved",
+              source: "toolbar",
+            });
+            void saveInp();
+          }}
+          readOnlyHotkey={"ctrl+s"}
+        >
+          <DownloadIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("save")}
+          role="button"
+          onClick={handleSave}
+          hotkey={"ctrl+s"}
+        >
+          <DownloadIcon />
+        </MenuAction>
+      )}
       <MenuAction
         label={translate("saveAs")}
         role="button"
@@ -169,7 +187,7 @@ export const Toolbar = () => {
               name: "simulation.executed",
               source: "toolbar",
             });
-            runSimulation();
+            void runSimulation();
           }}
           expanded={true}
           readOnlyHotkey={runSimulationShortcut}

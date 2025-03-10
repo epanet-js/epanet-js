@@ -129,6 +129,12 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
+              if (isFeatureOn("FLAG_TRACKING"))
+                userTracking.capture({
+                  name: "model.saved",
+                  source: "onboarding",
+                });
+
               void saveInp();
             }}
           >

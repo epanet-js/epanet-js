@@ -56,7 +56,7 @@ export const useShowWelcome = () => {
     if (isFeatureOn("FLAG_TRACKING")) {
       userTracking.capture({ name: "welcome.opened" });
     }
-  }, [setDialogState]);
+  }, [setDialogState, userTracking]);
 
   return showWelcome;
 };
