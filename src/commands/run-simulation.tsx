@@ -12,6 +12,7 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -62,6 +63,15 @@ export const RunSimulationDialog = ({
   onClose: () => void;
 }) => {
   const showReport = useShowReport();
+  const userTracking = useUserTracking();
+
+  const handleOpenReport = () => {
+    userTracking.capture({
+      name: "report.opened",
+      source: "result-dialog",
+    });
+    showReport();
+  };
 
   const { status, duration } = modal;
   if (status === "failure")
@@ -72,7 +82,7 @@ export const RunSimulationDialog = ({
           titleIcon={CrossCircledIcon}
           variant="danger"
         />
-        <Formik onSubmit={showReport} initialValues={{}}>
+        <Formik onSubmit={handleOpenReport} initialValues={{}}>
           <Form>
             <p className="text-sm text-gray">
               {translate("simulationFailureExplain")}
@@ -106,7 +116,7 @@ export const RunSimulationDialog = ({
               autoFocusSubmit={true}
               secondary={{
                 action: translate("viewReport"),
-                onClick: showReport,
+                onClick: handleOpenReport,
               }}
               action={translate("ok")}
             />
