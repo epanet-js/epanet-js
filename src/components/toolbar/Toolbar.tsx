@@ -70,16 +70,34 @@ export const Toolbar = () => {
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
-      <MenuAction
-        label={translate("newProject")}
-        role="button"
-        hotkey={"alt+n"}
-        onClick={() => {
-          void createNewProject();
-        }}
-      >
-        <FileIcon />
-      </MenuAction>
+      {isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("newProject")}
+          role="button"
+          readOnlyHotkey={"alt+n"}
+          onClick={() => {
+            userTracking.capture({
+              name: "newModel.started",
+              source: "toolbar",
+            });
+            void createNewProject();
+          }}
+        >
+          <FileIcon />
+        </MenuAction>
+      )}
+      {!isFeatureOn("FLAG_TRACKING") && (
+        <MenuAction
+          label={translate("newProject")}
+          role="button"
+          hotkey={"alt+n"}
+          onClick={() => {
+            void createNewProject();
+          }}
+        >
+          <FileIcon />
+        </MenuAction>
+      )}
       {isFeatureOn("FLAG_TRACKING") && (
         <MenuAction
           label={translate("openProject")}

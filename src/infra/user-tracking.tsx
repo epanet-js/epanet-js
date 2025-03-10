@@ -91,6 +91,11 @@ type OpenModelStarted = {
   source: "shortcut" | "welcome" | "onboarding" | "toolbar";
 };
 
+type NewModelStarted = {
+  name: "newModel.started";
+  source: "shortcut" | "toolbar" | "welcome";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetEdited
@@ -103,7 +108,8 @@ type UserEvent =
   | ExampleModelOpened
   | SimulationExecuted
   | ReportOpened
-  | OpenModelStarted;
+  | OpenModelStarted
+  | NewModelStarted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
