@@ -2,6 +2,8 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom, hasUnsavedChangesAtom } from "src/state/jotai";
 
+export const createNewShortcut = "alt+n";
+
 export const useNewProject = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);

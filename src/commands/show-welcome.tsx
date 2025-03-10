@@ -127,7 +127,18 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                 {translate("welcomeBuildAndDevelop")}
               </p>
               <div className="flex flex-col items-start gap-y-2 pb-3">
-                <Button variant="quiet" onClick={createNew}>
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    if (isFeatureOn("FLAG_TRACKING"))
+                      userTracking.capture({
+                        name: "newModel.started",
+                        source: "welcome",
+                      });
+
+                    void createNew();
+                  }}
+                >
                   <FileIcon />
                   {translate("createNew")}
                 </Button>
