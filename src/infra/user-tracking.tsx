@@ -1,8 +1,9 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { useCallback } from "react";
-import { Asset } from "src/hydraulic-model";
+import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO } from "src/state/jotai";
+import { Presets } from "src/model-metadata/quantities-spec";
 type Metadata = {
   [key: string]: boolean | string | number | string[];
 };
@@ -125,6 +126,12 @@ type NewModelStarted = {
   source: "shortcut" | "toolbar" | "welcome";
 };
 
+type NewModelCompleted = {
+  name: "newModel.completed";
+  units: keyof Presets;
+  headlossFormula: HeadlossFormula;
+};
+
 type ModelSaved = {
   name: "model.saved";
   source: "shortcut" | "toolbar" | "onboarding" | "unsaved-dialog";
@@ -188,6 +195,7 @@ type UserEvent =
   | ReportOpened
   | OpenModelStarted
   | NewModelStarted
+  | NewModelCompleted
   | ModelSaved
   | OperationUndone
   | OperationRedone
