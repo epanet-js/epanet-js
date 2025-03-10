@@ -164,6 +164,12 @@ export type InpIssuesSeen = {
     | "unbalancedDiff"[];
 };
 
+type SimulationSummarySeen = {
+  name: "simulationSummary.seen";
+  status: "success" | "failure";
+  duration?: number;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -189,7 +195,8 @@ type UserEvent =
   | MultiSelectUpdated
   | FullSelectionEnabled
   | SelectionCleared
-  | InpIssuesSeen;
+  | InpIssuesSeen
+  | SimulationSummarySeen;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

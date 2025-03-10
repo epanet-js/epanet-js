@@ -5,7 +5,7 @@ import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
 import { Loading } from "src/components/elements";
-import { RunSimulationDialogSate } from "src/state/dialog_state";
+import { SimulationSummaryState } from "src/state/dialog_state";
 import { translate } from "src/infra/i18n";
 import { CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
@@ -26,10 +26,7 @@ export const useRunSimulation = () => {
     setSimulationState({ status: "running" });
     const inp = buildInp(hydraulicModel);
     const start = performance.now();
-    setDialogState({
-      type: "runSimulation",
-      status: "running",
-    });
+    setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);
 
     attachSimulation(hydraulicModel, results);
@@ -46,7 +43,7 @@ export const useRunSimulation = () => {
     const end = performance.now();
     const duration = end - start;
     setDialogState({
-      type: "runSimulation",
+      type: "simulationSummary",
       status,
       duration,
     });
@@ -59,7 +56,7 @@ export const RunSimulationDialog = ({
   modal,
   onClose,
 }: {
-  modal: RunSimulationDialogSate;
+  modal: SimulationSummaryState;
   onClose: () => void;
 }) => {
   const showReport = useShowReport();
