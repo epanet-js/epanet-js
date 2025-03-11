@@ -28,19 +28,22 @@ export function useMapKeybindings() {
   const userTracking = useUserTracking();
 
   const onSelectAll = useAtomCallback(
-    useCallback((get, set) => {
-      if (isFeatureOn("FLAG_TRACKING")) {
-        userTracking.capture({
-          name: "fullSelection.enabled",
-          source: "shortcut",
+    useCallback(
+      (get, set) => {
+        if (isFeatureOn("FLAG_TRACKING")) {
+          userTracking.capture({
+            name: "fullSelection.enabled",
+            source: "shortcut",
+          });
+        }
+        const data = get(dataAtom);
+        set(selectionAtom, {
+          type: "multi",
+          ids: filterLockedFeatures(data).map((f) => f.id),
         });
-      }
-      const data = get(dataAtom);
-      set(selectionAtom, {
-        type: "multi",
-        ids: filterLockedFeatures(data).map((f) => f.id),
-      });
-    }, []),
+      },
+      [userTracking],
+    ),
   );
 
   useHotkeys(
