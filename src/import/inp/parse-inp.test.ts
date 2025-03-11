@@ -402,4 +402,34 @@ describe("Parse inp", () => {
 
     expect(parseInp(inp).isMadeByApp).toBeFalsy();
   });
+
+  it("provides the count of items in each section", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pipeId = "p1";
+    const head = 100;
+    const lat = 10;
+    const lng = 20;
+    const inp = `
+    [RESERVOIRS]
+    ;ID\tHEAD
+    ${reservoirId}\t${head};__valuecomment
+
+    [COORDINATES]
+    ${reservoirId}\t${lng}\t${lat};__anothercomment
+    ${junctionId}\t1\t1
+
+    [JUNCTIONS]
+    ${junctionId}\t10
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
+    `;
+
+    const { stats } = parseInp(inp);
+
+    expect(stats.counts.get("[RESERVOIRS]")).toEqual(1);
+    expect(stats.counts.get("[COORDINATES]")).toEqual(2);
+    expect(stats.counts.get("[JUNCTIONS]")).toEqual(1);
+    expect(stats.counts.get("[PIPES]")).toEqual(1);
+  });
 });

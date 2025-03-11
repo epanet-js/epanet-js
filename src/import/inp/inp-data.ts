@@ -36,6 +36,10 @@ export type InpData = {
   nodeIds: NodeIds;
 };
 
+export type InpStats = {
+  counts: Map<string, number>;
+};
+
 class NodeIds {
   private data = new Map<string, string>();
 

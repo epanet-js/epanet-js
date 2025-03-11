@@ -4,6 +4,7 @@ import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
+import { InpStats } from "./inp-data";
 
 export const parseInp = (
   inp: string,
@@ -12,16 +13,18 @@ export const parseInp = (
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
   issues: ParserIssues | null;
+  stats: InpStats;
 } => {
   const issues = new IssuesAccumulator();
   const isMadeByApp = validateChecksum(inp);
-  const inpData = readInpData(inp, issues);
+  const { inpData, stats } = readInpData(inp, issues);
   const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
   return {
     isMadeByApp,
     hydraulicModel,
     modelMetadata,
     issues: issues.buildResult(),
+    stats,
   };
 };
 
