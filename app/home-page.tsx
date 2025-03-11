@@ -8,11 +8,13 @@ import * as T from "@radix-ui/react-tooltip";
 const queryClient = new QueryClient();
 export default function HomePage({}) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <T.Provider>
-        <Play />
-      </T.Provider>
-    </QueryClientProvider>
+    <UserTrackingProvider>
+      <QueryClientProvider client={queryClient}>
+        <T.Provider>
+          <Play />
+        </T.Provider>
+      </QueryClientProvider>
+    </UserTrackingProvider>
   );
 }
 import { Suspense, useRef } from "react";
@@ -25,6 +27,7 @@ import { newFeatureId } from "src/lib/id";
 import LAYERS from "src/lib/default_layers";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
+import { UserTrackingProvider } from "src/infra/user-tracking";
 
 const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
