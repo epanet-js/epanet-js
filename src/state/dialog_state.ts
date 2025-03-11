@@ -45,6 +45,15 @@ export type WelcomeDialogState = {
   type: "welcome";
 };
 
+export type GeocodingNotSupportedDialogState = {
+  type: "inpGeocodingNotSupported";
+};
+
+export type MissingCoordinatesDialogState = {
+  type: "inpMissingCoordinates";
+  issues: ParserIssues;
+};
+
 export type InpIssuesDialogState = {
   type: "inpIssues";
   issues: ParserIssues;
@@ -70,6 +79,8 @@ export type DialogState =
   | InpIssuesDialogState
   | { type: "loading" }
   | AlertInpOutputState
+  | GeocodingNotSupportedDialogState
+  | MissingCoordinatesDialogState
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

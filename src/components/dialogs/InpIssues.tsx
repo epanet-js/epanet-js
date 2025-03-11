@@ -18,6 +18,98 @@ import { ParserIssues } from "src/import/inp";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useShowWelcome } from "src/commands/show-welcome";
 
+export const GeocodingNotSupportedDialog = ({
+  onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const showWelcome = useShowWelcome();
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const goToWelcome = () => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      showWelcome();
+    } else {
+      setDialogState({
+        type: "welcome",
+      });
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader
+        title={translate("geocodingNotSupported")}
+        titleIcon={CrossCircledIcon}
+        variant="danger"
+      />
+      <Formik onSubmit={() => onClose()} initialValues={{}}>
+        <Form>
+          <div className="text-sm">
+            <p className="pb-4">{translate("geocodingNotSupportedDetail")}</p>
+            <SubscribeCTA />
+          </div>
+          <SimpleDialogActions
+            autoFocusSubmit={true}
+            action={translate("understood")}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
+          />
+        </Form>
+      </Formik>
+    </>
+  );
+};
+
+export const MissingCoordinatesDialog = ({
+  issues,
+  onClose,
+}: {
+  issues: ParserIssues;
+  onClose: () => void;
+}) => {
+  const showWelcome = useShowWelcome();
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const goToWelcome = () => {
+    if (isFeatureOn("FLAG_TRACKING")) {
+      showWelcome();
+    } else {
+      setDialogState({
+        type: "welcome",
+      });
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader
+        title={translate("missingCoordinates")}
+        titleIcon={CrossCircledIcon}
+        variant="danger"
+      />
+      <Formik onSubmit={() => onClose()} initialValues={{}}>
+        <Form>
+          <div className="text-sm">
+            <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
+            <CoordinatesIssues issues={issues} />
+          </div>
+          <SimpleDialogActions
+            autoFocusSubmit={true}
+            action={translate("understood")}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
+          />
+        </Form>
+      </Formik>
+    </>
+  );
+};
+
 export const InpIssuesDialog = ({
   issues,
   onClose,
@@ -38,60 +130,6 @@ export const InpIssuesDialog = ({
     }
   };
 
-  if (issues.invalidVertices || issues.invalidCoordinates) {
-    return (
-      <>
-        <DialogHeader
-          title={translate("geocodingNotSupported")}
-          titleIcon={CrossCircledIcon}
-          variant="danger"
-        />
-        <Formik onSubmit={() => onClose()} initialValues={{}}>
-          <Form>
-            <div className="text-sm">
-              <p className="pb-4">{translate("geocodingNotSupportedDetail")}</p>
-              <SubscribeCTA />
-            </div>
-            <SimpleDialogActions
-              autoFocusSubmit={true}
-              action={translate("understood")}
-              secondary={{
-                action: translate("seeDemoNetworks"),
-                onClick: goToWelcome,
-              }}
-            />
-          </Form>
-        </Formik>
-      </>
-    );
-  }
-  if (issues.nodesMissingCoordinates) {
-    return (
-      <>
-        <DialogHeader
-          title={translate("missingCoordinates")}
-          titleIcon={CrossCircledIcon}
-          variant="danger"
-        />
-        <Formik onSubmit={() => onClose()} initialValues={{}}>
-          <Form>
-            <div className="text-sm">
-              <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
-              <CoordinatesIssues issues={issues} />
-            </div>
-            <SimpleDialogActions
-              autoFocusSubmit={true}
-              action={translate("understood")}
-              secondary={{
-                action: translate("seeDemoNetworks"),
-                onClick: goToWelcome,
-              }}
-            />
-          </Form>
-        </Formik>
-      </>
-    );
-  }
   return (
     <>
       <DialogHeader

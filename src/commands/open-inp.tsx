@@ -65,38 +65,42 @@ export const useOpenInp = () => {
               stats,
             ),
           );
-        if (
-          !issues ||
-          (!issues.nodesMissingCoordinates &&
-            !issues.invalidCoordinates &&
-            !issues.invalidVertices)
-        ) {
-          transactImport(hydraulicModel, modelMetadata, file.name);
+        if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
+          setDialogState({ type: "inpGeocodingNotSupported" });
+          return;
+        }
 
-          const features: FeatureCollection = {
-            type: "FeatureCollection",
-            features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-          };
-          const nextExtent = getExtent(features);
-          nextExtent.map((importedExtent) => {
-            map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-              padding: 100,
-              duration: 0,
-            });
-          });
-          setFileInfo({
-            name: file.name,
-            handle: isMadeByApp ? file.handle : undefined,
-            modelVersion: hydraulicModel.version,
-            isMadeByApp,
-            options: { type: "inp", folderId: "" },
-          });
+        if (issues && issues.nodesMissingCoordinates) {
+          setDialogState({ type: "inpMissingCoordinates", issues });
+          return;
         }
-        if (!!issues) {
-          setDialogState({ type: "inpIssues", issues });
-        } else {
+
+        transactImport(hydraulicModel, modelMetadata, file.name);
+
+        const features: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+        };
+        const nextExtent = getExtent(features);
+        nextExtent.map((importedExtent) => {
+          map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+            padding: 100,
+            duration: 0,
+          });
+        });
+        setFileInfo({
+          name: file.name,
+          handle: isMadeByApp ? file.handle : undefined,
+          modelVersion: hydraulicModel.version,
+          isMadeByApp,
+          options: { type: "inp", folderId: "" },
+        });
+        if (!issues) {
           setDialogState(null);
+          return;
         }
+
+        setDialogState({ type: "inpIssues", issues });
       } catch (error) {
         captureError(error as Error);
         setDialogState({ type: "openError", file });
@@ -113,18 +117,11 @@ export const useOpenInp = () => {
         extensions: [inpExtension],
         description: ".INP",
       });
-      if (isFeatureOn("FLAG_TRACKING")) {
-        void importInp(file);
-      } else {
-        setDialogState({
-          type: "openInp",
-          file: file,
-        });
-      }
+      void importInp(file);
     } catch (error) {
       captureError(error as Error);
     }
-  }, [fsAccess, setDialogState, importInp]);
+  }, [fsAccess, importInp]);
 
   const openInpFromFs = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -152,16 +149,9 @@ export const useOpenInp = () => {
         toast(translate("onlyOneInp"), { icon: "⚠️" });
       }
 
-      if (isFeatureOn("FLAG_TRACKING")) {
-        void importInp(inps[0]);
-      } else {
-        setDialogState({
-          type: "openInp",
-          file: inps[0],
-        });
-      }
+      void importInp(inps[0]);
     },
-    [setDialogState, importInp],
+    [importInp],
   );
 
   const openInpFromCandidates = useCallback(
