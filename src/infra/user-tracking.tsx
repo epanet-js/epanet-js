@@ -122,6 +122,10 @@ type OpenModelStarted = {
   source: "shortcut" | "welcome" | "onboarding" | "toolbar";
 };
 
+type OpenModelCompleted = {
+  name: "openModel.completed";
+};
+
 type NewModelStarted = {
   name: "newModel.started";
   source: "shortcut" | "toolbar" | "welcome";
@@ -205,6 +209,7 @@ type UserEvent =
   | SimulationExecuted
   | ReportOpened
   | OpenModelStarted
+  | OpenModelCompleted
   | NewModelStarted
   | NewModelCompleted
   | ModelSaved

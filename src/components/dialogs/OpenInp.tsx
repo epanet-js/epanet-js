@@ -16,6 +16,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -35,6 +37,7 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
+  const userTracking = useUserTracking();
 
   const importInp = useCallback(async () => {
     try {
@@ -73,6 +76,10 @@ export function OpenInpDialog({
           isMadeByApp,
           options: { type: "inp", folderId: "" },
         });
+        isFeatureOn("FLAG_TRACKING") &&
+          userTracking.capture({
+            name: "openModel.completed",
+          });
       }
       if (!!issues) {
         setDialogState({ type: "inpIssues", issues });
@@ -83,7 +90,15 @@ export function OpenInpDialog({
       captureError(error as Error);
       setError(true);
     }
-  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
+  }, [
+    file,
+    map?.map,
+    onClose,
+    transactImport,
+    setFileInfo,
+    setDialogState,
+    userTracking,
+  ]);
 
   useEffect(
     function onRender() {
