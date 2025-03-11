@@ -206,6 +206,21 @@ type PropertyAggregateOpened = {
   property: string;
 };
 
+type QuickStartVisited = {
+  name: "quickStart.visited";
+  source: "welcome";
+};
+
+type HelpCenterVisited = {
+  name: "helpCenter.visited";
+  source: "welcome";
+};
+
+type RepoVisited = {
+  name: "repo.visited";
+  source: "welcome";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -239,7 +254,10 @@ type UserEvent =
   | GeocodingNotSupportedSeen
   | SimulationSummarySeen
   | ShortcutsOpened
-  | PropertyAggregateOpened;
+  | PropertyAggregateOpened
+  | QuickStartVisited
+  | HelpCenterVisited
+  | RepoVisited;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
