@@ -182,6 +182,11 @@ type ShortcutsOpened = {
   source: "menu" | "shortcut" | "onboarding";
 };
 
+type PropertyAggregateOpened = {
+  name: "propertyAggregate.opened";
+  property: string;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -210,7 +215,8 @@ type UserEvent =
   | SelectionCleared
   | InpIssuesSeen
   | SimulationSummarySeen
-  | ShortcutsOpened;
+  | ShortcutsOpened
+  | PropertyAggregateOpened;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

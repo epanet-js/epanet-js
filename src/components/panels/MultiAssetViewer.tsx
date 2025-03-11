@@ -21,6 +21,8 @@ import {
   computePropertyStats,
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export default function MultiAssetViewer({
   selectedFeatures,
@@ -99,6 +101,7 @@ const PropertyRowMulti = ({
     <PropertyRow label={label}>
       {hasMulti ? (
         <MultiValueField
+          property={property}
           pair={[label, stats.values]}
           propertyStats={stats}
           onAccept={() => {}}
@@ -116,9 +119,10 @@ const PropertyRowMulti = ({
   );
 };
 
-function MultiValueField({ pair, propertyStats }: MultiValueProps) {
+function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   const [label, value] = pair;
   const [isOpen, setOpen] = useState(false);
+  const userTracking = useUserTracking();
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
     event,
@@ -139,6 +143,12 @@ function MultiValueField({ pair, propertyStats }: MultiValueProps) {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
+    if (isFeatureOn("FLAG_TRACKING") && isOpen) {
+      userTracking.capture({
+        name: "propertyAggregate.opened",
+        property,
+      });
+    }
     setOpen(isOpen);
   };
 
@@ -235,6 +245,7 @@ const formatValue = (value: JsonValue | undefined): string => {
 };
 
 type MultiValueProps = {
+  property: string;
   pair: MultiPair;
   propertyStats: PropertyStats;
   onAccept: (arg0: JsonValue | undefined) => void;
