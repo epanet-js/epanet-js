@@ -8,13 +8,11 @@ import * as T from "@radix-ui/react-tooltip";
 const queryClient = new QueryClient();
 export default function HomePage({}) {
   return (
-    <UserTrackingProvider>
-      <QueryClientProvider client={queryClient}>
-        <T.Provider>
-          <Play />
-        </T.Provider>
-      </QueryClientProvider>
-    </UserTrackingProvider>
+    <QueryClientProvider client={queryClient}>
+      <T.Provider>
+        <Play />
+      </T.Provider>
+    </QueryClientProvider>
   );
 }
 import { Suspense, useRef } from "react";
@@ -27,10 +25,16 @@ import { newFeatureId } from "src/lib/id";
 import LAYERS from "src/lib/default_layers";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
-import { UserTrackingProvider } from "src/infra/user-tracking";
 
 const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
+  {
+    ssr: false,
+  },
+);
+
+const UserTrackingProvider = dynamic(
+  () => import("src/infra/user-tracking").then((m) => m.UserTrackingProvider),
   {
     ssr: false,
   },
@@ -40,15 +44,17 @@ function ScratchpadInner({ store }: { store: Store }) {
   const idMap = useRef(UIDMap.empty());
 
   return (
-    <PersistenceContext.Provider
-      value={new MemPersistence(idMap.current, store)}
-    >
-      <Suspense fallback={null}>
-        <AuthProvider>
-          <PlacemarkPlay />
-        </AuthProvider>
-      </Suspense>
-    </PersistenceContext.Provider>
+    <UserTrackingProvider>
+      <PersistenceContext.Provider
+        value={new MemPersistence(idMap.current, store)}
+      >
+        <Suspense fallback={null}>
+          <AuthProvider>
+            <PlacemarkPlay />
+          </AuthProvider>
+        </Suspense>
+      </PersistenceContext.Provider>
+    </UserTrackingProvider>
   );
 }
 
