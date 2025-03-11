@@ -49,6 +49,31 @@ const InpIssuesDialog = dynamic<{
   },
 );
 
+const GeocodingNotSupportedDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/InpIssues").then(
+      (r) => r.GeocodingNotSupportedDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
+const MissingCoordinatesDialog = dynamic<{
+  issues: ParserIssues;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/InpIssues").then(
+      (r) => r.MissingCoordinatesDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const CreateNewDialog = dynamic<{
   onClose: () => void;
 }>(() => import("src/components/dialogs/CreateNew").then((r) => r.CreateNew), {
@@ -160,6 +185,12 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
+    ))
+    .with({ type: "inpGeocodingNotSupported" }, () => (
+      <GeocodingNotSupportedDialog onClose={onClose} />
+    ))
+    .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
+      <MissingCoordinatesDialog issues={issues} onClose={onClose} />
     ))
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .with({ type: "loading" }, () => <Loading />)
