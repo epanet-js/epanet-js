@@ -161,7 +161,7 @@ export function PlacemarkPlay() {
         <Drop />
         <Dialogs />
         <Suspense fallback={null}>
-          {!isFeatureOn('FLAG_TRACKING') && <Keybindings />}
+          <Keybindings />
         </Suspense>
         <Notifications />
         <Footer />

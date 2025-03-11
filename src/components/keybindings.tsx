@@ -2,6 +2,7 @@ import { useMapKeybindings } from "src/hooks/use_map_keybindings";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/jotai";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function Keybindings() {
   const setDialogState = useSetAtom(dialogAtom);
@@ -9,7 +10,7 @@ export function Keybindings() {
   useMapKeybindings();
 
   useHotkeys(
-    ["?"],
+    [isFeatureOn("FLAG_TRACKING") ? "noop" : "?"],
     (e) => {
       // Don't type a / in the input.
       e.preventDefault();
