@@ -17,6 +17,11 @@ export type OpenInpDialogState = {
   file: FileWithHandle;
 };
 
+export type OpenErrorDialogState = {
+  type: "openError";
+  file: FileWithHandle;
+};
+
 export type DialogStateExamples = {
   type: "import_example";
 };
@@ -53,6 +58,7 @@ export type AlertInpOutputState = {
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
+  | OpenErrorDialogState
   | {
       type: "cheatsheet";
     }
