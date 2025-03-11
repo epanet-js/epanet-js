@@ -27,6 +27,17 @@ const OpenInpDialog = dynamic<{
   },
 );
 
+const OpenErrorDialog = dynamic<{
+  modal: dialogState.OpenErrorDialogState;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/OpenError").then((r) => r.OpenErrorDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const InpIssuesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
@@ -135,6 +146,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
+    ))
+    .with({ type: "openError" }, (modal) => (
+      <OpenErrorDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
