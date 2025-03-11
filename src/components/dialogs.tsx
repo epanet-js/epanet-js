@@ -14,7 +14,7 @@ import {
 } from "./elements";
 import * as dialogState from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
-import { InpIssuesSeen, useUserTracking } from "src/infra/user-tracking";
+import { useUserTracking } from "src/infra/user-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 const OpenInpDialog = dynamic<{
@@ -207,11 +207,17 @@ export const Dialogs = memo(function Dialogs() {
         if (dialog.type === "unsavedChanges") {
           userTracking.capture({ name: "unsavedChanges.seen" });
         }
+        if (dialog.type === "inpMissingCoordinates") {
+          userTracking.capture({ name: "missingCoordinates.seen" });
+        }
+        if (dialog.type === "inpGeocodingNotSupported") {
+          userTracking.capture({ name: "geocodingNotSupported.seen" });
+        }
         if (dialog.type === "inpIssues") {
-          userTracking.capture({
-            name: "inpIssues.seen",
-            issues: Object.keys(dialog.issues),
-          } as InpIssuesSeen);
+          userTracking.capture({ name: "inpIssues.seen" });
+        }
+        if (dialog.type === "openError") {
+          userTracking.capture({ name: "openError.seen" });
         }
         if (dialog.type === "simulationSummary") {
           userTracking.capture({
