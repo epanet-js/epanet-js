@@ -100,7 +100,17 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                 {translate("welcomeNewHere", translate("quickStartTutorial"))}
               </p>
               <p className="text-sm pb-6">
-                <a href={quickStartTutorialUrl} target="_blank">
+                <a
+                  href={quickStartTutorialUrl}
+                  target="_blank"
+                  onClick={() => {
+                    if (isFeatureOn("FLAG_TRACKING"))
+                      userTracking.capture({
+                        name: "quickStart.visited",
+                        source: "welcome",
+                      });
+                  }}
+                >
                   <Button variant="primary">
                     <ArrowRightIcon />
                     {translate("quickStartTutorial")}
@@ -163,14 +173,34 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     {translate("openProject")}
                   </Button>
                 )}
-                <a href={helpCenterUrl} target="_blank">
+                <a
+                  href={helpCenterUrl}
+                  target="_blank"
+                  onClick={() => {
+                    if (isFeatureOn("FLAG_TRACKING"))
+                      userTracking.capture({
+                        name: "helpCenter.visited",
+                        source: "welcome",
+                      });
+                  }}
+                >
                   <Button variant="quiet">
                     <QuestionMarkCircledIcon />
                     {translate("helpCenter")}
                   </Button>
                 </a>
                 {isFeatureOn("FLAG_WELCOME") && (
-                  <a href={sourceCodeUrl} target="_blank">
+                  <a
+                    href={sourceCodeUrl}
+                    target="_blank"
+                    onClick={() => {
+                      if (isFeatureOn("FLAG_TRACKING"))
+                        userTracking.capture({
+                          name: "repo.visited",
+                          source: "welcome",
+                        });
+                    }}
+                  >
                     <Button variant="quiet">
                       <GitHubLogoIcon />
                       {translate("openSource")}
