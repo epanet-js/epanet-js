@@ -11,8 +11,6 @@ import { MemoryInfo } from "src/components/map_info/memory_info";
 import { usePersistence } from "src/lib/persistence/context";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
-import { dialogAtom } from "src/state/jotai";
-import { useSetAtom } from "jotai";
 import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
@@ -26,6 +24,8 @@ import {
 } from "src/auth";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useShowWelcome } from "src/commands/show-welcome";
+import { useUserTracking } from "src/infra/user-tracking";
+import { useShowShortcuts } from "src/commands/show-shortcuts";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -122,8 +122,9 @@ export const MenuBar = memo(function MenuBar() {
 });
 
 export function HelpDot() {
-  const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
+  const showShortcuts = useShowShortcuts();
+  const userTracking = useUserTracking();
 
   return (
     <DD.Root>
@@ -146,7 +147,13 @@ export function HelpDot() {
         </a>
         <StyledItem
           onSelect={() => {
-            setDialogState({ type: "cheatsheet" });
+            if (isFeatureOn("FLAG_TRACKING")) {
+              userTracking.capture({
+                name: "shortcuts.opened",
+                source: "menu",
+              });
+            }
+            showShortcuts();
           }}
         >
           <KeyboardIcon />

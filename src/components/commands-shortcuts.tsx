@@ -25,10 +25,15 @@ import {
   useDrawingMode,
 } from "src/commands/set-drawing-mode";
 import { MODE_INFO } from "src/state/mode";
+import {
+  showSortcutsShortcut,
+  useShowShortcuts,
+} from "src/commands/show-shortcuts";
 
 export const CommandShortcuts = () => {
   const showReport = useShowReport();
   const runSimulation = useRunSimulation();
+  const showShortcuts = useShowShortcuts();
   const createNew = useNewProject();
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
@@ -170,6 +175,21 @@ export const CommandShortcuts = () => {
     },
     [redoShortcut, redo],
     "Redo",
+  );
+
+  useHotkeys(
+    showSortcutsShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      userTracking.capture({
+        name: "shortcuts.opened",
+        source: "shortcut",
+      });
+      void showShortcuts();
+    },
+    [showSortcutsShortcut, showShortcuts],
+    "Show shortcuts",
   );
 
   for (const [shortcut, mode] of Object.entries(drawingModeShorcuts)) {

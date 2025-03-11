@@ -9,7 +9,7 @@ export function Keybindings() {
   useMapKeybindings();
 
   useHotkeys(
-    ["shift+/"],
+    ["?"],
     (e) => {
       // Don't type a / in the input.
       e.preventDefault();

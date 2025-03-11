@@ -13,17 +13,16 @@ import {
 import { memo } from "react";
 import { Button } from "./elements";
 import { localizeKeybinding, translate } from "src/infra/i18n";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
 import { useOpenInp } from "src/commands/open-inp";
 import { useSaveInp } from "src/commands/save-inp";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useShowShortcuts } from "src/commands/show-shortcuts";
 
 export const NothingSelected = memo(function NothingSelected() {
   const { openInpFromFs } = useOpenInp();
   const saveInp = useSaveInp();
-  const setDialogState = useSetAtom(dialogAtom);
+  const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
 
   return (
@@ -91,7 +90,15 @@ export const NothingSelected = memo(function NothingSelected() {
         <a
           href="#"
           className="!text-purple-800 hover:underline cursor:pointer"
-          onClick={() => setDialogState({ type: "cheatsheet" })}
+          onClick={() => {
+            if (isFeatureOn("FLAG_TRACKING")) {
+              userTracking.capture({
+                name: "shortcuts.opened",
+                source: "onboarding",
+              });
+            }
+            showShortcuts();
+          }}
         >
           {translate("keyboardShortcuts")}
         </a>
