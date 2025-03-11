@@ -42,6 +42,7 @@ type AssetEdited = {
   type: Asset["type"];
   property: string;
   newValue: string | number | null;
+  oldValue: string | number | null;
 };
 
 type AssetSelected = {

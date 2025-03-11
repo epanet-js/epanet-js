@@ -84,7 +84,11 @@ const AssetEditorInner = ({
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
 
-  const handlePropertyChange = (name: string, value: number) => {
+  const handlePropertyChange = (
+    name: string,
+    value: number,
+    oldValue: number | null,
+  ) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
       property: name,
@@ -97,12 +101,13 @@ const AssetEditorInner = ({
         type: asset.type,
         property: name,
         newValue: value,
+        oldValue,
       });
     }
   };
 
   const handleStatusChange = useCallback(
-    (newStatus: PipeStatus) => {
+    (newStatus: PipeStatus, oldStatus: PipeStatus) => {
       const moment = changePipeStatus(hydraulicModel, {
         pipeId: asset.id,
         newStatus,
@@ -114,6 +119,7 @@ const AssetEditorInner = ({
           type: asset.type,
           property: "status",
           newValue: newStatus,
+          oldValue: oldStatus,
         });
       }
     },
@@ -150,8 +156,12 @@ const AssetEditorInner = ({
   }
 };
 
-type OnPropertyChange = (name: string, value: number) => void;
-type OnStatusChange = (newStatus: PipeStatus) => void;
+type OnPropertyChange = (
+  name: string,
+  value: number,
+  oldValue: number | null,
+) => void;
+type OnStatusChange = (newStatus: PipeStatus, oldStatus: PipeStatus) => void;
 
 const PipeEditor = ({
   pipe,
@@ -335,7 +345,7 @@ const StatusRow = ({
   name: string;
   status: AssetStatus;
   availableStatuses: readonly AssetStatus[];
-  onChange: (newStatus: AssetStatus) => void;
+  onChange: (newStatus: AssetStatus, oldStateu: AssetStatus) => void;
 }) => {
   const label = translate(name);
 
@@ -379,7 +389,7 @@ const QuantityRow = ({
   isNullable?: boolean;
   readOnly?: boolean;
   decimals?: number;
-  onChange?: (name: string, newValue: number) => void;
+  onChange?: (name: string, newValue: number, oldValue: number | null) => void;
 }) => {
   const lastChange = useRef<number>(0);
 
@@ -392,9 +402,9 @@ const QuantityRow = ({
     ? `${translate(name)} (${translateUnit(unit)})`
     : `${translate(name)}`;
 
-  const handleChange = (value: number) => {
+  const handleChange = (newValue: number) => {
     lastChange.current = Date.now();
-    onChange && onChange(name, value);
+    onChange && onChange(name, newValue, value);
   };
 
   return (

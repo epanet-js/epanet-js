@@ -12,7 +12,7 @@ export const Selector = <T extends string>({
 }: {
   options: { label: string; value: T }[];
   selected: T;
-  onChange: (selected: T) => void;
+  onChange: (selected: T, oldValue: T) => void;
   ariaLabel?: string;
   tabIndex?: number;
   styleOptions?: { border: boolean; textSize: "text-xs" | "text-sm" };
@@ -38,13 +38,17 @@ export const Selector = <T extends string>({
     return `bg-white w-full border ${styleOptions.textSize} rounded-md shadow-md z-50`;
   }, [styleOptions]);
 
+  const handleValueChange = (newValue: T) => {
+    onChange(newValue, selected);
+  };
+
   return (
     <div className="relative group-1">
       <Select.Root
         value={selected}
         open={isOpen}
         onOpenChange={handleOpenChange}
-        onValueChange={onChange}
+        onValueChange={handleValueChange}
       >
         <Select.Trigger
           aria-label={ariaLabel}
