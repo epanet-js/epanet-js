@@ -14,7 +14,10 @@ export const useSelection = (selection: Sel) => {
   const toggleSingleSelection = (id: AssetId, type: Asset["type"]) => {
     if (isFeatureOn("FLAG_TRACKING")) {
       userTracking.capture({
-        name: isSelected(id) ? "asset.deselected" : "asset.selected",
+        name:
+          isSelected(id) && getSelectionIds().length === 1
+            ? "asset.deselected"
+            : "asset.selected",
         type,
       });
       setSelection(USelection.toggleSingleSelectionId(selection, id));
