@@ -177,6 +177,11 @@ type SimulationSummarySeen = {
   duration?: number;
 };
 
+type ShortcutsOpened = {
+  name: "shortcuts.opened";
+  source: "menu" | "shortcut" | "onboarding";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -204,7 +209,8 @@ type UserEvent =
   | FullSelectionEnabled
   | SelectionCleared
   | InpIssuesSeen
-  | SimulationSummarySeen;
+  | SimulationSummarySeen
+  | ShortcutsOpened;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
