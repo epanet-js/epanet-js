@@ -67,6 +67,8 @@ export const BrandLogo = ({ textSize = "md", iconSize = "8", gapX = "0" }) => {
 };
 
 export const MenuBarPlay = memo(function MenuBar() {
+  const userTracking = useUserTracking();
+
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
       <div className="flex items-center">
@@ -76,7 +78,14 @@ export const MenuBarPlay = memo(function MenuBar() {
         <FileInfo />
       </div>
       <div className="flex items-center gap-x-1">
-        <a href={sourceCodeUrl} target="_blank">
+        <a
+          href={sourceCodeUrl}
+          target="_blank"
+          onClick={() => {
+            if (isFeatureOn("FLAG_TRACKING"))
+              userTracking.capture({ name: "repo.visited", source: "menu" });
+          }}
+        >
           <Button variant="quiet">
             <GitHubLogoIcon />
             {translate("openSource")}
@@ -140,7 +149,17 @@ export function HelpDot() {
           <SunIcon />
           {translate("welcomePage")}
         </StyledItem>
-        <a href={helpCenterUrl} target="_blank">
+        <a
+          href={helpCenterUrl}
+          target="_blank"
+          onClick={() => {
+            if (isFeatureOn("FLAG_TRACKING"))
+              userTracking.capture({
+                name: "helpCenter.visited",
+                source: "menu",
+              });
+          }}
+        >
           <StyledItem>
             <QuestionMarkCircledIcon /> {translate("helpCenter")}
           </StyledItem>

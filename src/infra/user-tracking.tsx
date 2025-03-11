@@ -213,12 +213,12 @@ type QuickStartVisited = {
 
 type HelpCenterVisited = {
   name: "helpCenter.visited";
-  source: "welcome";
+  source: "welcome" | "menu";
 };
 
 type RepoVisited = {
   name: "repo.visited";
-  source: "welcome";
+  source: "welcome" | "menu";
 };
 
 type UserEvent =
