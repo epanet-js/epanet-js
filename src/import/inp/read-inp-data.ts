@@ -1,4 +1,4 @@
-import { InpData, nullInpData } from "./inp-data";
+import { InpData, InpStats, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import {
   RowParser,
@@ -52,11 +52,12 @@ const buildSectionParsers = (): SectionParsers => ({
 export const readInpData = (
   inp: string,
   issues: IssuesAccumulator,
-): InpData => {
+): { inpData: InpData; stats: InpStats } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData = nullInpData();
   const sectionParsers = buildSectionParsers();
+  const counts = new Map<string, number>();
 
   for (const row of rows) {
     const trimmedRow = row.trim();
@@ -79,12 +80,16 @@ export const readInpData = (
     if (!section) continue;
 
     const rowParserFn = sectionParsers[section];
+    if (!counts.has(section)) counts.set(section, 0);
+
+    counts.set(section, (counts.get(section) || 0) + 1);
+
     if (!rowParserFn) continue;
 
     rowParserFn({ sectionName: section, trimmedRow, inpData, issues });
   }
 
-  return inpData;
+  return { inpData, stats: { counts } };
 };
 
 const isEnd = (trimmedRow: string) => {
