@@ -10,14 +10,18 @@ import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
 import { FileWithHandle } from "browser-fs-access";
 import { translate } from "src/infra/i18n";
-import { parseInp } from "src/import/inp";
+import { ParserIssues, parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext } from "src/map";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useUserTracking } from "src/infra/user-tracking";
+import { OpenModelCompleted, useUserTracking } from "src/infra/user-tracking";
+import { InpStats } from "src/import/inp/inp-data";
+import { ModelMetadata } from "src/model-metadata";
+import { HydraulicModel } from "src/hydraulic-model";
+import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 const inpExtension = ".inp";
 
@@ -50,8 +54,17 @@ export const useOpenInp = () => {
         setDialogState({ type: "loading" });
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
-        const { hydraulicModel, modelMetadata, issues, isMadeByApp } =
+        const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
           parseInp(content);
+        isFeatureOn("FLAG_TRACKING") &&
+          userTracking.capture(
+            buildOpenCompleteEvent(
+              hydraulicModel,
+              modelMetadata,
+              issues,
+              stats,
+            ),
+          );
         if (
           !issues ||
           (!issues.nodesMissingCoordinates &&
@@ -78,10 +91,6 @@ export const useOpenInp = () => {
             isMadeByApp,
             options: { type: "inp", folderId: "" },
           });
-          isFeatureOn("FLAG_TRACKING") &&
-            userTracking.capture({
-              name: "openModel.completed",
-            });
         }
         if (!!issues) {
           setDialogState({ type: "inpIssues", issues });
@@ -170,4 +179,19 @@ export const useOpenInp = () => {
   );
 
   return { openInpFromCandidates, openInpFromFs };
+};
+
+const buildOpenCompleteEvent = (
+  hydraulicModel: HydraulicModel,
+  modelMetadata: ModelMetadata,
+  issues: ParserIssues | null,
+  stats: InpStats,
+): OpenModelCompleted => {
+  return {
+    name: "openModel.completed",
+    counts: Object.fromEntries(stats.counts),
+    headlossFormula: hydraulicModel.headlossFormula,
+    units: modelMetadata.quantities.specName as EpanetUnitSystem,
+    issues: issues ? Object.keys(issues) : [],
+  } as OpenModelCompleted;
 };

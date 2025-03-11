@@ -4,6 +4,7 @@ import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
+import { EpanetUnitSystem } from "src/simulation/build-inp";
 type Metadata = {
   [key: string]: boolean | string | number | string[];
 };
@@ -122,8 +123,21 @@ type OpenModelStarted = {
   source: "shortcut" | "welcome" | "onboarding" | "toolbar";
 };
 
-type OpenModelCompleted = {
+export type OpenModelCompleted = {
   name: "openModel.completed";
+  counts: Record<string, number>;
+  headlossFormula: HeadlossFormula;
+  units: EpanetUnitSystem;
+  issues: (
+    | "unsupportedSections"
+    | "extendedPeriodSimulation"
+    | "nodesMissingCoordinates"
+    | "invalidVertices"
+    | "invalidCoordinates"
+    | "nonDefaultOptions"
+    | "nonDefaultTimes"
+    | "unbalancedDiff"
+  )[];
 };
 
 type NewModelStarted = {
