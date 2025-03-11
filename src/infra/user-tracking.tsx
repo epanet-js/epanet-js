@@ -177,17 +177,17 @@ type UnsavedChangesSeen = {
   name: "unsavedChanges.seen";
 };
 
-export type InpIssuesSeen = {
+type InpIssuesSeen = {
   name: "inpIssues.seen";
-  issues:
-    | "unsupportedSections"
-    | "extendedPeriodSimulation"
-    | "nodesMissingCoordinates"
-    | "invalidVertices"
-    | "invalidCoordinates"
-    | "nonDefaultOptions"
-    | "nonDefaultTimes"
-    | "unbalancedDiff"[];
+};
+type GeocodingNotSupportedSeen = {
+  name: "geocodingNotSupported.seen";
+};
+type MissingCoordinatesSeen = {
+  name: "missingCoordinates.seen";
+};
+type OpenErrorSeen = {
+  name: "openError.seen";
 };
 
 type SimulationSummarySeen = {
@@ -224,6 +224,7 @@ type UserEvent =
   | ReportOpened
   | OpenModelStarted
   | OpenModelCompleted
+  | OpenErrorSeen
   | NewModelStarted
   | NewModelCompleted
   | ModelSaved
@@ -234,6 +235,8 @@ type UserEvent =
   | FullSelectionEnabled
   | SelectionCleared
   | InpIssuesSeen
+  | MissingCoordinatesSeen
+  | GeocodingNotSupportedSeen
   | SimulationSummarySeen
   | ShortcutsOpened
   | PropertyAggregateOpened;
