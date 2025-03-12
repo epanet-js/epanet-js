@@ -44,17 +44,17 @@ function ScratchpadInner({ store }: { store: Store }) {
   const idMap = useRef(UIDMap.empty());
 
   return (
-    <UserTrackingProvider>
-      <PersistenceContext.Provider
-        value={new MemPersistence(idMap.current, store)}
-      >
-        <Suspense fallback={null}>
-          <AuthProvider>
+    <AuthProvider>
+      <UserTrackingProvider>
+        <PersistenceContext.Provider
+          value={new MemPersistence(idMap.current, store)}
+        >
+          <Suspense fallback={null}>
             <PlacemarkPlay />
-          </AuthProvider>
-        </Suspense>
-      </PersistenceContext.Provider>
-    </UserTrackingProvider>
+          </Suspense>
+        </PersistenceContext.Provider>
+      </UserTrackingProvider>
+    </AuthProvider>
   );
 }
 

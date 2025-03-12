@@ -6,6 +6,8 @@ import {
   SignInButton as ClerkSignInButton,
   SignUpButton as ClerkSignUpButton,
   UserButton as ClerkUserButton,
+  useAuth as useClerkAuth,
+  useUser as useClerkUser,
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
 import { Button } from "./components/elements";
@@ -26,6 +28,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </ClerkProvider>
   );
+};
+
+export type User = {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+};
+
+export const useAuth = () => {
+  const { isSignedIn, userId } = useClerkAuth();
+  const { user: clerkUser } = useClerkUser();
+
+  const user: User | null = clerkUser
+    ? {
+        id: clerkUser.id,
+        email: clerkUser.primaryEmailAddress?.emailAddress || "",
+        firstName: clerkUser.firstName || undefined,
+        lastName: clerkUser.lastName || undefined,
+      }
+    : null;
+
+  return { isSignedIn, userId, user };
 };
 
 export const SignInButton = ({ onClick }: { onClick?: () => void }) => (

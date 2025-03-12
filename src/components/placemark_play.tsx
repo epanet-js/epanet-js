@@ -58,6 +58,8 @@ import {isFeatureOn} from 'src/infra/feature-flags';
 import {settingsFromStorage} from 'src/state/user-settings';
 import {TabCloseGuard} from './tab-close-guard';
 import {CommandShortcuts} from './commands-shortcuts';
+import {useUserTracking} from 'src/infra/user-tracking';
+import {useAuth} from 'src/auth';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -77,6 +79,21 @@ export function PlacemarkPlay() {
   useWindowResizeSplits();
   const splits = useAtomValue(splitsAtom);
   const isBigScreen = useBigScreen();
+  const userTracking = useUserTracking()
+  const { user, isSignedIn } = useAuth()
+
+  useEffect(() => {
+    if (!isFeatureOn('FLAG_TRACKING')) return
+
+    if (isSignedIn && user && !userTracking.isIdentified()) {
+      userTracking.identify(user)
+    }
+
+    if (!isSignedIn && userTracking.isIdentified()) {
+      userTracking.capture({ name: "logOut.completed" })
+      userTracking.reset()
+    }
+  }, [isSignedIn, user, userTracking])
 
   let layout: ResolvedLayout = "HORIZONTAL";
 
@@ -104,6 +121,8 @@ export function PlacemarkPlay() {
   const [persistentTransform, setPersistentTransform] = useAtom(
     persistentTransformAtom,
   );
+
+
 
   useHydrateAtoms([[dialogAtom,
   settingsFromStorage().showWelcomeOnStart
