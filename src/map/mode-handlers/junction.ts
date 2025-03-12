@@ -14,7 +14,6 @@ import { addJunction } from "src/hydraulic-model/model-operations";
 import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function useJunctionHandlers({
@@ -49,8 +48,7 @@ export function useJunctionHandlers({
 
       const moment = addJunction(hydraulicModel, { junction });
       transact(moment);
-      if (isFeatureOn("FLAG_TRACKING"))
-        userTracking.capture({ name: "asset.created", type: "junction" });
+      userTracking.capture({ name: "asset.created", type: "junction" });
       if (!multi) {
         setSelection(USelection.single(id));
       }

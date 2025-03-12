@@ -21,7 +21,6 @@ import {
   computePropertyStats,
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export default function MultiAssetViewer({
@@ -143,12 +142,10 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isFeatureOn("FLAG_TRACKING") && isOpen) {
-      userTracking.capture({
-        name: "propertyAggregate.opened",
-        property,
-      });
-    }
+    userTracking.capture({
+      name: "propertyAggregate.opened",
+      property,
+    });
     setOpen(isOpen);
   };
 

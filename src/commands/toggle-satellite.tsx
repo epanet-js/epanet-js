@@ -5,7 +5,6 @@ import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const useToggleSatellite = () => {
@@ -39,11 +38,10 @@ export const useToggleSatellite = () => {
     "b",
     (e) => {
       e.preventDefault();
-      if (isFeatureOn("FLAG_TRACKING"))
-        userTracking.capture({
-          name: "satelliteView.toggled",
-          source: "shortcut",
-        });
+      userTracking.capture({
+        name: "satelliteView.toggled",
+        source: "shortcut",
+      });
       toggleSatellite();
     },
     [toggleSatellite],

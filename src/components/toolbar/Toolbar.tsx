@@ -12,10 +12,8 @@ import {
 import Modes from "../modes";
 import ContextActions from "../context_actions";
 import { Visual } from "../visual";
-import { useAtomValue, useSetAtom } from "jotai";
-import { Mode, modeAtom } from "src/state/mode";
-import { usePersistence } from "src/lib/persistence/context";
-import { ephemeralStateAtom, simulationAtom } from "src/state/jotai";
+import { useAtomValue } from "jotai";
+import { simulationAtom } from "src/state/jotai";
 import { useOpenInp } from "src/commands/open-inp";
 import { useNewProject } from "src/commands/create-new-project";
 import {
@@ -28,7 +26,6 @@ import {
   useRunSimulation,
 } from "src/commands/run-simulation";
 import { useShowReport } from "src/commands/show-report";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
 
@@ -42,262 +39,134 @@ export const Toolbar = () => {
 
   const { undo, redo } = useHistoryControl();
 
-  const rep = usePersistence();
-  const historyControl = rep.useHistoryControl();
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const setMode = useSetAtom(modeAtom);
   const simulation = useAtomValue(simulationAtom);
-
-  const handleOpen = () => {
-    void openInpFromFs();
-  };
-
-  const handleUndo = () => {
-    historyControl("undo");
-    setEphemeralState({ type: "none" });
-    setMode({ mode: Mode.NONE });
-  };
-
-  const handleRedo = () => {
-    historyControl("redo");
-    setEphemeralState({ type: "none" });
-    setMode({ mode: Mode.NONE });
-  };
-
-  const handleSave = () => {
-    void saveInp();
-  };
-
-  const handleSaveAs = () => {
-    void saveInp({ isSaveAs: true });
-  };
 
   return (
     <div
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("newProject")}
-          role="button"
-          readOnlyHotkey={"alt+n"}
-          onClick={() => {
-            userTracking.capture({
-              name: "newModel.started",
-              source: "toolbar",
-            });
-            void createNewProject();
-          }}
-        >
-          <FileIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("newProject")}
-          role="button"
-          hotkey={"alt+n"}
-          onClick={() => {
-            void createNewProject();
-          }}
-        >
-          <FileIcon />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("openProject")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "openModel.started",
-              source: "toolbar",
-            });
-            void openInpFromFs();
-          }}
-          readOnlyHotkey={"ctrl+o"}
-        >
-          <FilePlusIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("openProject")}
-          role="button"
-          onClick={handleOpen}
-          hotkey={"ctrl+o"}
-        >
-          <FilePlusIcon />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("save")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "model.saved",
-              source: "toolbar",
-            });
-            void saveInp();
-          }}
-          readOnlyHotkey={saveShortcut}
-        >
-          <DownloadIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("save")}
-          role="button"
-          onClick={handleSave}
-          hotkey={"ctrl+s"}
-        >
-          <DownloadIcon />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("saveAs")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "model.saved",
-              source: "toolbar",
-              isSaveAs: true,
-            });
+      <MenuAction
+        label={translate("newProject")}
+        role="button"
+        readOnlyHotkey={"alt+n"}
+        onClick={() => {
+          userTracking.capture({
+            name: "newModel.started",
+            source: "toolbar",
+          });
+          void createNewProject();
+        }}
+      >
+        <FileIcon />
+      </MenuAction>
+      <MenuAction
+        label={translate("openProject")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "openModel.started",
+            source: "toolbar",
+          });
+          void openInpFromFs();
+        }}
+        readOnlyHotkey={"ctrl+o"}
+      >
+        <FilePlusIcon />
+      </MenuAction>
+      <MenuAction
+        label={translate("save")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "model.saved",
+            source: "toolbar",
+          });
+          void saveInp();
+        }}
+        readOnlyHotkey={saveShortcut}
+      >
+        <DownloadIcon />
+      </MenuAction>
+      <MenuAction
+        label={translate("saveAs")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "model.saved",
+            source: "toolbar",
+            isSaveAs: true,
+          });
 
-            void saveInp({ isSaveAs: true });
-          }}
-          readOnlyHotkey={saveAsShortcut}
-        >
-          <CopyIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("saveAs")}
-          role="button"
-          onClick={handleSaveAs}
-          hotkey={"ctrl+shift+s"}
-        >
-          <CopyIcon />
-        </MenuAction>
-      )}
+          void saveInp({ isSaveAs: true });
+        }}
+        readOnlyHotkey={saveAsShortcut}
+      >
+        <CopyIcon />
+      </MenuAction>
       <Divider />
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("undo")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "operation.undone",
-              source: "toolbar",
-            });
+      <MenuAction
+        label={translate("undo")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "operation.undone",
+            source: "toolbar",
+          });
 
-            void undo();
-          }}
-          readOnlyHotkey={"ctrl+z"}
-        >
-          <ResetIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("undo")}
-          role="button"
-          onClick={handleUndo}
-          hotkey={"ctrl+z"}
-        >
-          <ResetIcon />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("redo")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "operation.redone",
-              source: "toolbar",
-            });
-            void redo();
-          }}
-          readOnlyHotkey={"ctrl+y"}
-        >
-          <ResetIcon className="scale-x-[-1]" />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("redo")}
-          role="button"
-          onClick={handleRedo}
-          hotkey={"ctrl+y"}
-        >
-          <ResetIcon className="scale-x-[-1]" />
-        </MenuAction>
-      )}
+          void undo();
+        }}
+        readOnlyHotkey={"ctrl+z"}
+      >
+        <ResetIcon />
+      </MenuAction>
+      <MenuAction
+        label={translate("redo")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "operation.redone",
+            source: "toolbar",
+          });
+          void redo();
+        }}
+        readOnlyHotkey={"ctrl+y"}
+      >
+        <ResetIcon className="scale-x-[-1]" />
+      </MenuAction>
       <Divider />
       <Modes replaceGeometryForId={null} />
       <Divider />
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("simulate")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "simulation.executed",
-              source: "toolbar",
-            });
-            void runSimulation();
-          }}
-          expanded={true}
-          readOnlyHotkey={runSimulationShortcut}
-        >
-          <LightningBoltIcon className="text-yellow-600" />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("simulate")}
-          role="button"
-          onClick={runSimulation}
-          expanded={true}
-          hotkey={"shift+enter"}
-        >
-          <LightningBoltIcon className="text-yellow-600" />
-        </MenuAction>
-      )}
-      {isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("viewReport")}
-          role="button"
-          onClick={() => {
-            userTracking.capture({
-              name: "report.opened",
-              source: "toolbar",
-            });
-            showReport();
-          }}
-          readOnlyHotkey={"alt+r"}
-          disabled={simulation.status === "idle"}
-        >
-          <FileTextIcon />
-        </MenuAction>
-      )}
-      {!isFeatureOn("FLAG_TRACKING") && (
-        <MenuAction
-          label={translate("viewReport")}
-          role="button"
-          onClick={showReport}
-          hotkey={"alt+r"}
-          disabled={simulation.status === "idle"}
-        >
-          <FileTextIcon />
-        </MenuAction>
-      )}
+      <MenuAction
+        label={translate("simulate")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "simulation.executed",
+            source: "toolbar",
+          });
+          void runSimulation();
+        }}
+        expanded={true}
+        readOnlyHotkey={runSimulationShortcut}
+      >
+        <LightningBoltIcon className="text-yellow-600" />
+      </MenuAction>
+      <MenuAction
+        label={translate("viewReport")}
+        role="button"
+        onClick={() => {
+          userTracking.capture({
+            name: "report.opened",
+            source: "toolbar",
+          });
+          showReport();
+        }}
+        readOnlyHotkey={"alt+r"}
+        disabled={simulation.status === "idle"}
+      >
+        <FileTextIcon />
+      </MenuAction>
       <Divider />
       <div className="flex-auto" />
       <ContextActions />

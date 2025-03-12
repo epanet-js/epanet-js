@@ -15,7 +15,6 @@ import { Button } from "./elements";
 import { localizeKeybinding, translate } from "src/infra/i18n";
 import { useOpenInp } from "src/commands/open-inp";
 import { useSaveInp } from "src/commands/save-inp";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 
@@ -91,12 +90,10 @@ export const NothingSelected = memo(function NothingSelected() {
           href="#"
           className="!text-purple-800 hover:underline cursor:pointer"
           onClick={() => {
-            if (isFeatureOn("FLAG_TRACKING")) {
-              userTracking.capture({
-                name: "shortcuts.opened",
-                source: "onboarding",
-              });
-            }
+            userTracking.capture({
+              name: "shortcuts.opened",
+              source: "onboarding",
+            });
             showShortcuts();
           }}
         >
@@ -121,11 +118,10 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              if (isFeatureOn("FLAG_TRACKING"))
-                userTracking.capture({
-                  name: "openModel.started",
-                  source: "onboarding",
-                });
+              userTracking.capture({
+                name: "openModel.started",
+                source: "onboarding",
+              });
 
               void openInpFromFs();
             }}
@@ -136,11 +132,10 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              if (isFeatureOn("FLAG_TRACKING"))
-                userTracking.capture({
-                  name: "model.saved",
-                  source: "onboarding",
-                });
+              userTracking.capture({
+                name: "model.saved",
+                source: "onboarding",
+              });
 
               void saveInp();
             }}

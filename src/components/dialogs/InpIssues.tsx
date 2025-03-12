@@ -12,10 +12,7 @@ import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
 import { newsletterUrl } from "src/global-config";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useShowWelcome } from "src/commands/show-welcome";
 
 export const GeocodingNotSupportedDialog = ({
@@ -24,16 +21,9 @@ export const GeocodingNotSupportedDialog = ({
   onClose: () => void;
 }) => {
   const showWelcome = useShowWelcome();
-  const setDialogState = useSetAtom(dialogAtom);
 
   const goToWelcome = () => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      showWelcome();
-    } else {
-      setDialogState({
-        type: "welcome",
-      });
-    }
+    showWelcome();
   };
 
   return (
@@ -71,16 +61,9 @@ export const MissingCoordinatesDialog = ({
   onClose: () => void;
 }) => {
   const showWelcome = useShowWelcome();
-  const setDialogState = useSetAtom(dialogAtom);
 
   const goToWelcome = () => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      showWelcome();
-    } else {
-      setDialogState({
-        type: "welcome",
-      });
-    }
+    showWelcome();
   };
 
   return (
@@ -117,17 +100,10 @@ export const InpIssuesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
-  const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      showWelcome();
-    } else {
-      setDialogState({
-        type: "welcome",
-      });
-    }
+    showWelcome();
   };
 
   return (

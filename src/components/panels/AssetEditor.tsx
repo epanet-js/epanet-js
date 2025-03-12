@@ -42,7 +42,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function AssetEditor({
@@ -95,15 +94,13 @@ const AssetEditorInner = ({
       value,
     });
     transact(moment);
-    if (isFeatureOn("FLAG_TRACKING")) {
-      userTracking.capture({
-        name: "asset.edited",
-        type: asset.type,
-        property: name,
-        newValue: value,
-        oldValue,
-      });
-    }
+    userTracking.capture({
+      name: "asset.edited",
+      type: asset.type,
+      property: name,
+      newValue: value,
+      oldValue,
+    });
   };
 
   const handleStatusChange = useCallback(
@@ -113,15 +110,13 @@ const AssetEditorInner = ({
         newStatus,
       });
       transact(moment);
-      if (isFeatureOn("FLAG_TRACKING")) {
-        userTracking.capture({
-          name: "asset.edited",
-          type: asset.type,
-          property: "status",
-          newValue: newStatus,
-          oldValue: oldStatus,
-        });
-      }
+      userTracking.capture({
+        name: "asset.edited",
+        type: asset.type,
+        property: "status",
+        newValue: newStatus,
+        oldValue: oldStatus,
+      });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );

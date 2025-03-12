@@ -55,9 +55,7 @@ export const useShowWelcome = () => {
 
   const showWelcome = useCallback(() => {
     setDialogState({ type: "welcome" });
-    if (isFeatureOn("FLAG_TRACKING")) {
-      userTracking.capture({ name: "welcome.opened" });
-    }
+    userTracking.capture({ name: "welcome.opened" });
   }, [setDialogState, userTracking]);
 
   return showWelcome;
@@ -71,12 +69,10 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
   const userTracking = useUserTracking();
 
   const handleOpenDemoModel = (demoModel: DemoModel) => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      userTracking.capture({
-        name: "exampleModel.opened",
-        modelName: demoModel.name,
-      });
-    }
+    userTracking.capture({
+      name: "exampleModel.opened",
+      modelName: demoModel.name,
+    });
     openInpFromUrl(demoModel.url);
   };
 
@@ -106,11 +102,10 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   href={quickStartTutorialUrl}
                   target="_blank"
                   onClick={() => {
-                    if (isFeatureOn("FLAG_TRACKING"))
-                      userTracking.capture({
-                        name: "quickStart.visited",
-                        source: "welcome",
-                      });
+                    userTracking.capture({
+                      name: "quickStart.visited",
+                      source: "welcome",
+                    });
                   }}
                 >
                   <Button variant="primary">
@@ -142,11 +137,10 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                 <Button
                   variant="quiet"
                   onClick={() => {
-                    if (isFeatureOn("FLAG_TRACKING"))
-                      userTracking.capture({
-                        name: "newModel.started",
-                        source: "welcome",
-                      });
+                    userTracking.capture({
+                      name: "newModel.started",
+                      source: "welcome",
+                    });
 
                     void createNew();
                   }}
@@ -154,36 +148,27 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                   <FileIcon />
                   {translate("createNew")}
                 </Button>
-                {isFeatureOn("FLAG_TRACKING") && (
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      userTracking.capture({
-                        name: "openModel.started",
-                        source: "welcome",
-                      });
-                      void openInpFromFs();
-                    }}
-                  >
-                    <FilePlusIcon />
-                    {translate("openProject")}
-                  </Button>
-                )}
-                {!isFeatureOn("FLAG_TRACKING") && (
-                  <Button variant="quiet" onClick={openInpFromFs}>
-                    <FilePlusIcon />
-                    {translate("openProject")}
-                  </Button>
-                )}
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "openModel.started",
+                      source: "welcome",
+                    });
+                    void openInpFromFs();
+                  }}
+                >
+                  <FilePlusIcon />
+                  {translate("openProject")}
+                </Button>
                 <a
                   href={helpCenterUrl}
                   target="_blank"
                   onClick={() => {
-                    if (isFeatureOn("FLAG_TRACKING"))
-                      userTracking.capture({
-                        name: "helpCenter.visited",
-                        source: "welcome",
-                      });
+                    userTracking.capture({
+                      name: "helpCenter.visited",
+                      source: "welcome",
+                    });
                   }}
                 >
                   <Button variant="quiet">
@@ -196,11 +181,10 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     href={sourceCodeUrl}
                     target="_blank"
                     onClick={() => {
-                      if (isFeatureOn("FLAG_TRACKING"))
-                        userTracking.capture({
-                          name: "repo.visited",
-                          source: "welcome",
-                        });
+                      userTracking.capture({
+                        name: "repo.visited",
+                        source: "welcome",
+                      });
                     }}
                   >
                     <Button variant="quiet">
@@ -217,11 +201,9 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <Checkbox
                 checked={userSettings.showWelcomeOnStart}
                 onChange={() => {
-                  if (isFeatureOn("FLAG_TRACKING")) {
-                    userSettings.showWelcomeOnStart
-                      ? userTracking.capture({ name: "welcome.hidden" })
-                      : userTracking.capture({ name: "welcome.enabled" });
-                  }
+                  userSettings.showWelcomeOnStart
+                    ? userTracking.capture({ name: "welcome.hidden" })
+                    : userTracking.capture({ name: "welcome.enabled" });
                   setUserSettings((prev) => ({
                     ...prev,
                     showWelcomeOnStart: !prev.showWelcomeOnStart,

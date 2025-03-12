@@ -14,7 +14,6 @@ import { IWrappedFeature } from "src/types";
 import { USelection } from "src/selection";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function useActions(
@@ -36,15 +35,13 @@ export function useActions(
         const moment = deleteAssets(hydraulicModel, {
           assetIds,
         });
-        if (isFeatureOn("FLAG_TRACKING")) {
-          const eventSource =
-            source === "context-item" ? "context-menu" : "toolbar";
-          userTracking.capture({
-            name: "assets.deleted",
-            source: eventSource,
-            count: assetIds.length,
-          });
-        }
+        const eventSource =
+          source === "context-item" ? "context-menu" : "toolbar";
+        userTracking.capture({
+          name: "assets.deleted",
+          source: eventSource,
+          count: assetIds.length,
+        });
 
         transact(moment);
         return Promise.resolve();

@@ -14,7 +14,6 @@ import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 import { addReservoir } from "src/hydraulic-model/model-operations";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function useDrawReservoirHandlers({
@@ -49,8 +48,7 @@ export function useDrawReservoirHandlers({
 
       const moment = addReservoir(hydraulicModel, { reservoir });
       transact(moment);
-      if (isFeatureOn("FLAG_TRACKING"))
-        userTracking.capture({ name: "asset.created", type: "reservoir" });
+      userTracking.capture({ name: "asset.created", type: "reservoir" });
       if (!multi) {
         setSelection(USelection.single(id));
       }
