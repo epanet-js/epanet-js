@@ -94,38 +94,34 @@ export const MenuBarPlay = memo(function MenuBar() {
         {isDebugOn && <DebugDropdown />}
 
         <HelpDot />
-        {isFeatureOn("FLAG_AUTH") && (
-          <>
-            <Divider />
-            <SignedIn>
-              <div className="flex items-center px-2">
-                <UserButton />
-              </div>
-            </SignedIn>
-            <SignedOut>
-              <div className="flex items-center gap-x-1">
-                <SignInButton
-                  onClick={() => {
-                    if (isFeatureOn("FLAG_TRACKING"))
-                      userTracking.capture({
-                        name: "signIn.started",
-                        source: "menu",
-                      });
-                  }}
-                />
-                <SignUpButton
-                  onClick={() => {
-                    if (isFeatureOn("FLAG_TRACKING"))
-                      userTracking.capture({
-                        name: "signUp.started",
-                        source: "menu",
-                      });
-                  }}
-                />
-              </div>
-            </SignedOut>
-          </>
-        )}
+        <Divider />
+        <SignedIn>
+          <div className="flex items-center px-2">
+            <UserButton />
+          </div>
+        </SignedIn>
+        <SignedOut>
+          <div className="flex items-center gap-x-1">
+            <SignInButton
+              onClick={() => {
+                if (isFeatureOn("FLAG_TRACKING"))
+                  userTracking.capture({
+                    name: "signIn.started",
+                    source: "menu",
+                  });
+              }}
+            />
+            <SignUpButton
+              onClick={() => {
+                if (isFeatureOn("FLAG_TRACKING"))
+                  userTracking.capture({
+                    name: "signUp.started",
+                    source: "menu",
+                  });
+              }}
+            />
+          </div>
+        </SignedOut>
       </div>
     </div>
   );
