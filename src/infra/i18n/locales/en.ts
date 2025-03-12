@@ -176,6 +176,8 @@ export const translations = {
   login: "Log in",
   register: "Register",
   openSource: "Open Source",
+  nodes: "Nodes",
+  links: "Links",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

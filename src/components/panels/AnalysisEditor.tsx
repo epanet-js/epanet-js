@@ -102,9 +102,9 @@ export const AnalysisEditor = () => {
             {translate("analysisSettings")}
           </div>
         </div>
-        <PanelDetails title={translate("nodesAnalysis")}>
+        <PanelDetails title={translate("nodes")}>
           <Selector
-            ariaLabel={translate("nodesAnalysis")}
+            ariaLabel={translate("nodes")}
             options={(["none", "pressures"] as NodesAnalysis["type"][]).map(
               (type) => ({
                 value: type,
@@ -115,9 +115,9 @@ export const AnalysisEditor = () => {
             onChange={handleNodesChange}
           />
         </PanelDetails>
-        <PanelDetails title={translate("linksAnalysis")}>
+        <PanelDetails title={translate("links")}>
           <Selector
-            ariaLabel={translate("linksAnalysis")}
+            ariaLabel={translate("links")}
             options={(
               ["none", "flows", "velocities"] as LinksAnalysis["type"][]
             ).map((type) => ({
