@@ -221,6 +221,16 @@ type RepoVisited = {
   source: "welcome" | "menu";
 };
 
+type SignInStarted = {
+  name: "signIn.started";
+  source: "menu";
+};
+
+type SignUpStarted = {
+  name: "signUp.started";
+  source: "menu";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -257,7 +267,9 @@ type UserEvent =
   | PropertyAggregateOpened
   | QuickStartVisited
   | HelpCenterVisited
-  | RepoVisited;
+  | RepoVisited
+  | SignUpStarted
+  | SignInStarted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

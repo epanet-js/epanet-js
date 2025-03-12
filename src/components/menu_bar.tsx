@@ -104,8 +104,24 @@ export const MenuBarPlay = memo(function MenuBar() {
             </SignedIn>
             <SignedOut>
               <div className="flex items-center gap-x-1">
-                <SignInButton />
-                <SignUpButton />
+                <SignInButton
+                  onClick={() => {
+                    if (isFeatureOn("FLAG_TRACKING"))
+                      userTracking.capture({
+                        name: "signIn.started",
+                        source: "menu",
+                      });
+                  }}
+                />
+                <SignUpButton
+                  onClick={() => {
+                    if (isFeatureOn("FLAG_TRACKING"))
+                      userTracking.capture({
+                        name: "signUp.started",
+                        source: "menu",
+                      });
+                  }}
+                />
               </div>
             </SignedOut>
           </>
