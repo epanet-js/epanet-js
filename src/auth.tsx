@@ -28,17 +28,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const SignInButton = () => (
+export const SignInButton = ({ onClick }: { onClick?: () => void }) => (
   <ClerkSignInButton>
-    <Button variant="quiet" className="text-purple-500 font-semibold">
+    <Button
+      variant="quiet"
+      className="text-purple-500 font-semibold"
+      onClick={onClick}
+    >
       {translate("login")}
     </Button>
   </ClerkSignInButton>
 );
 
-export const SignUpButton = () => (
+export const SignUpButton = ({ onClick }: { onClick?: () => void }) => (
   <ClerkSignUpButton>
-    <Button variant="primary">
+    <Button variant="primary" onClick={onClick}>
       <PersonIcon /> {translate("register")}
     </Button>
   </ClerkSignUpButton>
