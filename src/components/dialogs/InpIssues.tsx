@@ -180,6 +180,7 @@ export const SubscribeCTA = () => {
 };
 
 const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
+  const maxDisplayed = 4;
   const [isExpaned, setExpanded] = useState(false);
   return (
     <div className="pb-4">
@@ -201,14 +202,19 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("nodesMissingCoordinates")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {Array.from(issues.nodesMissingCoordinates)
-                  .slice(0, 4)
+                  .slice(0, maxDisplayed)
                   .map((nodeId) => (
                     <span key={nodeId}>- {nodeId}</span>
                   ))}
-                {issues.nodesMissingCoordinates.size > 4 && (
+                {issues.nodesMissingCoordinates.size > maxDisplayed && (
                   <span>
                     {" "}
-                    and {issues.nodesMissingCoordinates.size - 4} more...
+                    {translate(
+                      "andXMore",
+                      String(
+                        issues.nodesMissingCoordinates.size - maxDisplayed,
+                      ),
+                    )}
                   </span>
                 )}
               </div>
