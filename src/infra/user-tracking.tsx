@@ -116,7 +116,7 @@ type SimulationExecuted = {
 
 type ReportOpened = {
   name: "report.opened";
-  source: "shortcut" | "result-dialog" | "toolbar";
+  source: "shortcut" | "resultDialog" | "toolbar";
 };
 
 type OpenModelStarted = {
@@ -154,7 +154,7 @@ type NewModelCompleted = {
 
 type ModelSaved = {
   name: "model.saved";
-  source: "shortcut" | "toolbar" | "onboarding" | "unsaved-dialog";
+  source: "shortcut" | "toolbar" | "onboarding" | "unsavedDialog";
   isSaveAs?: boolean;
 };
 

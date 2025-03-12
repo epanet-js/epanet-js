@@ -65,7 +65,7 @@ export const RunSimulationDialog = ({
   const handleOpenReport = () => {
     userTracking.capture({
       name: "report.opened",
-      source: "result-dialog",
+      source: "resultDialog",
     });
     showReport();
   };
