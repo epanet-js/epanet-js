@@ -18,8 +18,10 @@ import {
 } from "@radix-ui/react-icons";
 import {
   helpCenterUrl,
+  privacyPolicyUrl,
   quickStartTutorialUrl,
   sourceCodeUrl,
+  termsAndConditionsUrl,
 } from "src/global-config";
 import Image from "next/image";
 import { translate } from "src/infra/i18n";
@@ -228,13 +230,15 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               />
               {translate("alwaysShowAtStart")}
             </div>
-            {isFeatureOn("FLAG_WELCOME") && (
-              <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
-                <span>{translate("termsAndConditions")}</span>
-                <span>|</span>
-                <span>{translate("privacyPolicy")}</span>
-              </div>
-            )}
+            <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
+              <a href={termsAndConditionsUrl} target="_blank">
+                {translate("termsAndConditions")}
+              </a>
+              <span>|</span>
+              <a href={privacyPolicyUrl} target="_blank">
+                {translate("privacyPolicy")}
+              </a>
+            </div>
           </div>
         </div>
       </div>
