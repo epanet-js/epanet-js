@@ -5,6 +5,8 @@ import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
 import { useOpenInp } from "src/commands/open-inp";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -18,10 +20,14 @@ const stopWindowDrag = (event: DragEvent) => {
 const Drop = () => {
   const [dragging, setDragging] = useState<boolean>(false);
   const { openInpFromCandidates } = useOpenInp();
+  const userTracking = useUserTracking();
 
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
+      if (isFeatureOn("FLAG_TRACKING")) {
+        userTracking.capture({ name: "openModel.started", source: "drop" });
+      }
       void openInpFromCandidates(files);
     };
 
@@ -72,7 +78,7 @@ const Drop = () => {
       window.removeEventListener("dragover", stopWindowDrag);
       window.removeEventListener("drop", stopWindowDrag);
     };
-  }, [setDragging, openInpFromCandidates]);
+  }, [setDragging, openInpFromCandidates, userTracking]);
 
   return dragging ? (
     <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>

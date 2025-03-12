@@ -121,7 +121,7 @@ type ReportOpened = {
 
 type OpenModelStarted = {
   name: "openModel.started";
-  source: "shortcut" | "welcome" | "onboarding" | "toolbar";
+  source: "shortcut" | "welcome" | "onboarding" | "toolbar" | "drop";
 };
 
 export type OpenModelCompleted = {
