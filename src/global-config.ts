@@ -4,3 +4,5 @@ export const quickStartTutorialUrl =
 export const sourceCodeUrl = "https://github.com";
 export const newsletterUrl =
   "https://mastering-water-models.kit.com/e9c8f66e11";
+export const privacyPolicyUrl = "https://epanetjs.com/privacy-policy";
+export const termsAndConditionsUrl = "https://epanetjs.com/terms-conditions";
