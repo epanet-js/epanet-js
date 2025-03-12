@@ -5,6 +5,7 @@ import { isDebugOn } from "./debug-mode";
 import { MODE_INFO } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
+import { User } from "src/auth";
 type Metadata = {
   [key: string]: boolean | string | number | string[];
 };
@@ -231,6 +232,10 @@ type SignUpStarted = {
   source: "menu";
 };
 
+type LogOutCompleted = {
+  name: "logOut.completed";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -269,12 +274,21 @@ type UserEvent =
   | HelpCenterVisited
   | RepoVisited
   | SignUpStarted
-  | SignInStarted;
+  | SignInStarted
+  | LogOutCompleted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
     // eslint-disable-next-line
-    console.log("USER_TRACKING", ...data);
+    console.log("USER_TRACKING:CAPTURE", ...data);
+  },
+  identify: (...data: any[]) => {
+    // eslint-disable-next-line
+    console.log("USER_TRACKING:IDENTIFY", ...data);
+  },
+  reset: () => {
+    // eslint-disable-next-line
+    console.log("USER_TRACKING:RESET");
   },
 };
 
@@ -290,5 +304,27 @@ export const useUserTracking = () => {
     [posthog],
   );
 
-  return { capture };
+  const identify = useCallback(
+    (user: User) => {
+      const properties = {
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+      };
+      posthog.identify(user.id, properties);
+      isDebugOn && debugPostHog.identify(user.id, properties);
+    },
+    [posthog],
+  );
+
+  const isIdentified = useCallback(() => {
+    return posthog._isIdentified();
+  }, [posthog]);
+
+  const reset = useCallback(() => {
+    posthog.reset();
+    isDebugOn && debugPostHog.reset();
+  }, [posthog]);
+
+  return { identify, capture, isIdentified, reset };
 };
