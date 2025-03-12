@@ -21,7 +21,7 @@ export const UnsavedChangesDialog = ({
     if (isFeatureOn("FLAG_TRACKING")) {
       userTracking.capture({
         name: "model.saved",
-        source: "unsaved-dialog",
+        source: "unsavedDialog",
       });
     }
     const isSaved = await saveInp();
