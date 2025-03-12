@@ -7,7 +7,6 @@ import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom } from "src/state/jotai";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
@@ -18,13 +17,11 @@ export const AnalysisEditor = () => {
   const userTracking = useUserTracking();
 
   const handleLinksChange = (type: LinksAnalysis["type"]) => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      userTracking.capture({
-        name: "analysis.applied",
-        type: "links",
-        subtype: type,
-      });
-    }
+    userTracking.capture({
+      name: "analysis.applied",
+      type: "links",
+      subtype: type,
+    });
 
     switch (type) {
       case "none":
@@ -64,13 +61,11 @@ export const AnalysisEditor = () => {
   };
 
   const handleNodesChange = (type: NodesAnalysis["type"]) => {
-    if (isFeatureOn("FLAG_TRACKING")) {
-      userTracking.capture({
-        name: "analysis.applied",
-        type: "nodes",
-        subtype: type,
-      });
-    }
+    userTracking.capture({
+      name: "analysis.applied",
+      type: "nodes",
+      subtype: type,
+    });
 
     switch (type) {
       case "none":

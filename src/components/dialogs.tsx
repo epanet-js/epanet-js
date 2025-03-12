@@ -15,7 +15,6 @@ import {
 import * as dialogState from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -198,37 +197,35 @@ export const Dialogs = memo(function Dialogs() {
 
   const previousDialog = useRef<dialogState.DialogState>(null);
 
-  if (isFeatureOn("FLAG_TRACKING")) {
-    if (previousDialog.current !== dialog && !!dialog) {
-      if (previousDialog.current?.type !== dialog.type) {
-        if (dialog.type === "welcome") {
-          userTracking.capture({ name: "welcome.seen" });
-        }
-        if (dialog.type === "unsavedChanges") {
-          userTracking.capture({ name: "unsavedChanges.seen" });
-        }
-        if (dialog.type === "inpMissingCoordinates") {
-          userTracking.capture({ name: "missingCoordinates.seen" });
-        }
-        if (dialog.type === "inpGeocodingNotSupported") {
-          userTracking.capture({ name: "geocodingNotSupported.seen" });
-        }
-        if (dialog.type === "inpIssues") {
-          userTracking.capture({ name: "inpIssues.seen" });
-        }
-        if (dialog.type === "openError") {
-          userTracking.capture({ name: "openError.seen" });
-        }
-        if (dialog.type === "simulationSummary") {
-          userTracking.capture({
-            name: "simulationSummary.seen",
-            status: dialog.status,
-            duration: dialog.duration,
-          });
-        }
+  if (previousDialog.current !== dialog && !!dialog) {
+    if (previousDialog.current?.type !== dialog.type) {
+      if (dialog.type === "welcome") {
+        userTracking.capture({ name: "welcome.seen" });
       }
-      previousDialog.current = dialog;
+      if (dialog.type === "unsavedChanges") {
+        userTracking.capture({ name: "unsavedChanges.seen" });
+      }
+      if (dialog.type === "inpMissingCoordinates") {
+        userTracking.capture({ name: "missingCoordinates.seen" });
+      }
+      if (dialog.type === "inpGeocodingNotSupported") {
+        userTracking.capture({ name: "geocodingNotSupported.seen" });
+      }
+      if (dialog.type === "inpIssues") {
+        userTracking.capture({ name: "inpIssues.seen" });
+      }
+      if (dialog.type === "openError") {
+        userTracking.capture({ name: "openError.seen" });
+      }
+      if (dialog.type === "simulationSummary") {
+        userTracking.capture({
+          name: "simulationSummary.seen",
+          status: dialog.status,
+          duration: dialog.duration,
+        });
+      }
     }
+    previousDialog.current = dialog;
   }
 
   return (

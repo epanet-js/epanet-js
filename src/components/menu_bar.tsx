@@ -22,7 +22,6 @@ import {
   SignedOut,
   UserButton,
 } from "src/auth";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
@@ -82,8 +81,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           href={sourceCodeUrl}
           target="_blank"
           onClick={() => {
-            if (isFeatureOn("FLAG_TRACKING"))
-              userTracking.capture({ name: "repo.visited", source: "menu" });
+            userTracking.capture({ name: "repo.visited", source: "menu" });
           }}
         >
           <Button variant="quiet">
@@ -104,20 +102,18 @@ export const MenuBarPlay = memo(function MenuBar() {
           <div className="flex items-center gap-x-1">
             <SignInButton
               onClick={() => {
-                if (isFeatureOn("FLAG_TRACKING"))
-                  userTracking.capture({
-                    name: "signIn.started",
-                    source: "menu",
-                  });
+                userTracking.capture({
+                  name: "signIn.started",
+                  source: "menu",
+                });
               }}
             />
             <SignUpButton
               onClick={() => {
-                if (isFeatureOn("FLAG_TRACKING"))
-                  userTracking.capture({
-                    name: "signUp.started",
-                    source: "menu",
-                  });
+                userTracking.capture({
+                  name: "signUp.started",
+                  source: "menu",
+                });
               }}
             />
           </div>
@@ -165,11 +161,10 @@ export function HelpDot() {
           href={helpCenterUrl}
           target="_blank"
           onClick={() => {
-            if (isFeatureOn("FLAG_TRACKING"))
-              userTracking.capture({
-                name: "helpCenter.visited",
-                source: "menu",
-              });
+            userTracking.capture({
+              name: "helpCenter.visited",
+              source: "menu",
+            });
           }}
         >
           <StyledItem>
@@ -178,12 +173,10 @@ export function HelpDot() {
         </a>
         <StyledItem
           onSelect={() => {
-            if (isFeatureOn("FLAG_TRACKING")) {
-              userTracking.capture({
-                name: "shortcuts.opened",
-                source: "menu",
-              });
-            }
+            userTracking.capture({
+              name: "shortcuts.opened",
+              source: "menu",
+            });
             showShortcuts();
           }}
         >

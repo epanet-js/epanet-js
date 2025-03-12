@@ -1,23 +1,15 @@
 import {
   CursorArrowIcon,
-  PlusIcon,
   CircleIcon,
   StretchHorizontallyIcon,
   VercelLogoIcon,
 } from "@radix-ui/react-icons";
-import {
-  modeAtom,
-  Mode,
-  MODE_INFO,
-  ephemeralStateAtom,
-  circleTypeAtom,
-} from "src/state/jotai";
+import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
 import { memo } from "react";
-import { useSetAtom, useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 
 const MODE_OPTIONS = [
@@ -57,9 +49,7 @@ export default memo(function Modes({
 }: {
   replaceGeometryForId: IWrappedFeature["id"] | null;
 }) {
-  const [{ mode: currentMode, modeOptions }, setMode] = useAtom(modeAtom);
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const circleType = useAtomValue(circleTypeAtom);
+  const { mode: currentMode } = useAtomValue(modeAtom);
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
 
@@ -68,9 +58,9 @@ export default memo(function Modes({
       {MODE_OPTIONS.filter((mode) => {
         if (!replaceGeometryForId) return true;
         return mode.mode !== Mode.NONE;
-      }).map(({ mode, hotkey, alwaysMultiple, Icon }, i) => {
+      }).map(({ mode, hotkey, Icon }, i) => {
         const modeInfo = MODE_INFO[mode];
-        const menuAction = isFeatureOn("FLAG_TRACKING") ? (
+        return (
           <MenuAction
             role="radio"
             key={i}
@@ -88,32 +78,7 @@ export default memo(function Modes({
           >
             <Icon />
           </MenuAction>
-        ) : (
-          <MenuAction
-            role="radio"
-            key={i}
-            selected={currentMode === mode}
-            hotkey={hotkey}
-            label={MODE_INFO[mode].label}
-            onClick={(e) => {
-              setEphemeralState({ type: "none" });
-              setMode({
-                mode,
-                modeOptions: {
-                  multi: alwaysMultiple || !!e?.shiftKey,
-                  replaceGeometryForId,
-                  circleType,
-                },
-              });
-            }}
-          >
-            <Icon />
-            {currentMode === mode && modeOptions?.multi ? (
-              <PlusIcon className="w-2 h-2 absolute bottom-1 right-1" />
-            ) : null}
-          </MenuAction>
         );
-        return menuAction;
       })}
     </div>
   );

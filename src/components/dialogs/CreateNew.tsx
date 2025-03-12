@@ -18,7 +18,6 @@ import { Selector } from "../form/Selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 type SubmitProps = {
@@ -41,12 +40,11 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       headlossFormula,
     });
     transactImport(hydraulicModel, modelMetadata, "Untitled");
-    if (isFeatureOn("FLAG_TRACKING"))
-      userTracking.capture({
-        name: "newModel.completed",
-        units: unitsSpec,
-        headlossFormula,
-      });
+    userTracking.capture({
+      name: "newModel.completed",
+      units: unitsSpec,
+      headlossFormula,
+    });
     setFileInfo(null);
     onClose();
   };

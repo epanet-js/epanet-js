@@ -83,8 +83,6 @@ export function PlacemarkPlay() {
   const { user, isSignedIn } = useAuth()
 
   useEffect(() => {
-    if (!isFeatureOn('FLAG_TRACKING')) return
-
     if (isSignedIn && user && !userTracking.isIdentified()) {
       userTracking.identify(user)
     }
@@ -232,7 +230,7 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <AnalysisLegends />
-      {isFeatureOn('FLAG_TRACKING') && <CommandShortcuts />}
+      <CommandShortcuts />
     </div>
   );
 }

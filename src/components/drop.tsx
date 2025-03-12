@@ -5,7 +5,6 @@ import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
 import { useOpenInp } from "src/commands/open-inp";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 
 /**
@@ -25,9 +24,7 @@ const Drop = () => {
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
-      if (isFeatureOn("FLAG_TRACKING")) {
-        userTracking.capture({ name: "openModel.started", source: "drop" });
-      }
+      userTracking.capture({ name: "openModel.started", source: "drop" });
       void openInpFromCandidates(files);
     };
 

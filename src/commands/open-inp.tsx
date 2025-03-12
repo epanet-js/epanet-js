@@ -16,7 +16,6 @@ import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext } from "src/map";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { OpenModelCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
@@ -56,15 +55,9 @@ export const useOpenInp = () => {
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
           parseInp(content);
-        isFeatureOn("FLAG_TRACKING") &&
-          userTracking.capture(
-            buildOpenCompleteEvent(
-              hydraulicModel,
-              modelMetadata,
-              issues,
-              stats,
-            ),
-          );
+        userTracking.capture(
+          buildOpenCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
+        );
         if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
           setDialogState({ type: "inpGeocodingNotSupported" });
           return;

@@ -8,7 +8,6 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -30,12 +29,10 @@ export function useMapKeybindings() {
   const onSelectAll = useAtomCallback(
     useCallback(
       (get, set) => {
-        if (isFeatureOn("FLAG_TRACKING")) {
-          userTracking.capture({
-            name: "fullSelection.enabled",
-            source: "shortcut",
-          });
-        }
+        userTracking.capture({
+          name: "fullSelection.enabled",
+          source: "shortcut",
+        });
         const data = get(dataAtom);
         set(selectionAtom, {
           type: "multi",
@@ -67,13 +64,11 @@ export function useMapKeybindings() {
         const moment = deleteAssets(hydraulicModel, {
           assetIds,
         });
-        if (isFeatureOn("FLAG_TRACKING")) {
-          userTracking.capture({
-            name: "assets.deleted",
-            source: "shortcut",
-            count: assetIds.length,
-          });
-        }
+        userTracking.capture({
+          name: "assets.deleted",
+          source: "shortcut",
+          count: assetIds.length,
+        });
 
         transact(moment);
         return false;
