@@ -38,7 +38,7 @@ export const GeocodingNotSupportedDialog = ({
         <Form>
           <div className="text-sm">
             <p className="pb-4">{translate("geocodingNotSupportedDetail")}</p>
-            <SubscribeCTA />
+            <SubscribeCTA source="geocodeError" />
           </div>
           <SimpleDialogActions
             autoFocusSubmit={true}
@@ -119,7 +119,7 @@ export const InpIssuesDialog = ({
           <div className="text-sm">
             <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
             <IssuesSummary issues={issues} />
-            <SubscribeCTA />
+            <SubscribeCTA source="inpIssues" />
           </div>
 
           <SimpleDialogActions
@@ -136,7 +136,12 @@ export const InpIssuesDialog = ({
   );
 };
 
-export const SubscribeCTA = () => {
+export const SubscribeCTA = ({
+  source,
+}: {
+  source: "geocodeError" | "inpIssues";
+}) => {
+  const userTracking = useUserTracking();
   return (
     <>
       <p className="pb-3">{translate("newFeaturesEveryDay")}</p>
@@ -145,6 +150,10 @@ export const SubscribeCTA = () => {
           variant="quiet"
           onClick={(e) => {
             e.preventDefault();
+            userTracking.capture({
+              name: "subscription.started",
+              source,
+            });
             window.open(newsletterUrl);
           }}
         >

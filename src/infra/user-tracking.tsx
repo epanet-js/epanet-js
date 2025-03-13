@@ -258,6 +258,11 @@ type LogOutCompleted = {
   name: "logOut.completed";
 };
 
+type SubscriptionStarted = {
+  name: "subscription.started";
+  source: "geocodeError" | "inpIssues";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -301,7 +306,8 @@ type UserEvent =
   | RepoVisited
   | SignUpStarted
   | SignInStarted
-  | LogOutCompleted;
+  | LogOutCompleted
+  | SubscriptionStarted;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
