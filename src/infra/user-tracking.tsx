@@ -191,6 +191,9 @@ type UnsavedChangesSeen = {
 type InpIssuesSeen = {
   name: "inpIssues.seen";
 };
+type InpIssuesExpanded = {
+  name: "inpIssues.expanded";
+};
 type GeocodingNotSupportedSeen = {
   name: "geocodingNotSupported.seen";
 };
@@ -276,6 +279,7 @@ type UserEvent =
   | FullSelectionEnabled
   | SelectionCleared
   | InpIssuesSeen
+  | InpIssuesExpanded
   | MissingCoordinatesSeen
   | GeocodingNotSupportedSeen
   | SimulationSummarySeen
