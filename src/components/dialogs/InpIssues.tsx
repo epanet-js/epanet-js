@@ -14,6 +14,7 @@ import { Form, Formik } from "formik";
 import { newsletterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const GeocodingNotSupportedDialog = ({
   onClose,
@@ -158,12 +159,18 @@ export const SubscribeCTA = () => {
 const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
   const maxDisplayed = 4;
   const [isExpaned, setExpanded] = useState(false);
+  const userTracking = useUserTracking();
   return (
     <div className="pb-4">
       <Button
         variant="quiet"
         onClick={(e) => {
           e.preventDefault();
+          if (!isExpaned) {
+            userTracking.capture({
+              name: "inpIssues.expanded",
+            });
+          }
           setExpanded(!isExpaned);
         }}
         className="cursor-pointer text-md inline-flex items-center"
