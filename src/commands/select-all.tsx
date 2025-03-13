@@ -16,6 +16,7 @@ export const useSelectAll = () => {
       userTracking.capture({
         name: "fullSelection.enabled",
         source,
+        count: data.hydraulicModel.assets.size,
       });
 
       setSelection({
