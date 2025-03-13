@@ -90,7 +90,13 @@ type SatelliteViewToggled = {
   source: "button" | "shortcut";
 };
 
-type AssetsDeleted = {
+export type AssetDeleted = {
+  name: "asset.deleted";
+  source: "shortcut" | "toolbar" | "context-menu";
+  type: Asset["type"];
+};
+
+export type AssetsDeleted = {
   name: "assets.deleted";
   source: "shortcut" | "toolbar" | "context-menu";
   count: number;
@@ -261,6 +267,7 @@ type UserEvent =
   | AnalysisApplied
   | SatelliteViewToggled
   | AssetsDeleted
+  | AssetDeleted
   | WelcomeSeen
   | WelcomeOpened
   | WelcomeHidden

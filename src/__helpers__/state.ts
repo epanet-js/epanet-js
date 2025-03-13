@@ -13,7 +13,7 @@ import {
   nullData,
   simulationAtom,
 } from "src/state/jotai";
-import { HydraulicModel } from "src/hydraulic-model";
+import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
 
 export const setInitialState = ({
@@ -59,3 +59,24 @@ export const aSimulationFailure = ({
 } = {}): SimulationFailure => {
   return { status: "failure", report, modelVersion };
 };
+
+export const aSingleSelection = ({
+  id = "id",
+}: { id?: Asset["id"] } = {}): Sel => {
+  return {
+    type: "single",
+    id,
+    parts: [],
+  };
+};
+
+export const aMultiSelection = ({
+  ids = [],
+}: { ids?: Asset["id"][] } = {}): Sel => {
+  return {
+    type: "multi",
+    ids,
+  };
+};
+
+export const nullSelection: Sel = { type: "none" };
