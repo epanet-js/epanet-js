@@ -12,7 +12,6 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
-import { useUserTracking } from "src/infra/user-tracking";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -60,14 +59,9 @@ export const RunSimulationDialog = ({
   onClose: () => void;
 }) => {
   const showReport = useShowReport();
-  const userTracking = useUserTracking();
 
   const handleOpenReport = () => {
-    userTracking.capture({
-      name: "report.opened",
-      source: "resultDialog",
-    });
-    showReport();
+    showReport({ source: "resultDialog" });
   };
 
   const { status, duration } = modal;

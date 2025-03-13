@@ -2,7 +2,7 @@ import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { useCallback } from "react";
 import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
-import { MODE_INFO } from "src/state/jotai";
+import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth";
@@ -125,6 +125,7 @@ type SimulationExecuted = {
 type ReportOpened = {
   name: "report.opened";
   source: "shortcut" | "resultDialog" | "toolbar";
+  status: SimulationState["status"];
 };
 
 type OpenModelStarted = {

@@ -10,6 +10,11 @@ import { diff } from "jest-diff";
 import { Maybe } from "purify-ts/Maybe";
 import { expect } from "vitest";
 import "@testing-library/jest-dom";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
+
+beforeEach(() => {
+  stubUserTracking();
+});
 
 const passMessage = (expect: "Left" | "Right") => () =>
   matcherHint(`.not.to${expect}`, "received", "") +

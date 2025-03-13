@@ -156,11 +156,7 @@ export const Toolbar = () => {
         label={translate("viewReport")}
         role="button"
         onClick={() => {
-          userTracking.capture({
-            name: "report.opened",
-            source: "toolbar",
-          });
-          showReport();
+          showReport({ source: "toolbar" });
         }}
         readOnlyHotkey={"alt+r"}
         disabled={simulation.status === "idle"}

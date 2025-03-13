@@ -4,6 +4,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import {
   FileInfo,
   Sel,
+  SimulationFailure,
   SimulationState,
   Store,
   dataAtom,
@@ -50,4 +51,11 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
     options: { type: "inp", folderId: "" } as ExportOptions,
   };
   return { ...defaults, ...data };
+};
+
+export const aSimulationFailure = ({
+  report = "CONTENT",
+  modelVersion = "1",
+} = {}): SimulationFailure => {
+  return { status: "failure", report, modelVersion };
 };
