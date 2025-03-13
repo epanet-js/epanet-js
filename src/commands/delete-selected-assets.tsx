@@ -7,6 +7,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { USelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 
+export const deleteSelectedShortcuts = ["backspace", "del"];
+
 export const useDeleteSelectedAssets = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selection, setSelection] = useAtom(selectionAtom);

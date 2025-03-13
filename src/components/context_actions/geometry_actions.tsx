@@ -4,51 +4,25 @@ import type {
   ActionProps,
 } from "src/components/context_actions/action_item";
 import { B3Variant } from "src/components/elements";
-import { usePersistence } from "src/lib/persistence/context";
-import { selectionAtom, dataAtom } from "src/state/jotai";
 import { ActionItem } from "./action_item";
-import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use_zoom_to";
 import { IWrappedFeature } from "src/types";
-import { USelection } from "src/selection";
-import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { translate } from "src/infra/i18n";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
   source: ActionProps["as"],
 ): Action[] {
-  const rep = usePersistence();
-  const transact = rep.useTransact();
   const zoomTo = useZoomTo();
-  const userTracking = useUserTracking();
+  const deleteSelectedAssets = useDeleteSelectedAssets();
 
-  const onDelete = useAtomCallback(
-    useCallback(
-      (get, set) => {
-        const { hydraulicModel, selection } = get(dataAtom);
-        set(selectionAtom, USelection.none());
-
-        const assetIds = USelection.toIds(selection);
-        const moment = deleteAssets(hydraulicModel, {
-          assetIds,
-        });
-        const eventSource =
-          source === "context-item" ? "context-menu" : "toolbar";
-        userTracking.capture({
-          name: "assets.deleted",
-          source: eventSource,
-          count: assetIds.length,
-        });
-
-        transact(moment);
-        return Promise.resolve();
-      },
-      [transact, userTracking, source],
-    ),
-  );
+  const onDelete = useCallback(() => {
+    const eventSource = source === "context-item" ? "context-menu" : "toolbar";
+    deleteSelectedAssets({ source: eventSource });
+    return Promise.resolve();
+  }, [deleteSelectedAssets, source]);
 
   const deleteAssetsAction = {
     label: translate("delete"),
