@@ -151,7 +151,7 @@ export function HelpDot() {
       <DDContent side="bottom" align="end">
         <StyledItem
           onSelect={() => {
-            showWelcome();
+            showWelcome({ source: "menu" });
           }}
         >
           <SunIcon />

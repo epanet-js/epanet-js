@@ -100,8 +100,9 @@ type WelcomeSeen = {
   name: "welcome.seen";
 };
 
-type WelcomeOpened = {
+export type WelcomeOpened = {
   name: "welcome.opened";
+  source: "menu" | "inpIssues" | "geocodeError" | "missingCoordinatesError";
 };
 
 type WelcomeHidden = {

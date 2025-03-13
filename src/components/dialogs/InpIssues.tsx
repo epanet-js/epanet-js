@@ -23,7 +23,7 @@ export const GeocodingNotSupportedDialog = ({
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
-    showWelcome();
+    showWelcome({ source: "geocodeError" });
   };
 
   return (
@@ -63,7 +63,7 @@ export const MissingCoordinatesDialog = ({
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
-    showWelcome();
+    showWelcome({ source: "missingCoordinatesError" });
   };
 
   return (
@@ -103,7 +103,7 @@ export const InpIssuesDialog = ({
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
-    showWelcome();
+    showWelcome({ source: "inpIssues" });
   };
 
   return (

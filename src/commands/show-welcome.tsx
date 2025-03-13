@@ -26,7 +26,7 @@ import {
 import Image from "next/image";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useUserTracking } from "src/infra/user-tracking";
+import { WelcomeOpened, useUserTracking } from "src/infra/user-tracking";
 
 type DemoModel = {
   name: string;
@@ -53,10 +53,13 @@ export const useShowWelcome = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
 
-  const showWelcome = useCallback(() => {
-    setDialogState({ type: "welcome" });
-    userTracking.capture({ name: "welcome.opened" });
-  }, [setDialogState, userTracking]);
+  const showWelcome = useCallback(
+    ({ source }: { source: WelcomeOpened["source"] }) => {
+      setDialogState({ type: "welcome" });
+      userTracking.capture({ name: "welcome.opened", source });
+    },
+    [setDialogState, userTracking],
+  );
 
   return showWelcome;
 };
