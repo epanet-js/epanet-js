@@ -168,7 +168,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
           e.preventDefault();
           if (!isExpaned) {
             userTracking.capture({
-              name: "inpIssues.expanded",
+              name: "coordinatesIssues.expanded",
             });
           }
           setExpanded(!isExpaned);
@@ -211,12 +211,19 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
 
 const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const [isExpaned, setExpanded] = useState(false);
+  const userTracking = useUserTracking();
+
   return (
     <div className="pb-4">
       <Button
         variant="quiet"
         onClick={(e) => {
           e.preventDefault();
+          if (!isExpaned) {
+            userTracking.capture({
+              name: "inpIssues.expanded",
+            });
+          }
           setExpanded(!isExpaned);
         }}
         className="cursor-pointer text-md inline-flex items-center"
