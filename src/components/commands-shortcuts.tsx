@@ -29,7 +29,11 @@ import {
   showSortcutsShortcut,
   useShowShortcuts,
 } from "src/commands/show-shortcuts";
-import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import {
+  deleteSelectedShortcuts,
+  useDeleteSelectedAssets,
+} from "src/commands/delete-selected-assets";
+import { selectAllShortcut, useSelectAll } from "src/commands/select-all";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -44,6 +48,7 @@ export const CommandShortcuts = () => {
   const userTracking = useUserTracking();
   const setDrawingMode = useDrawingMode();
   const deleteSelectedAssets = useDeleteSelectedAssets();
+  const selectAll = useSelectAll();
 
   useHotkeys(
     showReportShorcut,
@@ -193,7 +198,7 @@ export const CommandShortcuts = () => {
   );
 
   useHotkeys(
-    ["backspace", "del"],
+    deleteSelectedShortcuts,
     (e) => {
       if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
         return;
@@ -203,6 +208,16 @@ export const CommandShortcuts = () => {
     },
     [deleteSelectedAssets],
     "DELETE",
+  );
+
+  useHotkeys(
+    selectAllShortcut,
+    (e) => {
+      e.preventDefault();
+      void selectAll({ source: "shortcut" });
+    },
+    [selectAll],
+    "SELECT_ALL",
   );
 
   for (const [shortcut, mode] of Object.entries(drawingModeShorcuts)) {

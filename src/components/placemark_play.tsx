@@ -25,7 +25,6 @@ import {
   useWindowResizeSplits,
 } from "src/components/resizer";
 import { BottomPanel, SidePanel } from "src/components/panels";
-import { Keybindings } from "src/components/keybindings";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { Visual } from "./visual";
@@ -178,7 +177,7 @@ export function PlacemarkPlay() {
         <Drop />
         <Dialogs />
         <Suspense fallback={null}>
-          <Keybindings />
+          <CommandShortcuts />
         </Suspense>
         <Notifications />
         <Footer />
@@ -230,7 +229,6 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <AnalysisLegends />
-      <CommandShortcuts />
     </div>
   );
 }
