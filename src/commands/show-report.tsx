@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
+import { useUserTracking } from "src/infra/user-tracking";
 import { replaceIdWithLabels } from "src/simulation/report";
 import { dialogAtom } from "src/state/dialog_state";
 import { dataAtom, simulationAtom } from "src/state/jotai";
@@ -11,10 +12,20 @@ export const showReportShorcut = "alt+r";
 
 export const useShowReport = () => {
   const setDialogState = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
+  const simulation = useAtomValue(simulationAtom);
 
-  const showReport = useCallback(() => {
-    setDialogState({ type: "simulationReport" });
-  }, [setDialogState]);
+  const showReport = useCallback(
+    ({ source }: { source: "toolbar" | "resultDialog" | "shortcut" }) => {
+      userTracking.capture({
+        name: "report.opened",
+        source,
+        status: simulation.status,
+      });
+      setDialogState({ type: "simulationReport" });
+    },
+    [setDialogState, userTracking, simulation],
+  );
 
   return showReport;
 };

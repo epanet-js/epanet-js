@@ -46,11 +46,7 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      userTracking.capture({
-        name: "report.opened",
-        source: "shortcut",
-      });
-      void showReport();
+      void showReport({ source: "shortcut" });
     },
     [showReportShorcut, showReport],
     "Show report",
