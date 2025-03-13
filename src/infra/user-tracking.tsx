@@ -113,8 +113,8 @@ type WelcomeEnabled = {
   name: "welcome.enabled";
 };
 
-type ExampleModelOpened = {
-  name: "exampleModel.opened";
+type ExampleModelStarted = {
+  name: "exampleModel.started";
   modelName: string;
 };
 
@@ -266,7 +266,7 @@ type UserEvent =
   | WelcomeHidden
   | WelcomeEnabled
   | UnsavedChangesSeen
-  | ExampleModelOpened
+  | ExampleModelStarted
   | SimulationExecuted
   | ReportOpened
   | OpenModelStarted
