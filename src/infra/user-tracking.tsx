@@ -194,6 +194,9 @@ type InpIssuesSeen = {
 type InpIssuesExpanded = {
   name: "inpIssues.expanded";
 };
+type CoordinatesIssuesExpanded = {
+  name: "coordinatesIssues.expanded";
+};
 type GeocodingNotSupportedSeen = {
   name: "geocodingNotSupported.seen";
 };
@@ -280,6 +283,7 @@ type UserEvent =
   | SelectionCleared
   | InpIssuesSeen
   | InpIssuesExpanded
+  | CoordinatesIssuesExpanded
   | MissingCoordinatesSeen
   | GeocodingNotSupportedSeen
   | SimulationSummarySeen
