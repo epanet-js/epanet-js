@@ -26,31 +26,37 @@ const inpExtension = ".inp";
 
 export const openInpShortcut = "ctrl+o";
 
-export const useOpenInp = () => {
+export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
 
-  const { data: fsAccess } = useQuery("browser-fs-access", async () => {
-    return import("browser-fs-access");
-  });
-
   const importInp = useCallback(
-    async (file: FileWithHandle) => {
-      try {
-        if (!file.name.toLowerCase().endsWith(".inp")) {
-          setDialogState({
-            type: "openError",
-            file,
-          });
-          return;
-        }
+    async (files: FileWithHandle[]) => {
+      const inps = files.filter((file) =>
+        file.name.toLowerCase().endsWith(inpExtension),
+      );
 
-        setDialogState({ type: "loading" });
+      if (!inps.length) {
+        setDialogState({
+          type: "openError",
+          file: files[0],
+        });
+        return;
+      }
+
+      if (inps.length > 1) {
+        toast(translate("onlyOneInp"), { icon: "⚠️" });
+      }
+
+      const file = inps[0];
+
+      setDialogState({ type: "loading" });
+
+      try {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
@@ -102,6 +108,19 @@ export const useOpenInp = () => {
     [map?.map, transactImport, setFileInfo, setDialogState, userTracking],
   );
 
+  return importInp;
+};
+
+export const useOpenInp = () => {
+  const setDialogState = useSetAtom(dialogAtom);
+  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
+
+  const importInp = useImportInp();
+
+  const { data: fsAccess } = useQuery("browser-fs-access", async () => {
+    return import("browser-fs-access");
+  });
+
   const findInpInFs = useCallback(async () => {
     if (!fsAccess) throw new Error("Sorry, still loading");
     try {
@@ -110,7 +129,7 @@ export const useOpenInp = () => {
         extensions: [inpExtension],
         description: ".INP",
       });
-      void importInp(file);
+      void importInp([file]);
     } catch (error) {
       captureError(error as Error);
     }
@@ -129,20 +148,7 @@ export const useOpenInp = () => {
 
   const findInpInCandidates = useCallback(
     (candidates: FileWithHandle[]) => {
-      const inps = candidates.filter((file) =>
-        file.name.toLowerCase().endsWith(inpExtension),
-      );
-
-      if (!inps.length) {
-        toast.error(translate("inpMissing"));
-        return;
-      }
-
-      if (inps.length > 1) {
-        toast(translate("onlyOneInp"), { icon: "⚠️" });
-      }
-
-      void importInp(inps[0]);
+      void importInp(candidates);
     },
     [importInp],
   );
