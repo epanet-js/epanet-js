@@ -95,7 +95,7 @@ const AssetEditorInner = ({
     });
     transact(moment);
     userTracking.capture({
-      name: "asset.edited",
+      name: "assetProperty.edited",
       type: asset.type,
       property: name,
       newValue: value,
@@ -111,7 +111,7 @@ const AssetEditorInner = ({
       });
       transact(moment);
       userTracking.capture({
-        name: "asset.edited",
+        name: "assetStatus.edited",
         type: asset.type,
         property: "status",
         newValue: newStatus,

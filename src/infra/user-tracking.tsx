@@ -39,12 +39,20 @@ type AssetCreated = {
   type: Asset["type"];
 };
 
-type AssetEdited = {
-  name: "asset.edited";
+type AssetPropertyEdited = {
+  name: "assetProperty.edited";
   type: Asset["type"];
   property: string;
-  newValue: string | number | null;
-  oldValue: string | number | null;
+  newValue: number | null;
+  oldValue: number | null;
+};
+
+type AssetStatusEdited = {
+  name: "assetStatus.edited";
+  type: Asset["type"];
+  property: string;
+  newValue: string | null;
+  oldValue: string | null;
 };
 
 type AssetSelected = {
@@ -240,7 +248,8 @@ type UserEvent =
   | AssetCreated
   | AssetSelected
   | AssetDeselected
-  | AssetEdited
+  | AssetPropertyEdited
+  | AssetStatusEdited
   | AnalysisApplied
   | SatelliteViewToggled
   | AssetsDeleted
