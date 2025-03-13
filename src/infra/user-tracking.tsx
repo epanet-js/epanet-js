@@ -68,6 +68,7 @@ type MultiSelectUpdated = {
 type FullSelectionEnabled = {
   name: "fullSelection.enabled";
   source: "shortcut";
+  count: number;
 };
 
 type SelectionCleared = {
