@@ -154,11 +154,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                 <Button
                   variant="quiet"
                   onClick={() => {
-                    userTracking.capture({
-                      name: "openModel.started",
-                      source: "welcome",
-                    });
-                    void openInpFromFs();
+                    void openInpFromFs({ source: "welcome" });
                   }}
                 >
                   <FilePlusIcon />

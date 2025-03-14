@@ -67,11 +67,7 @@ export const Toolbar = () => {
         label={translate("openProject")}
         role="button"
         onClick={() => {
-          userTracking.capture({
-            name: "openModel.started",
-            source: "toolbar",
-          });
-          void openInpFromFs();
+          void openInpFromFs({ source: "toolbar" });
         }}
         readOnlyHotkey={openInpFromFsShortcut}
       >

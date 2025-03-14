@@ -118,12 +118,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              userTracking.capture({
-                name: "openModel.started",
-                source: "onboarding",
-              });
-
-              void openInpFromFs();
+              void openInpFromFs({ source: "onboarding" });
             }}
           >
             <FilePlusIcon />

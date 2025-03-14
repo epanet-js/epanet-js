@@ -27,7 +27,7 @@ const Drop = () => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
 
-      userTracking.capture({ name: "openModel.started", source: "drop" });
+      userTracking.capture({ name: "openInp.started", source: "drop" });
       checkUnsavedChanges(() => importInp(files));
     };
 
