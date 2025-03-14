@@ -73,7 +73,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
 
   const handleOpenDemoModel = (demoModel: DemoModel) => {
     userTracking.capture({
-      name: "exampleModel.started",
+      name: "exampleModel.clicked",
       modelName: demoModel.name,
     });
     openInpFromUrl(demoModel.url);
