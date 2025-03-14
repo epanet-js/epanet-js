@@ -120,8 +120,8 @@ type WelcomeEnabled = {
   name: "welcome.enabled";
 };
 
-type ExampleModelStarted = {
-  name: "exampleModel.started";
+type ExampleModelClicked = {
+  name: "exampleModel.clicked";
   modelName: string;
 };
 
@@ -138,7 +138,7 @@ type ReportOpened = {
 
 export type OpenInpStarted = {
   name: "openInp.started";
-  source: "shortcut" | "welcome" | "onboarding" | "toolbar" | "drop";
+  source: "shortcut" | "welcome" | "onboarding" | "toolbar";
 };
 
 export type ImportInpCompleted = {
@@ -162,7 +162,7 @@ type FilesDropped = {
   name: "files.dropped";
   count: number;
   filenames: string[];
-  extensions: string[];
+  extensions: (string | null)[];
 };
 
 type NewModelStarted = {
@@ -286,7 +286,7 @@ type UserEvent =
   | WelcomeHidden
   | WelcomeEnabled
   | UnsavedChangesSeen
-  | ExampleModelStarted
+  | ExampleModelClicked
   | SimulationExecuted
   | ReportOpened
   | OpenInpStarted
