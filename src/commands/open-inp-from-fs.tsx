@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
-import { useImportInp, inpExtension } from "./open-inp";
+import { useImportInp, inpExtension } from "./import-inp";
 import { useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 

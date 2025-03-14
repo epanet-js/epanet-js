@@ -4,7 +4,7 @@ import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
-import { useImportInp } from "src/commands/open-inp";
+import { useImportInp } from "src/commands/import-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 
@@ -26,6 +26,7 @@ const Drop = () => {
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
+
       userTracking.capture({ name: "openModel.started", source: "drop" });
       checkUnsavedChanges(() => importInp(files));
     };
