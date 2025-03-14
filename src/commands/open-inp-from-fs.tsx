@@ -35,7 +35,7 @@ export const useOpenInpFromFs = () => {
         captureError(error as Error);
       }
     },
-    [fsAccess, importInp],
+    [fsAccess, importInp, userTracking],
   );
 
   return useCallback(
