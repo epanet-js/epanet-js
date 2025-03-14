@@ -11,7 +11,7 @@ import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext } from "src/map";
-import { OpenModelCompleted, useUserTracking } from "src/infra/user-tracking";
+import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -55,7 +55,7 @@ export const useImportInp = () => {
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
           parseInp(content);
         userTracking.capture(
-          buildOpenCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
+          buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
         if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
           setDialogState({ type: "inpGeocodingNotSupported" });
@@ -104,17 +104,17 @@ export const useImportInp = () => {
   return importInp;
 };
 
-const buildOpenCompleteEvent = (
+const buildCompleteEvent = (
   hydraulicModel: HydraulicModel,
   modelMetadata: ModelMetadata,
   issues: ParserIssues | null,
   stats: InpStats,
-): OpenModelCompleted => {
+): ImportInpCompleted => {
   return {
-    name: "openModel.completed",
+    name: "importInp.completed",
     counts: Object.fromEntries(stats.counts),
     headlossFormula: hydraulicModel.headlossFormula,
     units: modelMetadata.quantities.specName as EpanetUnitSystem,
     issues: issues ? Object.keys(issues) : [],
-  } as OpenModelCompleted;
+  } as ImportInpCompleted;
 };
