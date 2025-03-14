@@ -5,7 +5,6 @@ import { Button } from "src/components/elements";
 import { BrandLogo } from "src/components/menu_bar";
 import { dialogAtom } from "src/state/dialog_state";
 import { useNewProject } from "./create-new-project";
-import { useOpenInp } from "./open-inp";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { userSettingsAtom } from "src/state/user-settings";
 import { Checkbox } from "src/components/form/Checkbox";
@@ -27,6 +26,7 @@ import Image from "next/image";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { WelcomeOpened, useUserTracking } from "src/infra/user-tracking";
+import { useOpenInpFromFs } from "./open-inp-from-fs";
 
 type DemoModel = {
   name: string;
@@ -67,7 +67,7 @@ export const useShowWelcome = () => {
 export const WelcomeDialog = ({}: { onClose: () => void }) => {
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
-  const { openInpFromFs } = useOpenInp();
+  const openInpFromFs = useOpenInpFromFs();
   const { openInpFromUrl } = useOpenInpFromUrl();
   const userTracking = useUserTracking();
 

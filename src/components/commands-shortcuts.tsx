@@ -5,7 +5,6 @@ import {
   runSimulationShortcut,
   useRunSimulation,
 } from "src/commands/run-simulation";
-import { openInpShortcut, useOpenInp } from "src/commands/open-inp";
 import {
   createNewShortcut,
   useNewProject,
@@ -34,6 +33,10 @@ import {
   useDeleteSelectedAssets,
 } from "src/commands/delete-selected-assets";
 import { selectAllShortcut, useSelectAll } from "src/commands/select-all";
+import {
+  openInpFromFsShortcut,
+  useOpenInpFromFs,
+} from "src/commands/open-inp-from-fs";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -42,7 +45,7 @@ export const CommandShortcuts = () => {
   const runSimulation = useRunSimulation();
   const showShortcuts = useShowShortcuts();
   const createNew = useNewProject();
-  const { openInpFromFs } = useOpenInp();
+  const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const { undo, redo } = useHistoryControl();
   const userTracking = useUserTracking();
@@ -77,7 +80,7 @@ export const CommandShortcuts = () => {
   );
 
   useHotkeys(
-    openInpShortcut,
+    openInpFromFsShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
@@ -87,7 +90,7 @@ export const CommandShortcuts = () => {
       });
       openInpFromFs();
     },
-    [openInpShortcut, openInpFromFs],
+    [openInpFromFsShortcut, openInpFromFs],
     "Open inp",
   );
 

@@ -1,7 +1,6 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { dialogAtom, fileInfoAtom } from "src/state/jotai";
-import { useQuery } from "react-query";
 import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
 import { FileWithHandle } from "browser-fs-access";
@@ -17,11 +16,8 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
-import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 
-const inpExtension = ".inp";
-
-export const openInpShortcut = "ctrl+o";
+export const inpExtension = ".inp";
 
 export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -106,35 +102,6 @@ export const useImportInp = () => {
   );
 
   return importInp;
-};
-
-export const useOpenInp = () => {
-  const checkUnsavedChanges = useUnsavedChangesCheck();
-  const importInp = useImportInp();
-
-  const { data: fsAccess } = useQuery("browser-fs-access", async () => {
-    return import("browser-fs-access");
-  });
-
-  const findInpInFs = useCallback(async () => {
-    if (!fsAccess) throw new Error("Sorry, still loading");
-    try {
-      const file = await fsAccess.fileOpen({
-        multiple: false,
-        extensions: [inpExtension],
-        description: ".INP",
-      });
-      void importInp([file]);
-    } catch (error) {
-      captureError(error as Error);
-    }
-  }, [fsAccess, importInp]);
-
-  const openInpFromFs = useCallback(() => {
-    checkUnsavedChanges(findInpInFs);
-  }, [findInpInFs, checkUnsavedChanges]);
-
-  return { openInpFromFs };
 };
 
 const buildOpenCompleteEvent = (

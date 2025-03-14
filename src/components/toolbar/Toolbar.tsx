@@ -14,7 +14,10 @@ import ContextActions from "../context_actions";
 import { Visual } from "../visual";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
-import { useOpenInp } from "src/commands/open-inp";
+import {
+  openInpFromFsShortcut,
+  useOpenInpFromFs,
+} from "src/commands/open-inp-from-fs";
 import { useNewProject } from "src/commands/create-new-project";
 import {
   saveAsShortcut,
@@ -30,7 +33,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
 
 export const Toolbar = () => {
-  const { openInpFromFs } = useOpenInp();
+  const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();
   const userTracking = useUserTracking();
@@ -70,7 +73,7 @@ export const Toolbar = () => {
           });
           void openInpFromFs();
         }}
-        readOnlyHotkey={"ctrl+o"}
+        readOnlyHotkey={openInpFromFsShortcut}
       >
         <FilePlusIcon />
       </MenuAction>
