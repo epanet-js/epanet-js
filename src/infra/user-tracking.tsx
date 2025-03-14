@@ -158,6 +158,13 @@ export type ImportInpCompleted = {
   )[];
 };
 
+type FilesDropped = {
+  name: "files.dropped";
+  count: number;
+  filenames: string[];
+  extensions: string[];
+};
+
 type NewModelStarted = {
   name: "newModel.started";
   source: "shortcut" | "toolbar" | "welcome";
@@ -284,6 +291,7 @@ type UserEvent =
   | ReportOpened
   | OpenInpStarted
   | ImportInpCompleted
+  | FilesDropped
   | OpenErrorSeen
   | NewModelStarted
   | NewModelCompleted
