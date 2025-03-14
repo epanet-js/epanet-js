@@ -141,8 +141,8 @@ export type OpenInpStarted = {
   source: "shortcut" | "welcome" | "onboarding" | "toolbar" | "drop";
 };
 
-export type OpenModelCompleted = {
-  name: "openModel.completed";
+export type ImportInpCompleted = {
+  name: "importInp.completed";
   counts: Record<string, number>;
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
@@ -283,7 +283,7 @@ type UserEvent =
   | SimulationExecuted
   | ReportOpened
   | OpenInpStarted
-  | OpenModelCompleted
+  | ImportInpCompleted
   | OpenErrorSeen
   | NewModelStarted
   | NewModelCompleted
