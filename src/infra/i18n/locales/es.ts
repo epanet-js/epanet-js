@@ -186,6 +186,7 @@ export const translations: Translations = {
   openSource: "Open Source",
   nodes: "Nodos",
   links: "Enlaces",
+  layers: "Capas",
 };
 
 export const units: UnitsLocale = {
