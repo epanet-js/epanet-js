@@ -6,6 +6,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { getByLabel } from "src/__helpers__/asset-queries";
+import { useUserTracking } from "src/infra/user-tracking";
 
 describe("open inp from url", () => {
   it("initializes state opening an inp from a url", async () => {
@@ -53,6 +54,7 @@ describe("open inp from url", () => {
   });
 
   it("shows an error if fetch fails", async () => {
+    const userTracking = useUserTracking();
     window.fetch = vi.fn().mockRejectedValue(new Error("Booom"));
     const inpUrl = "http://example.org/network-001.inp";
     const store = setInitialState({
@@ -72,6 +74,10 @@ describe("open inp from url", () => {
 
     const fileInfo = store.get(fileInfoAtom);
     expect(fileInfo).toBeNull();
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "downloadError.seen",
+    });
   });
 
   const minimalInp = ({

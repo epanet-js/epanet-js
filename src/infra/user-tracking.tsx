@@ -165,6 +165,10 @@ type FilesDropped = {
   extensions: (string | null)[];
 };
 
+type DownloadErrorSeen = {
+  name: "downloadError.seen";
+};
+
 type NewModelStarted = {
   name: "newModel.started";
   source: "shortcut" | "toolbar" | "welcome";
@@ -293,6 +297,7 @@ type UserEvent =
   | ImportInpCompleted
   | FilesDropped
   | OpenErrorSeen
+  | DownloadErrorSeen
   | NewModelStarted
   | NewModelCompleted
   | ModelSaved
