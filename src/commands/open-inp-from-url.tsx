@@ -6,16 +6,21 @@ import toast from "react-hot-toast";
 import { captureError } from "src/infra/error-tracking";
 import { translate } from "src/infra/i18n";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const checkUnsavedChanges = useUnsavedChangesCheck();
+  const userTracking = useUserTracking();
   const importInp = useImportInp();
 
   const handleDownloadError = useCallback(() => {
     toast.error(translate("downloadFailed"));
+    userTracking.capture({
+      name: "downloadError.seen",
+    });
     setDialogState({ type: "welcome" });
-  }, [setDialogState]);
+  }, [setDialogState, userTracking]);
 
   const openInpFromUrl = useCallback(
     async (url: string) => {
