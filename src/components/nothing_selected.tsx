@@ -13,13 +13,13 @@ import {
 import { memo } from "react";
 import { Button } from "./elements";
 import { localizeKeybinding, translate } from "src/infra/i18n";
-import { useOpenInp } from "src/commands/open-inp";
+import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 
 export const NothingSelected = memo(function NothingSelected() {
-  const { openInpFromFs } = useOpenInp();
+  const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
