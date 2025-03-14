@@ -107,6 +107,7 @@ describe("openInpFromFs", () => {
   });
 
   it("displays error when cannot process", async () => {
+    const userTracking = stubUserTracking();
     stubFileOpen();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
@@ -123,10 +124,13 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
     );
 
-    expect(screen.getByText(/error/i)).toBeInTheDocument();
+    expect(screen.getByText(/failed to open model/i)).toBeInTheDocument();
     await userEvent.click(screen.getByText(/understood/i));
 
     expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "invalidFilesError.seen",
+    });
   });
 
   it("removes previous state", async () => {

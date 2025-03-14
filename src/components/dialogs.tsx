@@ -26,12 +26,14 @@ const OpenInpDialog = dynamic<{
   },
 );
 
-const OpenErrorDialog = dynamic<{
-  modal: dialogState.OpenErrorDialogState;
+const InvalidFilesErrorDialog = dynamic<{
+  modal: dialogState.InvalidFilesErrorDialogState;
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/OpenError").then((r) => r.OpenErrorDialog),
+    import("src/components/dialogs/InvalidFilesError").then(
+      (r) => r.InvalidFilesErrorDialog,
+    ),
   {
     loading: () => <Loading />,
   },
@@ -171,8 +173,8 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />
     ))
-    .with({ type: "openError" }, (modal) => (
-      <OpenErrorDialog modal={modal} onClose={onClose} />
+    .with({ type: "invalidFilesError" }, (modal) => (
+      <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
@@ -213,9 +215,6 @@ export const Dialogs = memo(function Dialogs() {
       }
       if (dialog.type === "inpIssues") {
         userTracking.capture({ name: "inpIssues.seen" });
-      }
-      if (dialog.type === "openError") {
-        userTracking.capture({ name: "openError.seen" });
       }
       if (dialog.type === "simulationSummary") {
         userTracking.capture({
