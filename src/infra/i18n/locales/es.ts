@@ -187,6 +187,8 @@ export const translations: Translations = {
   nodes: "Nodos",
   links: "Enlaces",
   layers: "Capas",
+  checkoutProjectionTool:
+    "Puedes usar la utilidad EPANET Projection Converter para proyectar tu archivo INP al sistema de coordenadas WGS84.",
 };
 
 export const units: UnitsLocale = {

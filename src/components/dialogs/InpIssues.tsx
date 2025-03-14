@@ -5,13 +5,14 @@ import {
   BellIcon,
   CrossCircledIcon,
   ExclamationTriangleIcon,
+  GlobeIcon,
   TriangleDownIcon,
   TriangleRightIcon,
 } from "@radix-ui/react-icons";
 import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
-import { newsletterUrl } from "src/global-config";
+import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -38,7 +39,7 @@ export const GeocodingNotSupportedDialog = ({
         <Form>
           <div className="text-sm">
             <p className="pb-4">{translate("geocodingNotSupportedDetail")}</p>
-            <SubscribeCTA source="geocodeError" />
+            <ProjectionCTA />
           </div>
           <SimpleDialogActions
             autoFocusSubmit={true}
@@ -132,6 +133,30 @@ export const InpIssuesDialog = ({
           />
         </Form>
       </Formik>
+    </>
+  );
+};
+
+export const ProjectionCTA = () => {
+  const userTracking = useUserTracking();
+  return (
+    <>
+      <p className="pb-3">{translate("checkoutProjectionTool")}</p>
+      <p className="text-purple-800">
+        <Button
+          variant="quiet"
+          onClick={(e) => {
+            e.preventDefault();
+            userTracking.capture({
+              name: "projectionConverter.visited",
+            });
+            window.open(projectionConverterUrl);
+          }}
+        >
+          <GlobeIcon />
+          EPANET Projection Converter
+        </Button>
+      </p>
     </>
   );
 };

@@ -6,3 +6,5 @@ export const newsletterUrl =
   "https://mastering-water-models.kit.com/e9c8f66e11";
 export const privacyPolicyUrl = "https://epanetjs.com/privacy-policy";
 export const termsAndConditionsUrl = "https://epanetjs.com/terms-conditions";
+export const projectionConverterUrl =
+  "https://utils.epanetjs.com/projection-converter";

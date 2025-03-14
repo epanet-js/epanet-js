@@ -117,6 +117,10 @@ export type WelcomeOpened = {
     | "invalidFilesError";
 };
 
+type ProjectionConverterVisited = {
+  name: "projectionConverter.visited";
+};
+
 type WelcomeHidden = {
   name: "welcome.hidden";
 };
@@ -326,7 +330,8 @@ type UserEvent =
   | SignUpStarted
   | SignInStarted
   | LogOutCompleted
-  | SubscriptionStarted;
+  | SubscriptionStarted
+  | ProjectionConverterVisited;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
