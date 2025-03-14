@@ -1,14 +1,16 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog_state";
-import { useOpenInp } from "./open-inp";
+import { useImportInp } from "./open-inp";
 import toast from "react-hot-toast";
 import { captureError } from "src/infra/error-tracking";
 import { translate } from "src/infra/i18n";
+import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 
 export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const { openInpFromCandidates } = useOpenInp();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const importInp = useImportInp();
 
   const handleDownloadError = useCallback(() => {
     toast.error(translate("downloadFailed"));
@@ -27,13 +29,14 @@ export const useOpenInpFromUrl = () => {
 
         const name = parseName(url);
         const inpFile = new File([await response.blob()], name);
-        openInpFromCandidates([inpFile]);
+
+        checkUnsavedChanges(() => importInp([inpFile]));
       } catch (error) {
         captureError(error as Error);
         handleDownloadError();
       }
     },
-    [setDialogState, handleDownloadError, openInpFromCandidates],
+    [setDialogState, handleDownloadError, checkUnsavedChanges, importInp],
   );
 
   return { openInpFromUrl };

@@ -134,14 +134,7 @@ export const useOpenInp = () => {
     checkUnsavedChanges(findInpInFs);
   }, [findInpInFs, checkUnsavedChanges]);
 
-  const openInpFromCandidates = useCallback(
-    (candidates: FileWithHandle[]) => {
-      checkUnsavedChanges(() => importInp(candidates));
-    },
-    [importInp, checkUnsavedChanges],
-  );
-
-  return { openInpFromCandidates, openInpFromFs };
+  return { openInpFromFs };
 };
 
 const buildOpenCompleteEvent = (

@@ -4,8 +4,9 @@ import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { translate } from "src/infra/i18n";
-import { useOpenInp } from "src/commands/open-inp";
+import { useImportInp } from "src/commands/open-inp";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -18,14 +19,15 @@ const stopWindowDrag = (event: DragEvent) => {
 
 const Drop = () => {
   const [dragging, setDragging] = useState<boolean>(false);
-  const { openInpFromCandidates } = useOpenInp();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const importInp = useImportInp();
   const userTracking = useUserTracking();
 
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
       userTracking.capture({ name: "openModel.started", source: "drop" });
-      void openInpFromCandidates(files);
+      checkUnsavedChanges(() => importInp(files));
     };
 
     const onDragEnter = () => {
@@ -75,7 +77,7 @@ const Drop = () => {
       window.removeEventListener("dragover", stopWindowDrag);
       window.removeEventListener("drop", stopWindowDrag);
     };
-  }, [setDragging, openInpFromCandidates, userTracking]);
+  }, [setDragging, checkUnsavedChanges, importInp, userTracking]);
 
   return dragging ? (
     <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>
