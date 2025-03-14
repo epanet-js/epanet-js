@@ -76,7 +76,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
       name: "exampleModel.clicked",
       modelName: demoModel.name,
     });
-    openInpFromUrl(demoModel.url);
+    void openInpFromUrl(demoModel.url);
   };
 
   return (
