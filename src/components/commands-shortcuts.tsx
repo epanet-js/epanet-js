@@ -84,11 +84,7 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      userTracking.capture({
-        name: "openModel.started",
-        source: "shortcut",
-      });
-      openInpFromFs();
+      void openInpFromFs({ source: "shortcut" });
     },
     [openInpFromFsShortcut, openInpFromFs],
     "Open inp",

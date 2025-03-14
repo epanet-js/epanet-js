@@ -136,8 +136,8 @@ type ReportOpened = {
   status: SimulationState["status"];
 };
 
-type OpenModelStarted = {
-  name: "openModel.started";
+export type OpenInpStarted = {
+  name: "openInp.started";
   source: "shortcut" | "welcome" | "onboarding" | "toolbar" | "drop";
 };
 
@@ -282,7 +282,7 @@ type UserEvent =
   | ExampleModelStarted
   | SimulationExecuted
   | ReportOpened
-  | OpenModelStarted
+  | OpenInpStarted
   | OpenModelCompleted
   | OpenErrorSeen
   | NewModelStarted
