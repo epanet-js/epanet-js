@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog_state";
-import { useImportInp } from "./open-inp";
+import { useImportInp } from "./import-inp";
 import toast from "react-hot-toast";
 import { captureError } from "src/infra/error-tracking";
 import { translate } from "src/infra/i18n";
