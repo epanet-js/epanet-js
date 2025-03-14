@@ -35,9 +35,9 @@ export const useImportInp = () => {
 
       if (!inps.length) {
         setDialogState({
-          type: "openError",
-          file: files[0],
+          type: "invalidFilesError",
         });
+        userTracking.capture({ name: "invalidFilesError.seen" });
         return;
       }
 
@@ -95,7 +95,7 @@ export const useImportInp = () => {
         setDialogState({ type: "inpIssues", issues });
       } catch (error) {
         captureError(error as Error);
-        setDialogState({ type: "openError", file });
+        setDialogState({ type: "invalidFilesError" });
       }
     },
     [map?.map, transactImport, setFileInfo, setDialogState, userTracking],

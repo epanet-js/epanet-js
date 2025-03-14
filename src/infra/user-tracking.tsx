@@ -109,7 +109,12 @@ type WelcomeSeen = {
 
 export type WelcomeOpened = {
   name: "welcome.opened";
-  source: "menu" | "inpIssues" | "geocodeError" | "missingCoordinatesError";
+  source:
+    | "menu"
+    | "inpIssues"
+    | "geocodeError"
+    | "missingCoordinatesError"
+    | "invalidFilesError";
 };
 
 type WelcomeHidden = {
@@ -221,8 +226,8 @@ type GeocodingNotSupportedSeen = {
 type MissingCoordinatesSeen = {
   name: "missingCoordinates.seen";
 };
-type OpenErrorSeen = {
-  name: "openError.seen";
+type InvalidFilesErrorSeen = {
+  name: "invalidFilesError.seen";
 };
 
 type SimulationSummarySeen = {
@@ -296,7 +301,7 @@ type UserEvent =
   | OpenInpStarted
   | ImportInpCompleted
   | FilesDropped
-  | OpenErrorSeen
+  | InvalidFilesErrorSeen
   | DownloadErrorSeen
   | NewModelStarted
   | NewModelCompleted
