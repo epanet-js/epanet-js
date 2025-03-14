@@ -180,6 +180,8 @@ export const translations = {
   nodes: "Nodes",
   links: "Links",
   layers: "Layers",
+  checkoutProjectionTool:
+    "You can project your INP to the WGS84 system making use of the EPANET Projection Converter utility.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
