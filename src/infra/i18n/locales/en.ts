@@ -179,6 +179,7 @@ export const translations = {
   openSource: "Open Source",
   nodes: "Nodes",
   links: "Links",
+  layers: "Layers",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

@@ -1,38 +1,22 @@
 import { memo, Suspense } from "react";
-import { LayersIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { LayersIcon } from "@radix-ui/react-icons";
 import * as T from "@radix-ui/react-tooltip";
 import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";
-import { SEARCH_KEYBINDING } from "./dialogs/cheatsheet";
 import { LayersPopover } from "./layers/popover";
-import { localizeKeybinding } from "src/infra/i18n";
+import { translate } from "src/infra/i18n";
 
 export const Visual = memo(function Visual() {
   return (
     <div className="flex items-center">
-      <div className="block h-10 w-10 p-1 flex items-stretch">
-        <T.Root>
-          <T.Trigger asChild>
-            <E.Button variant="quiet" aria-label="Search" onClick={() => {}}>
-              <MagnifyingGlassIcon />
-            </E.Button>
-          </T.Trigger>
-          <E.TContent>
-            <div className="flex items-center gap-x-2">
-              Search{" "}
-              <E.Keycap>{localizeKeybinding(SEARCH_KEYBINDING)}</E.Keycap>
-            </div>
-          </E.TContent>
-        </T.Root>
-      </div>
-
       <T.Root>
         <Root>
-          <div className="h-10 w-10 p-1 flex items-stretch">
+          <div className="p-2 flex items-stretch">
             <T.Trigger asChild>
               <Trigger aria-label="Layers" asChild>
                 <E.Button variant="quiet">
                   <LayersIcon />
+                  {translate("layers")}
                 </E.Button>
               </Trigger>
             </T.Trigger>
