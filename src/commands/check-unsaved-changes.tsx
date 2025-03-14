@@ -18,6 +18,6 @@ export const useUnsavedChangesCheck = () => {
 
       void onContinue();
     },
-    [hasUnsavedChanges],
+    [hasUnsavedChanges, setDialogState],
   );
 };
