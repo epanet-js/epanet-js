@@ -17,6 +17,15 @@ const stopWindowDrag = (event: DragEvent) => {
   event.preventDefault();
 };
 
+const getFileExtension = (filename: string): string | null => {
+  const parts = filename.split(".");
+  if (parts.length > 1) {
+    const extension = parts[parts.length - 1];
+    return extension.toLowerCase();
+  }
+  return null;
+};
+
 const Drop = () => {
   const [dragging, setDragging] = useState<boolean>(false);
   const checkUnsavedChanges = useUnsavedChangesCheck();
@@ -27,7 +36,12 @@ const Drop = () => {
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
 
-      userTracking.capture({ name: "openInp.started", source: "drop" });
+      userTracking.capture({
+        name: "files.dropped",
+        filenames: files.map((f) => f.name),
+        extensions: files.map((f) => getFileExtension(f.name)),
+        count: files.length,
+      });
       checkUnsavedChanges(() => importInp(files));
     };
 
