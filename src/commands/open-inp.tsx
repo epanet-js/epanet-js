@@ -1,10 +1,6 @@
 import { useCallback, useContext } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import {
-  dialogAtom,
-  fileInfoAtom,
-  hasUnsavedChangesAtom,
-} from "src/state/jotai";
+import { useSetAtom } from "jotai";
+import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { useQuery } from "react-query";
 import { captureError } from "src/infra/error-tracking";
 import toast from "react-hot-toast";
@@ -21,6 +17,7 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
+import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 
 const inpExtension = ".inp";
 
@@ -112,9 +109,7 @@ export const useImportInp = () => {
 };
 
 export const useOpenInp = () => {
-  const setDialogState = useSetAtom(dialogAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
-
+  const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();
 
   const { data: fsAccess } = useQuery("browser-fs-access", async () => {
@@ -136,35 +131,14 @@ export const useOpenInp = () => {
   }, [fsAccess, importInp]);
 
   const openInpFromFs = useCallback(() => {
-    if (hasUnsavedChanges) {
-      return setDialogState({
-        type: "unsavedChanges",
-        onContinue: findInpInFs,
-      });
-    }
-
-    void findInpInFs();
-  }, [findInpInFs, setDialogState, hasUnsavedChanges]);
-
-  const findInpInCandidates = useCallback(
-    (candidates: FileWithHandle[]) => {
-      void importInp(candidates);
-    },
-    [importInp],
-  );
+    checkUnsavedChanges(findInpInFs);
+  }, [findInpInFs, checkUnsavedChanges]);
 
   const openInpFromCandidates = useCallback(
     (candidates: FileWithHandle[]) => {
-      if (hasUnsavedChanges) {
-        return setDialogState({
-          type: "unsavedChanges",
-          onContinue: () => findInpInCandidates(candidates),
-        });
-      }
-
-      findInpInCandidates(candidates);
+      checkUnsavedChanges(() => importInp(candidates));
     },
-    [setDialogState, hasUnsavedChanges, findInpInCandidates],
+    [importInp, checkUnsavedChanges],
   );
 
   return { openInpFromCandidates, openInpFromFs };

@@ -1,25 +1,19 @@
 import { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, hasUnsavedChangesAtom } from "src/state/jotai";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/jotai";
+import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 
 export const createNewShortcut = "alt+n";
 
 export const useNewProject = () => {
+  const checkUnsavedChanges = useUnsavedChangesCheck();
   const setDialogState = useSetAtom(dialogAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
 
   const createNew = useCallback(() => {
     setDialogState({ type: "createNew" });
   }, [setDialogState]);
 
   return useCallback(() => {
-    if (hasUnsavedChanges) {
-      return setDialogState({
-        type: "unsavedChanges",
-        onContinue: createNew,
-      });
-    }
-
-    createNew();
-  }, [setDialogState, hasUnsavedChanges, createNew]);
+    checkUnsavedChanges(() => createNew());
+  }, [checkUnsavedChanges, createNew]);
 };
