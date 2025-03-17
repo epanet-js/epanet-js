@@ -5,9 +5,11 @@ const signInUrl = process.env.SIGN_IN_URL as string;
 
 export default clerkMiddleware(
   async (auth, request) => {
+    if (request.nextUrl.pathname.startsWith("/api")) return NextResponse.next();
+
     if (request.headers.get("Authorization")?.startsWith("Basic ")) {
       const headers = new Headers(request.headers);
-      headers.set("WWW-Authenticate", "Bearer"); // Remove Basic
+      headers.set("WWW-Authenticate", "Bearer");
       return NextResponse.json(
         { error: "Invalid auth" },
         { status: 401, headers },
@@ -40,6 +42,5 @@ export default clerkMiddleware(
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|inp|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
   ],
 };
