@@ -24,6 +24,7 @@
     "not ie 11"
   ],
   "dependencies": {
+    "@google-cloud/storage": "^7.13.0",
     "@clerk/localizations": "^3.11.0",
     "@clerk/nextjs": "^6.12.3",
     "@codemirror/commands": "^6.5.0",
