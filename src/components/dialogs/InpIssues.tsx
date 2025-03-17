@@ -145,6 +145,7 @@ export const ProjectionCTA = () => {
       <p className="text-purple-800">
         <Button
           variant="quiet"
+          className="text-purple-500 font-semibold"
           onClick={(e) => {
             e.preventDefault();
             userTracking.capture({
