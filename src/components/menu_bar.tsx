@@ -103,7 +103,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           </div>
         </SignedIn>
         <SignedOut>
-          <RedirectToSignIn />
+          {!isFeatureOn("FLAG_GUEST") && <RedirectToSignIn />}
           {isFeatureOn("FLAG_GUEST") && (
             <div className="flex items-center gap-x-1">
               <SignInButton
