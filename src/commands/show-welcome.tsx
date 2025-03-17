@@ -175,7 +175,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     {translate("helpCenter")}
                   </Button>
                 </a>
-                {isFeatureOn("FLAG_WELCOME") && (
+                {isFeatureOn("FLAG_REPO") && (
                   <a
                     href={sourceCodeUrl}
                     target="_blank"
