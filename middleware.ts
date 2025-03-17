@@ -6,7 +6,6 @@ const signInUrl = process.env.SIGN_IN_URL as string;
 export default clerkMiddleware(
   async (auth, request) => {
     if (request.headers.get("Authorization")?.startsWith("Basic ")) {
-      // Force logout by rejecting Basic Auth
       const headers = new Headers(request.headers);
       headers.set("WWW-Authenticate", "Bearer"); // Remove Basic
       return NextResponse.json(
@@ -17,7 +16,10 @@ export default clerkMiddleware(
 
     const authData = await auth();
 
-    if (!authData.userId) {
+    const isGuestFeatureOn =
+      request.nextUrl.searchParams.get("FLAG_GUEST") === "true";
+
+    if (!authData.userId && !isGuestFeatureOn) {
       return NextResponse.redirect(signInUrl);
     }
 
@@ -37,9 +39,7 @@ export default clerkMiddleware(
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|inp|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],
 };
