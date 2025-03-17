@@ -6,6 +6,7 @@ import {
   SignInButton as ClerkSignInButton,
   SignUpButton as ClerkSignUpButton,
   UserButton as ClerkUserButton,
+  RedirectToSignIn as ClerkRedirectToSignIn,
   useAuth as useClerkAuth,
   useUser as useClerkUser,
 } from "@clerk/nextjs";
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
     captureWarning(error.message);
   }, []);
+
   const clerkLocalization = getLocale() === "es" ? esES : enUS;
 
   return (
@@ -82,3 +84,5 @@ export const SignedOut = ({ children }: { children: React.ReactNode }) => {
   return <ClerkSignedOut>{children}</ClerkSignedOut>;
 };
 export const UserButton = ClerkUserButton;
+
+export const RedirectToSignIn = ClerkRedirectToSignIn;

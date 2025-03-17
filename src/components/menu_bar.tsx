@@ -16,6 +16,7 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
 import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
 import {
+  RedirectToSignIn,
   SignInButton,
   SignUpButton,
   SignedIn,
@@ -25,6 +26,7 @@ import {
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -99,24 +101,27 @@ export const MenuBarPlay = memo(function MenuBar() {
           </div>
         </SignedIn>
         <SignedOut>
-          <div className="flex items-center gap-x-1">
-            <SignInButton
-              onClick={() => {
-                userTracking.capture({
-                  name: "signIn.started",
-                  source: "menu",
-                });
-              }}
-            />
-            <SignUpButton
-              onClick={() => {
-                userTracking.capture({
-                  name: "signUp.started",
-                  source: "menu",
-                });
-              }}
-            />
-          </div>
+          <RedirectToSignIn />
+          {isFeatureOn("FLAG_GUEST") && (
+            <div className="flex items-center gap-x-1">
+              <SignInButton
+                onClick={() => {
+                  userTracking.capture({
+                    name: "signIn.started",
+                    source: "menu",
+                  });
+                }}
+              />
+              <SignUpButton
+                onClick={() => {
+                  userTracking.capture({
+                    name: "signUp.started",
+                    source: "menu",
+                  });
+                }}
+              />
+            </div>
+          )}
         </SignedOut>
       </div>
     </div>
