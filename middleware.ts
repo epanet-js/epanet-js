@@ -1,38 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-const basicAuthUser = process.env.BASIC_AUTH_USER || "admin";
-const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || "password";
+const signInUrl = process.env.SIGN_IN_URL as string;
 
-export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.endsWith("js.map")) return NextResponse.next();
-  if (request.nextUrl.pathname.startsWith("/api/auth-webhook"))
-    return NextResponse.next();
-  if (request.nextUrl.pathname.startsWith("/.well-known/"))
-    return NextResponse.next();
+export default clerkMiddleware(
+  async (auth, request) => {
+    if (request.headers.get("Authorization")?.startsWith("Basic ")) {
+      // Force logout by rejecting Basic Auth
+      const headers = new Headers(request.headers);
+      headers.set("WWW-Authenticate", "Bearer"); // Remove Basic
+      return NextResponse.json(
+        { error: "Invalid auth" },
+        { status: 401, headers },
+      );
+    }
 
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader) {
-    return new NextResponse("Authentication required", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": 'Basic realm="Secure Area"',
-      },
-    });
-  }
-  const base64Credentials = authHeader.split(" ")[1];
-  const credentials = Buffer.from(base64Credentials, "base64").toString(
-    "utf-8",
-  );
-  const [username, password] = credentials.split(":");
+    const authData = await auth();
 
-  if (basicAuthUser !== username || basicAuthPassword !== password) {
-    return new NextResponse("Invalid credentials", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": 'Basic realm="Secure Area"',
-      },
-    });
-  }
+    if (!authData.userId) {
+      return NextResponse.redirect(signInUrl);
+    }
 
-  return NextResponse.next();
-}
+    const response = NextResponse.next();
+    response.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    return response;
+  },
+  {
+    publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  },
+);
+
+export const config = {
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
+};
