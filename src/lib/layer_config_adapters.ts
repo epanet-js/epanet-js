@@ -1,6 +1,6 @@
 import { ILayerConfig } from "src/types";
 import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { toast } from "react-hot-toast";
 import once from "lodash/once";
 
@@ -39,6 +39,9 @@ export async function addMapboxStyle(
   const updatedStyle = updateMapboxStyle(style, {
     labelVisibility: layer.labelVisibility,
     rasterOpacity: layer.opacity,
+  });
+  Object.entries(layer.sourceMaxZoom).forEach(([sourceName, maxZoom]) => {
+    (updatedStyle.sources[sourceName] as RasterLayer).maxzoom = maxZoom;
   });
   return updatedStyle;
 }
