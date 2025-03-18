@@ -107,6 +107,11 @@ export const dataAtom = atom<Data>(nullData);
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 
+export const satelliteModeOnAtom = atom<boolean>((get) => {
+  const layersConfig = get(layerConfigAtom);
+  return [...layersConfig.values()].some((layer) => layer.name === "Satellite");
+});
+
 export const selectedFeaturesAtom = selectAtom(dataAtom, (data) => {
   return USelection.getSelectedFeatures(data);
 });

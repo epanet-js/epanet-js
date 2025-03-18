@@ -267,12 +267,12 @@ type RepoVisited = {
 
 type SignInStarted = {
   name: "signIn.started";
-  source: "menu";
+  source: "menu" | "satelliteResolutionLimit";
 };
 
 type SignUpStarted = {
   name: "signUp.started";
-  source: "menu";
+  source: "menu" | "satelliteResolutionLimit";
 };
 
 type LogOutCompleted = {

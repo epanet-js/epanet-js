@@ -55,11 +55,18 @@ export const useAuth = () => {
   return { isSignedIn, userId, user };
 };
 
-export const SignInButton = ({ onClick }: { onClick?: () => void }) => (
+export const SignInButton = ({
+  onClick,
+  autoFocus = false,
+}: {
+  onClick?: () => void;
+  autoFocus?: boolean;
+}) => (
   <ClerkSignInButton>
     <Button
       variant="quiet"
       className="text-purple-500 font-semibold"
+      autoFocus={autoFocus}
       onClick={onClick}
     >
       {translate("login")}
@@ -67,9 +74,15 @@ export const SignInButton = ({ onClick }: { onClick?: () => void }) => (
   </ClerkSignInButton>
 );
 
-export const SignUpButton = ({ onClick }: { onClick?: () => void }) => (
+export const SignUpButton = ({
+  onClick,
+  autoFocus = false,
+}: {
+  onClick?: () => void;
+  autoFocus?: boolean;
+}) => (
   <ClerkSignUpButton>
-    <Button variant="primary" onClick={onClick}>
+    <Button variant="primary" onClick={onClick} autoFocus={autoFocus}>
       <PersonIcon /> {translate("register")}
     </Button>
   </ClerkSignUpButton>
