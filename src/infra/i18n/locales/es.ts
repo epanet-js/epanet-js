@@ -189,6 +189,10 @@ export const translations: Translations = {
   layers: "Capas",
   checkoutProjectionTool:
     "Puedes usar la utilidad EPANET Projection Converter para proyectar tu archivo INP al sistema de coordenadas WGS84.",
+  signUpToUnlockResolution: "Regístrate para tener la alta resolución",
+  signUpToUnlockResolutionDetail:
+    "Para acceder a imágenes satelitales de alta calidad necesitas registarte. Si prefieres, puedes continuar con una resolución más baja.",
+  continueWithLowResolution: "Continuar con baja resolución",
 };
 
 export const units: UnitsLocale = {

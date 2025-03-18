@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Button } from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
+import { ReactNode } from "react";
 
 export const AckDialogAction = ({
   label,
@@ -113,3 +114,27 @@ export default function SimpleDialogActions({
     </div>
   );
 }
+
+export const SimpleDialogButtons = ({
+  children,
+  fullWidthSubmit = false,
+  variant = "md",
+}: {
+  children: ReactNode;
+  fullWidthSubmit?: boolean;
+  variant?: "md" | "xs";
+}) => {
+  return (
+    <div
+      className={clsx(
+        variant === "xs" ? "pt-2" : "pt-6",
+        "pb-1 relative",
+        fullWidthSubmit
+          ? "flex items-stretch justify-stretch"
+          : `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
+      )}
+    >
+      {children}
+    </div>
+  );
+};

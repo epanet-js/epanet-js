@@ -23,6 +23,8 @@ import {
   Sel,
   Data,
   EphemeralEditingState,
+  satelliteModeOnAtom,
+  dialogAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/map";
 import { MapEngine, MapHandlers } from "./map-engine";
@@ -34,7 +36,7 @@ import { useModeHandlers } from "./mode-handlers";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePersistence } from "src/lib/persistence/context";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { LastSearchResult } from "src/components/last_search_result";
@@ -44,6 +46,9 @@ import { clickableLayers } from "./layers/layer";
 import { searchNearbyRenderedFeatures } from "./search";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { Hints } from "src/components/Hints";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useAuth } from "src/auth";
+import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -95,6 +100,9 @@ export const MapCanvas = memo(function MapCanvas({
 
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
+  const { isSignedIn } = useAuth();
+  const isSatelliteModeOn = useAtomValue(satelliteModeOnAtom);
+  const setDialogState = useSetAtom(dialogAtom);
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
@@ -254,6 +262,17 @@ export const MapCanvas = memo(function MapCanvas({
         bounds,
       };
     }, 300),
+    onZoomEnd: (e: mapboxgl.MapBoxZoomEvent) => {
+      const zoom = e.target.getZoom();
+      if (
+        isFeatureOn("FLAG_LIMIT_RESOLUTION") &&
+        !isSignedIn &&
+        isSatelliteModeOn &&
+        zoom > satelliteLimitedZoom
+      ) {
+        setDialogState({ type: "unlockFullResolution" });
+      }
+    },
   };
 
   useHotkeys(

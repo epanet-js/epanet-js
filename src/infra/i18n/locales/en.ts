@@ -182,6 +182,10 @@ export const translations = {
   layers: "Layers",
   checkoutProjectionTool:
     "You can project your INP to the WGS84 system making use of the EPANET Projection Converter utility.",
+  signUpToUnlockResolution: "Register to unlock full resolution",
+  signUpToUnlockResolutionDetail:
+    "Sign up to access high-quality satellite images. If you prefer, you can continue with a lower resolution.",
+  continueWithLowResolution: "Continue with low resolution",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

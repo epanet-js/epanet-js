@@ -10,7 +10,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { useAuth } from "src/auth";
 import { ILayerConfig } from "src/types";
 
-const satelliteLimitedZoom = 16;
+export const satelliteLimitedZoom = 16;
 
 export const useToggleSatellite = () => {
   const layerConfigs = useAtomValue(layerConfigAtom);
