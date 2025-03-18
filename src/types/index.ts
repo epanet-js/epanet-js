@@ -60,6 +60,7 @@ export const zLayerConfigCommon = z.object({
   tms: z.optional(z.boolean()).default(false),
   visibility: z.boolean(),
   labelVisibility: z.boolean(),
+  sourceMaxZoom: z.record(z.number()),
 });
 
 const url = z.string().url();

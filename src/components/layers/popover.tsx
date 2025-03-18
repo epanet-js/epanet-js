@@ -73,6 +73,7 @@ const SHARED_INTIAL_VALUES = {
   labelVisibility: true,
   tms: false,
   opacity: 1,
+  sourceMaxZoom: {},
 } as const;
 
 /**

@@ -1,3 +1,4 @@
+import { isFeatureOn } from "src/infra/feature-flags";
 import { env } from "src/lib/env_client";
 import { ILayerConfig } from "src/types";
 
@@ -5,11 +6,12 @@ const defaults = {
   type: "MAPBOX",
   token: env.NEXT_PUBLIC_MAPBOX_TOKEN,
   opacity: 1,
+  sourceMaxZoom: {},
 } as const;
 
 export type LayerConfigTemplate = Pick<
   ILayerConfig,
-  "name" | "url" | "type" | "token" | "opacity"
+  "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom"
 >;
 
 const LAYERS: Record<string, LayerConfigTemplate> = {
@@ -28,6 +30,9 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     url: "mapbox://styles/mapbox/satellite-streets-v12",
     ...defaults,
     opacity: 0.65,
+    sourceMaxZoom: {
+      "mapbox-satellite": isFeatureOn("FLAG_LIMIT_RESOLUTION") ? 16 : 22,
+    },
   },
   STREETS: {
     name: "Streets",
