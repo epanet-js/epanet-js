@@ -9,10 +9,12 @@ import { layerConfigAtom } from "src/state/jotai";
 export const SatelliteToggle = () => {
   const toggleSatellite = useToggleSatellite();
   const layerConfigs = useAtomValue(layerConfigAtom);
-  const currentBaseMap = [...layerConfigs.values()][0];
   const userTracking = useUserTracking();
 
   const buttonBackgroundImage = useMemo(() => {
+    if (layerConfigs.size !== 1) return null;
+
+    const currentBaseMap = [...layerConfigs.values()][0];
     if (currentBaseMap.name === "Monochrome") {
       return mapboxStaticURL(LAYERS.SATELLITE);
     }
@@ -21,9 +23,9 @@ export const SatelliteToggle = () => {
     }
 
     return mapboxStaticURL(LAYERS.MONOCHROME);
-  }, [currentBaseMap]);
+  }, [layerConfigs]);
 
-  if (layerConfigs.size !== 1) return null;
+  if (!buttonBackgroundImage) return null;
 
   return (
     <div
