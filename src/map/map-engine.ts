@@ -44,7 +44,7 @@ export type MapHandlers = {
   onMoveEnd: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
   onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => void;
   onMove: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
-  onZoomEnd: (e: mapboxgl.MapBoxZoomEvent) => void;
+  onZoom: (e: mapboxgl.MapBoxZoomEvent) => void;
 };
 
 const noop = () => null;
@@ -117,7 +117,7 @@ export class MapEngine {
     map.on("touchstart", this.onMapTouchStart);
     map.on("touchmove", this.onMapTouchMove);
     map.on("touchend", this.onMapTouchEnd);
-    map.on("zoomend", this.onZoomEnd);
+    map.on("zoom", this.onZoom);
 
     map.on("style.load", async () => {
       if (!this.icons.length) {
@@ -139,9 +139,9 @@ export class MapEngine {
     this.handlers.current.onClick(e);
   };
 
-  onZoomEnd = (e: mapboxgl.MapBoxZoomEvent) => {
+  onZoom = (e: mapboxgl.MapBoxZoomEvent) => {
     debugEvent(e);
-    this.handlers.current.onZoomEnd(e);
+    this.handlers.current.onZoom(e);
   };
 
   onMapMouseDown = (e: LayerScopedEvent) => {
