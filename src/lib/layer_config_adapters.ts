@@ -42,6 +42,13 @@ export async function addMapboxStyle(
   });
   Object.entries(layer.sourceMaxZoom).forEach(([sourceName, maxZoom]) => {
     (updatedStyle.sources[sourceName] as RasterLayer).maxzoom = maxZoom;
+    updatedStyle.layers.forEach((layer) => {
+      if ((layer as RasterLayer).source === sourceName) {
+        const paint = (layer as RasterLayer).paint || {};
+        paint["raster-resampling"] = "nearest";
+        (layer as RasterLayer).paint = paint;
+      }
+    });
   });
   return updatedStyle;
 }
