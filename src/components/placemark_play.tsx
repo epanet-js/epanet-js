@@ -28,7 +28,6 @@ import { BottomPanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { Visual } from "./visual";
-import { ErrorBoundary } from "@sentry/nextjs";
 import { CheckCircledIcon, CheckIcon, CrossCircledIcon, DividerVerticalIcon, MoveIcon, ShadowInnerIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -130,23 +129,10 @@ export function PlacemarkPlay() {
   return (
     <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
       <MapContext.Provider value={map}>
-        <ErrorBoundary
-          fallback={(props) => {
-            return (
-              <div className="h-20 flex items-center justify-center px-2 gap-x-2">
-                An error occurred
-                <Button onClick={() => props.resetError()}>
-                  <UpdateIcon /> Try again
-                </Button>
-              </div>
-            );
-          }}
-        >
           <div className="h-24">
             <MenuBarPlay />
             <Toolbar />
           </div>
-        </ErrorBoundary>
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",

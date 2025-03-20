@@ -5,16 +5,6 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import "src/styles/globals.css";
 import * as T from "@radix-ui/react-tooltip";
 
-const queryClient = new QueryClient();
-export default function HomePage({}) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <T.Provider>
-        <Play />
-      </T.Provider>
-    </QueryClientProvider>
-  );
-}
 import { Suspense, useRef } from "react";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -26,6 +16,20 @@ import LAYERS from "src/lib/default_layers";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
 
+import { ErrorBoundary } from "@sentry/nextjs";
+
+const queryClient = new QueryClient();
+export default function HomePage({}) {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <T.Provider>
+          <Play />
+        </T.Provider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
 const PlacemarkPlay = dynamic(
   () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
   {
