@@ -37,6 +37,10 @@ import {
   openInpFromFsShortcut,
   useOpenInpFromFs,
 } from "src/commands/open-inp-from-fs";
+import {
+  toggleSatelliteShorcut,
+  useToggleSatellite,
+} from "src/commands/toggle-satellite";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -52,6 +56,7 @@ export const CommandShortcuts = () => {
   const setDrawingMode = useDrawingMode();
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const selectAll = useSelectAll();
+  const toggleSatellite = useToggleSatellite();
 
   useHotkeys(
     showReportShorcut,
@@ -217,6 +222,20 @@ export const CommandShortcuts = () => {
     },
     [selectAll],
     "SELECT_ALL",
+  );
+
+  useHotkeys(
+    toggleSatelliteShorcut,
+    (e) => {
+      e.preventDefault();
+      userTracking.capture({
+        name: "satelliteView.toggled",
+        source: "shortcut",
+      });
+      toggleSatellite();
+    },
+    [toggleSatellite],
+    `Toggle satellite`,
   );
 
   for (const [shortcut, mode] of Object.entries(drawingModeShorcuts)) {
