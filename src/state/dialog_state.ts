@@ -63,10 +63,6 @@ export type AlertInpOutputState = {
   onContinue: () => void;
 };
 
-export type UnlockFullResolution = {
-  type: "unlockFullResolution";
-};
-
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -84,7 +80,6 @@ export type DialogState =
   | AlertInpOutputState
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
-  | UnlockFullResolution
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);
