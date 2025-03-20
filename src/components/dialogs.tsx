@@ -108,18 +108,6 @@ const WelcomeDialog = dynamic<{
   loading: () => <Loading />,
 });
 
-const UnlockFullResolutionDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/UnlockFullResolution").then(
-      (r) => r.UnlockFullResolutionDialog,
-    ),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const ImportDialog = dynamic<{
   modal: dialogState.DialogStateImport;
   onClose: () => void;
@@ -206,9 +194,6 @@ export const Dialogs = memo(function Dialogs() {
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
     ))
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
-    .with({ type: "unlockFullResolution" }, () => (
-      <UnlockFullResolutionDialog onClose={onClose} />
-    ))
     .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
 
