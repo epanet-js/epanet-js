@@ -73,7 +73,7 @@ export function errorUrl(code: keyof typeof ERROR_CODES) {
   return `/error?code=${code}`;
 }
 
-export const SUPPORT_EMAIL = "support@placemark.io";
+export const SUPPORT_EMAIL = "support@epanetjs.com";
 
 export const emptySelection = new Set<RawId>();
 export const CURSOR_DEFAULT = "";

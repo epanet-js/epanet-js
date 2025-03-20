@@ -284,6 +284,11 @@ type SubscriptionStarted = {
   source: "geocodeError" | "inpIssues";
 };
 
+type PageReloaded = {
+  name: "page.reloaded";
+  source: "errorFallback";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -331,7 +336,8 @@ type UserEvent =
   | SignInStarted
   | LogOutCompleted
   | SubscriptionStarted
-  | ProjectionConverterVisited;
+  | ProjectionConverterVisited
+  | PageReloaded;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

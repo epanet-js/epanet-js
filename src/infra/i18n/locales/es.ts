@@ -192,6 +192,11 @@ export const translations: Translations = {
   signUpToUnlockResolution:
     "Regístrate para desbloquear imágenes satelitales en alta resolución.",
   continueWithLowResolution: "Continuar con baja resolución",
+  oopsSomethingWrong: "¡Vaya! Algo salió mal.",
+  errorProcessingRequest: "Se ha producido un error inesperado.",
+  pleaseTryAgain:
+    "Por favor, intenta nuevamente y si el problema persiste, mándanos un correo a",
+  reloadPage: "Recargar la página",
 };
 
 export const units: UnitsLocale = {
