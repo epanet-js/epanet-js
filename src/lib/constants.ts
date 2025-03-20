@@ -51,7 +51,7 @@ export const UNTITLED = "Untitled";
 /**
  * Utilities ------------------------------------------------------------------
  */
-export const targetSize = [80, 40] as const;
+export const targetSize = [160, 160] as const;
 
 /**
  * Errors that we can represent by redirecting to a page
