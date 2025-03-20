@@ -4,17 +4,16 @@ import LAYERS from "src/lib/default_layers";
 import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
-import { useHotkeys } from "src/keyboard/hotkeys";
-import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/auth";
 import { ILayerConfig } from "src/types";
 
 export const satelliteLimitedZoom = 16;
 
+export const toggleSatelliteShorcut = "b";
+
 export const useToggleSatellite = () => {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
-  const userTracking = useUserTracking();
   const { isSignedIn } = useAuth();
 
   const toggleSatellite = useCallback(() => {
@@ -44,20 +43,6 @@ export const useToggleSatellite = () => {
       putLayerConfigs: [newLayerConfig],
     });
   }, [layerConfigs, applyChanges, isSignedIn]);
-
-  useHotkeys(
-    "b",
-    (e) => {
-      e.preventDefault();
-      userTracking.capture({
-        name: "satelliteView.toggled",
-        source: "shortcut",
-      });
-      toggleSatellite();
-    },
-    [toggleSatellite],
-    `Toggle satellite`,
-  );
 
   return toggleSatellite;
 };
