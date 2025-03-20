@@ -46,7 +46,6 @@ import { searchNearbyRenderedFeatures } from "./search";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { Hints } from "src/components/Hints";
 import { useAuth } from "src/auth";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -372,13 +371,7 @@ const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
   const isSatelliteModeOn = useAtomValue(satelliteModeOnAtom);
   const { isSignedIn } = useAuth();
 
-  if (
-    isSatelliteModeOn &&
-    !isSignedIn &&
-    isFeatureOn("FLAG_LIMIT_RESOLUTION") &&
-    zoom &&
-    zoom > satelliteLimitedZoom
-  ) {
+  if (isSatelliteModeOn && !isSignedIn && zoom && zoom > satelliteLimitedZoom) {
     return (
       <div className="absolute bottom-[48px] mx-auto mb-2 flex items-center justify-center w-full">
         <div className="bg-gray-800 text-white rounded shadow-md py-1 px-2">

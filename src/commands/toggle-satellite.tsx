@@ -6,7 +6,6 @@ import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useAuth } from "src/auth";
 import { ILayerConfig } from "src/types";
 
@@ -36,11 +35,7 @@ export const useToggleSatellite = () => {
       sourceMaxZoom: {},
     };
 
-    if (
-      isFeatureOn("FLAG_LIMIT_RESOLUTION") &&
-      !isSignedIn &&
-      newBaseMap.name === LAYERS.SATELLITE.name
-    ) {
+    if (!isSignedIn && newBaseMap.name === LAYERS.SATELLITE.name) {
       newLayerConfig.sourceMaxZoom["mapbox-satellite"] = satelliteLimitedZoom;
     }
 
