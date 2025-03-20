@@ -17,11 +17,12 @@ import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
 
 import { ErrorBoundary } from "@sentry/nextjs";
+import { FallbackError } from "src/components/fallback-error";
 
 const queryClient = new QueryClient();
 export default function HomePage({}) {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary fallback={FallbackError}>
       <QueryClientProvider client={queryClient}>
         <T.Provider>
           <Play />

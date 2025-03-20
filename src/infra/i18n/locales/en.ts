@@ -185,6 +185,10 @@ export const translations = {
   signUpToUnlockResolution:
     "Register to unlock high resolution satellite images.",
   continueWithLowResolution: "Continue with low resolution",
+  oopsSomethingWrong: "Oops! Something went wrong.",
+  errorProcessingRequest: "An unexpected error has occurred.",
+  pleaseTryAgain: "Please try again, and if the issue persists, email us at",
+  reloadPage: "Reload page",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
