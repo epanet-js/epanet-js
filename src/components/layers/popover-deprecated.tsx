@@ -1,5 +1,4 @@
 import {
-  CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
   DragHandleDots2Icon,
@@ -578,175 +577,6 @@ function AddLayer() {
   );
 }
 
-const BaseMapOptions = () => {
-  const { applyChanges } = useLayerConfigState();
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
-  const nextAt = getNextAt(items);
-
-  return (
-    <>
-      {Object.entries(LAYERS).map(([id, mapboxLayer]) => (
-        <DefaultLayerItem
-          key={id}
-          mapboxLayer={mapboxLayer}
-          onSelect={(layer) => {
-            const { deleteLayerConfigs, oldAt } =
-              maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length) {
-              toast("Mapbox layer replaced");
-            }
-            applyChanges({
-              deleteLayerConfigs,
-              putLayerConfigs: [
-                {
-                  ...layer,
-                  visibility: true,
-                  tms: false,
-                  opacity: mapboxLayer.opacity,
-                  at: oldAt || nextAt,
-                  id: newFeatureId(),
-                  labelVisibility: true,
-                },
-              ],
-            });
-          }}
-        />
-      ))}
-    </>
-  );
-};
-
-const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const { applyChanges } = useLayerConfigState();
-
-  return (
-    <div className="flex items-center gap-x-1">
-      <input
-        type="number"
-        min="0"
-        step="1"
-        className="text-xs
-          px-1 py-0.5
-          border-gray-300
-          rounded-sm
-          dark:text-white
-          dark:bg-transparent
-        opacity-50 hover:opacity-100 focus:opacity-100
-        w-12"
-        max="100"
-        value={Math.round(layerConfig.opacity * 100)}
-        onChange={(e) => {
-          const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
-          if (isNaN(opacity)) return;
-          applyChanges({
-            putLayerConfigs: [
-              {
-                ...layerConfig,
-                opacity,
-              },
-            ],
-          });
-        }}
-      />
-      <div className="text-gray-500 text-xs">%</div>
-    </div>
-  );
-};
-
-const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const { applyChanges } = useLayerConfigState();
-
-  return (
-    <div
-      role="checkbox"
-      title="Toggle visibility"
-      aria-checked={layerConfig.visibility}
-      className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
-      onClick={() => {
-        applyChanges({
-          putLayerConfigs: [
-            {
-              ...layerConfig,
-              visibility: !layerConfig.visibility,
-            },
-          ],
-        });
-      }}
-    >
-      <E.VisibilityToggleIcon visibility={layerConfig.visibility} />
-    </div>
-  );
-};
-
-const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const { applyChanges } = useLayerConfigState();
-
-  return (
-    <div
-      role="checkbox"
-      title="Toggle label visibility"
-      aria-checked={layerConfig.labelVisibility}
-      className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
-      onClick={() => {
-        applyChanges({
-          putLayerConfigs: [
-            {
-              ...layerConfig,
-              labelVisibility: !layerConfig.labelVisibility,
-            },
-          ],
-        });
-      }}
-    >
-      <E.LabelToggleIcon visibility={layerConfig.labelVisibility} />
-    </div>
-  );
-};
-
-const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const [isChanging, setChanging] = useState<boolean>(false);
-
-  const isRaster = layerConfig.name.includes("Satellite");
-
-  const namePopover = (
-    <P.Root open={isChanging} onOpenChange={(value) => setChanging(value)}>
-      <P.Trigger asChild>
-        <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
-          <span className="select-none truncate text-sm">
-            {layerConfig.name}
-          </span>
-          <CaretDownIcon />
-        </div>
-      </P.Trigger>
-      <E.StyledPopoverContent>
-        <BaseMapOptions />
-      </E.StyledPopoverContent>
-    </P.Root>
-  );
-
-  return (
-    <div className="flex-auto">
-      <div className="flex gap-x-2 items-center">
-        <div className="block flex-auto">
-          <div className="w-auto max-w-fit">{namePopover}</div>
-        </div>
-        {isRaster && <OpacitySetting layerConfig={layerConfig} />}
-        <VisibilityToggle layerConfig={layerConfig} />
-        <LabelsToggle layerConfig={layerConfig} />
-      </div>
-      <div
-        className="opacity-50 font-semibold"
-        style={{
-          fontSize: 10,
-        }}
-      >
-        BASEMAP
-      </div>
-    </div>
-  );
-};
-
 function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
@@ -786,7 +616,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="py-1 group flex gap-x-2 items-start"
+      className="py-1 group flex gap-x-1 items-start"
       key={layerConfig.id}
     >
       <div
@@ -796,47 +626,43 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       >
         <DragHandleDots2Icon />
       </div>
-      {layerConfig.type === "MAPBOX" && (
-        <BaseMapItem layerConfig={layerConfig} />
-      )}
-      {layerConfig.type !== "MAPBOX" && (
-        <div className="flex-auto">
-          <div className="flex gap-x-2 items-center">
-            <span
-              {...attributes}
-              {...listeners}
-              className="block select-none truncate flex-auto text-sm"
-            >
-              {layerConfig.name}
-            </span>
+      <div className="flex-auto">
+        <div className="flex gap-x-2 items-center">
+          <span
+            {...attributes}
+            {...listeners}
+            className="block select-none truncate flex-auto text-sm"
+          >
+            {layerConfig.name}
+          </span>
 
-            {isError ? (
-              <T.Root delayDuration={0}>
-                <T.Trigger>
-                  <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
-                </T.Trigger>
-                <E.TContent>This TileJSON source failed to load</E.TContent>
-              </T.Root>
-            ) : null}
-            {tilejson && tilejson.bounds ? (
-              <button
-                type="button"
-                title="Zoom to layer"
-                className={"opacity-30 hover:opacity-100 select-none"}
-                onClick={() => {
-                  zoomTo(Maybe.of(tilejson.bounds!));
-                }}
-              >
-                <MagnifyingGlassIcon />
-              </button>
-            ) : null}
-            {editPopover}
-            <div className="flex items-center gap-x-1">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                className="text-xs
+          {isError ? (
+            <T.Root delayDuration={0}>
+              <T.Trigger>
+                <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
+              </T.Trigger>
+              <E.TContent>This TileJSON source failed to load</E.TContent>
+            </T.Root>
+          ) : null}
+          {tilejson && tilejson.bounds ? (
+            <button
+              type="button"
+              title="Zoom to layer"
+              className={"opacity-30 hover:opacity-100 select-none"}
+              onClick={() => {
+                zoomTo(Maybe.of(tilejson.bounds!));
+              }}
+            >
+              <MagnifyingGlassIcon />
+            </button>
+          ) : null}
+          {editPopover}
+          <div className="flex items-center gap-x-1">
+            <input
+              type="number"
+              min="0"
+              step="1"
+              className="text-xs
           px-1 py-0.5
           border-gray-300
           rounded-sm
@@ -844,88 +670,87 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
           dark:bg-transparent
         opacity-50 hover:opacity-100 focus:opacity-100
         w-12"
-                max="100"
-                value={Math.round(layerConfig.opacity * 100)}
-                onChange={(e) => {
-                  const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
-                  if (isNaN(opacity)) return;
-                  applyChanges({
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        opacity,
-                      },
-                    ],
-                  });
-                }}
-              />
-              <div className="text-gray-500 text-xs">%</div>
-            </div>
-            <div
-              role="checkbox"
-              title="Toggle visibility"
-              onClick={() => {
+              max="100"
+              value={Math.round(layerConfig.opacity * 100)}
+              onChange={(e) => {
+                const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
+                if (isNaN(opacity)) return;
                 applyChanges({
                   putLayerConfigs: [
                     {
                       ...layerConfig,
-                      visibility: !layerConfig.visibility,
+                      opacity,
                     },
                   ],
                 });
               }}
-              aria-checked={layerConfig.visibility}
-              className={"opacity-30 hover:opacity-100 select-none"}
-            >
-              <E.VisibilityToggleIcon visibility={layerConfig.visibility} />
-            </div>
-            <div
-              role="checkbox"
-              title="Toggle label visibility"
-              onClick={() => {
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...layerConfig,
-                      labelVisibility: !layerConfig.labelVisibility,
-                    },
-                  ],
-                });
-              }}
-              aria-checked={layerConfig.labelVisibility}
-              className={"opacity-30 hover:opacity-100 select-none"}
-            >
-              <E.LabelToggleIcon visibility={layerConfig.labelVisibility} />
-            </div>
-
-            <button
-              className={"opacity-30 hover:opacity-100 select-none"}
-              onClick={() => {
-                applyChanges({
-                  deleteLayerConfigs: [layerConfig.id],
-                });
-              }}
-            >
-              <TrashIcon />
-            </button>
+            />
+            <div className="text-gray-500 text-xs">%</div>
           </div>
           <div
-            className="opacity-50 font-semibold"
-            style={{
-              fontSize: 10,
+            role="checkbox"
+            title="Toggle visibility"
+            onClick={() => {
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    visibility: !layerConfig.visibility,
+                  },
+                ],
+              });
+            }}
+            aria-checked={layerConfig.visibility}
+            className={"opacity-30 hover:opacity-100 select-none"}
+          >
+            <E.VisibilityToggleIcon visibility={layerConfig.visibility} />
+          </div>
+          <div
+            role="checkbox"
+            title="Toggle label visibility"
+            onClick={() => {
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...layerConfig,
+                    labelVisibility: !layerConfig.labelVisibility,
+                  },
+                ],
+              });
+            }}
+            aria-checked={layerConfig.labelVisibility}
+            className={"opacity-30 hover:opacity-100 select-none"}
+          >
+            <E.LabelToggleIcon visibility={layerConfig.labelVisibility} />
+          </div>
+
+          <button
+            className={"opacity-30 hover:opacity-100 select-none"}
+            onClick={() => {
+              applyChanges({
+                deleteLayerConfigs: [layerConfig.id],
+              });
             }}
           >
-            {layerConfig.type}
-          </div>
+            <TrashIcon />
+          </button>
         </div>
-      )}
+        <div
+          className="opacity-50 font-semibold"
+          style={{
+            fontSize: 10,
+          }}
+        >
+          {layerConfig.type}
+        </div>
+      </div>
     </div>
   );
 }
 
 export { FORM_ERROR } from "src/core/components/Form";
 
-export function LayersPopover() {
+export function LayersPopoverDeprecated() {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
   const items = [...layerConfigs.values()];
