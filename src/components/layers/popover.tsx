@@ -4,6 +4,7 @@ import {
   CaretRightIcon,
   DragHandleDots2Icon,
   ExclamationTriangleIcon,
+  GearIcon,
   MagnifyingGlassIcon,
   Pencil1Icon,
   PlusIcon,
@@ -747,6 +748,78 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 };
 
+const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const { applyChanges } = useLayerConfigState();
+
+  return (
+    <button
+      className={"opacity-30 hover:opacity-100 select-none"}
+      onClick={() => {
+        applyChanges({
+          deleteLayerConfigs: [layerConfig.id],
+        });
+      }}
+    >
+      <TrashIcon />
+    </button>
+  );
+};
+
+const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const [isEditing, setEditing] = useState<boolean>(false);
+
+  const editPopover = (
+    <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
+      <P.Trigger asChild>
+        <button
+          className={"opacity-30 hover:opacity-100 select-none"}
+          title="Edit"
+        >
+          <GearIcon />
+        </button>
+      </P.Trigger>
+      <E.StyledPopoverContent>
+        <E.StyledPopoverArrow />
+        <XYZLayer layer={layerConfig} onDone={() => setEditing(false)} />
+      </E.StyledPopoverContent>
+    </P.Root>
+  );
+  return (
+    <LayerConfigItem typeLabel="XYX">
+      <span className="block select-none truncate flex-auto text-sm">
+        {layerConfig.name}
+      </span>
+
+      {editPopover}
+      <OpacitySetting layerConfig={layerConfig} />
+      <VisibilityToggle layerConfig={layerConfig} />
+      <DeleteLayerButton layerConfig={layerConfig} />
+    </LayerConfigItem>
+  );
+};
+
+const LayerConfigItem = ({
+  typeLabel,
+  children,
+}: {
+  typeLabel: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex-auto">
+      <div className="flex gap-x-2 items-center">{children}</div>
+      <div
+        className="opacity-50 font-semibold"
+        style={{
+          fontSize: 10,
+        }}
+      >
+        {typeLabel}
+      </div>
+    </div>
+  );
+};
+
 function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
@@ -799,7 +872,8 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       {layerConfig.type === "MAPBOX" && (
         <BaseMapItem layerConfig={layerConfig} />
       )}
-      {layerConfig.type !== "MAPBOX" && (
+      {layerConfig.type === "XYZ" && <XYZItem layerConfig={layerConfig} />}
+      {layerConfig.type !== "MAPBOX" && layerConfig.type !== "XYZ" && (
         <div className="flex-auto">
           <div className="flex gap-x-2 items-center">
             <span
