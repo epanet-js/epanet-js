@@ -52,14 +52,9 @@ import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 
-type Mode =
-  | "initial"
-  | "custom"
-  | "custom-xyz"
-  | "custom-mapbox"
-  | "custom-tilejson";
+type Mode = "custom" | "custom-xyz" | "custom-mapbox" | "custom-tilejson";
 
-const layerModeAtom = atom<Mode>("initial");
+const layerModeAtom = atom<Mode>("custom");
 
 const SHARED_INTIAL_VALUES = {
   at: "a0",
@@ -213,7 +208,7 @@ function MapboxLayer({
       ],
     });
 
-    setMode("initial");
+    setMode("custom");
     if (onDone) {
       onDone();
     }
@@ -308,7 +303,7 @@ function TileJSONLayer({
             },
           ],
         });
-        setMode("initial");
+        setMode("custom");
         if (onDone) {
           onDone();
         }
@@ -392,7 +387,7 @@ function XYZLayer({
             error: "Error",
           },
         );
-        setMode("initial");
+        setMode("custom");
         if (onDone) {
           onDone();
         }
@@ -439,67 +434,21 @@ function XYZLayer({
 }
 
 function AddLayer() {
-  const { applyChanges } = useLayerConfigState();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
-  const nextAt = getNextAt(items);
-
-  const defaultLayerList = (
-    <div className="py-2">
-      <E.DivLabel>Default layers</E.DivLabel>
-      {Object.entries(LAYERS).map(([id, mapboxLayer]) => (
-        <DefaultLayerItem
-          key={id}
-          mapboxLayer={mapboxLayer}
-          onSelect={(layer) => {
-            const { deleteLayerConfigs, oldAt } =
-              maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length) {
-              toast("Mapbox layer replaced");
-            }
-            applyChanges({
-              deleteLayerConfigs,
-              putLayerConfigs: [
-                {
-                  ...layer,
-                  visibility: true,
-                  tms: false,
-                  opacity: mapboxLayer.opacity,
-                  at: oldAt || nextAt,
-                  id: newFeatureId(),
-                  labelVisibility: true,
-                },
-              ],
-            });
-          }}
-        />
-      ))}
-      <E.DivSeparator />
-      <button
-        className={"w-full block " + E.menuItemLike({ variant: "default" })}
-        onClick={() => {
-          setMode("custom");
-        }}
-        value="manage"
-      >
-        <PlusIcon /> Custom
-      </button>
-    </div>
-  );
 
   return (
     <P.Root
       open={isOpen}
       onOpenChange={(val) => {
         setOpen(val);
-        setMode("initial");
+        setMode("custom");
       }}
     >
       <P.Trigger asChild>
         <E.Button aria-label="Add layer">
           <PlusIcon />
+          Add custom
         </E.Button>
       </P.Trigger>
 
@@ -512,12 +461,10 @@ function AddLayer() {
           <E.StyledPopoverArrow />
           <Suspense fallback={<E.Loading />}>
             {match(mode)
-              .with("initial", () => defaultLayerList)
               .with("custom", () => (
                 <div className="p-3">
                   <div className="flex justify-between items-center pb-3">
                     <div className="font-bold">Choose type</div>
-                    <BackButton to="initial" />
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
                     <E.Button onClick={() => setMode("custom-xyz")}>
