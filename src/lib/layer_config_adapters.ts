@@ -3,6 +3,7 @@ import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { toast } from "react-hot-toast";
 import once from "lodash/once";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const warnOffline = once(() => {
   toast.error("Offline: falling back to blank background");
@@ -37,6 +38,7 @@ export async function addMapboxStyle(
     });
 
   const updatedStyle = updateMapboxStyle(style, {
+    visibility: layer.visibility,
     labelVisibility: layer.labelVisibility,
     rasterOpacity: layer.opacity,
   });
@@ -131,6 +133,7 @@ export function addXYZStyle(
 function updateMapboxStyle(
   style: mapboxgl.Style,
   options: {
+    visibility?: boolean;
     labelVisibility?: boolean;
     rasterOpacity?: number;
   },
@@ -150,6 +153,9 @@ function updateMapboxStyle(
       // Identify label layers
       const isLabelLayer =
         layer.type === "symbol" && layer.layout?.["text-field"] !== undefined;
+
+      if (isFeatureOn("FLAG_LAYERS") && options.visibility === false)
+        return null;
 
       if (!labelVisibility && isLabelLayer) {
         return null;
@@ -183,8 +189,5 @@ function updateMapboxStyle(
     })
     .filter(Boolean) as mapboxgl.AnyLayer[];
 
-  return {
-    ...style,
-    layers: updatedLayers,
-  };
+  return { ...style, layers: updatedLayers };
 }
