@@ -6,7 +6,6 @@ import {
   ExclamationTriangleIcon,
   GearIcon,
   MagnifyingGlassIcon,
-  Pencil1Icon,
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -439,26 +438,6 @@ function XYZLayer({
   );
 }
 
-/**
- * Switch between layer editors given a layer
- * config object.
- */
-function AnyLayer({
-  layer,
-  ...rest
-}: {
-  layer: ILayerConfig;
-  onDone: () => void;
-}) {
-  return match(layer)
-    .with({ type: "XYZ" }, (layer) => <XYZLayer layer={layer} {...rest} />)
-    .with({ type: "TILEJSON" }, (layer) => (
-      <TileJSONLayer layer={layer} {...rest} />
-    ))
-    .with({ type: "MAPBOX" }, () => <MapboxLayer layer={layer} {...rest} />)
-    .exhaustive();
-}
-
 function AddLayer() {
   const { applyChanges } = useLayerConfigState();
   const [isOpen, setOpen] = useState<boolean>(false);
@@ -784,11 +763,72 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       </E.StyledPopoverContent>
     </P.Root>
   );
+
   return (
     <LayerConfigItem typeLabel="XYX">
       <span className="block select-none truncate flex-auto text-sm">
         {layerConfig.name}
       </span>
+
+      {editPopover}
+      <OpacitySetting layerConfig={layerConfig} />
+      <VisibilityToggle layerConfig={layerConfig} />
+      <DeleteLayerButton layerConfig={layerConfig} />
+    </LayerConfigItem>
+  );
+};
+
+const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const [isEditing, setEditing] = useState<boolean>(false);
+  const zoomTo = useZoomTo();
+  const { data: tilejson, isError } = reactUseQuery(
+    layerConfig.url,
+    async () => layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
+    { suspense: false, retry: false },
+  );
+
+  const editPopover = (
+    <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
+      <P.Trigger asChild>
+        <button
+          className={"opacity-30 hover:opacity-100 select-none"}
+          title="Edit"
+        >
+          <GearIcon />
+        </button>
+      </P.Trigger>
+      <E.StyledPopoverContent>
+        <E.StyledPopoverArrow />
+        <TileJSONLayer layer={layerConfig} onDone={() => setEditing(false)} />
+      </E.StyledPopoverContent>
+    </P.Root>
+  );
+
+  return (
+    <LayerConfigItem typeLabel="TileJSON">
+      <span className="block select-none truncate flex-auto text-sm">
+        {layerConfig.name}
+      </span>
+      {isError ? (
+        <T.Root delayDuration={0}>
+          <T.Trigger>
+            <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
+          </T.Trigger>
+          <E.TContent>This TileJSON source failed to load</E.TContent>
+        </T.Root>
+      ) : null}
+      {tilejson && tilejson.bounds ? (
+        <button
+          type="button"
+          title="Zoom to layer"
+          className={"opacity-30 hover:opacity-100 select-none"}
+          onClick={() => {
+            zoomTo(Maybe.of(tilejson.bounds!));
+          }}
+        >
+          <MagnifyingGlassIcon />
+        </button>
+      ) : null}
 
       {editPopover}
       <OpacitySetting layerConfig={layerConfig} />
@@ -823,37 +863,11 @@ const LayerConfigItem = ({
 function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
-  const zoomTo = useZoomTo();
-  const { applyChanges } = useLayerConfigState();
-  const [editing, setEditing] = useState<boolean>(false);
-
-  const { data: tilejson, isError } = reactUseQuery(
-    layerConfig.url,
-    async () => layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
-    { suspense: false, retry: false },
-  );
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
-
-  const editPopover = (
-    <P.Root open={editing} onOpenChange={(val) => setEditing(val)}>
-      <P.Trigger asChild>
-        <button
-          className={"opacity-30 hover:opacity-100 select-none"}
-          title="Edit"
-        >
-          <Pencil1Icon />
-        </button>
-      </P.Trigger>
-      <E.StyledPopoverContent>
-        <E.StyledPopoverArrow />
-        <AnyLayer layer={layerConfig} onDone={() => setEditing(false)} />
-      </E.StyledPopoverContent>
-    </P.Root>
-  );
 
   return (
     <div
@@ -873,125 +887,8 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
         <BaseMapItem layerConfig={layerConfig} />
       )}
       {layerConfig.type === "XYZ" && <XYZItem layerConfig={layerConfig} />}
-      {layerConfig.type !== "MAPBOX" && layerConfig.type !== "XYZ" && (
-        <div className="flex-auto">
-          <div className="flex gap-x-2 items-center">
-            <span
-              {...attributes}
-              {...listeners}
-              className="block select-none truncate flex-auto text-sm"
-            >
-              {layerConfig.name}
-            </span>
-
-            {isError ? (
-              <T.Root delayDuration={0}>
-                <T.Trigger>
-                  <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
-                </T.Trigger>
-                <E.TContent>This TileJSON source failed to load</E.TContent>
-              </T.Root>
-            ) : null}
-            {tilejson && tilejson.bounds ? (
-              <button
-                type="button"
-                title="Zoom to layer"
-                className={"opacity-30 hover:opacity-100 select-none"}
-                onClick={() => {
-                  zoomTo(Maybe.of(tilejson.bounds!));
-                }}
-              >
-                <MagnifyingGlassIcon />
-              </button>
-            ) : null}
-            {editPopover}
-            <div className="flex items-center gap-x-1">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                className="text-xs
-          px-1 py-0.5
-          border-gray-300
-          rounded-sm
-          dark:text-white
-          dark:bg-transparent
-        opacity-50 hover:opacity-100 focus:opacity-100
-        w-12"
-                max="100"
-                value={Math.round(layerConfig.opacity * 100)}
-                onChange={(e) => {
-                  const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
-                  if (isNaN(opacity)) return;
-                  applyChanges({
-                    putLayerConfigs: [
-                      {
-                        ...layerConfig,
-                        opacity,
-                      },
-                    ],
-                  });
-                }}
-              />
-              <div className="text-gray-500 text-xs">%</div>
-            </div>
-            <div
-              role="checkbox"
-              title="Toggle visibility"
-              onClick={() => {
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...layerConfig,
-                      visibility: !layerConfig.visibility,
-                    },
-                  ],
-                });
-              }}
-              aria-checked={layerConfig.visibility}
-              className={"opacity-30 hover:opacity-100 select-none"}
-            >
-              <E.VisibilityToggleIcon visibility={layerConfig.visibility} />
-            </div>
-            <div
-              role="checkbox"
-              title="Toggle label visibility"
-              onClick={() => {
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...layerConfig,
-                      labelVisibility: !layerConfig.labelVisibility,
-                    },
-                  ],
-                });
-              }}
-              aria-checked={layerConfig.labelVisibility}
-              className={"opacity-30 hover:opacity-100 select-none"}
-            >
-              <E.LabelToggleIcon visibility={layerConfig.labelVisibility} />
-            </div>
-
-            <button
-              className={"opacity-30 hover:opacity-100 select-none"}
-              onClick={() => {
-                applyChanges({
-                  deleteLayerConfigs: [layerConfig.id],
-                });
-              }}
-            >
-              <TrashIcon />
-            </button>
-          </div>
-          <div
-            className="opacity-50 font-semibold"
-            style={{
-              fontSize: 10,
-            }}
-          >
-            {layerConfig.type}
-          </div>
-        </div>
+      {layerConfig.type === "TILEJSON" && (
+        <TileJSONItem layerConfig={layerConfig} />
       )}
     </div>
   );
