@@ -99,9 +99,10 @@ function getNextAt(items: ILayerConfig[]) {
  * If there's an existing Mapbox style layer
  * in the stack, replace it and use its `at` value.
  */
-function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
+export function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
   deleteLayerConfigs: ILayerConfig["id"][];
   oldAt: string | undefined;
+  oldMapboxLayer: ILayerConfig | undefined;
 } {
   let oldAt: string | undefined;
   const oldMapboxLayer = items.find((layer) => layer.type === "MAPBOX");
@@ -115,6 +116,7 @@ function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
   return {
     oldAt,
     deleteLayerConfigs,
+    oldMapboxLayer,
   };
 }
 
@@ -193,7 +195,8 @@ function MapboxLayer({
         [FORM_ERROR]: "Could not load style",
       };
     }
-    const { deleteLayerConfigs, oldAt } = maybeDeleteOldMapboxLayer(items);
+    const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
+      maybeDeleteOldMapboxLayer(items);
     if (deleteLayerConfigs.length) {
       toast("Mapbox layer replaced");
     }
@@ -204,7 +207,9 @@ function MapboxLayer({
           ...values,
           name,
           visibility: true,
-          labelVisibility: true,
+          labelVisibility: oldMapboxLayer
+            ? oldMapboxLayer.labelVisibility
+            : true,
           tms: false,
           opacity: 1,
           at: oldAt || getNextAt(items),
@@ -537,7 +542,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
           key={id}
           mapboxLayer={mapboxLayer}
           onSelect={(layer) => {
-            const { deleteLayerConfigs, oldAt } =
+            const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
             if (deleteLayerConfigs.length) {
               toast("Mapbox layer replaced");
@@ -552,7 +557,9 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
                   opacity: mapboxLayer.opacity,
                   at: oldAt || nextAt,
                   id: newFeatureId(),
-                  labelVisibility: true,
+                  labelVisibility: oldMapboxLayer
+                    ? oldMapboxLayer.labelVisibility
+                    : true,
                 },
               ],
             });
