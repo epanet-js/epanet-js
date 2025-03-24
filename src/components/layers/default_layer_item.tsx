@@ -28,7 +28,7 @@ export function DefaultLayerItem({
           onClick={() => {
             onSelect(mapboxLayer);
           }}
-          className={menuItemLike({ variant: "default" })}
+          className={menuItemLike({ variant: "default" }) + " border"}
         >
           {mapboxLayer.name || "Untitled"}
         </button>
