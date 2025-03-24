@@ -5,7 +5,6 @@ import {
   DragHandleDots2Icon,
   ExclamationTriangleIcon,
   GearIcon,
-  MagnifyingGlassIcon,
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -15,7 +14,6 @@ import { layerConfigAtom } from "src/state/jotai";
 import * as E from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
 import LAYERS from "src/lib/default_layers";
-import { Maybe } from "purify-ts/Maybe";
 import { DefaultLayerItem } from "./default_layer_item";
 import { newFeatureId } from "src/lib/id";
 import { Form, FORM_ERROR } from "src/core/components/Form";
@@ -51,7 +49,6 @@ import toast from "react-hot-toast";
 import { match } from "ts-pattern";
 import { zTileJSON } from "src/mapbox-layers/validations";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
-import { useZoomTo } from "src/hooks/use_zoom_to";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 
@@ -182,6 +179,7 @@ function MapboxLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "MAPBOX",
+      isBasemap: false,
     } as const);
 
   const handleSubmit = async (values: ILayerConfig) => {
@@ -278,6 +276,7 @@ function TileJSONLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "TILEJSON",
+      isBasemap: false,
     } as const);
 
   return (
@@ -365,6 +364,7 @@ function XYZLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "XYZ",
+      isBasemap: false,
     } as const);
 
   return (
@@ -727,6 +727,51 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 };
 
+const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const [isEditing, setEditing] = useState<boolean>(false);
+  const isRaster = layerConfig.name.includes("Satellite");
+
+  const editPopover = (
+    <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
+      <P.Trigger asChild>
+        <button
+          className={"opacity-30 hover:opacity-100 select-none"}
+          title="Edit"
+        >
+          <GearIcon />
+        </button>
+      </P.Trigger>
+      <E.StyledPopoverContent>
+        <E.StyledPopoverArrow />
+        <MapboxLayer layer={layerConfig} onDone={() => setEditing(false)} />
+      </E.StyledPopoverContent>
+    </P.Root>
+  );
+
+  return (
+    <div className="flex-auto">
+      <div className="flex gap-x-2 items-center">
+        <span className="block select-none truncate flex-auto text-sm">
+          {layerConfig.name}
+        </span>
+        {editPopover}
+        {isRaster && <OpacitySetting layerConfig={layerConfig} />}
+        <VisibilityToggle layerConfig={layerConfig} />
+        <LabelsToggle layerConfig={layerConfig} />
+        <DeleteLayerButton layerConfig={layerConfig} />
+      </div>
+      <div
+        className="opacity-50 font-semibold"
+        style={{
+          fontSize: 10,
+        }}
+      >
+        MAPBOX
+      </div>
+    </div>
+  );
+};
+
 const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
 
@@ -780,8 +825,7 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
-  const zoomTo = useZoomTo();
-  const { data: tilejson, isError } = reactUseQuery(
+  const { isError } = reactUseQuery(
     layerConfig.url,
     async () => layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
     { suspense: false, retry: false },
@@ -817,19 +861,6 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           <E.TContent>This TileJSON source failed to load</E.TContent>
         </T.Root>
       ) : null}
-      {tilejson && tilejson.bounds ? (
-        <button
-          type="button"
-          title="Zoom to layer"
-          className={"opacity-30 hover:opacity-100 select-none"}
-          onClick={() => {
-            zoomTo(Maybe.of(tilejson.bounds!));
-          }}
-        >
-          <MagnifyingGlassIcon />
-        </button>
-      ) : null}
-
       {editPopover}
       <OpacitySetting layerConfig={layerConfig} />
       <VisibilityToggle layerConfig={layerConfig} />
@@ -883,8 +914,11 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       >
         <DragHandleDots2Icon />
       </div>
-      {layerConfig.type === "MAPBOX" && (
+      {layerConfig.type === "MAPBOX" && layerConfig.isBasemap && (
         <BaseMapItem layerConfig={layerConfig} />
+      )}
+      {layerConfig.type === "MAPBOX" && !layerConfig.isBasemap && (
+        <MapboxItem layerConfig={layerConfig} />
       )}
       {layerConfig.type === "XYZ" && <XYZItem layerConfig={layerConfig} />}
       {layerConfig.type === "TILEJSON" && (
