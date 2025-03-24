@@ -52,7 +52,12 @@ import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 
-type Mode = "custom" | "custom-xyz" | "custom-mapbox" | "custom-tilejson";
+type Mode =
+  | "custom"
+  | "basemap"
+  | "custom-xyz"
+  | "custom-mapbox"
+  | "custom-tilejson";
 
 const layerModeAtom = atom<Mode>("custom");
 
@@ -467,6 +472,10 @@ function AddLayer() {
                     <div className="font-bold">Choose type</div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
+                    <E.Button onClick={() => setMode("basemap")}>
+                      Basemap
+                      <CaretRightIcon />
+                    </E.Button>
                     <E.Button onClick={() => setMode("custom-xyz")}>
                       XYZ
                       <CaretRightIcon />
@@ -479,6 +488,16 @@ function AddLayer() {
                       TileJSON
                       <CaretRightIcon />
                     </E.Button>
+                  </div>
+                </div>
+              ))
+              .with("basemap", () => (
+                <div className="p-3">
+                  <div className="pb-1">
+                    <LayerFormHeader>Basemap</LayerFormHeader>
+                  </div>
+                  <div className="space-y-2">
+                    <BaseMapOptions onDone={() => setOpen(false)} />
                   </div>
                 </div>
               ))
@@ -505,7 +524,7 @@ function AddLayer() {
   );
 }
 
-const BaseMapOptions = () => {
+const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
@@ -537,6 +556,7 @@ const BaseMapOptions = () => {
                 },
               ],
             });
+            onDone && onDone();
           }}
         />
       ))}
@@ -647,7 +667,9 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         </div>
       </P.Trigger>
       <E.StyledPopoverContent>
-        <BaseMapOptions />
+        <div className="space-y-2">
+          <BaseMapOptions />
+        </div>
       </E.StyledPopoverContent>
     </P.Root>
   );
@@ -796,7 +818,7 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 
   return (
-    <LayerConfigItem typeLabel="TileJSON">
+    <LayerConfigItem typeLabel="TILEJSON">
       <span className="block select-none truncate flex-auto text-sm">
         {layerConfig.name}
       </span>
