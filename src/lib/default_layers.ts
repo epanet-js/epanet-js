@@ -6,11 +6,12 @@ const defaults = {
   token: env.NEXT_PUBLIC_MAPBOX_TOKEN,
   opacity: 1,
   sourceMaxZoom: {},
+  isBasemap: false,
 } as const;
 
 export type LayerConfigTemplate = Pick<
   ILayerConfig,
-  "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom"
+  "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom" | "isBasemap"
 >;
 
 const LAYERS: Record<string, LayerConfigTemplate> = {
@@ -18,22 +19,26 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     name: "Monochrome",
     url: "mapbox://styles/mapbox/light-v10",
     ...defaults,
+    isBasemap: true,
   },
   DARK: {
     name: "Dark",
     url: "mapbox://styles/mapbox/dark-v10",
     ...defaults,
+    isBasemap: true,
   },
   SATELLITE: {
     name: "Satellite",
     url: "mapbox://styles/mapbox/satellite-streets-v12",
     ...defaults,
     opacity: 0.65,
+    isBasemap: true,
   },
   STREETS: {
     name: "Streets",
     url: "mapbox://styles/mapbox/navigation-guidance-day-v4",
     ...defaults,
+    isBasemap: true,
   },
 };
 

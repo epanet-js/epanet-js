@@ -181,6 +181,7 @@ function MapboxLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "MAPBOX",
+      isBasemap: false,
     } as const);
 
   const handleSubmit = async (values: ILayerConfig) => {
@@ -277,6 +278,7 @@ function TileJSONLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "TILEJSON",
+      isBasemap: false,
     } as const);
 
   return (
@@ -364,6 +366,7 @@ function XYZLayer({
     ({
       ...SHARED_INTIAL_VALUES,
       type: "XYZ",
+      isBasemap: false,
     } as const);
 
   return (

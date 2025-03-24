@@ -61,6 +61,7 @@ export const zLayerConfigCommon = z.object({
   visibility: z.boolean(),
   labelVisibility: z.boolean(),
   sourceMaxZoom: z.record(z.number()),
+  isBasemap: z.optional(z.boolean()).default(false),
 });
 
 const url = z.string().url();
