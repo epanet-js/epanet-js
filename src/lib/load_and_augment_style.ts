@@ -89,6 +89,7 @@ export default async function loadAndAugmentStyle({
       }
     }
   }
+
   addEditingLayers({ style, symbolization, previewProperty });
 
   return style;
