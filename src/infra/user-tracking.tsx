@@ -289,6 +289,11 @@ type PageReloaded = {
   source: "errorFallback";
 };
 
+type LayersPopoverOpened = {
+  name: "layersPopover.opened";
+  source: "toolbar";
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -337,7 +342,8 @@ type UserEvent =
   | LogOutCompleted
   | SubscriptionStarted
   | ProjectionConverterVisited
-  | PageReloaded;
+  | PageReloaded
+  | LayersPopoverOpened;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
