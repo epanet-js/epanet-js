@@ -176,6 +176,7 @@ function MapboxLayer({
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
+  const userTracking = useUserTracking();
 
   const initialValues =
     layer ||
@@ -203,6 +204,8 @@ function MapboxLayer({
         ? toast("Basemap replaced with custom mapbox layer")
         : toast("Mapbox layer replaced");
     }
+
+    userTracking.capture({ name: "customLayer.added", type: "MAPBOX" });
     applyChanges({
       deleteLayerConfigs,
       putLayerConfigs: [
@@ -278,6 +281,7 @@ function TileJSONLayer({
   const isEditing = !!layer;
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
+  const userTracking = useUserTracking();
 
   const initialValues =
     layer ||
@@ -307,6 +311,7 @@ function TileJSONLayer({
             [FORM_ERROR]: "Invalid: this TileJSON can’t be downloaded.",
           };
         }
+        userTracking.capture({ name: "customLayer.added", type: "TILEJSON" });
         applyChanges({
           putLayerConfigs: [
             {
@@ -363,6 +368,7 @@ function XYZLayer({
 }) {
   const setMode = useSetAtom(layerModeAtom);
   const { applyChanges } = useLayerConfigState();
+  const userTracking = useUserTracking();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
   const isEditing = !!layer;
@@ -382,6 +388,10 @@ function XYZLayer({
       submitText={isEditing ? "Update layer" : "Add layer"}
       fullWidthSubmit
       onSubmit={async (values) => {
+        userTracking.capture({
+          name: "customLayer.added",
+          type: "XYZ",
+        });
         await toast.promise(
           Promise.resolve(
             applyChanges({
@@ -400,6 +410,7 @@ function XYZLayer({
             error: "Error",
           },
         );
+
         setMode("custom");
         if (onDone) {
           onDone();
@@ -449,6 +460,7 @@ function XYZLayer({
 function AddLayer() {
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
+  const userTracking = useUserTracking();
 
   return (
     <P.Root
@@ -459,7 +471,12 @@ function AddLayer() {
       }}
     >
       <P.Trigger asChild>
-        <E.Button aria-label="Add layer">
+        <E.Button
+          aria-label="Add layer"
+          onClick={() => {
+            userTracking.capture({ name: "addCustomLayer.clicked" });
+          }}
+        >
           <PlusIcon />
           Add custom
         </E.Button>
@@ -480,19 +497,51 @@ function AddLayer() {
                     <div className="font-bold">Choose type</div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
-                    <E.Button onClick={() => setMode("basemap")}>
+                    <E.Button
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "layerType.choosen",
+                          type: "BASEMAP",
+                        });
+                        setMode("basemap");
+                      }}
+                    >
                       Basemap
                       <CaretRightIcon />
                     </E.Button>
-                    <E.Button onClick={() => setMode("custom-xyz")}>
+                    <E.Button
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "layerType.choosen",
+                          type: "XYZ",
+                        });
+                        setMode("custom-xyz");
+                      }}
+                    >
                       XYZ
                       <CaretRightIcon />
                     </E.Button>
-                    <E.Button onClick={() => setMode("custom-mapbox")}>
+                    <E.Button
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "layerType.choosen",
+                          type: "MAPBOX",
+                        });
+                        setMode("custom-mapbox");
+                      }}
+                    >
                       Mapbox
                       <CaretRightIcon />
                     </E.Button>
-                    <E.Button onClick={() => setMode("custom-tilejson")}>
+                    <E.Button
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "layerType.choosen",
+                          type: "TILEJSON",
+                        });
+                        setMode("custom-tilejson");
+                      }}
+                    >
                       TileJSON
                       <CaretRightIcon />
                     </E.Button>
@@ -650,6 +699,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         userTracking.capture({
           name: "layerVisibility.changed",
           visible: isVisible,
+          type: layerConfig.type,
         });
         applyChanges({
           putLayerConfigs: [
@@ -679,7 +729,9 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       onClick={() => {
         const isVisible = !layerConfig.labelVisibility;
         userTracking.capture({
-          name: isVisible ? "layerLabels.shown" : "layerLabels.hidden",
+          name: "layerLabelVisibility.changed",
+          visible: isVisible,
+          type: layerConfig.type,
         });
 
         applyChanges({
