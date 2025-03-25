@@ -294,6 +294,13 @@ type LayersPopoverOpened = {
   source: "toolbar";
 };
 
+type LayerOpacityChanged = {
+  name: "layerOpacity.changed";
+  oldValue: number;
+  newValue: number;
+  type: string;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -343,7 +350,18 @@ type UserEvent =
   | SubscriptionStarted
   | ProjectionConverterVisited
   | PageReloaded
-  | LayersPopoverOpened;
+  | LayersPopoverOpened
+  | LayerOpacityChanged
+  | { name: "layerLabels.shown" }
+  | { name: "layerLabels.hidden" }
+  | { name: "layer.removed"; type: string }
+  | { name: "layerVisibility.changed"; visible: boolean }
+  | {
+      name: "baseMap.changed";
+      oldValue: string;
+      newValue: string;
+      source: "dropdown" | "popover";
+    };
 
 const debugPostHog = {
   capture: (...data: any[]) => {
