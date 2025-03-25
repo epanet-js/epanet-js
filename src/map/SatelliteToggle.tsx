@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
+import { isFeatureOn } from "src/infra/feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import LAYERS from "src/lib/default_layers";
 import { mapboxStaticURL } from "src/lib/mapbox_static_url";
@@ -22,7 +23,9 @@ export const SatelliteToggle = () => {
       return mapboxStaticURL(LAYERS.MONOCHROME);
     }
 
-    return mapboxStaticURL(LAYERS.MONOCHROME);
+    return isFeatureOn("FLAG_LAYERS")
+      ? null
+      : mapboxStaticURL(LAYERS.MONOCHROME);
   }, [layerConfigs]);
 
   if (!buttonBackgroundImage) return null;
