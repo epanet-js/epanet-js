@@ -10,13 +10,17 @@ const warnOffline = once(() => {
 });
 
 export async function addMapboxStyle(
-  _base: mapboxgl.Style,
+  base: mapboxgl.Style,
   layer: ILayerConfig,
 ): Promise<mapboxgl.Style> {
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
 
   const url = getMapboxLayerURL(layer);
+
+  if (isFeatureOn("FLAG_LAYERS") && layer.visibility === false) {
+    return base;
+  }
 
   const style: mapboxgl.Style = await fetch(url)
     .then((res) => {
@@ -126,7 +130,6 @@ export function addXYZStyle(
   } as mapboxgl.AnyLayer;
 
   style.layers.push(newLayer);
-
   return style;
 }
 
