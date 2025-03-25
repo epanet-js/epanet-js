@@ -1,4 +1,4 @@
-import { memo, Suspense } from "react";
+import { Suspense } from "react";
 import { LayersIcon } from "@radix-ui/react-icons";
 import * as T from "@radix-ui/react-tooltip";
 import * as E from "src/components/elements";
@@ -7,8 +7,11 @@ import { LayersPopover } from "./layers/popover";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { LayersPopoverDeprecated } from "./layers/popover-deprecated";
+import { useUserTracking } from "src/infra/user-tracking";
 
-export const Visual = memo(function Visual() {
+export const Visual = () => {
+  const userTracking = useUserTracking();
+
   return (
     <div className="flex items-center">
       <T.Root>
@@ -16,7 +19,15 @@ export const Visual = memo(function Visual() {
           <div className="p-2 flex items-stretch">
             <T.Trigger asChild>
               <Trigger aria-label="Layers" asChild>
-                <E.Button variant="quiet">
+                <E.Button
+                  variant="quiet"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "layersPopover.opened",
+                      source: "toolbar",
+                    });
+                  }}
+                >
                   <LayersIcon />
                   {translate("layers")}
                 </E.Button>
@@ -36,4 +47,4 @@ export const Visual = memo(function Visual() {
       </T.Root>
     </div>
   );
-});
+};
