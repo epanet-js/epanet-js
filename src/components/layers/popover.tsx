@@ -786,7 +786,7 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 
   return (
-    <LayerConfigItem typeLabel="XYX">
+    <LayerConfigItem typeLabel="XYZ">
       <span className="block select-none truncate flex-auto text-sm">
         {layerConfig.name}
       </span>
