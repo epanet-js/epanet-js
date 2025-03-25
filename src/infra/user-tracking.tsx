@@ -352,10 +352,12 @@ type UserEvent =
   | PageReloaded
   | LayersPopoverOpened
   | LayerOpacityChanged
-  | { name: "layerLabels.shown" }
-  | { name: "layerLabels.hidden" }
+  | { name: "layerLabelVisibility.changed"; visible: boolean; type: string }
   | { name: "layer.removed"; type: string }
-  | { name: "layerVisibility.changed"; visible: boolean }
+  | { name: "layerVisibility.changed"; visible: boolean; type: string }
+  | { name: "customLayer.added"; type: string }
+  | { name: "addCustomLayer.clicked" }
+  | { name: "layerType.choosen"; type: string }
   | {
       name: "baseMap.changed";
       oldValue: string;
