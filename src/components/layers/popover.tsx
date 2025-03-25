@@ -1,5 +1,4 @@
 import {
-  CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
   DragHandleDots2Icon,
@@ -51,6 +50,7 @@ import { zTileJSON } from "src/mapbox-layers/validations";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
+import { Selector } from "../form/Selector";
 
 type Mode =
   | "custom"
@@ -659,47 +659,70 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const [isChanging, setChanging] = useState<boolean>(false);
-
   const isRaster = layerConfig.name.includes("Satellite");
+  const { applyChanges } = useLayerConfigState();
+  const layerConfigs = useAtomValue(layerConfigAtom);
+  const items = [...layerConfigs.values()];
+  const nextAt = getNextAt(items);
 
   const namePopover = (
-    <P.Root open={isChanging} onOpenChange={(value) => setChanging(value)}>
-      <P.Trigger asChild>
-        <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
-          <span className="select-none truncate text-sm">
-            {layerConfig.name}
-          </span>
-          <CaretDownIcon />
-        </div>
-      </P.Trigger>
-      <E.StyledPopoverContent>
-        <div className="space-y-2">
-          <BaseMapOptions />
-        </div>
-      </E.StyledPopoverContent>
-    </P.Root>
+    <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
+      <span className="select-none truncate text-sm w-auto">
+        <Selector
+          ariaLabel="basemaps"
+          options={Object.entries(LAYERS).map(([, mapboxLayer]) => ({
+            value: mapboxLayer.name,
+            label: mapboxLayer.name,
+          }))}
+          selected={layerConfig.name}
+          onChange={(name) => {
+            const newMapboxLayer = Object.values(LAYERS).find(
+              (l) => l.name === name,
+            );
+            if (!newMapboxLayer) return;
+
+            const { deleteLayerConfigs, oldAt } =
+              maybeDeleteOldMapboxLayer(items);
+            if (deleteLayerConfigs.length) {
+              toast("Mapbox layer replaced");
+            }
+            applyChanges({
+              deleteLayerConfigs,
+              putLayerConfigs: [
+                {
+                  ...newMapboxLayer,
+                  visibility: true,
+                  tms: false,
+                  opacity: newMapboxLayer.opacity,
+                  at: oldAt || nextAt,
+                  id: newFeatureId(),
+                  labelVisibility: layerConfig
+                    ? layerConfig.labelVisibility
+                    : true,
+                },
+              ],
+            });
+          }}
+          styleOptions={{
+            border: false,
+            paddingX: 0,
+            paddingY: 0,
+            textSize: "text-sm",
+          }}
+        />
+      </span>
+    </div>
   );
 
   return (
-    <div className="flex-auto">
-      <div className="flex gap-x-2 items-center">
-        <div className="block flex-auto">
-          <div className="w-auto max-w-fit">{namePopover}</div>
-        </div>
-        {isRaster && <OpacitySetting layerConfig={layerConfig} />}
-        <VisibilityToggle layerConfig={layerConfig} />
-        <LabelsToggle layerConfig={layerConfig} />
+    <LayerConfigItem typeLabel="BASEMAP">
+      <div className="block flex-auto">
+        <div className="w-auto max-w-fit">{namePopover}</div>
       </div>
-      <div
-        className="opacity-50 font-semibold"
-        style={{
-          fontSize: 10,
-        }}
-      >
-        BASEMAP
-      </div>
-    </div>
+      {isRaster && <OpacitySetting layerConfig={layerConfig} />}
+      <VisibilityToggle layerConfig={layerConfig} />
+      <LabelsToggle layerConfig={layerConfig} />
+    </LayerConfigItem>
   );
 };
 
@@ -971,20 +994,22 @@ export function LayersPopover() {
         >
           <div
             className="pt-3 border-t
-            border-gray-100 dark:border-gray-700"
+            border-gray-100 dark:border-gray-700 "
           >
             <SortableContext
               items={items}
               strategy={verticalListSortingStrategy}
             >
-              {items.map((layerConfig) => {
-                return (
-                  <SortableLayerConfig
-                    layerConfig={layerConfig}
-                    key={layerConfig.id}
-                  />
-                );
-              })}
+              <div className="gap-y-4">
+                {items.map((layerConfig) => {
+                  return (
+                    <SortableLayerConfig
+                      layerConfig={layerConfig}
+                      key={layerConfig.id}
+                    />
+                  );
+                })}
+              </div>
             </SortableContext>
           </div>
         </DndContext>

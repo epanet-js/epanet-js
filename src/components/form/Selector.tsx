@@ -8,14 +8,24 @@ export const Selector = <T extends string>({
   onChange,
   ariaLabel,
   tabIndex = 1,
-  styleOptions = { border: true, textSize: "text-sm" },
+  styleOptions = {
+    border: true,
+    textSize: "text-sm",
+    paddingX: 1,
+    paddingY: 2,
+  },
 }: {
   options: { label: string; value: T }[];
   selected: T;
   onChange: (selected: T, oldValue: T) => void;
   ariaLabel?: string;
   tabIndex?: number;
-  styleOptions?: { border: boolean; textSize: "text-xs" | "text-sm" };
+  styleOptions?: {
+    border?: boolean;
+    textSize?: "text-xs" | "text-sm";
+    paddingX?: number;
+    paddingY?: number;
+  };
 }) => {
   const [isOpen, setOpen] = useState(false);
 
@@ -31,7 +41,7 @@ export const Selector = <T extends string>({
   };
 
   const triggerStyles = useMemo(() => {
-    return `flex items-center ${styleOptions.border ? "border" : ""} ${styleOptions.textSize} text-gray-700 dark:items-center justify-between w-full min-w-[90px] pr-1 pl-2 pl-min-2 py-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10`;
+    return `flex items-center ${styleOptions.border ? "border rounded-sm" : ""} ${styleOptions.textSize} text-gray-700 dark:items-center justify-between w-full min-w-[90px] ${styleOptions.paddingX !== undefined ? `px-${styleOptions.paddingX}` : "pr-1 pl-2"} pl-min-2 py-${styleOptions.paddingY !== undefined ? styleOptions.paddingY : 2} focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10`;
   }, [styleOptions]);
 
   const contentStyles = useMemo(() => {
@@ -72,7 +82,7 @@ export const Selector = <T extends string>({
                 <Select.Item
                   key={i}
                   value={option.value}
-                  className="flex items-center px-2 py-2 cursor-pointer focus:bg-purple-300/40"
+                  className="flex items-center justify-between gap-4 px-2 py-2 cursor-pointer focus:bg-purple-300/40"
                 >
                   <Select.ItemText>{option.label}</Select.ItemText>
                   <Select.ItemIndicator className="ml-auto">
