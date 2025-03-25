@@ -197,8 +197,10 @@ function MapboxLayer({
     }
     const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
       maybeDeleteOldMapboxLayer(items);
-    if (deleteLayerConfigs.length) {
-      toast("Mapbox layer replaced");
+    if (oldMapboxLayer) {
+      oldMapboxLayer.isBasemap
+        ? toast("Basemap replaced with custom mapbox layer")
+        : toast("Mapbox layer replaced");
     }
     applyChanges({
       deleteLayerConfigs,
@@ -545,7 +547,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
             const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
             if (deleteLayerConfigs.length) {
-              toast("Mapbox layer replaced");
+              toast("Basemap changed");
             }
             applyChanges({
               deleteLayerConfigs,
@@ -684,7 +686,7 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
             const { deleteLayerConfigs, oldAt } =
               maybeDeleteOldMapboxLayer(items);
             if (deleteLayerConfigs.length) {
-              toast("Mapbox layer replaced");
+              toast("Basemap changed");
             }
             applyChanges({
               deleteLayerConfigs,
