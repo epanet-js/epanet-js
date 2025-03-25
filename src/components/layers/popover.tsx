@@ -7,6 +7,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
+import debounce from "lodash/debounce";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { layerConfigAtom } from "src/state/jotai";
@@ -43,7 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery as reactUseQuery } from "react-query";
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import { match } from "ts-pattern";
 import { zTileJSON } from "src/mapbox-layers/validations";
@@ -639,6 +640,26 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     Math.round(layerConfig.opacity * 100),
   );
 
+  const debouncedSubmit = useCallback(
+    debounce((newValue: number) => {
+      userTracking.capture({
+        name: "layerOpacity.changed",
+        newValue,
+        oldValue: layerConfig.opacity,
+        type: layerConfig.type,
+      });
+      applyChanges({
+        putLayerConfigs: [
+          {
+            ...layerConfig,
+            opacity: newValue,
+          },
+        ],
+      });
+    }, 300),
+    [layerConfig],
+  );
+
   return (
     <div className="flex items-center gap-x-1">
       <input
@@ -663,20 +684,7 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
           if (isNaN(opacity)) return;
 
-          userTracking.capture({
-            name: "layerOpacity.changed",
-            newValue: opacity,
-            oldValue: value,
-            type: layerConfig.type,
-          });
-          applyChanges({
-            putLayerConfigs: [
-              {
-                ...layerConfig,
-                opacity,
-              },
-            ],
-          });
+          debouncedSubmit(opacity);
         }}
       />
       <div className="text-gray-500 text-xs">%</div>
