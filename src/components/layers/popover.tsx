@@ -51,6 +51,7 @@ import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/Selector";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type Mode =
   | "custom"
@@ -532,6 +533,7 @@ function AddLayer() {
 }
 
 const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
+  const userTracking = useUserTracking();
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
@@ -549,6 +551,13 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
             if (deleteLayerConfigs.length) {
               toast("Basemap changed");
             }
+            userTracking.capture({
+              name: "baseMap.changed",
+              newValue: layer.name,
+              oldValue: oldMapboxLayer ? oldMapboxLayer.name : "",
+              source: "popover",
+            });
+
             applyChanges({
               deleteLayerConfigs,
               putLayerConfigs: [
@@ -575,6 +584,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
 
 const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
+  const userTracking = useUserTracking();
 
   const [value, setValue] = useState<number>(
     Math.round(layerConfig.opacity * 100),
@@ -604,6 +614,12 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
           if (isNaN(opacity)) return;
 
+          userTracking.capture({
+            name: "layerOpacity.changed",
+            newValue: opacity,
+            oldValue: value,
+            type: layerConfig.type,
+          });
           applyChanges({
             putLayerConfigs: [
               {
@@ -621,6 +637,7 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
+  const userTracking = useUserTracking();
 
   return (
     <div
@@ -629,6 +646,11 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       aria-checked={layerConfig.visibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {
+        const isVisible = !layerConfig.visibility;
+        userTracking.capture({
+          name: "layerVisibility.changed",
+          visible: isVisible,
+        });
         applyChanges({
           putLayerConfigs: [
             {
@@ -646,6 +668,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
+  const userTracking = useUserTracking();
 
   return (
     <div
@@ -654,11 +677,16 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       aria-checked={layerConfig.labelVisibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {
+        const isVisible = !layerConfig.labelVisibility;
+        userTracking.capture({
+          name: isVisible ? "layerLabels.shown" : "layerLabels.hidden",
+        });
+
         applyChanges({
           putLayerConfigs: [
             {
               ...layerConfig,
-              labelVisibility: !layerConfig.labelVisibility,
+              labelVisibility: isVisible,
             },
           ],
         });
@@ -675,6 +703,7 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
   const nextAt = getNextAt(items);
+  const userTracking = useUserTracking();
 
   const namePopover = (
     <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
@@ -692,11 +721,17 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
             );
             if (!newMapboxLayer) return;
 
-            const { deleteLayerConfigs, oldAt } =
+            const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
             if (deleteLayerConfigs.length) {
               toast("Basemap changed");
             }
+            userTracking.capture({
+              name: "baseMap.changed",
+              newValue: name,
+              oldValue: oldMapboxLayer ? oldMapboxLayer.name : "",
+              source: "dropdown",
+            });
             applyChanges({
               deleteLayerConfigs,
               putLayerConfigs: [
@@ -784,11 +819,13 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
+  const userTracking = useUserTracking();
 
   return (
     <button
       className={"opacity-30 hover:opacity-100 select-none"}
       onClick={() => {
+        userTracking.capture({ name: "layer.removed", type: layerConfig.type });
         applyChanges({
           deleteLayerConfigs: [layerConfig.id],
         });
