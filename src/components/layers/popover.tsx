@@ -576,6 +576,10 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
 const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
 
+  const [value, setValue] = useState<number>(
+    Math.round(layerConfig.opacity * 100),
+  );
+
   return (
     <div className="flex items-center gap-x-1">
       <input
@@ -591,10 +595,15 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         opacity-50 hover:opacity-100 focus:opacity-100
         w-12"
         max="100"
-        value={Math.round(layerConfig.opacity * 100)}
+        value={value}
         onChange={(e) => {
+          if (e.target.valueAsNumber > 100) return;
+
+          setValue(e.target.valueAsNumber);
+
           const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
           if (isNaN(opacity)) return;
+
           applyChanges({
             putLayerConfigs: [
               {
