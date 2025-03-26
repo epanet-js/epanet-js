@@ -5,8 +5,6 @@ import * as E from "src/components/elements";
 import { Root, Trigger } from "@radix-ui/react-popover";
 import { LayersPopover } from "./layers/popover";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
-import { LayersPopoverDeprecated } from "./layers/popover-deprecated";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const Visual = () => {
@@ -36,8 +34,7 @@ export const Visual = () => {
           </div>
           <E.PopoverContent2 size="md">
             <Suspense fallback={<E.Loading size="sm" />}>
-              {isFeatureOn("FLAG_LAYERS") && <LayersPopover />}
-              {!isFeatureOn("FLAG_LAYERS") && <LayersPopoverDeprecated />}
+              <LayersPopover />
             </Suspense>
           </E.PopoverContent2>
         </Root>

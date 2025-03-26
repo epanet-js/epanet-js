@@ -6,7 +6,6 @@ import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
 import { useAuth } from "src/auth";
 import { ILayerConfig } from "src/types";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { maybeDeleteOldMapboxLayer } from "src/components/layers/popover";
 
 export const satelliteLimitedZoom = 16;
@@ -48,35 +47,5 @@ export const useToggleSatellite = () => {
     });
   }, [layerConfigs, applyChanges, isSignedIn]);
 
-  const toggleSatelliteDeprecated = useCallback(() => {
-    const currentBaseMap = [...layerConfigs.values()][0];
-    const newBaseMap =
-      currentBaseMap.name === LAYERS.MONOCHROME.name
-        ? LAYERS.SATELLITE
-        : LAYERS.MONOCHROME;
-
-    const newLayerConfig: ILayerConfig = {
-      ...newBaseMap,
-      visibility: true,
-      tms: false,
-      opacity: newBaseMap.opacity,
-      at: currentBaseMap.at,
-      id: newFeatureId(),
-      labelVisibility: true,
-      sourceMaxZoom: {},
-    };
-
-    if (!isSignedIn && newBaseMap.name === LAYERS.SATELLITE.name) {
-      newLayerConfig.sourceMaxZoom["mapbox-satellite"] = satelliteLimitedZoom;
-    }
-
-    applyChanges({
-      deleteLayerConfigs: [currentBaseMap.id],
-      putLayerConfigs: [newLayerConfig],
-    });
-  }, [layerConfigs, applyChanges, isSignedIn]);
-
-  return isFeatureOn("FLAG_LAYERS")
-    ? toggleSatellite
-    : toggleSatelliteDeprecated;
+  return toggleSatellite;
 };
