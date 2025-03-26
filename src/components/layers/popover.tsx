@@ -53,6 +53,7 @@ import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
+import { translate } from "src/infra/i18n";
 
 type Mode =
   | "custom"
@@ -138,7 +139,7 @@ function BackButton({ to }: { to: Mode }) {
       }}
     >
       <CaretLeftIcon />
-      Back
+      {translate("back")}
     </E.Button>
   );
 }
@@ -155,7 +156,7 @@ function LayerFormHeader({
       {isEditing ? (
         <P.Close asChild>
           <E.Button type="button" size="xs">
-            Cancel
+            {translate("cancel")}
           </E.Button>
         </P.Close>
       ) : (
@@ -235,26 +236,26 @@ function MapboxLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? "Update layer" : "Add layer"}
+      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
       fullWidthSubmit
       onSubmit={handleSubmit}
     >
       <LayerFormHeader isEditing={isEditing}>Mapbox</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        See Mapbox documentation on{" "}
+        {translate("checkMapboxDocs")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
           className={E.styledInlineA}
           href="https://docs.mapbox.com/help/glossary/style-url/"
         >
-          style URLs
-        </a>{" "}
-        if you're not sure what to input here.
+          {translate("here")}
+        </a>
+        .
       </TextWell>
       <LabeledTextField
         name="url"
-        label="Style URL"
+        label="URL"
         required
         autoComplete="off"
         placeholder="mapbox://"
@@ -262,7 +263,7 @@ function MapboxLayer({
       <LabeledTextField
         name="token"
         required
-        label="Access token"
+        label={translate("accessToken")}
         autoComplete="off"
         placeholder="pk.…"
       />
@@ -296,7 +297,7 @@ function TileJSONLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? "Update layer" : "Add layer"}
+      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
@@ -330,7 +331,7 @@ function TileJSONLayer({
     >
       <LayerFormHeader isEditing={isEditing}>TileJSON</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        Raster tiles are supported with{" "}
+        {translate("supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -344,7 +345,7 @@ function TileJSONLayer({
 
       <LabeledTextField
         name="name"
-        label="Name"
+        label={translate("name")}
         required
         autoComplete="off"
         placeholder=""
@@ -352,7 +353,7 @@ function TileJSONLayer({
       <LabeledTextField
         name="url"
         required
-        label="TileJSON URL"
+        label="URL"
         autoComplete="off"
         placeholder="https://…"
       />
@@ -386,7 +387,7 @@ function XYZLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? "Update layer" : "Add layer"}
+      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
       fullWidthSubmit
       onSubmit={async (values) => {
         userTracking.capture({
@@ -421,7 +422,7 @@ function XYZLayer({
       <LayerFormHeader isEditing={isEditing}>XYZ</LayerFormHeader>
 
       <TextWell variant="primary" size="xs">
-        Supports image{" "}
+        {translate("supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -435,22 +436,20 @@ function XYZLayer({
 
       <LabeledTextField
         name="name"
-        label="Name"
+        label={translate("name")}
         autoComplete="off"
         required
         placeholder=""
       />
       <LabeledTextField
         name="url"
-        label="Template URL"
+        label="URL"
         autoComplete="off"
         required
         type="url"
         placeholder="https://…"
       />
-      <TextWell>
-        Template URLs should contain {"{z}"}, {"{x}"}, and {"{y}"}.
-      </TextWell>
+      <TextWell>{translate("xyzURLContain")}</TextWell>
       <label className="flex items-center gap-x-2 text-sm py-2">
         <E.FieldCheckbox name="tms" type="checkbox" /> TMS
       </label>
@@ -473,13 +472,13 @@ function AddLayer() {
     >
       <P.Trigger asChild>
         <E.Button
-          aria-label="Add layer"
+          aria-label={translate("addCustom")}
           onClick={() => {
             userTracking.capture({ name: "addCustomLayer.clicked" });
           }}
         >
           <PlusIcon />
-          Add custom
+          {translate("addCustom")}
         </E.Button>
       </P.Trigger>
 
@@ -495,7 +494,7 @@ function AddLayer() {
               .with("custom", () => (
                 <div className="p-3">
                   <div className="flex justify-between items-center pb-3">
-                    <div className="font-bold">Choose type</div>
+                    <div className="font-bold">{translate("chooseType")}</div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
                     <E.Button
@@ -507,7 +506,7 @@ function AddLayer() {
                         setMode("basemap");
                       }}
                     >
-                      Basemap
+                      {translate("basemap")}
                       <CaretRightIcon />
                     </E.Button>
                     <E.Button
@@ -552,7 +551,7 @@ function AddLayer() {
               .with("basemap", () => (
                 <div className="p-3">
                   <div className="pb-1">
-                    <LayerFormHeader>Basemap</LayerFormHeader>
+                    <LayerFormHeader>{translate("basemap")}</LayerFormHeader>
                   </div>
                   <div className="space-y-2">
                     <BaseMapOptions onDone={() => setOpen(false)} />
@@ -699,7 +698,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <div
       role="checkbox"
-      title="Toggle visibility"
+      title={translate("toggleVisibility")}
       aria-checked={layerConfig.visibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {
@@ -731,7 +730,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <div
       role="checkbox"
-      title="Toggle label visibility"
+      title={translate("toggleLabelsVisibility")}
       aria-checked={layerConfig.labelVisibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {
@@ -821,7 +820,7 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 
   return (
-    <LayerConfigItem typeLabel="BASEMAP">
+    <LayerConfigItem typeLabel={translate("basemap").toUpperCase()}>
       <div className="block flex-auto">
         <div className="w-auto max-w-fit">{namePopover}</div>
       </div>
@@ -1079,8 +1078,8 @@ export function LayersPopover() {
 
   return (
     <div>
-      <div className="flex justify-between pb-2">
-        <div className="font-bold">Layers</div>
+      <div className="flex items-start justify-between pb-2">
+        <div className="font-bold">{translate("layers")}</div>
         <div className="relative">
           <AddLayer />
         </div>

@@ -189,6 +189,20 @@ export const translations = {
   errorProcessingRequest: "An unexpected error has occurred.",
   pleaseTryAgain: "Please try again, and if the issue persists, email us at",
   reloadPage: "Reload page",
+  addCustom: "Add custom",
+  chooseType: "Choose type",
+  toggleVisibility: "Toggle visibility",
+  toggleLabelsVisibility: "Toggle labels visibility",
+  basemap: "Basemap",
+  back: "Back",
+  updateLayer: "Update layer",
+  addLayer: "Add layer",
+  name: "Name",
+  xyzURLContain: "XYZ URL should contain {z}, {x} and {Y}.",
+  supports: "Supports",
+  checkMapboxDocs: "See Mapbox documentation on",
+  here: "here",
+  accessToken: "Access token",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
