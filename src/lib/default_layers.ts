@@ -30,6 +30,13 @@ const LAYERS: Record<string, LayerConfigTemplate> = isFeatureOn("FLAG_LAYERS")
         opacity: 0.65,
         isBasemap: true,
       },
+      OUTDOORS: {
+        name: "Outdoors",
+        url: "mapbox://styles/mapbox/outdoors-v12",
+        ...defaults,
+        opacity: 0.65,
+        isBasemap: true,
+      },
       STREETS: {
         name: "Streets",
         url: "mapbox://styles/mapbox/navigation-guidance-day-v4",
