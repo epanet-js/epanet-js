@@ -197,6 +197,20 @@ export const translations: Translations = {
   pleaseTryAgain:
     "Por favor, intenta nuevamente y si el problema persiste, mándanos un correo a",
   reloadPage: "Recargar la página",
+  addCustom: "Añadir custom",
+  chooseType: "Elegir tipo",
+  toggleVisibility: "Cambiar visibilidad",
+  toggleLabelsVisibility: "Cambiar visibilidad de etiquetas",
+  basemap: "Mapa base",
+  back: "Atrás",
+  updateLayer: "Actualizar capa",
+  addLayer: "Añadir capa",
+  name: "Nombre",
+  xyzURLContain: "La URL XYZ debe contener {z}, {x} and {y}.",
+  supports: "Soporta",
+  checkMapboxDocs: "Consulta la documentación de Mapbox",
+  here: "aquí",
+  accessToken: "Token de acceso",
 };
 
 export const units: UnitsLocale = {
