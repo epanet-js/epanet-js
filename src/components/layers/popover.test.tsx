@@ -11,6 +11,7 @@ import { aLayerConfig, setInitialState } from "src/__helpers__/state";
 import { LayersPopover } from "./popover";
 import { LayerConfigMap } from "src/types";
 import userEvent from "@testing-library/user-event";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 describe("layers popover", () => {
   it("shows selected basemap", () => {
@@ -48,6 +49,29 @@ describe("layers popover", () => {
     expect(screen.getByText(/Monochrome/)).toBeInTheDocument();
     const updatedLayerConfigs = store.get(layerConfigAtom);
     expect(hasLayer(updatedLayerConfigs, "Monochrome"));
+    expect(screen.getByText(/basemap changed/i)).toBeInTheDocument();
+  });
+
+  it("can change basemap from add custom", async () => {
+    const basemap = aLayerConfig({
+      type: "MAPBOX",
+      isBasemap: true,
+      name: "Streets",
+    });
+    const layerConfigs: LayerConfigMap = new Map();
+    layerConfigs.set(basemap.id, basemap);
+
+    const store = setInitialState({ layerConfigs });
+    renderComponent({ store });
+
+    await userEvent.click(screen.getByRole("button", { name: /add custom/i }));
+    await userEvent.click(screen.getByText("Basemap"));
+    await userEvent.click(screen.getByText("Monochrome"));
+
+    expect(screen.getByText(/BASEMAP/)).toBeInTheDocument();
+    expect(screen.getByText(/Monochrome/)).toBeInTheDocument();
+    const updatedLayerConfigs = store.get(layerConfigAtom);
+    expect(hasLayer(updatedLayerConfigs, "Monochrome"));
   });
 
   const hasLayer = (layerConfigs: LayerConfigMap, name: string) => {
@@ -73,11 +97,15 @@ describe("layers popover", () => {
     return (
       <QueryClientProvider client={new QueryClient()}>
         <JotaiProvider store={store}>
-          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-            <Dialogs></Dialogs>
-            <Notifications duration={1} successDuration={1} />
-            {children}
-          </PersistenceContext.Provider>
+          <TooltipProvider>
+            <PersistenceContext.Provider
+              value={new MemPersistence(idMap, store)}
+            >
+              <Dialogs></Dialogs>
+              <Notifications duration={1} successDuration={1} />
+              {children}
+            </PersistenceContext.Provider>
+          </TooltipProvider>
         </JotaiProvider>
       </QueryClientProvider>
     );
