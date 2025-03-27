@@ -24,7 +24,6 @@
     "not ie 11"
   ],
   "dependencies": {
-    "@google-cloud/storage": "^7.13.0",
     "@clerk/localizations": "^3.11.0",
     "@clerk/nextjs": "^6.12.3",
     "@codemirror/commands": "^6.5.0",
@@ -41,6 +40,7 @@
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.2",
+    "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",
     "@lezer/highlight": "^1.2.0",
     "@logtail/node": "^0.4.21",
@@ -73,6 +73,7 @@
     "@radix-ui/rect": "^1.0.1",
     "@react-aria/interactions": "^3.21.3",
     "@sentry/nextjs": "^8.34.0",
+    "@stripe/stripe-js": "^6.1.0",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/query-core": "^5.60.5",
@@ -176,6 +177,7 @@
     "replicache": "^12.2.2",
     "secure-password": "^4.0.0",
     "strip-ansi": "^6.0.1",
+    "stripe": "^17.7.0",
     "tailwindcss": "^3.4.3",
     "topojson-client": "^3.1.0",
     "topojson-server": "^3.0.1",
