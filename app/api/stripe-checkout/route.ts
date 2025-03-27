@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ sessionId: session.id });
 }
 
-export const createCheckoutSession = async (
+const createCheckoutSession = async (
   email: string,
   priceId: string,
   successUrl: URL,
