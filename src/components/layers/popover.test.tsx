@@ -9,7 +9,7 @@ import Notifications from "../notifications";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { aLayerConfig, setInitialState } from "src/__helpers__/state";
 import { LayersPopover } from "./popover";
-import { LayerConfigMap } from "src/types";
+import { ILayerConfig, LayerConfigMap } from "src/types";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
@@ -73,6 +73,70 @@ describe("layers popover", () => {
     const updatedLayerConfigs = store.get(layerConfigAtom);
     expect(hasLayer(updatedLayerConfigs, "Monochrome"));
   });
+
+  it("can change the visibility", async () => {
+    const basemap = aLayerConfig({
+      type: "MAPBOX",
+      isBasemap: true,
+      name: "Streets",
+    });
+    const layerConfigs: LayerConfigMap = new Map();
+    layerConfigs.set(basemap.id, basemap);
+
+    const store = setInitialState({ layerConfigs });
+    renderComponent({ store });
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /toggle visibility/i }),
+    );
+
+    let updatedLayerConfigs = store.get(layerConfigAtom);
+    let updatedLayer = findLayer(updatedLayerConfigs, "Streets");
+    expect(updatedLayer.visibility).toEqual(false);
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /toggle visibility/i }),
+    );
+
+    updatedLayerConfigs = store.get(layerConfigAtom);
+    updatedLayer = findLayer(updatedLayerConfigs, "Streets");
+    expect(updatedLayer.visibility).toEqual(true);
+  });
+
+  it("can change the labels visibility", async () => {
+    const basemap = aLayerConfig({
+      type: "MAPBOX",
+      isBasemap: true,
+      name: "Streets",
+    });
+    const layerConfigs: LayerConfigMap = new Map();
+    layerConfigs.set(basemap.id, basemap);
+
+    const store = setInitialState({ layerConfigs });
+    renderComponent({ store });
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
+    );
+
+    let updatedLayerConfigs = store.get(layerConfigAtom);
+    let updatedLayer = findLayer(updatedLayerConfigs, "Streets");
+    expect(updatedLayer.labelVisibility).toEqual(false);
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
+    );
+
+    updatedLayerConfigs = store.get(layerConfigAtom);
+    updatedLayer = findLayer(updatedLayerConfigs, "Streets");
+    expect(updatedLayer.labelVisibility).toEqual(true);
+  });
+
+  const findLayer = (layerConfigs: LayerConfigMap, name: string) => {
+    return [...layerConfigs.values()].find(
+      (l) => l.name === name,
+    ) as ILayerConfig;
+  };
 
   const hasLayer = (layerConfigs: LayerConfigMap, name: string) => {
     return [...layerConfigs.values()].find((l) => l.name === name);
