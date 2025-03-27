@@ -3,8 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { logger } from "src/infra/server-logger";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
 
@@ -29,6 +27,7 @@ export async function GET(request: NextRequest) {
 }
 
 const obtainCutomerId = async (sessionId: string): Promise<string | null> => {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   return session.customer as string | null;
 };
