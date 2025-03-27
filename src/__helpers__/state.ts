@@ -9,12 +9,15 @@ import {
   Store,
   dataAtom,
   fileInfoAtom,
+  layerConfigAtom,
   momentLogAtom,
   nullData,
   simulationAtom,
 } from "src/state/jotai";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
+import { ILayerConfig, LayerConfigMap } from "src/types";
+import { nanoid } from "nanoid";
 
 export const setInitialState = ({
   store = createStore(),
@@ -23,6 +26,7 @@ export const setInitialState = ({
   simulation = { status: "idle" },
   selection = { type: "none" },
   fileInfo = null,
+  layerConfigs = new Map(),
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -30,6 +34,7 @@ export const setInitialState = ({
   simulation?: SimulationState;
   selection?: Sel;
   fileInfo?: FileInfo | null;
+  layerConfigs?: LayerConfigMap;
 } = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
@@ -39,7 +44,28 @@ export const setInitialState = ({
   store.set(momentLogAtom, momentLog);
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
+  store.set(layerConfigAtom, layerConfigs);
   return store;
+};
+
+export const aLayerConfig = (
+  data: Partial<ILayerConfig> = {},
+): ILayerConfig => {
+  const defaults: ILayerConfig = {
+    id: nanoid(),
+    name: "NAME",
+    type: "MAPBOX",
+    token: "TOKEN",
+    url: "URL",
+    opacity: 1,
+    sourceMaxZoom: {},
+    isBasemap: false,
+    at: "a0",
+    tms: false,
+    visibility: true,
+    labelVisibility: true,
+  };
+  return { ...defaults, ...data };
 };
 
 export const aFileInfo = (data: Partial<FileInfo> | null) => {
