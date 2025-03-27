@@ -3,8 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { logger } from "src/infra/server-logger";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 const testProPrice = "price_1Q3TYcE455sU9CNvI20pEOAs";
 
 export async function POST(request: NextRequest) {
@@ -44,6 +42,7 @@ const createCheckoutSession = async (
   successUrl: URL,
   cancelUrl: URL,
 ): Promise<{ id: string }> => {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
