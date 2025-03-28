@@ -211,6 +211,8 @@ export const translations: Translations = {
   checkMapboxDocs: "Consulta la documentación de Mapbox",
   here: "aquí",
   accessToken: "Token de acceso",
+  upgradeYourAccount: "Mejora tu cuenta",
+  upgrade: "Mejorar cuenta",
 };
 
 export const units: UnitsLocale = {

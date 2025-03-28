@@ -34,7 +34,6 @@ export const CheckoutButton = () => {
 
   if (isError) {
     return <>Error!</>;
-    //return <Button variant="danger">Error!</Button>;
   }
 
   return (

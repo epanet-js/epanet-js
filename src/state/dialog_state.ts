@@ -63,6 +63,10 @@ export type AlertInpOutputState = {
   onContinue: () => void;
 };
 
+export type UpgradeDialogState = {
+  type: "upgrade";
+};
+
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -80,6 +84,7 @@ export type DialogState =
   | AlertInpOutputState
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
+  | UpgradeDialogState
   | null;
 
 export const dialogAtom = atomWithReset<DialogState>(null);

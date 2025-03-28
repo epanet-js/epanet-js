@@ -26,6 +26,16 @@ const OpenInpDialog = dynamic<{
   },
 );
 
+const UpgradeDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/UpgradeDialog").then((r) => r.UpgradeDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const InvalidFilesErrorDialog = dynamic<{
   modal: dialogState.InvalidFilesErrorDialogState;
   onClose: () => void;
@@ -181,6 +191,7 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "simulationSummary" }, (modal) => (
       <RunSimulationDialog modal={modal} onClose={onClose} />
     ))
+    .with({ type: "upgrade" }, () => <UpgradeDialog onClose={onClose} />)
     .with({ type: "simulationReport" }, () => (
       <SimulationReportDialog onClose={onClose} />
     ))

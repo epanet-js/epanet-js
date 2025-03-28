@@ -203,6 +203,8 @@ export const translations = {
   checkMapboxDocs: "See Mapbox documentation on",
   here: "here",
   accessToken: "Access token",
+  upgradeYourAccount: "Upgrade your account",
+  upgrade: "Upgrade",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
