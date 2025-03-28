@@ -21,13 +21,16 @@ import {
   SignUpButton,
   SignedIn,
   SignedOut,
+  User,
   UserButton,
+  useAuth,
 } from "src/auth";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { CheckoutButton } from "./checkout-button";
+import { canUpgrade } from "src/user-plan";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -70,6 +73,7 @@ export const BrandLogo = ({ textSize = "md", iconSize = "8", gapX = "0" }) => {
 
 export const MenuBarPlay = memo(function MenuBar() {
   const userTracking = useUserTracking();
+  const { user } = useAuth();
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -100,7 +104,9 @@ export const MenuBarPlay = memo(function MenuBar() {
         <Divider />
         <SignedIn>
           <div className="flex items-center px-2 gap-x-2">
-            {isFeatureOn("FLAG_UPGRADE") && <CheckoutButton />}
+            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user as User) && (
+              <CheckoutButton />
+            )}
             <UserButton />
           </div>
         </SignedIn>

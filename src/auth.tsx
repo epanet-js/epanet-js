@@ -16,6 +16,7 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
+import { isFeatureOn } from "./infra/feature-flags";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -32,11 +33,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+type Plan = "free" | "pro";
+
 export type User = {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
+  plan: Plan;
 };
 
 export const useAuth = () => {
@@ -49,6 +53,9 @@ export const useAuth = () => {
         email: clerkUser.primaryEmailAddress?.emailAddress || "",
         firstName: clerkUser.firstName || undefined,
         lastName: clerkUser.lastName || undefined,
+        plan: isFeatureOn("FLAG_UPGRADE")
+          ? ((clerkUser.publicMetadata?.userPlan || "free") as Plan)
+          : "free",
       }
     : null;
 
