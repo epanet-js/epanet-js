@@ -31,6 +31,7 @@ import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { CheckoutButton } from "./checkout-button";
 import { canUpgrade } from "src/user-plan";
+import { PlanBadge } from "./plan-badge";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -106,6 +107,9 @@ export const MenuBarPlay = memo(function MenuBar() {
           <div className="flex items-center px-2 gap-x-2">
             {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user as User) && (
               <CheckoutButton />
+            )}
+            {isFeatureOn("FLAG_UPGRADE") && !canUpgrade(user as User) && (
+              <PlanBadge plan={(user as User).plan} />
             )}
             <UserButton />
           </div>
