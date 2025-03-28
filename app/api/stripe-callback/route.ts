@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { User, auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { logger } from "src/infra/server-logger";
 import Stripe from "stripe";
+import { buildUserUpgradedMessage, sendWithoutCrashing } from "src/infra/slack";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
@@ -19,8 +20,10 @@ export async function GET(request: NextRequest) {
     logger.error(`Customer id is missing`);
     return new NextResponse("Error", { status: 500 });
   }
+  const plan = "pro";
 
-  //await upgradeUser(user, customerId)
+  await upgradeUser(user, customerId, plan);
+  await notifyUpgrade(getEmail(user), plan);
   //await Promise.all([updateMailingSubscription(getEmail(user)), notifyUpgrade(getEmail(user))])
 
   return NextResponse.redirect(new URL("/", request.url));
@@ -30,4 +33,27 @@ const obtainCutomerId = async (sessionId: string): Promise<string | null> => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   return session.customer as string | null;
+};
+
+const upgradeUser = async (user: User, customerId: string, plan: string) => {
+  logger.info(`Upgrading user ${getEmail(user)} to ${plan}`);
+
+  const clerk = await clerkClient();
+  return clerk.users.updateUserMetadata(user.id, {
+    publicMetadata: {
+      userPlan: plan,
+    },
+    privateMetadata: {
+      customerId,
+    },
+  });
+};
+
+const notifyUpgrade = (email: string, plan: string) => {
+  const message = buildUserUpgradedMessage(email, plan);
+  return sendWithoutCrashing(message);
+};
+
+const getEmail = (user: User): string => {
+  return user?.emailAddresses[0].emailAddress;
 };
