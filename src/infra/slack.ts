@@ -61,6 +61,31 @@ export const buildUserCreatedMessage = (
   });
 };
 
+export const buildUserUpgradedMessage = (email: string, plan: string) => {
+  const message = {
+    text: ":money_with_wings: New upgrade!",
+    attachments: [
+      {
+        title: "User Details",
+        color: "good",
+        fields: [
+          {
+            title: "Email",
+            value: email,
+            short: true,
+          },
+          {
+            title: "Plan",
+            value: plan,
+            short: true,
+          },
+        ],
+      },
+    ],
+  };
+  return JSON.stringify(message);
+};
+
 export const buildUserDeletedMessage = (userId: string) => {
   return JSON.stringify({
     text: ":cry: User Deleted!",
