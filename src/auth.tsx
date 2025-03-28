@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-type Plan = "free" | "pro";
+export type Plan = "free" | "pro" | "personal" | "education";
 
 export type User = {
   id: string;
