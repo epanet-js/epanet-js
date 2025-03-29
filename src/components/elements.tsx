@@ -723,7 +723,7 @@ export const styledButton = ({
     // Outline
     sharedOutline(variant, disabled),
     sharedBackground(variant, disabled),
-    size === "full-width" && "flex-auto justify-center",
+    size === "full-width" && "flex-auto justify-center w-full",
     // Colored variants
     {},
   );
