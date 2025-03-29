@@ -1,19 +1,38 @@
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
-import { CheckIcon, RocketIcon, TimerIcon } from "@radix-ui/react-icons";
+import { CheckIcon, Cross1Icon, RocketIcon } from "@radix-ui/react-icons";
 import { CheckoutButton } from "../checkout-button";
 import { Button } from "../elements";
-import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
 
 export const UpgradeDialog = () => {
+  const [isCommercial, setCommercial] = useState<boolean>(true);
+
   return (
     <>
       <DialogHeader
         title={translate("upgradeYourAccount")}
         titleIcon={RocketIcon}
       />
-      <PricingGrid />
+      <Button className="mb-4" onClick={() => setCommercial(!isCommercial)}>
+        Comercial toggle
+      </Button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto p-4">
+        <FreePlan />
+        {isCommercial && (
+          <>
+            <ProPlan />
+            <TeamsPlan />
+          </>
+        )}
+        {!isCommercial && (
+          <>
+            <PersonalPlan />
+            <EducationPlan />
+          </>
+        )}
+      </div>
     </>
   );
 };
@@ -71,6 +90,88 @@ const FreePlan = () => {
   );
 };
 
+const PersonalPlan = () => {
+  return (
+    <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
+      <div className="p-6">
+        <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
+          Most popular
+        </div>
+        <PlanHeader name="Personal" price="$90" claim="Try it out yourself" />
+        <FeaturesList
+          title="Everything in Free, and:"
+          items={[
+            {
+              feature: "Professional support",
+              Icon: Cross1Icon,
+              iconColor: "text-red-500",
+            },
+            {
+              feature: "Custom map layers",
+              Icon: CheckIcon,
+              iconColor: "text-green-500",
+            },
+          ]}
+        />
+        <div className="h-4"></div>
+        <FeaturesList
+          title="Coming soon:"
+          textColor="text-gray-500"
+          items={[
+            {
+              feature: "Scenarios",
+              Icon: CheckIcon,
+              iconColor: "text-gray-400",
+            },
+            {
+              feature: "Cloud storage",
+              Icon: CheckIcon,
+              iconColor: "text-gray-400",
+            },
+            {
+              feature: "Point in time restore (30 days)",
+              Icon: CheckIcon,
+              iconColor: "text-gray-400",
+            },
+            {
+              feature: "Demands analysis",
+              Icon: CheckIcon,
+              iconColor: "text-gray-400",
+            },
+            {
+              feature: "Live data comparision",
+              Icon: CheckIcon,
+              iconColor: "text-gray-400",
+            },
+          ]}
+        />
+      </div>
+      <div className="p-4 w-full">
+        <CheckoutButton>Upgrade to Personal</CheckoutButton>
+      </div>
+    </div>
+  );
+};
+
+const EducationPlan = () => {
+  return (
+    <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
+      <div className="p-6 pb-0">
+        <PlanHeader name="Education" price="$0" claim="Learn with epanet-js" />
+        <FeaturesList title="Everything in Personal for free!" items={[]} />
+      </div>
+      <div className="p-4 w-full">
+        <Button
+          size="full-width"
+          className="default-pointer bg-gray-100 text-gray-700"
+        >
+          Use student email
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const ProPlan = () => {
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -101,27 +202,27 @@ const ProPlan = () => {
           items={[
             {
               feature: "Scenarios",
-              Icon: TimerIcon,
+              Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: "Cloud storage",
-              Icon: TimerIcon,
+              Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: "Point in time restore (30 days)",
-              Icon: TimerIcon,
+              Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: "Demands analysis",
-              Icon: TimerIcon,
+              Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: "Live data comparision",
-              Icon: TimerIcon,
+              Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -178,16 +279,6 @@ const TeamsPlan = () => {
           Coming soon
         </Button>
       </div>
-    </div>
-  );
-};
-
-const PricingGrid = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto p-4">
-      <FreePlan />
-      <ProPlan />
-      <TeamsPlan />
     </div>
   );
 };
