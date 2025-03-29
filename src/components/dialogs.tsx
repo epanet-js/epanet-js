@@ -269,7 +269,7 @@ export const Dialogs = memo(function Dialogs() {
                 dialog && dialog.type === "simulationReport"
                   ? "max-w-[80vw]"
                   : dialog && dialog.type === "upgrade"
-                    ? "w-full max-w-[960px]"
+                    ? "w-full max-w-[924px] p-6"
                     : undefined
               }
             >

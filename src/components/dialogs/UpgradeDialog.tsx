@@ -3,11 +3,27 @@ import { translate } from "src/infra/i18n";
 import { CheckIcon, Cross1Icon, RocketIcon } from "@radix-ui/react-icons";
 import { CheckoutButton } from "../checkout-button";
 import { Button } from "../elements";
-import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
+import {
+  ForwardRefExoticComponent,
+  RefAttributes,
+  useMemo,
+  useState,
+} from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
+import { Selector } from "../form/Selector";
+
+type UsageOption = "commercial" | "non-commercial";
 
 export const UpgradeDialog = () => {
-  const [isCommercial, setCommercial] = useState<boolean>(true);
+  const [usage, setUsage] = useState<UsageOption>("commercial");
+
+  const usageOptions = useMemo(
+    () => [
+      { label: "Commercial use", value: "commercial" },
+      { label: "Non-commercial use", value: "non-commercial" },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -15,18 +31,26 @@ export const UpgradeDialog = () => {
         title={translate("upgradeYourAccount")}
         titleIcon={RocketIcon}
       />
-      <Button className="mb-4" onClick={() => setCommercial(!isCommercial)}>
-        Comercial toggle
-      </Button>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto p-4">
+      <label className="block pt-2 space-x-2 pb-4 flex items-center">
+        <div className="text-sm text-gray-700 dark:text-gray-300">For:</div>
+
+        <Selector
+          options={usageOptions}
+          selected={usage}
+          onChange={(value) => setUsage(value as UsageOption)}
+          ariaLabel={"usage"}
+        />
+      </label>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         <FreePlan />
-        {isCommercial && (
+        {usage === "commercial" && (
           <>
             <ProPlan />
             <TeamsPlan />
           </>
         )}
-        {!isCommercial && (
+        {usage === "non-commercial" && (
           <>
             <PersonalPlan />
             <EducationPlan />
