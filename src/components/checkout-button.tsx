@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { captureError } from "src/infra/error-tracking";
 import { Button } from "./elements";
 
-export const CheckoutButton = () => {
+export const CheckoutButton = ({ children }: { children: ReactNode }) => {
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
   const stripeSDK = loadStripe(
@@ -37,8 +37,8 @@ export const CheckoutButton = () => {
   }
 
   return (
-    <Button onClick={handleCheckout} variant="primary">
-      {isLoading ? "Processing..." : "Upgrade"}
+    <Button onClick={handleCheckout} variant="primary" size="full-width">
+      {isLoading ? "Processing..." : children}
     </Button>
   );
 };

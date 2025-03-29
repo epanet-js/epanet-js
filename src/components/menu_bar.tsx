@@ -5,6 +5,7 @@ import {
   GitHubLogoIcon,
   KeyboardIcon,
   QuestionMarkCircledIcon,
+  RocketIcon,
   SunIcon,
 } from "@radix-ui/react-icons";
 import { MemoryInfo } from "src/components/map_info/memory_info";
@@ -114,6 +115,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                   setDialogState({ type: "upgrade" });
                 }}
               >
+                <RocketIcon />
                 {translate("upgrade")}
               </Button>
             )}

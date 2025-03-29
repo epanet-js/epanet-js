@@ -5,7 +5,6 @@ import { dialogAtom } from "src/state/jotai";
 import { match } from "ts-pattern";
 import * as D from "@radix-ui/react-dialog";
 import {
-  B3Size,
   StyledDialogOverlay,
   StyledDialogContent,
   Loading,
@@ -167,8 +166,6 @@ export const Dialogs = memo(function Dialogs() {
     setDialogState(null);
   }, [setDialogState]);
 
-  const dialogSize: B3Size = "sm";
-
   const content = match(dialog)
     .with(null, () => null)
     .with({ type: "import" }, (modal) => (
@@ -267,11 +264,13 @@ export const Dialogs = memo(function Dialogs() {
           {(!dialog || dialog.type !== "welcome") && (
             <StyledDialogContent
               onOpenAutoFocus={(e) => e.preventDefault()}
-              size={dialogSize}
+              size={"sm"}
               widthClasses={
                 dialog && dialog.type === "simulationReport"
                   ? "max-w-[80vw]"
-                  : undefined
+                  : dialog && dialog.type === "upgrade"
+                    ? "w-full max-w-[960px]"
+                    : undefined
               }
             >
               <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
