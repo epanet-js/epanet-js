@@ -213,6 +213,11 @@ export const translations: Translations = {
   accessToken: "Token de acceso",
   upgradeYourAccount: "Mejora tu cuenta",
   upgrade: "Mejorar cuenta",
+  planExplain: "Plan ${1}",
+  "plan.pro": "Profesional",
+  "plan.free": "Gratis",
+  "plan.education": "Educación",
+  "plan.personal": "Personal",
 };
 
 export const units: UnitsLocale = {

@@ -31,6 +31,9 @@ module.exports = {
       red: colors.red,
       green: colors.green,
       orange: colors.orange,
+      blue: colors.blue,
+      pink: colors.pink,
+      lime: colors.lime,
     },
     extend: {
       keyframes: {

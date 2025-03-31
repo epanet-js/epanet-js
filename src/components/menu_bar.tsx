@@ -107,7 +107,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         <HelpDot />
         <Divider />
         <SignedIn>
-          <div className="flex items-center px-2 gap-x-2">
+          <div className="relative flex items-center px-2 gap-x-2">
             {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user as User) && (
               <Button
                 variant="primary"
@@ -119,7 +119,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                 {translate("upgrade")}
               </Button>
             )}
-            {isFeatureOn("FLAG_UPGRADE") && !canUpgrade(user as User) && (
+            {isFeatureOn("FLAG_UPGRADE") && (
               <PlanBadge plan={(user as User).plan} />
             )}
             <UserButton />
