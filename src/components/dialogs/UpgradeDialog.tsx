@@ -15,6 +15,20 @@ import { Selector } from "../form/Selector";
 type UsageOption = "commercial" | "non-commercial";
 type PaymentOption = "monthly" | "yearly";
 
+const prices = {
+  pro: {
+    monthly: "$95",
+    yearly: "$950",
+  },
+  personal: {
+    yearly: "$100",
+  },
+  teams: {
+    monthly: "$250",
+    yearly: "$2500",
+  },
+};
+
 export const UpgradeDialog = () => {
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [payment, setPayment] = useState<PaymentOption>("yearly");
@@ -71,7 +85,7 @@ export const UpgradeDialog = () => {
           >
             <StyledThumb />
           </StyledSwitch>
-          <div className="text-sm ">Yearly - save up to 20%</div>
+          <div className="text-sm ">Yearly - save up to 16%</div>
         </div>
       </label>
 
@@ -149,6 +163,8 @@ const FreePlan = ({ payment }: { payment: PaymentOption }) => {
 };
 
 const PersonalPlan = ({ payment }: { payment: PaymentOption }) => {
+  const price = prices.personal.yearly;
+
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
@@ -157,7 +173,7 @@ const PersonalPlan = ({ payment }: { payment: PaymentOption }) => {
         </div>
         <PlanHeader
           name="Personal"
-          price="$90"
+          price={price}
           claim="Try it out yourself"
           payment={payment}
         />
@@ -241,7 +257,7 @@ const EducationPlan = ({ payment }: { payment: PaymentOption }) => {
 };
 
 const ProPlan = ({ payment }: { payment: PaymentOption }) => {
-  const price = payment === "yearly" ? "$950" : "$100";
+  const price = prices.pro[payment];
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -311,7 +327,7 @@ const ProPlan = ({ payment }: { payment: PaymentOption }) => {
 };
 
 const TeamsPlan = ({ payment }: { payment: PaymentOption }) => {
-  const price = payment === "yearly" ? "$2500" : "$250";
+  const price = prices.teams[payment];
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
