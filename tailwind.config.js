@@ -42,6 +42,9 @@ module.exports = {
           "100%": { opacity: 1 },
         },
       },
+      fontFamily: {
+        handwritten: ["Caveat", "cursive"],
+      },
     },
   },
   plugins: [
