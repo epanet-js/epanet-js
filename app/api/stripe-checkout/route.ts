@@ -10,6 +10,11 @@ export async function POST(request: NextRequest) {
 
   if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
+  const body = await request.json();
+  const { plan, paymentType } = body;
+
+  logger.info(`Initiating checkout session for ${plan}:${paymentType}`);
+
   const user = await currentUser();
   const email = user?.emailAddresses[0].emailAddress;
 

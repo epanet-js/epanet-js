@@ -1,7 +1,7 @@
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { CheckIcon, Cross1Icon, RocketIcon } from "@radix-ui/react-icons";
-import { CheckoutButton } from "../checkout-button";
+import { CheckoutButton, PaymentType } from "../checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../elements";
 import {
   ForwardRefExoticComponent,
@@ -13,7 +13,6 @@ import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector } from "../form/Selector";
 
 type UsageOption = "commercial" | "non-commercial";
-type PaymentOption = "monthly" | "yearly";
 
 const prices = {
   pro: {
@@ -31,7 +30,7 @@ const prices = {
 
 export const UpgradeDialog = () => {
   const [usage, setUsage] = useState<UsageOption>("commercial");
-  const [payment, setPayment] = useState<PaymentOption>("yearly");
+  const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
 
   const usageOptions = useMemo(
@@ -44,7 +43,7 @@ export const UpgradeDialog = () => {
 
   const handleUsageChange = (newUsage: UsageOption) => {
     if (newUsage === "non-commercial") {
-      setPayment("yearly");
+      setPaymentType("yearly");
     }
     setSeenHint(true);
     setUsage(newUsage);
@@ -75,12 +74,12 @@ export const UpgradeDialog = () => {
         >
           <div className="text-sm ">Monthly</div>
           <StyledSwitch
-            checked={payment === "yearly"}
+            checked={paymentType === "yearly"}
             disabled={usage === "non-commercial"}
             onCheckedChange={() => {
-              payment === "yearly"
-                ? setPayment("monthly")
-                : setPayment("yearly");
+              paymentType === "yearly"
+                ? setPaymentType("monthly")
+                : setPaymentType("yearly");
             }}
           >
             <StyledThumb />
@@ -90,17 +89,17 @@ export const UpgradeDialog = () => {
       </label>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <FreePlan payment={payment} />
+        <FreePlan paymentType={paymentType} />
         {usage === "commercial" && (
           <>
-            <ProPlan payment={payment} />
-            <TeamsPlan payment={payment} />
+            <ProPlan paymentType={paymentType} />
+            <TeamsPlan paymentType={paymentType} />
           </>
         )}
         {usage === "non-commercial" && (
           <>
-            <PersonalPlan payment={payment} />
-            <EducationPlan payment={payment} />
+            <PersonalPlan paymentType={paymentType} />
+            <EducationPlan paymentType={paymentType} />
           </>
         )}
       </div>
@@ -108,7 +107,7 @@ export const UpgradeDialog = () => {
   );
 };
 
-const FreePlan = ({ payment }: { payment: PaymentOption }) => {
+const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6">
@@ -116,7 +115,7 @@ const FreePlan = ({ payment }: { payment: PaymentOption }) => {
           name="Free"
           price="$0"
           claim="For a better modeling experience"
-          payment={payment}
+          payment={paymentType}
         />
         <FeaturesList
           items={[
@@ -162,7 +161,7 @@ const FreePlan = ({ payment }: { payment: PaymentOption }) => {
   );
 };
 
-const PersonalPlan = ({ payment }: { payment: PaymentOption }) => {
+const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const price = prices.personal.yearly;
 
   return (
@@ -175,7 +174,7 @@ const PersonalPlan = ({ payment }: { payment: PaymentOption }) => {
           name="Personal"
           price={price}
           claim="Try it out yourself"
-          payment={payment}
+          payment={paymentType}
         />
         <FeaturesList
           title="Everything in Free, and:"
@@ -226,20 +225,22 @@ const PersonalPlan = ({ payment }: { payment: PaymentOption }) => {
         />
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton>Upgrade to Personal</CheckoutButton>
+        <CheckoutButton plan="personal" paymentType={paymentType}>
+          Upgrade to Personal
+        </CheckoutButton>
       </div>
     </div>
   );
 };
 
-const EducationPlan = ({ payment }: { payment: PaymentOption }) => {
+const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
       <div className="p-6 pb-0">
         <PlanHeader
           name="Education"
           price="$0"
-          payment={payment}
+          payment={paymentType}
           claim="Learn with epanet-js"
         />
         <FeaturesList title="Everything in Personal for free!" items={[]} />
@@ -256,8 +257,8 @@ const EducationPlan = ({ payment }: { payment: PaymentOption }) => {
   );
 };
 
-const ProPlan = ({ payment }: { payment: PaymentOption }) => {
-  const price = prices.pro[payment];
+const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const price = prices.pro[paymentType];
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -268,7 +269,7 @@ const ProPlan = ({ payment }: { payment: PaymentOption }) => {
         <PlanHeader
           name="Pro"
           price={price}
-          payment={payment}
+          payment={paymentType}
           claim="Individual named license"
         />
         <FeaturesList
@@ -320,14 +321,16 @@ const ProPlan = ({ payment }: { payment: PaymentOption }) => {
         />
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton>Upgrade to Pro</CheckoutButton>
+        <CheckoutButton plan="pro" paymentType={paymentType}>
+          Upgrade to Pro
+        </CheckoutButton>
       </div>
     </div>
   );
 };
 
-const TeamsPlan = ({ payment }: { payment: PaymentOption }) => {
-  const price = prices.teams[payment];
+const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const price = prices.teams[paymentType];
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
@@ -338,7 +341,7 @@ const TeamsPlan = ({ payment }: { payment: PaymentOption }) => {
         <PlanHeader
           name="Teams"
           price={price}
-          payment={payment}
+          payment={paymentType}
           claim="Floating shared license"
         />
         <FeaturesList
@@ -390,7 +393,7 @@ const PlanHeader = ({
 }: {
   name: string;
   price: string;
-  payment: PaymentOption;
+  payment: PaymentType;
   claim: string;
 }) => {
   const recurrency = payment === "yearly" ? "/year" : "/mo";
