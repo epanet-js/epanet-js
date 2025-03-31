@@ -420,7 +420,7 @@ const FeaturesList = ({
 
 const NonCommercialHint = () => {
   return (
-    <div className="relative flex items-center ml-8 text-gray-500 font-handwritten text-xl whitespace-nowrap">
+    <div className="relative flex items-center ml-8 text-gray-400 font-handwritten text-xl whitespace-nowrap">
       <svg
         width="48"
         height="218"
@@ -436,7 +436,7 @@ const NonCommercialHint = () => {
           fill="currentColor"
         />
       </svg>
-      <span className="-mt-4">Students and personal use!</span>
+      <span className="-mt-4">Student or personal use? Switch here!</span>
     </div>
   );
 };
