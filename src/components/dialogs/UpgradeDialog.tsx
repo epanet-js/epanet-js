@@ -269,31 +269,32 @@ const TeamsPlan = () => {
         <PlanHeader name="Teams" price="$900" claim="Floating shared license" />
         <FeaturesList
           title="Everything in Pro, and:"
+          textColor="text-gray-500"
           items={[
             {
               feature: "Priority support",
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-gray-400",
             },
             {
               feature: "Team storage",
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-gray-400",
             },
             {
               feature: "Point in time restore (90 days)",
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-gray-400",
             },
             {
               feature: "Sharing networks",
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-gray-400",
             },
             {
               feature: "Volume discounts",
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-gray-400",
             },
           ]}
         />
