@@ -43,11 +43,19 @@ export type User = {
   plan: Plan;
 };
 
+const nullUser: User = {
+  id: "",
+  email: "",
+  firstName: undefined,
+  lastName: undefined,
+  plan: "free",
+};
+
 export const useAuth = () => {
   const { isSignedIn, userId } = useClerkAuth();
   const { user: clerkUser } = useClerkUser();
 
-  const user: User | null = clerkUser
+  const user: User = clerkUser
     ? {
         id: clerkUser.id,
         email: clerkUser.primaryEmailAddress?.emailAddress || "",
@@ -57,7 +65,7 @@ export const useAuth = () => {
           ? ((clerkUser.publicMetadata?.userPlan || "free") as Plan)
           : "free",
       }
-    : null;
+    : nullUser;
 
   return { isSignedIn, userId, user };
 };

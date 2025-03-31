@@ -22,7 +22,6 @@ import {
   SignUpButton,
   SignedIn,
   SignedOut,
-  User,
   UserButton,
   useAuth,
 } from "src/auth";
@@ -108,7 +107,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         <Divider />
         <SignedIn>
           <div className="relative flex items-center px-2 gap-x-2">
-            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user as User) && (
+            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user) && (
               <Button
                 variant="primary"
                 onClick={() => {
@@ -119,9 +118,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                 {translate("upgrade")}
               </Button>
             )}
-            {isFeatureOn("FLAG_UPGRADE") && (
-              <PlanBadge plan={(user as User).plan} />
-            )}
+            {isFeatureOn("FLAG_UPGRADE") && <PlanBadge plan={user.plan} />}
             <UserButton />
           </div>
         </SignedIn>
