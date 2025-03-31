@@ -205,6 +205,11 @@ export const translations = {
   accessToken: "Access token",
   upgradeYourAccount: "Upgrade your account",
   upgrade: "Upgrade",
+  planExplain: "${1} plan",
+  "plan.pro": "Professional",
+  "plan.free": "Free",
+  "plan.education": "Education",
+  "plan.personal": "Personal",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
