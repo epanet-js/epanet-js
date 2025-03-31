@@ -2,11 +2,18 @@ import { ReactNode, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { captureError } from "src/infra/error-tracking";
 import { Button } from "./elements";
+import { Plan } from "src/auth";
+
+export type PaymentType = "monthly" | "yearly";
 
 export const CheckoutButton = ({
   variant = "primary",
+  plan,
+  paymentType,
   children,
 }: {
+  plan: Plan;
+  paymentType: PaymentType;
   variant?: "primary" | "quiet";
   children: ReactNode;
 }) => {
@@ -26,6 +33,7 @@ export const CheckoutButton = ({
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ plan, paymentType }),
       });
       const { sessionId } = await response.json();
 
