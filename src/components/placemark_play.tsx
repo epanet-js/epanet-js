@@ -58,6 +58,7 @@ import {TabCloseGuard} from './tab-close-guard';
 import {CommandShortcuts} from './commands-shortcuts';
 import {useUserTracking} from 'src/infra/user-tracking';
 import {useAuth} from 'src/auth';
+import {dialogFromUrl} from 'src/state/dialog_state';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -119,11 +120,13 @@ export function PlacemarkPlay() {
   );
 
 
-
-  useHydrateAtoms([[dialogAtom,
-  settingsFromStorage().showWelcomeOnStart
-    ? { type: "welcome" }
-    : null,
+  useHydrateAtoms([
+    [dialogAtom,
+    isFeatureOn('FLAG_UPGRADE') &&  dialogFromUrl()
+      ? dialogFromUrl()
+      : settingsFromStorage().showWelcomeOnStart
+        ? { type: "welcome" }
+        : null,
   ]])
 
   return (
