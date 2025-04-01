@@ -61,7 +61,11 @@ export const buildUserCreatedMessage = (
   });
 };
 
-export const buildUserUpgradedMessage = (email: string, plan: string) => {
+export const buildUserUpgradedMessage = (
+  email: string,
+  plan: string,
+  paymentType: string,
+) => {
   const message = {
     text: ":money_with_wings: New upgrade!",
     attachments: [
@@ -77,6 +81,11 @@ export const buildUserUpgradedMessage = (email: string, plan: string) => {
           {
             title: "Plan",
             value: plan,
+            short: true,
+          },
+          {
+            title: "Payment type",
+            value: paymentType,
             short: true,
           },
         ],
