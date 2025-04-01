@@ -1177,7 +1177,7 @@ const LayerTypeButton = ({
 
 const UpgradeTag = () => {
   return (
-    <span className="bg-purple-100 text-purple-500 text-sm px-1 rounded-md">
+    <span className="bg-purple-100 text-purple-500 text-xs px-1 rounded-md">
       {translate("upgrade").toUpperCase()}
     </span>
   );
