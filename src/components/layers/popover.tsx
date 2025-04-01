@@ -10,7 +10,7 @@ import {
 import debounce from "lodash/debounce";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { layerConfigAtom } from "src/state/jotai";
+import { dialogAtom, layerConfigAtom } from "src/state/jotai";
 import * as E from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
 import LAYERS from "src/lib/default_layers";
@@ -44,7 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery as reactUseQuery } from "react-query";
-import { Suspense, useCallback, useState } from "react";
+import { ReactNode, Suspense, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import { match } from "ts-pattern";
 import { zTileJSON } from "src/mapbox-layers/validations";
@@ -54,6 +54,7 @@ import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { translate } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type Mode =
   | "custom"
@@ -457,10 +458,25 @@ function XYZLayer({
   );
 }
 
-function AddLayer() {
+function AddLayer({ onClose }: { onClose: () => void }) {
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
   const userTracking = useUserTracking();
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const handleUpgrade = () => {
+    setOpen(false);
+    onClose();
+    setDialogState({ type: "upgrade" });
+  };
+
+  const handleModeChange = (mode: Mode, type: string) => {
+    userTracking.capture({
+      name: "layerType.choosen",
+      type: type,
+    });
+    setMode(mode);
+  };
 
   return (
     <P.Root
@@ -497,54 +513,42 @@ function AddLayer() {
                     <div className="font-bold">{translate("chooseType")}</div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
-                    <E.Button
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "layerType.choosen",
-                          type: "BASEMAP",
-                        });
-                        setMode("basemap");
-                      }}
+                    <LayerTypeButton
+                      type="BASEMAP"
+                      mode="basemap"
+                      needsUpgrade={false}
+                      onModeChange={handleModeChange}
+                      onUpgrade={handleUpgrade}
                     >
                       {translate("basemap")}
-                      <CaretRightIcon />
-                    </E.Button>
-                    <E.Button
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "layerType.choosen",
-                          type: "XYZ",
-                        });
-                        setMode("custom-xyz");
-                      }}
+                    </LayerTypeButton>
+                    <LayerTypeButton
+                      type="XYZ"
+                      mode="custom-xyz"
+                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      onModeChange={handleModeChange}
+                      onUpgrade={handleUpgrade}
                     >
                       XYZ
-                      <CaretRightIcon />
-                    </E.Button>
-                    <E.Button
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "layerType.choosen",
-                          type: "MAPBOX",
-                        });
-                        setMode("custom-mapbox");
-                      }}
+                    </LayerTypeButton>
+                    <LayerTypeButton
+                      type="MAPBOX"
+                      mode="custom-mapbox"
+                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      onModeChange={handleModeChange}
+                      onUpgrade={handleUpgrade}
                     >
                       Mapbox
-                      <CaretRightIcon />
-                    </E.Button>
-                    <E.Button
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "layerType.choosen",
-                          type: "TILEJSON",
-                        });
-                        setMode("custom-tilejson");
-                      }}
+                    </LayerTypeButton>
+                    <LayerTypeButton
+                      type="TILEJSON"
+                      mode="custom-tilejson"
+                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      onModeChange={handleModeChange}
+                      onUpgrade={handleUpgrade}
                     >
                       TileJSON
-                      <CaretRightIcon />
-                    </E.Button>
+                    </LayerTypeButton>
                   </div>
                 </div>
               ))
@@ -1036,7 +1040,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
 
 export { FORM_ERROR } from "src/core/components/Form";
 
-export function LayersPopover() {
+export function LayersPopover({ onClose }: { onClose: () => void }) {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
   const items = [...layerConfigs.values()];
@@ -1081,7 +1085,7 @@ export function LayersPopover() {
       <div className="flex items-start justify-between pb-2">
         <div className="font-bold">{translate("layers")}</div>
         <div className="relative">
-          <AddLayer />
+          <AddLayer onClose={onClose} />
         </div>
       </div>
       <div
@@ -1124,3 +1128,44 @@ export function LayersPopover() {
     </div>
   );
 }
+
+const LayerTypeButton = ({
+  type,
+  mode,
+  children,
+  needsUpgrade,
+  onModeChange,
+  onUpgrade,
+}: {
+  type: string;
+  mode: Mode;
+  children: ReactNode;
+  needsUpgrade: boolean;
+  onModeChange: (mode: Mode, type: string) => void;
+  onUpgrade: () => void;
+}) => {
+  return (
+    <E.Button
+      className="flex items-center justify-between "
+      onClick={() => {
+        if (needsUpgrade) {
+          onUpgrade();
+        } else {
+          onModeChange(mode, type);
+        }
+      }}
+    >
+      {children}
+      {needsUpgrade && <UpgradeTag />}
+      {!needsUpgrade && <CaretRightIcon />}
+    </E.Button>
+  );
+};
+
+const UpgradeTag = () => {
+  return (
+    <span className="bg-purple-100 text-purple-500 text-sm px-1 rounded-md">
+      {translate("upgrade").toUpperCase()}
+    </span>
+  );
+};

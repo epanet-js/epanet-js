@@ -145,7 +145,7 @@ describe("layers popover", () => {
   const renderComponent = ({ store }: { store: Store }) => {
     render(
       <Container store={store}>
-        <LayersPopover />
+        <LayersPopover onClose={() => {}} />
       </Container>,
     );
   };
