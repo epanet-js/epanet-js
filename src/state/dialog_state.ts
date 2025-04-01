@@ -87,4 +87,15 @@ export type DialogState =
   | UpgradeDialogState
   | null;
 
+export const dialogFromUrl = (): DialogState => {
+  if (typeof window === "undefined") return null;
+
+  const params = new URLSearchParams(window.location.search);
+
+  const dialog = params.get("dialog");
+  if (!dialog) return null;
+
+  return { type: dialog } as DialogState;
+};
+
 export const dialogAtom = atomWithReset<DialogState>(null);
