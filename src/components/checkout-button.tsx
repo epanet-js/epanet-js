@@ -3,6 +3,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { captureError } from "src/infra/error-tracking";
 import { Button } from "./elements";
 import { Plan } from "src/auth";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export type PaymentType = "monthly" | "yearly";
 
@@ -22,9 +23,15 @@ export const CheckoutButton = ({
   const stripeSDK = loadStripe(
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
   );
+  const userTracking = useUserTracking();
 
   const handleCheckout = async () => {
     setLoading(true);
+    userTracking.capture({
+      name: "checkout.started",
+      plan,
+      paymentType,
+    });
 
     try {
       const stripe = await stripeSDK;
