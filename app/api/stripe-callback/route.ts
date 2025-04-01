@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
   const plan = request.nextUrl.searchParams.get("plan");
   const paymentType = request.nextUrl.searchParams.get("paymentType");
 
-  if (!plan) {
-    logger.error(`Plan is missing!`);
+  if (!plan || !paymentType) {
+    logger.error(`Plan data is missing!`);
     return new NextResponse("Error", { status: 500 });
   }
 
-  await upgradeUser(user, customerId, plan);
+  await upgradeUser(user, customerId, plan, paymentType);
   await notifyUpgrade(getEmail(user), plan, paymentType);
 
   return NextResponse.redirect(new URL("/", request.url));
@@ -41,7 +41,12 @@ const obtainCutomerId = async (sessionId: string): Promise<string | null> => {
   return session.customer as string | null;
 };
 
-const upgradeUser = async (user: User, customerId: string, plan: string) => {
+const upgradeUser = async (
+  user: User,
+  customerId: string,
+  plan: string,
+  paymentType: string,
+) => {
   logger.info(`Upgrading user ${getEmail(user)} to ${plan}`);
 
   const clerk = await clerkClient();
@@ -51,6 +56,7 @@ const upgradeUser = async (user: User, customerId: string, plan: string) => {
     },
     privateMetadata: {
       customerId,
+      paymentType,
     },
   });
 };
