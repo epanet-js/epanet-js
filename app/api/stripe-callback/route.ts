@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
   }
 
   const plan = request.nextUrl.searchParams.get("plan");
+  const paymentType = request.nextUrl.searchParams.get("paymentType");
 
   if (!plan) {
     logger.error(`Plan is missing!`);
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 
   await upgradeUser(user, customerId, plan);
-  await notifyUpgrade(getEmail(user), plan);
+  await notifyUpgrade(getEmail(user), plan, paymentType);
 
   return NextResponse.redirect(new URL("/", request.url));
 }
@@ -54,8 +55,8 @@ const upgradeUser = async (user: User, customerId: string, plan: string) => {
   });
 };
 
-const notifyUpgrade = (email: string, plan: string) => {
-  const message = buildUserUpgradedMessage(email, plan);
+const notifyUpgrade = (email: string, plan: string, paymentType: string) => {
+  const message = buildUserUpgradedMessage(email, plan, paymentType);
   return sendWithoutCrashing(message);
 };
 
