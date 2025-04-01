@@ -17,6 +17,7 @@ import {
 import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector } from "../form/Selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -38,6 +39,7 @@ export const UpgradeDialog = () => {
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
+  const userTracking = useUserTracking();
 
   const usageOptions = useMemo(
     () => [
@@ -48,11 +50,19 @@ export const UpgradeDialog = () => {
   );
 
   const handleUsageChange = (newUsage: UsageOption) => {
+    userTracking.capture({ name: "planUsage.toggled" });
     if (newUsage === "non-commercial") {
       setPaymentType("yearly");
     }
     setSeenHint(true);
     setUsage(newUsage);
+  };
+
+  const handlePaymentToggle = () => {
+    userTracking.capture({ name: "planPaymentType.toggled" });
+    paymentType === "yearly"
+      ? setPaymentType("monthly")
+      : setPaymentType("yearly");
   };
 
   return (
@@ -82,11 +92,7 @@ export const UpgradeDialog = () => {
           <StyledSwitch
             checked={paymentType === "yearly"}
             disabled={usage === "non-commercial"}
-            onCheckedChange={() => {
-              paymentType === "yearly"
-                ? setPaymentType("monthly")
-                : setPaymentType("yearly");
-            }}
+            onCheckedChange={handlePaymentToggle}
           >
             <StyledThumb />
           </StyledSwitch>
