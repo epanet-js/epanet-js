@@ -1,6 +1,11 @@
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
-import { CheckIcon, Cross1Icon, RocketIcon } from "@radix-ui/react-icons";
+import {
+  CheckIcon,
+  Cross1Icon,
+  InfoCircledIcon,
+  RocketIcon,
+} from "@radix-ui/react-icons";
 import { CheckoutButton, PaymentType } from "../checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../elements";
 import {
@@ -11,6 +16,7 @@ import {
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector } from "../form/Selector";
+import * as Tooltip from "@radix-ui/react-tooltip";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -343,6 +349,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           price={price}
           payment={paymentType}
           claim="Floating shared license"
+          tooltip="Minimum 2 licenses"
         />
         <FeaturesList
           title="Everything in Pro, and:"
@@ -390,11 +397,13 @@ const PlanHeader = ({
   price,
   payment = "yearly",
   claim,
+  tooltip,
 }: {
   name: string;
   price: string;
   payment: PaymentType;
   claim: string;
+  tooltip?: string;
 }) => {
   const recurrency = payment === "yearly" ? "/year" : "/mo";
   return (
@@ -404,7 +413,10 @@ const PlanHeader = ({
         <strong className="text-3xl font-bold">{price}</strong>
         <span className="text-lg text-gray-500">{recurrency}</span>
       </div>
-      <p className="text-gray-600 text-sm mb-4">{claim}</p>
+      <div className="flex items-center mb-4 space-x-1">
+        <p className="text-gray-600 text-sm">{claim}</p>
+        {tooltip && <InfoTooltip text={tooltip} />}
+      </div>
     </div>
   );
 };
@@ -457,5 +469,27 @@ const NonCommercialHint = () => {
       </svg>
       <span className="-mt-4">Student or personal use? Switch here!</span>
     </div>
+  );
+};
+
+const InfoTooltip = ({ text }: { text: string }) => {
+  return (
+    <Tooltip.Root delayDuration={100}>
+      <Tooltip.Trigger asChild>
+        <button className="p-1 rounded-full hover:bg-gray-200">
+          <InfoCircledIcon className="w-5 h-5 text-gray-500" />
+        </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content
+          className="bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg z-50"
+          side="top"
+          align="start"
+        >
+          {text}
+          <Tooltip.Arrow className="fill-gray-900" />
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 };
