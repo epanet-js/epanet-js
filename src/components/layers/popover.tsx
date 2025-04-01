@@ -44,7 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery as reactUseQuery } from "react-query";
-import { ReactNode, Suspense, useCallback, useState } from "react";
+import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { match } from "ts-pattern";
 import { zTileJSON } from "src/mapbox-layers/validations";
@@ -55,6 +55,8 @@ import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { limits } from "src/user-plan";
+import { useAuth } from "src/auth";
 
 type Mode =
   | "custom"
@@ -463,6 +465,13 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useAtom(layerModeAtom);
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
+  const { user } = useAuth();
+
+  const canAddCustomLayers = useMemo(() => {
+    if (!isFeatureOn("FLAG_UPGRADE")) return true;
+
+    return limits.canAddCustomLayers(user.plan);
+  }, [user]);
 
   const handleUpgrade = () => {
     setOpen(false);
@@ -525,7 +534,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
                     <LayerTypeButton
                       type="XYZ"
                       mode="custom-xyz"
-                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      needsUpgrade={!canAddCustomLayers}
                       onModeChange={handleModeChange}
                       onUpgrade={handleUpgrade}
                     >
@@ -534,7 +543,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
                     <LayerTypeButton
                       type="MAPBOX"
                       mode="custom-mapbox"
-                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      needsUpgrade={!canAddCustomLayers}
                       onModeChange={handleModeChange}
                       onUpgrade={handleUpgrade}
                     >
@@ -543,7 +552,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
                     <LayerTypeButton
                       type="TILEJSON"
                       mode="custom-tilejson"
-                      needsUpgrade={isFeatureOn("FLAG_UPGRADE")}
+                      needsUpgrade={!canAddCustomLayers}
                       onModeChange={handleModeChange}
                       onUpgrade={handleUpgrade}
                     >
