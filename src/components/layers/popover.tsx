@@ -474,6 +474,10 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   }, [user]);
 
   const handleUpgrade = () => {
+    userTracking.capture({
+      name: "upgradeButton.clicked",
+      source: "customLayers",
+    });
     setOpen(false);
     onClose();
     setDialogState({ type: "upgrade" });
