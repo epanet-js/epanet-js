@@ -359,6 +359,8 @@ type UserEvent =
   | { name: "addCustomLayer.clicked" }
   | { name: "layerType.choosen"; type: string }
   | { name: "checkout.started"; plan: string; paymentType: string }
+  | { name: "planUsage.toggled" }
+  | { name: "planPaymentType.toggled" }
   | {
       name: "upgradeButton.clicked";
       source: "menu" | "customLayers";
