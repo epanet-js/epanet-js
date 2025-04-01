@@ -111,6 +111,10 @@ export const MenuBarPlay = memo(function MenuBar() {
               <Button
                 variant="primary"
                 onClick={() => {
+                  userTracking.capture({
+                    name: "upgradeButton.clicked",
+                    source: "menu",
+                  });
                   setDialogState({ type: "upgrade" });
                 }}
               >
