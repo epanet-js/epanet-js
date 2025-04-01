@@ -358,6 +358,7 @@ type UserEvent =
   | { name: "customLayer.added"; type: string }
   | { name: "addCustomLayer.clicked" }
   | { name: "layerType.choosen"; type: string }
+  | { name: "checkout.started"; plan: string; paymentType: string }
   | {
       name: "baseMap.changed";
       oldValue: string;
