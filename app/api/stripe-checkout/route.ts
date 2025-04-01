@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
   const priceId = priceIdFor(plan, paymentType);
 
   const successUrl = new URL(
-    `/api/stripe-callback?session_id={CHECKOUT_SESSION_ID}`,
+    `/api/stripe-callback?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&paymentType=${paymentType}`,
     request.url,
   );
   const cancelUrl = new URL("/", request.url);

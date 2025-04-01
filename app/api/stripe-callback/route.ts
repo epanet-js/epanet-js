@@ -20,11 +20,16 @@ export async function GET(request: NextRequest) {
     logger.error(`Customer id is missing`);
     return new NextResponse("Error", { status: 500 });
   }
-  const plan = "pro";
+
+  const plan = request.nextUrl.searchParams.get("plan");
+
+  if (!plan) {
+    logger.error(`Plan is missing!`);
+    return new NextResponse("Error", { status: 500 });
+  }
 
   await upgradeUser(user, customerId, plan);
   await notifyUpgrade(getEmail(user), plan);
-  //await Promise.all([updateMailingSubscription(getEmail(user)), notifyUpgrade(getEmail(user))])
 
   return NextResponse.redirect(new URL("/", request.url));
 }
