@@ -17,6 +17,8 @@ import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
 import { isFeatureOn } from "./infra/feature-flags";
+import { UseAuthHook } from "./__helpers__/auth-mock";
+import { Plan, nullUser, User } from "./auth-types";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -33,25 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export type Plan = "free" | "pro" | "personal" | "education";
-
-export type User = {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  plan: Plan;
-};
-
-const nullUser: User = {
-  id: "",
-  email: "",
-  firstName: undefined,
-  lastName: undefined,
-  plan: "free",
-};
-
-export const useAuth = () => {
+export const useAuth: UseAuthHook = () => {
   const { isSignedIn, userId } = useClerkAuth();
   const { user: clerkUser } = useClerkUser();
 

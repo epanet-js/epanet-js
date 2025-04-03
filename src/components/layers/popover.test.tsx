@@ -14,7 +14,7 @@ import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { AuthProvider } from "src/auth";
 
-describe.skip("layers popover", () => {
+describe("layers popover", () => {
   it("shows selected basemap", () => {
     const basemap = aLayerConfig({
       type: "MAPBOX",

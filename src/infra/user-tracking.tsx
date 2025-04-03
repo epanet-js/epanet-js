@@ -5,7 +5,8 @@ import { isDebugOn } from "./debug-mode";
 import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
-import { User } from "src/auth";
+import { User } from "src/auth-types";
+
 type Metadata = {
   [key: string]: boolean | string | number | string[];
 };

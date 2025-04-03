@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { captureError } from "src/infra/error-tracking";
 import { Button } from "./elements";
-import { Plan } from "src/auth";
+import { Plan } from "src/auth-types";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export type PaymentType = "monthly" | "yearly";

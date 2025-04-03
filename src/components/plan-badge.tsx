@@ -1,4 +1,4 @@
-import { Plan } from "src/auth";
+import { Plan } from "src/auth-types";
 import { translate } from "src/infra/i18n";
 
 const planStyles: Record<string, string> = {

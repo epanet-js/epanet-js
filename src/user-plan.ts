@@ -1,4 +1,4 @@
-import { Plan, User } from "./auth";
+import { Plan, User } from "./auth-types";
 
 export const canUpgrade = (user: User) => {
   return user.plan === "free";
