@@ -475,7 +475,7 @@ const NonCommercialHint = () => {
         viewBox="0 0 48 218"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="rotate-[70deg]  w-8 h-12 mx-4"
+        className="rotate-[70deg]  w-8 h-12 ml-2 mr-3"
       >
         <path
           fill-rule="evenodd"
