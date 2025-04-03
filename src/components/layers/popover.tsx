@@ -410,8 +410,12 @@ function XYZLayer({
             }),
           ),
           {
-            loading: isEditing ? "Updating layer" : "Adding layer",
-            success: isEditing ? "Updated layer" : "Added layer",
+            loading: isEditing
+              ? translate("updatingLayer")
+              : translate("addingLayer"),
+            success: isEditing
+              ? translate("layerUpdated")
+              : translate("layerAdded"),
             error: "Error",
           },
         );

@@ -1,12 +1,26 @@
+import { nanoid } from "nanoid";
 import { createContext, useContext } from "react";
-import { User, nullUser } from "src/auth-types";
+import { UseAuthHook, User, nullUser } from "src/auth-types";
 
 const AuthMockContext = createContext({ user: nullUser, isSignedIn: false });
 
+export const aUser = (attributes: Partial<User> = {}): User => {
+  const defaults: User = {
+    id: nanoid(),
+    email: "test@example.org",
+    firstName: "John",
+    lastName: "Doe",
+    plan: "free",
+  };
+  return { ...defaults, ...attributes };
+};
+
+export const aGuestUser = () => ({ ...nullUser });
+
 export const AuthMockProvider = ({
   children,
-  user = nullUser,
-  isSignedIn = false,
+  user = aUser(),
+  isSignedIn = true,
 }: {
   children: React.ReactNode;
   user?: User;
@@ -23,10 +37,4 @@ export const useAuthMock: UseAuthHook = () => {
   const { isSignedIn, user } = useContext(AuthMockContext);
 
   return { isSignedIn, user, userId: user.id };
-};
-
-export type UseAuthHook = () => {
-  isSignedIn?: boolean;
-  userId: string | null | undefined;
-  user: User;
 };

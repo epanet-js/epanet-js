@@ -255,6 +255,10 @@ export const translations: Translations = {
   tryItYourself: "Pruébalo tú mismo",
   learnWithEpanetJS: "Aprende con epanet-js",
   useStudentEmail: "Usar email de estudiante",
+  layerAdded: "Capa añadida",
+  addingLayer: "Añadiendo capa...",
+  layerUpdated: "Capa actualizada",
+  updatingLayer: "Actualizando capa...",
 };
 
 export const units: UnitsLocale = {

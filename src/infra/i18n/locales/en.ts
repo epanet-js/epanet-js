@@ -247,6 +247,10 @@ export const translations = {
   tryItYourself: "Try it out yourself",
   learnWithEpanetJS: "Learn with epanet-js",
   useStudentEmail: "Use student email",
+  layerAdded: "Layer added",
+  addingLayer: "Adding layer...",
+  layerUpdated: "Layer updated",
+  updatingLayer: "Updating layer...",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
