@@ -8,5 +8,6 @@ export const privacyPolicyUrl = "https://epanetjs.com/privacy-policy";
 export const termsAndConditionsUrl = "https://epanetjs.com/terms-conditions";
 export const projectionConverterUrl =
   "https://utils.epanetjs.com/projection-converter";
+export const studentAccountActiviationHelpUrl = "https://help.epanetjs.com";
 
 export const supportEmail = "support@epanetjs.com";

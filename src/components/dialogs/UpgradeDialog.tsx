@@ -18,6 +18,7 @@ import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector } from "../form/Selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
+import { studentAccountActiviationHelpUrl } from "src/global-config";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -264,13 +265,25 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[]}
         />
       </div>
-      <div className="p-4 w-full">
-        <Button
-          size="full-width"
-          className="default-pointer bg-gray-100 text-gray-700"
-        >
-          {translate("useStudentEmail")}
-        </Button>
+      <div className="flex flex-col p-4 gap-y-3">
+        <div className="w-full">
+          <Button
+            size="full-width"
+            className="default-pointer bg-gray-100 text-gray-700"
+          >
+            {translate("useStudentEmail")}
+          </Button>
+        </div>
+        <div className="text-xs text-center text-gray-500">
+          Having issues validating your student email?{" "}
+          <a
+            className="text-blue-600"
+            target="_blank"
+            href={studentAccountActiviationHelpUrl}
+          >
+            Get help.
+          </a>
+        </div>
       </div>
     </div>
   );
