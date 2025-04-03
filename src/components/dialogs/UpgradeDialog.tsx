@@ -43,8 +43,8 @@ export const UpgradeDialog = () => {
 
   const usageOptions = useMemo(
     () => [
-      { label: "Commercial use", value: "commercial" },
-      { label: "Non-commercial use", value: "non-commercial" },
+      { label: translate("commercialUse"), value: "commercial" },
+      { label: translate("nonCommercialUse"), value: "non-commercial" },
     ],
     [],
   );
@@ -73,7 +73,9 @@ export const UpgradeDialog = () => {
       />
       <label className="block pt-4 space-x-4 pb-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="text-sm text-gray-700 dark:text-gray-300">For:</div>
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            {translate("for")}:
+          </div>
           <Selector
             options={usageOptions}
             selected={usage}
@@ -88,7 +90,7 @@ export const UpgradeDialog = () => {
         <div
           className={`flex items-center space-x-2 text-gray-700 ${usage === "non-commercial" ? "opacity-25" : ""}`}
         >
-          <div className="text-sm ">Monthly</div>
+          <div className="text-sm ">{translate("monthly")}</div>
           <StyledSwitch
             checked={paymentType === "yearly"}
             disabled={usage === "non-commercial"}
@@ -96,7 +98,9 @@ export const UpgradeDialog = () => {
           >
             <StyledThumb />
           </StyledSwitch>
-          <div className="text-sm ">Yearly - save up to 16%</div>
+          <div className="text-sm ">
+            {translate("yearlyWithDiscount", "16")}
+          </div>
         </div>
       </label>
 
@@ -126,33 +130,33 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
         <PlanHeader
           name="Free"
           price="$0"
-          claim="For a better modeling experience"
+          claim={translate("free.forBetterModelling")}
           payment={paymentType}
         />
         <FeaturesList
           items={[
             {
-              feature: "Web based EPANET model",
+              feature: translate("free.webBasedEpanet"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
             {
-              feature: "Background maps and satellite",
+              feature: translate("free.backgroundMap"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
             {
-              feature: "Automated elevations",
+              feature: translate("free.elevations"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
             {
-              feature: "No limits on sizes",
+              feature: translate("free.noLimits"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
             {
-              feature: "Community support",
+              feature: translate("free.communitySupport"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
@@ -166,7 +170,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
           disabled={true}
         >
           <CheckIcon className="h-5 w-5" />
-          Current plan
+          {translate("currentPlan")}
         </Button>
       </div>
     </div>
@@ -180,24 +184,24 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
-          Most popular
+          {translate("mostPopular")}
         </div>
         <PlanHeader
           name="Personal"
           price={price}
-          claim="Try it out yourself"
+          claim={translate("tryItYourself")}
           payment={paymentType}
         />
         <FeaturesList
-          title="Everything in Free, and:"
+          title={translate("everythingAnd", "Free")}
           items={[
             {
-              feature: "Professional support",
+              feature: translate("professionalSupport"),
               Icon: Cross1Icon,
               iconColor: "text-red-500",
             },
             {
-              feature: "Custom map layers",
+              feature: translate("customMapLayers"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
@@ -205,31 +209,31 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
         <div className="h-4"></div>
         <FeaturesList
-          title="Coming soon:"
+          title={`${translate("comingSoon")}:`}
           textColor="text-gray-500"
           items={[
             {
-              feature: "Scenarios",
+              feature: translate("scenarios"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Cloud storage",
+              feature: translate("cloudStorage"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Point in time restore (30 days)",
+              feature: translate("pointInTimeRestore", "30"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Demands analysis",
+              feature: translate("demandsAnalysis"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Live data comparision",
+              feature: translate("liveDataCompare"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
@@ -238,7 +242,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
       </div>
       <div className="p-4 w-full">
         <CheckoutButton plan="personal" paymentType={paymentType}>
-          Upgrade to Personal
+          {translate("upgradeTo", "Personal")}
         </CheckoutButton>
       </div>
     </div>
@@ -253,16 +257,19 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           name="Education"
           price="$0"
           payment={paymentType}
-          claim="Learn with epanet-js"
+          claim={translate("learnWithEpanetJS")}
         />
-        <FeaturesList title="Everything in Personal for free!" items={[]} />
+        <FeaturesList
+          title={translate("everythingInForFree", "Personal")}
+          items={[]}
+        />
       </div>
       <div className="p-4 w-full">
         <Button
           size="full-width"
           className="default-pointer bg-gray-100 text-gray-700"
         >
-          Use student email
+          {translate("useStudentEmail")}
         </Button>
       </div>
     </div>
@@ -276,24 +283,24 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
-          Most popular
+          {translate("mostPopular")}
         </div>
         <PlanHeader
           name="Pro"
           price={price}
           payment={paymentType}
-          claim="Individual named license"
+          claim={translate("individualNamedLicense")}
         />
         <FeaturesList
-          title="Everything in Free, and:"
+          title={translate("everythingAnd", "Free")}
           items={[
             {
-              feature: "Professional support",
+              feature: translate("professionalSupport"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
             {
-              feature: "Custom map layers",
+              feature: translate("customMapLayers"),
               Icon: CheckIcon,
               iconColor: "text-green-500",
             },
@@ -301,31 +308,31 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
         <div className="h-4"></div>
         <FeaturesList
-          title="Coming soon:"
+          title={`${translate("comingSoon")}:`}
           textColor="text-gray-500"
           items={[
             {
-              feature: "Scenarios",
+              feature: translate("scenarios"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Cloud storage",
+              feature: translate("cloudStorage"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Point in time restore (30 days)",
+              feature: translate("pointInTimeRestore", "30"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Demands analysis",
+              feature: translate("demandsAnalysis"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Live data comparision",
+              feature: translate("liveDataCompare"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
@@ -334,7 +341,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
       </div>
       <div className="p-4 w-full">
         <CheckoutButton plan="pro" paymentType={paymentType}>
-          Upgrade to Pro
+          {translate("upgradeTo", "Pro")}
         </CheckoutButton>
       </div>
     </div>
@@ -348,41 +355,41 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-gray-300 via-purple-gray to-gray-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
-          Coming soon
+          {translate("comingSoon")}
         </div>
         <PlanHeader
           name="Teams"
           price={price}
           payment={paymentType}
-          claim="Floating shared license"
-          tooltip="Minimum 2 licenses"
+          claim={translate("floatingSharedLicenses")}
+          tooltip={translate("minimumTwoLicenses")}
         />
         <FeaturesList
-          title="Everything in Pro, and:"
+          title={translate("everythingAnd", "Pro")}
           textColor="text-gray-500"
           items={[
             {
-              feature: "Priority support",
+              feature: translate("prioritySupport"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Team storage",
+              feature: translate("teamStorage"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Point in time restore (90 days)",
+              feature: translate("pointInTimeRestore", "90"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Sharing networks",
+              feature: translate("sharingNetworks"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
             {
-              feature: "Volume discounts",
+              feature: translate("volumeDiscounts"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
@@ -391,7 +398,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
       </div>
       <div className="p-4 w-full">
         <Button size="full-width" variant="quiet" disabled={true}>
-          Coming soon
+          {translate("comingSoon")}
         </Button>
       </div>
     </div>
@@ -411,7 +418,11 @@ const PlanHeader = ({
   claim: string;
   tooltip?: string;
 }) => {
-  const recurrency = payment === "yearly" ? "/year" : "/mo";
+  const recurrency =
+    payment === "yearly"
+      ? `/${translate("year")}`
+      : `/${translate("monthShort")}`;
+
   return (
     <div className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">{name}</h2>
@@ -473,7 +484,7 @@ const NonCommercialHint = () => {
           fill="currentColor"
         />
       </svg>
-      <span className="-mt-4">Student or personal use? Switch here!</span>
+      <span className="-mt-4">{translate("studentOrPersonal")}</span>
     </div>
   );
 };
