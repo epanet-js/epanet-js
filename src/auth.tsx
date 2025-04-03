@@ -17,8 +17,7 @@ import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
 import { isFeatureOn } from "./infra/feature-flags";
-import { UseAuthHook } from "./__helpers__/auth-mock";
-import { Plan, nullUser, User } from "./auth-types";
+import { Plan, nullUser, User, UseAuthHook } from "./auth-types";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {

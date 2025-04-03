@@ -407,7 +407,7 @@ export const useUserTracking = () => {
         first_name: user.firstName,
         last_name: user.lastName,
       };
-      posthog.identify(user.id, properties);
+      posthog.identify(user.id || "", properties);
       isDebugOn && debugPostHog.identify(user.id, properties);
     },
     [posthog],

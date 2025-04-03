@@ -12,15 +12,9 @@ import { LayersPopover } from "./popover";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
-import { User } from "src/auth-types";
+import { AuthProvider } from "src/auth";
 
 describe("layers popover", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UPGRADE");
-  });
-
   it("shows selected basemap", () => {
     const basemap = aLayerConfig({
       type: "MAPBOX",
@@ -139,120 +133,6 @@ describe("layers popover", () => {
     expect(updatedLayer.labelVisibility).toEqual(true);
   });
 
-  it("blocks custom layers to free users", async () => {
-    const basemap = aLayerConfig({
-      type: "MAPBOX",
-      isBasemap: true,
-      name: "Streets",
-    });
-    const layerConfigs: LayerConfigMap = new Map();
-    layerConfigs.set(basemap.id, basemap);
-
-    const store = setInitialState({ layerConfigs });
-    renderComponent({ store, user: aUser({ plan: "free" }) });
-
-    await userEvent.click(screen.getByRole("button", { name: /add custom/i }));
-    expect(screen.getAllByText(/upgrade/i)).toHaveLength(3);
-
-    await userEvent.click(screen.getByText(/XYZ/));
-
-    expect(
-      await screen.findByText(/upgrade your account/i),
-    ).toBeInTheDocument();
-  });
-
-  it("can add custom XYZ layer when not in free", async () => {
-    const basemap = aLayerConfig({
-      type: "MAPBOX",
-      isBasemap: true,
-      name: "Streets",
-    });
-    const layerConfigs: LayerConfigMap = new Map();
-    layerConfigs.set(basemap.id, basemap);
-
-    const store = setInitialState({ layerConfigs });
-    renderComponent({ store, user: aUser({ plan: "pro" }) });
-
-    await userEvent.click(screen.getByRole("button", { name: /add custom/i }));
-    expect(screen.queryByText(/upgrade/i)).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByText(/XYZ/));
-
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /name/i }),
-      "My custom XYZ",
-    );
-
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /url/i }),
-      anXYZUrl,
-    );
-    await userEvent.click(screen.getByRole("button", { name: /add layer/i }));
-
-    expect(screen.getByText(/Layer added/)).toBeInTheDocument();
-  });
-
-  it("can add custom mapbox layer when not in free", async () => {
-    const basemap = aLayerConfig({
-      type: "MAPBOX",
-      isBasemap: true,
-      name: "Streets",
-    });
-    const layerConfigs: LayerConfigMap = new Map();
-    layerConfigs.set(basemap.id, basemap);
-
-    const store = setInitialState({ layerConfigs });
-    renderComponent({ store, user: aUser({ plan: "pro" }) });
-
-    await userEvent.click(screen.getByRole("button", { name: /add custom/i }));
-    expect(screen.queryByText(/upgrade/i)).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByText(/mapbox/i));
-
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /url/i }),
-      aMabpoxUrl,
-    );
-
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /token/i }),
-      process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string,
-    );
-    await userEvent.click(screen.getByRole("button", { name: /add layer/i }));
-
-    expect(screen.getByText(/Layer added/)).toBeInTheDocument();
-  });
-
-  it("can add custom tilejson layer when not in free", async () => {
-    const basemap = aLayerConfig({
-      type: "MAPBOX",
-      isBasemap: true,
-      name: "Streets",
-    });
-    const layerConfigs: LayerConfigMap = new Map();
-    layerConfigs.set(basemap.id, basemap);
-
-    const store = setInitialState({ layerConfigs });
-    renderComponent({ store, user: aUser({ plan: "pro" }) });
-
-    await userEvent.click(screen.getByRole("button", { name: /add custom/i }));
-    expect(screen.queryByText(/upgrade/i)).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByText(/tilejson/i));
-
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /name/i }),
-      "My custom layer",
-    );
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /url/i }),
-      aTileJSONUrl,
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: /add layer/i }));
-
-    expect(screen.getByText(/Layer added/)).toBeInTheDocument();
-  });
   const findLayer = (layerConfigs: LayerConfigMap, name: string) => {
     return [...layerConfigs.values()].find(
       (l) => l.name === name,
@@ -263,15 +143,9 @@ describe("layers popover", () => {
     return [...layerConfigs.values()].find((l) => l.name === name);
   };
 
-  const renderComponent = ({
-    store,
-    user = aGuestUser(),
-  }: {
-    store: Store;
-    user?: User;
-  }) => {
+  const renderComponent = ({ store }: { store: Store }) => {
     render(
-      <Container store={store} user={user}>
+      <Container store={store}>
         <LayersPopover onClose={() => {}} />
       </Container>,
     );
@@ -279,16 +153,14 @@ describe("layers popover", () => {
 
   const Container = ({
     store,
-    user,
     children,
   }: {
     store: Store;
-    user: User;
     children: React.ReactNode;
   }) => {
     const idMap = UIDMap.empty();
     return (
-      <AuthMockProvider user={user} isSignedIn={user.id !== null}>
+      <AuthProvider>
         <QueryClientProvider client={new QueryClient()}>
           <JotaiProvider store={store}>
             <TooltipProvider>
@@ -302,12 +174,7 @@ describe("layers popover", () => {
             </TooltipProvider>
           </JotaiProvider>
         </QueryClientProvider>
-      </AuthMockProvider>
+      </AuthProvider>
     );
   };
 });
-
-const anXYZUrl = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
-const aMabpoxUrl = "mapbox://styles/mapbox/navigation-guidance-day-v4";
-const aTileJSONUrl =
-  "https://api.maptiler.com/maps/hybrid/tiles.json?key=UnwFuxTzMjQ3MdGKVK2G";

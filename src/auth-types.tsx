@@ -1,7 +1,7 @@
 export type Plan = "free" | "pro" | "personal" | "education";
 
 export type User = {
-  id: string;
+  id: string | null;
   email: string;
   firstName?: string;
   lastName?: string;
@@ -9,9 +9,15 @@ export type User = {
 };
 
 export const nullUser: User = {
-  id: "",
+  id: null,
   email: "",
   firstName: undefined,
   lastName: undefined,
   plan: "free",
+};
+
+export type UseAuthHook = () => {
+  isSignedIn?: boolean;
+  userId: string | null | undefined;
+  user: User;
 };
