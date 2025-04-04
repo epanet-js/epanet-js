@@ -44,7 +44,12 @@ export const buildUserCreatedMessage = (
           {
             title: "Email",
             value: email,
-            short: false,
+            short: true,
+          },
+          {
+            title: "Plan",
+            value: plan,
+            short: true,
           },
           {
             title: "First Name",
@@ -54,11 +59,6 @@ export const buildUserCreatedMessage = (
           {
             title: "Last Name",
             value: lastName,
-            short: true,
-          },
-          {
-            title: "Plan",
-            value: plan,
             short: true,
           },
         ],
