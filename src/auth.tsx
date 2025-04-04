@@ -16,7 +16,6 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
-import { isFeatureOn } from "./infra/feature-flags";
 import { Plan, nullUser, User, UseAuthHook } from "./auth-types";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -44,9 +43,7 @@ export const useAuth: UseAuthHook = () => {
         email: clerkUser.primaryEmailAddress?.emailAddress || "",
         firstName: clerkUser.firstName || undefined,
         lastName: clerkUser.lastName || undefined,
-        plan: isFeatureOn("FLAG_UPGRADE")
-          ? ((clerkUser.publicMetadata?.userPlan || "free") as Plan)
-          : "free",
+        plan: (clerkUser.publicMetadata?.userPlan || "free") as Plan,
       }
     : nullUser;
 
