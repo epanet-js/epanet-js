@@ -20,4 +20,5 @@ export type UseAuthHook = () => {
   isSignedIn?: boolean;
   userId: string | null | undefined;
   user: User;
+  signOut: ({ redirectUrl }: { redirectUrl?: string }) => void;
 };

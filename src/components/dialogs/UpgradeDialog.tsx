@@ -19,6 +19,8 @@ import { Selector } from "../form/Selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
 import { studentAccountActiviationHelpUrl } from "src/global-config";
+import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
+import { useAuth } from "src/auth";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -251,6 +253,9 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 };
 
 const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const { signOut } = useAuth();
+
   return (
     <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
       <div className="p-6 pb-0">
@@ -270,6 +275,11 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           <Button
             size="full-width"
             className="default-pointer bg-gray-100 text-gray-700"
+            onClick={() => {
+              checkUnsavedChanges(() => {
+                signOut({ redirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL });
+              });
+            }}
           >
             {translate("useStudentEmail")}
           </Button>
