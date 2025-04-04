@@ -122,7 +122,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                 {translate("upgrade")}
               </Button>
             )}
-            {isFeatureOn("FLAG_UPGRADE") && <PlanBadge plan={user.plan} />}
+            <PlanBadge plan={user.plan} />
             <UserButton />
           </div>
         </SignedIn>
