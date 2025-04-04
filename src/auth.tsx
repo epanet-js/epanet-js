@@ -16,7 +16,8 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
-import { Plan, nullUser, User, UseAuthHook } from "./auth-types";
+import { nullUser, User, UseAuthHook } from "./auth-types";
+import { Plan } from "./user-plan";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
