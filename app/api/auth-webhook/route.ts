@@ -44,10 +44,11 @@ const handleUserCreated = async (
 
   let plan: Plan = "free";
 
-  logger.info("Checking student email...");
-  const isStudent = await checkStudentEmail(userData.email);
+  const email = userData.email;
+  logger.info(`Checking student email...${email}`);
+  const isStudent = await checkStudentEmail(email);
   if (isStudent) {
-    await assignEducationPlan(userData.id, userData.email);
+    await assignEducationPlan(userData.id, email);
     plan = "education";
   }
 
@@ -79,14 +80,17 @@ const checkStudentEmail = async (email: string) => {
   try {
     const response = await fetch(checkerUrl, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ email }),
     });
     const data = await response.json();
     return data.academic === true;
   } catch (error) {
-    captureError(
-      new Error(`Error checking student email: ${(error as Error).message}`),
-    );
+    const betterMessage = `Error checking student email ${(error as Error).message}`;
+    logger.error(betterMessage);
+    captureError(new Error(betterMessage));
     return false;
   }
 };
