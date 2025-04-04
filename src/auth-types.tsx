@@ -1,4 +1,4 @@
-export type Plan = "free" | "pro" | "personal" | "education";
+import { Plan } from "./user-plan";
 
 export type User = {
   id: string | null;

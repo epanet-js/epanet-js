@@ -1,7 +1,7 @@
-import { Plan, User } from "./auth-types";
+export type Plan = "free" | "pro" | "personal" | "education";
 
-export const canUpgrade = (user: User) => {
-  return user.plan === "free";
+export const canUpgrade = (plan: Plan) => {
+  return plan === "free";
 };
 
 export const limits = {

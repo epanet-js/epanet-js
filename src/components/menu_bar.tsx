@@ -107,7 +107,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         <Divider />
         <SignedIn>
           <div className="relative flex items-center px-2 gap-x-2">
-            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user) && (
+            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user.plan) && (
               <Button
                 variant="primary"
                 onClick={() => {
