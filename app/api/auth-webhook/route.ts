@@ -13,8 +13,10 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { addToSubscribers } from "src/infra/newsletter";
 import { logger } from "src/infra/server-logger";
+import { assignEducationPlan } from "src/user-management";
 
 type UserData = {
+  id: string;
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -46,10 +48,22 @@ const handleUserCreated = async (
 ): Promise<NextResponse> => {
   const userData = parseData(payload.data as UserJSON);
 
+  let planName = "Free";
+
+  if (process.env.FLAG_SWOT === "true") {
+    logger.info("Checking student email....");
+    const isStudent = await checkStudentEmail(userData.email);
+    if (isStudent) {
+      await assignEducationPlan(userData.id, userData.email);
+      planName = "Education";
+    }
+  }
+
   const message = buildUserCreatedMessage(
     userData.email,
     userData.firstName || "",
     userData.lastName || "",
+    planName,
   );
   await sendWithoutCrashing(message);
 
@@ -68,6 +82,25 @@ const handleUserCreated = async (
   return NextResponse.json({ status: "success" });
 };
 
+const checkStudentEmail = async (email: string) => {
+  if (process.env.STUDENT_TEST_EMAIL === email) return true;
+
+  const checkerUrl = "https://swot-checker.vercel.app/api/check";
+  try {
+    const response = await fetch(checkerUrl, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    return data.academic === true;
+  } catch (error) {
+    captureError(
+      new Error(`Error checking student email: ${(error as Error).message}`),
+    );
+    return false;
+  }
+};
+
 const handleUserDeleted = async (
   payload: UserWebhookEvent,
 ): Promise<NextResponse> => {
@@ -79,6 +112,7 @@ const handleUserDeleted = async (
 };
 
 const parseData = (data: UserJSON): UserData => ({
+  id: data.id,
   email: data.email_addresses[0].email_address,
   firstName: data.first_name,
   lastName: data.last_name,

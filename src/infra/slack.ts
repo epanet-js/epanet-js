@@ -33,6 +33,7 @@ export const buildUserCreatedMessage = (
   email: string,
   firstName: string,
   lastName: string,
+  plan: string,
 ) => {
   return JSON.stringify({
     text: ":nerd_face: New User Created!",
@@ -53,6 +54,11 @@ export const buildUserCreatedMessage = (
           {
             title: "Last Name",
             value: lastName,
+            short: true,
+          },
+          {
+            title: "Plan",
+            value: plan,
             short: true,
           },
         ],
