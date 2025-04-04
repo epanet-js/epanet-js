@@ -13,14 +13,8 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { addToSubscribers } from "src/infra/newsletter";
 import { logger } from "src/infra/server-logger";
-import { assignEducationPlan } from "src/user-management";
-
-type UserData = {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-};
+import { assignEducationPlan, parseData } from "src/user-management";
+import { Plan } from "src/user-plan";
 
 export async function POST(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
@@ -48,14 +42,14 @@ const handleUserCreated = async (
 ): Promise<NextResponse> => {
   const userData = parseData(payload.data as UserJSON);
 
-  let planName = "Free";
+  let plan: Plan = "free";
 
   if (process.env.FLAG_SWOT === "true") {
     logger.info("Checking student email....");
     const isStudent = await checkStudentEmail(userData.email);
     if (isStudent) {
       await assignEducationPlan(userData.id, userData.email);
-      planName = "Education";
+      plan = "education";
     }
   }
 
@@ -63,7 +57,7 @@ const handleUserCreated = async (
     userData.email,
     userData.firstName || "",
     userData.lastName || "",
-    planName,
+    plan,
   );
   await sendWithoutCrashing(message);
 
@@ -110,10 +104,3 @@ const handleUserDeleted = async (
   await sendWithoutCrashing(message);
   return NextResponse.json({ status: "success" });
 };
-
-const parseData = (data: UserJSON): UserData => ({
-  id: data.id,
-  email: data.email_addresses[0].email_address,
-  firstName: data.first_name,
-  lastName: data.last_name,
-});
