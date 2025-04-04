@@ -44,13 +44,11 @@ const handleUserCreated = async (
 
   let plan: Plan = "free";
 
-  if (process.env.FLAG_SWOT === "true") {
-    logger.info("Checking student email....");
-    const isStudent = await checkStudentEmail(userData.email);
-    if (isStudent) {
-      await assignEducationPlan(userData.id, userData.email);
-      plan = "education";
-    }
+  logger.info("Checking student email...");
+  const isStudent = await checkStudentEmail(userData.email);
+  if (isStudent) {
+    await assignEducationPlan(userData.id, userData.email);
+    plan = "education";
   }
 
   const message = buildUserCreatedMessage(
@@ -77,8 +75,6 @@ const handleUserCreated = async (
 };
 
 const checkStudentEmail = async (email: string) => {
-  if (process.env.STUDENT_TEST_EMAIL === email) return true;
-
   const checkerUrl = "https://swot-checker.vercel.app/api/check";
   try {
     const response = await fetch(checkerUrl, {
