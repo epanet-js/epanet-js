@@ -36,8 +36,9 @@ export const buildUserCreatedMessage = (
   lastName: string,
   plan: Plan,
 ) => {
+  const emoji = plan === "education" ? ":nerd_face:" : ":smiley:";
   return JSON.stringify({
-    text: ":nerd_face: New User Created!",
+    text: `${emoji} New User Created!`,
     attachments: [
       {
         title: "User Details",
