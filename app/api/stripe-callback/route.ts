@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
-import { User, auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { User, auth, currentUser } from "@clerk/nextjs/server";
 import { logger } from "src/infra/server-logger";
 import Stripe from "stripe";
 import { buildUserUpgradedMessage, sendWithoutCrashing } from "src/infra/slack";
+import { upgradeUser } from "src/user-management";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
@@ -39,26 +40,6 @@ const obtainCutomerId = async (sessionId: string): Promise<string | null> => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   return session.customer as string | null;
-};
-
-const upgradeUser = async (
-  user: User,
-  customerId: string,
-  plan: string,
-  paymentType: string,
-) => {
-  logger.info(`Upgrading user ${getEmail(user)} to ${plan}`);
-
-  const clerk = await clerkClient();
-  return clerk.users.updateUserMetadata(user.id, {
-    publicMetadata: {
-      userPlan: plan,
-    },
-    privateMetadata: {
-      customerId,
-      paymentType,
-    },
-  });
 };
 
 const notifyUpgrade = (email: string, plan: string, paymentType: string) => {

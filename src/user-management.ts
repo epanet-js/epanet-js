@@ -1,7 +1,25 @@
-import { User, clerkClient as instanceClerkClient } from "@clerk/nextjs/server";
+import {
+  User,
+  UserJSON,
+  clerkClient as instanceClerkClient,
+} from "@clerk/nextjs/server";
 import { logger } from "./infra/server-logger";
 
 type ClerkClient = Awaited<ReturnType<typeof instanceClerkClient>>;
+
+export type UserData = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+};
+
+export const parseData = (data: UserJSON): UserData => ({
+  id: data.id,
+  email: data.email_addresses[0].email_address,
+  firstName: data.first_name,
+  lastName: data.last_name,
+});
 
 export const assignEducationPlan = async (userId: string, email: string) => {
   logger.info(`Assigning education plan to user ${email}`);

@@ -1,3 +1,4 @@
+import { Plan } from "src/user-plan";
 import { captureError } from "./error-tracking";
 import { logger } from "./server-logger";
 
@@ -33,7 +34,7 @@ export const buildUserCreatedMessage = (
   email: string,
   firstName: string,
   lastName: string,
-  plan: string,
+  plan: Plan,
 ) => {
   return JSON.stringify({
     text: ":nerd_face: New User Created!",
