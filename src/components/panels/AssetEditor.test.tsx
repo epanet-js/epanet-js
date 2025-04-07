@@ -10,7 +10,6 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -18,6 +17,8 @@ describe("AssetEditor", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .setHeadlossFormula("D-W")
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
         .aPipe(pipeId, {
           label: "MY_PIPE",
           status: "open",
@@ -25,6 +26,8 @@ describe("AssetEditor", () => {
           diameter: 100.1,
           roughness: 1,
           minorLoss: 0.1,
+          startNodeId: "j1",
+          endNodeId: "j2",
         })
         .build();
       const store = setInitialState({
@@ -38,6 +41,8 @@ describe("AssetEditor", () => {
 
       expectStatusDisplayed("Open");
       expectPropertyDisplayed("label", "MY_PIPE");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
       expectPropertyDisplayed("diameter (mm)", "100.1");
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
@@ -274,6 +279,8 @@ describe("AssetEditor", () => {
       }),
     ).toHaveFocus();
     await user.tab();
+    await user.tab();
+    await user.tab();
     expect(
       screen.getByRole("combobox", {
         name: /value for: status/i,
@@ -296,6 +303,8 @@ describe("AssetEditor", () => {
         name: /value for: label/i,
       }),
     ).toHaveFocus();
+    await user.tab();
+    await user.tab();
     await user.tab();
     await user.tab();
 
@@ -469,39 +478,6 @@ describe("AssetEditor", () => {
       expect(updatedField).not.toHaveFocus();
       expect(updatedField).toHaveValue("10");
     });
-  });
-
-  it("shows connected nodes", () => {
-    //push to top when removing flag!
-    stubFeatureOn("FLAG_LINK_NODES");
-    const pipeId = "P1";
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .setHeadlossFormula("D-W")
-      .aJunction("j1", { label: "J1" })
-      .aJunction("j2", { label: "J2" })
-      .aPipe(pipeId, {
-        label: "MY_PIPE",
-        startNodeId: "j1",
-        endNodeId: "j2",
-        status: "open",
-        length: 10,
-        diameter: 100.1,
-        roughness: 1,
-        minorLoss: 0.1,
-      })
-      .build();
-    const store = setInitialState({
-      hydraulicModel,
-      selectedAssetId: pipeId,
-    });
-
-    renderComponent(store);
-
-    expect(screen.getByText(/pipe/i)).toBeInTheDocument();
-
-    expectStatusDisplayed("Open");
-    expectPropertyDisplayed("start node", "J1");
-    expectPropertyDisplayed("end node", "J2");
   });
 
   const setInitialState = ({
