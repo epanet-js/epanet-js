@@ -3,6 +3,7 @@ import {
   CircleIcon,
   CountdownTimerIcon,
   CrossCircledIcon,
+  ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
@@ -86,6 +87,20 @@ export const SimulationStatusText = () => {
           Icon: CrossCircledIcon,
           colorClass: "text-red-500",
           text: translate("simulationFailure"),
+        };
+      case "warning":
+        if (hydraulicModel.version !== simulation.modelVersion) {
+          return {
+            Icon: CountdownTimerIcon,
+            colorClass: "text-orange-500",
+            text: translate("simulationOutdated"),
+          };
+        }
+
+        return {
+          Icon: ExclamationTriangleIcon,
+          colorClass: "text-yellow-600",
+          text: translate("simulationWarning"),
         };
     }
   }, [simulation, hydraulicModel.version]);

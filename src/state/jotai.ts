@@ -60,13 +60,8 @@ export type PreviewProperty = PersistenceMetadataMemory["label"];
 //
 
 export type SimulationIdle = { status: "idle" };
-export type SimulationSuccess = {
-  status: "success";
-  report: string;
-  modelVersion: string;
-};
-export type SimulationFailure = {
-  status: "failure";
+export type SimulationFinished = {
+  status: "success" | "failure" | "warning";
   report: string;
   modelVersion: string;
 };
@@ -74,8 +69,7 @@ export type SimulationRunning = { status: "running" };
 
 export type SimulationState =
   | SimulationIdle
-  | SimulationSuccess
-  | SimulationFailure
+  | SimulationFinished
   | SimulationRunning;
 
 export const simulationAtom = atom<SimulationState>({ status: "idle" });

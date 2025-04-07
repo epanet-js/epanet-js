@@ -1,8 +1,7 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
 import {
-  SimulationFailure,
-  SimulationSuccess,
+  SimulationFinished,
   Store,
   dataAtom,
   simulationAtom,
@@ -40,7 +39,7 @@ describe("Run simulation", () => {
 
     await triggerRun();
 
-    const simulation = store.get(simulationAtom) as SimulationSuccess;
+    const simulation = store.get(simulationAtom) as SimulationFinished;
     expect(simulation.status).toEqual("success");
     expect(simulation.report).not.toContain(/error/i);
     expect(simulation.modelVersion).toEqual(hydraulicModel.version);
@@ -59,7 +58,7 @@ describe("Run simulation", () => {
 
     await triggerRun();
 
-    const simulation = store.get(simulationAtom) as SimulationFailure;
+    const simulation = store.get(simulationAtom) as SimulationFinished;
     expect(simulation.status).toEqual("failure");
     expect(simulation.report).toContain("not enough");
     expect(simulation.modelVersion).toEqual(hydraulicModel.version);

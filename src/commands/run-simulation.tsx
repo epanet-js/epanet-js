@@ -7,7 +7,11 @@ import { attachSimulation } from "src/hydraulic-model";
 import { Loading } from "src/components/elements";
 import { SimulationSummaryState } from "src/state/dialog_state";
 import { translate } from "src/infra/i18n";
-import { CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
+import {
+  CheckCircledIcon,
+  CrossCircledIcon,
+  ExclamationTriangleIcon,
+} from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
@@ -65,6 +69,31 @@ export const RunSimulationDialog = ({
   };
 
   const { status, duration } = modal;
+  if (status === "warning")
+    return (
+      <>
+        <DialogHeader
+          title={translate("simulationWarning")}
+          titleIcon={ExclamationTriangleIcon}
+          variant="warning"
+        />
+        <Formik onSubmit={handleOpenReport} initialValues={{}}>
+          <Form>
+            <p className="text-sm text-gray">
+              {translate("simulationWarningExplain")}
+            </p>
+            <SimpleDialogActions
+              autoFocusSubmit={true}
+              secondary={{
+                action: translate("ignore"),
+                onClick: onClose,
+              }}
+              action={translate("viewReport")}
+            />
+          </Form>
+        </Formik>
+      </>
+    );
   if (status === "failure")
     return (
       <>
