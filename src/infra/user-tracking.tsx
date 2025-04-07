@@ -237,7 +237,7 @@ type InvalidFilesErrorSeen = {
 
 type SimulationSummarySeen = {
   name: "simulationSummary.seen";
-  status: "success" | "failure";
+  status: SimulationState["status"];
   duration?: number;
 };
 

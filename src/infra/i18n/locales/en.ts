@@ -37,6 +37,7 @@ export const translations = {
   simulationReadyToRun: "Ready to run",
   simulationRunning: "Running...",
   simulationSuccess: "Simulation was successful",
+  simulationWarning: "Simulation with warnings",
   simulationFailure: "Simulation with errors",
   simulationFailureExplain:
     "Simulation run was unsuccessful. Review the simulation report for details.",

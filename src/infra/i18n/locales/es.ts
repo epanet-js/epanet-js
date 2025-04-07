@@ -40,6 +40,7 @@ export const translations: Translations = {
   simulationRunning: "Ejecutando...",
   simulationSuccess: "Simulación exitosa",
   simulationTook: "La ejecución ha durado ${1}s.",
+  simulationWarning: "Simulación con alertas",
   simulationFailure: "Simulación con errores",
   simulationFailureExplain:
     "La ejecución de la simulación no fue exitosa. Revisa el reporte de la simulación para más detalles.",

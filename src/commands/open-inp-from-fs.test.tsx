@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   Sel,
-  SimulationFailure,
+  SimulationFinished,
   Store,
   dataAtom,
   fileInfoAtom,
@@ -136,7 +136,7 @@ describe("openInpFromFs", () => {
   it("removes previous state", async () => {
     stubFileOpen();
     const inp = minimalInp({ junctionId: "J1" });
-    const previousSimulation: SimulationFailure = {
+    const previousSimulation: SimulationFinished = {
       status: "failure",
       report: "ERROR",
       modelVersion: "10",
