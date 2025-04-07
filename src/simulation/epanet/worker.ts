@@ -12,6 +12,7 @@ import { NodeResults, LinkResults } from "./epanet-results";
 
 export const runSimulation = (
   inp: string,
+  flags: Record<string, boolean>,
 ): {
   status: SimulationStatus;
   report: string;
@@ -33,9 +34,14 @@ export const runSimulation = (
     const linkResults = readLinkResults(model);
     model.close();
 
+    const report = ws.readFile("report.rpt");
+
     return {
-      status: "success",
-      report: ws.readFile("report.rpt"),
+      status:
+        flags.FLAG_WARNING && report.includes("WARNING")
+          ? "warning"
+          : "success",
+      report: curateReport(report),
       nodeResults,
       linkResults,
     };
