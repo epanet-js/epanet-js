@@ -35,7 +35,11 @@ export const SimulationReportDialog = ({}: { onClose: () => void }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
 
   const formattedReport = useMemo(() => {
-    if (simulation.status !== "success" && simulation.status !== "failure")
+    if (
+      simulation.status !== "success" &&
+      simulation.status !== "failure" &&
+      simulation.status !== "warning"
+    )
       return "";
 
     const reportWithLabels = replaceIdWithLabels(

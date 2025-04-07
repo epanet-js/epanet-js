@@ -43,6 +43,20 @@ describe("epanet simulation", () => {
     expect(report).toContain("Error 223: not enough nodes");
   });
 
+  it("report says when simulation has warnings", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir("r1", { head: 0 })
+      .aJunction("j1", { demand: 10 })
+      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const { status, report } = await runSimulation(inp, { FLAG_WARNING: true });
+
+    expect(status).toEqual("warning");
+    expect(report).toContain("WARNING");
+  });
+
   it("can include multiple errors in the report", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir("r1")

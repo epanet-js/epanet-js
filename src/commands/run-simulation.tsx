@@ -16,6 +16,7 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -30,7 +31,9 @@ export const useRunSimulation = () => {
     const inp = buildInp(hydraulicModel);
     const start = performance.now();
     setDialogState({ type: "loading" });
-    const { report, status, results } = await run(inp);
+    const { report, status, results } = await run(inp, {
+      FLAG_WARNING: isFeatureOn("FLAG_WARNING"),
+    });
 
     attachSimulation(hydraulicModel, results);
     setData((prev) => ({
