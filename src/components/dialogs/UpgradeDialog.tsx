@@ -415,7 +415,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
               iconColor: "text-gray-400",
             },
             {
-              feature: translate("sharingNetworks"),
+              feature: translate("sharingModels"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },

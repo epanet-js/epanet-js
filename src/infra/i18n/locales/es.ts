@@ -250,7 +250,7 @@ export const translations: Translations = {
   minimumTwoLicenses: "Mínimo 2 licencias",
   teamStorage: "Almacenamiento de equipo",
   prioritySupport: "Soporte prioritario",
-  sharingNetworks: "Compartir redes",
+  sharingModels: "Compartir modelos",
   volumeDiscounts: "Descuentos por volumen",
   tryItYourself: "Pruébalo tú mismo",
   learnWithEpanetJS: "Aprende con epanet-js",
