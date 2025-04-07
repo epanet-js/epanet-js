@@ -287,7 +287,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           </Button>
         </div>
         <div className="text-xs text-center text-gray-500">
-          Having issues validating your student email?{" "}
+          <p>{translate("havingIssuesWithStudentEmail")}</p>
           <a
             className="text-blue-600"
             target="_blank"
@@ -299,7 +299,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
               });
             }}
           >
-            Get help.
+            {translate("getHelp")}.
           </a>
         </div>
       </div>
