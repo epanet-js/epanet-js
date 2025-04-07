@@ -258,7 +258,7 @@ type QuickStartVisited = {
 
 type HelpCenterVisited = {
   name: "helpCenter.visited";
-  source: "welcome" | "menu";
+  source: "welcome" | "menu" | "educationPlan";
 };
 
 type RepoVisited = {
@@ -360,6 +360,7 @@ type UserEvent =
   | { name: "addCustomLayer.clicked" }
   | { name: "layerType.choosen"; type: string }
   | { name: "checkout.started"; plan: string; paymentType: string }
+  | { name: "studentLogin.clicked" }
   | { name: "planUsage.toggled" }
   | { name: "planPaymentType.toggled" }
   | {
