@@ -255,6 +255,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { signOut } = useAuth();
+  const userTracking = useUserTracking();
 
   return (
     <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
@@ -276,6 +277,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             size="full-width"
             className="default-pointer bg-gray-100 text-gray-700"
             onClick={() => {
+              userTracking.capture({ name: "studentLogin.clicked" });
               checkUnsavedChanges(() => {
                 signOut({ redirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL });
               });
@@ -290,6 +292,12 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             className="text-blue-600"
             target="_blank"
             href={studentAccountActiviationHelpUrl}
+            onClick={() => {
+              userTracking.capture({
+                name: "helpCenter.visited",
+                source: "educationPlan",
+              });
+            }}
           >
             Get help.
           </a>
