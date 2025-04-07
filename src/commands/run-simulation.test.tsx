@@ -14,6 +14,7 @@ import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runSimulation as runSimulationInWorker } from "src/simulation/epanet/worker";
 import { getPipe } from "src/hydraulic-model/assets-map";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 vi.mock("src/lib/worker", () => ({
   lib: {
     runSimulation: vi.fn(),
@@ -79,6 +80,25 @@ describe("Run simulation", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/not enough/)).toBeInTheDocument();
+    });
+  });
+
+  it("can show the report with warnings", async () => {
+    stubFeatureOn("FLAG_WARNING");
+    const hydraulicModel = aSimulableModelWithWarnings();
+    const store = setInitialState({ hydraulicModel });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      expect(screen.getByText(/simulation with warnings/i)).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /view report/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/negative pressures/i)).toBeInTheDocument();
     });
   });
 
@@ -174,6 +194,14 @@ describe("Run simulation", () => {
     return HydraulicModelBuilder.with()
       .aReservoir("r1")
       .aJunction("j1", { demand: 1 })
+      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .build();
+  };
+
+  const aSimulableModelWithWarnings = () => {
+    return HydraulicModelBuilder.with()
+      .aReservoir("r1", { head: 0 })
+      .aJunction("j1", { demand: 10 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
   };
