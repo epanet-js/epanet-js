@@ -257,11 +257,14 @@ export const translations: Translations = {
   volumeDiscounts: "Descuentos por volumen",
   tryItYourself: "Pruébalo tú mismo",
   learnWithEpanetJS: "Aprende con epanet-js",
+  learnMore: "Saber más.",
   useStudentEmail: "Usar email de estudiante",
   layerAdded: "Capa añadida",
   addingLayer: "Añadiendo capa...",
   layerUpdated: "Capa actualizada",
   updatingLayer: "Actualizando capa...",
+  havingIssuesWithStudentEmail: "¿Tienes problemas para validar tu email?",
+  getHelp: "Obtén ayuda",
 };
 
 export const units: UnitsLocale = {

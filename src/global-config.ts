@@ -8,6 +8,7 @@ export const privacyPolicyUrl = "https://epanetjs.com/privacy-policy";
 export const termsAndConditionsUrl = "https://epanetjs.com/terms-conditions";
 export const projectionConverterUrl =
   "https://utils.epanetjs.com/projection-converter";
-export const studentAccountActiviationHelpUrl = "https://help.epanetjs.com";
+export const studentAccountActiviationHelpUrl =
+  "https://help.epanetjs.com/Free-educational-licenses-for-epanet-js-1cee18c9f0f68090aa35cd3336577ac3";
 
 export const supportEmail = "support@epanetjs.com";
