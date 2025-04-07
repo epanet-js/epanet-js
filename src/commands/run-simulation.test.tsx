@@ -14,7 +14,6 @@ import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runSimulation as runSimulationInWorker } from "src/simulation/epanet/worker";
 import { getPipe } from "src/hydraulic-model/assets-map";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 vi.mock("src/lib/worker", () => ({
   lib: {
     runSimulation: vi.fn(),
@@ -84,7 +83,6 @@ describe("Run simulation", () => {
   });
 
   it("can show the report with warnings", async () => {
-    stubFeatureOn("FLAG_WARNING");
     const hydraulicModel = aSimulableModelWithWarnings();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });

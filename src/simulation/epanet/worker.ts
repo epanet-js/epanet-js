@@ -19,6 +19,9 @@ export const runSimulation = (
   nodeResults: NodeResults;
   linkResults: LinkResults;
 } => {
+  // eslint-disable-next-line
+  if (Object.keys(flags).length) console.log("Running with flags", flags);
+
   const ws = new Workspace();
   const model = new Project(ws);
 
@@ -37,10 +40,7 @@ export const runSimulation = (
     const report = ws.readFile("report.rpt");
 
     return {
-      status:
-        flags.FLAG_WARNING && report.includes("WARNING")
-          ? "warning"
-          : "success",
+      status: report.includes("WARNING") ? "warning" : "success",
       report: curateReport(report),
       nodeResults,
       linkResults,
