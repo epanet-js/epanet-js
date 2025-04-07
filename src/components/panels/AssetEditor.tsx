@@ -50,7 +50,6 @@ import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -198,18 +197,14 @@ const PipeEditor = ({
             <PropertyTableHead />
             <tbody>
               <TextRowReadOnly name="label" value={pipe.label} />
-              {isFeatureOn("FLAG_LINK_NODES") && (
-                <TextRowReadOnly
-                  name="startNode"
-                  value={startNode ? startNode.label : ""}
-                />
-              )}
-              {isFeatureOn("FLAG_LINK_NODES") && (
-                <TextRowReadOnly
-                  name="endNode"
-                  value={endNode ? endNode.label : ""}
-                />
-              )}
+              <TextRowReadOnly
+                name="startNode"
+                value={startNode ? startNode.label : ""}
+              />
+              <TextRowReadOnly
+                name="endNode"
+                value={endNode ? endNode.label : ""}
+              />
               <StatusRow
                 name={"status"}
                 status={pipe.status}
