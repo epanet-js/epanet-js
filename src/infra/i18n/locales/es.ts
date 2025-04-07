@@ -265,6 +265,8 @@ export const translations: Translations = {
   updatingLayer: "Actualizando capa...",
   havingIssuesWithStudentEmail: "¿Tienes problemas para validar tu email?",
   getHelp: "Obtén ayuda",
+  startNode: "Nudo inicio",
+  endNode: "Nudo fin",
 };
 
 export const units: UnitsLocale = {

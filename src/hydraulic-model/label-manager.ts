@@ -1,4 +1,4 @@
-import { Asset, AssetId } from "./asset-types";
+import { Asset } from "./asset-types";
 
 const typeToPrefix: Record<Asset["type"], string> = {
   pipe: "P",
@@ -13,21 +13,12 @@ export interface LabelGenerator {
 }
 
 export class LabelManager implements LabelGenerator {
-  private labelsDeprecated: Map<string, AssetId[]>;
   private indexPerType: Map<Asset["type"], number>;
   private assetIndex: Map<string, AssetData[]>;
 
   constructor() {
     this.indexPerType = new Map();
-    this.labelsDeprecated = new Map();
     this.assetIndex = new Map();
-  }
-
-  registerDeprecated(label: string, id: AssetId) {
-    this.labelsDeprecated.set(label, [
-      ...(this.labelsDeprecated.get(label) || []),
-      id,
-    ]);
   }
 
   register(label: string, type: Asset["type"], id: Asset["id"]) {
@@ -52,10 +43,6 @@ export class LabelManager implements LabelGenerator {
 
   count(label: string) {
     return (this.assetIndex.get(label) || []).length;
-  }
-
-  countDeprecated(label: string) {
-    return (this.labelsDeprecated.get(label) || []).length;
   }
 
   generateFor(type: Asset["type"], id: Asset["id"]) {
@@ -86,23 +73,6 @@ export class LabelManager implements LabelGenerator {
     );
   }
 
-  generateForDeprecated(id: AssetId, type: Asset["type"]) {
-    const candidate = `${typeToPrefix[type]}${id}`;
-    return this.ensureUniqueDeprecated(candidate);
-  }
-
-  removeDeprecated(label: string, id: AssetId) {
-    const ids = (this.labelsDeprecated.get(label) || []).filter(
-      (i) => i !== id,
-    );
-    if (!ids.length) {
-      this.labelsDeprecated.delete(label);
-      return;
-    }
-
-    this.labelsDeprecated.set(label, ids);
-  }
-
   private ensureUnique(
     type: Asset["type"],
     index: number,
@@ -116,15 +86,6 @@ export class LabelManager implements LabelGenerator {
         return { label: candidate, index: iterationIndex };
       }
       iterationIndex++;
-    }
-  }
-
-  private ensureUniqueDeprecated(candidate: string, count = 0): string {
-    const newCandidate = count > 0 ? `${candidate}.${count}` : candidate;
-    if (!this.labelsDeprecated.has(newCandidate)) {
-      return newCandidate;
-    } else {
-      return this.ensureUniqueDeprecated(candidate, count + 1);
     }
   }
 }

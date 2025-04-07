@@ -257,6 +257,8 @@ export const translations = {
   updatingLayer: "Updating layer...",
   havingIssuesWithStudentEmail: "Having issues validating your email?",
   getHelp: "Get help",
+  startNode: "Start node",
+  endNode: "End node",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
