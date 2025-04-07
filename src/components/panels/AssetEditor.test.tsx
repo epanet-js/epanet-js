@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -468,6 +469,39 @@ describe("AssetEditor", () => {
       expect(updatedField).not.toHaveFocus();
       expect(updatedField).toHaveValue("10");
     });
+  });
+
+  it("shows connected nodes", () => {
+    //push to top when removing flag!
+    stubFeatureOn("FLAG_LINK_NODES");
+    const pipeId = "P1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .setHeadlossFormula("D-W")
+      .aJunction("j1", { label: "J1" })
+      .aJunction("j2", { label: "J2" })
+      .aPipe(pipeId, {
+        label: "MY_PIPE",
+        startNodeId: "j1",
+        endNodeId: "j2",
+        status: "open",
+        length: 10,
+        diameter: 100.1,
+        roughness: 1,
+        minorLoss: 0.1,
+      })
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: pipeId,
+    });
+
+    renderComponent(store);
+
+    expect(screen.getByText(/pipe/i)).toBeInTheDocument();
+
+    expectStatusDisplayed("Open");
+    expectPropertyDisplayed("start node", "J1");
+    expectPropertyDisplayed("end node", "J2");
   });
 
   const setInitialState = ({

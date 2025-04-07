@@ -10,7 +10,14 @@ import React, {
   useState,
 } from "react";
 import { RawEditor } from "./feature_editor/raw_editor";
-import { Asset, AssetStatus, Junction, Pipe } from "src/hydraulic-model";
+import {
+  Asset,
+  AssetStatus,
+  Junction,
+  NodeAsset,
+  Pipe,
+  getNode,
+} from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import {
   parseLocaleNumber,
@@ -43,6 +50,7 @@ import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -131,9 +139,16 @@ const AssetEditorInner = ({
         />
       );
     case "pipe":
+      const pipe = asset as Pipe;
+      const [startNodeId, endNodeId] = pipe.connections;
+      const startNode = getNode(hydraulicModel.assets, startNodeId);
+      const endNode = getNode(hydraulicModel.assets, endNodeId);
+
       return (
         <PipeEditor
-          pipe={asset as Pipe}
+          pipe={pipe}
+          startNode={startNode}
+          endNode={endNode}
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -160,12 +175,16 @@ type OnStatusChange = (newStatus: PipeStatus, oldStatus: PipeStatus) => void;
 
 const PipeEditor = ({
   pipe,
+  startNode,
+  endNode,
   headlossFormula,
   quantitiesMetadata,
   onPropertyChange,
   onStatusChange,
 }: {
   pipe: Pipe;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
@@ -178,7 +197,19 @@ const PipeEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={pipe.label} />
+              <TextRowReadOnly name="label" value={pipe.label} />
+              {isFeatureOn("FLAG_LINK_NODES") && (
+                <TextRowReadOnly
+                  name="startNode"
+                  value={startNode ? startNode.label : ""}
+                />
+              )}
+              {isFeatureOn("FLAG_LINK_NODES") && (
+                <TextRowReadOnly
+                  name="endNode"
+                  value={endNode ? endNode.label : ""}
+                />
+              )}
               <StatusRow
                 name={"status"}
                 status={pipe.status}
@@ -257,7 +288,7 @@ const JunctionEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={junction.label} />
+              <TextRowReadOnly name="label" value={junction.label} />
               <QuantityRow
                 name="elevation"
                 value={junction.elevation}
@@ -303,7 +334,7 @@ const ReservoirEditor = ({
           <table className="pb-2 w-full">
             <PropertyTableHead />
             <tbody>
-              <TextRow name="label" value={reservoir.label} />
+              <TextRowReadOnly name="label" value={reservoir.label} />
               <QuantityRow
                 name="elevation"
                 value={reservoir.elevation}
@@ -326,7 +357,7 @@ const ReservoirEditor = ({
   );
 };
 
-const TextRow = ({ name, value }: { name: string; value: string }) => {
+const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   const label = translate(name);
   return <PropertyRowReadonly pair={[label, value]} />;
 };
