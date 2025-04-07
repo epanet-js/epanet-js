@@ -76,7 +76,12 @@ const handleUserCreated = async (
 };
 
 const checkStudentEmail = async (email: string) => {
-  const checkerUrl = "https://swot-checker.vercel.app/api/check";
+  const checkerUrl = process.env.SWOT_CHECKER_URL as string;
+  if (!checkerUrl) {
+    logger.info("Swot checker url is not configured, skipping...");
+    return false;
+  }
+
   try {
     const response = await fetch(checkerUrl, {
       method: "POST",
