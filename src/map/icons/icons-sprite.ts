@@ -2,13 +2,15 @@ import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
+import pump from "src/map/icons/pump.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 
 export type IconId =
   | "reservoir"
   | "reservoir-outlined"
   | "reservoir-selected"
-  | "triangle";
+  | "triangle"
+  | "pump";
 export type TextureProps = {
   width: number;
   height: number;
@@ -36,6 +38,7 @@ const iconUrls: IconUrl[] = [
     id: "triangle",
     url: triangle.src,
   },
+  { id: "pump", url: pump.src },
 ];
 
 const iconsMapping: IconsMapping = {
@@ -43,6 +46,7 @@ const iconsMapping: IconsMapping = {
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
   "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
   triangle: { x: 96, y: 0, width: 64, height: 64, mask: true },
+  pump: { x: 160, y: 0, width: 64, height: 64, mask: false },
 };
 
 export type Sprite = {

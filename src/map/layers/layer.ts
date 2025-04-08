@@ -7,6 +7,8 @@ export type LayerId =
   | "imported-junction-results"
   | "imported-pipe-arrows"
   | "pipe-arrows"
+  | "imported-pump-icons"
+  | "pump-icons"
   | "reservoirs"
   | "imported-reservoirs"
   | "reservoirs-selected"
