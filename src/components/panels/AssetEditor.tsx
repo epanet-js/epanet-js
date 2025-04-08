@@ -16,7 +16,7 @@ import {
   Junction,
   NodeAsset,
   Pipe,
-  getNode,
+  Pump,
 } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
 import {
@@ -50,6 +50,7 @@ import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
+import { getLinkNodes } from "src/hydraulic-model/assets-map";
 
 export function AssetEditor({
   selectedFeature,
@@ -139,15 +140,10 @@ const AssetEditorInner = ({
       );
     case "pipe":
       const pipe = asset as Pipe;
-      const [startNodeId, endNodeId] = pipe.connections;
-      const startNode = getNode(hydraulicModel.assets, startNodeId);
-      const endNode = getNode(hydraulicModel.assets, endNodeId);
-
       return (
         <PipeEditor
           pipe={pipe}
-          startNode={startNode}
-          endNode={endNode}
+          {...getLinkNodes(hydraulicModel.assets, pipe)}
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -155,7 +151,13 @@ const AssetEditorInner = ({
         />
       );
     case "pump":
-      return <>PUMP</>;
+      const pump = asset as Pump;
+      return (
+        <PumpEditor
+          pump={pump}
+          {...getLinkNodes(hydraulicModel.assets, pump)}
+        />
+      );
     case "reservoir":
       return (
         <ReservoirEditor
@@ -260,6 +262,39 @@ const PipeEditor = ({
                 unit={quantitiesMetadata.getUnit("velocity")}
                 decimals={quantitiesMetadata.getDecimals("velocity")}
                 readOnly={true}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
+};
+
+const PumpEditor = ({
+  pump,
+  startNode,
+  endNode,
+}: {
+  pump: Pump;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
+}) => {
+  return (
+    <PanelDetails title={translate("pump")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <TextRowReadOnly name="label" value={pump.label} />
+              <TextRowReadOnly
+                name="startNode"
+                value={startNode ? startNode.label : ""}
+              />
+              <TextRowReadOnly
+                name="endNode"
+                value={endNode ? endNode.label : ""}
               />
             </tbody>
           </table>
