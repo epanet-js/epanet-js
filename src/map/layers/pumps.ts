@@ -2,10 +2,12 @@ import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { SymbolLayer } from "mapbox-gl";
+import { LINE_COLORS_SELECTED } from "src/lib/constants";
 
 export const pumpIcons = ({
   source,
   layerId,
+  symbolization,
 }: {
   source: DataSource;
   layerId: LayerId;
@@ -20,10 +22,16 @@ export const pumpIcons = ({
       "icon-image": "pump",
       "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
-      //visibility: "none",
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "type", "pump"]],
     paint: {
+      "icon-color": [
+        "match",
+        ["feature-state", "selected"],
+        "true",
+        LINE_COLORS_SELECTED,
+        ["coalesce", ["get", "color"], symbolization.defaultColor],
+      ],
       "icon-opacity": [
         ...zoomExpression(
           [14, 15, 16, 17, 18, 19, 20],
