@@ -3,6 +3,7 @@ import {
   CircleIcon,
   StretchHorizontallyIcon,
   VercelLogoIcon,
+  PinTopIcon,
 } from "@radix-ui/react-icons";
 import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
@@ -11,38 +12,76 @@ import { useAtomValue } from "jotai";
 import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
+import { isFeatureOn } from "src/infra/feature-flags";
 
-const MODE_OPTIONS = [
-  {
-    mode: Mode.NONE,
-    hotkey: "1",
-    Icon: CursorArrowIcon,
-    alwaysMultiple: false,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_JUNCTION,
-    hotkey: "2",
-    alwaysMultiple: true,
-    Icon: CircleIcon,
-    Menu: null,
-  },
-  {
-    mode: Mode.DRAW_PIPE,
-    hotkey: "3",
-    alwaysMultiple: true,
-    Icon: StretchHorizontallyIcon,
-    Menu: null,
-  },
-
-  {
-    mode: Mode.DRAW_RESERVOIR,
-    hotkey: "4",
-    alwaysMultiple: true,
-    Icon: VercelLogoIcon,
-    Menu: null,
-  },
-] as const;
+const MODE_OPTIONS = isFeatureOn("FLAG_PUMP")
+  ? ([
+      {
+        mode: Mode.NONE,
+        hotkey: "1",
+        Icon: CursorArrowIcon,
+        alwaysMultiple: false,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_JUNCTION,
+        hotkey: "2",
+        alwaysMultiple: true,
+        Icon: CircleIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_PIPE,
+        hotkey: "3",
+        alwaysMultiple: true,
+        Icon: StretchHorizontallyIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_RESERVOIR,
+        hotkey: "4",
+        alwaysMultiple: true,
+        Icon: VercelLogoIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_PUMP,
+        hotkey: "5",
+        alwaysMultiple: true,
+        Icon: PinTopIcon,
+        Menu: null,
+      },
+    ] as const)
+  : ([
+      {
+        mode: Mode.NONE,
+        hotkey: "1",
+        Icon: CursorArrowIcon,
+        alwaysMultiple: false,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_JUNCTION,
+        hotkey: "2",
+        alwaysMultiple: true,
+        Icon: CircleIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_PIPE,
+        hotkey: "3",
+        alwaysMultiple: true,
+        Icon: StretchHorizontallyIcon,
+        Menu: null,
+      },
+      {
+        mode: Mode.DRAW_RESERVOIR,
+        hotkey: "4",
+        alwaysMultiple: true,
+        Icon: VercelLogoIcon,
+        Menu: null,
+      },
+    ] as const);
 
 export default memo(function Modes({
   replaceGeometryForId,

@@ -1,4 +1,4 @@
-import { AssetId, Junction } from "./asset-types";
+import { AssetId, Junction, Pump } from "./asset-types";
 import { JunctionQuantity } from "./asset-types/junction";
 import { Pipe, PipeQuantity, PipeStatus } from "./asset-types/pipe";
 import { LinkConnections, nullConnections } from "./asset-types/link";
@@ -23,6 +23,13 @@ export type PipeBuildData = {
   roughness?: number;
   minorLoss?: number;
   length?: number;
+};
+
+export type PumpBuildData = {
+  id?: AssetId;
+  label?: string;
+  coordinates?: Position[];
+  connections?: LinkConnections;
 };
 
 export type ReservoirBuildData = {
@@ -91,6 +98,31 @@ export class AssetBuilder {
         diameter: this.getPipeValue("diameter", diameter),
         minorLoss: this.getPipeValue("minorLoss", minorLoss),
         roughness: this.getPipeValue("roughness", roughness),
+      },
+      this.units,
+    );
+  }
+
+  buildPump({
+    id = this.idGenerator.newId(),
+    label,
+    coordinates = [
+      [0, 0],
+      [0, 0],
+    ],
+    connections = nullConnections,
+  }: PumpBuildData = {}) {
+    return new Pump(
+      id,
+      coordinates,
+      {
+        type: "pump",
+        label:
+          label !== undefined
+            ? label
+            : this.labelGenerator.generateFor("pump", id),
+        connections,
+        length: 10,
       },
       this.units,
     );

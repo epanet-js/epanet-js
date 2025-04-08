@@ -25,6 +25,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
+import { buildLayers as buildDrawPumpLayers } from "./mode-handlers/draw-pump/ephemeral-state";
 import { PolygonLayer } from "@deck.gl/layers";
 import {
   DECK_LASSO_ID,
@@ -398,6 +399,9 @@ const buildEphemeralStateOvelay = withInstrumentation(
     if (ephemeralState.type === "drawPipe") {
       ephemeralLayers = buildDrawPipeLayers(ephemeralState) as DeckLayer[];
     }
+    if (ephemeralState.type === "drawPump") {
+      ephemeralLayers = buildDrawPumpLayers(ephemeralState) as DeckLayer[];
+    }
     if (ephemeralState.type === "moveAssets") {
       ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
     }
@@ -455,6 +459,8 @@ const getMovedAssets = (
     case "moveAssets":
       return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
     case "drawPipe":
+      return noMoved;
+    case "drawPump":
       return noMoved;
     case "none":
       return noMoved;

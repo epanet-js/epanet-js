@@ -14,6 +14,7 @@ import {
   AssetId,
   HeadlossFormula,
 } from "src/hydraulic-model";
+import { PumpBuildData } from "src/hydraulic-model/asset-builder";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -38,6 +39,22 @@ export const buildPipe = (
     new IdGenerator(),
     new LabelManager(),
   ).buildPipe(data);
+};
+export const buildPump = (
+  data: PumpBuildData = {},
+  unitsOverride: Partial<UnitsSpec> = {},
+) => {
+  const quantitiesSpec: AssetQuantitiesSpec = {
+    ...presets.LPS,
+    units: { ...presets.LPS.units, ...unitsOverride },
+  };
+  const quantities = new Quantities(quantitiesSpec);
+  return new AssetBuilder(
+    quantities.units,
+    quantities.defaults,
+    new IdGenerator(),
+    new LabelManager(),
+  ).buildPump(data);
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {

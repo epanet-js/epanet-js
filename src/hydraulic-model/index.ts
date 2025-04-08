@@ -19,6 +19,7 @@ export type {
   Reservoir,
   Junction,
   Pipe,
+  Pump,
 } from "./asset-types";
 export { Topology } from "./topology";
 
