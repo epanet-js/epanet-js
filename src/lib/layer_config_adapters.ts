@@ -45,6 +45,7 @@ export async function addMapboxStyle(
     labelVisibility: layer.labelVisibility,
     rasterOpacity: layer.opacity,
   });
+
   Object.entries(layer.sourceMaxZoom).forEach(([sourceName, maxZoom]) => {
     (updatedStyle.sources[sourceName] as RasterLayer).maxzoom = maxZoom;
     updatedStyle.layers.forEach((layer) => {

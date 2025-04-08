@@ -36,11 +36,12 @@ export const useToggleSatellite = () => {
       at: oldAt || "a0",
       id: newFeatureId(),
       labelVisibility: oldMapboxLayer ? oldMapboxLayer.labelVisibility : true,
+      sourceMaxZoom:
+        !isSignedIn && newBaseMap.name === LAYERS.SATELLITE.name
+          ? { "mapbox-satellite": satelliteLimitedZoom }
+          : {},
     };
 
-    if (!isSignedIn && newBaseMap.name === LAYERS.SATELLITE.name) {
-      newLayerConfig.sourceMaxZoom["mapbox-satellite"] = satelliteLimitedZoom;
-    }
     applyChanges({
       deleteLayerConfigs,
       putLayerConfigs: [newLayerConfig],
