@@ -67,6 +67,33 @@ describe("AssetEditor", () => {
     });
   });
 
+  describe("with a pump", () => {
+    it("can show its properties", () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
+        .aPump(pumpId, {
+          label: "MY_PUMP",
+          connections: ["j1", "j2"],
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_PUMP");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
+    });
+  });
+
   describe("with a junction", () => {
     it("shows its properties", () => {
       const junctionId = "J1";

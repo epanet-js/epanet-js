@@ -171,6 +171,28 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aPump(
+    id: string,
+    data: Partial<
+      PumpBuildData & { startNodeId: string; endNodeId: string }
+    > = {},
+  ) {
+    const { startNodeId, endNodeId, ...properties } = data;
+    const startNode = this.getNodeOrCreate(startNodeId);
+    const endNode = this.getNodeOrCreate(endNodeId);
+
+    const pump = this.assetBuilder.buildPump({
+      coordinates: [startNode.coordinates, endNode.coordinates],
+      connections: [startNode.id, endNode.id],
+      id,
+      ...properties,
+    });
+    this.assets.set(pump.id, pump);
+    this.topology.addLink(id, startNode.id, endNode.id);
+
+    return this;
+  }
+
   aLink(
     id: string,
     startNodeId: string,

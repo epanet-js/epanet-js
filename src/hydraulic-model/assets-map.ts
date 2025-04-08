@@ -30,6 +30,16 @@ export const getNode = (
   return asset as NodeAsset;
 };
 
+export const getLinkNodes = (
+  assets: AssetsMap,
+  link: LinkAsset,
+): { startNode: NodeAsset | null; endNode: NodeAsset | null } => {
+  const [startNodeId, endNodeId] = link.connections;
+  const startNode = getNode(assets, startNodeId);
+  const endNode = getNode(assets, endNodeId);
+  return { startNode, endNode };
+};
+
 export const filterAssets = (
   assets: AssetsMap,
   assetIds: Set<AssetId> | AssetId[],
