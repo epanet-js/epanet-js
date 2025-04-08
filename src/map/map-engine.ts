@@ -127,7 +127,7 @@ export class MapEngine {
       for (const { id, image } of this.icons) {
         if (map.hasImage(id)) return;
 
-        map.addImage(id, image, { sdf: true });
+        map.addImage(id, image, { sdf: id !== "pump" });
       }
     });
 

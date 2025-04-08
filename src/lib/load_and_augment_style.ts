@@ -1,6 +1,6 @@
 import type { PreviewProperty } from "src/state/jotai";
 // TODO: this is a UI concern that should be separate.
-import type { Style } from "mapbox-gl";
+import type { AnyLayer, Style } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
@@ -16,6 +16,8 @@ import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { pumpIcons } from "src/map/layers/pumps";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -145,6 +147,18 @@ export function makeLayers({
       layerId: "pipe-arrows",
       symbolization,
     }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpIcons({
+        source: "imported-features",
+        layerId: "imported-pump-icons",
+        symbolization,
+      }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpIcons({
+        source: "features",
+        layerId: "pump-icons",
+        symbolization,
+      }),
     junctionsLayer({
       source: "imported-features",
       layerId: "imported-junctions",
@@ -201,7 +215,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ].filter((l) => !!l);
+  ].filter((l) => !!l) as AnyLayer[];
 }
 
 function LABEL_PAINT(
