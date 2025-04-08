@@ -154,6 +154,8 @@ const AssetEditorInner = ({
           onStatusChange={handleStatusChange}
         />
       );
+    case "pump":
+      return <>PUMP</>;
     case "reservoir":
       return (
         <ReservoirEditor
