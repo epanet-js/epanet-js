@@ -1,4 +1,4 @@
-import { Asset, Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import { Asset, Junction, Pipe, Pump, Reservoir } from "src/hydraulic-model";
 import { junctionQuantities } from "src/hydraulic-model/asset-types/junction";
 import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
@@ -37,6 +37,9 @@ export const computePropertyStats = (
       case "pipe":
         appendPipeStats(statsMap, asset as Pipe, quantitiesMetadata);
         break;
+      case "pump":
+        appendPumpStats(statsMap, asset as Pump, quantitiesMetadata);
+        break;
       case "junction":
         appendJunctionStats(statsMap, asset as Junction, quantitiesMetadata);
         break;
@@ -60,6 +63,21 @@ const appendPipeStats = (
       statsMap,
       name,
       pipe[name as unknown as keyof Pipe] as number,
+      quantitiesMetadata,
+    );
+  }
+};
+
+const appendPumpStats = (
+  statsMap: StatsMap,
+  pump: Pump,
+  quantitiesMetadata: Quantities,
+) => {
+  for (const name of pipeQuantities) {
+    updateQuantityStats(
+      statsMap,
+      name,
+      pump[name as unknown as keyof Pump] as number,
       quantitiesMetadata,
     );
   }
