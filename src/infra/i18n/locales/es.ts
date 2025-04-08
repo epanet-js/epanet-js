@@ -267,6 +267,7 @@ export const translations: Translations = {
   getHelp: "Obtén ayuda",
   startNode: "Nudo inicio",
   endNode: "Nudo fin",
+  pump: "Bomba",
 };
 
 export const units: UnitsLocale = {

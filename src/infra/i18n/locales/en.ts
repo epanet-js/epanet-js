@@ -259,6 +259,7 @@ export const translations = {
   getHelp: "Get help",
   startNode: "Start node",
   endNode: "End node",
+  pump: "Pump",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

@@ -338,7 +338,8 @@ export const MapCanvas = memo(function MapCanvas({
     if (
       mode.mode === Mode.DRAW_PIPE ||
       mode.mode === Mode.DRAW_JUNCTION ||
-      mode.mode === Mode.DRAW_RESERVOIR
+      mode.mode === Mode.DRAW_RESERVOIR ||
+      mode.mode === Mode.DRAW_PUMP
     )
       return "placemark-cursor-crosshair";
     return "auto";

@@ -26,6 +26,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
+import { EphemeralDrawPump } from "src/map/mode-handlers/draw-pump/ephemeral-state";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -319,6 +320,7 @@ export const cursorStyleAtom = atom<CursorValue>("default");
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
   | EphemeralDrawPipe
+  | EphemeralDrawPump
   | EphemeralMoveAssets
   | { type: "none" };
 
