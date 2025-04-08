@@ -27,6 +27,9 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
         case "pipe":
           acc.geojsonFeatures.push(asset.feature);
           break;
+        case "pump":
+          acc.geojsonFeatures.push(asset.feature);
+          break;
         case "junction":
           acc.geojsonFeatures.push(asset.feature);
           break;
