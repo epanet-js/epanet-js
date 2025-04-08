@@ -100,6 +100,13 @@ export const translations: Translations = {
     "Haz clic para definir los vértices. Termina en un nodo o haz doble clic para añadir un nudo nuevo.",
   onboardingCtrlPipe:
     "Mantén ${1} y haz clic para finalizar aquí y empezar una nueva tubería.",
+  onboardingStartPump:
+    "Haz clic en un nodo existente para dibujar una bomba o en cualquier lugar para comenzar con un nudo nuevo.",
+  onboardingStartPumpEmpty: "Haz clic donde quieras empezar una bomba.",
+  onboardingDrawPump:
+    "Haz clic para definir los vértices. Termina en un nodo o haz doble clic para añadir un nudo nuevo.",
+  onboardingCtrlPump:
+    "Mantén ${1} y haz clic para finalizar aquí y empezar una nueva bomba.",
   onboardingSelectAsset:
     "Selecciona cualquier activo para ver y modificar sus propiedades.",
   onboardingRunningModel:

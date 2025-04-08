@@ -97,6 +97,13 @@ export const translations = {
     "Hold ${1} and click to end and start a new pipe immediately.",
   onboardingDrawPipe:
     "Click to define vertices. Finish at a junction or double-click to add one.",
+  onboardingStartPump:
+    "Click on an existing node to draw a pump, or click anywhere to start with a new junction.",
+  onboardingStartPumpEmpty: "Click anywhere to start drawing a pump.",
+  onboardingCtrlPump:
+    "Hold ${1} and click to end and start a new pump immediately.",
+  onboardingDrawPump:
+    "Click to define vertices. Finish at a junction or double-click to add one.",
   onboardingSelectAsset: "Select any asset to view and modify its properties.",
   onboardingRunningModel: "Running a model and viewing results",
   onboardingRunSimulation:

@@ -163,6 +163,32 @@ export function Hints() {
         );
       }
     }
+    case Mode.DRAW_PUMP: {
+      if (ephemeralState.type === "drawPump" && !!ephemeralState.startNode)
+        return (
+          <Hint
+            hintId="DRAW_PUMP"
+            text={translate("onboardingDrawPump")}
+            secondaryText={translate(
+              "onboardingCtrlPump",
+              localizeKeybinding("ctrl"),
+            )}
+          />
+        );
+
+      if (hydraulicModel.assets.size === 0) {
+        return (
+          <Hint
+            hintId={"START_PUMP"}
+            text={translate("onboardingStartPumpEmpty")}
+          />
+        );
+      } else {
+        return (
+          <Hint hintId={"START_PUMP"} text={translate("onboardingStartPump")} />
+        );
+      }
+    }
     case Mode.DRAW_RESERVOIR: {
       return (
         <Hint
