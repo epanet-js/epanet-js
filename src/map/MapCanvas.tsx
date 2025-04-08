@@ -189,6 +189,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   const HANDLERS = useModeHandlers(handlerContext);
 
+  const leftClick = 0;
   const newHandlers: MapHandlers = {
     onClick: (e: mapboxgl.MapMouseEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "click");
@@ -196,7 +197,7 @@ export const MapCanvas = memo(function MapCanvas({
     },
     onMapMouseDown: (e: mapboxgl.MapMouseEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "onMapMouseDown");
-      HANDLERS[mode.mode].down(e);
+      if (e.originalEvent.button === leftClick) HANDLERS[mode.mode].down(e);
     },
     onMapTouchStart: (e: mapboxgl.MapTouchEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "onMapTouchStart");
@@ -209,7 +210,7 @@ export const MapCanvas = memo(function MapCanvas({
     },
     onMapMouseUp: (e: mapboxgl.MapMouseEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "onMapMouseUp");
-      HANDLERS[mode.mode].up(e);
+      if (e.originalEvent.button === leftClick) HANDLERS[mode.mode].up(e);
     },
     onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => {
       debug(e, mode.mode, selection, dragTargetRef, "onMapTouchEnd");
