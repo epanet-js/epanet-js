@@ -12,7 +12,7 @@ export type EphemeralMoveAssets = {
 
 import { getIconsSprite, IconId } from "src/map/icons";
 import { hexToArray } from "src/lib/color";
-import { indigo600 } from "src/lib/constants";
+import { colors } from "src/lib/constants";
 
 type IconData = {
   id: IconId;
@@ -55,8 +55,8 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
       getLineWidth: 4,
-      getFillColor: hexToArray(indigo600),
-      getLineColor: hexToArray(indigo600),
+      getFillColor: hexToArray(colors.indigo600),
+      getLineColor: hexToArray(colors.indigo600),
       getPointRadius: 4,
       lineCapRounded: true,
     }),

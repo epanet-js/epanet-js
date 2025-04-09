@@ -1,6 +1,6 @@
 import { Unit } from "src/quantity";
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
-import { indigo900 } from "src/lib/constants";
+import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { parseHexColor } from "src/vendor/mapshaper/color/color-utils";
 import { strokeColorFor } from "src/lib/color";
@@ -139,7 +139,7 @@ const buildSymbolization = (
   simplestyle: true,
   property,
   unit,
-  defaultColor: indigo900,
+  defaultColor: colors.indigo900,
   defaultOpacity: 0.3,
   interpolate: "step",
   rampName,

@@ -71,7 +71,7 @@ import {
   PanelDetailsCollapsible,
 } from "src/components/panel_details";
 import { useAutoSubmit } from "src/hooks/use_auto_submit";
-import { indigo800 } from "src/lib/constants";
+import { colors } from "src/lib/constants";
 
 const regenerateAtom = atom<boolean>(false);
 const DEFAULT_CLASSES = 7;
@@ -384,7 +384,7 @@ function RampWizard() {
           meta.symbolization?.type === "ramp"
             ? meta.symbolization.property
             : "",
-        defaultColor: indigo800,
+        defaultColor: colors.indigo800,
         defaultOpacity: meta.symbolization.defaultOpacity,
         interpolate:
           meta.symbolization?.type === "ramp"
@@ -691,7 +691,7 @@ function CategoryWizard() {
           meta.symbolization?.type === "categorical"
             ? meta.symbolization.property
             : "",
-        defaultColor: indigo800,
+        defaultColor: colors.indigo800,
         defaultOpacity:
           meta.symbolization?.type === "categorical"
             ? meta.symbolization.defaultOpacity
@@ -903,7 +903,7 @@ export function NoneSymbolization() {
         initialValues={{
           type: "none",
           simplestyle: meta.symbolization.simplestyle || true,
-          defaultColor: indigo800,
+          defaultColor: colors.indigo800,
           defaultOpacity: meta.symbolization.defaultOpacity,
         }}
       >
@@ -1010,7 +1010,7 @@ export function SymbolizationEditor() {
                           type,
                           defaultOpacity: 0.3,
                           simplestyle: true,
-                          defaultColor: indigo800,
+                          defaultColor: colors.indigo800,
                         },
                       }),
                     ),
