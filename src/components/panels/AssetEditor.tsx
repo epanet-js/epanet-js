@@ -51,6 +51,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
+import { PumpStatus, pumpStatuses } from "src/hydraulic-model/asset-types/pump";
 
 export function AssetEditor({
   selectedFeature,
@@ -111,7 +112,23 @@ const AssetEditorInner = ({
     });
   };
 
-  const handleStatusChange = useCallback(
+  const handleStatusChange = (newStatus: PumpStatus, oldStatus: PumpStatus) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [asset.id],
+      property: "status",
+      value: newStatus,
+    });
+    transact(moment);
+    userTracking.capture({
+      name: "assetStatus.edited",
+      type: asset.type,
+      property: "status",
+      newValue: newStatus,
+      oldValue: oldStatus,
+    });
+  };
+
+  const handlePipeStatusChange = useCallback(
     (newStatus: PipeStatus, oldStatus: PipeStatus) => {
       const moment = changePipeStatus(hydraulicModel, {
         pipeId: asset.id,
@@ -147,7 +164,7 @@ const AssetEditorInner = ({
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onStatusChange={handleStatusChange}
+          onStatusChange={handlePipeStatusChange}
         />
       );
     case "pump":
@@ -155,6 +172,7 @@ const AssetEditorInner = ({
       return (
         <PumpEditor
           pump={pump}
+          onStatusChange={handleStatusChange}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
       );
@@ -174,7 +192,7 @@ type OnPropertyChange = (
   value: number,
   oldValue: number | null,
 ) => void;
-type OnStatusChange = (newStatus: PipeStatus, oldStatus: PipeStatus) => void;
+type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 
 const PipeEditor = ({
   pipe,
@@ -191,7 +209,7 @@ const PipeEditor = ({
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onStatusChange: OnStatusChange;
+  onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
@@ -275,10 +293,12 @@ const PumpEditor = ({
   pump,
   startNode,
   endNode,
+  onStatusChange,
 }: {
   pump: Pump;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
+  onStatusChange: OnStatusChange<PumpStatus>;
 }) => {
   return (
     <PanelDetails title={translate("pump")} variant="fullwidth">
@@ -295,6 +315,12 @@ const PumpEditor = ({
               <TextRowReadOnly
                 name="endNode"
                 value={endNode ? endNode.label : ""}
+              />
+              <StatusRow
+                name={"status"}
+                status={pump.status}
+                availableStatuses={pumpStatuses}
+                onChange={onStatusChange}
               />
             </tbody>
           </table>

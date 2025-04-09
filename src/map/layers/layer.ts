@@ -27,6 +27,8 @@ export const assetLayers: LayerId[] = [
   "reservoirs-selected",
   "imported-reservoirs",
   "imported-reservoirs-selected",
+  "imported-pump-lines",
+  "pump-lines",
 ];
 
 export const clickableLayers: LayerId[] = assetLayers;

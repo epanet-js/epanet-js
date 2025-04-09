@@ -1,8 +1,12 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
+export const pumpStatuses = ["open", "closed"] as const;
+export type PumpStatus = (typeof pumpStatuses)[number];
+
 export type PumpProperties = {
   type: "pump";
+  status: PumpStatus;
 } & LinkProperties;
 
 export const pumpQuantities = [];
@@ -19,6 +23,10 @@ export class Pump extends Link<PumpProperties> {
 
   setSimulation(simulation: PumpSimulationProvider) {
     this.simulation = simulation;
+  }
+
+  get status() {
+    return this.properties.status;
   }
 
   copy() {

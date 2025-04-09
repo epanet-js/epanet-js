@@ -28,6 +28,7 @@ export type PipeBuildData = {
 export type PumpBuildData = {
   id?: AssetId;
   label?: string;
+  status?: PumpStatus;
   coordinates?: Position[];
   connections?: LinkConnections;
 };
@@ -44,6 +45,7 @@ export type ReservoirBuildData = {
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
 import { LabelGenerator } from "./label-manager";
+import { PumpStatus } from "./asset-types/pump";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -110,6 +112,7 @@ export class AssetBuilder {
       [0, 0],
       [0, 0],
     ],
+    status = "open",
     connections = nullConnections,
   }: PumpBuildData = {}) {
     return new Pump(
@@ -123,6 +126,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("pump", id),
         connections,
         length: 10,
+        status,
       },
       this.units,
     );
