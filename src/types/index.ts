@@ -18,7 +18,7 @@ import { JsonValue, SetOptional } from "type-fest";
 import { IDMap } from "src/lib/id_mapper";
 import { getFoldersInTree } from "src/lib/folder";
 import { CBColors } from "src/lib/colorbrewer";
-import { indigo900 } from "src/lib/constants";
+import { colors } from "src/lib/constants";
 import { safeParseMaybe } from "src/lib/utils";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
@@ -245,7 +245,7 @@ const WrappedFeatureLocal = z.object({
 
 export const SymbolizationBaseInternal = z.object({
   simplestyle: z.boolean(),
-  defaultColor: z.string().default(indigo900),
+  defaultColor: z.string().default(colors.indigo900),
   defaultOpacity: z
     .number()
     .default(0.3)
@@ -298,7 +298,7 @@ export function tryUpgrading(symbolization: any): Maybe<ISymbolization> {
         Symbolization.safeParse({
           type: "ramp",
           property: p.property,
-          defaultColor: indigo900,
+          defaultColor: colors.indigo900,
           rampName: "RdBl",
           interpolate: "linear",
           simplestyle: false,
@@ -322,7 +322,7 @@ export function tryUpgrading(symbolization: any): Maybe<ISymbolization> {
     if (parsed.success) {
       return Just({
         type: "none",
-        defaultColor: indigo900,
+        defaultColor: colors.indigo900,
         simplestyle: false,
         defaultOpacity: 0.3,
       });
@@ -379,7 +379,7 @@ export const Symbolization = z.union([
 export const SYMBOLIZATION_NONE: ISymbolizationNone = {
   type: "none",
   simplestyle: true,
-  defaultColor: indigo900,
+  defaultColor: colors.indigo900,
   defaultOpacity: 0.3,
 };
 

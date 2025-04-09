@@ -1,12 +1,12 @@
 import { CircleLayer } from "mapbox-gl";
-import { POINT_COLORS_SELECTED, indigo200 } from "src/lib/constants";
+import { POINT_COLORS_SELECTED, colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization";
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
 
-const defaultInnerColor = indigo200;
+const defaultInnerColor = colors.indigo200;
 const selectedInnerColor = POINT_COLORS_SELECTED;
 
 export const junctionsLayer = ({

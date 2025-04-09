@@ -17,7 +17,7 @@ import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { pumpIcons } from "src/map/layers/pumps";
+import { pumpIcons, pumpLines } from "src/map/layers/pumps";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -137,6 +137,18 @@ export function makeLayers({
       layerId: "pipes",
       symbolization,
     }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpLines({
+        source: "imported-features",
+        layerId: "imported-pump-lines",
+        symbolization,
+      }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpLines({
+        source: "features",
+        layerId: "pump-lines",
+        symbolization,
+      }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",

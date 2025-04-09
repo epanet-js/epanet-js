@@ -44,7 +44,7 @@ export const pipesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: ["==", "$type", "LineString"],
+    filter: ["==", "type", "pipe"],
     paint: paint as LinePaint,
   };
 };
