@@ -159,18 +159,6 @@ export function makeLayers({
       layerId: "pipe-arrows",
       symbolization,
     }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpIcons({
-        source: "imported-features",
-        layerId: "imported-pump-icons",
-        symbolization,
-      }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpIcons({
-        source: "features",
-        layerId: "pump-icons",
-        symbolization,
-      }),
     junctionsLayer({
       source: "imported-features",
       layerId: "imported-junctions",
@@ -191,6 +179,18 @@ export function makeLayers({
       layerId: "junction-results",
       symbolization,
     }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpIcons({
+        source: "imported-features",
+        layerId: "imported-pump-icons",
+        symbolization,
+      }),
+    isFeatureOn("FLAG_PUMP") &&
+      pumpIcons({
+        source: "features",
+        layerId: "pump-icons",
+        symbolization,
+      }),
     reservoirsLayer({
       source: "features",
       layerId: "reservoirs",

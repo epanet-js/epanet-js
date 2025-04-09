@@ -73,7 +73,7 @@ export const pumpIcons = ({
         "pump-off",
         "pump-on",
       ],
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
     },
     filter: ["==", "type", "pump"],
@@ -92,6 +92,6 @@ export const pumpIcons = ({
         1,
       ],
     },
-    minzoom: 14,
+    minzoom: 10,
   };
 };
