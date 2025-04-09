@@ -33,6 +33,7 @@ const { withSentryConfig } = require("@sentry/nextjs");
 module.exports = withSentryConfig(nextConfig, {
   org: "matrado-pr",
   project: "epanet-app",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: false,
