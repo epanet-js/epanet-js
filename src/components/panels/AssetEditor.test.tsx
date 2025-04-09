@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Pipe } from "src/hydraulic-model";
+import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id_mapper";
 import userEvent from "@testing-library/user-event";
-import { AssetId, getPipe } from "src/hydraulic-model/assets-map";
+import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
 
@@ -77,6 +77,7 @@ describe("AssetEditor", () => {
         .aPump(pumpId, {
           label: "MY_PUMP",
           connections: ["j1", "j2"],
+          status: "open",
         })
         .build();
       const store = setInitialState({
@@ -91,6 +92,45 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("label", "MY_PUMP");
       expectPropertyDisplayed("start node", "J1");
       expectPropertyDisplayed("end node", "J2");
+      expectStatusDisplayed("Open");
+    });
+
+    it("can change its status", async () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPump(pumpId, { status: "open" })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+      const user = userEvent.setup();
+
+      const historyControl = renderComponent(store);
+
+      const selector = screen.getByRole("combobox", {
+        name: /value for: status/i,
+      });
+
+      await user.click(selector);
+
+      await user.click(screen.getByText(/closed/i));
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getLink(updatedHydraulicModel.assets, pumpId) as Pump).status,
+      ).toEqual("closed");
+
+      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveTextContent("Closed");
+
+      historyControl("undo");
+      await waitFor(() => {
+        const updatedSelector = screen.getByRole("combobox", {
+          name: /value for: status/i,
+        });
+        expect(updatedSelector).toHaveTextContent("Open");
+      });
     });
   });
 
