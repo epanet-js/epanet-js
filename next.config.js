@@ -4,21 +4,20 @@
 /**
  * @type {import('next').NextConfig}
  */
+const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || "development";
+
 const nextConfig = {
   productionBrowserSourceMaps: true,
   compress: false,
   swcMinify: true,
-
-  // TODO: it would be nice if this worked, but cross-origin
-  // workers are not a thing yet.
-  // assetPrefix: isProduction ? "https://static.placemark.io" : "", // "http://0.0.0.0:8787",
-
   poweredByHeader: false,
 
   typescript: {
     ignoreBuildErrors: false,
   },
-
+  env: {
+    SENTRY_RELEASE: commitSha,
+  },
   eslint: {
     ignoreDuringBuilds: false,
   },
@@ -33,6 +32,8 @@ const { withSentryConfig } = require("@sentry/nextjs");
 module.exports = withSentryConfig(nextConfig, {
   org: "matrado-pr",
   project: "epanet-app",
+  environment: process.env.NODE_ENV,
+  release: commitSha,
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
