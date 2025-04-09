@@ -15,9 +15,9 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("[RESERVOIRS]");
-    expect(rowsFrom(inp)).toContain("r1\t10");
-    expect(rowsFrom(inp)).toContain("r2\t20");
+    expect(inp).toContain("[RESERVOIRS]");
+    expect(inp).toContain("r1\t10");
+    expect(inp).toContain("r2\t20");
   });
 
   it("adds junctions", () => {
@@ -34,12 +34,12 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
-    expect(rowsFrom(inp)).toContain("j1\t10");
-    expect(rowsFrom(inp)).toContain("j2\t20");
-    expect(rowsFrom(inp)).toContain("[DEMANDS]");
-    expect(rowsFrom(inp)).toContain("j1\t1");
-    expect(rowsFrom(inp)).toContain("j2\t2");
+    expect(inp).toContain("[JUNCTIONS]");
+    expect(inp).toContain("j1\t10");
+    expect(inp).toContain("j2\t20");
+    expect(inp).toContain("[DEMANDS]");
+    expect(inp).toContain("j1\t1");
+    expect(inp).toContain("j2\t2");
   });
 
   it("adds pipes", () => {
@@ -67,11 +67,31 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("[PIPES]");
-    expect(rowsFrom(inp)).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
-    expect(rowsFrom(inp)).toContain(
-      "pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed",
-    );
+    expect(inp).toContain("[PIPES]");
+    expect(inp).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
+    expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
+  });
+
+  it("adds pumps", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("node1")
+      .aNode("node2")
+      .aNode("node3")
+      .aPump("pump1", {
+        startNodeId: "node1",
+        endNodeId: "node2",
+        status: "open",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(inp).toContain("[PUMPS]");
+    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD DEFAULT_CURVE");
+    expect(inp).toContain("[STATUS]");
+    expect(inp).toContain("pump1\tOpen");
+    expect(inp).toContain("[CURVES]");
+    expect(inp).toContain("DEFAULT_CURVE\t1\t1");
   });
 
   it("includes simulation settings", () => {
@@ -79,21 +99,21 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("[TIMES]");
-    expect(rowsFrom(inp)).toContain("Duration\t0");
+    expect(inp).toContain("[TIMES]");
+    expect(inp).toContain("Duration\t0");
 
-    expect(rowsFrom(inp)).toContain("[REPORT]");
-    expect(rowsFrom(inp)).toContain("Status\tFULL");
-    expect(rowsFrom(inp)).toContain("Summary\tNo");
-    expect(rowsFrom(inp)).toContain("Page\t0");
+    expect(inp).toContain("[REPORT]");
+    expect(inp).toContain("Status\tFULL");
+    expect(inp).toContain("Summary\tNo");
+    expect(inp).toContain("Page\t0");
 
-    expect(rowsFrom(inp)).toContain("[OPTIONS]");
-    expect(rowsFrom(inp)).toContain("Accuracy\t0.001");
-    expect(rowsFrom(inp)).toContain("Units\tLPS");
-    expect(rowsFrom(inp)).toContain("Quality\tNONE");
-    expect(rowsFrom(inp)).toContain("Headloss\tH-W");
+    expect(inp).toContain("[OPTIONS]");
+    expect(inp).toContain("Accuracy\t0.001");
+    expect(inp).toContain("Units\tLPS");
+    expect(inp).toContain("Quality\tNONE");
+    expect(inp).toContain("Headloss\tH-W");
 
-    expect(rowsFrom(inp).at(-1)).toEqual("[END]");
+    expect(inp.split("\n").at(-1)).toEqual("[END]");
   });
 
   it("includes visualization settings for epanet", () => {
@@ -101,8 +121,8 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel, { geolocation: true });
 
-    expect(rowsFrom(inp)).toContain("[BACKDROP]");
-    expect(rowsFrom(inp)).toContain("Units\tDEGREES");
+    expect(inp).toContain("[BACKDROP]");
+    expect(inp).toContain("Units\tDEGREES");
   });
 
   it("includes haadloss formula", () => {
@@ -112,7 +132,7 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("Headloss\tD-W");
+    expect(inp).toContain("Headloss\tD-W");
   });
 
   it("detects units based on the flow units of the model", () => {
@@ -120,7 +140,7 @@ describe("build inp", () => {
 
     const inp = buildInp(hydraulicModel);
 
-    expect(rowsFrom(inp)).toContain("Units\tGPM");
+    expect(inp).toContain("Units\tGPM");
   });
 
   it("includes geographical info when requested", () => {
@@ -140,18 +160,18 @@ describe("build inp", () => {
       .build();
 
     const without = buildInp(hydraulicModel);
-    expect(rowsFrom(without)).not.toContain("[COORDINATES]");
-    expect(rowsFrom(without)).not.toContain("[VERTICES]");
+    expect(without).not.toContain("[COORDINATES]");
+    expect(without).not.toContain("[VERTICES]");
 
     const inp = buildInp(hydraulicModel, { geolocation: true });
 
-    expect(rowsFrom(inp)).toContain("[COORDINATES]");
-    expect(rowsFrom(inp)).toContain("junction1\t10\t1");
-    expect(rowsFrom(inp)).toContain("reservoir1\t20\t2");
+    expect(inp).toContain("[COORDINATES]");
+    expect(inp).toContain("junction1\t10\t1");
+    expect(inp).toContain("reservoir1\t20\t2");
 
-    expect(rowsFrom(inp)).toContain("[VERTICES]");
-    expect(rowsFrom(inp)).toContain("pipe1\t30\t3");
-    expect(rowsFrom(inp)).toContain("pipe1\t40\t4");
+    expect(inp).toContain("[VERTICES]");
+    expect(inp).toContain("pipe1\t30\t3");
+    expect(inp).toContain("pipe1\t40\t4");
   });
 
   it("signals that inp has been built by this app", () => {
@@ -161,7 +181,7 @@ describe("build inp", () => {
 
     let inp = buildInp(hydraulicModel, { madeBy: true });
 
-    expect(rowsFrom(inp)).toContain(";MADE BY EPANET-JS [41f4f1d3]");
+    expect(inp).toContain(";MADE BY EPANET-JS [514c3c84]");
     expect(inp).toContain("junction1");
     hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
@@ -170,8 +190,6 @@ describe("build inp", () => {
 
     inp = buildInp(hydraulicModel, { madeBy: true });
 
-    expect(rowsFrom(inp)).toContain(";MADE BY EPANET-JS [51a3b5c9]");
+    expect(inp).toContain(";MADE BY EPANET-JS [710b6880]");
   });
-
-  const rowsFrom = (inp: string) => inp.split("\n");
 });

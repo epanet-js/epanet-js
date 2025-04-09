@@ -85,6 +85,9 @@ export const pumpIcons = ({
         LINE_COLORS_SELECTED,
         ["coalesce", ["get", "color"], symbolization.defaultColor],
       ],
+      "icon-halo-blur": 200,
+      "icon-halo-width": 82,
+      "icon-halo-color": "red",
       "icon-opacity": [
         "case",
         ["boolean", ["feature-state", "hidden"], false],

@@ -5,12 +5,14 @@ import {
   Junction,
   Pipe,
   Reservoir,
+  Pump,
 } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 
 type SimulationPipeStatus = "Open" | "Closed";
+type SimulationPumpStatus = "Open" | "Closed";
 
 type BuildOptions = {
   geolocation?: boolean;
@@ -125,9 +127,12 @@ export const buildInp = withInstrumentation(
         "[PIPES]",
         ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
       ],
+      pumps: ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
       times: ["[TIMES]", `Duration\t${oneStep}`],
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
+      status: ["[STATUS]", ";Id\tStatus"],
+      curves: ["[CURVES]", ";Id\tX\tY"],
       options: [
         "[OPTIONS]",
         "Quality\tNONE",
@@ -188,13 +193,38 @@ export const buildInp = withInstrumentation(
           }
         }
       }
+
+      if (asset.type === "pump") {
+        const pump = asset as Pump;
+        const [nodeStart, nodeEnd] = pump.connections;
+        const linkId = idMap.linkId(pump);
+        sections.pumps.push(
+          [
+            linkId,
+            idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
+            idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
+            "HEAD DEFAULT_CURVE",
+          ].join("\t"),
+        );
+        sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
+        if (geolocation) {
+          for (const vertex of pump.intermediateVertices) {
+            sections.vertices.push([idMap.linkId(pump), ...vertex].join("\t"));
+          }
+        }
+      }
     }
+
+    sections.curves.push(["DEFAULT_CURVE", "1", "1"].join("\t"));
 
     let content = [
       sections.junctions.join("\n"),
       sections.reservoirs.join("\n"),
       sections.pipes.join("\n"),
+      sections.pumps.join("\n"),
       sections.demands.join("\n"),
+      sections.status.join("\n"),
+      sections.curves.join("\n"),
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
@@ -216,6 +246,15 @@ export const buildInp = withInstrumentation(
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
   switch (pipe.status) {
+    case "open":
+      return "Open";
+    case "closed":
+      return "Closed";
+  }
+};
+
+const pumpStatusFor = (pump: Pump): SimulationPumpStatus => {
+  switch (pump.status) {
     case "open":
       return "Open";
     case "closed":
