@@ -63,7 +63,6 @@ export const pumpIcons = ({
     type: "symbol",
     source,
     layout: {
-      "symbol-placement": "line-center",
       "icon-image": [
         "match",
         ["get", "status"],
@@ -75,6 +74,7 @@ export const pumpIcons = ({
       ],
       "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
+      "icon-allow-overlap": true,
     },
     filter: ["==", "type", "pump"],
     paint: {
@@ -85,9 +85,6 @@ export const pumpIcons = ({
         LINE_COLORS_SELECTED,
         ["coalesce", ["get", "color"], symbolization.defaultColor],
       ],
-      "icon-halo-blur": 200,
-      "icon-halo-width": 82,
-      "icon-halo-color": "red",
       "icon-opacity": [
         "case",
         ["boolean", ["feature-state", "hidden"], false],

@@ -1,4 +1,4 @@
-import { Position } from "geojson";
+import { Feature, Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
@@ -117,3 +117,24 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     this.properties.length = length;
   }
 }
+
+export const findLargestSegment = <T>(link: Link<T>): [Position, Position] => {
+  let maxLength = 0;
+  let maxSegment = null;
+
+  for (const segment of link.segments) {
+    const length = measureLength({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: segment,
+      },
+    } as Feature);
+    if (length > maxLength) {
+      maxLength = length;
+      maxSegment = segment;
+    }
+  }
+  return maxSegment as [Position, Position];
+};
