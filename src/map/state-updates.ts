@@ -211,9 +211,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         idMap,
         mapState.analysis,
       );
-      if (isFeatureOn("FLAG_PUMP")) {
-        await updateIconsSource(map, assets, idMap);
-      }
       const newHiddenFeatures = updateImportedSourceVisibility(
         map,
         lastHiddenFeatures.current,
@@ -222,6 +219,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       );
 
       lastHiddenFeatures.current = newHiddenFeatures;
+    }
+
+    if (
+      hasNewEditions ||
+      hasNewStyles ||
+      hasNewAnalysis ||
+      hasNewSelection ||
+      (hasNewSimulation && mapState.simulation.status !== "running")
+    ) {
+      if (isFeatureOn("FLAG_PUMP"))
+        await updateIconsSource(map, assets, idMap, mapState.selection);
     }
 
     if (hasNewEphemeralState) {
@@ -349,8 +357,14 @@ const updateEditionsSource = withInstrumentation(
 );
 
 const updateIconsSource = withInstrumentation(
-  async (map: MapEngine, assets: AssetsMap, idMap: IDMap): Promise<void> => {
-    const features = buildIconPointsSource(assets, idMap);
+  async (
+    map: MapEngine,
+    assets: AssetsMap,
+    idMap: IDMap,
+    selection: Sel,
+  ): Promise<void> => {
+    const selectionSet = new Set(USelection.toIds(selection));
+    const features = buildIconPointsSource(assets, idMap, selectionSet);
     await map.setSource("icons", features);
   },
   {

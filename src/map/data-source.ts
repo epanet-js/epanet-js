@@ -1,5 +1,5 @@
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
-import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
+import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
@@ -43,6 +43,7 @@ export const buildOptimizedAssetsSource = (
 export const buildIconPointsSource = (
   assets: AssetsMap,
   idMap: IDMap,
+  selectedAssets: Set<AssetId>,
 ): Feature[] => {
   const strippedFeatures = [];
 
@@ -61,6 +62,7 @@ export const buildIconPointsSource = (
           type: pump.type,
           status: pump.status,
           rotation: bearing,
+          selected: selectedAssets.has(pump.id),
         },
         geometry: {
           type: "Point",
