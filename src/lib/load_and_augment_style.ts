@@ -39,7 +39,7 @@ const FEATURES_LINE_LAYER_NAME = "features-line";
 const emptyGeoJSONSource = {
   type: "geojson",
   data: emptyFeatureCollection,
-  buffer: isFeatureOn("FLAG_PUMP") ? 64 : 0,
+  buffer: isFeatureOn("FLAG_PUMP") ? 4 : 0,
   tolerance: 0,
 } as const;
 
