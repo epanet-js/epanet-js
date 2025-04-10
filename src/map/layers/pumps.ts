@@ -1,7 +1,13 @@
 import { ISymbolization } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
+import {
+  AnyLayer,
+  CircleLayer,
+  LineLayer,
+  LinePaint,
+  SymbolLayer,
+} from "mapbox-gl";
 import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization";
 
@@ -57,42 +63,58 @@ export const pumpIcons = ({
   source: DataSource;
   layerId: LayerId;
   symbolization: ISymbolization;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "icon-image": [
-        "match",
-        ["get", "status"],
-        "open",
-        "pump-on",
-        "closed",
-        "pump-off",
-        "pump-on",
-      ],
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
-      "icon-rotate": ["get", "rotation"],
-      "icon-allow-overlap": true,
-      "icon-rotation-alignment": "map",
-    },
-    filter: ["==", "type", "pump"],
-    paint: {
-      "icon-color": [
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        LINE_COLORS_SELECTED,
-        ["coalesce", ["get", "color"], symbolization.defaultColor],
-      ],
-      "icon-opacity": [
-        "case",
-        ["boolean", ["feature-state", "hidden"], false],
-        0,
-        1,
-      ],
-    },
-    minzoom: 10,
-  };
+}): AnyLayer[] => {
+  return [
+    {
+      id: layerId + "-selected",
+      type: "circle",
+      source,
+      layout: {},
+      filter: ["all", ["==", "type", "pump"], ["==", "selected", true]],
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 18],
+        "circle-color": "#D6409F",
+        "circle-opacity": 0.8,
+        "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.3],
+      },
+      minzoom: 10,
+    } as CircleLayer,
+    {
+      id: layerId,
+      type: "symbol",
+      source,
+      layout: {
+        "icon-image": [
+          "match",
+          ["get", "status"],
+          "open",
+          "pump-on",
+          "closed",
+          "pump-off",
+          "pump-on",
+        ],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
+        "icon-rotate": ["get", "rotation"],
+        "icon-allow-overlap": true,
+        "icon-rotation-alignment": "map",
+      },
+      filter: ["==", "type", "pump"],
+      paint: {
+        "icon-color": [
+          "match",
+          ["feature-state", "selected"],
+          "true",
+          LINE_COLORS_SELECTED,
+          ["coalesce", ["get", "color"], symbolization.defaultColor],
+        ],
+        "icon-opacity": [
+          "case",
+          ["boolean", ["feature-state", "hidden"], false],
+          0,
+          1,
+        ],
+      },
+      minzoom: 10,
+    } as SymbolLayer,
+  ];
 };

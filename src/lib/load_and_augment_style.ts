@@ -180,12 +180,11 @@ export function makeLayers({
       layerId: "junction-results",
       symbolization,
     }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpIcons({
-        source: "icons",
-        layerId: "pump-icons",
-        symbolization,
-      }),
+    ...pumpIcons({
+      source: "icons",
+      layerId: "pump-icons",
+      symbolization,
+    }),
     reservoirsLayer({
       source: "features",
       layerId: "reservoirs",
