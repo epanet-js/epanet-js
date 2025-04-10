@@ -1,11 +1,14 @@
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
-import { AssetsMap, Junction, Pipe } from "src/hydraulic-model";
+import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
+import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
 import { AnalysisState } from "src/state/analysis";
 import { Feature } from "src/types";
+import calculateMidpoint from "@turf/midpoint";
+import calculateBearing from "@turf/bearing";
 
-export type DataSource = "imported-features" | "features";
+export type DataSource = "imported-features" | "features" | "icons";
 
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
@@ -33,6 +36,39 @@ export const buildOptimizedAssetsSource = (
       appendJunctionAnalysisProps(asset as Junction, feature, analysis.nodes);
 
     strippedFeatures.push(feature);
+  }
+  return strippedFeatures;
+};
+
+export const buildIconPointsSource = (
+  assets: AssetsMap,
+  idMap: IDMap,
+): Feature[] => {
+  const strippedFeatures = [];
+
+  for (const asset of assets.values()) {
+    if (asset.type === "pump") {
+      const pump = asset as Pump;
+      const featureId = UIDMap.getIntID(idMap, asset.id);
+      const largestSegment = findLargestSegment(pump);
+      const center = calculateMidpoint(...largestSegment);
+      const bearing = calculateBearing(...largestSegment);
+
+      const feature: Feature = {
+        type: "Feature",
+        id: featureId,
+        properties: {
+          type: pump.type,
+          status: pump.status,
+          rotation: bearing,
+        },
+        geometry: {
+          type: "Point",
+          coordinates: center.geometry.coordinates,
+        },
+      };
+      strippedFeatures.push(feature);
+    }
   }
   return strippedFeatures;
 };

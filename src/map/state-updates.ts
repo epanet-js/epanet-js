@@ -16,7 +16,10 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
-import { buildOptimizedAssetsSource } from "./data-source";
+import {
+  buildIconPointsSource,
+  buildOptimizedAssetsSource,
+} from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
@@ -37,6 +40,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -207,6 +211,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         idMap,
         mapState.analysis,
       );
+      if (isFeatureOn("FLAG_PUMP")) {
+        await updateIconsSource(map, assets, idMap);
+      }
       const newHiddenFeatures = updateImportedSourceVisibility(
         map,
         lastHiddenFeatures.current,
@@ -341,6 +348,17 @@ const updateEditionsSource = withInstrumentation(
   },
 );
 
+const updateIconsSource = withInstrumentation(
+  async (map: MapEngine, assets: AssetsMap, idMap: IDMap): Promise<void> => {
+    const features = buildIconPointsSource(assets, idMap);
+    await map.setSource("icons", features);
+  },
+  {
+    name: "MAP_STATE:UPDATE_ICONS_SOURCE",
+    maxDurationMs: 250,
+  },
+);
+
 const updateImportedSourceVisibility = withInstrumentation(
   (
     map: MapEngine,
@@ -373,6 +391,8 @@ const updateEditionsVisibility = withInstrumentation(
     for (const assetId of previousMovedAssetIds.values()) {
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.showFeature("features", featureId);
+      isFeatureOn("FLAG_PUMP") && map.showFeature("icons", featureId);
+
       if (featuresHiddenFromImport.has(featureId)) continue;
 
       map.showFeature("imported-features", featureId);
@@ -381,6 +401,8 @@ const updateEditionsVisibility = withInstrumentation(
     for (const assetId of movedAssetIds.values()) {
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.hideFeature("features", featureId);
+      isFeatureOn("FLAG_PUMP") && map.hideFeature("icons", featureId);
+
       if (featuresHiddenFromImport.has(featureId)) continue;
 
       map.hideFeature("imported-features", featureId);

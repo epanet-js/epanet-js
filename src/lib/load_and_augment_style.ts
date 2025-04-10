@@ -108,6 +108,7 @@ export function addEditingLayers({
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
+  style.sources["icons"] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -181,13 +182,7 @@ export function makeLayers({
     }),
     isFeatureOn("FLAG_PUMP") &&
       pumpIcons({
-        source: "imported-features",
-        layerId: "imported-pump-icons",
-        symbolization,
-      }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpIcons({
-        source: "features",
+        source: "icons",
         layerId: "pump-icons",
         symbolization,
       }),
