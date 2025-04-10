@@ -75,6 +75,7 @@ export const pumpIcons = ({
       "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
       "icon-allow-overlap": true,
+      "icon-rotation-alignment": "map",
     },
     filter: ["==", "type", "pump"],
     paint: {
