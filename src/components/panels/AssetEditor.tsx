@@ -229,6 +229,7 @@ const PipeEditor = ({
               />
               <StatusRow
                 name={"status"}
+                type={pipe.type}
                 status={pipe.status}
                 availableStatuses={pipeStatuses}
                 onChange={onStatusChange}
@@ -318,6 +319,7 @@ const PumpEditor = ({
               />
               <StatusRow
                 name={"status"}
+                type={pump.type}
                 status={pump.status}
                 availableStatuses={pumpStatuses}
                 onChange={onStatusChange}
@@ -420,24 +422,26 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
-const StatusRow = ({
+const StatusRow = <T extends AssetStatus>({
   name,
+  type,
   status,
   availableStatuses,
   onChange,
 }: {
   name: string;
-  status: AssetStatus;
-  availableStatuses: readonly AssetStatus[];
-  onChange: (newStatus: AssetStatus, oldStateu: AssetStatus) => void;
+  type: Asset["type"];
+  status: T;
+  availableStatuses: readonly T[];
+  onChange: (newStatus: T, oldStatus: T) => void;
 }) => {
   const label = translate(name);
 
   const options = useMemo(() => {
     const options = availableStatuses.map((status) => ({
-      label: translate(status),
+      label: translate(`${type}.${status}`),
       value: status,
-    })) as { label: string; value: AssetStatus }[];
+    })) as { label: string; value: T }[];
     return options;
   }, [availableStatuses]);
 

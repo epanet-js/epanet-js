@@ -41,7 +41,7 @@ export const pumpLines = ({
     ],
     "line-dasharray": [
       "case",
-      ["==", ["get", "status"], "closed"],
+      ["==", ["get", "status"], "off"],
       ["literal", [2, 1]],
       ["literal", [1, 0]],
     ],
@@ -87,9 +87,9 @@ export const pumpIcons = ({
         "icon-image": [
           "match",
           ["get", "status"],
-          "open",
+          "on",
           "pump-on",
-          "closed",
+          "off",
           "pump-off",
           "pump-on",
         ],

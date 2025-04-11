@@ -255,9 +255,9 @@ const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
 
 const pumpStatusFor = (pump: Pump): SimulationPumpStatus => {
   switch (pump.status) {
-    case "open":
+    case "on":
       return "Open";
-    case "closed":
+    case "off":
       return "Closed";
   }
 };
