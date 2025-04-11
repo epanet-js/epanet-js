@@ -47,7 +47,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
       expectPropertyDisplayed("loss coeff. (m)", "0.1");
-      expectPropertyDisplayed("flow", "Not available");
+      expectPropertyDisplayed("flow", "Not Available");
     });
 
     it("can show simulation results", () => {
@@ -173,7 +173,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("label", "MY_JUNCTION");
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("demand (l/s)", "100");
-      expectPropertyDisplayed("pressure (m)", "Not available");
+      expectPropertyDisplayed("pressure (m)", "Not Available");
     });
 
     it("can show simulation results", () => {
