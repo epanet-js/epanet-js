@@ -1,9 +1,9 @@
 import { Pipe, PipeStatus } from "./pipe";
-import { Pump } from "./pump";
+import { Pump, PumpStatus } from "./pump";
 import { Junction } from "./junction";
 
 export type Asset = Pipe | Junction | Reservoir | Pump;
-export type AssetStatus = PipeStatus;
+export type AssetStatus = PipeStatus | PumpStatus;
 export type NodeAsset = Junction | Reservoir;
 export type LinkAsset = Pipe | Pump;
 

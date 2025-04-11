@@ -112,7 +112,7 @@ export class AssetBuilder {
       [0, 0],
       [0, 0],
     ],
-    status = "open",
+    status = "on",
     connections = nullConnections,
   }: PumpBuildData = {}) {
     return new Pump(

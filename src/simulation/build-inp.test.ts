@@ -80,7 +80,7 @@ describe("build inp", () => {
       .aPump("pump1", {
         startNodeId: "node1",
         endNodeId: "node2",
-        status: "open",
+        status: "on",
       })
       .build();
 

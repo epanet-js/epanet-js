@@ -1,7 +1,7 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
-export const pumpStatuses = ["open", "closed"] as const;
+export const pumpStatuses = ["on", "off"] as const;
 export type PumpStatus = (typeof pumpStatuses)[number];
 
 export type PumpProperties = {

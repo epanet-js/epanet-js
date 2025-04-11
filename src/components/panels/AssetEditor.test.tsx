@@ -77,7 +77,7 @@ describe("AssetEditor", () => {
         .aPump(pumpId, {
           label: "MY_PUMP",
           connections: ["j1", "j2"],
-          status: "open",
+          status: "on",
         })
         .build();
       const store = setInitialState({
@@ -92,13 +92,13 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("label", "MY_PUMP");
       expectPropertyDisplayed("start node", "J1");
       expectPropertyDisplayed("end node", "J2");
-      expectStatusDisplayed("Open");
+      expectStatusDisplayed("On");
     });
 
     it("can change its status", async () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPump(pumpId, { status: "open" })
+        .aPump(pumpId, { status: "on" })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -114,22 +114,22 @@ describe("AssetEditor", () => {
 
       await user.click(selector);
 
-      await user.click(screen.getByText(/closed/i));
+      await user.click(screen.getByText(/off/i));
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, pumpId) as Pump).status,
-      ).toEqual("closed");
+      ).toEqual("off");
 
       expect(selector).not.toHaveFocus();
-      expect(selector).toHaveTextContent("Closed");
+      expect(selector).toHaveTextContent("Of");
 
       historyControl("undo");
       await waitFor(() => {
         const updatedSelector = screen.getByRole("combobox", {
           name: /value for: status/i,
         });
-        expect(updatedSelector).toHaveTextContent("Open");
+        expect(updatedSelector).toHaveTextContent("On");
       });
     });
   });
