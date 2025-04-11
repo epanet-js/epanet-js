@@ -36,6 +36,8 @@ export const translations: Translations = {
   "pipe.closed": "Cerrada",
   "pump.on": "Encendida",
   "pump.off": "Apagada",
+  "pump.cannot-deliver-head": "No puede suministrar la carga",
+  "pump.cannot-deliver-flow": "Excede el máximo flujo",
   initialStatus: "Estado Inicial",
   head: "Carga",
   pumpHead: "Carga Bomba",

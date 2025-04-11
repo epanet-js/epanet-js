@@ -9,7 +9,7 @@ describe("attach simulation", () => {
     getVelocity: () => 5,
     getHeadloss: () => -50,
     getPumpStatus: () => "off",
-    getPumpStatusWarning: () => "cannot-supply-flow",
+    getPumpStatusWarning: () => "cannot-deliver-flow",
   };
   it("sets the simulation for the assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -29,7 +29,7 @@ describe("attach simulation", () => {
     const pump = hydraulicModel.assets.get("pu1") as Pump;
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
-    expect(pump.statusWarning).toEqual("cannot-supply-flow");
+    expect(pump.statusWarning).toEqual("cannot-deliver-flow");
   });
 
   it("forces a reference change in the assets collection", () => {
