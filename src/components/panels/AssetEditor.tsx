@@ -173,6 +173,7 @@ const AssetEditorInner = ({
         <PumpEditor
           pump={pump}
           onStatusChange={handleStatusChange}
+          quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
       );
@@ -295,11 +296,13 @@ const PumpEditor = ({
   startNode,
   endNode,
   onStatusChange,
+  quantitiesMetadata,
 }: {
   pump: Pump;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
   onStatusChange: OnStatusChange<PumpStatus>;
+  quantitiesMetadata: Quantities;
 }) => {
   return (
     <PanelDetails title={translate("pump")} variant="fullwidth">
@@ -323,6 +326,20 @@ const PumpEditor = ({
                 status={pump.status}
                 availableStatuses={pumpStatuses}
                 onChange={onStatusChange}
+              />
+              <QuantityRow
+                name="flow"
+                value={pump.flow}
+                unit={quantitiesMetadata.getUnit("flow")}
+                decimals={quantitiesMetadata.getDecimals("flow")}
+                readOnly={true}
+              />
+              <QuantityRow
+                name="head"
+                value={pump.head}
+                unit={quantitiesMetadata.getUnit("headloss")}
+                decimals={quantitiesMetadata.getDecimals("headloss")}
+                readOnly={true}
               />
             </tbody>
           </table>

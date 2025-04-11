@@ -2,7 +2,10 @@ import { ResultsReader } from "../results-reader";
 
 export type NodeResults = Map<string, { pressure: number }>;
 
-export type LinkResults = Map<string, { flow: number; velocity: number }>;
+export type LinkResults = Map<
+  string,
+  { flow: number; velocity: number; headloss: number }
+>;
 
 export class EpanetResults implements ResultsReader {
   private nodes: NodeResults;
@@ -23,5 +26,9 @@ export class EpanetResults implements ResultsReader {
 
   getVelocity(linkId: string) {
     return this.links.has(linkId) ? this.links.get(linkId)!.velocity : null;
+  }
+
+  getHeadloss(linkId: string) {
+    return this.links.has(linkId) ? this.links.get(linkId)!.headloss : null;
   }
 }

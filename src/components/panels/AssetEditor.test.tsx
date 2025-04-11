@@ -95,6 +95,22 @@ describe("AssetEditor", () => {
       expectStatusDisplayed("On");
     });
 
+    it("can show simulation results", () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPump(pumpId, { simulation: { flow: 20.1234, headloss: -10.1234 } })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("flow (l/s)", "20.123");
+      expectPropertyDisplayed("head (m)", "10.123");
+    });
+
     it("can change its status", async () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()

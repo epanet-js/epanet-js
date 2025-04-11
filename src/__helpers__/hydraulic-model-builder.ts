@@ -174,10 +174,12 @@ export class HydraulicModelBuilder {
   aPump(
     id: string,
     data: Partial<
-      PumpBuildData & { startNodeId: string; endNodeId: string }
+      PumpBuildData & { startNodeId: string; endNodeId: string } & {
+        simulation: Partial<{ flow: number; headloss: number }>;
+      }
     > = {},
   ) {
-    const { startNodeId, endNodeId, ...properties } = data;
+    const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -187,6 +189,13 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
     });
+    if (simulation) {
+      pump.setSimulation({
+        getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
+        getHeadloss: () =>
+          simulation.headloss !== undefined ? simulation.headloss : 10,
+      });
+    }
     this.assets.set(pump.id, pump);
     this.topology.addLink(id, startNode.id, endNode.id);
 

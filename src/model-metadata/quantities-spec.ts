@@ -18,6 +18,7 @@ export type UnitsSpec = Record<
   | "elevation"
   | "demand"
   | "pressure"
+  | "headloss"
   | "head",
   Unit
 >;
@@ -52,11 +53,13 @@ const metricSpec: AssetQuantitiesSpec = {
     demand: "l/s",
     pressure: "mwc",
     head: "m",
+    headloss: "m",
   },
   decimals: {
     flow: 3,
     pressure: 3,
     velocity: 3,
+    headloss: 3,
   },
   defaults: {
     pipe: {
@@ -89,12 +92,14 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     demand: "gal/min",
     pressure: "psi",
     head: "ft",
+    headloss: "ft",
   },
   decimals: {
     flow: 3,
     pressure: 3,
     velocity: 3,
     elevation: 1,
+    headloss: 3,
   },
   defaults: {
     pipe: {

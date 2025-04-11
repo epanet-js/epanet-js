@@ -9,10 +9,13 @@ export type PumpProperties = {
   status: PumpStatus;
 } & LinkProperties;
 
-export const pumpQuantities = [];
+export const pumpQuantities = ["flow", "head"];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
-interface PumpSimulationProvider {}
+interface PumpSimulationProvider {
+  getFlow: (id: string) => number | null;
+  getHeadloss: (id: string) => number | null;
+}
 
 export class Pump extends Link<PumpProperties> {
   private simulation: PumpSimulationProvider | null = null;
@@ -27,6 +30,20 @@ export class Pump extends Link<PumpProperties> {
 
   get status() {
     return this.properties.status;
+  }
+
+  get flow() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getFlow(this.id);
+  }
+
+  get head() {
+    if (!this.simulation) return null;
+
+    const headloss = this.simulation.getHeadloss(this.id);
+    if (headloss === null) return null;
+    return -headloss;
   }
 
   copy() {
