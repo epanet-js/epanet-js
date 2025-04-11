@@ -45,4 +45,15 @@ export class EpanetResults implements ResultsReader {
 
     return epanetStatus < 3 ? "off" : "on";
   }
+
+  getPumpStatusWarning(linkId: string) {
+    if (!this.links.has(linkId)) return null;
+
+    const epanetStatus = this.links.get(linkId)?.pumpState;
+    if (epanetStatus === undefined) return null;
+    if (epanetStatus === 5) return "cannot-supply-flow";
+    if (epanetStatus === 0) return "cannot-deliver-head";
+
+    return null;
+  }
 }

@@ -3,14 +3,15 @@ import { ResultsReader, attachSimulation } from "./simulation";
 import { Junction, Pipe, Pump } from "./asset-types";
 
 describe("attach simulation", () => {
+  const resultsReader: ResultsReader = {
+    getPressure: () => 10,
+    getFlow: () => 20,
+    getVelocity: () => 5,
+    getHeadloss: () => -50,
+    getPumpStatus: () => "off",
+    getPumpStatusWarning: () => "cannot-supply-flow",
+  };
   it("sets the simulation for the assets", () => {
-    const resultsReader: ResultsReader = {
-      getPressure: () => 10,
-      getFlow: () => 20,
-      getVelocity: () => 5,
-      getHeadloss: () => -50,
-      getPumpStatus: () => "off",
-    };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
@@ -28,16 +29,10 @@ describe("attach simulation", () => {
     const pump = hydraulicModel.assets.get("pu1") as Pump;
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
+    expect(pump.statusWarning).toEqual("cannot-supply-flow");
   });
 
   it("forces a reference change in the assets collection", () => {
-    const resultsReader: ResultsReader = {
-      getPressure: () => 10,
-      getFlow: () => 20,
-      getVelocity: () => 5,
-      getHeadloss: () => 50,
-      getPumpStatus: () => "on",
-    };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
@@ -53,13 +48,6 @@ describe("attach simulation", () => {
 
   it.skip("is performant", () => {
     const total = 1e5;
-    const resultsReader: ResultsReader = {
-      getPressure: () => 10,
-      getFlow: () => 20,
-      getVelocity: () => 5,
-      getHeadloss: () => 50,
-      getPumpStatus: () => "on",
-    };
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {
       builder.aJunction(String(i));

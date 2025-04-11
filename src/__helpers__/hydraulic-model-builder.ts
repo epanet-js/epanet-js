@@ -15,7 +15,10 @@ import {
   HeadlossFormula,
 } from "src/hydraulic-model";
 import { PumpBuildData } from "src/hydraulic-model/asset-builder";
-import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
+import {
+  PumpStatus,
+  PumpStatusWarning,
+} from "src/hydraulic-model/asset-types/pump";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -180,6 +183,7 @@ export class HydraulicModelBuilder {
           flow: number;
           headloss: number;
           status: PumpStatus;
+          statusWarning: PumpStatusWarning;
         }>;
       }
     > = {},
@@ -200,6 +204,7 @@ export class HydraulicModelBuilder {
         getHeadloss: () =>
           simulation.headloss !== undefined ? simulation.headloss : 10,
         getPumpStatus: () => simulation.status || "on",
+        getPumpStatusWarning: () => simulation.statusWarning || null,
       });
     }
     this.assets.set(pump.id, pump);
