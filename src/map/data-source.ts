@@ -60,7 +60,7 @@ export const buildIconPointsSource = (
         id: featureId,
         properties: {
           type: pump.type,
-          status: pump.status,
+          status: pump.status ? pump.status : pump.initialStatus,
           rotation: bearing,
           selected: selectedAssets.has(pump.id),
         },

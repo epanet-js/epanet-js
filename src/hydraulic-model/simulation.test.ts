@@ -9,11 +9,12 @@ describe("attach simulation", () => {
       getFlow: () => 20,
       getVelocity: () => 5,
       getHeadloss: () => -50,
+      getPumpStatus: () => "off",
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
-      .aPump("pu1")
+      .aPump("pu1", { initialStatus: "on" })
       .build();
 
     attachSimulation(hydraulicModel, resultsReader);
@@ -26,6 +27,7 @@ describe("attach simulation", () => {
 
     const pump = hydraulicModel.assets.get("pu1") as Pump;
     expect(pump.head).toEqual(50);
+    expect(pump.status).toEqual("off");
   });
 
   it("forces a reference change in the assets collection", () => {
@@ -34,6 +36,7 @@ describe("attach simulation", () => {
       getFlow: () => 20,
       getVelocity: () => 5,
       getHeadloss: () => 50,
+      getPumpStatus: () => "on",
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
@@ -55,6 +58,7 @@ describe("attach simulation", () => {
       getFlow: () => 20,
       getVelocity: () => 5,
       getHeadloss: () => 50,
+      getPumpStatus: () => "on",
     };
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {

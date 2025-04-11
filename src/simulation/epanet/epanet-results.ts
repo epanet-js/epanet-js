@@ -4,7 +4,12 @@ export type NodeResults = Map<string, { pressure: number }>;
 
 export type LinkResults = Map<
   string,
-  { flow: number; velocity: number; headloss: number }
+  {
+    flow: number;
+    velocity: number;
+    headloss: number;
+    pumpState: number;
+  }
 >;
 
 export class EpanetResults implements ResultsReader {
@@ -30,5 +35,14 @@ export class EpanetResults implements ResultsReader {
 
   getHeadloss(linkId: string) {
     return this.links.has(linkId) ? this.links.get(linkId)!.headloss : null;
+  }
+
+  getPumpStatus(linkId: string) {
+    if (!this.links.has(linkId)) return null;
+
+    const epanetStatus = this.links.get(linkId)?.pumpState;
+    if (epanetStatus === undefined) return null;
+
+    return epanetStatus < 3 ? "off" : "on";
   }
 }

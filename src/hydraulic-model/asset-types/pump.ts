@@ -6,7 +6,7 @@ export type PumpStatus = (typeof pumpStatuses)[number];
 
 export type PumpProperties = {
   type: "pump";
-  status: PumpStatus;
+  initialStatus: PumpStatus;
 } & LinkProperties;
 
 export const pumpQuantities = ["flow", "head"];
@@ -15,6 +15,7 @@ export type PumpQuantity = (typeof pumpQuantities)[number];
 interface PumpSimulationProvider {
   getFlow: (id: string) => number | null;
   getHeadloss: (id: string) => number | null;
+  getPumpStatus: (id: string) => PumpStatus | null;
 }
 
 export class Pump extends Link<PumpProperties> {
@@ -28,8 +29,14 @@ export class Pump extends Link<PumpProperties> {
     this.simulation = simulation;
   }
 
+  get initialStatus() {
+    return this.properties.initialStatus;
+  }
+
   get status() {
-    return this.properties.status;
+    if (!this.simulation) return null;
+
+    return this.simulation.getPumpStatus(this.id);
   }
 
   get flow() {

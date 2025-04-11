@@ -115,14 +115,14 @@ const AssetEditorInner = ({
   const handleStatusChange = (newStatus: PumpStatus, oldStatus: PumpStatus) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
-      property: "status",
+      property: "initialStatus",
       value: newStatus,
     });
     transact(moment);
     userTracking.capture({
       name: "assetStatus.edited",
       type: asset.type,
-      property: "status",
+      property: "initialStatus",
       newValue: newStatus,
       oldValue: oldStatus,
     });
@@ -321,9 +321,9 @@ const PumpEditor = ({
                 value={endNode ? endNode.label : ""}
               />
               <StatusRow
-                name={"status"}
+                name="initialStatus"
                 type={pump.type}
-                status={pump.status}
+                status={pump.initialStatus}
                 availableStatuses={pumpStatuses}
                 onChange={onStatusChange}
               />
@@ -340,6 +340,14 @@ const PumpEditor = ({
                 unit={quantitiesMetadata.getUnit("headloss")}
                 decimals={quantitiesMetadata.getDecimals("headloss")}
                 readOnly={true}
+              />
+              <TextRowReadOnly
+                name="status"
+                value={
+                  pump.status === null
+                    ? translate("notAvailable")
+                    : translate("pump." + pump.status)
+                }
               />
             </tbody>
           </table>
@@ -441,19 +449,19 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
 
 const StatusRow = <T extends AssetStatus>({
   name,
+  label = translate(name),
   type,
   status,
   availableStatuses,
   onChange,
 }: {
   name: string;
+  label?: string;
   type: Asset["type"];
   status: T;
   availableStatuses: readonly T[];
   onChange: (newStatus: T, oldStatus: T) => void;
 }) => {
-  const label = translate(name);
-
   const options = useMemo(() => {
     const options = availableStatuses.map((status) => ({
       label: translate(`${type}.${status}`),

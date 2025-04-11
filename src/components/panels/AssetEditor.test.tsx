@@ -77,7 +77,7 @@ describe("AssetEditor", () => {
         .aPump(pumpId, {
           label: "MY_PUMP",
           connections: ["j1", "j2"],
-          status: "on",
+          initialStatus: "on",
         })
         .build();
       const store = setInitialState({
@@ -114,7 +114,7 @@ describe("AssetEditor", () => {
     it("can change its status", async () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPump(pumpId, { status: "on" })
+        .aPump(pumpId, { initialStatus: "on" })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -134,7 +134,7 @@ describe("AssetEditor", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, pumpId) as Pump).status,
+        (getLink(updatedHydraulicModel.assets, pumpId) as Pump).initialStatus,
       ).toEqual("off");
 
       expect(selector).not.toHaveFocus();
@@ -611,8 +611,7 @@ describe("AssetEditor", () => {
     ).toHaveValue(value);
   };
 
-  const expectStatusDisplayed = (value: string) => {
-    const escapedName = "status";
+  const expectStatusDisplayed = (value: string, escapedName = "status") => {
     expect(
       screen.getByRole("textbox", {
         name: new RegExp(`key: ${escapedName}`, "i"),
