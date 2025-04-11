@@ -108,7 +108,8 @@ describe("AssetEditor", () => {
       renderComponent(store);
 
       expectPropertyDisplayed("flow (l/s)", "20.123");
-      expectPropertyDisplayed("head (m)", "10.123");
+      expectPropertyDisplayed("pump head (m)", "10.123");
+      expectPropertyDisplayed("status", "On");
     });
 
     it("can change its status", async () => {

@@ -36,6 +36,7 @@ export const translations = {
   "pump.off": "Off",
   initialStatus: "Initial status",
   head: "Head",
+  pumpHead: "Pump head",
   simulate: "Simulate",
   simulation: "Simulation",
   simulationReport: "Simulation report",
