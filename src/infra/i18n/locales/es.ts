@@ -38,6 +38,7 @@ export const translations: Translations = {
   "pump.off": "Apagada",
   initialStatus: "Estado inicial",
   head: "Carga",
+  pumpHead: "Carga bomba",
   simulate: "Simular",
   simulation: "Simulación",
   simulationReport: "Reporte de la simulación",

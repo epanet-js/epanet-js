@@ -335,7 +335,7 @@ const PumpEditor = ({
                 readOnly={true}
               />
               <QuantityRow
-                name="head"
+                name="pumpHead"
                 value={pump.head}
                 unit={quantitiesMetadata.getUnit("headloss")}
                 decimals={quantitiesMetadata.getDecimals("headloss")}
