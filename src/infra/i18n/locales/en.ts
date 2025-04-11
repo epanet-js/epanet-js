@@ -34,6 +34,7 @@ export const translations = {
   "pipe.closed": "Closed",
   "pump.on": "On",
   "pump.off": "Off",
+  initialStatus: "Initial status",
   head: "Head",
   simulate: "Simulate",
   simulation: "Simulation",

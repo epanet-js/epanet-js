@@ -78,7 +78,8 @@ const readLinkResults = (model: Project) => {
     const flow = model.getLinkValue(i, LinkProperty.Flow);
     const velocity = model.getLinkValue(i, LinkProperty.Velocity);
     const headloss = model.getLinkValue(i, LinkProperty.Headloss);
-    linkResults.set(id, { flow, velocity, headloss });
+    const pumpState = model.getLinkValue(i, LinkProperty.PumpState);
+    linkResults.set(id, { flow, velocity, headloss, pumpState });
   }
   return linkResults;
 };

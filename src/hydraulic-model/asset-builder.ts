@@ -28,7 +28,7 @@ export type PipeBuildData = {
 export type PumpBuildData = {
   id?: AssetId;
   label?: string;
-  status?: PumpStatus;
+  initialStatus?: PumpStatus;
   coordinates?: Position[];
   connections?: LinkConnections;
 };
@@ -112,7 +112,7 @@ export class AssetBuilder {
       [0, 0],
       [0, 0],
     ],
-    status = "on",
+    initialStatus = "on",
     connections = nullConnections,
   }: PumpBuildData = {}) {
     return new Pump(
@@ -126,7 +126,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("pump", id),
         connections,
         length: 10,
-        status,
+        initialStatus,
       },
       this.units,
     );

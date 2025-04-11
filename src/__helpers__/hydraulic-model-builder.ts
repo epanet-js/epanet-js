@@ -15,6 +15,7 @@ import {
   HeadlossFormula,
 } from "src/hydraulic-model";
 import { PumpBuildData } from "src/hydraulic-model/asset-builder";
+import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -175,7 +176,11 @@ export class HydraulicModelBuilder {
     id: string,
     data: Partial<
       PumpBuildData & { startNodeId: string; endNodeId: string } & {
-        simulation: Partial<{ flow: number; headloss: number }>;
+        simulation: Partial<{
+          flow: number;
+          headloss: number;
+          status: PumpStatus;
+        }>;
       }
     > = {},
   ) {
@@ -194,6 +199,7 @@ export class HydraulicModelBuilder {
         getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
         getHeadloss: () =>
           simulation.headloss !== undefined ? simulation.headloss : 10,
+        getPumpStatus: () => simulation.status || "on",
       });
     }
     this.assets.set(pump.id, pump);
