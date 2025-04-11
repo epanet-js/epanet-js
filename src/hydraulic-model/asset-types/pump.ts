@@ -4,6 +4,8 @@ import { Unit } from "src/quantity";
 export const pumpStatuses = ["on", "off"] as const;
 export type PumpStatus = (typeof pumpStatuses)[number];
 
+export type PumpStatusWarning = "cannot-supply-flow" | "cannot-deliver-head";
+
 export type PumpProperties = {
   type: "pump";
   initialStatus: PumpStatus;
@@ -16,6 +18,7 @@ interface PumpSimulationProvider {
   getFlow: (id: string) => number | null;
   getHeadloss: (id: string) => number | null;
   getPumpStatus: (id: string) => PumpStatus | null;
+  getPumpStatusWarning: (id: string) => PumpStatusWarning | null;
 }
 
 export class Pump extends Link<PumpProperties> {
@@ -37,6 +40,12 @@ export class Pump extends Link<PumpProperties> {
     if (!this.simulation) return null;
 
     return this.simulation.getPumpStatus(this.id);
+  }
+
+  get statusWarning() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getPumpStatusWarning(this.id);
   }
 
   get flow() {
