@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader, attachSimulation } from "./simulation";
-import { Junction, Pipe } from "./asset-types";
+import { Junction, Pipe, Pump } from "./asset-types";
 
 describe("attach simulation", () => {
   it("sets the simulation for the assets", () => {
@@ -8,10 +8,12 @@ describe("attach simulation", () => {
       getPressure: () => 10,
       getFlow: () => 20,
       getVelocity: () => 5,
+      getHeadloss: () => -50,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
+      .aPump("pu1")
       .build();
 
     attachSimulation(hydraulicModel, resultsReader);
@@ -21,6 +23,9 @@ describe("attach simulation", () => {
 
     const junction = hydraulicModel.assets.get("j1") as Junction;
     expect(junction.pressure).toEqual(10);
+
+    const pump = hydraulicModel.assets.get("pu1") as Pump;
+    expect(pump.head).toEqual(50);
   });
 
   it("forces a reference change in the assets collection", () => {
@@ -28,10 +33,12 @@ describe("attach simulation", () => {
       getPressure: () => 10,
       getFlow: () => 20,
       getVelocity: () => 5,
+      getHeadloss: () => 50,
     };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
+      .aPump("pu1")
       .build();
 
     const previousAssets = hydraulicModel.assets;
@@ -47,6 +54,7 @@ describe("attach simulation", () => {
       getPressure: () => 10,
       getFlow: () => 20,
       getVelocity: () => 5,
+      getHeadloss: () => 50,
     };
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {
