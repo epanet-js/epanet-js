@@ -304,6 +304,14 @@ const PumpEditor = ({
   onStatusChange: OnStatusChange<PumpStatus>;
   quantitiesMetadata: Quantities;
 }) => {
+  let statusText =
+    pump.status === null
+      ? translate("notAvailable")
+      : translate("pump." + pump.status);
+  if (pump.statusWarning) {
+    statusText += ` - ${translate("pump." + pump.statusWarning)}`;
+  }
+
   return (
     <PanelDetails title={translate("pump")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -341,14 +349,7 @@ const PumpEditor = ({
                 decimals={quantitiesMetadata.getDecimals("headloss")}
                 readOnly={true}
               />
-              <TextRowReadOnly
-                name="status"
-                value={
-                  pump.status === null
-                    ? translate("notAvailable")
-                    : translate("pump." + pump.status)
-                }
-              />
+              <TextRowReadOnly name="status" value={statusText} />
             </tbody>
           </table>
         </div>

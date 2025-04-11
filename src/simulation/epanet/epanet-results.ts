@@ -51,7 +51,7 @@ export class EpanetResults implements ResultsReader {
 
     const epanetStatus = this.links.get(linkId)?.pumpState;
     if (epanetStatus === undefined) return null;
-    if (epanetStatus === 5) return "cannot-supply-flow";
+    if (epanetStatus === 5) return "cannot-deliver-flow";
     if (epanetStatus === 0) return "cannot-deliver-head";
 
     return null;

@@ -4,7 +4,7 @@ import { Unit } from "src/quantity";
 export const pumpStatuses = ["on", "off"] as const;
 export type PumpStatus = (typeof pumpStatuses)[number];
 
-export type PumpStatusWarning = "cannot-supply-flow" | "cannot-deliver-head";
+export type PumpStatusWarning = "cannot-deliver-flow" | "cannot-deliver-head";
 
 export type PumpProperties = {
   type: "pump";

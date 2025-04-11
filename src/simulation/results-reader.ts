@@ -6,5 +6,5 @@ export interface ResultsReader {
   getPumpStatus: (linkId: string) => "on" | "off" | null;
   getPumpStatusWarning: (
     linkId: string,
-  ) => "cannot-supply-flow" | "cannot-deliver-head" | null;
+  ) => "cannot-deliver-flow" | "cannot-deliver-head" | null;
 }
