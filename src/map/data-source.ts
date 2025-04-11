@@ -34,6 +34,12 @@ export const buildOptimizedAssetsSource = (
       appendPipeAnalysisProps(asset as Pipe, feature, analysis.links);
     if (asset.type === "junction")
       appendJunctionAnalysisProps(asset as Junction, feature, analysis.nodes);
+    if (asset.type === "pump") {
+      const pump = asset as Pump;
+      feature.properties!.status = pump.status
+        ? pump.status
+        : pump.initialStatus;
+    }
 
     strippedFeatures.push(feature);
   }
