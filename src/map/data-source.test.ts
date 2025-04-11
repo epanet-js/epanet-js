@@ -35,6 +35,25 @@ describe("build optimized source", () => {
     expect(pipe.id).not.toEqual(junction.id);
   });
 
+  it("uses pump status when available", () => {
+    const analysis = nullAnalysis;
+    const { assets } = HydraulicModelBuilder.with()
+      .aPump("pu1", { initialStatus: "off", simulation: { status: "on" } })
+      .aPump("pu2", { initialStatus: "off" })
+      .build();
+
+    const features = buildOptimizedAssetsSource(
+      assets,
+      initIDMap(assets),
+      analysis,
+    );
+
+    expect(features).toHaveLength(2);
+    const [pu1, pu2] = features;
+    expect(pu1.properties!.status).toEqual("on");
+    expect(pu2.properties!.status).toEqual("off");
+  });
+
   describe("when nodes analysis enabled", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
