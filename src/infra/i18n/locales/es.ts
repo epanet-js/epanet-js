@@ -289,6 +289,7 @@ export const translations: Translations = {
   definitionType: "Tipo de Definición",
   constantPower: "Potencia Constante",
   flowVsHead: "Flujo vs Carga",
+  speed: "Vel. Relativa",
 };
 
 export const units: UnitsLocale = {

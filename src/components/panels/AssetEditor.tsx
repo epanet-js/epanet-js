@@ -402,6 +402,13 @@ const PumpEditor = ({
                   />
                 </>
               )}
+              <QuantityRow
+                name="speed"
+                value={pump.speed}
+                unit={quantitiesMetadata.getUnit("speed")}
+                decimals={quantitiesMetadata.getDecimals("speed")}
+                onChange={onPropertyChange}
+              />
               <StatusRow
                 name="initialStatus"
                 type={pump.type}

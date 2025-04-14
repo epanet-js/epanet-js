@@ -281,6 +281,7 @@ export const translations = {
   definitionType: "Definition Type",
   constantPower: "Constant Power",
   flowVsHead: "Flow vs Head",
+  speed: "Speed",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

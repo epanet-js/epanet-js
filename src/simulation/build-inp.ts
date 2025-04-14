@@ -205,6 +205,7 @@ export const buildInp = withInstrumentation(
               idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
               idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
               `HEAD ${pump.id}`,
+              `SPEED ${pump.speed}`,
             ].join("\t"),
           );
           sections.curves.push(
@@ -219,6 +220,7 @@ export const buildInp = withInstrumentation(
               idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
               idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
               `POWER ${pump.power}`,
+              `SPEED ${pump.speed}`,
             ].join("\t"),
           );
         }

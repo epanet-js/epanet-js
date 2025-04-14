@@ -108,6 +108,7 @@ describe("AssetEditor", () => {
           definitionType: "flow-vs-head",
           designFlow: 20,
           designHead: 10,
+          speed: 0.8,
         })
         .build();
       const store = setInitialState({
@@ -121,6 +122,7 @@ describe("AssetEditor", () => {
 
       expectPropertyDisplayed("design flow (l/s)", "20");
       expectPropertyDisplayed("design head (m)", "10");
+      expectPropertyDisplayed("speed", "0.8");
     });
 
     it("shows properties for power defintion", () => {
