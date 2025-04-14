@@ -330,8 +330,9 @@ export function styledPropertyInput(
       ? "text-gray-700 dark:text-gray-100 opacity-70"
       : "text-gray-700 dark:text-gray-100",
     `bg-transparent block tabular-nums text-xs border-none pr-1 py-2
-    w-full
+    overflow-hidden whitespace-nowrap text-ellipsis
     focus-visible:ring-inset
+    ${side === "left" ? "w-[130px]" : "w-full"}
     focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40
     dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500`,
   );

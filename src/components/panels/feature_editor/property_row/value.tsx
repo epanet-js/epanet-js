@@ -313,6 +313,7 @@ export function TextEditor({
         <input
           spellCheck="false"
           type="text"
+          title={valueProps.value}
           {...coordPropsAttr({ x, y })}
           className={E.styledPropertyInput(table ? "table" : "right")}
           aria-label={`Value for: ${key}`}

@@ -63,6 +63,7 @@ export function PropertyRowReadonly({
             onDeleteKey={() => {}}
             onCast={() => {}}
             pair={pair}
+            table={true}
           />
         </td>
       </tr>
