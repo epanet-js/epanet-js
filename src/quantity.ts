@@ -21,6 +21,8 @@ export type Unit =
   | "IMgal/d"
   | "Ml/d"
   | "acft/d"
+  | "kW"
+  | "hp"
   | null;
 
 export type Quantity = {

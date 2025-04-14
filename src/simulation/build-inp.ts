@@ -198,14 +198,31 @@ export const buildInp = withInstrumentation(
         const pump = asset as Pump;
         const [nodeStart, nodeEnd] = pump.connections;
         const linkId = idMap.linkId(pump);
-        sections.pumps.push(
-          [
-            linkId,
-            idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
-            idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
-            "HEAD DEFAULT_CURVE",
-          ].join("\t"),
-        );
+        if (pump.definitionType === "flow-vs-head") {
+          sections.pumps.push(
+            [
+              linkId,
+              idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
+              idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
+              `HEAD ${pump.id}`,
+            ].join("\t"),
+          );
+          sections.curves.push(
+            [pump.id, String(pump.designFlow), String(pump.designHead)].join(
+              "\t",
+            ),
+          );
+        } else {
+          sections.pumps.push(
+            [
+              linkId,
+              idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
+              idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
+              `POWER ${pump.power}`,
+            ].join("\t"),
+          );
+        }
+
         sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
         if (geolocation) {
           for (const vertex of pump.intermediateVertices) {
@@ -214,8 +231,6 @@ export const buildInp = withInstrumentation(
         }
       }
     }
-
-    sections.curves.push(["DEFAULT_CURVE", "1", "1"].join("\t"));
 
     let content = [
       sections.junctions.join("\n"),

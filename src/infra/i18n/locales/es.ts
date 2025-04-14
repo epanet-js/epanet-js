@@ -283,6 +283,12 @@ export const translations: Translations = {
   startNode: "Nudo Inicio",
   endNode: "Nudo Fin",
   pump: "Bomba",
+  designHead: "Carga Diseño",
+  designFlow: "Flujo Diseño",
+  power: "Potencia",
+  definitionType: "Tipo de Definición",
+  constantPower: "Potencia Constante",
+  flowVsHead: "Flujo vs Carga",
 };
 
 export const units: UnitsLocale = {

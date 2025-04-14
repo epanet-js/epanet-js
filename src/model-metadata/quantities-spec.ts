@@ -7,6 +7,7 @@ import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { translate, translateUnit } from "src/infra/i18n";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
+import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
 
 export type UnitsSpec = Record<
   | "diameter"
@@ -19,7 +20,8 @@ export type UnitsSpec = Record<
   | "demand"
   | "pressure"
   | "headloss"
-  | "head",
+  | "head"
+  | "power",
   Unit
 >;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -27,6 +29,7 @@ type DefaultsSpec = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
+  pump: Partial<Record<PumpQuantity, number>>;
 };
 export type AssetQuantitiesSpec = {
   id: string;
@@ -54,6 +57,7 @@ const metricSpec: AssetQuantitiesSpec = {
     pressure: "mwc",
     head: "m",
     headloss: "m",
+    power: "kW",
   },
   decimals: {
     flow: 3,
@@ -70,6 +74,11 @@ const metricSpec: AssetQuantitiesSpec = {
     junction: {},
     reservoir: {
       relativeHead: 10,
+    },
+    pump: {
+      designHead: 1,
+      designFlow: 1,
+      power: 20,
     },
   },
   analysis: {
@@ -93,6 +102,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     pressure: "psi",
     head: "ft",
     headloss: "ft",
+    power: "hp",
   },
   decimals: {
     flow: 3,
@@ -110,6 +120,11 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     junction: {},
     reservoir: {
       relativeHead: 32,
+    },
+    pump: {
+      designHead: 1,
+      designFlow: 1,
+      power: 20,
     },
   },
   analysis: {

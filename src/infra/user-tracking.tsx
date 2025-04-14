@@ -56,6 +56,14 @@ type AssetStatusEdited = {
   oldValue: string | null;
 };
 
+type AssetDefinitionTypeEdited = {
+  name: "assetDefinitionType.edited";
+  type: Asset["type"];
+  property: string;
+  newValue: string | null;
+  oldValue: string | null;
+};
+
 type AssetSelected = {
   name: "asset.selected";
   type: Asset["type"];
@@ -308,6 +316,7 @@ type UserEvent =
   | AssetDeselected
   | AssetPropertyEdited
   | AssetStatusEdited
+  | AssetDefinitionTypeEdited
   | AnalysisApplied
   | SatelliteViewToggled
   | AssetsDeleted
