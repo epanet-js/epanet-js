@@ -48,6 +48,7 @@ import { Hints } from "src/components/Hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -267,7 +268,7 @@ export const MapCanvas = memo(function MapCanvas({
   };
 
   useHotkeys(
-    ["esc", "enter"],
+    isFeatureOn("FLAG_PUMP") ? ["esc"] : ["esc", "enter"],
     () => {
       HANDLERS[mode.mode].exit();
     },

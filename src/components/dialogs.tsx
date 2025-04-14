@@ -263,6 +263,11 @@ export const Dialogs = memo(function Dialogs() {
           )}
           {(!dialog || dialog.type !== "welcome") && (
             <StyledDialogContent
+              onEscapeKeyDown={(e) => {
+                onClose();
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               size={"sm"}
               widthClasses={
