@@ -84,13 +84,14 @@ describe("build inp", () => {
         definitionType: "flow-vs-head",
         designFlow: 20,
         designHead: 40,
+        speed: 0.8,
       })
       .build();
 
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1");
+    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1\tSPEED 0.8");
     expect(inp).toContain("[STATUS]");
     expect(inp).toContain("pump1\tOpen");
     expect(inp).toContain("[CURVES]");
@@ -109,6 +110,7 @@ describe("build inp", () => {
         definitionType: "power",
         designFlow: 20,
         designHead: 40,
+        speed: 0.7,
         power: 100,
       })
       .build();
@@ -116,7 +118,7 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100");
+    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100\tSPEED 0.7");
     expect(inp).toContain("[STATUS]");
     expect(inp).toContain("pump1\tOpen");
     expect(inp).toContain("[CURVES]");

@@ -15,6 +15,7 @@ export type PumpProperties = {
   designFlow: number;
   designHead: number;
   power: number;
+  speed: number;
 } & LinkProperties;
 
 export const pumpQuantities = [
@@ -23,6 +24,7 @@ export const pumpQuantities = [
   "designFlow",
   "designHead",
   "power",
+  "speed",
 ];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
@@ -88,6 +90,10 @@ export class Pump extends Link<PumpProperties> {
 
   get power() {
     return this.properties.power;
+  }
+
+  get speed() {
+    return this.properties.speed;
   }
 
   copy() {

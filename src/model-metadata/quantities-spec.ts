@@ -21,7 +21,8 @@ export type UnitsSpec = Record<
   | "pressure"
   | "headloss"
   | "head"
-  | "power",
+  | "power"
+  | "speed",
   Unit
 >;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -58,6 +59,7 @@ const metricSpec: AssetQuantitiesSpec = {
     head: "m",
     headloss: "m",
     power: "kW",
+    speed: null,
   },
   decimals: {
     flow: 3,
@@ -103,6 +105,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     head: "ft",
     headloss: "ft",
     power: "hp",
+    speed: null,
   },
   decimals: {
     flow: 3,

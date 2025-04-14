@@ -35,6 +35,7 @@ export type PumpBuildData = {
   designHead?: number;
   designFlow?: number;
   power?: number;
+  speed?: number;
 };
 
 export type ReservoirBuildData = {
@@ -127,6 +128,7 @@ export class AssetBuilder {
     designHead,
     designFlow,
     power,
+    speed = 1,
   }: PumpBuildData = {}) {
     return new Pump(
       id,
@@ -144,6 +146,7 @@ export class AssetBuilder {
         designHead: this.getPumpValue("designHead", designHead),
         designFlow: this.getPumpValue("designFlow", designFlow),
         power: this.getPumpValue("power", power),
+        speed,
       },
       this.units,
     );
