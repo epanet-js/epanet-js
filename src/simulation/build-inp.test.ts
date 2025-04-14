@@ -92,8 +92,6 @@ describe("build inp", () => {
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1\tSPEED 0.8");
-    expect(inp).toContain("[STATUS]");
-    expect(inp).toContain("pump1\tOpen");
     expect(inp).toContain("[CURVES]");
     expect(inp).toContain("pump1\t20\t40");
   });
@@ -119,10 +117,52 @@ describe("build inp", () => {
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100\tSPEED 0.7");
-    expect(inp).toContain("[STATUS]");
-    expect(inp).toContain("pump1\tOpen");
     expect(inp).toContain("[CURVES]");
     expect(inp).not.toContain("pump1\t20\t40");
+  });
+
+  it("does not include status for pumps when speed not 1", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("node1")
+      .aNode("node2")
+      .aNode("node3")
+      .aNode("node4")
+      .aPump("pump1", {
+        startNodeId: "node1",
+        endNodeId: "node2",
+        initialStatus: "on",
+        definitionType: "power",
+        speed: 0.7,
+        power: 10,
+      })
+      .aPump("pump2", {
+        startNodeId: "node2",
+        endNodeId: "node3",
+        initialStatus: "off",
+        definitionType: "power",
+        speed: 0.8,
+        power: 20,
+      })
+      .aPump("pump3", {
+        startNodeId: "node3",
+        endNodeId: "node4",
+        initialStatus: "on",
+        definitionType: "power",
+        speed: 1,
+        power: 30,
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(inp).toContain("[PUMPS]");
+    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 10\tSPEED 0.7");
+    expect(inp).toContain("pump2\tnode2\tnode3\tPOWER 20\tSPEED 0.8");
+    expect(inp).toContain("pump3\tnode3\tnode4\tPOWER 30\tSPEED 1");
+    expect(inp).toContain("[STATUS]");
+    expect(inp).toContain("pump1\t0.7");
+    expect(inp).toContain("pump2\tClosed");
+    expect(inp).toContain("pump3\tOpen");
   });
 
   it("includes simulation settings", () => {
