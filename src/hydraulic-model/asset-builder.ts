@@ -31,6 +31,10 @@ export type PumpBuildData = {
   initialStatus?: PumpStatus;
   coordinates?: Position[];
   connections?: LinkConnections;
+  definitionType?: PumpDefintionType;
+  designHead?: number;
+  designFlow?: number;
+  power?: number;
 };
 
 export type ReservoirBuildData = {
@@ -45,12 +49,17 @@ export type ReservoirBuildData = {
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
 import { LabelGenerator } from "./label-manager";
-import { PumpStatus } from "./asset-types/pump";
+import {
+  PumpDefintionType,
+  PumpQuantity,
+  PumpStatus,
+} from "./asset-types/pump";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
+  pump: Partial<Record<PumpQuantity, number>>;
 };
 
 export class AssetBuilder {
@@ -114,6 +123,10 @@ export class AssetBuilder {
     ],
     initialStatus = "on",
     connections = nullConnections,
+    definitionType = "flow-vs-head",
+    designHead,
+    designFlow,
+    power,
   }: PumpBuildData = {}) {
     return new Pump(
       id,
@@ -127,6 +140,10 @@ export class AssetBuilder {
         connections,
         length: 10,
         initialStatus,
+        definitionType,
+        designHead: this.getPumpValue("designHead", designHead),
+        designFlow: this.getPumpValue("designFlow", designFlow),
+        power: this.getPumpValue("power", power),
       },
       this.units,
     );
@@ -195,6 +212,12 @@ export class AssetBuilder {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.pipe[name] || 0;
+  }
+
+  private getPumpValue(name: PumpQuantity, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return this.defaults.pump[name] || 0;
   }
 
   private getJunctionValue(name: JunctionQuantity, candidate?: number) {

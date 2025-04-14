@@ -51,7 +51,11 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
-import { PumpStatus, pumpStatuses } from "src/hydraulic-model/asset-types/pump";
+import {
+  PumpDefintionType,
+  PumpStatus,
+  pumpStatuses,
+} from "src/hydraulic-model/asset-types/pump";
 
 export function AssetEditor({
   selectedFeature,
@@ -109,6 +113,25 @@ const AssetEditorInner = ({
       property: name,
       newValue: value,
       oldValue,
+    });
+  };
+
+  const handleDefinitionTypeChange = (
+    newType: PumpDefintionType,
+    oldType: PumpDefintionType,
+  ) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [asset.id],
+      property: "definitionType",
+      value: newType,
+    });
+    transact(moment);
+    userTracking.capture({
+      name: "assetDefinitionType.edited",
+      type: asset.type,
+      property: "definitionType",
+      newValue: newType,
+      oldValue: oldType,
     });
   };
 
@@ -172,7 +195,9 @@ const AssetEditorInner = ({
       return (
         <PumpEditor
           pump={pump}
+          onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
+          onDefinitionTypeChange={handleDefinitionTypeChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -296,12 +321,19 @@ const PumpEditor = ({
   startNode,
   endNode,
   onStatusChange,
+  onPropertyChange,
+  onDefinitionTypeChange,
   quantitiesMetadata,
 }: {
   pump: Pump;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
+  onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PumpStatus>;
+  onDefinitionTypeChange: (
+    newType: PumpDefintionType,
+    oldType: PumpDefintionType,
+  ) => void;
   quantitiesMetadata: Quantities;
 }) => {
   let statusText =
@@ -311,6 +343,13 @@ const PumpEditor = ({
   if (pump.statusWarning) {
     statusText += ` - ${translate("pump." + pump.statusWarning)}`;
   }
+
+  const definitionOptions = useMemo(() => {
+    return [
+      { label: translate("constantPower"), value: "power" },
+      { label: translate("flowVsHead"), value: "flow-vs-head" },
+    ] as { label: string; value: PumpDefintionType }[];
+  }, []);
 
   return (
     <PanelDetails title={translate("pump")} variant="fullwidth">
@@ -328,6 +367,41 @@ const PumpEditor = ({
                 name="endNode"
                 value={endNode ? endNode.label : ""}
               />
+              <SelectRow
+                name="definitionType"
+                selected={pump.definitionType}
+                options={definitionOptions}
+                onChange={(name, newValue, oldValue) => {
+                  onDefinitionTypeChange(newValue, oldValue);
+                }}
+              />
+              {pump.definitionType === "power" && (
+                <QuantityRow
+                  name="power"
+                  value={pump.power}
+                  unit={quantitiesMetadata.getUnit("power")}
+                  decimals={quantitiesMetadata.getDecimals("power")}
+                  onChange={onPropertyChange}
+                />
+              )}
+              {pump.definitionType === "flow-vs-head" && (
+                <>
+                  <QuantityRow
+                    name="designFlow"
+                    value={pump.designFlow}
+                    unit={quantitiesMetadata.getUnit("flow")}
+                    decimals={quantitiesMetadata.getDecimals("flow")}
+                    onChange={onPropertyChange}
+                  />
+                  <QuantityRow
+                    name="designHead"
+                    value={pump.designHead}
+                    unit={quantitiesMetadata.getUnit("head")}
+                    decimals={quantitiesMetadata.getDecimals("head")}
+                    onChange={onPropertyChange}
+                  />
+                </>
+              )}
               <StatusRow
                 name="initialStatus"
                 type={pump.type}
@@ -448,6 +522,34 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
+const SelectRow = <T extends PumpDefintionType>({
+  name,
+  label = translate(name),
+  selected,
+  options,
+  onChange,
+}: {
+  name: string;
+  label?: string;
+  selected: T;
+  options: { label: string; value: T }[];
+  onChange: (name: string, newValue: T, oldValue: T) => void;
+}) => {
+  return (
+    <PropertyRow label={label}>
+      <div className="relative group-1">
+        <Selector
+          ariaLabel={label}
+          options={options}
+          selected={selected}
+          onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
+          styleOptions={{ border: false, textSize: "text-xs" }}
+        />
+      </div>
+    </PropertyRow>
+  );
+};
+
 const StatusRow = <T extends AssetStatus>({
   name,
   label = translate(name),
@@ -461,7 +563,7 @@ const StatusRow = <T extends AssetStatus>({
   type: Asset["type"];
   status: T;
   availableStatuses: readonly T[];
-  onChange: (newStatus: T, oldStatus: T) => void;
+  onChange: (oldValue: T, oldStatus: T) => void;
 }) => {
   const options = useMemo(() => {
     const options = availableStatuses.map((status) => ({

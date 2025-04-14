@@ -1,11 +1,11 @@
 import { Asset, AssetId } from "../asset-types";
-import { PumpStatus } from "../asset-types/pump";
+import { PumpDefintionType, PumpStatus } from "../asset-types/pump";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
   assetIds: AssetId[];
   property: string;
-  value: number | PumpStatus;
+  value: number | PumpStatus | PumpDefintionType;
 };
 
 export const changeProperty: ModelOperation<InputData> = (

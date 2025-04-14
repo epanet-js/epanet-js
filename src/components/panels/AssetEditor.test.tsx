@@ -95,6 +95,97 @@ describe("AssetEditor", () => {
       expectStatusDisplayed("On");
     });
 
+    it("shows properties for flow-vs-head definition", () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
+        .aPump(pumpId, {
+          label: "MY_PUMP",
+          connections: ["j1", "j2"],
+          initialStatus: "on",
+          definitionType: "flow-vs-head",
+          designFlow: 20,
+          designHead: 10,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("design flow (l/s)", "20");
+      expectPropertyDisplayed("design head (m)", "10");
+    });
+
+    it("shows properties for power defintion", () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
+        .aPump(pumpId, {
+          label: "MY_PUMP",
+          connections: ["j1", "j2"],
+          initialStatus: "on",
+          definitionType: "power",
+          power: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("power (kW)", "100");
+    });
+
+    it("can change pump definition", async () => {
+      const pumpId = "PU1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .setHeadlossFormula("D-W")
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
+        .aPump(pumpId, {
+          label: "MY_PUMP",
+          connections: ["j1", "j2"],
+          initialStatus: "on",
+          definitionType: "flow-vs-head",
+          designFlow: 20,
+          designHead: 40,
+          power: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pumpId,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("design flow (l/s)", "20");
+
+      const selector = screen.getByRole("combobox", {
+        name: /definition type/i,
+      });
+
+      await user.click(selector);
+
+      await user.click(screen.getByText(/constant power/i));
+
+      expectPropertyDisplayed("power (kW)", "100");
+    });
+
     it("can show simulation results", () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()

@@ -275,6 +275,12 @@ export const translations = {
   startNode: "Start Node",
   endNode: "End Node",
   pump: "Pump",
+  designHead: "Design Head",
+  designFlow: "Design Flow",
+  power: "Power",
+  definitionType: "Definition Type",
+  constantPower: "Constant Power",
+  flowVsHead: "Flow vs Head",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
@@ -298,4 +304,6 @@ export const units: Record<Exclude<Unit, null>, string> = {
   "m^3/h": "m³/h",
   "m^3/d": "m³/d",
   "acft/d": "acft/d",
+  hp: "hp",
+  kW: "kW",
 };

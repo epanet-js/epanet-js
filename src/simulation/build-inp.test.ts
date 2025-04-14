@@ -72,7 +72,7 @@ describe("build inp", () => {
     expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
   });
 
-  it("adds pumps", () => {
+  it("adds pumps with a curve", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("node1")
       .aNode("node2")
@@ -81,17 +81,46 @@ describe("build inp", () => {
         startNodeId: "node1",
         endNodeId: "node2",
         initialStatus: "on",
+        definitionType: "flow-vs-head",
+        designFlow: 20,
+        designHead: 40,
       })
       .build();
 
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD DEFAULT_CURVE");
+    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1");
     expect(inp).toContain("[STATUS]");
     expect(inp).toContain("pump1\tOpen");
     expect(inp).toContain("[CURVES]");
-    expect(inp).toContain("DEFAULT_CURVE\t1\t1");
+    expect(inp).toContain("pump1\t20\t40");
+  });
+
+  it("adds pumps with power definition", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("node1")
+      .aNode("node2")
+      .aNode("node3")
+      .aPump("pump1", {
+        startNodeId: "node1",
+        endNodeId: "node2",
+        initialStatus: "on",
+        definitionType: "power",
+        designFlow: 20,
+        designHead: 40,
+        power: 100,
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(inp).toContain("[PUMPS]");
+    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100");
+    expect(inp).toContain("[STATUS]");
+    expect(inp).toContain("pump1\tOpen");
+    expect(inp).toContain("[CURVES]");
+    expect(inp).not.toContain("pump1\t20\t40");
   });
 
   it("includes simulation settings", () => {
@@ -181,7 +210,7 @@ describe("build inp", () => {
 
     let inp = buildInp(hydraulicModel, { madeBy: true });
 
-    expect(inp).toContain(";MADE BY EPANET-JS [514c3c84]");
+    expect(inp).toContain(";MADE BY EPANET-JS [f403aba2]");
     expect(inp).toContain("junction1");
     hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
@@ -190,6 +219,6 @@ describe("build inp", () => {
 
     inp = buildInp(hydraulicModel, { madeBy: true });
 
-    expect(inp).toContain(";MADE BY EPANET-JS [710b6880]");
+    expect(inp).toContain(";MADE BY EPANET-JS [58acb33a]");
   });
 });

@@ -6,12 +6,24 @@ export type PumpStatus = (typeof pumpStatuses)[number];
 
 export type PumpStatusWarning = "cannot-deliver-flow" | "cannot-deliver-head";
 
+export type PumpDefintionType = "power" | "flow-vs-head";
+
 export type PumpProperties = {
   type: "pump";
   initialStatus: PumpStatus;
+  definitionType: PumpDefintionType;
+  designFlow: number;
+  designHead: number;
+  power: number;
 } & LinkProperties;
 
-export const pumpQuantities = ["flow", "head"];
+export const pumpQuantities = [
+  "flow",
+  "head",
+  "designFlow",
+  "designHead",
+  "power",
+];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
 interface PumpSimulationProvider {
@@ -60,6 +72,22 @@ export class Pump extends Link<PumpProperties> {
     const headloss = this.simulation.getHeadloss(this.id);
     if (headloss === null) return null;
     return -headloss;
+  }
+
+  get definitionType() {
+    return this.properties.definitionType;
+  }
+
+  get designHead() {
+    return this.properties.designHead;
+  }
+
+  get designFlow() {
+    return this.properties.designFlow;
+  }
+
+  get power() {
+    return this.properties.power;
   }
 
   copy() {
