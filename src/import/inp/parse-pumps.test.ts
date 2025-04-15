@@ -345,4 +345,52 @@ describe("parse pumps", () => {
     expect(pump2.designHead).toEqual(20);
     expect(pump2.initialStatus).toEqual("off");
   });
+
+  it("includes as issue when pump curve has more than one point", () => {
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD CU_1
+
+    [CURVES]
+    CU_1\t10\t20
+    CU_1\t20\t30
+    CU_1\t30\t40
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${10}\t${20}
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues?.unsupportedSections?.has("CURVES")).toBeTruthy();
+  });
+
+  it("doesnt include issue when curve is a single point", () => {
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD CU_1
+
+    [CURVES]
+    CU_1\t10\t20
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${10}\t${20}
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues?.unsupportedSections).toBeUndefined();
+  });
 });
