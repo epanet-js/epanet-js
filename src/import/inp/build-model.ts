@@ -120,11 +120,6 @@ export const buildModel = (
         speed = 1;
       } else if (!isNaN(parseFloat(statusValue))) {
         speed = parseFloat(statusValue);
-        if (speed === 0) {
-          initialStatus = "off";
-        } else {
-          initialStatus = "on";
-        }
       }
     }
 
