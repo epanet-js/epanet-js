@@ -4,6 +4,7 @@ import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
+import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 
 export const buildModel = (
   inpData: InpData,
@@ -62,6 +63,81 @@ export const buildModel = (
     });
     hydraulicModel.assets.set(reservoir.id, reservoir);
     nodeIds.set(tankData.id, reservoir.id);
+  }
+
+  for (const pumpData of inpData.pumps) {
+    const startCoordinates = getNodeCoordinates(
+      inpData,
+      pumpData.startNodeDirtyId,
+      issues,
+    );
+    const endCoordinates = getNodeCoordinates(
+      inpData,
+      pumpData.endNodeDirtyId,
+      issues,
+    );
+    const vertices = getVertices(inpData, pumpData.id, issues);
+    if (!startCoordinates || !endCoordinates) continue;
+
+    const startNodeId = nodeIds.get(pumpData.startNodeDirtyId);
+    const endNodeId = nodeIds.get(pumpData.endNodeDirtyId);
+
+    if (!startNodeId || !endNodeId) continue;
+
+    let definitionProps = {};
+
+    if (pumpData.power !== undefined) {
+      definitionProps = {
+        definitionType: "power",
+        power: pumpData.power,
+      };
+    }
+
+    if (pumpData.curveId !== undefined) {
+      const curvePoints = inpData.curves.get(pumpData.curveId) || [];
+
+      const middleIndex = Math.floor(curvePoints.length / 2);
+      const point = curvePoints[middleIndex];
+
+      if (point) {
+        definitionProps = {
+          definitionType: "flow-vs-head",
+          designFlow: point.x,
+          designHead: point.y,
+        };
+      }
+    }
+
+    let initialStatus: PumpStatus = "on";
+    let speed = pumpData.speed !== undefined ? pumpData.speed : 1;
+
+    if (inpData.status.has(pumpData.id)) {
+      const statusValue = inpData.status.get(pumpData.id) as string;
+      if (statusValue === "CLOSED") {
+        initialStatus = "off";
+      } else if (statusValue === "OPEN") {
+        initialStatus = "on";
+        speed = 1;
+      } else if (!isNaN(parseFloat(statusValue))) {
+        speed = parseFloat(statusValue);
+        if (speed === 0) {
+          initialStatus = "off";
+        } else {
+          initialStatus = "on";
+        }
+      }
+    }
+
+    const pump = hydraulicModel.assetBuilder.buildPump({
+      label: pumpData.id,
+      connections: [startNodeId, endNodeId],
+      ...definitionProps,
+      initialStatus,
+      speed,
+      coordinates: [startCoordinates, ...vertices, endCoordinates],
+    });
+    hydraulicModel.assets.set(pump.id, pump);
+    hydraulicModel.topology.addLink(pump.id, startNodeId, endNodeId);
   }
 
   for (const pipeData of inpData.pipes) {

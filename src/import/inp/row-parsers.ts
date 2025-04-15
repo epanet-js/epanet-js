@@ -68,6 +68,53 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   inpData.nodeIds.add(id);
 };
 
+export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
+    readValues(trimmedRow);
+
+  let power = undefined;
+  let curveId = undefined;
+  let speed = undefined;
+
+  for (let i = 0; i < settingFields.length; i += 2) {
+    const key = settingFields[i].toUpperCase();
+    const value = settingFields[i + 1];
+    if (key === "POWER") {
+      power = parseFloat(value);
+    }
+
+    if (key === "HEAD") {
+      curveId = value;
+    }
+
+    if (key === "SPEED") {
+      speed = parseFloat(value);
+    }
+  }
+
+  inpData.pumps.push({
+    id,
+    startNodeDirtyId,
+    endNodeDirtyId,
+    power,
+    curveId,
+    speed,
+  });
+};
+
+export const parseCurve: RowParser = ({ trimmedRow, inpData }) => {
+  const [curveId, x, y] = readValues(trimmedRow);
+  const curvePoints = inpData.curves.get(curveId) || [];
+
+  curvePoints.push({ x: parseFloat(x), y: parseFloat(y) });
+  inpData.curves.set(curveId, curvePoints);
+};
+
+export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
+  const [linkId, value] = readValues(trimmedRow);
+  inpData.status.set(linkId, value.toUpperCase());
+};
+
 export const parseTankPartially: RowParser = ({
   sectionName,
   trimmedRow,
