@@ -23,6 +23,7 @@ export type PumpData = {
   power?: number;
   curveId?: string;
   speed?: number;
+  patternId?: string;
 };
 
 export type TankData = {

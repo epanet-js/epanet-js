@@ -75,6 +75,7 @@ export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
   let power = undefined;
   let curveId = undefined;
   let speed = undefined;
+  let patternId = undefined;
 
   for (let i = 0; i < settingFields.length; i += 2) {
     const key = settingFields[i].toUpperCase();
@@ -90,6 +91,10 @@ export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
     if (key === "SPEED") {
       speed = parseFloat(value);
     }
+
+    if (key === "PATTERN") {
+      patternId = value;
+    }
   }
 
   inpData.pumps.push({
@@ -99,6 +104,7 @@ export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
     power,
     curveId,
     speed,
+    patternId,
   });
 };
 
