@@ -44,7 +44,10 @@ export const colors = {
   yellow800: "#7A6F35",
   yellow700: "#9A9238",
   orange700: "#B48132",
-  red700: "#896429",
+  red300: "#fca5a5",
+  red700: "#b91c1c",
+  green300: "#86efac",
+  green800: "#166534",
 };
 
 export const LINE_COLORS_IDLE = "#8B5CF6";
