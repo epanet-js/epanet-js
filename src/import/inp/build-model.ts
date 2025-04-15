@@ -154,6 +154,13 @@ export const buildModel = (
 
     if (!startNodeId || !endNodeId) continue;
 
+    let status = pipeData.status;
+
+    if (inpData.status.has(pipeData.id)) {
+      const statusValue = inpData.status.get(pipeData.id) as string;
+      status = statusValue === "CLOSED" ? "closed" : "open";
+    }
+
     const pipe = hydraulicModel.assetBuilder.buildPipe({
       label: pipeData.id,
       length: pipeData.length,
@@ -161,7 +168,7 @@ export const buildModel = (
       minorLoss: pipeData.minorLoss,
       roughness: pipeData.roughness,
       connections: [startNodeId, endNodeId],
-      status: pipeData.status,
+      status,
       coordinates: [startCoordinates, ...vertices, endCoordinates],
     });
     hydraulicModel.assets.set(pipe.id, pipe);

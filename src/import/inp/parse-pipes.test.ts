@@ -1,6 +1,7 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse pipes", () => {
   it("includes pipes in the model", () => {
@@ -97,6 +98,32 @@ describe("parse pipes", () => {
     ]);
     expect(pipe.connections).toEqual([reservoir.id, junction.id]);
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
+  });
+
+  it("overrides pipe status if in section", () => {
+    stubFeatureOn("FLAG_PUMP");
+
+    const pipeId = "p1";
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    [PIPES]
+    ${pipeId}\tj1\tj2\t${anyNumber}\t${anyNumber}\t${anyNumber}\t${anyNumber}\tOPEN
+
+    [STATUS]
+    ${pipeId}\tCLOSED
+
+    [COORDINATES]
+    j1\t10\t10
+    j2\t10\t10
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.status).toEqual("closed");
   });
 
   it("can handle a pipe without status", () => {
