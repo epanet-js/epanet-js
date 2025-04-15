@@ -178,7 +178,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("design flow (l/s)", "20");
 
       const selector = screen.getByRole("combobox", {
-        name: /definition type/i,
+        name: /pump type/i,
       });
 
       await user.click(selector);

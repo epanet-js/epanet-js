@@ -38,6 +38,7 @@ export const translations = {
   "pump.cannot-deliver-flow": "Exceeds maximum flow",
   initialStatus: "Initial Status",
   head: "Head",
+  pumpType: "Pump Type",
   pumpHead: "Pump Head",
   simulate: "Simulate",
   simulation: "Simulation",
