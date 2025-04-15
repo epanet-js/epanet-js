@@ -2,9 +2,9 @@ import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
-import pumpOn from "src/map/icons/pump-on.png";
-import pumpOff from "src/map/icons/pump-off.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { buildPumpSvg } from "./dynamic-icons";
+import { colors } from "src/lib/constants";
 
 export type IconId =
   | "reservoir"
@@ -27,10 +27,14 @@ type IconMapping = {
   mask?: boolean;
 };
 
-type IconsMapping = Record<IconId, IconMapping>;
+type IconsMapping = Partial<Record<IconId, IconMapping>>;
 
 type IconUrl = { id: IconId; url: string };
 export type IconImage = { id: IconId; image: HTMLImageElement };
+
+const urlFor = (svg: string) => {
+  return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
+};
 
 const iconUrls: IconUrl[] = [
   { id: "reservoir", url: reservoirPng.src },
@@ -40,8 +44,26 @@ const iconUrls: IconUrl[] = [
     id: "triangle",
     url: triangle.src,
   },
-  { id: "pump-on", url: pumpOn.src },
-  { id: "pump-off", url: pumpOff.src },
+  {
+    id: "pump-on",
+    url: urlFor(
+      buildPumpSvg({
+        borderColor: colors.green800,
+        fillColor: colors.green300,
+        triangleColor: colors.green800,
+      }),
+    ),
+  },
+  {
+    id: "pump-off",
+    url: urlFor(
+      buildPumpSvg({
+        borderColor: colors.red700,
+        fillColor: colors.red300,
+        triangleColor: colors.red700,
+      }),
+    ),
+  },
 ];
 
 const iconsMapping: IconsMapping = {
@@ -49,8 +71,6 @@ const iconsMapping: IconsMapping = {
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
   "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
   triangle: { x: 96, y: 0, width: 64, height: 64, mask: true },
-  "pump-on": { x: 160, y: 0, width: 64, height: 64, mask: false },
-  "pump-off": { x: 224, y: 0, width: 64, height: 64, mask: false },
 };
 
 export type Sprite = {
