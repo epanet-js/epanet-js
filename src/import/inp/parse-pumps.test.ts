@@ -169,6 +169,31 @@ describe("parse pumps", () => {
     expect(pump.speed).toEqual(0.7);
   });
 
+  it("preserves initial status when speed is 0", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const anyNumber = 10;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0
+
+    [COORDINATES]
+    ${reservoirId}\t${10}\t${20}
+    ${junctionId}\t${30}\t${40}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.initialStatus).toEqual("on");
+    expect(pump.speed).toEqual(0);
+  });
+
   it("overrides speed setting when forced to open", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
