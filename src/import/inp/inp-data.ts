@@ -5,37 +5,51 @@ import {
 } from "src/hydraulic-model/asset-types/pipe";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
+export type PipeData = {
+  id: string;
+  startNodeDirtyId: string;
+  endNodeDirtyId: string;
+  length: number;
+  diameter: number;
+  roughness: number;
+  minorLoss: number;
+  status: PipeStatus;
+};
+
+export type PumpData = {
+  id: string;
+  startNodeDirtyId: string;
+  endNodeDirtyId: string;
+  power?: number;
+  curveId?: string;
+  speed?: number;
+};
+
+export type TankData = {
+  id: string;
+  elevation: number;
+  initialLevel: number;
+};
+
+export type ReservoirData = {
+  id: string;
+  baseHead: number;
+  patternId?: string;
+};
+
+export type JunctionData = {
+  id: string;
+  elevation: number;
+  baseDemand?: number | undefined;
+  patternId?: string | undefined;
+};
+
 export type InpData = {
-  junctions: {
-    id: string;
-    elevation: number;
-    baseDemand?: number | undefined;
-    patternId?: string | undefined;
-  }[];
-  reservoirs: { id: string; baseHead: number; patternId?: string }[];
-  tanks: {
-    id: string;
-    elevation: number;
-    initialLevel: number;
-  }[];
-  pipes: {
-    id: string;
-    startNodeDirtyId: string;
-    endNodeDirtyId: string;
-    length: number;
-    diameter: number;
-    roughness: number;
-    minorLoss: number;
-    status: PipeStatus;
-  }[];
-  pumps: {
-    id: string;
-    startNodeDirtyId: string;
-    endNodeDirtyId: string;
-    power?: number;
-    curveId?: string;
-    speed?: number;
-  }[];
+  junctions: JunctionData[];
+  reservoirs: ReservoirData[];
+  tanks: TankData[];
+  pipes: PipeData[];
+  pumps: PumpData[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
