@@ -28,10 +28,20 @@ export type InpData = {
     minorLoss: number;
     status: PipeStatus;
   }[];
+  pumps: {
+    id: string;
+    startNodeDirtyId: string;
+    endNodeDirtyId: string;
+    power?: number;
+    curveId?: string;
+    speed?: number;
+  }[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
   patterns: ItemData<number[]>;
+  status: ItemData<string>;
+  curves: ItemData<{ x: number; y: number }[]>;
   options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
   nodeIds: NodeIds;
 };
@@ -78,10 +88,13 @@ export const nullInpData = (): InpData => {
     reservoirs: [],
     tanks: [],
     pipes: [],
+    pumps: [],
     coordinates: new ItemData(),
     vertices: new ItemData(),
     demands: new ItemData(),
     patterns: new ItemData(),
+    status: new ItemData(),
+    curves: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W" },
     nodeIds: new NodeIds(),
   };

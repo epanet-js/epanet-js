@@ -1,3 +1,4 @@
+import { isFeatureOn } from "src/infra/feature-flags";
 import { InpData, InpStats, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import {
@@ -13,6 +14,9 @@ import {
   parseTankPartially,
   parseTimeSetting,
   parseVertex,
+  parsePump,
+  parseCurve,
+  parseStatus,
   unsupported,
 } from "./row-parsers";
 
@@ -22,7 +26,7 @@ type SectionParsers = Record<string, RowParser>;
 
 const buildSectionParsers = (): SectionParsers => ({
   "[TITLE]": ignore,
-  "[CURVES]": unsupported,
+  "[CURVES]": isFeatureOn("FLAG_PUMP") ? parseCurve : unsupported,
   "[QUALITY]": unsupported,
   "[OPTIONS]": parseOption,
   "[BACKDROP]": ignore,
@@ -37,12 +41,12 @@ const buildSectionParsers = (): SectionParsers => ({
   "[REPORT]": ignore,
   "[VERTICES]": parseVertex,
   "[TANKS]": parseTankPartially,
-  "[STATUS]": unsupported,
+  "[STATUS]": isFeatureOn("FLAG_PUMP") ? parseStatus : unsupported,
   "[MIXING]": unsupported,
   "[LABELS]": unsupported,
   "[PIPES]": parsePipe,
   "[CONTROLS]": unsupported,
-  "[PUMPS]": unsupported,
+  "[PUMPS]": isFeatureOn("FLAG_PUMP") ? parsePump : unsupported,
   "[RULES]": unsupported,
   "[VALVES]": unsupported,
   "[DEMANDS]": parseDemand,
