@@ -368,7 +368,7 @@ const PumpEditor = ({
                 value={endNode ? endNode.label : ""}
               />
               <SelectRow
-                name="definitionType"
+                name="pumpType"
                 selected={pump.definitionType}
                 options={definitionOptions}
                 onChange={(name, newValue, oldValue) => {
