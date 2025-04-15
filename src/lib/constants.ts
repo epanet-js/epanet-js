@@ -43,7 +43,7 @@ export const colors = {
   yellow600: "#C6C95C",
   yellow800: "#7A6F35",
   yellow700: "#9A9238",
-  orange700: "#B48132",
+  orange700: "#c2410c",
   red300: "#fca5a5",
   red700: "#b91c1c",
   green300: "#86efac",

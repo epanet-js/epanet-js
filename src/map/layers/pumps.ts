@@ -8,7 +8,7 @@ import {
   LinePaint,
   SymbolLayer,
 } from "mapbox-gl";
-import { LINE_COLORS_SELECTED } from "src/lib/constants";
+import { LINE_COLORS_SELECTED, colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization";
 
 export const pumpLines = ({
@@ -37,7 +37,7 @@ export const pumpLines = ({
       ["feature-state", "selected"],
       "true",
       LINE_COLORS_SELECTED,
-      ["coalesce", ["get", "color"], "#A89138"],
+      ["coalesce", ["get", "color"], colors.orange700],
     ],
     "line-dasharray": [
       "case",
