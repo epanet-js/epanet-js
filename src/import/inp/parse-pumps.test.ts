@@ -222,6 +222,36 @@ describe("parse pumps", () => {
     expect(pump.speed).toEqual(1);
   });
 
+  it("overrides speed setting when using a pattern", () => {
+    const pumpId = "pu1";
+    const anyNumber = 10;
+    const inp = `
+    [RESERVOIRS]
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\tj1\tj2\tSPEED 0.8\tPATTERN PAT_1
+
+    [STATUS]
+    ${pumpId}\tOPEN
+
+
+    [PATTERNS]
+    PAT_1 0.2
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.initialStatus).toEqual("on");
+    expect(pump.speed).toEqual(0.2);
+  });
+
   it("preserves speed setting when status is off", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
@@ -265,10 +295,13 @@ describe("parse pumps", () => {
     pu2\tj2\tj3\tPOWER 22\tSPEED 0.4
     pu3\tj3\tj4\tSPEED 20\tHEAD CU_1
     pu4\tj4\tj5\tHEAD CU_1\tSPEED 0.2
-    pu5\tj5\tj6\tPATTERN ANY\tSPEED 0.2\tPOWER 10
+    pu5\tj5\tj6\tPATTERN PAT_1\tSPEED 0.2\tPOWER 10
 
     [CURVES]
     CU_1\t10\t20
+
+    [PATTERNS]
+    PAT_1 0.9
 
     [COORDINATES]
     j1\t${10}\t${20}
@@ -304,7 +337,7 @@ describe("parse pumps", () => {
     expect(pump4.designHead).toEqual(20);
 
     const pump5 = getByLabel(hydraulicModel.assets, "pu5") as Pump;
-    expect(pump5.speed).toEqual(0.2);
+    expect(pump5.speed).toEqual(0.9);
     expect(pump5.definitionType).toEqual("power");
     expect(pump5.power).toEqual(10);
   });

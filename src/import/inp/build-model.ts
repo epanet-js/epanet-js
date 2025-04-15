@@ -205,6 +205,11 @@ const addPump = (
     }
   }
 
+  if (pumpData.patternId) {
+    const pattern = getPattern(inpData.patterns, pumpData.patternId);
+    speed = pattern[0];
+  }
+
   const pump = hydraulicModel.assetBuilder.buildPump({
     label: pumpData.id,
     connections,
