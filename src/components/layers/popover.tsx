@@ -623,8 +623,8 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
             }
             userTracking.capture({
               name: "baseMap.changed",
-              newValue: layer.name,
-              oldValue: oldMapboxLayer ? oldMapboxLayer.name : "",
+              newBasemap: layer.name,
+              oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
               source: "popover",
             });
 
@@ -808,8 +808,8 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
             }
             userTracking.capture({
               name: "baseMap.changed",
-              newValue: name,
-              oldValue: oldMapboxLayer ? oldMapboxLayer.name : "",
+              newBasemap: name,
+              oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
               source: "dropdown",
             });
             applyChanges({

@@ -130,8 +130,8 @@ const AssetEditorInner = ({
       name: "assetDefinitionType.edited",
       type: asset.type,
       property: "definitionType",
-      newValue: newType,
-      oldValue: oldType,
+      newType: newType,
+      oldType: oldType,
     });
   };
 
@@ -146,8 +146,8 @@ const AssetEditorInner = ({
       name: "assetStatus.edited",
       type: asset.type,
       property: "initialStatus",
-      newValue: newStatus,
-      oldValue: oldStatus,
+      newStatus,
+      oldStatus,
     });
   };
 
@@ -162,8 +162,8 @@ const AssetEditorInner = ({
         name: "assetStatus.edited",
         type: asset.type,
         property: "status",
-        newValue: newStatus,
-        oldValue: oldStatus,
+        newStatus,
+        oldStatus,
       });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
