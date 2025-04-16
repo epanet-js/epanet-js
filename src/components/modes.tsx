@@ -3,7 +3,6 @@ import {
   CircleIcon,
   StretchHorizontallyIcon,
   VercelLogoIcon,
-  PinTopIcon,
 } from "@radix-ui/react-icons";
 import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
@@ -13,6 +12,7 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { PumpIcon } from "src/map/icons/pump-icon";
 
 const MODE_OPTIONS = isFeatureOn("FLAG_PUMP")
   ? ([
@@ -48,7 +48,14 @@ const MODE_OPTIONS = isFeatureOn("FLAG_PUMP")
         mode: Mode.DRAW_PUMP,
         hotkey: "5",
         alwaysMultiple: true,
-        Icon: PinTopIcon,
+        Icon: () => (
+          <PumpIcon
+            width={15}
+            height={15}
+            className="rotate-90"
+            triangleFillColor="none"
+          />
+        ),
         Menu: null,
       },
     ] as const)

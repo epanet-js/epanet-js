@@ -93,7 +93,7 @@ export const pumpIcons = ({
           "pump-off",
           "pump-on",
         ],
-        "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.5],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 20, 0.4],
         "icon-rotate": ["get", "rotation"],
         "icon-allow-overlap": true,
         "icon-rotation-alignment": "map",
