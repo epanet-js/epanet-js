@@ -48,7 +48,7 @@ const MODE_OPTIONS = isFeatureOn("FLAG_PUMP")
         mode: Mode.DRAW_PUMP,
         hotkey: "5",
         alwaysMultiple: true,
-        Icon: () => <PumpIcon width={15} height={15} className="rotate-90" />,
+        Icon: () => <PumpIcon width={15} height={15} />,
         Menu: null,
       },
     ] as const)
