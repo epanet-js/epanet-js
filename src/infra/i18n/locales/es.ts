@@ -291,6 +291,7 @@ export const translations: Translations = {
   constantPower: "Potencia Constante",
   flowVsHead: "Flujo vs Carga",
   speed: "Vel. Relativa",
+  pumpStatus: "Estado Bomba",
 };
 
 export const units: UnitsLocale = {
