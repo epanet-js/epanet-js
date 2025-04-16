@@ -3,7 +3,7 @@ import * as React from "react";
 export const PumpIcon = React.forwardRef<
   SVGSVGElement,
   React.SVGProps<SVGSVGElement> & { triangleFillColor?: string }
->(({ triangleFillColor = "current", ...props }, ref) => (
+>(({ triangleFillColor = "currentColor", ...props }, ref) => (
   <svg
     ref={ref}
     xmlns="http://www.w3.org/2000/svg"
