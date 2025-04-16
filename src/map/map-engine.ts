@@ -117,10 +117,10 @@ export class MapEngine {
         this.icons = await prepareIconsSprite();
       }
 
-      for (const { id, image } of this.icons) {
+      for (const { id, image, isSdf } of this.icons) {
         if (map.hasImage(id)) return;
 
-        map.addImage(id, image, { sdf: !id.startsWith("pump") });
+        map.addImage(id, image, { sdf: isSdf });
       }
     });
 

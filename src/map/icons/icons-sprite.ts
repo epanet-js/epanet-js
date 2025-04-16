@@ -29,20 +29,25 @@ type IconMapping = {
 
 type IconsMapping = Partial<Record<IconId, IconMapping>>;
 
-type IconUrl = { id: IconId; url: string };
-export type IconImage = { id: IconId; image: HTMLImageElement };
+type IconUrl = { id: IconId; url: string; isSdf?: boolean };
+export type IconImage = {
+  id: IconId;
+  image: HTMLImageElement;
+  isSdf?: boolean;
+};
 
 const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
 const iconUrls: IconUrl[] = [
-  { id: "reservoir", url: reservoirPng.src },
-  { id: "reservoir-outlined", url: reservoirOutlinedPng.src },
-  { id: "reservoir-selected", url: reservoirSelectedPng.src },
+  { id: "reservoir", url: reservoirPng.src, isSdf: true },
+  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
+  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
   {
     id: "triangle",
     url: triangle.src,
+    isSdf: true,
   },
   {
     id: "pump-on",
@@ -103,7 +108,7 @@ export const prepareIconsSprite = withInstrumentation(
   { name: "GENERATE_ICONS_SPRITE", maxDurationMs: 1000 },
 );
 
-const fetchImage = async ({ id, url }: IconUrl): Promise<IconImage> => {
+const fetchImage = async ({ id, url, isSdf }: IconUrl): Promise<IconImage> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -113,7 +118,7 @@ const fetchImage = async ({ id, url }: IconUrl): Promise<IconImage> => {
   const img = new Image();
   img.src = URL.createObjectURL(blob);
   await img.decode();
-  return { id, image: img };
+  return { id, image: img, isSdf };
 };
 
 const buildSprite = (iconImages: IconImage[]): { atlas: TextureProps } => {
