@@ -9,7 +9,6 @@ import { LayersList } from "@deck.gl/core";
 import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
-import { isDebugMapHandlers } from "src/infra/debug-mode";
 import { LayerId } from "./layers";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
@@ -46,14 +45,6 @@ export type MapHandlers = {
   onMove: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
   onZoom: (e: mapboxgl.MapBoxZoomEvent) => void;
 };
-
-const noop = () => null;
-const debugEvent = isDebugMapHandlers
-  ? (e: mapboxgl.MapboxEvent<any>) => {
-      // eslint-disable-next-line no-console
-      console.log(`MAPBOX_EVENT: ${e.type}`);
-    }
-  : noop;
 
 export class MapEngine {
   map: mapboxgl.Map;
@@ -105,19 +96,21 @@ export class MapEngine {
       "bottom-right",
     );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
-    map.on("click", this.onClick);
-    map.on("mousedown", this.onMapMouseDown);
-    map.on("mousemove", this.onMapMouseMove);
-    map.on("dblclick", this.onMapDoubleClick);
-    map.on("mouseup", this.onMapMouseUp);
-    map.on("moveend", this.onMoveEnd);
-    map.on("touchend", this.onMapTouchEnd);
-    map.on("move", this.onMove);
+    map.on("click", (e) => this.handlers.current.onClick(e));
+    map.on("mousedown", (e) => this.handlers.current.onMapMouseDown(e));
+    map.on("mousemove", (e) => this.handlers.current.onMapMouseMove(e));
+    map.on("dblclick", (e) => this.handlers.current.onDoubleClick(e));
+    map.on("mouseup", (e) => this.handlers.current.onMapMouseUp(e));
+    map.on("moveend", (e: MoveEvent) => this.handlers.current.onMoveEnd(e));
+    map.on("touchend", (e) => this.handlers.current.onMapTouchEnd(e));
+    map.on("move", (e: MoveEvent) => this.handlers.current.onMove(e));
 
-    map.on("touchstart", this.onMapTouchStart);
-    map.on("touchmove", this.onMapTouchMove);
-    map.on("touchend", this.onMapTouchEnd);
-    map.on("zoom", this.onZoom);
+    map.on("touchstart", (e) => this.handlers.current.onMapTouchStart(e));
+    map.on("touchmove", (e) => this.handlers.current.onMapTouchMove(e));
+    map.on("touchend", (e) => this.handlers.current.onMapTouchEnd(e));
+    map.on("zoom", (e: mapboxgl.MapBoxZoomEvent) =>
+      this.handlers.current.onZoom(e),
+    );
 
     map.on("style.load", async () => {
       if (!this.icons.length) {
@@ -133,61 +126,6 @@ export class MapEngine {
 
     this.map = map;
   }
-
-  onClick = (e: LayerScopedEvent) => {
-    debugEvent(e);
-    this.handlers.current.onClick(e);
-  };
-
-  onZoom = (e: mapboxgl.MapBoxZoomEvent) => {
-    debugEvent(e);
-    this.handlers.current.onZoom(e);
-  };
-
-  onMapMouseDown = (e: LayerScopedEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapMouseDown(e);
-  };
-
-  onMapTouchStart = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapTouchStart(e);
-  };
-
-  onMapMouseUp = (e: LayerScopedEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapMouseUp(e);
-  };
-
-  onMoveEnd = (e: MoveEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMoveEnd(e);
-  };
-
-  onMapTouchEnd = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapTouchEnd(e);
-  };
-
-  onMove = (e: MoveEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMove(e);
-  };
-
-  onMapMouseMove = (e: mapboxgl.MapMouseEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapMouseMove(e);
-  };
-
-  onMapTouchMove = (e: mapboxgl.MapTouchEvent) => {
-    debugEvent(e);
-    this.handlers.current.onMapTouchMove(e);
-  };
-
-  onMapDoubleClick = (e: mapboxgl.MapMouseEvent) => {
-    debugEvent(e);
-    this.handlers.current.onDoubleClick(e);
-  };
 
   setStyle(style: Style): Promise<void> {
     return new Promise((resolve) => {
