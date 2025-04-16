@@ -12,7 +12,7 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { PumpIcon } from "src/map/icons/pump-icon";
+import { PumpIcon } from "src/custom-icons/pump-icon";
 
 const MODE_OPTIONS = isFeatureOn("FLAG_PUMP")
   ? ([
