@@ -73,14 +73,17 @@ const appendPumpStats = (
   pump: Pump,
   quantitiesMetadata: Quantities,
 ) => {
-  for (const name of pipeQuantities) {
-    updateQuantityStats(
-      statsMap,
-      name,
-      pump[name as unknown as keyof Pump] as number,
-      quantitiesMetadata,
-    );
-  }
+  updateCategoryStats(
+    statsMap,
+    "pumpType",
+    pump.definitionType === "power" ? "power" : "flowVsHead",
+  );
+  if (pump.status !== null)
+    updateCategoryStats(statsMap, "pumpStatus", pump.status);
+  if (pump.head !== null)
+    updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
+  if (pump.flow !== null)
+    updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
 };
 
 const appendJunctionStats = (
