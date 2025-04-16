@@ -52,16 +52,16 @@ type AssetStatusEdited = {
   name: "assetStatus.edited";
   type: Asset["type"];
   property: string;
-  newValue: string | null;
-  oldValue: string | null;
+  newStatus: string | null;
+  oldStatus: string | null;
 };
 
 type AssetDefinitionTypeEdited = {
   name: "assetDefinitionType.edited";
   type: Asset["type"];
   property: string;
-  newValue: string | null;
-  oldValue: string | null;
+  newType: string | null;
+  oldType: string | null;
 };
 
 type AssetSelected = {
@@ -378,8 +378,8 @@ type UserEvent =
     }
   | {
       name: "baseMap.changed";
-      oldValue: string;
-      newValue: string;
+      oldBasemap: string;
+      newBasemap: string;
       source: "dropdown" | "popover";
     };
 
