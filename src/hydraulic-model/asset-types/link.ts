@@ -13,8 +13,10 @@ export const nullCoordinates = [
 
 export const nullConnections: LinkConnections = ["", ""];
 
+export type LinkType = "pipe" | "pump";
+
 export type LinkProperties = {
-  type: "pipe" | "pump";
+  type: LinkType;
   connections: LinkConnections;
   length: number;
 } & AssetProperties;

@@ -138,7 +138,11 @@ export function Hints() {
       break;
     }
     case Mode.DRAW_PIPE: {
-      if (ephemeralState.type === "drawPipe" && !!ephemeralState.startNode)
+      if (
+        ephemeralState.type === "drawLink" &&
+        ephemeralState.linkType === "pipe" &&
+        !!ephemeralState.startNode
+      )
         return (
           <Hint
             hintId="DRAW_PIPE"
@@ -164,7 +168,11 @@ export function Hints() {
       }
     }
     case Mode.DRAW_PUMP: {
-      if (ephemeralState.type === "drawPump" && !!ephemeralState.startNode)
+      if (
+        ephemeralState.type === "drawLink" &&
+        ephemeralState.linkType === "pump" &&
+        !!ephemeralState.startNode
+      )
         return (
           <Hint
             hintId="DRAW_PUMP"

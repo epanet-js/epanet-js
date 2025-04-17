@@ -26,9 +26,7 @@ import loadAndAugmentStyle from "src/lib/load_and_augment_style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { buildLayers as buildDrawPipeLayers } from "./mode-handlers/draw-pipe/ephemeral-state";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
-import { buildLayers as buildDrawPumpLayers } from "./mode-handlers/draw-pump/ephemeral-state";
 import { PolygonLayer } from "@deck.gl/layers";
 import {
   DECK_LASSO_ID,
@@ -41,6 +39,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -431,12 +430,10 @@ const updateEditionsVisibility = withInstrumentation(
 const buildEphemeralStateOvelay = withInstrumentation(
   (map: MapEngine, ephemeralState: EphemeralEditingState): DeckLayer[] => {
     let ephemeralLayers: DeckLayer[] = [];
-
-    if (ephemeralState.type === "drawPipe") {
-      ephemeralLayers = buildDrawPipeLayers(ephemeralState) as DeckLayer[];
-    }
-    if (ephemeralState.type === "drawPump") {
-      ephemeralLayers = buildDrawPumpLayers(ephemeralState) as DeckLayer[];
+    if (ephemeralState.type === "drawLink") {
+      ephemeralLayers = buildEphemeralDrawLinkLayers(
+        ephemeralState,
+      ) as DeckLayer[];
     }
     if (ephemeralState.type === "moveAssets") {
       ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
@@ -494,9 +491,7 @@ const getMovedAssets = (
       return noMoved;
     case "moveAssets":
       return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
-    case "drawPipe":
-      return noMoved;
-    case "drawPump":
+    case "drawLink":
       return noMoved;
     case "none":
       return noMoved;

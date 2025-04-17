@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
-import { AssetBuilder } from "src/hydraulic-model";
-import { NodeAsset, Pipe } from "src/hydraulic-model";
+import { AssetBuilder, LinkAsset, LinkType } from "src/hydraulic-model";
+import { NodeAsset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
@@ -8,12 +8,15 @@ type DrawingState =
   | {
       isNull: false;
       startNode: NodeAsset;
-      pipe: Pipe;
+      link: LinkAsset;
       snappingCandidate: NodeAsset | null;
     }
   | NullDrawing;
 
-export const useDrawingState = (assetBuilder: AssetBuilder) => {
+export const useDrawingState = (
+  assetBuilder: AssetBuilder,
+  linkType: LinkType,
+) => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
 
   const resetDrawing = () => {
@@ -21,26 +24,38 @@ export const useDrawingState = (assetBuilder: AssetBuilder) => {
   };
 
   const drawingState: DrawingState =
-    state.type === "drawPipe" && state.startNode
+    state.type === "drawLink" && state.startNode
       ? {
           isNull: false,
           startNode: state.startNode,
           snappingCandidate: state.snappingCandidate || null,
-          pipe: state.pipe,
+          link: state.link,
         }
       : { isNull: true, snappingCandidate: null };
 
   const setSnappingCandidate = (snappingCandidate: NodeAsset | null) => {
     setEphemeralState((prev: EphemeralEditingState) => {
-      if (prev.type !== "drawPipe")
+      if (prev.type !== "drawLink") {
+        let link;
+        const startProperties = {
+          label: "",
+          coordinates: [],
+        };
+        switch (linkType) {
+          case "pipe":
+            link = assetBuilder.buildPipe(startProperties);
+            break;
+          case "pump":
+            link = assetBuilder.buildPump(startProperties);
+            break;
+        }
         return {
-          type: "drawPipe",
-          pipe: assetBuilder.buildPipe({
-            label: "",
-            coordinates: [],
-          }),
+          type: "drawLink",
+          linkType,
+          link,
           snappingCandidate,
         };
+      }
 
       return {
         ...prev,
@@ -51,16 +66,17 @@ export const useDrawingState = (assetBuilder: AssetBuilder) => {
 
   const setDrawing = ({
     startNode,
-    pipe,
+    link,
     snappingCandidate,
   }: {
     startNode: NodeAsset;
-    pipe: Pipe;
+    link: LinkAsset;
     snappingCandidate: NodeAsset | null;
   }) => {
     setEphemeralState({
-      type: "drawPipe",
-      pipe,
+      type: "drawLink",
+      link,
+      linkType,
       startNode,
       snappingCandidate,
     });

@@ -1,14 +1,15 @@
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { GeoJsonLayer, IconLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { Feature, Position } from "geojson";
-import { NodeAsset, Pump } from "src/hydraulic-model";
+import { LinkAsset, LinkType, NodeAsset } from "src/hydraulic-model";
 import { captureWarning } from "src/infra/error-tracking";
 import { hexToArray } from "src/lib/color";
 import { colors } from "src/lib/constants";
 
-export interface EphemeralDrawPump {
-  type: "drawPump";
-  pump: Pump;
+export interface EphemeralDrawLink {
+  type: "drawLink";
+  linkType: LinkType;
+  link: LinkAsset;
   startNode?: NodeAsset;
   snappingCandidate: NodeAsset | null;
 }
@@ -42,14 +43,14 @@ const appendNode = (
   }
 };
 
-export const buildLayers = (state: EphemeralDrawPump) => {
+export const buildEphemeralDrawLinkLayers = (state: EphemeralDrawLink) => {
   const iconsSprite = getIconsSprite();
   const geojsonFeatures: Feature[] = [];
   const icons: IconData[] = [];
   if (state.startNode) {
     appendNode(geojsonFeatures, icons, state.startNode);
   }
-  if (state.pump) geojsonFeatures.push(state.pump.feature);
+  if (state.link) geojsonFeatures.push(state.link.feature);
   if (state.snappingCandidate) {
     appendNode(geojsonFeatures, icons, state.snappingCandidate);
   }
@@ -57,7 +58,7 @@ export const buildLayers = (state: EphemeralDrawPump) => {
   return [
     state.snappingCandidate &&
       new ScatterplotLayer({
-        id: "ephemeral-draw-pump-snapping-candidate",
+        id: "ephemeral-draw-link-snapping-candidate",
         data: [state.snappingCandidate.coordinates],
         getPosition: <T>(d: T) => d,
         getRadius: 14,
@@ -69,7 +70,7 @@ export const buildLayers = (state: EphemeralDrawPump) => {
         lineWidthUnits: "pixels",
       }),
     new GeoJsonLayer({
-      id: "ephemeral-draw-pump-geojson",
+      id: "ephemeral-draw-link-geojson",
       data: geojsonFeatures,
       lineWidthUnits: "pixels",
       pointRadiusUnits: "pixels",
@@ -82,7 +83,7 @@ export const buildLayers = (state: EphemeralDrawPump) => {
       extensions: [new PathStyleExtension({ dash: true })],
     }),
     new IconLayer({
-      id: "ephemeral-draw-pump-icons",
+      id: "ephemeral-draw-link-icons",
       data: icons,
       getSize: 16,
       // @ts-expect-error type should be allowed https://deck.gl/docs/api-reference/layers/icon-layer#iconatlas
