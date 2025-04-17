@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPump } from "./add-pump";
+import { addLink } from "./add-link";
 import {
   HydraulicModelBuilder,
   buildJunction,
@@ -7,13 +7,13 @@ import {
 } from "../../__helpers__/hydraulic-model-builder";
 import { Pump } from "../asset-types";
 
-describe("addPump", () => {
+describe("addLink", () => {
   it("updates connections", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction({ coordinates: [10, 10], id: "A" });
     const endNode = buildJunction({ coordinates: [30, 30], id: "B" });
 
-    const pump = buildPump({
+    const link = buildPump({
       coordinates: [
         [10, 10],
         [20, 20],
@@ -22,10 +22,10 @@ describe("addPump", () => {
       id: "pump",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     expect(putAssets![0].id).toEqual("pump");
@@ -38,7 +38,7 @@ describe("addPump", () => {
     const startNode = buildJunction({ coordinates: [10, 10], id: "A" });
     const endNode = buildJunction({ coordinates: [30, 30], id: "B" });
 
-    const pump = buildPump({
+    const link = buildPump({
       coordinates: [
         [10, 10],
         [20, 20],
@@ -52,10 +52,10 @@ describe("addPump", () => {
       id: "pump",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     const pumpToCreate = putAssets![0] as Pump;
@@ -72,7 +72,7 @@ describe("addPump", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction({ coordinates: [10, 10] });
     const endNode = buildJunction({ coordinates: [20, 20] });
-    const pump = buildPump({
+    const link = buildPump({
       coordinates: [
         [10, 11],
         [15, 15],
@@ -82,10 +82,10 @@ describe("addPump", () => {
       id: "pump",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     const pumpToCreate = putAssets![0] as Pump;
@@ -103,15 +103,15 @@ describe("addPump", () => {
     const endCoordiantes = [-4.3771833, 55.9133641];
     const startNode = buildJunction({ coordinates: startCoordinates });
     const endNode = buildJunction({ coordinates: endCoordiantes });
-    const pump = buildPump({
+    const link = buildPump({
       coordinates: [startCoordinates, endCoordiantes],
       id: "pump",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     const pumpToCreate = putAssets![0] as Pump;
@@ -123,15 +123,15 @@ describe("addPump", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction();
     const endNode = buildJunction();
-    const pump = buildPump({
+    const link = buildPump({
       id: "pump",
       label: "",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     const pumpToCreate = putAssets![0] as Pump;
@@ -143,15 +143,15 @@ describe("addPump", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction({ label: "" });
     const endNode = buildJunction({ label: "CUSTOM" });
-    const pump = buildPump({
+    const link = buildPump({
       id: "pump",
       label: "",
     });
 
-    const { putAssets } = addPump(hydraulicModel, {
+    const { putAssets } = addLink(hydraulicModel, {
       startNode,
       endNode,
-      pump,
+      link,
     });
 
     const [, nodeA, nodeB] = putAssets || [];

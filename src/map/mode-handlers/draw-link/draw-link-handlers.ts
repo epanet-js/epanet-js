@@ -7,23 +7,25 @@ import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
-import { useDrawingState } from "./drawing-state";
-import { addPump } from "src/hydraulic-model/model-operations";
+import { useDrawingState } from "./draw-link-state";
 import {
   fetchElevationForPoint,
   prefetchElevationsTile,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { NodeAsset, Pump } from "src/hydraulic-model";
+import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
+import { LinkType } from "src/hydraulic-model";
+import { addLink } from "src/hydraulic-model/model-operations";
 
-export function useDrawPumpHandlers({
+export function useDrawLinkHandlers({
   rep,
   hydraulicModel,
   map,
   idMap,
-}: HandlerContext): Handlers {
+  linkType,
+}: HandlerContext & { linkType: LinkType }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
@@ -31,47 +33,64 @@ export function useDrawPumpHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState(assetBuilder);
+    useDrawingState(assetBuilder, linkType);
   const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
   const startDrawing = (startNode: NodeAsset) => {
     const coordinates = startNode.coordinates;
-    const pump = assetBuilder.buildPump({
+    const startProperties = {
       label: "",
       coordinates: [coordinates, coordinates],
-    });
+    };
+    let link;
+    switch (linkType) {
+      case "pipe":
+        link = assetBuilder.buildPipe(startProperties);
+        break;
+      case "pump":
+        link = assetBuilder.buildPump(startProperties);
+        break;
+    }
 
     setDrawing({
       startNode,
-      pump,
+      link,
       snappingCandidate: null,
     });
-    return pump.id;
+    return link.id;
   };
 
   const addVertex = (coordinates: Position) => {
     if (drawing.isNull) return;
 
-    const pumpCopy = drawing.pump.copy();
-    pumpCopy.addVertex(coordinates);
+    const linkCopy = drawing.link.copy();
+    linkCopy.addVertex(coordinates);
     setDrawing({
       startNode: drawing.startNode,
-      pump: pumpCopy,
+      link: linkCopy,
       snappingCandidate: null,
     });
   };
 
-  const submitPump = (startNode: NodeAsset, pump: Pump, endNode: NodeAsset) => {
-    const length = measureLength(pump.feature);
+  const submitLink = (
+    startNode: NodeAsset,
+    link: LinkAsset,
+    endNode: NodeAsset,
+  ) => {
+    const length = measureLength(link.feature);
     if (!length) {
       return;
     }
 
-    const moment = addPump(hydraulicModel, { pump, startNode, endNode });
+    const moment = addLink(hydraulicModel, {
+      link: link,
+      startNode,
+      endNode,
+    });
 
-    userTracking.capture({ name: "asset.created", type: "pump" });
+    userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);
 
     const [, , endNodeUpdated] = moment.putAssets || [];
@@ -118,9 +137,9 @@ export function useDrawPumpHandlers({
         }
 
         if (!!snappingNode) {
-          const endNode = submitPump(
+          const endNode = submitLink(
             drawing.startNode,
-            drawing.pump,
+            drawing.link,
             snappingNode,
           );
           isEndAndContinueOn() && endNode
@@ -135,9 +154,9 @@ export function useDrawPumpHandlers({
             coordinates: clickPosition,
             elevation: pointElevation,
           });
-          endJunction = submitPump(
+          endJunction = submitLink(
             drawing.startNode,
-            drawing.pump,
+            drawing.link,
             endJunction,
           );
           endJunction && startDrawing(endJunction);
@@ -175,13 +194,13 @@ export function useDrawPumpHandlers({
       const nextCoordinates =
         (snappingNode && snappingNode.coordinates) || getMapCoord(e);
 
-      const pumpCopy = drawing.pump.copy();
-      pumpCopy.extendTo(nextCoordinates);
+      const linkCopy = drawing.link.copy();
+      linkCopy.extendTo(nextCoordinates);
 
       setDrawing({
         startNode: drawing.startNode,
-        pump: pumpCopy,
-        snappingCandidate: !pumpCopy.isStart(nextCoordinates)
+        link: linkCopy,
+        snappingCandidate: !linkCopy.isStart(nextCoordinates)
           ? snappingNode
           : null,
       });
@@ -191,20 +210,20 @@ export function useDrawPumpHandlers({
 
       if (drawing.isNull) return;
 
-      const { startNode, pump } = drawing;
+      const { startNode, link } = drawing;
 
       const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
         label: "",
-        coordinates: pump.lastVertex,
+        coordinates: link.lastVertex,
         elevation: await fetchElevationForPoint(
-          coordinatesToLngLat(pump.lastVertex),
+          coordinatesToLngLat(link.lastVertex),
           {
             unit: units.elevation,
           },
         ),
       });
 
-      submitPump(startNode, pump, endJunction);
+      submitLink(startNode, link, endJunction);
       resetDrawing();
     },
     exit() {

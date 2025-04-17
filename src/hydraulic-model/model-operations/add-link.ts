@@ -1,45 +1,45 @@
-import { NodeAsset, LinkAsset, Pump } from "../asset-types";
+import { NodeAsset, LinkAsset } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 import { LabelGenerator } from "../label-manager";
 
 type InputData = {
-  pump: Pump;
+  link: LinkAsset;
   startNode: NodeAsset;
   endNode: NodeAsset;
 };
 
-export const addPump: ModelOperation<InputData> = (
+export const addLink: ModelOperation<InputData> = (
   hydraulicModel,
-  { pump, startNode, endNode },
+  { link, startNode, endNode },
 ) => {
-  const pumpCopy = pump.copy();
+  const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
   addMissingLabels(
     hydraulicModel.labelManager,
-    pumpCopy,
+    linkCopy,
     startNodeCopy,
     endNodeCopy,
   );
-  pumpCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
-  removeRedundantVertices(pumpCopy);
-  forceSpatialConnectivity(pumpCopy, startNodeCopy, endNodeCopy);
+  linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
+  removeRedundantVertices(linkCopy);
+  forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
 
   return {
-    note: "Add pump",
-    putAssets: [pumpCopy, startNodeCopy, endNodeCopy],
+    note: `Add ${link.type}`,
+    putAssets: [linkCopy, startNodeCopy, endNodeCopy],
   };
 };
 
 const addMissingLabels = (
   labelGenerator: LabelGenerator,
-  pump: Pump,
+  link: LinkAsset,
   startNode: NodeAsset,
   endNode: NodeAsset,
 ) => {
-  pump.setProperty("label", labelGenerator.generateFor("pump", pump.id));
+  link.setProperty("label", labelGenerator.generateFor(link.type, link.id));
   if (startNode.label === "") {
     startNode.setProperty(
       "label",

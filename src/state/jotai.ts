@@ -19,14 +19,13 @@ import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { ScaleUnit } from "src/lib/constants";
-import { EphemeralDrawPipe } from "src/map/mode-handlers/draw-pipe/ephemeral-state";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
-import { EphemeralDrawPump } from "src/map/mode-handlers/draw-pump/ephemeral-state";
+import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -319,8 +318,7 @@ export const cursorStyleAtom = atom<CursorValue>("default");
 
 export type EphemeralEditingState =
   | EphemeralEditingStateLasso
-  | EphemeralDrawPipe
-  | EphemeralDrawPump
+  | EphemeralDrawLink
   | EphemeralMoveAssets
   | { type: "none" };
 
