@@ -119,7 +119,7 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
 }
 
 export const findLargestSegment = <T>(link: Link<T>): [Position, Position] => {
-  let maxLength = 0;
+  let maxLength = -1;
   let maxSegment = null;
 
   for (const segment of link.segments) {
