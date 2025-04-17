@@ -2,7 +2,6 @@ import { Asset, Junction, Pipe, Pump, Reservoir } from "src/hydraulic-model";
 import { junctionQuantities } from "src/hydraulic-model/asset-types/junction";
 import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
-import { translate } from "src/infra/i18n";
 import { roundToDecimal } from "src/infra/i18n/numbers";
 import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
 
@@ -80,7 +79,7 @@ const appendPumpStats = (
     pump.definitionType === "power" ? "power" : "flowVsHead",
   );
   if (pump.status !== null)
-    updateCategoryStats(statsMap, "pumpStatus", pumpStatusTextFor(pump));
+    updateCategoryStats(statsMap, "pumpStatus", pumpStatusLabel(pump));
   if (pump.head !== null)
     updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
   if (pump.flow !== null)
@@ -176,13 +175,11 @@ const updateCategoryStats = (
   propertyStats.values.set(value, (propertyStats.values.get(value) || 0) + 1);
 };
 
-const pumpStatusTextFor = (pump: Pump) => {
-  let statusText =
-    pump.status === null
-      ? translate("notAvailable")
-      : translate("pump." + pump.status);
+const pumpStatusLabel = (pump: Pump) => {
+  if (pump.status === null) return "notAvailable";
+
   if (pump.statusWarning) {
-    statusText += ` - ${translate("pump." + pump.statusWarning)}`;
+    return `pump.${pump.status}.${pump.statusWarning}`;
   }
-  return statusText;
+  return "pump." + pump.status;
 };

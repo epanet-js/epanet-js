@@ -316,15 +316,13 @@ const PipeEditor = ({
   );
 };
 
-const pumpStatusTextFor = (pump: Pump) => {
-  let statusText =
-    pump.status === null
-      ? translate("notAvailable")
-      : translate("pump." + pump.status);
+const pumpStatusLabel = (pump: Pump) => {
+  if (pump.status === null) return "notAvailable";
+
   if (pump.statusWarning) {
-    statusText += ` - ${translate("pump." + pump.statusWarning)}`;
+    return `pump.${pump.status}.${pump.statusWarning}`;
   }
-  return statusText;
+  return "pump." + pump.status;
 };
 
 const PumpEditor = ({
@@ -347,7 +345,7 @@ const PumpEditor = ({
   ) => void;
   quantitiesMetadata: Quantities;
 }) => {
-  const statusText = pumpStatusTextFor(pump);
+  const statusText = translate(pumpStatusLabel(pump));
 
   const definitionOptions = useMemo(() => {
     return [
