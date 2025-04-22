@@ -1,7 +1,6 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse pipes", () => {
   it("includes pipes in the model", () => {
@@ -101,8 +100,6 @@ describe("parse pipes", () => {
   });
 
   it("overrides pipe status if in section", () => {
-    stubFeatureOn("FLAG_PUMP");
-
     const pipeId = "p1";
     const anyNumber = 10;
     const inp = `

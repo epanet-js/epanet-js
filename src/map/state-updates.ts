@@ -38,7 +38,6 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import { USelection } from "src/selection";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -227,8 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSelection ||
       (hasNewSimulation && mapState.simulation.status !== "running")
     ) {
-      if (isFeatureOn("FLAG_PUMP"))
-        await updateIconsSource(map, assets, idMap, mapState.selection);
+      await updateIconsSource(map, assets, idMap, mapState.selection);
     }
 
     if (hasNewEphemeralState) {
@@ -404,7 +402,7 @@ const updateEditionsVisibility = withInstrumentation(
     for (const assetId of previousMovedAssetIds.values()) {
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.showFeature("features", featureId);
-      isFeatureOn("FLAG_PUMP") && map.showFeature("icons", featureId);
+      map.showFeature("icons", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
@@ -414,7 +412,7 @@ const updateEditionsVisibility = withInstrumentation(
     for (const assetId of movedAssetIds.values()) {
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.hideFeature("features", featureId);
-      isFeatureOn("FLAG_PUMP") && map.hideFeature("icons", featureId);
+      map.hideFeature("icons", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
