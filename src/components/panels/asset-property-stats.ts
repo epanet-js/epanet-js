@@ -46,6 +46,8 @@ export const computePropertyStats = (
       case "reservoir":
         appendReservoirStats(statsMap, asset as Reservoir, quantitiesMetadata);
         break;
+      case "valve":
+        break;
     }
   }
 
