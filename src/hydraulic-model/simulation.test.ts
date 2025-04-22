@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader, attachSimulation } from "./simulation";
-import { Junction, Pipe, Pump } from "./asset-types";
+import { Junction, Pipe, Pump, Valve } from "./asset-types";
 
 describe("attach simulation", () => {
   const resultsReader: ResultsReader = {
@@ -10,12 +10,14 @@ describe("attach simulation", () => {
     getHeadloss: () => -50,
     getPumpStatus: () => "off",
     getPumpStatusWarning: () => "cannot-deliver-flow",
+    getValveStatus: () => "closed",
   };
   it("sets the simulation for the assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1")
       .aPipe("p1")
       .aPump("pu1", { initialStatus: "on" })
+      .aValve("valve1", { initialStatus: "active" })
       .build();
 
     attachSimulation(hydraulicModel, resultsReader);
@@ -30,6 +32,9 @@ describe("attach simulation", () => {
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
     expect(pump.statusWarning).toEqual("cannot-deliver-flow");
+
+    const valve = hydraulicModel.assets.get("valve1") as Valve;
+    expect(valve.status).toEqual("closed");
   });
 
   it("forces a reference change in the assets collection", () => {

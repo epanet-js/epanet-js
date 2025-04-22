@@ -46,6 +46,10 @@ export class EpanetResults implements ResultsReader {
     return epanetStatus < 3 ? "off" : "on";
   }
 
+  getValveStatus(_linkId: string) {
+    return "active" as const;
+  }
+
   getPumpStatusWarning(linkId: string) {
     if (!this.links.has(linkId)) return null;
 

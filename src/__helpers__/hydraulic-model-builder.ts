@@ -22,6 +22,7 @@ import {
   PumpStatus,
   PumpStatusWarning,
 } from "src/hydraulic-model/asset-types/pump";
+import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -219,10 +220,17 @@ export class HydraulicModelBuilder {
   aValve(
     id: string,
     data: Partial<
-      ValveBuildData & { startNodeId: string; endNodeId: string }
+      ValveBuildData & { startNodeId: string; endNodeId: string } & {
+        simulation: Partial<{
+          flow: number;
+          velocity: number;
+          headloss: number;
+          status: ValveStatus;
+        }>;
+      }
     > = {},
   ) {
-    const { startNodeId, endNodeId, ...properties } = data;
+    const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -232,6 +240,16 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
     });
+    if (simulation) {
+      valve.setSimulation({
+        getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
+        getVelocity: () =>
+          simulation.velocity !== undefined ? simulation.velocity : 10,
+        getHeadloss: () =>
+          simulation.headloss !== undefined ? simulation.headloss : 10,
+        getValveStatus: () => simulation.status || ("active" as ValveStatus),
+      });
+    }
     this.assets.set(valve.id, valve);
     this.topology.addLink(id, startNode.id, endNode.id);
 

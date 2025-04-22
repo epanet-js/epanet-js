@@ -20,6 +20,9 @@ export type ValveQuantity = (typeof valveQuantities)[number];
 
 type ValveSimulationProvider = {
   getFlow: (id: string) => number | null;
+  getVelocity: (id: string) => number | null;
+  getHeadloss: (id: string) => number | null;
+  getValveStatus: (id: string) => ValveStatus | null;
 };
 
 export class Valve extends Link<ValveProperties> {
@@ -51,6 +54,30 @@ export class Valve extends Link<ValveProperties> {
 
   get initialStatus() {
     return this.properties.initialStatus;
+  }
+
+  get flow() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getFlow(this.id);
+  }
+
+  get velocity() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getVelocity(this.id);
+  }
+
+  get headloss() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getHeadloss(this.id);
+  }
+
+  get status() {
+    if (!this.simulation) return null;
+
+    return this.simulation.getValveStatus(this.id);
   }
 
   copy() {

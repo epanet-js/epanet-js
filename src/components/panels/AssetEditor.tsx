@@ -417,6 +417,35 @@ const ValveEditor = ({
                 decimals={quantitiesMetadata.getDecimals("minorLoss")}
                 onChange={onPropertyChange}
               />
+              <QuantityRow
+                name="flow"
+                readOnly={true}
+                value={valve.flow}
+                unit={quantitiesMetadata.getUnit("flow")}
+                decimals={quantitiesMetadata.getDecimals("flow")}
+              />
+              <QuantityRow
+                name="velocity"
+                readOnly={true}
+                value={valve.velocity}
+                unit={quantitiesMetadata.getUnit("velocity")}
+                decimals={quantitiesMetadata.getDecimals("velocity")}
+              />
+              <QuantityRow
+                name="headlossShort"
+                readOnly={true}
+                value={valve.headloss}
+                unit={quantitiesMetadata.getUnit("headloss")}
+                decimals={quantitiesMetadata.getDecimals("headloss")}
+              />
+              <TextRowReadOnly
+                name="status"
+                value={
+                  valve.status
+                    ? translate(`valve.${valve.status}`)
+                    : translate("notAvailable")
+                }
+              />
             </tbody>
           </table>
         </div>
