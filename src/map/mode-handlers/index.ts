@@ -18,6 +18,10 @@ export function useModeHandlers(handlerContext: HandlerContext) {
       ...handlerContext,
       linkType: "pump",
     }),
+    [Mode.DRAW_VALVE]: useDrawLinkHandlers({
+      ...handlerContext,
+      linkType: "valve",
+    }),
   };
   return HANDLERS;
 }

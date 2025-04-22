@@ -11,6 +11,7 @@ export enum Mode {
   DRAW_PIPE = "DRAW_PIPE",
   DRAW_RESERVOIR = "DRAW_RESERVOIR",
   DRAW_PUMP = "DRAW_PUMP",
+  DRAW_VALVE = "DRAW_VALVE",
 }
 
 export enum CIRCLE_TYPE {
@@ -61,6 +62,7 @@ export const MODE_INFO: Record<
   [Mode.DRAW_PIPE]: { name: "pipe", label: translate("pipe") },
   [Mode.DRAW_RESERVOIR]: { name: "reservoir", label: translate("reservoir") },
   [Mode.DRAW_PUMP]: { name: "pump", label: translate("pump") },
+  [Mode.DRAW_VALVE]: { name: "valve", label: translate("valve") },
 };
 
 export type ModeWithOptions = {

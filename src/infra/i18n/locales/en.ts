@@ -284,6 +284,7 @@ export const translations = {
   flowVsHead: "Flow vs Head",
   speed: "Speed",
   pumpStatus: "Pump Status",
+  valve: "Valve",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

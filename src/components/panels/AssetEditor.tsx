@@ -202,6 +202,8 @@ const AssetEditorInner = ({
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
       );
+    case "valve":
+      return null;
     case "reservoir":
       return (
         <ReservoirEditor

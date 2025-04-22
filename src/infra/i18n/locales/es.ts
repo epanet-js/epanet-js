@@ -292,6 +292,7 @@ export const translations: Translations = {
   flowVsHead: "Flujo vs Carga",
   speed: "Vel. Relativa",
   pumpStatus: "Estado Bomba",
+  valve: "Válvula",
 };
 
 export const units: UnitsLocale = {

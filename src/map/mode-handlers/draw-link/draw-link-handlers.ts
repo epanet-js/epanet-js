@@ -52,6 +52,9 @@ export function useDrawLinkHandlers({
       case "pump":
         link = assetBuilder.buildPump(startProperties);
         break;
+      case "valve":
+        link = assetBuilder.buildValve(startProperties);
+        break;
     }
 
     setDrawing({

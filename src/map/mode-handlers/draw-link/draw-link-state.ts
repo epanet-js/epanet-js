@@ -48,6 +48,9 @@ export const useDrawingState = (
           case "pump":
             link = assetBuilder.buildPump(startProperties);
             break;
+          case "valve":
+            link = assetBuilder.buildValve(startProperties);
+            break;
         }
         return {
           type: "drawLink",
