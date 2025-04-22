@@ -1,4 +1,5 @@
 import { PumpStatus, PumpStatusWarning } from "./asset-types/pump";
+import { ValveStatus } from "./asset-types/valve";
 import { HydraulicModel } from "./hydraulic-model";
 
 export interface ResultsReader {
@@ -8,6 +9,7 @@ export interface ResultsReader {
   getHeadloss: (linkId: string) => number | null;
   getPumpStatus: (pumpId: string) => PumpStatus | null;
   getPumpStatusWarning: (pumpId: string) => PumpStatusWarning | null;
+  getValveStatus: (valveId: string) => ValveStatus | null;
 }
 
 export const attachSimulation = (

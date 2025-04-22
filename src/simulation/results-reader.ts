@@ -7,4 +7,5 @@ export interface ResultsReader {
   getPumpStatusWarning: (
     linkId: string,
   ) => "cannot-deliver-flow" | "cannot-deliver-head" | null;
+  getValveStatus: (linkId: string) => "open" | "closed" | "active" | null;
 }
