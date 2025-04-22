@@ -1,10 +1,14 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
+export type ValveType = "tcv";
+
 export type ValveProperties = {
   type: "valve";
   diameter: number;
   minorLoss: number;
+  valveType: ValveType;
+  setting: number;
 } & LinkProperties;
 
 export const valveQuantities = ["diameter", "minorLoss"];
@@ -31,6 +35,14 @@ export class Valve extends Link<ValveProperties> {
 
   get minorLoss() {
     return this.properties.minorLoss;
+  }
+
+  get valveType() {
+    return this.properties.valveType;
+  }
+
+  get setting() {
+    return this.properties.setting;
   }
 
   copy() {

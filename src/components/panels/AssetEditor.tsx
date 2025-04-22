@@ -366,6 +366,18 @@ const ValveEditor = ({
                 name="endNode"
                 value={endNode ? endNode.label : ""}
               />
+              <TextRowReadOnly
+                name="valveType"
+                value={valve.valveType.toUpperCase()}
+              />
+              <QuantityRow
+                name="setting"
+                positiveOnly={true}
+                value={valve.setting}
+                unit={null}
+                decimals={quantitiesMetadata.getDecimals("tcvSetting")}
+                onChange={onPropertyChange}
+              />
               <QuantityRow
                 name="diameter"
                 positiveOnly={true}

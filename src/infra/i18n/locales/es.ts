@@ -300,6 +300,8 @@ export const translations: Translations = {
   speed: "Vel. Relativa",
   pumpStatus: "Estado Bomba",
   valve: "Válvula",
+  setting: "Ajuste",
+  valveType: "Tipo de Válvula",
 };
 
 export const units: UnitsLocale = {

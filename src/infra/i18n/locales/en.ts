@@ -292,6 +292,8 @@ export const translations = {
   speed: "Speed",
   pumpStatus: "Pump Status",
   valve: "Valve",
+  setting: "Setting",
+  valveType: "Valve Type",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

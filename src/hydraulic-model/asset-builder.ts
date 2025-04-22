@@ -45,6 +45,8 @@ export type ValveBuildData = {
   minorLoss?: number;
   coordinates?: Position[];
   connections?: LinkConnections;
+  valveType?: ValveType;
+  setting?: number;
 };
 
 export type ReservoirBuildData = {
@@ -64,7 +66,7 @@ import {
   PumpQuantity,
   PumpStatus,
 } from "./asset-types/pump";
-import { Valve, ValveQuantity } from "./asset-types/valve";
+import { Valve, ValveQuantity, ValveType } from "./asset-types/valve";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -136,6 +138,8 @@ export class AssetBuilder {
     connections = nullConnections,
     diameter,
     minorLoss,
+    valveType = "tcv",
+    setting,
   }: ValveBuildData = {}) {
     return new Valve(
       id,
@@ -150,6 +154,8 @@ export class AssetBuilder {
         length: 10,
         diameter: this.getValveValue("diameter", diameter),
         minorLoss: this.getValveValue("minorLoss", minorLoss),
+        valveType,
+        setting: this.getValveSetting(valveType, setting),
       },
       this.units,
     );
@@ -267,6 +273,12 @@ export class AssetBuilder {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.valve[name] || 0;
+  }
+
+  private getValveSetting(valveType: ValveType, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return this.defaults.valve["tcvSetting"] || 0;
   }
 
   private getJunctionValue(name: JunctionQuantity, candidate?: number) {
