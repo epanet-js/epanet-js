@@ -396,7 +396,7 @@ describe("parse pumps", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues?.unsupportedSections?.has("CURVES")).toBeTruthy();
+    expect(issues?.unsupportedSections?.has("[CURVES]")).toBeTruthy();
   });
 
   it("doesnt include issue when curve is a single point", () => {
