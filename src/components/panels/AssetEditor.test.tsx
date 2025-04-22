@@ -97,7 +97,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("loss coeff.", "14");
     });
 
-    it("can change its fixed status", async () => {
+    it("can change its initial status", async () => {
       const valveId = "V1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aValve(valveId, { initialStatus: "active" })
@@ -111,7 +111,7 @@ describe("AssetEditor", () => {
       const historyControl = renderComponent(store);
 
       const selector = screen.getByRole("combobox", {
-        name: /fixed status/i,
+        name: /initial status/i,
       });
 
       await user.click(selector);
@@ -129,9 +129,9 @@ describe("AssetEditor", () => {
       historyControl("undo");
       await waitFor(() => {
         const updatedSelector = screen.getByRole("combobox", {
-          name: /fixed status/i,
+          name: /initial status/i,
         });
-        expect(updatedSelector).toHaveTextContent("None");
+        expect(updatedSelector).toHaveTextContent("Active");
       });
     });
 
