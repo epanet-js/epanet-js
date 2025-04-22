@@ -23,6 +23,20 @@ describe("report utils", () => {
     expect(output).toContain("Error 216: a longer message P56_LABEL invalid.");
   });
 
+  it("doesnot replace errors from values", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aPipe("0", { label: "P1_LABEL" })
+      .build().assets;
+    const report = `
+    Error 213: invalid option value 0 in [VALVES] section:
+  234	102	13	300	14	0
+    `;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain("Error 213: invalid option value 0 in [VALVES]");
+  });
+
   it("can replace labels refering to asset types", () => {
     const assets = HydraulicModelBuilder.with()
       .aPipe("1", { label: "P1_LABEL" })
