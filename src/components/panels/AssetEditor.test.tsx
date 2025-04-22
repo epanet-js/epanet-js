@@ -77,6 +77,9 @@ describe("AssetEditor", () => {
           label: "MY_VALVE",
           connections: ["j1", "j2"],
           minorLoss: 14,
+          valveType: "tcv",
+          setting: 19,
+          diameter: 22,
         })
         .build();
       const store = setInitialState({
@@ -91,6 +94,9 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("label", "MY_VALVE");
       expectPropertyDisplayed("start node", "J1");
       expectPropertyDisplayed("end node", "J2");
+      expectPropertyDisplayed("valve type", "TCV");
+      expectPropertyDisplayed("setting", "19");
+      expectPropertyDisplayed("diameter (mm)", "22");
       expectPropertyDisplayed("loss coeff.", "14");
     });
   });

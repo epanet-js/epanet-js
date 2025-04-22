@@ -23,7 +23,8 @@ export type UnitsSpec = Record<
   | "headloss"
   | "head"
   | "power"
-  | "speed",
+  | "speed"
+  | "tcvSetting",
   Unit
 >;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -62,6 +63,7 @@ const metricSpec: AssetQuantitiesSpec = {
     headloss: "m",
     power: "kW",
     speed: null,
+    tcvSetting: null,
   },
   decimals: {
     flow: 3,
@@ -84,7 +86,7 @@ const metricSpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
-    valve: { diameter: 300 },
+    valve: { diameter: 300, tcvSetting: 50 },
   },
   analysis: {
     velocitySteps: [0, 1, 2, 3, 4],
@@ -109,6 +111,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     headloss: "ft",
     power: "hp",
     speed: null,
+    tcvSetting: null,
   },
   decimals: {
     flow: 3,
@@ -132,7 +135,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
-    valve: { diameter: 12 },
+    valve: { diameter: 12, tcvSetting: 50 },
   },
   analysis: {
     velocitySteps: [0, 2.5, 5, 7.5, 10],
