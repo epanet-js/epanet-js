@@ -4,9 +4,10 @@ import { Unit } from "src/quantity";
 export type ValveProperties = {
   type: "valve";
   diameter: number;
+  minorLoss: number;
 } & LinkProperties;
 
-export const valveQuantities = ["diameter"];
+export const valveQuantities = ["diameter", "minorLoss"];
 export type ValveQuantity = (typeof valveQuantities)[number];
 
 type ValveSimulationProvider = {
@@ -26,6 +27,10 @@ export class Valve extends Link<ValveProperties> {
 
   get diameter() {
     return this.properties.diameter;
+  }
+
+  get minorLoss() {
+    return this.properties.minorLoss;
   }
 
   copy() {
