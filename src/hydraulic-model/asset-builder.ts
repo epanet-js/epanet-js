@@ -42,6 +42,7 @@ export type ValveBuildData = {
   id?: AssetId;
   label?: string;
   diameter?: number;
+  minorLoss?: number;
   coordinates?: Position[];
   connections?: LinkConnections;
 };
@@ -134,6 +135,7 @@ export class AssetBuilder {
     ],
     connections = nullConnections,
     diameter,
+    minorLoss,
   }: ValveBuildData = {}) {
     return new Valve(
       id,
@@ -147,6 +149,7 @@ export class AssetBuilder {
         connections,
         length: 10,
         diameter: this.getValveValue("diameter", diameter),
+        minorLoss: this.getValveValue("minorLoss", minorLoss),
       },
       this.units,
     );

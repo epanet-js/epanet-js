@@ -374,6 +374,14 @@ const ValveEditor = ({
                 decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
               />
+              <QuantityRow
+                name="minorLoss"
+                positiveOnly={true}
+                value={valve.minorLoss}
+                unit={quantitiesMetadata.getUnit("minorLoss")}
+                decimals={quantitiesMetadata.getDecimals("minorLoss")}
+                onChange={onPropertyChange}
+              />
             </tbody>
           </table>
         </div>
