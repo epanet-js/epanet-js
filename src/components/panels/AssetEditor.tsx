@@ -57,7 +57,11 @@ import {
   pumpStatuses,
 } from "src/hydraulic-model/asset-types/pump";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
+import {
+  ValveStatus,
+  ValveType,
+  valveTypes,
+} from "src/hydraulic-model/asset-types/valve";
 
 export function AssetEditor({
   selectedFeature,
@@ -132,6 +136,22 @@ const AssetEditorInner = ({
       name: "assetDefinitionType.edited",
       type: asset.type,
       property: "definitionType",
+      newType: newType,
+      oldType: oldType,
+    });
+  };
+
+  const handleValveTypeChange = (newType: ValveType, oldType: ValveType) => {
+    const moment = changeProperty(hydraulicModel, {
+      assetIds: [asset.id],
+      property: "valveType",
+      value: newType,
+    });
+    transact(moment);
+    userTracking.capture({
+      name: "assetDefinitionType.edited",
+      type: asset.type,
+      property: "valveType",
       newType: newType,
       oldType: oldType,
     });
@@ -215,6 +235,7 @@ const AssetEditorInner = ({
           onPropertyChange={handlePropertyChange}
           quantitiesMetadata={quantitiesMetadata}
           onStatusChange={handleStatusChange}
+          onTypeChange={handleValveTypeChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -236,6 +257,7 @@ type OnPropertyChange = (
   oldValue: number | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
+type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
 const PipeEditor = ({
   pipe,
@@ -349,6 +371,7 @@ const ValveEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onStatusChange,
+  onTypeChange,
 }: {
   valve: Valve;
   startNode: NodeAsset | null;
@@ -356,6 +379,7 @@ const ValveEditor = ({
   quantitiesMetadata: Quantities;
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
+  onTypeChange: OnTypeChange<ValveType>;
 }) => {
   const statusOptions = useMemo(() => {
     return [
@@ -363,6 +387,12 @@ const ValveEditor = ({
       { label: translate("open"), value: "open" },
       { label: translate("closed"), value: "closed" },
     ] as { label: string; value: ValveStatus }[];
+  }, []);
+
+  const valveTypeOptions = useMemo(() => {
+    return valveTypes.map((type) => {
+      return { label: type.toUpperCase(), value: type };
+    });
   }, []);
 
   return (
@@ -381,10 +411,41 @@ const ValveEditor = ({
                 name="endNode"
                 value={endNode ? endNode.label : ""}
               />
-              <TextRowReadOnly
+              <SelectRow
                 name="valveType"
-                value={valve.valveType.toUpperCase()}
+                selected={valve.valveType}
+                options={valveTypeOptions}
+                onChange={(name, newType, oldType) =>
+                  onTypeChange(newType, oldType)
+                }
               />
+              {valve.valveType === "tcv" && (
+                <QuantityRow
+                  name="setting"
+                  positiveOnly={true}
+                  value={valve.setting}
+                  unit={null}
+                  onChange={onPropertyChange}
+                />
+              )}
+              {["psv", "prv", "pbv"].includes(valve.valveType) && (
+                <QuantityRow
+                  name="setting"
+                  positiveOnly={true}
+                  value={valve.setting}
+                  unit={quantitiesMetadata.getUnit("pressure")}
+                  onChange={onPropertyChange}
+                />
+              )}
+              {valve.valveType === "fcv" && (
+                <QuantityRow
+                  name="setting"
+                  positiveOnly={true}
+                  value={valve.setting}
+                  unit={quantitiesMetadata.getUnit("flow")}
+                  onChange={onPropertyChange}
+                />
+              )}
               <SelectRow
                 name="fixedStatus"
                 selected={valve.initialStatus}
@@ -392,14 +453,6 @@ const ValveEditor = ({
                 onChange={(name, newValue, oldValue) => {
                   onStatusChange(newValue, oldValue);
                 }}
-              />
-              <QuantityRow
-                name="setting"
-                positiveOnly={true}
-                value={valve.setting}
-                unit={null}
-                decimals={quantitiesMetadata.getDecimals("tcvSetting")}
-                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="diameter"
@@ -661,7 +714,7 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
-const SelectRow = <T extends PumpDefintionType | ValveStatus>({
+const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveType>({
   name,
   label = translate(name),
   selected,

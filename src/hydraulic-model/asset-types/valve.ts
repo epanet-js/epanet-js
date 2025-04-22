@@ -4,7 +4,8 @@ import { Unit } from "src/quantity";
 export const valveStatuses = ["active", "open", "closed"] as const;
 export type ValveStatus = (typeof valveStatuses)[number];
 
-export type ValveType = "tcv";
+export const valveTypes = ["tcv", "prv", "psv", "pbv", "fcv"] as const;
+export type ValveType = (typeof valveTypes)[number];
 
 export type ValveProperties = {
   type: "valve";
