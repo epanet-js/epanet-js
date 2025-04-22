@@ -8,6 +8,7 @@ import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { translate, translateUnit } from "src/infra/i18n";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
+import { ValveQuantity } from "src/hydraulic-model/asset-types/valve";
 
 export type UnitsSpec = Record<
   | "diameter"
@@ -31,6 +32,7 @@ type DefaultsSpec = {
   junction: Partial<Record<JunctionQuantity, number>>;
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
   pump: Partial<Record<PumpQuantity, number>>;
+  valve: Partial<Record<ValveQuantity, number>>;
 };
 export type AssetQuantitiesSpec = {
   id: string;
@@ -82,6 +84,7 @@ const metricSpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
+    valve: { diameter: 300 },
   },
   analysis: {
     velocitySteps: [0, 1, 2, 3, 4],
@@ -129,6 +132,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
+    valve: { diameter: 12 },
   },
   analysis: {
     velocitySteps: [0, 2.5, 5, 7.5, 10],

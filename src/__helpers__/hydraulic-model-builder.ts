@@ -14,7 +14,10 @@ import {
   AssetId,
   HeadlossFormula,
 } from "src/hydraulic-model";
-import { PumpBuildData } from "src/hydraulic-model/asset-builder";
+import {
+  PumpBuildData,
+  ValveBuildData,
+} from "src/hydraulic-model/asset-builder";
 import {
   PumpStatus,
   PumpStatusWarning,
@@ -208,6 +211,28 @@ export class HydraulicModelBuilder {
       });
     }
     this.assets.set(pump.id, pump);
+    this.topology.addLink(id, startNode.id, endNode.id);
+
+    return this;
+  }
+
+  aValve(
+    id: string,
+    data: Partial<
+      ValveBuildData & { startNodeId: string; endNodeId: string }
+    > = {},
+  ) {
+    const { startNodeId, endNodeId, ...properties } = data;
+    const startNode = this.getNodeOrCreate(startNodeId);
+    const endNode = this.getNodeOrCreate(endNodeId);
+
+    const valve = this.assetBuilder.buildValve({
+      coordinates: [startNode.coordinates, endNode.coordinates],
+      connections: [startNode.id, endNode.id],
+      id,
+      ...properties,
+    });
+    this.assets.set(valve.id, valve);
     this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;

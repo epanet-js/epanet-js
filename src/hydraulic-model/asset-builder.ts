@@ -41,6 +41,7 @@ export type PumpBuildData = {
 export type ValveBuildData = {
   id?: AssetId;
   label?: string;
+  diameter?: number;
   coordinates?: Position[];
   connections?: LinkConnections;
 };
@@ -62,13 +63,14 @@ import {
   PumpQuantity,
   PumpStatus,
 } from "./asset-types/pump";
-import { Valve } from "./asset-types/valve";
+import { Valve, ValveQuantity } from "./asset-types/valve";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
   pump: Partial<Record<PumpQuantity, number>>;
+  valve: Partial<Record<ValveQuantity, number>>;
 };
 
 export class AssetBuilder {
@@ -131,6 +133,7 @@ export class AssetBuilder {
       [0, 0],
     ],
     connections = nullConnections,
+    diameter,
   }: ValveBuildData = {}) {
     return new Valve(
       id,
@@ -143,6 +146,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("valve", id),
         connections,
         length: 10,
+        diameter: this.getValveValue("diameter", diameter),
       },
       this.units,
     );
@@ -254,6 +258,12 @@ export class AssetBuilder {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.pump[name] || 0;
+  }
+
+  private getValveValue(name: ValveQuantity, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return this.defaults.valve[name] || 0;
   }
 
   private getJunctionValue(name: JunctionQuantity, candidate?: number) {
