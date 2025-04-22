@@ -56,6 +56,7 @@ import {
   PumpStatus,
   pumpStatuses,
 } from "src/hydraulic-model/asset-types/pump";
+import { Valve } from "src/hydraulic-model/asset-types";
 
 export function AssetEditor({
   selectedFeature,
@@ -203,6 +204,15 @@ const AssetEditorInner = ({
         />
       );
     case "valve":
+      const valve = asset as Valve;
+      return (
+        <ValveEditor
+          valve={valve}
+          onPropertyChange={handlePropertyChange}
+          quantitiesMetadata={quantitiesMetadata}
+          {...getLinkNodes(hydraulicModel.assets, valve)}
+        />
+      );
       return null;
     case "reservoir":
       return (
@@ -325,6 +335,51 @@ const pumpStatusLabel = (pump: Pump) => {
     return `pump.${pump.status}.${pump.statusWarning}`;
   }
   return "pump." + pump.status;
+};
+
+const ValveEditor = ({
+  valve,
+  startNode,
+  endNode,
+  quantitiesMetadata,
+  onPropertyChange,
+}: {
+  valve: Valve;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+}) => {
+  return (
+    <PanelDetails title={translate("valve")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <TextRowReadOnly name="label" value={valve.label} />
+              <TextRowReadOnly
+                name="startNode"
+                value={startNode ? startNode.label : ""}
+              />
+              <TextRowReadOnly
+                name="endNode"
+                value={endNode ? endNode.label : ""}
+              />
+              <QuantityRow
+                name="diameter"
+                positiveOnly={true}
+                value={valve.diameter}
+                unit={quantitiesMetadata.getUnit("diameter")}
+                decimals={quantitiesMetadata.getDecimals("diameter")}
+                onChange={onPropertyChange}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
 };
 
 const PumpEditor = ({

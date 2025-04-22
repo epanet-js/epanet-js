@@ -67,6 +67,32 @@ describe("AssetEditor", () => {
     });
   });
 
+  describe("with a valve", () => {
+    it("can show its properties", () => {
+      const valveId = "V1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { label: "J1" })
+        .aJunction("j2", { label: "J2" })
+        .aValve(valveId, {
+          label: "MY_VALVE",
+          connections: ["j1", "j2"],
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: valveId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/valve/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_VALVE");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
+    });
+  });
+
   describe("with a pump", () => {
     it("can show its properties", () => {
       const pumpId = "PU1";

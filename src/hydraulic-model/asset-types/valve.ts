@@ -3,9 +3,10 @@ import { Unit } from "src/quantity";
 
 export type ValveProperties = {
   type: "valve";
+  diameter: number;
 } & LinkProperties;
 
-export const valveQuantities = [];
+export const valveQuantities = ["diameter"];
 export type ValveQuantity = (typeof valveQuantities)[number];
 
 type ValveSimulationProvider = {
@@ -21,6 +22,10 @@ export class Valve extends Link<ValveProperties> {
 
   setSimulation(simulation: ValveSimulationProvider) {
     this.simulation = simulation;
+  }
+
+  get diameter() {
+    return this.properties.diameter;
   }
 
   copy() {
