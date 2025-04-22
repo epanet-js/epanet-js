@@ -175,7 +175,7 @@ const addPump = (
     const curvePoints = inpData.curves.get(pumpData.curveId) || [];
 
     if (curvePoints.length > 1) {
-      issues.addUsedSection("CURVES");
+      issues.addUsedSection("[CURVES]");
     }
 
     const middleIndex = Math.floor(curvePoints.length / 2);
