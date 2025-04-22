@@ -294,6 +294,7 @@ export const translations = {
   valve: "Valve",
   setting: "Setting",
   valveType: "Valve Type",
+  fixedStatus: "Fixed Status",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

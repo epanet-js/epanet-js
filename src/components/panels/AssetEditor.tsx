@@ -57,6 +57,7 @@ import {
   pumpStatuses,
 } from "src/hydraulic-model/asset-types/pump";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 
 export function AssetEditor({
   selectedFeature,
@@ -136,7 +137,10 @@ const AssetEditorInner = ({
     });
   };
 
-  const handleStatusChange = (newStatus: PumpStatus, oldStatus: PumpStatus) => {
+  const handleStatusChange = <T extends PumpStatus | ValveStatus>(
+    newStatus: T,
+    oldStatus: T,
+  ) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
       property: "initialStatus",
@@ -210,6 +214,7 @@ const AssetEditorInner = ({
           valve={valve}
           onPropertyChange={handlePropertyChange}
           quantitiesMetadata={quantitiesMetadata}
+          onStatusChange={handleStatusChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -343,13 +348,23 @@ const ValveEditor = ({
   endNode,
   quantitiesMetadata,
   onPropertyChange,
+  onStatusChange,
 }: {
   valve: Valve;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
   quantitiesMetadata: Quantities;
+  onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
 }) => {
+  const statusOptions = useMemo(() => {
+    return [
+      { label: translate("none"), value: "active" },
+      { label: translate("open"), value: "open" },
+      { label: translate("closed"), value: "closed" },
+    ] as { label: string; value: ValveStatus }[];
+  }, []);
+
   return (
     <PanelDetails title={translate("valve")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -369,6 +384,14 @@ const ValveEditor = ({
               <TextRowReadOnly
                 name="valveType"
                 value={valve.valveType.toUpperCase()}
+              />
+              <SelectRow
+                name="fixedStatus"
+                selected={valve.initialStatus}
+                options={statusOptions}
+                onChange={(name, newValue, oldValue) => {
+                  onStatusChange(newValue, oldValue);
+                }}
               />
               <QuantityRow
                 name="setting"
@@ -609,7 +632,7 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
-const SelectRow = <T extends PumpDefintionType>({
+const SelectRow = <T extends PumpDefintionType | ValveStatus>({
   name,
   label = translate(name),
   selected,
