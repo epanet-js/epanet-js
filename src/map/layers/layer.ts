@@ -9,6 +9,8 @@ export type LayerId =
   | "pipe-arrows"
   | "imported-pump-lines"
   | "pump-lines"
+  | "imported-valve-lines"
+  | "valve-lines"
   | "imported-pump-icons"
   | "pump-icons"
   | "reservoirs"
@@ -30,6 +32,8 @@ export const assetLayers: LayerId[] = [
   "imported-pump-lines",
   "pump-lines",
   "pump-icons",
+  "imported-valve-lines",
+  "valve-lines",
 ];
 
 export const clickableLayers: LayerId[] = assetLayers;

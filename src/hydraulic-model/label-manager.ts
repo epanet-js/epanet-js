@@ -5,6 +5,7 @@ const typeToPrefix: Record<Asset["type"], string> = {
   junction: "J",
   reservoir: "R",
   pump: "PU",
+  valve: "V",
 };
 
 type AssetData = Pick<Asset, "type" | "id">;

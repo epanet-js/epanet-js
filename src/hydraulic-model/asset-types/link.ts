@@ -13,7 +13,7 @@ export const nullCoordinates = [
 
 export const nullConnections: LinkConnections = ["", ""];
 
-export type LinkType = "pipe" | "pump";
+export type LinkType = "pipe" | "pump" | "valve";
 
 export type LinkProperties = {
   type: LinkType;

@@ -7,7 +7,7 @@ export type AssetId = StringId;
 type AssetGeometry = LineString | Point;
 
 export type AssetProperties = {
-  type: "pipe" | "junction" | "reservoir" | "pump";
+  type: "pipe" | "junction" | "reservoir" | "pump" | "valve";
   visibility?: boolean;
   label: string;
 };
