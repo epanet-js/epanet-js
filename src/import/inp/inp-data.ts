@@ -3,6 +3,7 @@ import {
   HeadlossFormula,
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
+import { ValveType } from "src/hydraulic-model/asset-types/valve";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type PipeData = {
@@ -45,12 +46,23 @@ export type JunctionData = {
   patternId?: string | undefined;
 };
 
+export type ValveData = {
+  id: string;
+  startNodeDirtyId: string;
+  endNodeDirtyId: string;
+  diameter: number;
+  valveType: ValveType;
+  setting: number;
+  minorLoss: number;
+};
+
 export type InpData = {
   junctions: JunctionData[];
   reservoirs: ReservoirData[];
   tanks: TankData[];
   pipes: PipeData[];
   pumps: PumpData[];
+  valves: ValveData[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
@@ -104,6 +116,7 @@ export const nullInpData = (): InpData => {
     tanks: [],
     pipes: [],
     pumps: [],
+    valves: [],
     coordinates: new ItemData(),
     vertices: new ItemData(),
     demands: new ItemData(),

@@ -1,3 +1,4 @@
+import { isFeatureOn } from "src/infra/feature-flags";
 import { InpData, InpStats, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import {
@@ -16,6 +17,7 @@ import {
   parsePump,
   parseCurve,
   parseStatus,
+  parseValve,
   unsupported,
 } from "./row-parsers";
 
@@ -47,7 +49,7 @@ const buildSectionParsers = (): SectionParsers => ({
   "[CONTROLS]": unsupported,
   "[PUMPS]": parsePump,
   "[RULES]": unsupported,
-  "[VALVES]": unsupported,
+  "[VALVES]": isFeatureOn("FLAG_VALVE") ? parseValve : unsupported,
   "[DEMANDS]": parseDemand,
   "[EMITTERS]": unsupported,
 });
