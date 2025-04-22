@@ -47,6 +47,7 @@ export type ValveBuildData = {
   connections?: LinkConnections;
   valveType?: ValveType;
   setting?: number;
+  initialStatus?: ValveStatus;
 };
 
 export type ReservoirBuildData = {
@@ -66,7 +67,12 @@ import {
   PumpQuantity,
   PumpStatus,
 } from "./asset-types/pump";
-import { Valve, ValveQuantity, ValveType } from "./asset-types/valve";
+import {
+  Valve,
+  ValveQuantity,
+  ValveStatus,
+  ValveType,
+} from "./asset-types/valve";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -140,6 +146,7 @@ export class AssetBuilder {
     minorLoss,
     valveType = "tcv",
     setting,
+    initialStatus = "active",
   }: ValveBuildData = {}) {
     return new Valve(
       id,
@@ -156,6 +163,7 @@ export class AssetBuilder {
         minorLoss: this.getValveValue("minorLoss", minorLoss),
         valveType,
         setting: this.getValveSetting(valveType, setting),
+        initialStatus,
       },
       this.units,
     );

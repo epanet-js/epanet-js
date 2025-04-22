@@ -1,6 +1,9 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
+export const valveStatuses = ["active", "open", "closed"] as const;
+export type ValveStatus = (typeof valveStatuses)[number];
+
 export type ValveType = "tcv";
 
 export type ValveProperties = {
@@ -9,9 +12,10 @@ export type ValveProperties = {
   minorLoss: number;
   valveType: ValveType;
   setting: number;
+  initialStatus: ValveStatus;
 } & LinkProperties;
 
-export const valveQuantities = ["diameter", "minorLoss"];
+export const valveQuantities = ["diameter", "minorLoss", "setting"];
 export type ValveQuantity = (typeof valveQuantities)[number];
 
 type ValveSimulationProvider = {
@@ -43,6 +47,10 @@ export class Valve extends Link<ValveProperties> {
 
   get setting() {
     return this.properties.setting;
+  }
+
+  get initialStatus() {
+    return this.properties.initialStatus;
   }
 
   copy() {

@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { Valve } from "src/hydraulic-model/asset-types";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -98,6 +99,44 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("setting", "19");
       expectPropertyDisplayed("diameter (mm)", "22");
       expectPropertyDisplayed("loss coeff.", "14");
+    });
+
+    it("can change its fixed status", async () => {
+      const valveId = "V1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aValve(valveId, { initialStatus: "active" })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: valveId,
+      });
+      const user = userEvent.setup();
+
+      const historyControl = renderComponent(store);
+
+      const selector = screen.getByRole("combobox", {
+        name: /fixed status/i,
+      });
+
+      await user.click(selector);
+
+      await user.click(screen.getByText(/closed/i));
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getLink(updatedHydraulicModel.assets, valveId) as Valve).initialStatus,
+      ).toEqual("closed");
+
+      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveTextContent("Closed");
+
+      historyControl("undo");
+      await waitFor(() => {
+        const updatedSelector = screen.getByRole("combobox", {
+          name: /fixed status/i,
+        });
+        expect(updatedSelector).toHaveTextContent("None");
+      });
     });
   });
 

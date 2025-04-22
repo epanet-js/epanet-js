@@ -302,6 +302,7 @@ export const translations: Translations = {
   valve: "Válvula",
   setting: "Ajuste",
   valveType: "Tipo de Válvula",
+  fixedStatus: "Estado Fijado",
 };
 
 export const units: UnitsLocale = {
