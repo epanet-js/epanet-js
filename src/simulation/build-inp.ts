@@ -15,7 +15,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 type SimulationPipeStatus = "Open" | "Closed";
 type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
-type EpanetValveType = "TCV";
+type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV";
 
 type BuildOptions = {
   geolocation?: boolean;
@@ -377,8 +377,5 @@ const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
 };
 
 const valveTypeFor = (valve: Valve): EpanetValveType => {
-  switch (valve.valveType) {
-    case "tcv":
-      return "TCV";
-  }
+  return valve.valveType.toUpperCase() as EpanetValveType;
 };

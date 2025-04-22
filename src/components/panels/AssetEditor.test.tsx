@@ -78,8 +78,6 @@ describe("AssetEditor", () => {
           label: "MY_VALVE",
           connections: ["j1", "j2"],
           minorLoss: 14,
-          valveType: "tcv",
-          setting: 19,
           diameter: 22,
         })
         .build();
@@ -95,8 +93,6 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("label", "MY_VALVE");
       expectPropertyDisplayed("start node", "J1");
       expectPropertyDisplayed("end node", "J2");
-      expectPropertyDisplayed("valve type", "TCV");
-      expectPropertyDisplayed("setting", "19");
       expectPropertyDisplayed("diameter (mm)", "22");
       expectPropertyDisplayed("loss coeff.", "14");
     });
@@ -137,6 +133,51 @@ describe("AssetEditor", () => {
         });
         expect(updatedSelector).toHaveTextContent("None");
       });
+    });
+
+    it("can change valve type", async () => {
+      const valveId = "V1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aValve(valveId, {
+          initialStatus: "active",
+          valveType: "fcv",
+          setting: 10,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: valveId,
+      });
+      const user = userEvent.setup();
+
+      const historyControl = renderComponent(store);
+
+      expectPropertyDisplayed("setting (l/s)", "10");
+      const selector = screen.getByRole("combobox", {
+        name: /valve type/i,
+      });
+
+      await user.click(selector);
+
+      await user.click(screen.getByText(/psv/i));
+
+      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      expect(
+        (getLink(updatedHydraulicModel.assets, valveId) as Valve).valveType,
+      ).toEqual("psv");
+
+      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveTextContent("PSV");
+      expectPropertyDisplayed("setting (m)", "10");
+
+      historyControl("undo");
+      await waitFor(() => {
+        const updatedSelector = screen.getByRole("combobox", {
+          name: /valve type/i,
+        });
+        expect(updatedSelector).toHaveTextContent("FCV");
+      });
+      expectPropertyDisplayed("setting (l/s)", "10");
     });
 
     it("can show simulation results", () => {
