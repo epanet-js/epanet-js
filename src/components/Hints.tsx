@@ -197,6 +197,39 @@ export function Hints() {
         );
       }
     }
+    case Mode.DRAW_VALVE: {
+      if (
+        ephemeralState.type === "drawLink" &&
+        ephemeralState.linkType === "valve" &&
+        !!ephemeralState.startNode
+      )
+        return (
+          <Hint
+            hintId="DRAW_VALVE"
+            text={translate("onboardingDrawValve")}
+            secondaryText={translate(
+              "onboardingCtrlValve",
+              localizeKeybinding("ctrl"),
+            )}
+          />
+        );
+
+      if (hydraulicModel.assets.size === 0) {
+        return (
+          <Hint
+            hintId={"START_VALVE"}
+            text={translate("onboardingStartValveEmpty")}
+          />
+        );
+      } else {
+        return (
+          <Hint
+            hintId={"START_VALVE"}
+            text={translate("onboardingStartValve")}
+          />
+        );
+      }
+    }
     case Mode.DRAW_RESERVOIR: {
       return (
         <Hint
