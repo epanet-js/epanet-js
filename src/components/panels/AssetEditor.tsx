@@ -383,9 +383,9 @@ const ValveEditor = ({
 }) => {
   const statusOptions = useMemo(() => {
     return [
-      { label: translate("none"), value: "active" },
-      { label: translate("open"), value: "open" },
-      { label: translate("closed"), value: "closed" },
+      { label: translate("valve.active"), value: "active" },
+      { label: translate("valve.open"), value: "open" },
+      { label: translate("valve.closed"), value: "closed" },
     ] as { label: string; value: ValveStatus }[];
   }, []);
 
@@ -447,7 +447,7 @@ const ValveEditor = ({
                 />
               )}
               <SelectRow
-                name="fixedStatus"
+                name="initialStatus"
                 selected={valve.initialStatus}
                 options={statusOptions}
                 onChange={(name, newValue, oldValue) => {
