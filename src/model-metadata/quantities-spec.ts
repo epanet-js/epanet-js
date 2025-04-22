@@ -86,7 +86,7 @@ const metricSpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
-    valve: { diameter: 300, tcvSetting: 50 },
+    valve: { diameter: 300 },
   },
   analysis: {
     velocitySteps: [0, 1, 2, 3, 4],
@@ -135,7 +135,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       designFlow: 1,
       power: 20,
     },
-    valve: { diameter: 12, tcvSetting: 50 },
+    valve: { diameter: 12 },
   },
   analysis: {
     velocitySteps: [0, 2.5, 5, 7.5, 10],
