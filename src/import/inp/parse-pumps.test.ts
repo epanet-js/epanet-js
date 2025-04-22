@@ -1,13 +1,8 @@
 import { Junction, Pump, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse pumps", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_PUMP");
-  });
-
   it("parses a pump", () => {
     const reservoirId = "r1";
     const junctionId = "j1";

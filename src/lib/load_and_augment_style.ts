@@ -1,6 +1,6 @@
 import type { PreviewProperty } from "src/state/jotai";
 // TODO: this is a UI concern that should be separate.
-import type { AnyLayer, Style } from "mapbox-gl";
+import type { Style } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";
 import {
   emptyFeatureCollection,
@@ -16,7 +16,6 @@ import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
 import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
 
 function getEmptyStyle() {
@@ -39,7 +38,7 @@ const FEATURES_LINE_LAYER_NAME = "features-line";
 const emptyGeoJSONSource = {
   type: "geojson",
   data: emptyFeatureCollection,
-  buffer: isFeatureOn("FLAG_PUMP") ? 4 : 0,
+  buffer: 4,
   tolerance: 0,
 } as const;
 
@@ -138,18 +137,16 @@ export function makeLayers({
       layerId: "pipes",
       symbolization,
     }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpLines({
-        source: "imported-features",
-        layerId: "imported-pump-lines",
-        symbolization,
-      }),
-    isFeatureOn("FLAG_PUMP") &&
-      pumpLines({
-        source: "features",
-        layerId: "pump-lines",
-        symbolization,
-      }),
+    pumpLines({
+      source: "imported-features",
+      layerId: "imported-pump-lines",
+      symbolization,
+    }),
+    pumpLines({
+      source: "features",
+      layerId: "pump-lines",
+      symbolization,
+    }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
@@ -221,7 +218,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
-  ].filter((l) => !!l) as AnyLayer[];
+  ].filter((l) => !!l);
 }
 
 function LABEL_PAINT(
