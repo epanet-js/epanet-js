@@ -6,6 +6,7 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
+import { ValveType } from "src/hydraulic-model/asset-types/valve";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -66,6 +67,28 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   inpData.junctions.push(junctionData);
 
   inpData.nodeIds.add(id);
+};
+
+export const parseValve: RowParser = ({ trimmedRow, inpData }) => {
+  const [
+    id,
+    startNodeDirtyId,
+    endNodeDirtyId,
+    diameter,
+    valveType,
+    setting,
+    minorLoss,
+  ] = readValues(trimmedRow);
+
+  inpData.valves.push({
+    id,
+    startNodeDirtyId,
+    endNodeDirtyId,
+    diameter: parseFloat(diameter),
+    valveType: valveType.toLowerCase() as ValveType,
+    setting: parseFloat(setting),
+    minorLoss: parseFloat(minorLoss),
+  });
 };
 
 export const parsePump: RowParser = ({ trimmedRow, inpData }) => {

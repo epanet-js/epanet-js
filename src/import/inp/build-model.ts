@@ -7,12 +7,14 @@ import {
   PumpData,
   ReservoirData,
   TankData,
+  ValveData,
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
+import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 
 export const buildModel = (
   inpData: InpData,
@@ -49,6 +51,14 @@ export const buildModel = (
 
   for (const pumpData of inpData.pumps) {
     addPump(hydraulicModel, pumpData, {
+      inpData,
+      issues,
+      nodeIds,
+    });
+  }
+
+  for (const valveData of inpData.valves) {
+    addValve(hydraulicModel, valveData, {
       inpData,
       issues,
       nodeIds,
@@ -220,6 +230,43 @@ const addPump = (
   });
   hydraulicModel.assets.set(pump.id, pump);
   hydraulicModel.topology.addLink(pump.id, connections[0], connections[1]);
+};
+
+const addValve = (
+  hydraulicModel: HydraulicModel,
+  valveData: ValveData,
+  {
+    inpData,
+    issues,
+    nodeIds,
+  }: {
+    inpData: InpData;
+    issues: IssuesAccumulator;
+    nodeIds: ItemData<string>;
+  },
+) => {
+  const linkProperties = getLinkProperties(inpData, issues, nodeIds, valveData);
+  if (!linkProperties) return;
+  const { connections, coordinates } = linkProperties;
+
+  let initialStatus: ValveStatus = "active";
+  if (inpData.status.has(valveData.id)) {
+    const statusValue = inpData.status.get(valveData.id) as string;
+    initialStatus = statusValue === "CLOSED" ? "closed" : "open";
+  }
+
+  const valve = hydraulicModel.assetBuilder.buildValve({
+    label: valveData.id,
+    diameter: valveData.diameter,
+    minorLoss: valveData.minorLoss,
+    valveType: valveData.valveType,
+    setting: valveData.setting,
+    initialStatus,
+    connections,
+    coordinates,
+  });
+  hydraulicModel.assets.set(valve.id, valve);
+  hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
 };
 
 const addPipe = (
