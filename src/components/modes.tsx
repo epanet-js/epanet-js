@@ -52,6 +52,13 @@ const MODE_OPTIONS = isFeatureOn("FLAG_VALVE")
         Icon: () => <PumpIcon width={15} height={15} />,
         Menu: null,
       },
+      {
+        mode: Mode.DRAW_VALVE,
+        hotkey: "6",
+        alwaysMultiple: true,
+        Icon: RowSpacingIcon,
+        Menu: null,
+      },
     ] as const)
   : ([
       {
@@ -87,13 +94,6 @@ const MODE_OPTIONS = isFeatureOn("FLAG_VALVE")
         hotkey: "5",
         alwaysMultiple: true,
         Icon: () => <PumpIcon width={15} height={15} />,
-        Menu: null,
-      },
-      {
-        mode: Mode.DRAW_VALVE,
-        hotkey: "6",
-        alwaysMultiple: true,
-        Icon: RowSpacingIcon,
         Menu: null,
       },
     ] as const);
