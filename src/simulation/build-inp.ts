@@ -7,12 +7,15 @@ import {
   Reservoir,
   Pump,
 } from "src/hydraulic-model";
+import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 
 type SimulationPipeStatus = "Open" | "Closed";
 type SimulationPumpStatus = "Open" | "Closed";
+type SimulationValveStatus = "Open" | "Closed";
+type EpanetValveType = "TCV";
 
 type BuildOptions = {
   geolocation?: boolean;
@@ -107,6 +110,23 @@ class EpanetIds {
   }
 }
 
+type InpSections = {
+  junctions: string[];
+  reservoirs: string[];
+  pipes: string[];
+  pumps: string[];
+  valves: string[];
+  demands: string[];
+  times: string[];
+  report: string[];
+  status: string[];
+  curves: string[];
+  options: string[];
+  backdrop: string[];
+  coordinates: string[];
+  vertices: string[];
+};
+
 export const buildInp = withInstrumentation(
   (
     hydraulicModel: HydraulicModel,
@@ -120,7 +140,7 @@ export const buildInp = withInstrumentation(
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
-    const sections = {
+    const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
       pipes: [
@@ -128,6 +148,7 @@ export const buildInp = withInstrumentation(
         ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
       ],
       pumps: ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
+      valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
       times: ["[TIMES]", `Duration\t${oneStep}`],
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
@@ -232,6 +253,16 @@ export const buildInp = withInstrumentation(
           }
         }
       }
+
+      if (asset.type === "valve") {
+        appendValve(
+          sections,
+          idMap,
+          hydraulicModel,
+          geolocation,
+          asset as Valve,
+        );
+      }
     }
 
     let content = [
@@ -239,6 +270,7 @@ export const buildInp = withInstrumentation(
       sections.reservoirs.join("\n"),
       sections.pipes.join("\n"),
       sections.pumps.join("\n"),
+      sections.valves.join("\n"),
       sections.demands.join("\n"),
       sections.status.join("\n"),
       sections.curves.join("\n"),
@@ -261,6 +293,61 @@ export const buildInp = withInstrumentation(
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
 
+const appendValve = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+  geolocation: boolean,
+  valve: Valve,
+) => {
+  const linkId = idMap.linkId(valve);
+  sections.valves.push(
+    [
+      linkId,
+      ...getLinkConnectionIds(hydraulicModel, idMap, valve),
+      String(valve.diameter),
+      valveTypeFor(valve),
+      String(valve.setting),
+      String(valve.minorLoss),
+    ].join("\t"),
+  );
+
+  if (valve.initialStatus !== "active") {
+    const fixedStatus = valveFixedStatusFor(valve);
+    sections.status.push([linkId, fixedStatus].join("\t"));
+  }
+
+  if (geolocation) {
+    appendLinkVertices(sections, idMap, valve);
+  }
+};
+
+const getLinkConnectionIds = (
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  link: LinkAsset,
+) => {
+  const [nodeStart, nodeEnd] = link.connections;
+  const startNodeId = idMap.nodeId(
+    hydraulicModel.assets.get(nodeStart) as NodeAsset,
+  );
+  const endNodeId = idMap.nodeId(
+    hydraulicModel.assets.get(nodeEnd) as NodeAsset,
+  );
+
+  return [startNodeId, endNodeId];
+};
+
+const appendLinkVertices = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  link: LinkAsset,
+) => {
+  for (const vertex of link.intermediateVertices) {
+    sections.vertices.push([idMap.linkId(link), ...vertex].join("\t"));
+  }
+};
+
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
   switch (pipe.status) {
     case "open":
@@ -276,4 +363,22 @@ const pumpStatusFor = (pump: Pump): SimulationPumpStatus | number => {
   if (pump.speed !== 1) return pump.speed;
 
   return "Open";
+};
+
+const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
+  switch (valve.initialStatus) {
+    case "open":
+      return "Open";
+    case "closed":
+      return "Closed";
+    case "active":
+      throw new Error("Cannot force valve to active");
+  }
+};
+
+const valveTypeFor = (valve: Valve): EpanetValveType => {
+  switch (valve.valveType) {
+    case "tcv":
+      return "TCV";
+  }
 };

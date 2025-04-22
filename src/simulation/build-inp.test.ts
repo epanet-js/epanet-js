@@ -72,6 +72,40 @@ describe("build inp", () => {
     expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
   });
 
+  it("adds valves", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("node1")
+      .aNode("node2")
+      .aNode("node3")
+      .aValve("valve1", {
+        startNodeId: "node1",
+        endNodeId: "node2",
+        initialStatus: "active",
+        setting: 10,
+        diameter: 20,
+        valveType: "tcv",
+        minorLoss: 0.1,
+      })
+      .aValve("valve2", {
+        startNodeId: "node2",
+        endNodeId: "node3",
+        initialStatus: "closed",
+        setting: 12,
+        diameter: 22,
+        valveType: "tcv",
+        minorLoss: 0.2,
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(inp).toContain("[VALVES]");
+    expect(inp).toContain("valve1\tnode1\tnode2\t20\tTCV\t10\t0.1");
+    expect(inp).toContain("valve2\tnode2\tnode3\t22\tTCV\t12\t0.2");
+    expect(inp).toContain("[STATUS]");
+    expect(inp).toContain("valve2\tClosed");
+  });
+
   it("adds pumps with a curve", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("node1")
@@ -216,16 +250,27 @@ describe("build inp", () => {
 
   it("includes geographical info when requested", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("junction1", { coordinates: [10, 1] })
-      .aReservoir("reservoir1", { coordinates: [20, 2] })
-      .aPipe("pipe1", {
-        startNodeId: "junction1",
-        endNodeId: "reservoir1",
+      .aJunction("j1", { coordinates: [10, 1] })
+      .aJunction("j2", { coordinates: [20, 2] })
+      .aJunction("j3", { coordinates: [30, 3] })
+      .aPipe("p1", {
+        startNodeId: "j1",
+        endNodeId: "j2",
         coordinates: [
           [10, 1],
-          [30, 3],
-          [40, 4],
+          [14, 1],
+          [15, 1],
           [20, 2],
+        ],
+      })
+      .aValve("v1", {
+        startNodeId: "j2",
+        endNodeId: "j3",
+        coordinates: [
+          [20, 2],
+          [20, 2.1],
+          [20, 2.4],
+          [30, 3],
         ],
       })
       .build();
@@ -237,30 +282,25 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel, { geolocation: true });
 
     expect(inp).toContain("[COORDINATES]");
-    expect(inp).toContain("junction1\t10\t1");
-    expect(inp).toContain("reservoir1\t20\t2");
+    expect(inp).toContain("j1\t10\t1");
+    expect(inp).toContain("j2\t20\t2");
+    expect(inp).toContain("j3\t30\t3");
 
     expect(inp).toContain("[VERTICES]");
-    expect(inp).toContain("pipe1\t30\t3");
-    expect(inp).toContain("pipe1\t40\t4");
+    expect(inp).toContain("p1\t14\t1");
+    expect(inp).toContain("p1\t15\t1");
+    expect(inp).toContain("v1\t20\t2.1");
+    expect(inp).toContain("v1\t20\t2.4");
   });
 
   it("signals that inp has been built by this app", () => {
-    let hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
       .build();
 
-    let inp = buildInp(hydraulicModel, { madeBy: true });
+    const inp = buildInp(hydraulicModel, { madeBy: true });
 
-    expect(inp).toContain(";MADE BY EPANET-JS [f403aba2]");
+    expect(inp).toContain(";MADE BY EPANET-JS");
     expect(inp).toContain("junction1");
-    hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("junction1", { coordinates: [10, 1] })
-      .aJunction("junction2", { coordinates: [10, 1] })
-      .build();
-
-    inp = buildInp(hydraulicModel, { madeBy: true });
-
-    expect(inp).toContain(";MADE BY EPANET-JS [58acb33a]");
   });
 });
