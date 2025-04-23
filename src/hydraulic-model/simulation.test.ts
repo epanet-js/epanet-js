@@ -20,6 +20,7 @@ describe("attach simulation", () => {
       headloss: 0.1,
       velocity: 9,
       status: "closed",
+      statusWarning: "cannot-deliver-pressure",
     }),
     getJunction: () => ({
       pressure: 10,

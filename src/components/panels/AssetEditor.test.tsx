@@ -188,7 +188,8 @@ describe("AssetEditor", () => {
             flow: 20.1234,
             velocity: 10.1234,
             headloss: 98,
-            status: "active",
+            status: "open",
+            statusWarning: "cannot-deliver-pressure",
           },
         })
         .build();
@@ -202,7 +203,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("flow (l/s)", "20.123");
       expectPropertyDisplayed("velocity (m/s)", "10.123");
       expectPropertyDisplayed("headloss (m)", "98");
-      expectPropertyDisplayed("status", "Active");
+      expectPropertyDisplayed("status", "Open - Pressure setting not met");
     });
   });
 

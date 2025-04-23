@@ -36,6 +36,8 @@ export const translations = {
   "pump.off": "Off",
   "pump.off.cannot-deliver-head": "Off - Cannot deliver head",
   "pump.on.cannot-deliver-flow": "On - Exceeds maximum flow",
+  "valve.open.cannot-deliver-pressure": "Open - Pressure setting not met",
+  "valve.open.cannot-deliver-flow": "Open - Flow setting not met",
   "valve.open": "Open",
   "valve.closed": "Closed",
   "valve.active": "Active",

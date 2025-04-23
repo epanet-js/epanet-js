@@ -38,6 +38,8 @@ export const translations: Translations = {
   "pump.off": "Apagada",
   "pump.off.cannot-deliver-head": "Apagada - No puede suministrar la carga",
   "pump.on.cannot-deliver-flow": "Encendida - Excede el máximo flujo",
+  "valve.open.cannot-deliver-pressure": "Abierta - No cumple ajuste de presión",
+  "valve.open.cannot-deliver-flow": "Abierta - No cumple ajuste de flujo",
   "valve.open": "Abierta",
   "valve.closed": "Cerrada",
   "valve.active": "Activa",

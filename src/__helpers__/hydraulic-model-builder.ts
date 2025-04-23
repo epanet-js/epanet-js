@@ -22,7 +22,6 @@ import {
   PumpStatus,
   PumpStatusWarning,
 } from "src/hydraulic-model/asset-types/pump";
-import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -31,6 +30,7 @@ import {
   UnitsSpec,
   presets,
 } from "src/model-metadata/quantities-spec";
+import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -229,12 +229,7 @@ export class HydraulicModelBuilder {
     id: string,
     data: Partial<
       ValveBuildData & { startNodeId: string; endNodeId: string } & {
-        simulation: Partial<{
-          flow: number;
-          velocity: number;
-          headloss: number;
-          status: ValveStatus;
-        }>;
+        simulation: Partial<ValveSimulation>;
       }
     > = {},
   ) {
@@ -254,6 +249,7 @@ export class HydraulicModelBuilder {
         headloss: 10,
         velocity: 10,
         status: "active",
+        statusWarning: null,
         ...simulation,
       });
     }
