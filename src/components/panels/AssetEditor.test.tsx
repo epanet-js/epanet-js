@@ -159,7 +159,7 @@ describe("AssetEditor", () => {
 
       await user.click(selector);
 
-      await user.click(screen.getByText(/psv/i));
+      await user.click(screen.getByText(/psv: pressure sustaining valve/i));
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(

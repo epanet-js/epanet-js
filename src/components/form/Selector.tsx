@@ -15,7 +15,7 @@ export const Selector = <T extends string>({
     paddingY: 2,
   },
 }: {
-  options: { label: string; value: T }[];
+  options: { label: string; description?: string; value: T }[];
   selected: T;
   onChange: (selected: T, oldValue: T) => void;
   ariaLabel?: string;
@@ -52,6 +52,10 @@ export const Selector = <T extends string>({
     onChange(newValue, selected);
   };
 
+  const selectedOption = useMemo(() => {
+    return options.find((o) => o.value === selected);
+  }, [options, selected]);
+
   return (
     <div className="relative group-1">
       <Select.Root
@@ -65,7 +69,9 @@ export const Selector = <T extends string>({
           tabIndex={tabIndex}
           className={triggerStyles}
         >
-          <Select.Value />
+          <Select.Value>
+            {selectedOption ? selectedOption.label : ""}
+          </Select.Value>
           <Select.Icon className="px-1">
             <ChevronDownIcon />
           </Select.Icon>
@@ -84,7 +90,9 @@ export const Selector = <T extends string>({
                   value={option.value}
                   className="flex items-center justify-between gap-4 px-2 py-2 cursor-pointer focus:bg-purple-300/40"
                 >
-                  <Select.ItemText>{option.label}</Select.ItemText>
+                  <Select.ItemText>
+                    {option.description ? option.description : option.label}
+                  </Select.ItemText>
                   <Select.ItemIndicator className="ml-auto">
                     <CheckIcon className="text-purple-700" />
                   </Select.ItemIndicator>

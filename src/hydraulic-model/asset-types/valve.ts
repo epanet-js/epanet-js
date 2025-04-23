@@ -7,7 +7,7 @@ export type ValveStatusWarning =
   | "cannot-deliver-flow"
   | "cannot-deliver-pressure";
 
-export const valveTypes = ["tcv", "prv", "psv", "pbv", "fcv"] as const;
+export const valveTypes = ["prv", "psv", "fcv", "pbv", "tcv"] as const;
 export type ValveType = (typeof valveTypes)[number];
 
 export type ValveProperties = {
