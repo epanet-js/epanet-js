@@ -7,15 +7,19 @@ export type ValveSimulation = {
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
 };
 
+export type PumpSimulation = {
+  type: "pump";
+  flow: number;
+  headloss: number;
+  status: "on" | "off";
+  statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
+};
+
 export interface ResultsReader {
   getPressure: (nodeId: string) => number | null;
   getFlow: (linkId: string) => number | null;
   getVelocity: (linkId: string) => number | null;
   getHeadloss: (linkId: string) => number | null;
-  getPumpStatus: (linkId: string) => "on" | "off" | null;
-  getPumpStatusWarning: (
-    linkId: string,
-  ) => "cannot-deliver-flow" | "cannot-deliver-head" | null;
-  getValveStatus: (linkId: string) => "open" | "closed" | "active" | null;
   getValve: (valveId: string) => ValveSimulation | null;
+  getPump: (pumpId: string) => PumpSimulation | null;
 }

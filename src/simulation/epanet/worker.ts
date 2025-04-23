@@ -10,7 +10,7 @@ import {
 import { SimulationStatus } from "../result";
 
 import { NodeResults, LinkResults } from "./epanet-results";
-import { ValveSimulation } from "../results-reader";
+import { PumpSimulation, ValveSimulation } from "../results-reader";
 
 export const runSimulation = (
   inp: string,
@@ -36,9 +36,7 @@ export const runSimulation = (
     model.runH();
 
     const nodeResults = readNodeResults(model);
-    const linkResults = flags.FLAG_VALVE
-      ? readLinkResults(model)
-      : readLinkResultsDeprecated(model);
+    const linkResults = readLinkResults(model);
     model.close();
 
     const report = ws.readFile("report.rpt");
@@ -74,21 +72,6 @@ const readNodeResults = (model: Project) => {
   return nodeResults;
 };
 
-const readLinkResultsDeprecated = (model: Project) => {
-  const linkResults: LinkResults = new Map();
-
-  const linksCount = model.getCount(CountType.LinkCount);
-  for (let i = 1; i <= linksCount; i++) {
-    const id = model.getLinkId(i);
-    const flow = model.getLinkValue(i, LinkProperty.Flow);
-    const velocity = model.getLinkValue(i, LinkProperty.Velocity);
-    const headloss = model.getLinkValue(i, LinkProperty.Headloss);
-    const pumpState = model.getLinkValue(i, LinkProperty.PumpState);
-    linkResults.set(id, { type: "link", flow, velocity, headloss, pumpState });
-  }
-  return linkResults;
-};
-
 const isValve = (epanetType: LinkType) => {
   return (
     epanetType === LinkType.FCV ||
@@ -108,18 +91,18 @@ const readLinkResults = (model: Project) => {
     const type = model.getLinkType(i);
     if (isValve(type)) {
       appendValveResults(model, linkResults, i);
+    } else if (type === LinkType.Pump) {
+      appendPumpResults(model, linkResults, i);
     } else {
       const id = model.getLinkId(i);
       const flow = model.getLinkValue(i, LinkProperty.Flow);
       const velocity = model.getLinkValue(i, LinkProperty.Velocity);
       const headloss = model.getLinkValue(i, LinkProperty.Headloss);
-      const pumpState = model.getLinkValue(i, LinkProperty.PumpState);
       linkResults.set(id, {
         type: "link",
         flow,
         velocity,
         headloss,
-        pumpState,
       });
     }
   }
@@ -151,6 +134,27 @@ const appendValveResults = (
   });
 };
 
+const appendPumpResults = (
+  model: Project,
+  linkResults: LinkResults,
+  index: number,
+) => {
+  const id = model.getLinkId(index);
+  const flow = model.getLinkValue(index, LinkProperty.Flow);
+  const headloss = model.getLinkValue(index, LinkProperty.Headloss);
+  const linkStatusCode = model.getLinkValue(index, LinkProperty.PumpState);
+  const { status, warning: statusWarning } = pumpStatusFor(linkStatusCode);
+  linkResults.set(id, {
+    type: "pump",
+    flow,
+    headloss,
+    status,
+    statusWarning: (statusWarning
+      ? statusWarning
+      : null) as PumpSimulation["statusWarning"],
+  });
+};
+
 export const valveStatusFor = (
   linkStatusCode: number,
 ): { status: "open" | "closed" | "active"; warning?: string } => {
@@ -163,6 +167,19 @@ export const valveStatusFor = (
     return { status: "open", warning: "cannot-deliver-pressure" };
 
   return { status: "open" };
+};
+
+export const pumpStatusFor = (
+  linkStatusCode: number,
+): { status: "on" | "off"; warning?: string } => {
+  if (linkStatusCode === 5)
+    return { status: "on", warning: "cannot-deliver-flow" };
+  if (linkStatusCode === 0)
+    return { status: "off", warning: "cannot-deliver-head" };
+
+  if (linkStatusCode < 3) return { status: "off" };
+
+  return { status: "on" };
 };
 
 const curateReport = (input: string): string => {

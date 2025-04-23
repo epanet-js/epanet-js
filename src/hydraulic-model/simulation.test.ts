@@ -8,9 +8,12 @@ describe("attach simulation", () => {
     getFlow: () => 20,
     getVelocity: () => 5,
     getHeadloss: () => -50,
-    getPumpStatus: () => "off",
-    getPumpStatusWarning: () => "cannot-deliver-flow",
-    getValveStatus: () => "closed",
+    getPump: () => ({
+      flow: 10,
+      headloss: -50,
+      status: "off",
+      statusWarning: "cannot-deliver-flow",
+    }),
     getValve: () => ({
       flow: 10,
       headloss: 0.1,
