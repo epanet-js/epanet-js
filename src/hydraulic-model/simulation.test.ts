@@ -11,6 +11,12 @@ describe("attach simulation", () => {
     getPumpStatus: () => "off",
     getPumpStatusWarning: () => "cannot-deliver-flow",
     getValveStatus: () => "closed",
+    getValve: () => ({
+      flow: 10,
+      headloss: 0.1,
+      velocity: 9,
+      status: "closed",
+    }),
   };
   it("sets the simulation for the assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()

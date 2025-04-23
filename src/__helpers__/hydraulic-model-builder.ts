@@ -242,12 +242,11 @@ export class HydraulicModelBuilder {
     });
     if (simulation) {
       valve.setSimulation({
-        getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
-        getVelocity: () =>
-          simulation.velocity !== undefined ? simulation.velocity : 10,
-        getHeadloss: () =>
-          simulation.headloss !== undefined ? simulation.headloss : 10,
-        getValveStatus: () => simulation.status || ("active" as ValveStatus),
+        flow: 10,
+        headloss: 10,
+        velocity: 10,
+        status: "active",
+        ...simulation,
       });
     }
     this.assets.set(valve.id, valve);

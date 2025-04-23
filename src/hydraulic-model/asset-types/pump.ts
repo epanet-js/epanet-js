@@ -28,7 +28,7 @@ export const pumpQuantities = [
 ];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
-interface PumpSimulationProvider {
+export interface PumpSimulationProvider {
   getFlow: (id: string) => number | null;
   getHeadloss: (id: string) => number | null;
   getPumpStatus: (id: string) => PumpStatus | null;

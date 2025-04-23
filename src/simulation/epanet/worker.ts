@@ -2,6 +2,7 @@ import {
   CountType,
   InitHydOption,
   LinkProperty,
+  LinkType,
   NodeProperty,
   Project,
   Workspace,
@@ -34,7 +35,9 @@ export const runSimulation = (
     model.runH();
 
     const nodeResults = readNodeResults(model);
-    const linkResults = readLinkResults(model);
+    const linkResults = flags.FLAG_VALVE
+      ? readLinkResults(model)
+      : readLinkResultsDeprecated(model);
     model.close();
 
     const report = ws.readFile("report.rpt");
@@ -70,8 +73,9 @@ const readNodeResults = (model: Project) => {
   return nodeResults;
 };
 
-const readLinkResults = (model: Project) => {
+const readLinkResultsDeprecated = (model: Project) => {
   const linkResults: LinkResults = new Map();
+
   const linksCount = model.getCount(CountType.LinkCount);
   for (let i = 1; i <= linksCount; i++) {
     const id = model.getLinkId(i);
@@ -79,9 +83,65 @@ const readLinkResults = (model: Project) => {
     const velocity = model.getLinkValue(i, LinkProperty.Velocity);
     const headloss = model.getLinkValue(i, LinkProperty.Headloss);
     const pumpState = model.getLinkValue(i, LinkProperty.PumpState);
-    linkResults.set(id, { flow, velocity, headloss, pumpState });
+    linkResults.set(id, { type: "link", flow, velocity, headloss, pumpState });
   }
   return linkResults;
+};
+
+const isValve = (epanetType: LinkType) => {
+  return (
+    epanetType === LinkType.FCV ||
+    epanetType === LinkType.GPV ||
+    epanetType === LinkType.PRV ||
+    epanetType === LinkType.PSV ||
+    epanetType === LinkType.PBV ||
+    epanetType === LinkType.TCV
+  );
+};
+
+const readLinkResults = (model: Project) => {
+  const linkResults: LinkResults = new Map();
+
+  const linksCount = model.getCount(CountType.LinkCount);
+  for (let i = 1; i <= linksCount; i++) {
+    const type = model.getLinkType(i);
+    if (isValve(type)) {
+      appendValveResults(model, linkResults, i, type);
+    } else {
+      const id = model.getLinkId(i);
+      const flow = model.getLinkValue(i, LinkProperty.Flow);
+      const velocity = model.getLinkValue(i, LinkProperty.Velocity);
+      const headloss = model.getLinkValue(i, LinkProperty.Headloss);
+      const pumpState = model.getLinkValue(i, LinkProperty.PumpState);
+      linkResults.set(id, {
+        type: "link",
+        flow,
+        velocity,
+        headloss,
+        pumpState,
+      });
+    }
+  }
+  return linkResults;
+};
+
+const appendValveResults = (
+  model: Project,
+  linkResults: LinkResults,
+  index: number,
+  _epanetType: LinkType,
+) => {
+  const id = model.getLinkId(index);
+  const flow = model.getLinkValue(index, LinkProperty.Flow);
+  const velocity = model.getLinkValue(index, LinkProperty.Velocity);
+  const headloss = model.getLinkValue(index, LinkProperty.Headloss);
+  linkResults.set(id, {
+    type: "valve",
+    flow,
+    velocity,
+    headloss,
+    status: "active",
+  });
 };
 
 const curateReport = (input: string): string => {

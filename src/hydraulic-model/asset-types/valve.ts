@@ -19,21 +19,21 @@ export type ValveProperties = {
 export const valveQuantities = ["diameter", "minorLoss", "setting"];
 export type ValveQuantity = (typeof valveQuantities)[number];
 
-type ValveSimulationProvider = {
-  getFlow: (id: string) => number | null;
-  getVelocity: (id: string) => number | null;
-  getHeadloss: (id: string) => number | null;
-  getValveStatus: (id: string) => ValveStatus | null;
+export type ValveSimulation = {
+  flow: number;
+  velocity: number;
+  headloss: number;
+  status: ValveStatus;
 };
 
 export class Valve extends Link<ValveProperties> {
-  private simulation: ValveSimulationProvider | null = null;
+  private simulation: ValveSimulation | null = null;
 
   getUnit(quantity: ValveQuantity): Unit {
     return this.units[quantity];
   }
 
-  setSimulation(simulation: ValveSimulationProvider) {
+  setSimulation(simulation: ValveSimulation | null) {
     this.simulation = simulation;
   }
 
@@ -60,25 +60,25 @@ export class Valve extends Link<ValveProperties> {
   get flow() {
     if (!this.simulation) return null;
 
-    return this.simulation.getFlow(this.id);
+    return this.simulation.flow;
   }
 
   get velocity() {
     if (!this.simulation) return null;
 
-    return this.simulation.getVelocity(this.id);
+    return this.simulation.velocity;
   }
 
   get headloss() {
     if (!this.simulation) return null;
 
-    return this.simulation.getHeadloss(this.id);
+    return this.simulation.headloss;
   }
 
   get status() {
     if (!this.simulation) return null;
 
-    return this.simulation.getValveStatus(this.id);
+    return this.simulation.status;
   }
 
   copy() {
