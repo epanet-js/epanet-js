@@ -4,7 +4,6 @@ import { Junction, Pipe, Pump, Valve } from "./asset-types";
 
 describe("attach simulation", () => {
   const resultsReader: ResultsReader = {
-    getPressure: () => 10,
     getFlow: () => 20,
     getVelocity: () => 5,
     getHeadloss: () => -50,
@@ -19,6 +18,9 @@ describe("attach simulation", () => {
       headloss: 0.1,
       velocity: 9,
       status: "closed",
+    }),
+    getJunction: () => ({
+      pressure: 10,
     }),
   };
   it("sets the simulation for the assets", () => {

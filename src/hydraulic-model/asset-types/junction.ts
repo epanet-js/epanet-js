@@ -8,12 +8,12 @@ export type JunctionProperties = {
 export const junctionQuantities = ["demand", "elevation", "pressure"] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
 
-export interface JunctionSimulationProvider {
-  getPressure: (id: string) => number | null;
-}
+export type JunctionSimulation = {
+  pressure: number;
+};
 
 export class Junction extends Node<JunctionProperties> {
-  private simulation: JunctionSimulationProvider | null = null;
+  private simulation: JunctionSimulation | null = null;
 
   get demand() {
     return this.properties.demand;
@@ -22,10 +22,10 @@ export class Junction extends Node<JunctionProperties> {
   get pressure() {
     if (!this.simulation) return null;
 
-    return this.simulation.getPressure(this.id);
+    return this.simulation.pressure;
   }
 
-  setSimulation(simulation: JunctionSimulationProvider) {
+  setSimulation(simulation: JunctionSimulation | null) {
     this.simulation = simulation;
   }
 

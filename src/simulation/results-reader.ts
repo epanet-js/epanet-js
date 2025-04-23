@@ -15,11 +15,16 @@ export type PumpSimulation = {
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
 };
 
+export type JunctionSimulation = {
+  type: "junction";
+  pressure: number;
+};
+
 export interface ResultsReader {
-  getPressure: (nodeId: string) => number | null;
   getFlow: (linkId: string) => number | null;
   getVelocity: (linkId: string) => number | null;
   getHeadloss: (linkId: string) => number | null;
   getValve: (valveId: string) => ValveSimulation | null;
   getPump: (pumpId: string) => PumpSimulation | null;
+  getJunction: (junctionId: string) => JunctionSimulation | null;
 }

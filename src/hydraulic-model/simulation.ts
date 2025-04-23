@@ -1,17 +1,17 @@
 import { Junction } from "./asset-types";
-import { JunctionSimulationProvider } from "./asset-types/junction";
+import { JunctionSimulation } from "./asset-types/junction";
 import { Pipe, PipeSimulationProvider } from "./asset-types/pipe";
 import { Pump, PumpSimulation } from "./asset-types/pump";
 import { Valve, ValveSimulation } from "./asset-types/valve";
 import { HydraulicModel } from "./hydraulic-model";
 
 export interface ResultsReader {
-  getPressure: (nodeId: string) => number | null;
   getFlow: (linkId: string) => number | null;
   getVelocity: (linkId: string) => number | null;
   getHeadloss: (linkId: string) => number | null;
   getValve: (valveId: string) => ValveSimulation | null;
   getPump: (pumpId: string) => PumpSimulation | null;
+  getJunction: (junctionId: string) => JunctionSimulation | null;
 }
 
 export const attachSimulation = (
@@ -28,9 +28,7 @@ export const attachSimulation = (
         (asset as Pipe).setSimulation(simulation as PipeSimulationProvider);
         break;
       case "junction":
-        (asset as Junction).setSimulation(
-          simulation as JunctionSimulationProvider,
-        );
+        (asset as Junction).setSimulation(simulation.getJunction(asset.id));
         break;
       case "pump":
         (asset as Pump).setSimulation(simulation.getPump(asset.id));

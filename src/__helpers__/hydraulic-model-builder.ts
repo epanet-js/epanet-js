@@ -133,7 +133,10 @@ export class HydraulicModelBuilder {
       ...properties,
     });
     if (simulation) {
-      junction.setSimulation({ getPressure: () => simulation.pressure || 2 });
+      junction.setSimulation({
+        pressure: 2,
+        ...simulation,
+      });
     }
     this.assets.set(id, junction);
     return this;
