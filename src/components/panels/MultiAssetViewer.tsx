@@ -305,7 +305,10 @@ function ValueList({ pair }: { pair: MultiPair }) {
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <div className="flex-auto font-mono text-xs truncate">
+                <div
+                  title={formatValue(value)}
+                  className="flex-auto font-mono text-xs truncate"
+                >
                   {formatValue(value)}
                 </div>
                 <div className="text-xs font-mono" title={translate("assets")}>
