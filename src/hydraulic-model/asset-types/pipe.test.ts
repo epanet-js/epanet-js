@@ -152,21 +152,6 @@ describe("Pipe", () => {
     expect(pipe.minorLoss).toEqual(1);
   });
 
-  it("can attach a simulation", () => {
-    const pipe = buildPipe();
-
-    expect(pipe.flow).toBeNull();
-
-    const simulation = {
-      getFlow: () => 20,
-      getVelocity: () => 10,
-    };
-    pipe.setSimulation(simulation);
-
-    expect(pipe.flow).toEqual(20);
-    expect(pipe.velocity).toEqual(10);
-  });
-
   it("can get its segments", () => {
     const pipe = buildPipe({
       coordinates: [

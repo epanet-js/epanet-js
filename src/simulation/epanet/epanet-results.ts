@@ -1,5 +1,6 @@
 import {
   JunctionSimulation,
+  PipeSimulation,
   PumpSimulation,
   ResultsReader,
   ValveSimulation,
@@ -7,16 +8,9 @@ import {
 
 export type NodeResults = Map<string, JunctionSimulation>;
 
-type LinkResult = {
-  type: "link";
-  flow: number;
-  velocity: number;
-  headloss: number;
-};
-
 export type LinkResults = Map<
   string,
-  LinkResult | ValveSimulation | PumpSimulation
+  PipeSimulation | ValveSimulation | PumpSimulation
 >;
 
 export class EpanetResults implements ResultsReader {
@@ -26,20 +20,6 @@ export class EpanetResults implements ResultsReader {
   constructor(nodes: NodeResults, links: LinkResults) {
     this.nodes = nodes;
     this.links = links;
-  }
-
-  getFlow(linkId: string) {
-    return this.links.has(linkId) ? this.links.get(linkId)!.flow : null;
-  }
-
-  getVelocity(linkId: string) {
-    return this.links.has(linkId)
-      ? (this.links.get(linkId)! as LinkResult).velocity
-      : null;
-  }
-
-  getHeadloss(linkId: string) {
-    return this.links.has(linkId) ? this.links.get(linkId)!.headloss : null;
   }
 
   getValve(valveId: string): ValveSimulation | null {
@@ -58,5 +38,11 @@ export class EpanetResults implements ResultsReader {
     if (!this.nodes.has(junctionId)) return null;
 
     return this.nodes.get(junctionId) as JunctionSimulation;
+  }
+
+  getPipe(pipeId: string): PipeSimulation | null {
+    if (!this.links.has(pipeId)) return null;
+
+    return this.links.get(pipeId) as PipeSimulation;
   }
 }

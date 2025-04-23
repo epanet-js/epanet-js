@@ -96,16 +96,7 @@ const readLinkResults = (model: Project) => {
     } else if (type === LinkType.Pump) {
       appendPumpResults(model, linkResults, i);
     } else {
-      const id = model.getLinkId(i);
-      const flow = model.getLinkValue(i, LinkProperty.Flow);
-      const velocity = model.getLinkValue(i, LinkProperty.Velocity);
-      const headloss = model.getLinkValue(i, LinkProperty.Headloss);
-      linkResults.set(id, {
-        type: "link",
-        flow,
-        velocity,
-        headloss,
-      });
+      appendPipeResults(model, linkResults, i);
     }
   }
   return linkResults;
@@ -119,6 +110,23 @@ const appendJunctionResults = (
   const id = model.getNodeId(index);
   const pressure = model.getNodeValue(index, NodeProperty.Pressure);
   nodeResults.set(id, { type: "junction", pressure });
+};
+
+const appendPipeResults = (
+  model: Project,
+  linkResults: LinkResults,
+  index: number,
+) => {
+  const id = model.getLinkId(index);
+  const flow = model.getLinkValue(index, LinkProperty.Flow);
+  const velocity = model.getLinkValue(index, LinkProperty.Velocity);
+  const headloss = model.getLinkValue(index, LinkProperty.Headloss);
+  linkResults.set(id, {
+    type: "pipe",
+    flow,
+    velocity,
+    headloss,
+  });
 };
 
 // There's a hack to read the valve status by getting PumpState

@@ -4,9 +4,11 @@ import { Junction, Pipe, Pump, Valve } from "./asset-types";
 
 describe("attach simulation", () => {
   const resultsReader: ResultsReader = {
-    getFlow: () => 20,
-    getVelocity: () => 5,
-    getHeadloss: () => -50,
+    getPipe: () => ({
+      flow: 20,
+      velocity: 5,
+      headloss: 10,
+    }),
     getPump: () => ({
       flow: 10,
       headloss: -50,

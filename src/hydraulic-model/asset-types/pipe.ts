@@ -35,8 +35,14 @@ export interface PipeSimulationProvider {
   getVelocity: (id: string) => number | null;
 }
 
+export type PipeSimulation = {
+  flow: number;
+  velocity: number;
+  headloss: number;
+};
+
 export class Pipe extends Link<PipeProperties> {
-  private simulation: PipeSimulationProvider | null = null;
+  private simulation: PipeSimulation | null = null;
 
   get diameter() {
     return this.properties.diameter;
@@ -69,16 +75,22 @@ export class Pipe extends Link<PipeProperties> {
   get flow() {
     if (!this.simulation) return null;
 
-    return this.simulation.getFlow(this.id);
+    return this.simulation.flow;
   }
 
   get velocity() {
     if (!this.simulation) return null;
 
-    return this.simulation.getVelocity(this.id);
+    return this.simulation.velocity;
   }
 
-  setSimulation(simulation: PipeSimulationProvider) {
+  get headloss() {
+    if (!this.simulation) return null;
+
+    return this.simulation.headloss;
+  }
+
+  setSimulation(simulation: PipeSimulation | null) {
     this.simulation = simulation;
   }
 
