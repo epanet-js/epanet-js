@@ -10,6 +10,7 @@ import {
 import { SimulationStatus } from "../result";
 
 import { NodeResults, LinkResults } from "./epanet-results";
+import { ValveSimulation } from "../results-reader";
 
 export const runSimulation = (
   inp: string,
@@ -106,7 +107,7 @@ const readLinkResults = (model: Project) => {
   for (let i = 1; i <= linksCount; i++) {
     const type = model.getLinkType(i);
     if (isValve(type)) {
-      appendValveResults(model, linkResults, i, type);
+      appendValveResults(model, linkResults, i);
     } else {
       const id = model.getLinkId(i);
       const flow = model.getLinkValue(i, LinkProperty.Flow);
@@ -125,23 +126,43 @@ const readLinkResults = (model: Project) => {
   return linkResults;
 };
 
+// There's a hack to read the valve status by getting PumpState
+// Learn more: https://github.com/OpenWaterAnalytics/EPANET/issues/218
 const appendValveResults = (
   model: Project,
   linkResults: LinkResults,
   index: number,
-  _epanetType: LinkType,
 ) => {
   const id = model.getLinkId(index);
   const flow = model.getLinkValue(index, LinkProperty.Flow);
   const velocity = model.getLinkValue(index, LinkProperty.Velocity);
   const headloss = model.getLinkValue(index, LinkProperty.Headloss);
+  const linkStatusCode = model.getLinkValue(index, LinkProperty.PumpState);
+  const { status, warning: statusWarning } = valveStatusFor(linkStatusCode);
   linkResults.set(id, {
     type: "valve",
     flow,
     velocity,
     headloss,
-    status: "active",
+    status,
+    statusWarning: (statusWarning
+      ? statusWarning
+      : null) as ValveSimulation["statusWarning"],
   });
+};
+
+export const valveStatusFor = (
+  linkStatusCode: number,
+): { status: "open" | "closed" | "active"; warning?: string } => {
+  if (linkStatusCode < 3) return { status: "closed" };
+  if (linkStatusCode === 4) return { status: "active" };
+
+  if (linkStatusCode === 6)
+    return { status: "open", warning: "cannot-deliver-flow" };
+  if (linkStatusCode === 7)
+    return { status: "open", warning: "cannot-deliver-pressure" };
+
+  return { status: "open" };
 };
 
 const curateReport = (input: string): string => {

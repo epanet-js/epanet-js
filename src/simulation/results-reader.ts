@@ -4,6 +4,7 @@ export type ValveSimulation = {
   velocity: number;
   headloss: number;
   status: "active" | "open" | "closed";
+  statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
 };
 
 export interface ResultsReader {

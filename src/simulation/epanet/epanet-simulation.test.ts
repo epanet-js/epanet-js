@@ -2,7 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
-import { runSimulation as workerRunSimulation } from "./worker";
+import { valveStatusFor, runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
 import { ValveSimulation } from "../results-reader";
 
@@ -112,6 +112,27 @@ describe("epanet simulation", () => {
       expect(valve.status).toEqual("active");
     });
 
+    it("can read closed status", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1")
+        .aJunction("j1", { demand: 1 })
+        .aValve("v1", {
+          startNodeId: "r1",
+          endNodeId: "j1",
+          initialStatus: "closed",
+        })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp, {
+        FLAG_VALVE: true,
+      });
+
+      expect(status).toEqual("warning");
+      const valve = results.getValve("v1") as ValveSimulation;
+      expect(valve.status).toEqual("closed");
+    });
+
     it("provides null values when failed", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
@@ -135,4 +156,28 @@ describe("epanet simulation", () => {
       workerRunSimulation,
     );
   };
+});
+
+describe("valve status", () => {
+  it("computes the valve status from epanet", () => {
+    const partiallyOpenCode = 4;
+    expect(valveStatusFor(partiallyOpenCode).status).toEqual("active");
+  });
+
+  it("assumes closed when code is less than 3", () => {
+    expect(valveStatusFor(2).status).toEqual("closed");
+    expect(valveStatusFor(1).status).toEqual("closed");
+    expect(valveStatusFor(0).status).toEqual("closed");
+  });
+
+  it("considers open when code 3", () => {
+    expect(valveStatusFor(3).status).toEqual("open");
+  });
+
+  it("appends a warning to open statuses", () => {
+    expect(valveStatusFor(6).status).toEqual("open");
+    expect(valveStatusFor(6).warning).toEqual("cannot-deliver-flow");
+    expect(valveStatusFor(7).status).toEqual("open");
+    expect(valveStatusFor(7).warning).toEqual("cannot-deliver-pressure");
+  });
 });
