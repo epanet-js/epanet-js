@@ -90,8 +90,7 @@ describe("epanet simulation", () => {
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
-      expect(results.getPressure("j1")).toBeCloseTo(10);
-      expect(results.getPressure("r1")).toBeCloseTo(0);
+      expect(results.getJunction("j1")!.pressure).toBeCloseTo(10);
       expect(results.getFlow("p1")).toBeCloseTo(1);
       expect(results.getVelocity("p1")).toBeCloseTo(0.014);
     });
@@ -149,8 +148,7 @@ describe("epanet simulation", () => {
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("failure");
-      expect(results.getPressure("j1")).toBeNull();
-      expect(results.getPressure("r1")).toBeNull();
+      expect(results.getJunction("j1")).toBeNull();
       expect(results.getFlow("p1")).toBeNull();
     });
   });

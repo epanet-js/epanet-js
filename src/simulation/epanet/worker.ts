@@ -4,6 +4,7 @@ import {
   LinkProperty,
   LinkType,
   NodeProperty,
+  NodeType,
   Project,
   Workspace,
 } from "epanet-js";
@@ -65,9 +66,10 @@ const readNodeResults = (model: Project) => {
   const nodeResults: NodeResults = new Map();
   const nodesCount = model.getCount(CountType.NodeCount);
   for (let i = 1; i <= nodesCount; i++) {
-    const id = model.getNodeId(i);
-    const pressure = model.getNodeValue(i, NodeProperty.Pressure);
-    nodeResults.set(id, { pressure });
+    const type = model.getNodeType(i);
+    if (type === NodeType.Junction) {
+      appendJunctionResults(model, nodeResults, i);
+    }
   }
   return nodeResults;
 };
@@ -107,6 +109,16 @@ const readLinkResults = (model: Project) => {
     }
   }
   return linkResults;
+};
+
+const appendJunctionResults = (
+  model: Project,
+  nodeResults: NodeResults,
+  index: number,
+) => {
+  const id = model.getNodeId(index);
+  const pressure = model.getNodeValue(index, NodeProperty.Pressure);
+  nodeResults.set(id, { type: "junction", pressure });
 };
 
 // There's a hack to read the valve status by getting PumpState

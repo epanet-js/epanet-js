@@ -1,10 +1,11 @@
 import {
+  JunctionSimulation,
   PumpSimulation,
   ResultsReader,
   ValveSimulation,
 } from "../results-reader";
 
-export type NodeResults = Map<string, { pressure: number }>;
+export type NodeResults = Map<string, JunctionSimulation>;
 
 type LinkResult = {
   type: "link";
@@ -25,10 +26,6 @@ export class EpanetResults implements ResultsReader {
   constructor(nodes: NodeResults, links: LinkResults) {
     this.nodes = nodes;
     this.links = links;
-  }
-
-  getPressure(nodeId: string) {
-    return this.nodes.has(nodeId) ? this.nodes.get(nodeId)!.pressure : null;
   }
 
   getFlow(linkId: string) {
@@ -55,5 +52,11 @@ export class EpanetResults implements ResultsReader {
     if (!this.links.has(pumpId)) return null;
 
     return this.links.get(pumpId) as PumpSimulation;
+  }
+
+  getJunction(junctionId: string): JunctionSimulation | null {
+    if (!this.nodes.has(junctionId)) return null;
+
+    return this.nodes.get(junctionId) as JunctionSimulation;
   }
 }

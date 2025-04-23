@@ -1,5 +1,4 @@
 import { buildJunction } from "../../__helpers__/hydraulic-model-builder";
-import { JunctionSimulationProvider } from "./junction";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {
@@ -33,17 +32,5 @@ describe("Junction", () => {
 
     expect(junction.demand).toEqual(10);
     expect(junction.elevation).toEqual(100);
-  });
-
-  it("can attach a simulation", () => {
-    const junction = buildJunction();
-    expect(junction.pressure).toBeNull();
-
-    const simulation: JunctionSimulationProvider = {
-      getPressure: (_) => 10,
-    };
-    junction.setSimulation(simulation);
-
-    expect(junction.pressure).toEqual(10);
   });
 });
