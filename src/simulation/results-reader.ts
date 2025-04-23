@@ -1,3 +1,11 @@
+export type ValveSimulation = {
+  type: "valve";
+  flow: number;
+  velocity: number;
+  headloss: number;
+  status: "active" | "open" | "closed";
+};
+
 export interface ResultsReader {
   getPressure: (nodeId: string) => number | null;
   getFlow: (linkId: string) => number | null;
@@ -8,4 +16,5 @@ export interface ResultsReader {
     linkId: string,
   ) => "cannot-deliver-flow" | "cannot-deliver-head" | null;
   getValveStatus: (linkId: string) => "open" | "closed" | "active" | null;
+  getValve: (valveId: string) => ValveSimulation | null;
 }

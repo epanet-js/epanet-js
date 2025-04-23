@@ -4,6 +4,7 @@ import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
 import { runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
+import { ValveSimulation } from "../results-reader";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -89,6 +90,26 @@ describe("epanet simulation", () => {
       expect(results.getPressure("r1")).toBeCloseTo(0);
       expect(results.getFlow("p1")).toBeCloseTo(1);
       expect(results.getVelocity("p1")).toBeCloseTo(0.014);
+    });
+
+    it("can read valve values", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1")
+        .aJunction("j1", { demand: 1 })
+        .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp, {
+        FLAG_VALVE: true,
+      });
+
+      expect(status).toEqual("success");
+      const valve = results.getValve("v1") as ValveSimulation;
+      expect(valve.flow).toBeCloseTo(0.999);
+      expect(valve.velocity).toBeCloseTo(0.014);
+      expect(valve.headloss).toBeCloseTo(0);
+      expect(valve.status).toEqual("active");
     });
 
     it("provides null values when failed", async () => {
