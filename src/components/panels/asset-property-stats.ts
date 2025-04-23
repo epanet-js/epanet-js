@@ -74,7 +74,7 @@ const appendPipeStats = (
   if (pipe.headloss !== null)
     updateQuantityStats(
       statsMap,
-      "headlossShort",
+      "headloss",
       pipe.headloss,
       quantitiesMetadata,
     );
@@ -98,7 +98,7 @@ const appendValveStats = (
   if (valve.headloss !== null)
     updateQuantityStats(
       statsMap,
-      "headlossShort",
+      "headloss",
       valve.headloss,
       quantitiesMetadata,
     );
