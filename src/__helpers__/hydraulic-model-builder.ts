@@ -204,11 +204,11 @@ export class HydraulicModelBuilder {
     });
     if (simulation) {
       pump.setSimulation({
-        getFlow: () => (simulation.flow !== undefined ? simulation.flow : 10),
-        getHeadloss: () =>
-          simulation.headloss !== undefined ? simulation.headloss : 10,
-        getPumpStatus: () => simulation.status || "on",
-        getPumpStatusWarning: () => simulation.statusWarning || null,
+        flow: 10,
+        headloss: 10,
+        status: "on",
+        statusWarning: null,
+        ...simulation,
       });
     }
     this.assets.set(pump.id, pump);

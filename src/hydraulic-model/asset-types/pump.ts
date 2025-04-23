@@ -28,52 +28,26 @@ export const pumpQuantities = [
 ];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
-export interface PumpSimulationProvider {
-  getFlow: (id: string) => number | null;
-  getHeadloss: (id: string) => number | null;
-  getPumpStatus: (id: string) => PumpStatus | null;
-  getPumpStatusWarning: (id: string) => PumpStatusWarning | null;
-}
+export type PumpSimulation = {
+  flow: number;
+  headloss: number;
+  status: PumpStatus;
+  statusWarning: PumpStatusWarning | null;
+};
 
 export class Pump extends Link<PumpProperties> {
-  private simulation: PumpSimulationProvider | null = null;
+  private simulation: PumpSimulation | null = null;
 
   getUnit(quantity: PumpQuantity): Unit {
     return this.units[quantity];
   }
 
-  setSimulation(simulation: PumpSimulationProvider) {
+  setSimulation(simulation: PumpSimulation | null) {
     this.simulation = simulation;
   }
 
   get initialStatus() {
     return this.properties.initialStatus;
-  }
-
-  get status() {
-    if (!this.simulation) return null;
-
-    return this.simulation.getPumpStatus(this.id);
-  }
-
-  get statusWarning() {
-    if (!this.simulation) return null;
-
-    return this.simulation.getPumpStatusWarning(this.id);
-  }
-
-  get flow() {
-    if (!this.simulation) return null;
-
-    return this.simulation.getFlow(this.id);
-  }
-
-  get head() {
-    if (!this.simulation) return null;
-
-    const headloss = this.simulation.getHeadloss(this.id);
-    if (headloss === null) return null;
-    return -headloss;
   }
 
   get definitionType() {
@@ -94,6 +68,32 @@ export class Pump extends Link<PumpProperties> {
 
   get speed() {
     return this.properties.speed;
+  }
+
+  get status() {
+    if (!this.simulation) return null;
+
+    return this.simulation.status;
+  }
+
+  get statusWarning() {
+    if (!this.simulation) return null;
+
+    return this.simulation.statusWarning;
+  }
+
+  get flow() {
+    if (!this.simulation) return null;
+
+    return this.simulation.flow;
+  }
+
+  get head() {
+    if (!this.simulation) return null;
+
+    const headloss = this.simulation.headloss;
+    if (headloss === null) return null;
+    return -headloss;
   }
 
   copy() {

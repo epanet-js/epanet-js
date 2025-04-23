@@ -2,7 +2,11 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
-import { valveStatusFor, runSimulation as workerRunSimulation } from "./worker";
+import {
+  pumpStatusFor,
+  valveStatusFor,
+  runSimulation as workerRunSimulation,
+} from "./worker";
 import { Mock } from "vitest";
 import { ValveSimulation } from "../results-reader";
 
@@ -179,5 +183,34 @@ describe("valve status", () => {
     expect(valveStatusFor(6).warning).toEqual("cannot-deliver-flow");
     expect(valveStatusFor(7).status).toEqual("open");
     expect(valveStatusFor(7).warning).toEqual("cannot-deliver-pressure");
+  });
+});
+
+describe("pump status", () => {
+  it("detects when cannot deliver head", () => {
+    const { status, warning } = pumpStatusFor(0);
+    expect(status).toEqual("off");
+    expect(warning).toEqual("cannot-deliver-head");
+  });
+
+  it("detects when cannot delivery flow", () => {
+    const { status, warning } = pumpStatusFor(5);
+    expect(status).toEqual("on");
+    expect(warning).toEqual("cannot-deliver-flow");
+  });
+
+  it("considers off when less than 3", () => {
+    const { status, warning } = pumpStatusFor(2);
+    expect(status).toEqual("off");
+    expect(warning).toBeUndefined();
+  });
+
+  it("considers on when greater or equal to 3", () => {
+    expect(pumpStatusFor(3).status).toEqual("on");
+    expect(pumpStatusFor(3).warning).toBeUndefined();
+    expect(pumpStatusFor(4).status).toEqual("on");
+    expect(pumpStatusFor(4).warning).toBeUndefined();
+    expect(pumpStatusFor(7).status).toEqual("on");
+    expect(pumpStatusFor(7).warning).toBeUndefined();
   });
 });
