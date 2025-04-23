@@ -1,3 +1,10 @@
+export type PipeSimulation = {
+  type: "pipe";
+  flow: number;
+  velocity: number;
+  headloss: number;
+};
+
 export type ValveSimulation = {
   type: "valve";
   flow: number;
@@ -21,10 +28,8 @@ export type JunctionSimulation = {
 };
 
 export interface ResultsReader {
-  getFlow: (linkId: string) => number | null;
-  getVelocity: (linkId: string) => number | null;
-  getHeadloss: (linkId: string) => number | null;
   getValve: (valveId: string) => ValveSimulation | null;
   getPump: (pumpId: string) => PumpSimulation | null;
   getJunction: (junctionId: string) => JunctionSimulation | null;
+  getPipe: (pipeId: string) => PipeSimulation | null;
 }

@@ -91,8 +91,8 @@ describe("epanet simulation", () => {
 
       expect(status).toEqual("success");
       expect(results.getJunction("j1")!.pressure).toBeCloseTo(10);
-      expect(results.getFlow("p1")).toBeCloseTo(1);
-      expect(results.getVelocity("p1")).toBeCloseTo(0.014);
+      expect(results.getPipe("p1")!.flow).toBeCloseTo(1);
+      expect(results.getPipe("p1")!.velocity).toBeCloseTo(0.014);
     });
 
     it("can read valve values", async () => {
@@ -149,7 +149,7 @@ describe("epanet simulation", () => {
 
       expect(status).toEqual("failure");
       expect(results.getJunction("j1")).toBeNull();
-      expect(results.getFlow("p1")).toBeNull();
+      expect(results.getPipe("p1")).toBeNull();
     });
   });
 
