@@ -1,9 +1,11 @@
 import { Asset, Junction, Pipe, Pump, Reservoir } from "src/hydraulic-model";
+import { Valve } from "src/hydraulic-model/asset-types";
 import { junctionQuantities } from "src/hydraulic-model/asset-types/junction";
 import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
 import { roundToDecimal } from "src/infra/i18n/numbers";
 import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
+import { valveStatusLabel } from "./AssetEditor";
 
 export type QuantityStats = {
   type: "quantity";
@@ -47,6 +49,7 @@ export const computePropertyStats = (
         appendReservoirStats(statsMap, asset as Reservoir, quantitiesMetadata);
         break;
       case "valve":
+        appendValveStats(statsMap, asset as Valve, quantitiesMetadata);
         break;
     }
   }
@@ -68,6 +71,25 @@ const appendPipeStats = (
       quantitiesMetadata,
     );
   }
+};
+
+const appendValveStats = (
+  statsMap: StatsMap,
+  valve: Valve,
+  quantitiesMetadata: Quantities,
+) => {
+  updateCategoryStats(statsMap, "valveType", `valve.${valve.valveType}`);
+  if (valve.status !== null)
+    updateCategoryStats(statsMap, "valveStatus", valveStatusLabel(valve));
+  if (valve.velocity !== null)
+    updateQuantityStats(
+      statsMap,
+      "velocity",
+      valve.velocity,
+      quantitiesMetadata,
+    );
+  if (valve.flow !== null)
+    updateQuantityStats(statsMap, "flow", valve.flow, quantitiesMetadata);
 };
 
 const appendPumpStats = (

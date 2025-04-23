@@ -364,7 +364,7 @@ const pumpStatusLabel = (pump: Pump) => {
   return "pump." + pump.status;
 };
 
-const valveStatusLabel = (valve: Valve) => {
+export const valveStatusLabel = (valve: Valve) => {
   if (valve.status === null) return "notAvailable";
 
   if (valve.statusWarning) {
