@@ -347,6 +347,13 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("velocity")}
                 readOnly={true}
               />
+              <QuantityRow
+                name="headlossShort"
+                value={pipe.headloss}
+                unit={quantitiesMetadata.getUnit("headloss")}
+                decimals={quantitiesMetadata.getDecimals("headloss")}
+                readOnly={true}
+              />
             </tbody>
           </table>
         </div>
