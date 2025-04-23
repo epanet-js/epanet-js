@@ -71,6 +71,13 @@ const appendPipeStats = (
       quantitiesMetadata,
     );
   }
+  if (pipe.headloss !== null)
+    updateQuantityStats(
+      statsMap,
+      "headlossShort",
+      pipe.headloss,
+      quantitiesMetadata,
+    );
 };
 
 const appendValveStats = (
@@ -86,6 +93,13 @@ const appendValveStats = (
       statsMap,
       "velocity",
       valve.velocity,
+      quantitiesMetadata,
+    );
+  if (valve.headloss !== null)
+    updateQuantityStats(
+      statsMap,
+      "headlossShort",
+      valve.headloss,
       quantitiesMetadata,
     );
   if (valve.flow !== null)
