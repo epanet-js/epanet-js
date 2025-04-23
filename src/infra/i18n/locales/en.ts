@@ -165,6 +165,7 @@ export const translations = {
     "Only one INP file is allowed at a time. The first one will be used.",
   headlossFormula: "Headloss Formula",
   headlossShort: "Headloss",
+  headloss: "Headloss",
   autoLengths: "Auto-Lengths",
   autoElevations: "Auto-Elevations",
   on: "On",
