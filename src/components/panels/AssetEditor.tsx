@@ -364,6 +364,15 @@ const pumpStatusLabel = (pump: Pump) => {
   return "pump." + pump.status;
 };
 
+const valveStatusLabel = (valve: Valve) => {
+  if (valve.status === null) return "notAvailable";
+
+  if (valve.statusWarning) {
+    return `valve.${valve.status}.${valve.statusWarning}`;
+  }
+  return "valve." + valve.status;
+};
+
 const ValveEditor = ({
   valve,
   startNode,
@@ -381,6 +390,8 @@ const ValveEditor = ({
   onPropertyChange: OnPropertyChange;
   onTypeChange: OnTypeChange<ValveType>;
 }) => {
+  const statusText = translate(valveStatusLabel(valve));
+
   const statusOptions = useMemo(() => {
     return [
       { label: translate("valve.active"), value: "active" },
@@ -491,14 +502,7 @@ const ValveEditor = ({
                 unit={quantitiesMetadata.getUnit("headloss")}
                 decimals={quantitiesMetadata.getDecimals("headloss")}
               />
-              <TextRowReadOnly
-                name="status"
-                value={
-                  valve.status
-                    ? translate(`valve.${valve.status}`)
-                    : translate("notAvailable")
-                }
-              />
+              <TextRowReadOnly name="status" value={statusText} />
             </tbody>
           </table>
         </div>

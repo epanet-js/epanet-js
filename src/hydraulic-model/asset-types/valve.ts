@@ -3,6 +3,9 @@ import { Unit } from "src/quantity";
 
 export const valveStatuses = ["active", "open", "closed"] as const;
 export type ValveStatus = (typeof valveStatuses)[number];
+export type ValveStatusWarning =
+  | "cannot-deliver-flow"
+  | "cannot-deliver-pressure";
 
 export const valveTypes = ["tcv", "prv", "psv", "pbv", "fcv"] as const;
 export type ValveType = (typeof valveTypes)[number];
@@ -24,6 +27,7 @@ export type ValveSimulation = {
   velocity: number;
   headloss: number;
   status: ValveStatus;
+  statusWarning: ValveStatusWarning | null;
 };
 
 export class Valve extends Link<ValveProperties> {
@@ -79,6 +83,12 @@ export class Valve extends Link<ValveProperties> {
     if (!this.simulation) return null;
 
     return this.simulation.status;
+  }
+
+  get statusWarning() {
+    if (!this.simulation) return null;
+
+    return this.simulation.statusWarning;
   }
 
   copy() {
