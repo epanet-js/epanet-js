@@ -30,11 +30,6 @@ export const headlossFormulasFullNames = [
 ] as const;
 export type HeadlossFormula = (typeof headlossFormulas)[number];
 
-export interface PipeSimulationProvider {
-  getFlow: (id: string) => number | null;
-  getVelocity: (id: string) => number | null;
-}
-
 export type PipeSimulation = {
   flow: number;
   velocity: number;
