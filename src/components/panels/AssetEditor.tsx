@@ -402,7 +402,11 @@ const ValveEditor = ({
 
   const valveTypeOptions = useMemo(() => {
     return valveTypes.map((type) => {
-      return { label: type.toUpperCase(), value: type };
+      return {
+        label: type.toUpperCase(),
+        description: translate(`valve.${type}.detailed`),
+        value: type,
+      };
     });
   }, []);
 
@@ -728,7 +732,7 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveType>({
   name: string;
   label?: string;
   selected: T;
-  options: { label: string; value: T }[];
+  options: { label: string; description?: string; value: T }[];
   onChange: (name: string, newValue: T, oldValue: T) => void;
 }) => {
   return (
@@ -739,7 +743,10 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveType>({
           options={options}
           selected={selected}
           onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
-          styleOptions={{ border: false, textSize: "text-xs" }}
+          styleOptions={{
+            border: false,
+            textSize: "text-xs",
+          }}
         />
       </div>
     </PropertyRow>
