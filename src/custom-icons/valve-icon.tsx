@@ -7,8 +7,6 @@ export const ValveIcon = React.forwardRef<
   <svg
     ref={ref}
     xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
     viewBox="0 0 780 780"
     {...props}
   >
@@ -17,14 +15,14 @@ export const ValveIcon = React.forwardRef<
         d="M390.38,389.85 L31.2,705.47 V76.12 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="62.4"
+        strokeWidth="56"
         strokeLinejoin="round"
       />
       <path
         d="M388.62,390.15 L748.8,74.53 V703.88 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="62.4"
+        strokeWidth="56"
         strokeLinejoin="round"
       />
     </g>
