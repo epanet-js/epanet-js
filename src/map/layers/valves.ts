@@ -35,7 +35,7 @@ export const valveLines = ({
     ],
     "line-dasharray": [
       "case",
-      ["==", ["get", "status"], "off"],
+      ["==", ["get", "status"], "closed"],
       ["literal", [2, 1]],
       ["literal", [1, 0]],
     ],
