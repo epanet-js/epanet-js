@@ -3,7 +3,12 @@ import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import { buildGpvSvg, buildPrvSvg, buildPumpSvg } from "./dynamic-icons";
+import {
+  buildFcvSvg,
+  buildGpvSvg,
+  buildPrvSvg,
+  buildPumpSvg,
+} from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
 export type IconId =
@@ -21,7 +26,10 @@ export type IconId =
   | "valve-psv-closed"
   | "valve-tcv-active"
   | "valve-tcv-open"
-  | "valve-tcv-closed";
+  | "valve-tcv-closed"
+  | "valve-fcv-active"
+  | "valve-fcv-open"
+  | "valve-fcv-closed";
 
 export type TextureProps = {
   width: number;
@@ -179,6 +187,42 @@ const iconUrls: IconUrl[] = [
     id: "valve-tcv-closed",
     url: urlFor(
       buildGpvSvg({
+        borderColor: colors.red700,
+        triangleColor: colors.red300,
+        fillColor: colors.red100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-fcv-active",
+    url: urlFor(
+      buildFcvSvg({
+        borderColor: colors.green800,
+        triangleColor: colors.green300,
+        fillColor: colors.green100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-fcv-open",
+    url: urlFor(
+      buildFcvSvg({
+        borderColor: colors.indigo600,
+        triangleColor: colors.indigo200,
+        fillColor: colors.indigo100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-fcv-closed",
+    url: urlFor(
+      buildFcvSvg({
         borderColor: colors.red700,
         triangleColor: colors.red300,
         fillColor: colors.red100,
