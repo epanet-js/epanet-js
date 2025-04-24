@@ -3,7 +3,7 @@ import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import { buildPumpSvg } from "./dynamic-icons";
+import { buildPrvSvg, buildPumpSvg } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
 export type IconId =
@@ -12,7 +12,14 @@ export type IconId =
   | "reservoir-selected"
   | "triangle"
   | "pump-on"
-  | "pump-off";
+  | "pump-off"
+  | "valve-prv-active"
+  | "valve-prv-open"
+  | "valve-prv-closed"
+  | "valve-psv-active"
+  | "valve-psv-open"
+  | "valve-psv-closed";
+
 export type TextureProps = {
   width: number;
   height: number;
@@ -66,6 +73,78 @@ const iconUrls: IconUrl[] = [
         borderColor: colors.red700,
         fillColor: colors.red300,
         triangleColor: colors.red700,
+      }),
+    ),
+  },
+  {
+    id: "valve-prv-active",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.green800,
+        triangleColor: colors.green300,
+        fillColor: colors.green100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-prv-open",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.indigo600,
+        triangleColor: colors.indigo300,
+        fillColor: colors.indigo100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-prv-closed",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.red700,
+        triangleColor: colors.red300,
+        fillColor: colors.red100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-psv-active",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.green800,
+        triangleColor: colors.green100,
+        fillColor: colors.green300,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-psv-open",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.indigo600,
+        triangleColor: colors.indigo100,
+        fillColor: colors.indigo300,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-psv-closed",
+    url: urlFor(
+      buildPrvSvg({
+        borderColor: colors.red700,
+        triangleColor: colors.red100,
+        fillColor: colors.red300,
+        width: 56,
+        height: 56,
       }),
     ),
   },

@@ -7,6 +7,7 @@ import { AnalysisState } from "src/state/analysis";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
+import { Valve } from "src/hydraulic-model/asset-types";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -69,6 +70,33 @@ export const buildIconPointsSource = (
           status: pump.status ? pump.status : pump.initialStatus,
           rotation: bearing,
           selected: selectedAssets.has(pump.id),
+        },
+        geometry: {
+          type: "Point",
+          coordinates: center.geometry.coordinates,
+        },
+      };
+      strippedFeatures.push(feature);
+    }
+
+    if (asset.type === "valve") {
+      const valve = asset as Valve;
+      const featureId = UIDMap.getIntID(idMap, asset.id);
+      const largestSegment = findLargestSegment(valve);
+      const center = calculateMidpoint(...largestSegment);
+      const bearing = calculateBearing(...largestSegment);
+
+      const status = valve.status ? valve.status : valve.initialStatus;
+
+      const feature: Feature = {
+        type: "Feature",
+        id: featureId,
+        properties: {
+          type: valve.type,
+          valveType: valve.valveType,
+          icon: `valve-${valve.valveType}-${status}`,
+          rotation: bearing,
+          selected: selectedAssets.has(valve.id),
         },
         geometry: {
           type: "Point",

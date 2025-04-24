@@ -40,3 +40,41 @@ export const buildPumpSvg = ({
   </svg>
   `;
 };
+
+export const buildPrvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 780 780"
+  version="1.1"
+>
+  <g>
+    <rect
+      x="31.2"
+      y="31.2"
+      width="717.6"
+      height="717.6"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4;stroke-linejoin:round"
+    />
+    <path
+      d="M392.89,98.10 L725.4,748.8 H50.33 Z"
+      style="fill:${triangleColor};stroke:${borderColor};stroke-width:63.87;stroke-linejoin:round"
+    />
+  </g>
+</svg>
+`;
+};
