@@ -3,7 +3,6 @@ import {
   CircleIcon,
   StretchHorizontallyIcon,
   VercelLogoIcon,
-  RowSpacingIcon,
 } from "@radix-ui/react-icons";
 import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
 import MenuAction from "src/components/menu_action";
@@ -13,6 +12,7 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { PumpIcon } from "src/custom-icons/pump-icon";
+import { ValveIcon } from "src/custom-icons/valve-icon";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 const MODE_OPTIONS = isFeatureOn("FLAG_VALVE")
@@ -56,7 +56,7 @@ const MODE_OPTIONS = isFeatureOn("FLAG_VALVE")
         mode: Mode.DRAW_VALVE,
         hotkey: "6",
         alwaysMultiple: true,
-        Icon: RowSpacingIcon,
+        Icon: () => <ValveIcon width={15} height={15} />,
         Menu: null,
       },
     ] as const)
