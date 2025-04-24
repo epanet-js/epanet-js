@@ -15,14 +15,14 @@ export const ValveIcon = React.forwardRef<
         d="M390.38,389.85 L31.2,705.47 V76.12 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="56"
+        strokeWidth="48"
         strokeLinejoin="round"
       />
       <path
         d="M388.62,390.15 L748.8,74.53 V703.88 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="56"
+        strokeWidth="48"
         strokeLinejoin="round"
       />
     </g>
