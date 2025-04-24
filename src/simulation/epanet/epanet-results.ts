@@ -6,43 +6,39 @@ import {
   ValveSimulation,
 } from "../results-reader";
 
-export type NodeResults = Map<string, JunctionSimulation>;
-
-export type LinkResults = Map<
+export type SimulationResults = Map<
   string,
-  PipeSimulation | ValveSimulation | PumpSimulation
+  PipeSimulation | ValveSimulation | PumpSimulation | JunctionSimulation
 >;
 
-export class EpanetResults implements ResultsReader {
-  private nodes: NodeResults;
-  private links: LinkResults;
+export class EpanetResultsReader implements ResultsReader {
+  private results: SimulationResults;
 
-  constructor(nodes: NodeResults, links: LinkResults) {
-    this.nodes = nodes;
-    this.links = links;
+  constructor(results: SimulationResults) {
+    this.results = results;
   }
 
   getValve(valveId: string): ValveSimulation | null {
-    if (!this.links.has(valveId)) return null;
+    if (!this.results.has(valveId)) return null;
 
-    return this.links.get(valveId) as ValveSimulation;
+    return this.results.get(valveId) as ValveSimulation;
   }
 
   getPump(pumpId: string): PumpSimulation | null {
-    if (!this.links.has(pumpId)) return null;
+    if (!this.results.has(pumpId)) return null;
 
-    return this.links.get(pumpId) as PumpSimulation;
+    return this.results.get(pumpId) as PumpSimulation;
   }
 
   getJunction(junctionId: string): JunctionSimulation | null {
-    if (!this.nodes.has(junctionId)) return null;
+    if (!this.results.has(junctionId)) return null;
 
-    return this.nodes.get(junctionId) as JunctionSimulation;
+    return this.results.get(junctionId) as JunctionSimulation;
   }
 
   getPipe(pipeId: string): PipeSimulation | null {
-    if (!this.links.has(pipeId)) return null;
+    if (!this.results.has(pipeId)) return null;
 
-    return this.links.get(pipeId) as PipeSimulation;
+    return this.results.get(pipeId) as PipeSimulation;
   }
 }

@@ -2,13 +2,10 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
-import {
-  pumpStatusFor,
-  valveStatusFor,
-  runSimulation as workerRunSimulation,
-} from "./worker";
+import { runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
 import { ValveSimulation } from "../results-reader";
+import { pumpStatusFor, valveStatusFor } from "./extract-simulation-results";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
