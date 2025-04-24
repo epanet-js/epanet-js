@@ -17,7 +17,7 @@ import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
 import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
-import { valveLines } from "src/map/layers/valves";
+import { valveIcons, valveLines } from "src/map/layers/valves";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -192,6 +192,10 @@ export function makeLayers({
       source: "icons",
       layerId: "pump-icons",
       symbolization,
+    }),
+    valveIcons({
+      source: "icons",
+      layerId: "valve-icons",
     }),
     reservoirsLayer({
       source: "features",
