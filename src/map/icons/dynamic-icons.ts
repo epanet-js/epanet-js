@@ -78,3 +78,46 @@ export const buildPrvSvg = ({
 </svg>
 `;
 };
+
+export const buildGpvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 780 780"
+  version="1.1"
+>
+  <g transform="rotate(-90,390,390)" style="stroke-width:62.4">
+    <rect
+      x="31.2"
+      y="31.2"
+      width="717.6"
+      height="717.6"
+      style="fill:${fillColor};stroke:${borderColor}"
+    />
+    <path
+      d="M390.38,389.85 L31.2,705.47 V76.12 Z"
+      style="fill:${triangleColor};stroke:${borderColor}"
+    />
+    <path
+      d="M388.62,390.15 L748.8,74.53 V703.88 Z"
+      style="fill:${triangleColor};stroke:${borderColor}"
+    />
+  </g>
+</svg>
+
+  `;
+};
