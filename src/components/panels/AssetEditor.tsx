@@ -444,7 +444,6 @@ const ValveEditor = ({
               {valve.valveType === "tcv" && (
                 <QuantityRow
                   name="setting"
-                  positiveOnly={true}
                   value={valve.setting}
                   unit={null}
                   onChange={onPropertyChange}
@@ -453,7 +452,6 @@ const ValveEditor = ({
               {["psv", "prv", "pbv"].includes(valve.valveType) && (
                 <QuantityRow
                   name="setting"
-                  positiveOnly={true}
                   value={valve.setting}
                   unit={quantitiesMetadata.getUnit("pressure")}
                   onChange={onPropertyChange}
@@ -462,7 +460,6 @@ const ValveEditor = ({
               {valve.valveType === "fcv" && (
                 <QuantityRow
                   name="setting"
-                  positiveOnly={true}
                   value={valve.setting}
                   unit={quantitiesMetadata.getUnit("flow")}
                   onChange={onPropertyChange}
