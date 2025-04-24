@@ -162,3 +162,47 @@ export const buildFcvSvg = ({
   </g>
 </svg>`;
 };
+
+export const buildPbvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 780 780"
+  version="1.1"
+>
+  <g transform="rotate(-90,390,390)">
+    <rect
+      x="31.2"
+      y="31.2"
+      width="717.6"
+      height="717.6"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
+    />
+    <path
+      d="M463.13,388.91 L31.2,717.11 V62.66 Z"
+      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
+    />
+    <rect
+      x="546.08"
+      y="31.2"
+      width="202.72"
+      height="717.6"
+      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
+    />
+  </g>
+</svg>`;
+};

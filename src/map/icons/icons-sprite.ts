@@ -6,6 +6,7 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import {
   buildFcvSvg,
   buildGpvSvg,
+  buildPbvSvg,
   buildPrvSvg,
   buildPumpSvg,
 } from "./dynamic-icons";
@@ -29,7 +30,10 @@ export type IconId =
   | "valve-tcv-closed"
   | "valve-fcv-active"
   | "valve-fcv-open"
-  | "valve-fcv-closed";
+  | "valve-fcv-closed"
+  | "valve-pbv-active"
+  | "valve-pbv-open"
+  | "valve-pbv-closed";
 
 export type TextureProps = {
   width: number;
@@ -223,6 +227,42 @@ const iconUrls: IconUrl[] = [
     id: "valve-fcv-closed",
     url: urlFor(
       buildFcvSvg({
+        borderColor: colors.red700,
+        triangleColor: colors.red300,
+        fillColor: colors.red100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-pbv-active",
+    url: urlFor(
+      buildPbvSvg({
+        borderColor: colors.green800,
+        triangleColor: colors.green300,
+        fillColor: colors.green100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-pbv-open",
+    url: urlFor(
+      buildPbvSvg({
+        borderColor: colors.indigo600,
+        triangleColor: colors.indigo200,
+        fillColor: colors.indigo100,
+        width: 56,
+        height: 56,
+      }),
+    ),
+  },
+  {
+    id: "valve-pbv-closed",
+    url: urlFor(
+      buildPbvSvg({
         borderColor: colors.red700,
         triangleColor: colors.red300,
         fillColor: colors.red100,
