@@ -121,3 +121,44 @@ export const buildGpvSvg = ({
 
   `;
 };
+
+export const buildFcvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 780 780"
+  version="1.1"
+>
+  <g transform="rotate(-90,390,390)">
+    <rect
+      x="31.2"
+      y="31.2"
+      width="717.6"
+      height="717.6"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
+    />
+    <path
+      d="M271.4,392.42 L31.2,697.11 V89.55 Z"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
+    />
+    <path
+      d="M723.29,392.47 L291.36,720.67 V66.22 Z"
+      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
+    />
+  </g>
+</svg>`;
+};
