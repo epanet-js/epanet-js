@@ -52,6 +52,9 @@ export const colors = {
   green100: "#dcfce7",
   green300: "#86efac",
   green800: "#166534",
+  gray100: "#f3f4f6",
+  gray300: "#d1d5db",
+  gray700: "#374151",
 };
 
 export const LINE_COLORS_IDLE = "#8B5CF6";
