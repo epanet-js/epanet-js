@@ -41,6 +41,12 @@ export const buildOptimizedAssetsSource = (
         ? pump.status
         : pump.initialStatus;
     }
+    if (asset.type === "valve") {
+      const valve = asset as Valve;
+      feature.properties!.status = valve.status
+        ? valve.status
+        : valve.initialStatus;
+    }
 
     strippedFeatures.push(feature);
   }

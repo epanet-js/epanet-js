@@ -93,7 +93,7 @@ const iconUrls: IconUrl[] = [
     url: urlFor(
       buildPrvSvg({
         borderColor: colors.indigo600,
-        triangleColor: colors.indigo300,
+        triangleColor: colors.indigo200,
         fillColor: colors.indigo100,
         width: 56,
         height: 56,
@@ -130,7 +130,7 @@ const iconUrls: IconUrl[] = [
       buildPrvSvg({
         borderColor: colors.indigo600,
         triangleColor: colors.indigo100,
-        fillColor: colors.indigo300,
+        fillColor: colors.indigo200,
         width: 56,
         height: 56,
       }),

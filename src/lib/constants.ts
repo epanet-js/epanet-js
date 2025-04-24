@@ -31,6 +31,7 @@ export const colors = {
   purple500: "#a855f7",
   indigo900: "#312E81",
   indigo800: "#3730a3",
+  indigo50: "#eef2ff",
   indigo100: "#e0e7ff",
   indigo200: "#c7d2fe",
   indigo300: "#a5b4fc",
