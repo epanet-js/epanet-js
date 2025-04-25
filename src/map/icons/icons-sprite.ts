@@ -76,7 +76,7 @@ const iconUrls: IconUrl[] = [
     id: "pump-on",
     url: urlFor(
       buildPumpSvg({
-        borderColor: colors.green800,
+        borderColor: "none",
         fillColor: colors.green300,
         triangleColor: colors.green800,
       }),
@@ -86,7 +86,7 @@ const iconUrls: IconUrl[] = [
     id: "pump-off",
     url: urlFor(
       buildPumpSvg({
-        borderColor: colors.red700,
+        borderColor: "none",
         fillColor: colors.red300,
         triangleColor: colors.red700,
       }),
