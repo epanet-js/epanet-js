@@ -188,14 +188,14 @@ export function makeLayers({
       layerId: "junction-results",
       symbolization,
     }),
+    ...valveIcons({
+      source: "icons",
+      layerId: "valve-icons",
+    }),
     ...pumpIcons({
       source: "icons",
       layerId: "pump-icons",
       symbolization,
-    }),
-    ...valveIcons({
-      source: "icons",
-      layerId: "valve-icons",
     }),
     reservoirsLayer({
       source: "features",
