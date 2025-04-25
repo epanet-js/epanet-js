@@ -193,7 +193,7 @@ export function makeLayers({
       layerId: "pump-icons",
       symbolization,
     }),
-    valveIcons({
+    ...valveIcons({
       source: "icons",
       layerId: "valve-icons",
     }),
