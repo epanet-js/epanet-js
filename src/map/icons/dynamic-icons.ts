@@ -44,7 +44,7 @@ export const buildPumpSvg = ({
 export const buildPrvSvg = ({
   width = 64,
   height = 64,
-  borderColor = "black",
+  borderColor = "none",
   fillColor = "white",
   triangleColor = "black",
 }: {
@@ -62,18 +62,40 @@ export const buildPrvSvg = ({
   viewBox="0 0 780 780"
   version="1.1"
 >
-  <g>
-    <rect
-      x="31.2"
-      y="31.2"
-      width="717.6"
-      height="717.6"
-      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4;stroke-linejoin:round"
-    />
-    <path
-      d="M392.89,98.10 L725.4,748.8 H50.33 Z"
-      style="fill:${triangleColor};stroke:${borderColor};stroke-width:63.87;stroke-linejoin:round"
-    />
+  <g transform="rotate(90 376.55 390)" stroke-linejoin="round">
+    <rect x="31.2" y="31.2" width="717.6" height="717.6" ry="171.86" fill="${fillColor}" opacity=".99" stroke="${borderColor}" stroke-linecap="round" stroke-width="35.498"/>
+    <path d="m342.33 391.63 261.9-231.74v462.09z" fill="${triangleColor}" stroke="${triangleColor}" stroke-width="35.498"/>
+    <path d="m341.83 391.5-166.73 151.89v-302.86z" fill="${fillColor}" stroke="${triangleColor}" stroke-width="35.494"/>
+  </g>
+</svg>
+`;
+};
+
+export const buildPsvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "none",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 780 780"
+  version="1.1"
+>
+  <g transform="rotate(270 376.55 390)" stroke-linejoin="round">
+    <rect x="31.2" y="31.2" width="717.6" height="717.6" ry="171.86" fill="${fillColor}" opacity=".99" stroke="${borderColor}" stroke-linecap="round" stroke-width="35.498"/>
+    <path d="m342.33 391.63 261.9-231.74v462.09z" fill="${fillColor}" stroke="${triangleColor}" stroke-width="35.498"/>
+    <path d="m341.83 391.5-166.73 151.89v-302.86z" fill="${triangleColor}" stroke="${triangleColor}" stroke-width="35.494"/>
   </g>
 </svg>
 `;
@@ -82,7 +104,7 @@ export const buildPrvSvg = ({
 export const buildGpvSvg = ({
   width = 64,
   height = 64,
-  borderColor = "black",
+  borderColor = "none",
   fillColor = "white",
   triangleColor = "black",
 }: {
@@ -97,76 +119,35 @@ export const buildGpvSvg = ({
   xmlns="http://www.w3.org/2000/svg"
   width="${width}"
   height="${height}"
-  viewBox="0 0 780 780"
+  viewBox="0 0 815.5 815.5"
   version="1.1"
 >
-  <g transform="rotate(-90,390,390)" style="stroke-width:62.4">
+  <g transform="rotate(-90,407.75,390)" style="stroke-width:62.4">
     <rect
       x="31.2"
       y="31.2"
       width="717.6"
       height="717.6"
-      style="fill:${fillColor};stroke:${borderColor}"
+      ry="171.86"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:35.5;stroke-linecap:round;stroke-linejoin:round"
     />
     <path
-      d="M390.38,389.85 L31.2,705.47 V76.12 Z"
-      style="fill:${triangleColor};stroke:${borderColor}"
+      d="M390.38,388.66L592.8,206.83v362.57z"
+      style="fill:${triangleColor};stroke:${triangleColor};stroke-width:35.5;stroke-linecap:butt;stroke-linejoin:round"
     />
     <path
-      d="M388.62,390.15 L748.8,74.53 V703.88 Z"
-      style="fill:${triangleColor};stroke:${borderColor}"
+      d="M386.44,390L184.02,571.83V209.26z"
+      style="fill:${triangleColor};stroke:${triangleColor};stroke-width:35.49;stroke-linecap:butt;stroke-linejoin:round"
     />
   </g>
 </svg>
-
-  `;
+`;
 };
 
 export const buildFcvSvg = ({
   width = 64,
   height = 64,
-  borderColor = "black",
-  fillColor = "white",
-  triangleColor = "black",
-}: {
-  width?: number;
-  height?: number;
-  borderColor?: string;
-  triangleColor?: string;
-  fillColor?: string;
-} = {}) => {
-  return `
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="${width}"
-  height="${height}"
-  viewBox="0 0 780 780"
-  version="1.1"
->
-  <g transform="rotate(-90,390,390)">
-    <rect
-      x="31.2"
-      y="31.2"
-      width="717.6"
-      height="717.6"
-      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
-    />
-    <path
-      d="M271.4,392.42 L31.2,697.11 V89.55 Z"
-      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
-    />
-    <path
-      d="M723.29,392.47 L291.36,720.67 V66.22 Z"
-      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
-    />
-  </g>
-</svg>`;
-};
-
-export const buildPbvSvg = ({
-  width = 64,
-  height = 64,
-  borderColor = "black",
+  borderColor = "none",
   fillColor = "white",
   triangleColor = "black",
 }: {
@@ -181,28 +162,74 @@ export const buildPbvSvg = ({
   xmlns="http://www.w3.org/2000/svg"
   width="${width}"
   height="${height}"
-  viewBox="0 0 780 780"
+  viewBox="0 0 815.5 815.5"
   version="1.1"
 >
-  <g transform="rotate(-90,390,390)">
+  <g transform="rotate(90,407.75,390)" style="stroke-width:62.4">
     <rect
       x="31.2"
       y="31.2"
       width="717.6"
       height="717.6"
-      style="fill:${fillColor};stroke:${borderColor};stroke-width:62.4"
+      ry="171.86"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:35.5;stroke-linecap:round;stroke-linejoin:round"
     />
     <path
-      d="M463.13,388.91 L31.2,717.11 V62.66 Z"
-      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
+      d="M171.31,390 L399.01,209.19v360.53z"
+      style="fill:${triangleColor};stroke:${triangleColor};stroke-width:37.54;stroke-linecap:butt;stroke-linejoin:round"
     />
-    <rect
-      x="546.08"
-      y="31.2"
-      width="202.72"
-      height="717.6"
-      style="fill:${triangleColor};stroke:${borderColor};stroke-width:62.4"
+    <path
+      d="M405.6,390 L608.02,208.17v362.57z"
+      style="fill:none;stroke:${triangleColor};stroke-width:35.5;stroke-linecap:butt;stroke-linejoin:round"
     />
   </g>
-</svg>`;
+</svg>
+  `;
+};
+
+export const buildPbvSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "none",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+} = {}) => {
+  return `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="${width}"
+  height="${height}j"
+  viewBox="0 0 815.5 815.5"
+  version="1.1"
+>
+  <g transform="rotate(90,407.75,390)" style="stroke-width:62.4">
+    <rect
+      x="31.2"
+      y="31.2"
+      width="717.6"
+      height="717.6"
+      ry="171.86"
+      style="fill:${fillColor};stroke:${borderColor};stroke-width:35.5;stroke-linecap:round;stroke-linejoin:round"
+    />
+    <path
+      d="M390.38,388.66L592.8,206.83v362.57z"
+      style="fill:${triangleColor};stroke:${triangleColor};stroke-width:35.5;stroke-linecap:butt;stroke-linejoin:round"
+    />
+    <path
+      d="M386.44,390L184.02,571.83V209.26z"
+      style="fill:${fillColor};stroke:${triangleColor};stroke-width:35.49;stroke-linecap:butt;stroke-linejoin:round"
+    />
+    <path
+      d="M390,210.6v358.8"
+      style="fill:none;stroke:${triangleColor};stroke-width:34.05;stroke-linecap:round"
+    />
+  </g>
+</svg>
+`;
 };

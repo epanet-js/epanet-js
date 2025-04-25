@@ -8,6 +8,7 @@ import {
   buildGpvSvg,
   buildPbvSvg,
   buildPrvSvg,
+  buildPsvSvg,
   buildPumpSvg,
 } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
@@ -95,11 +96,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-prv-active",
     url: urlFor(
       buildPrvSvg({
-        borderColor: colors.green800,
-        triangleColor: colors.green300,
-        fillColor: colors.green100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.green800,
+        fillColor: colors.green300,
       }),
     ),
   },
@@ -107,11 +105,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-prv-open",
     url: urlFor(
       buildPrvSvg({
-        borderColor: colors.gray700,
-        triangleColor: colors.gray300,
-        fillColor: colors.gray100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.gray700,
+        fillColor: colors.gray300,
       }),
     ),
   },
@@ -119,47 +114,35 @@ const iconUrls: IconUrl[] = [
     id: "valve-prv-closed",
     url: urlFor(
       buildPrvSvg({
-        borderColor: colors.red700,
-        triangleColor: colors.red300,
-        fillColor: colors.red100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.red700,
+        fillColor: colors.red300,
       }),
     ),
   },
   {
     id: "valve-psv-active",
     url: urlFor(
-      buildPrvSvg({
-        borderColor: colors.green800,
-        triangleColor: colors.green100,
+      buildPsvSvg({
+        triangleColor: colors.green800,
         fillColor: colors.green300,
-        width: 56,
-        height: 56,
       }),
     ),
   },
   {
     id: "valve-psv-open",
     url: urlFor(
-      buildPrvSvg({
-        borderColor: colors.gray700,
-        triangleColor: colors.gray100,
+      buildPsvSvg({
+        triangleColor: colors.gray700,
         fillColor: colors.gray300,
-        width: 56,
-        height: 56,
       }),
     ),
   },
   {
     id: "valve-psv-closed",
     url: urlFor(
-      buildPrvSvg({
-        borderColor: colors.red700,
-        triangleColor: colors.red100,
+      buildPsvSvg({
+        triangleColor: colors.red700,
         fillColor: colors.red300,
-        width: 56,
-        height: 56,
       }),
     ),
   },
@@ -167,11 +150,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-tcv-active",
     url: urlFor(
       buildGpvSvg({
-        borderColor: colors.green800,
-        triangleColor: colors.green300,
-        fillColor: colors.green100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.green800,
+        fillColor: colors.green300,
       }),
     ),
   },
@@ -179,11 +159,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-tcv-open",
     url: urlFor(
       buildGpvSvg({
-        borderColor: colors.gray700,
-        triangleColor: colors.gray300,
-        fillColor: colors.gray100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.gray700,
+        fillColor: colors.gray300,
       }),
     ),
   },
@@ -191,11 +168,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-tcv-closed",
     url: urlFor(
       buildGpvSvg({
-        borderColor: colors.red700,
-        triangleColor: colors.red300,
-        fillColor: colors.red100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.red700,
+        fillColor: colors.red300,
       }),
     ),
   },
@@ -203,11 +177,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-fcv-active",
     url: urlFor(
       buildFcvSvg({
-        borderColor: colors.green800,
-        triangleColor: colors.green300,
-        fillColor: colors.green100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.green800,
+        fillColor: colors.green300,
       }),
     ),
   },
@@ -215,11 +186,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-fcv-open",
     url: urlFor(
       buildFcvSvg({
-        borderColor: colors.gray700,
-        triangleColor: colors.gray300,
-        fillColor: colors.gray100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.gray700,
+        fillColor: colors.gray300,
       }),
     ),
   },
@@ -227,11 +195,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-fcv-closed",
     url: urlFor(
       buildFcvSvg({
-        borderColor: colors.red700,
-        triangleColor: colors.red300,
-        fillColor: colors.red100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.red700,
+        fillColor: colors.red300,
       }),
     ),
   },
@@ -239,11 +204,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-pbv-active",
     url: urlFor(
       buildPbvSvg({
-        borderColor: colors.green800,
-        triangleColor: colors.green300,
-        fillColor: colors.green100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.green800,
+        fillColor: colors.green300,
       }),
     ),
   },
@@ -251,11 +213,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-pbv-open",
     url: urlFor(
       buildPbvSvg({
-        borderColor: colors.gray700,
-        triangleColor: colors.gray300,
-        fillColor: colors.gray100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.gray700,
+        fillColor: colors.gray300,
       }),
     ),
   },
@@ -263,11 +222,8 @@ const iconUrls: IconUrl[] = [
     id: "valve-pbv-closed",
     url: urlFor(
       buildPbvSvg({
-        borderColor: colors.red700,
-        triangleColor: colors.red300,
-        fillColor: colors.red100,
-        width: 56,
-        height: 56,
+        triangleColor: colors.red700,
+        fillColor: colors.red300,
       }),
     ),
   },
