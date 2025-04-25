@@ -69,23 +69,29 @@ export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
   inpData.nodeIds.add(id);
 };
 
-export const parseValve: RowParser = ({ trimmedRow, inpData }) => {
+export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
   const [
     id,
     startNodeDirtyId,
     endNodeDirtyId,
     diameter,
-    valveType,
+    type,
     setting,
     minorLoss,
   ] = readValues(trimmedRow);
+
+  let valveType = type.toLowerCase();
+  if (valveType === "gpv") {
+    issues.addGPVUsed();
+    valveType = "tcv";
+  }
 
   inpData.valves.push({
     id,
     startNodeDirtyId,
     endNodeDirtyId,
     diameter: parseFloat(diameter),
-    valveType: valveType.toLowerCase() as ValveType,
+    valveType: valveType as ValveType,
     setting: parseFloat(setting),
     minorLoss: parseFloat(minorLoss),
   });
