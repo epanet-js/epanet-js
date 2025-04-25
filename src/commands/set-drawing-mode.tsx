@@ -9,6 +9,7 @@ export const drawingModeShorcuts = {
   "3": Mode.DRAW_PIPE,
   "4": Mode.DRAW_RESERVOIR,
   "5": Mode.DRAW_PUMP,
+  "6": Mode.DRAW_VALVE,
 };
 
 export const useDrawingMode = () => {
