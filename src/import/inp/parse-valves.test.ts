@@ -129,4 +129,28 @@ describe("parse valves", () => {
     ]);
     expect(hydraulicModel.topology.hasLink(v1.id)).toBeTruthy();
   });
+
+  it("reports warning when using GPVs", () => {
+    const type = "GPV";
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+
+    [VALVES]
+    v1\tj1\tj2\t${anyNumber}\t${type}\t${anyNumber}\t${anyNumber}
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${30}\t${40}
+    `;
+
+    const { issues, hydraulicModel } = parseInp(inp);
+
+    expect(issues!.gpvValves).toBeTruthy();
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.valveType).toEqual("tcv");
+  });
 });

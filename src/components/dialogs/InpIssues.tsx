@@ -331,6 +331,14 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
+          {issues.gpvValves && (
+            <div>
+              <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>- {translate("valueIgnored", "GPV", "TCV")}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ export type ParserIssues = {
     defaultSetting: string;
     customSetting: string;
   };
+  gpvValves?: boolean;
 };
 
 export class IssuesAccumulator {
@@ -24,6 +25,10 @@ export class IssuesAccumulator {
       this.issues.unsupportedSections = new Set<string>();
 
     this.issues.unsupportedSections.add(sectionName);
+  }
+
+  addGPVUsed() {
+    this.issues.gpvValves = true;
   }
 
   addUsedOption(optionName: string, defaultValue: number | string) {
