@@ -45,7 +45,7 @@ export type ValveBuildData = {
   minorLoss?: number;
   coordinates?: Position[];
   connections?: LinkConnections;
-  valveType?: ValveType;
+  kind?: ValveKind;
   setting?: number;
   initialStatus?: ValveStatus;
 };
@@ -71,7 +71,7 @@ import {
   Valve,
   ValveQuantity,
   ValveStatus,
-  ValveType,
+  ValveKind,
 } from "./asset-types/valve";
 
 export type DefaultQuantities = {
@@ -144,7 +144,7 @@ export class AssetBuilder {
     connections = nullConnections,
     diameter,
     minorLoss,
-    valveType = "tcv",
+    kind = "tcv",
     setting,
     initialStatus = "active",
   }: ValveBuildData = {}) {
@@ -161,8 +161,8 @@ export class AssetBuilder {
         length: 10,
         diameter: this.getValveValue("diameter", diameter),
         minorLoss: this.getValveValue("minorLoss", minorLoss),
-        valveType,
-        setting: this.getValveSetting(valveType, setting),
+        kind,
+        setting: this.getValveSetting(kind, setting),
         initialStatus,
       },
       this.units,
@@ -283,7 +283,7 @@ export class AssetBuilder {
     return this.defaults.valve[name] || 0;
   }
 
-  private getValveSetting(valveType: ValveType, candidate?: number) {
+  private getValveSetting(kind: ValveKind, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.valve["tcvSetting"] || 0;

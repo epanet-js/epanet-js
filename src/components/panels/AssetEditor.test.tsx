@@ -138,12 +138,12 @@ describe("AssetEditor", () => {
       });
     });
 
-    it("can change valve type", async () => {
+    it("can change valve kind", async () => {
       const valveId = "V1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aValve(valveId, {
           initialStatus: "active",
-          valveType: "fcv",
+          kind: "fcv",
           setting: 10,
         })
         .build();
@@ -166,7 +166,7 @@ describe("AssetEditor", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, valveId) as Valve).valveType,
+        (getLink(updatedHydraulicModel.assets, valveId) as Valve).kind,
       ).toEqual("psv");
 
       expect(selector).not.toHaveFocus();

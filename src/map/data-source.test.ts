@@ -301,7 +301,7 @@ describe("build icons source", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("p1")
         .aValve("v1", {
-          valveType: "prv",
+          kind: "prv",
           coordinates: [
             [10, 1],
             [20, 2],
@@ -320,7 +320,7 @@ describe("build icons source", () => {
       expect(features.length).toEqual(1);
       const { properties } = features[0];
       expect(properties?.type).toEqual("valve");
-      expect(properties?.valveType).toEqual("prv");
+      expect(properties?.kind).toEqual("prv");
       expect(properties?.icon).toEqual("valve-prv-active");
       expect(properties?.rotation).toBeCloseTo(84, 0.1);
       expect(properties?.selected).toBeFalsy();
@@ -336,7 +336,7 @@ describe("build icons source", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("p1")
         .aValve("v1", {
-          valveType: "prv",
+          kind: "prv",
           coordinates: [
             [10, 1],
             [20, 2],
