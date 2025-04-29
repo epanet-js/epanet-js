@@ -54,7 +54,7 @@ export const valveIcons = ({
   layerId,
 }: {
   source: DataSource;
-  layerId: LayerId;
+  layerId: string;
 }): AnyLayer[] => {
   return [
     {
@@ -72,7 +72,29 @@ export const valveIcons = ({
       minzoom: 10,
     } as CircleLayer,
     {
-      id: layerId,
+      id: layerId + "-isolation-valves",
+      type: "symbol",
+      source,
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 13, 0.1, 20, 0.4],
+        "icon-rotate": ["get", "rotation"],
+        "icon-allow-overlap": true,
+        "icon-rotation-alignment": "map",
+      },
+      filter: ["all", ["==", "type", "valve"], ["==", "isControlValve", false]],
+      paint: {
+        "icon-opacity": [
+          "case",
+          ["boolean", ["feature-state", "hidden"], false],
+          0,
+          1,
+        ],
+      },
+      minzoom: 13,
+    },
+    {
+      id: layerId + "-control-valves",
       type: "symbol",
       source,
       layout: {
@@ -82,7 +104,7 @@ export const valveIcons = ({
         "icon-allow-overlap": true,
         "icon-rotation-alignment": "map",
       },
-      filter: ["==", "type", "valve"],
+      filter: ["all", ["==", "type", "valve"], ["==", "isControlValve", true]],
       paint: {
         "icon-opacity": [
           "case",
