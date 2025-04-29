@@ -100,9 +100,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, {
-        FLAG_VALVE: true,
-      });
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
       const valve = results.getValve("v1") as ValveSimulation;
@@ -124,9 +122,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, {
-        FLAG_VALVE: true,
-      });
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("warning");
       const valve = results.getValve("v1") as ValveSimulation;

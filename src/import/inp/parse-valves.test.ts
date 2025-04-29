@@ -2,13 +2,8 @@ import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("parse valves", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_VALVE");
-  });
-
   it("parses a valve", () => {
     const valveId = "v1";
     const diameter = 10;

@@ -356,7 +356,7 @@ const inpWithUnsupportedFeatures = ({
   return `
     [JUNCTIONS]
     ${junctionId}\t10
-    [VALVES]
+    [UNSUPPORTED]
     ANY
     [COORDINATES]
     ${junctionId}\t1\t2

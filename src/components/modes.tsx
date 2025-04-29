@@ -13,68 +13,39 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { PumpIcon } from "src/custom-icons/pump-icon";
 import { ValveIcon } from "src/custom-icons/valve-icon";
-import { isFeatureOn } from "src/infra/feature-flags";
 
-const MODE_OPTIONS = isFeatureOn("FLAG_VALVE")
-  ? ([
-      {
-        mode: Mode.NONE,
-        hotkey: "1",
-        Icon: CursorArrowIcon,
-      },
-      {
-        mode: Mode.DRAW_JUNCTION,
-        hotkey: "2",
-        Icon: CircleIcon,
-      },
-      {
-        mode: Mode.DRAW_PIPE,
-        hotkey: "3",
-        Icon: StretchHorizontallyIcon,
-      },
-      {
-        mode: Mode.DRAW_RESERVOIR,
-        hotkey: "4",
-        Icon: VercelLogoIcon,
-      },
-      {
-        mode: Mode.DRAW_PUMP,
-        hotkey: "5",
-        Icon: () => <PumpIcon width={15} height={15} />,
-      },
-      {
-        mode: Mode.DRAW_VALVE,
-        hotkey: "6",
-        Icon: () => <ValveIcon width={15} height={15} />,
-      },
-    ] as const)
-  : ([
-      {
-        mode: Mode.NONE,
-        hotkey: "1",
-        Icon: CursorArrowIcon,
-      },
-      {
-        mode: Mode.DRAW_JUNCTION,
-        hotkey: "2",
-        Icon: CircleIcon,
-      },
-      {
-        mode: Mode.DRAW_PIPE,
-        hotkey: "3",
-        Icon: StretchHorizontallyIcon,
-      },
-      {
-        mode: Mode.DRAW_RESERVOIR,
-        hotkey: "4",
-        Icon: VercelLogoIcon,
-      },
-      {
-        mode: Mode.DRAW_PUMP,
-        hotkey: "5",
-        Icon: () => <PumpIcon width={15} height={15} />,
-      },
-    ] as const);
+const MODE_OPTIONS = [
+  {
+    mode: Mode.NONE,
+    hotkey: "1",
+    Icon: CursorArrowIcon,
+  },
+  {
+    mode: Mode.DRAW_JUNCTION,
+    hotkey: "2",
+    Icon: CircleIcon,
+  },
+  {
+    mode: Mode.DRAW_PIPE,
+    hotkey: "3",
+    Icon: StretchHorizontallyIcon,
+  },
+  {
+    mode: Mode.DRAW_RESERVOIR,
+    hotkey: "4",
+    Icon: VercelLogoIcon,
+  },
+  {
+    mode: Mode.DRAW_PUMP,
+    hotkey: "5",
+    Icon: () => <PumpIcon width={15} height={15} />,
+  },
+  {
+    mode: Mode.DRAW_VALVE,
+    hotkey: "6",
+    Icon: () => <ValveIcon width={15} height={15} />,
+  },
+] as const;
 
 export default memo(function Modes({
   replaceGeometryForId,
