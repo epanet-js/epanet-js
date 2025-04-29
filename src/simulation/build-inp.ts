@@ -194,25 +194,7 @@ export const buildInp = withInstrumentation(
       }
 
       if (asset.type === "pipe") {
-        const pipe = asset as Pipe;
-        const [nodeStart, nodeEnd] = pipe.connections;
-        sections.pipes.push(
-          [
-            idMap.linkId(pipe),
-            idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
-            idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
-            pipe.length,
-            pipe.diameter,
-            pipe.roughness,
-            pipe.minorLoss,
-            pipeStatusFor(pipe),
-          ].join("\t"),
-        );
-        if (geolocation) {
-          for (const vertex of pipe.intermediateVertices) {
-            sections.vertices.push([idMap.linkId(pipe), ...vertex].join("\t"));
-          }
-        }
+        appendPipe(sections, idMap, hydraulicModel, geolocation, asset as Pipe);
       }
 
       if (asset.type === "pump") {
@@ -257,6 +239,32 @@ export const buildInp = withInstrumentation(
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
+
+const appendPipe = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+  geolocation: boolean,
+  pipe: Pipe,
+) => {
+  const linkId = idMap.linkId(pipe);
+  const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
+  sections.pipes.push(
+    [
+      linkId,
+      startId,
+      endId,
+      pipe.length,
+      pipe.diameter,
+      pipe.roughness,
+      pipe.minorLoss,
+      pipeStatusFor(pipe),
+    ].join("\t"),
+  );
+  if (geolocation) {
+    appendLinkVertices(sections, idMap, pipe);
+  }
+};
 
 const appendPump = (
   sections: InpSections,
