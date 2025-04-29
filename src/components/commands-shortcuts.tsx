@@ -23,7 +23,7 @@ import {
   drawingModeShorcuts,
   useDrawingMode,
 } from "src/commands/set-drawing-mode";
-import { MODE_INFO } from "src/state/mode";
+import { MODE_INFO, Mode } from "src/state/mode";
 import {
   showSortcutsShortcut,
   useShowShortcuts,
@@ -238,7 +238,7 @@ export const CommandShortcuts = () => {
     `Toggle satellite`,
   );
 
-  for (const [shortcut, mode] of Object.entries(drawingModeShorcuts)) {
+  for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
     // eslint-disable-next-line
     useHotkeys(
       shortcut,
@@ -248,9 +248,9 @@ export const CommandShortcuts = () => {
         userTracking.capture({
           name: "drawingMode.enabled",
           source: "shortcut",
-          type: MODE_INFO[mode].name,
+          type: MODE_INFO[mode as Mode].name,
         });
-        void setDrawingMode(mode);
+        void setDrawingMode(mode as Mode);
       },
       [shortcut, mode, setDrawingMode],
       `Set ${mode} mode`,

@@ -3,13 +3,13 @@ import { useCallback } from "react";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 
-export const drawingModeShorcuts = {
-  "1": Mode.NONE,
-  "2": Mode.DRAW_JUNCTION,
-  "3": Mode.DRAW_PIPE,
-  "4": Mode.DRAW_RESERVOIR,
-  "5": Mode.DRAW_PUMP,
-  "6": Mode.DRAW_VALVE,
+export const drawingModeShorcuts: { [key in Mode]: string } = {
+  [Mode.NONE]: "1",
+  [Mode.DRAW_JUNCTION]: "2",
+  [Mode.DRAW_PIPE]: "3",
+  [Mode.DRAW_RESERVOIR]: "4",
+  [Mode.DRAW_PUMP]: "5",
+  [Mode.DRAW_VALVE]: "6",
 };
 
 export const useDrawingMode = () => {
