@@ -64,4 +64,23 @@ describe("report utils", () => {
     expect(output).toContain("Node J_19 and Pipe P56_LABEL");
     expect(output).toContain("Pump not working today");
   });
+
+  it("can refer labels referring to valves", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aValve("1", { label: "MY_VALVE" })
+      .aValve("20", { label: "OTHER" })
+      .build().assets;
+
+    const report = `
+    0:00:00: PRV 1 open but cannot deliver pressure
+    0:00:00: FCV 20 open but cannot deliver pressure
+    WARNING: PRV 1 open but cannot deliver pressure
+    `;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain("0:00:00: PRV MY_VALVE open but");
+    expect(output).toContain("0:00:00: FCV OTHER open but");
+    expect(output).toContain("WARNING: PRV MY_VALVE open but");
+  });
 });
