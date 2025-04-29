@@ -196,14 +196,14 @@ describe("Parse inp", () => {
 
   it("says when inp contains unsupported sections", () => {
     const inp = `
-    [VALVES]
+    [MIXING]
     ANY
     [NEW]
     `;
 
     const { issues } = parseInp(inp);
 
-    expect(issues!.unsupportedSections!.values()).toContain("[VALVES]");
+    expect(issues!.unsupportedSections!.values()).toContain("[MIXING]");
     expect(issues!.unsupportedSections!.values()).toContain("[NEW]");
   });
 
