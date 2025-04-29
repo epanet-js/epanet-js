@@ -324,6 +324,7 @@ describe("build icons source", () => {
       expect(properties?.icon).toEqual("valve-prv-active");
       expect(properties?.rotation).toBeCloseTo(84, 0.1);
       expect(properties?.selected).toBeFalsy();
+      expect(properties?.isControlValve).toBeTruthy();
 
       const geometry = features[0].geometry as Point;
       expect(geometry.type).toEqual("Point");

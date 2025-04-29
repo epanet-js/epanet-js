@@ -13,7 +13,8 @@ export type LayerId =
   | "valve-lines"
   | "imported-pump-icons"
   | "pump-icons"
-  | "valve-icons"
+  | "valve-icons-control-valves"
+  | "valve-icons-isolation-valves"
   | "reservoirs"
   | "imported-reservoirs"
   | "reservoirs-selected"
@@ -33,7 +34,8 @@ export const assetLayers: LayerId[] = [
   "imported-pump-lines",
   "pump-lines",
   "pump-icons",
-  "valve-icons",
+  "valve-icons-control-valves",
+  "valve-icons-isolation-valves",
   "imported-valve-lines",
   "valve-lines",
 ];

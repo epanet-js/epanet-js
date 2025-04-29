@@ -8,6 +8,7 @@ import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -103,6 +104,7 @@ export const buildIconPointsSource = (
           icon: `valve-${valve.kind}-${status}`,
           rotation: bearing,
           selected: selectedAssets.has(valve.id),
+          isControlValve: controlKinds.includes(valve.kind),
         },
         geometry: {
           type: "Point",

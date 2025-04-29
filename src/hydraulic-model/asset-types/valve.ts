@@ -8,6 +8,7 @@ export type ValveStatusWarning =
   | "cannot-deliver-pressure";
 
 export const valveKinds = ["prv", "psv", "fcv", "pbv", "tcv"] as const;
+export const controlKinds = ["prv", "psv", "fcv", "pbv"];
 export type ValveKind = (typeof valveKinds)[number];
 
 export type ValveProperties = {
