@@ -216,42 +216,7 @@ export const buildInp = withInstrumentation(
       }
 
       if (asset.type === "pump") {
-        const pump = asset as Pump;
-        const [nodeStart, nodeEnd] = pump.connections;
-        const linkId = idMap.linkId(pump);
-        if (pump.definitionType === "flow-vs-head") {
-          sections.pumps.push(
-            [
-              linkId,
-              idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
-              idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
-              `HEAD ${pump.id}`,
-              `SPEED ${pump.speed}`,
-            ].join("\t"),
-          );
-          sections.curves.push(
-            [pump.id, String(pump.designFlow), String(pump.designHead)].join(
-              "\t",
-            ),
-          );
-        } else {
-          sections.pumps.push(
-            [
-              linkId,
-              idMap.nodeId(hydraulicModel.assets.get(nodeStart) as NodeAsset),
-              idMap.nodeId(hydraulicModel.assets.get(nodeEnd) as NodeAsset),
-              `POWER ${pump.power}`,
-              `SPEED ${pump.speed}`,
-            ].join("\t"),
-          );
-        }
-
-        sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
-        if (geolocation) {
-          for (const vertex of pump.intermediateVertices) {
-            sections.vertices.push([idMap.linkId(pump), ...vertex].join("\t"));
-          }
-        }
+        appendPump(sections, idMap, hydraulicModel, geolocation, asset as Pump);
       }
 
       if (asset.type === "valve") {
@@ -292,6 +257,42 @@ export const buildInp = withInstrumentation(
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
+
+const appendPump = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+  geolocation: boolean,
+  pump: Pump,
+) => {
+  const linkId = idMap.linkId(pump);
+  const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
+  if (pump.definitionType === "flow-vs-head") {
+    sections.pumps.push(
+      [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
+        "\t",
+      ),
+    );
+    sections.curves.push(
+      [pump.id, String(pump.designFlow), String(pump.designHead)].join("\t"),
+    );
+  } else {
+    sections.pumps.push(
+      [
+        linkId,
+        startId,
+        endId,
+        `POWER ${pump.power}`,
+        `SPEED ${pump.speed}`,
+      ].join("\t"),
+    );
+  }
+
+  sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
+  if (geolocation) {
+    appendLinkVertices(sections, idMap, pump);
+  }
+};
 
 const appendValve = (
   sections: InpSections,
