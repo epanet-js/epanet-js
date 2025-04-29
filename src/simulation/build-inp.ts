@@ -169,28 +169,11 @@ export const buildInp = withInstrumentation(
 
     for (const asset of hydraulicModel.assets.values()) {
       if (asset.type === "reservoir") {
-        const reservoir = asset as Reservoir;
-        const reservoirId = idMap.nodeId(reservoir);
-
-        sections.reservoirs.push([reservoirId, reservoir.head].join("\t"));
-        if (geolocation) {
-          sections.coordinates.push(
-            [reservoirId, ...reservoir.coordinates].join("\t"),
-          );
-        }
+        appendReservoir(sections, idMap, geolocation, asset as Reservoir);
       }
 
       if (asset.type === "junction") {
-        const junction = asset as Junction;
-        const junctionId = idMap.nodeId(junction);
-
-        sections.junctions.push([junctionId, junction.elevation].join("\t"));
-        sections.demands.push([junctionId, junction.demand].join("\t"));
-        if (geolocation) {
-          sections.coordinates.push(
-            [junctionId, ...junction.coordinates].join("\t"),
-          );
-        }
+        appendJunction(sections, idMap, geolocation, asset as Junction);
       }
 
       if (asset.type === "pipe") {
@@ -239,6 +222,35 @@ export const buildInp = withInstrumentation(
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
+
+const appendReservoir = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  geolocation: boolean,
+  reservoir: Reservoir,
+) => {
+  const reservoirId = idMap.nodeId(reservoir);
+
+  sections.reservoirs.push([reservoirId, reservoir.head].join("\t"));
+  if (geolocation) {
+    appendNodeCoordinates(sections, idMap, reservoir);
+  }
+};
+
+const appendJunction = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  geolocation: boolean,
+  junction: Junction,
+) => {
+  const junctionId = idMap.nodeId(junction);
+
+  sections.junctions.push([junctionId, junction.elevation].join("\t"));
+  sections.demands.push([junctionId, junction.demand].join("\t"));
+  if (geolocation) {
+    appendNodeCoordinates(sections, idMap, junction);
+  }
+};
 
 const appendPipe = (
   sections: InpSections,
@@ -345,6 +357,16 @@ const getLinkConnectionIds = (
   );
 
   return [startNodeId, endNodeId];
+};
+
+const appendNodeCoordinates = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  node: NodeAsset,
+) => {
+  sections.coordinates.push(
+    [idMap.nodeId(node), ...node.coordinates].join("\t"),
+  );
 };
 
 const appendLinkVertices = (
