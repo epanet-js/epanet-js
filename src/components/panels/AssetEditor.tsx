@@ -59,8 +59,8 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
   ValveStatus,
-  ValveType,
-  valveTypes,
+  ValveKind,
+  valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
 
 export function AssetEditor({
@@ -141,17 +141,17 @@ const AssetEditorInner = ({
     });
   };
 
-  const handleValveTypeChange = (newType: ValveType, oldType: ValveType) => {
+  const handleValveKindChange = (newType: ValveKind, oldType: ValveKind) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
-      property: "valveType",
+      property: "kind",
       value: newType,
     });
     transact(moment);
     userTracking.capture({
       name: "assetDefinitionType.edited",
       type: asset.type,
-      property: "valveType",
+      property: "kind",
       newType: newType,
       oldType: oldType,
     });
@@ -235,7 +235,7 @@ const AssetEditorInner = ({
           onPropertyChange={handlePropertyChange}
           quantitiesMetadata={quantitiesMetadata}
           onStatusChange={handleStatusChange}
-          onTypeChange={handleValveTypeChange}
+          onTypeChange={handleValveKindChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -395,7 +395,7 @@ const ValveEditor = ({
   quantitiesMetadata: Quantities;
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
-  onTypeChange: OnTypeChange<ValveType>;
+  onTypeChange: OnTypeChange<ValveKind>;
 }) => {
   const statusText = translate(valveStatusLabel(valve));
 
@@ -407,12 +407,12 @@ const ValveEditor = ({
     ] as { label: string; value: ValveStatus }[];
   }, []);
 
-  const valveTypeOptions = useMemo(() => {
-    return valveTypes.map((type) => {
+  const kindOptions = useMemo(() => {
+    return valveKinds.map((kind) => {
       return {
-        label: type.toUpperCase(),
-        description: translate(`valve.${type}.detailed`),
-        value: type,
+        label: kind.toUpperCase(),
+        description: translate(`valve.${kind}.detailed`),
+        value: kind,
       };
     });
   }, []);
@@ -435,13 +435,13 @@ const ValveEditor = ({
               />
               <SelectRow
                 name="valveType"
-                selected={valve.valveType}
-                options={valveTypeOptions}
+                selected={valve.kind}
+                options={kindOptions}
                 onChange={(name, newType, oldType) =>
                   onTypeChange(newType, oldType)
                 }
               />
-              {valve.valveType === "tcv" && (
+              {valve.kind === "tcv" && (
                 <QuantityRow
                   name="setting"
                   value={valve.setting}
@@ -449,7 +449,7 @@ const ValveEditor = ({
                   onChange={onPropertyChange}
                 />
               )}
-              {["psv", "prv", "pbv"].includes(valve.valveType) && (
+              {["psv", "prv", "pbv"].includes(valve.kind) && (
                 <QuantityRow
                   name="setting"
                   value={valve.setting}
@@ -457,7 +457,7 @@ const ValveEditor = ({
                   onChange={onPropertyChange}
                 />
               )}
-              {valve.valveType === "fcv" && (
+              {valve.kind === "fcv" && (
                 <QuantityRow
                   name="setting"
                   value={valve.setting}
@@ -726,7 +726,7 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
-const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveType>({
+const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
   name,
   label = translate(name),
   selected,

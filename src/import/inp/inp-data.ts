@@ -3,7 +3,7 @@ import {
   HeadlossFormula,
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
-import { ValveType } from "src/hydraulic-model/asset-types/valve";
+import { ValveKind } from "src/hydraulic-model/asset-types/valve";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type PipeData = {
@@ -51,7 +51,7 @@ export type ValveData = {
   startNodeDirtyId: string;
   endNodeDirtyId: string;
   diameter: number;
-  valveType: ValveType;
+  kind: ValveKind;
   setting: number;
   minorLoss: number;
 };

@@ -327,7 +327,7 @@ const appendValve = (
       linkId,
       ...getLinkConnectionIds(hydraulicModel, idMap, valve),
       String(valve.diameter),
-      valveTypeFor(valve),
+      kindFor(valve),
       String(valve.setting),
       String(valve.minorLoss),
     ].join("\t"),
@@ -407,6 +407,6 @@ const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
   }
 };
 
-const valveTypeFor = (valve: Valve): EpanetValveType => {
-  return valve.valveType.toUpperCase() as EpanetValveType;
+const kindFor = (valve: Valve): EpanetValveType => {
+  return valve.kind.toUpperCase() as EpanetValveType;
 };

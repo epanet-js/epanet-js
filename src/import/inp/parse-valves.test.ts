@@ -34,7 +34,7 @@ describe("parse valves", () => {
     const j1 = getByLabel(hydraulicModel.assets, "j1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "j2") as Junction;
     expect(valve.initialStatus).toEqual("active");
-    expect(valve.valveType).toEqual("fcv");
+    expect(valve.kind).toEqual("fcv");
     expect(valve.setting).toEqual(0.2);
     expect(valve.diameter).toEqual(10);
     expect(valve.minorLoss).toEqual(0.5);
@@ -114,7 +114,7 @@ describe("parse valves", () => {
     const j1 = getByLabel(hydraulicModel.assets, "j1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "j2") as Junction;
     expect(v1.initialStatus).toEqual("closed");
-    expect(v1.valveType).toEqual("fcv");
+    expect(v1.kind).toEqual("fcv");
     expect(v1.connections).toEqual([j1.id, j2.id]);
     expect(v1.coordinates).toEqual([
       [10, 20],
@@ -146,6 +146,6 @@ describe("parse valves", () => {
     expect(issues!.gpvValves).toBeTruthy();
 
     const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
-    expect(v1.valveType).toEqual("tcv");
+    expect(v1.kind).toEqual("tcv");
   });
 });

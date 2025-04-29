@@ -83,7 +83,7 @@ describe("build inp", () => {
         initialStatus: "active",
         setting: 10,
         diameter: 20,
-        valveType: "tcv",
+        kind: "tcv",
         minorLoss: 0.1,
       })
       .aValve("valve2", {
@@ -92,7 +92,7 @@ describe("build inp", () => {
         initialStatus: "closed",
         setting: 12,
         diameter: 22,
-        valveType: "tcv",
+        kind: "tcv",
         minorLoss: 0.2,
       })
       .build();

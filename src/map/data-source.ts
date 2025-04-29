@@ -99,8 +99,8 @@ export const buildIconPointsSource = (
         id: featureId,
         properties: {
           type: valve.type,
-          valveType: valve.valveType,
-          icon: `valve-${valve.valveType}-${status}`,
+          kind: valve.kind,
+          icon: `valve-${valve.kind}-${status}`,
           rotation: bearing,
           selected: selectedAssets.has(valve.id),
         },

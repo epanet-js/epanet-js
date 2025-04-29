@@ -6,7 +6,7 @@ import {
 import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
-import { ValveType } from "src/hydraulic-model/asset-types/valve";
+import { ValveKind } from "src/hydraulic-model/asset-types/valve";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -80,10 +80,10 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
     minorLoss,
   ] = readValues(trimmedRow);
 
-  let valveType = type.toLowerCase();
-  if (valveType === "gpv") {
+  let kind = type.toLowerCase();
+  if (kind === "gpv") {
     issues.addGPVUsed();
-    valveType = "tcv";
+    kind = "tcv";
   }
 
   inpData.valves.push({
@@ -91,7 +91,7 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
     startNodeDirtyId,
     endNodeDirtyId,
     diameter: parseFloat(diameter),
-    valveType: valveType as ValveType,
+    kind: kind as ValveKind,
     setting: parseFloat(setting),
     minorLoss: parseFloat(minorLoss),
   });

@@ -85,7 +85,7 @@ const appendValveStats = (
   valve: Valve,
   quantitiesMetadata: Quantities,
 ) => {
-  updateCategoryStats(statsMap, "valveType", `valve.${valve.valveType}`);
+  updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
   if (valve.status !== null)
     updateCategoryStats(statsMap, "valveStatus", valveStatusLabel(valve));
   if (valve.velocity !== null)

@@ -259,7 +259,7 @@ const addValve = (
     label: valveData.id,
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
-    valveType: valveData.valveType,
+    kind: valveData.kind,
     setting: valveData.setting,
     initialStatus,
     connections,

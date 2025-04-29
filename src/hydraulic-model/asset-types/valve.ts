@@ -7,14 +7,14 @@ export type ValveStatusWarning =
   | "cannot-deliver-flow"
   | "cannot-deliver-pressure";
 
-export const valveTypes = ["prv", "psv", "fcv", "pbv", "tcv"] as const;
-export type ValveType = (typeof valveTypes)[number];
+export const valveKinds = ["prv", "psv", "fcv", "pbv", "tcv"] as const;
+export type ValveKind = (typeof valveKinds)[number];
 
 export type ValveProperties = {
   type: "valve";
   diameter: number;
   minorLoss: number;
-  valveType: ValveType;
+  kind: ValveKind;
   setting: number;
   initialStatus: ValveStatus;
 } & LinkProperties;
@@ -49,8 +49,8 @@ export class Valve extends Link<ValveProperties> {
     return this.properties.minorLoss;
   }
 
-  get valveType() {
-    return this.properties.valveType;
+  get kind() {
+    return this.properties.kind;
   }
 
   get setting() {
