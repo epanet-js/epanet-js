@@ -11,7 +11,6 @@ import {
   InterpolateOption,
   RampChoices,
   RampPreview,
-  SimpleStyleOption,
 } from "../panels/symbolization_editor";
 import { atom, useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
@@ -363,7 +362,6 @@ const RampWizard = ({
           return (
             <Form className="space-y-4">
               {formError && <InlineError>{formError}</InlineError>}
-              <SimpleStyleOption />
               <FieldArray name="stops">
                 {(arrayHelpers: ArrayHelpers) => (
                   <div
