@@ -2,7 +2,6 @@ import { CaretDownIcon, ColorWheelIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import {
   DoneButton,
-  InterpolateOption,
   RampChoices,
   RampPreview,
 } from "../panels/symbolization_editor";
@@ -269,9 +268,6 @@ const RampWizard = ({
                                             );
                                           })}
                                         </Field>
-                                      </label>
-                                      <label className="block">
-                                        <InterpolateOption />
                                       </label>
                                     </div>
                                     <div>
