@@ -203,17 +203,27 @@ export function RampChoice({
   form,
   ramp,
   field,
+  onSelect,
 }: {
   form: FormikProps<any>;
   ramp: CBColors;
   field: FieldInputProps<string>;
+  onSelect?: (name: string) => void;
 }) {
   return (
     <label
       key={ramp.name}
       className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200"
     >
-      <input className="hidden" type="radio" {...field} value={ramp.name} />
+      <input
+        className="hidden"
+        type="radio"
+        {...field}
+        value={ramp.name}
+        onChange={() => {
+          onSelect && onSelect(ramp.name);
+        }}
+      />
       <RampPreview
         name={ramp.name}
         classes={form.values.classes || DEFAULT_CLASSES}
@@ -283,10 +293,12 @@ export function SimpleStyleOption() {
 export function RampChoices({
   label,
   colors,
+  onSelect,
   fieldProps,
 }: {
   label: string;
   colors: CBColors[];
+  onSelect?: (name: string) => void;
   fieldProps: FieldProps<string>;
 }) {
   return (
@@ -299,6 +311,7 @@ export function RampChoices({
               key={ramp.name}
               form={fieldProps.form}
               ramp={ramp}
+              onSelect={onSelect}
               field={fieldProps.field}
             />
           );

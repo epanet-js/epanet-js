@@ -1,5 +1,6 @@
 import { CaretDownIcon, ColorWheelIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
+import debounce from "lodash/debounce";
 import {
   DoneButton,
   RampChoices,
@@ -7,7 +8,7 @@ import {
 } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
-import { Fragment, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
 import {
   PopoverContent2,
@@ -38,10 +39,9 @@ import * as d3 from "d3-array";
 import { lerp } from "src/lib/utils";
 import * as P from "@radix-ui/react-popover";
 import { InlineError } from "../inline_error";
-import { ColorPopoverField } from "../color_popover";
+import { ColorPopover } from "../color_popover";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
-import { useAutoSubmit } from "src/hooks/use_auto_submit";
 import { translate, translateUnit } from "src/infra/i18n";
 
 export const SymbolizationDialog = () => {
@@ -83,6 +83,17 @@ export function SymbolizationEditor() {
   );
 }
 
+const generateLinearStops = (dataValues: number[], colors: string[]) => {
+  const values = dataValues.length > 1 ? dataValues : [0, 100];
+  const [min, max] = d3.extent(values) as [number, number];
+  return colors.map((output, i, arr) => {
+    return {
+      input: +lerp(min, max, i / (arr.length - 1)).toFixed(4),
+      output,
+    };
+  });
+};
+
 const RampWizard = ({
   symbolization,
   onChange,
@@ -98,71 +109,109 @@ const RampWizard = ({
     return getNumericPropertyMap([...assets.values()].filter((a) => a.isNode));
   }, [assets]);
 
+  const [stops, setStops] = useState<ISymbolizationRamp["stops"]>(
+    symbolization.stops,
+  );
+
+  const debouncedSubmit = useCallback(
+    debounce((newSymbolization: ISymbolizationRamp) => {
+      onChange(newSymbolization);
+    }, 100),
+    [onChange],
+  );
+
+  const handleStopColorChange = (index: number, color: string) => {
+    const newStops = symbolization.stops.map((stop, i) => {
+      if (i !== index) return stop;
+
+      return { ...stop, output: color };
+    });
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      stops: newStops,
+    });
+  };
+
+  const handleStopValueChange = (index: number, value: number) => {
+    const newStops = symbolization.stops.map((stop, i) => {
+      if (i !== index) return stop;
+
+      return { ...stop, input: value };
+    });
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      stops: newStops,
+    });
+  };
+
+  const handleStepsCountChange = (value: number) => {
+    const ramp = COLORBREWER_ALL.find(
+      (ramp) => ramp.name === symbolization.rampName,
+    )!;
+
+    const colors = ramp.colors[value as keyof CBColors["colors"]] as string[];
+    const dataValues = options.get(symbolization.property)! || [];
+    const newStops = generateLinearStops(dataValues, colors);
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      stops: newStops,
+    });
+  };
+
+  const handleRampChange = (newRampName: string) => {
+    const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === newRampName)!;
+
+    const count = symbolization.stops.length;
+    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
+    const dataValues = options.get(symbolization.property)! || [];
+    const newStops = generateLinearStops(dataValues, colors);
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      rampName: newRampName,
+      stops: newStops,
+    });
+  };
+
+  const handlePropertyChange = (property: string) => {
+    const ramp = COLORBREWER_ALL.find(
+      (ramp) => ramp.name === symbolization.rampName,
+    )!;
+    const count = symbolization.stops.length;
+    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
+    const dataValues = options.get(property)! || [];
+    const newStops = generateLinearStops(dataValues, colors);
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      property,
+      stops: newStops,
+    });
+  };
+
   return (
     <div>
-      <Formik<ISymbolizationRamp & { classes: number }>
-        onSubmit={(values) => {
-          const ramp = COLORBREWER_ALL.find(
-            (ramp) => ramp.name === values.rampName,
-          )!;
-          const dataValues = options.get(values.property)! || [];
-          const colors = ramp.colors[
-            values.classes as keyof CBColors["colors"]
-          ] as string[];
-
-          function getStopsLinear({ colors }: { colors: string[] }) {
-            const [min, max] = d3.extent(dataValues) as [number, number];
-            return colors.map((output, i, arr) => {
-              return {
-                input: +lerp(min, max, i / (arr.length - 1)).toFixed(4),
-                output,
-              };
-            });
-          }
-
-          const newSymbolization: ISymbolizationRamp = {
-            type: "ramp",
-            simplestyle: values.simplestyle,
-            property: values.property,
-            interpolate: values.interpolate,
-            rampName: values.rampName,
-            defaultColor: values.defaultColor,
-            defaultOpacity: values.defaultOpacity,
-            stops: getStopsLinear({ colors }),
-          };
-          values.stops = newSymbolization.stops;
-          onChange(newSymbolization);
-        }}
-        validate={(values) => {
-          const errors: Record<string, string> = {};
-          let lastValue: null | number = values.stops[0]?.input;
-          for (let i = 1; i < values.stops.length; i++) {
-            const thisValue = values.stops[i].input;
-            if (thisValue < lastValue) {
-              errors[`stops`] =
-                "Ramp input values need to be in ascending order.";
-            }
-            lastValue = thisValue;
-          }
-          return errors;
-        }}
-        initialValues={{
-          ...symbolization,
-          classes: symbolization.stops.length,
-        }}
-        key={JSON.stringify(symbolization)}
-      >
-        {({ values }) => {
+      <Formik onSubmit={() => {}} initialValues={{}}>
+        {() => {
           return (
             <Form className="space-y-4">
-              <AutoSubmit />
               <FieldArray name="stops">
                 {() => (
                   <div className="grid grid-cols-2 gap-4 w-full">
                     <div>
                       <div className="font-normal pb-4">
-                        {translate(values.property)}{" "}
-                        {values.unit ? `(${translateUnit(values.unit)})` : ""}
+                        {translate(symbolization.property)}{" "}
+                        {symbolization.unit
+                          ? `(${translateUnit(symbolization.unit)})`
+                          : ""}
                       </div>
                       <div
                         className="w-full grid gap-2 items-center dark:text-white"
@@ -170,28 +219,26 @@ const RampWizard = ({
                           gridTemplateColumns: "1fr 1fr",
                         }}
                       >
-                        {values.stops.map((stop, i) => {
+                        {stops.map((stop, i) => {
                           return (
-                            <Fragment key={`${stop.input}-${stop.output}-${i}`}>
-                              <div>
-                                <Field
-                                  component={ColorPopoverField}
-                                  name={`stops.${i}.output`}
-                                  _size="sm"
-                                  className={inputClass({
-                                    _size: "sm",
-                                  })}
-                                />
-                              </div>
-                              <div>
-                                <Field
-                                  name={`stops.${i}.input`}
-                                  type="number"
-                                  className={inputClass({
-                                    _size: "sm",
-                                  })}
-                                />
-                              </div>
+                            <Fragment key={i}>
+                              <ColorPopover
+                                color={stop.output}
+                                onChange={(color) => {
+                                  handleStopColorChange(i, color);
+                                }}
+                              />
+                              <input
+                                className={inputClass({ _size: "sm" })}
+                                value={stop.input}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  const numericValue = Number(value);
+                                  if (isNaN(numericValue)) return;
+
+                                  handleStopValueChange(i, numericValue);
+                                }}
+                              />
                             </Fragment>
                           );
                         })}
@@ -202,10 +249,12 @@ const RampWizard = ({
                         <div className="">
                           <StyledLabelSpan>Input property</StyledLabelSpan>
                         </div>
-                        <Field
-                          as="select"
-                          name="property"
+                        <select
                           className={styledSelect({ size: "sm" }) + " w-full"}
+                          name="property"
+                          onChange={(event) => {
+                            handlePropertyChange(event.target.value);
+                          }}
                         >
                           {Array.from(options.keys(), (cat) => {
                             return (
@@ -218,20 +267,22 @@ const RampWizard = ({
                               </option>
                             );
                           })}
-                        </Field>
+                        </select>
                       </label>
                       <div>
                         <StyledLabelSpan>Ramp</StyledLabelSpan>
                         <Field name="rampName">
                           {(fieldProps: FieldProps<string>) => {
-                            const { field, form } = fieldProps;
                             return (
                               <P.Root>
                                 <StyledPopoverTrigger>
                                   <RampPreview
-                                    name={field.value}
-                                    classes={form.values.classes}
-                                    interpolate={form.values.interpolate}
+                                    name={symbolization.rampName}
+                                    classes={
+                                      symbolization.stops
+                                        .length as keyof CBColors["colors"]
+                                    }
+                                    interpolate={symbolization.interpolate}
                                   />
                                   <CaretDownIcon className="w-5 h-5 flex-shrink-0" />
                                 </StyledPopoverTrigger>
@@ -248,26 +299,35 @@ const RampWizard = ({
                                         <StyledLabelSpan>
                                           Classes
                                         </StyledLabelSpan>
-                                        <Field
-                                          as="select"
-                                          name="classes"
-                                          required
+                                        <select
                                           className={
                                             styledSelect({ size: "sm" }) +
                                             " w-full"
                                           }
+                                          onChange={(event) => {
+                                            const numericValue = Number(
+                                              event.target.value,
+                                            );
+                                            handleStepsCountChange(
+                                              numericValue,
+                                            );
+                                          }}
                                         >
                                           {d3.range(3, 8).map((count) => {
                                             return (
                                               <option
                                                 key={count}
                                                 value={String(count)}
+                                                selected={
+                                                  count ===
+                                                  symbolization.stops.length
+                                                }
                                               >
                                                 {count}
                                               </option>
                                             );
                                           })}
-                                        </Field>
+                                        </select>
                                       </label>
                                     </div>
                                     <div>
@@ -275,11 +335,13 @@ const RampWizard = ({
                                         label="Continuous (ColorBrewer)"
                                         colors={COLORBREWER_SEQUENTIAL}
                                         fieldProps={fieldProps}
+                                        onSelect={handleRampChange}
                                       />
                                       <RampChoices
                                         label="Continuous (CARTO Colors)"
                                         colors={CARTO_COLOR_SEQUENTIAL}
                                         fieldProps={fieldProps}
+                                        onSelect={handleRampChange}
                                       />
                                     </div>
                                     <div>
@@ -287,10 +349,12 @@ const RampWizard = ({
                                         label="Diverging (ColorBrewer)"
                                         colors={COLORBREWER_DIVERGING}
                                         fieldProps={fieldProps}
+                                        onSelect={handleRampChange}
                                       />
                                       <RampChoices
                                         label="Diverging (CARTO Colors)"
                                         colors={CARTO_COLOR_DIVERGING}
+                                        onSelect={handleRampChange}
                                         fieldProps={fieldProps}
                                       />
                                     </div>
@@ -313,11 +377,6 @@ const RampWizard = ({
       </Formik>
     </div>
   );
-};
-
-const AutoSubmit = () => {
-  useAutoSubmit(300);
-  return null;
 };
 
 const nodeProperties = ["pressure", "elevation"];
