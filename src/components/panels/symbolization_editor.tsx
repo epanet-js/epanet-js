@@ -200,15 +200,48 @@ export function RampPreview({
  * Hidden input and label that previews the given ramp.
  */
 export function RampChoice({
+  ramp,
+  size = DEFAULT_CLASSES,
+  onSelect,
+}: {
+  ramp: CBColors;
+  onSelect?: (name: string) => void;
+  size?: keyof CBColors["colors"];
+}) {
+  return (
+    <label
+      key={ramp.name}
+      className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200"
+    >
+      <input
+        className="hidden"
+        type="radio"
+        value={ramp.name}
+        onChange={() => {
+          onSelect && onSelect(ramp.name);
+        }}
+      />
+      <RampPreview
+        name={ramp.name}
+        classes={size || DEFAULT_CLASSES}
+        interpolate={"step"}
+      />
+    </label>
+  );
+}
+
+export function RampChoiceDeprecated({
   form,
   ramp,
   field,
+  size = DEFAULT_CLASSES,
   onSelect,
 }: {
   form: FormikProps<any>;
   ramp: CBColors;
   field: FieldInputProps<string>;
   onSelect?: (name: string) => void;
+  size?: keyof CBColors["colors"];
 }) {
   return (
     <label
@@ -226,7 +259,7 @@ export function RampChoice({
       />
       <RampPreview
         name={ramp.name}
-        classes={form.values.classes || DEFAULT_CLASSES}
+        classes={size || DEFAULT_CLASSES}
         interpolate={form.values.interpolate || "step"}
       />
     </label>
@@ -294,12 +327,12 @@ export function RampChoices({
   label,
   colors,
   onSelect,
-  fieldProps,
+  size = DEFAULT_CLASSES,
 }: {
   label: string;
   colors: CBColors[];
   onSelect?: (name: string) => void;
-  fieldProps: FieldProps<string>;
+  size?: keyof CBColors["colors"];
 }) {
   return (
     <>
@@ -309,8 +342,41 @@ export function RampChoices({
           return (
             <RampChoice
               key={ramp.name}
+              ramp={ramp}
+              size={size}
+              onSelect={onSelect}
+            />
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+export function RampChoicesDeprecated({
+  label,
+  colors,
+  onSelect,
+  fieldProps,
+  size = DEFAULT_CLASSES,
+}: {
+  label: string;
+  colors: CBColors[];
+  onSelect?: (name: string) => void;
+  size?: keyof CBColors["colors"];
+  fieldProps: FieldProps<string>;
+}) {
+  return (
+    <>
+      <StyledLabelSpan>{label}</StyledLabelSpan>
+      <div className="grid gap-x-2 gap-y-2 grid-cols-3">
+        {colors.map((ramp) => {
+          return (
+            <RampChoiceDeprecated
+              key={ramp.name}
               form={fieldProps.form}
               ramp={ramp}
+              size={size}
               onSelect={onSelect}
               field={fieldProps.field}
             />
@@ -495,24 +561,24 @@ export function RampWizard() {
                             </label>
                           </div>
                           <div>
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Continuous (ColorBrewer)"
                               colors={COLORBREWER_SEQUENTIAL}
                               fieldProps={fieldProps}
                             />
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Continuous (CARTO Colors)"
                               colors={CARTO_COLOR_SEQUENTIAL}
                               fieldProps={fieldProps}
                             />
                           </div>
                           <div>
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Diverging (ColorBrewer)"
                               colors={COLORBREWER_DIVERGING}
                               fieldProps={fieldProps}
                             />
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Diverging (CARTO Colors)"
                               colors={CARTO_COLOR_DIVERGING}
                               fieldProps={fieldProps}
@@ -758,14 +824,14 @@ export function CategoryWizard() {
                         <StyledPopoverArrow />
                         <div className="space-y-2">
                           <div>
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Qualitative (Colorbrewer)"
                               colors={COLORBREWER_QUAL}
                               fieldProps={fieldProps}
                             />
                           </div>
                           <div>
-                            <RampChoices
+                            <RampChoicesDeprecated
                               label="Qualitative (CARTO Colors)"
                               colors={CARTO_COLOR_QUALITATIVE}
                               fieldProps={fieldProps}

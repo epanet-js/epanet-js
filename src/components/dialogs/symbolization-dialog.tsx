@@ -1,32 +1,21 @@
-import { CaretDownIcon, ColorWheelIcon } from "@radix-ui/react-icons";
+import { ColorWheelIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import debounce from "lodash/debounce";
-import {
-  DoneButton,
-  RampChoices,
-  RampPreview,
-} from "../panels/symbolization_editor";
+import { DoneButton, RampChoices } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
 import {
+  Button,
   PopoverContent2,
   StyledLabelSpan,
   StyledPopoverArrow,
-  StyledPopoverTrigger,
   inputClass,
   styledSelect,
 } from "../elements";
 import { dataAtom } from "src/state/jotai";
-import {
-  ErrorMessage,
-  Field,
-  FieldArray,
-  FieldProps,
-  Form,
-  Formik,
-} from "formik";
+import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
@@ -180,22 +169,7 @@ const RampWizard = ({
     });
   };
 
-  const handlePropertyChange = (property: string) => {
-    const ramp = COLORBREWER_ALL.find(
-      (ramp) => ramp.name === symbolization.rampName,
-    )!;
-    const count = symbolization.stops.length;
-    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
-    const dataValues = options.get(property)! || [];
-    const newStops = generateLinearStops(dataValues, colors);
-
-    setStops(newStops);
-    debouncedSubmit({
-      ...symbolization,
-      property,
-      stops: newStops,
-    });
-  };
+  const rampSize = symbolization.stops.length as keyof CBColors["colors"];
 
   return (
     <div>
@@ -245,126 +219,12 @@ const RampWizard = ({
                       </div>
                     </div>
                     <div>
-                      <label className="block">
-                        <div className="">
-                          <StyledLabelSpan>Input property</StyledLabelSpan>
-                        </div>
-                        <select
-                          className={styledSelect({ size: "sm" }) + " w-full"}
-                          name="property"
-                          onChange={(event) => {
-                            handlePropertyChange(event.target.value);
-                          }}
-                        >
-                          {Array.from(options.keys(), (cat) => {
-                            return (
-                              <option
-                                key={cat}
-                                value={cat}
-                                selected={cat === symbolization.property}
-                              >
-                                {cat}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </label>
-                      <div>
-                        <StyledLabelSpan>Ramp</StyledLabelSpan>
-                        <Field name="rampName">
-                          {(fieldProps: FieldProps<string>) => {
-                            return (
-                              <P.Root>
-                                <StyledPopoverTrigger>
-                                  <RampPreview
-                                    name={symbolization.rampName}
-                                    classes={
-                                      symbolization.stops
-                                        .length as keyof CBColors["colors"]
-                                    }
-                                    interpolate={symbolization.interpolate}
-                                  />
-                                  <CaretDownIcon className="w-5 h-5 flex-shrink-0" />
-                                </StyledPopoverTrigger>
-                                <PopoverContent2 side="left">
-                                  <StyledPopoverArrow />
-                                  <div
-                                    style={{
-                                      maxHeight: 480,
-                                    }}
-                                    className="space-y-2 p-1 overflow-y-auto placemark-scrollbar"
-                                  >
-                                    <div className="grid grid-cols-2 gap-x-2">
-                                      <label className="block">
-                                        <StyledLabelSpan>
-                                          Classes
-                                        </StyledLabelSpan>
-                                        <select
-                                          className={
-                                            styledSelect({ size: "sm" }) +
-                                            " w-full"
-                                          }
-                                          onChange={(event) => {
-                                            const numericValue = Number(
-                                              event.target.value,
-                                            );
-                                            handleStepsCountChange(
-                                              numericValue,
-                                            );
-                                          }}
-                                        >
-                                          {d3.range(3, 8).map((count) => {
-                                            return (
-                                              <option
-                                                key={count}
-                                                value={String(count)}
-                                                selected={
-                                                  count ===
-                                                  symbolization.stops.length
-                                                }
-                                              >
-                                                {count}
-                                              </option>
-                                            );
-                                          })}
-                                        </select>
-                                      </label>
-                                    </div>
-                                    <div>
-                                      <RampChoices
-                                        label="Continuous (ColorBrewer)"
-                                        colors={COLORBREWER_SEQUENTIAL}
-                                        fieldProps={fieldProps}
-                                        onSelect={handleRampChange}
-                                      />
-                                      <RampChoices
-                                        label="Continuous (CARTO Colors)"
-                                        colors={CARTO_COLOR_SEQUENTIAL}
-                                        fieldProps={fieldProps}
-                                        onSelect={handleRampChange}
-                                      />
-                                    </div>
-                                    <div>
-                                      <RampChoices
-                                        label="Diverging (ColorBrewer)"
-                                        colors={COLORBREWER_DIVERGING}
-                                        fieldProps={fieldProps}
-                                        onSelect={handleRampChange}
-                                      />
-                                      <RampChoices
-                                        label="Diverging (CARTO Colors)"
-                                        colors={CARTO_COLOR_DIVERGING}
-                                        onSelect={handleRampChange}
-                                        fieldProps={fieldProps}
-                                      />
-                                    </div>
-                                    <DoneButton />
-                                  </div>
-                                </PopoverContent2>
-                              </P.Root>
-                            );
-                          }}
-                        </Field>
+                      <div className="flex flex-col">
+                        <RampSelector
+                          rampSize={rampSize}
+                          onRampChange={handleRampChange}
+                          onStepsCountChange={handleStepsCountChange}
+                        />
                       </div>
                     </div>
                   </div>
@@ -376,6 +236,89 @@ const RampWizard = ({
         }}
       </Formik>
     </div>
+  );
+};
+
+const RampSelector = ({
+  rampSize,
+  onRampChange,
+  onStepsCountChange,
+}: {
+  rampSize: keyof CBColors["colors"];
+  onRampChange: (rampName: string) => void;
+  onStepsCountChange: (count: number) => void;
+}) => {
+  return (
+    <P.Root>
+      <P.Trigger>
+        <Button size="full-width">
+          <Pencil1Icon /> Change Color Ramp
+        </Button>
+      </P.Trigger>
+      <PopoverContent2 side="right">
+        <StyledPopoverArrow />
+        <div
+          style={{
+            maxHeight: 480,
+          }}
+          className="space-y-2 p-1 overflow-y-auto placemark-scrollbar"
+        >
+          <div className="grid grid-cols-2 gap-x-2">
+            <label className="block">
+              <StyledLabelSpan>Classes</StyledLabelSpan>
+              <select
+                className={styledSelect({ size: "sm" }) + " w-full"}
+                onChange={(event) => {
+                  const numericValue = Number(event.target.value);
+                  onStepsCountChange(numericValue);
+                }}
+              >
+                {d3.range(3, 8).map((count) => {
+                  return (
+                    <option
+                      key={count}
+                      value={String(count)}
+                      selected={count === rampSize}
+                    >
+                      {count}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          </div>
+          <div>
+            <RampChoices
+              label="Continuous (ColorBrewer)"
+              colors={COLORBREWER_SEQUENTIAL}
+              onSelect={onRampChange}
+              size={rampSize}
+            />
+            <RampChoices
+              label="Continuous (CARTO Colors)"
+              colors={CARTO_COLOR_SEQUENTIAL}
+              onSelect={onRampChange}
+              size={rampSize}
+            />
+          </div>
+          <div>
+            <RampChoices
+              label="Diverging (ColorBrewer)"
+              colors={COLORBREWER_DIVERGING}
+              onSelect={onRampChange}
+              size={rampSize}
+            />
+            <RampChoices
+              label="Diverging (CARTO Colors)"
+              colors={CARTO_COLOR_DIVERGING}
+              onSelect={onRampChange}
+              size={rampSize}
+            />
+          </div>
+          <DoneButton />
+        </div>
+      </PopoverContent2>
+    </P.Root>
   );
 };
 
