@@ -54,6 +54,7 @@ import { ColorPopoverField } from "../color_popover";
 import last from "lodash/last";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
+import { useAutoSubmit } from "src/hooks/use_auto_submit";
 
 export const SymbolizationDialog = () => {
   return (
@@ -361,6 +362,7 @@ const RampWizard = ({
         {({ values }) => {
           return (
             <Form className="space-y-4">
+              <AutoSubmit />
               {formError && <InlineError>{formError}</InlineError>}
               <FieldArray name="stops">
                 {(arrayHelpers: ArrayHelpers) => (
@@ -439,6 +441,11 @@ const RampWizard = ({
       </Formik>
     </div>
   );
+};
+
+const AutoSubmit = () => {
+  useAutoSubmit();
+  return null;
 };
 
 export function getNumericPropertyMap(assets: Asset[]) {
