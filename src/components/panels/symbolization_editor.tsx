@@ -76,7 +76,7 @@ import { colors } from "src/lib/constants";
 const regenerateAtom = atom<boolean>(false);
 const DEFAULT_CLASSES = 7;
 
-function DoneButton() {
+export function DoneButton() {
   return (
     <div>
       <P.Close asChild>
@@ -86,7 +86,7 @@ function DoneButton() {
   );
 }
 
-function InterpolateOption() {
+export function InterpolateOption() {
   return (
     <>
       <StyledLabelSpan>Interpolate</StyledLabelSpan>
@@ -171,7 +171,7 @@ function useViablePropertiesForRamp(featureMapDeprecated: FeatureMap) {
  * interpolate, preview a ramp by generating a special
  * div with a linear gradient.
  */
-function RampPreview({
+export function RampPreview({
   name,
   interpolate,
   classes,
@@ -199,7 +199,7 @@ function RampPreview({
 /**
  * Hidden input and label that previews the given ramp.
  */
-function RampChoice({
+export function RampChoice({
   form,
   ramp,
   field,
@@ -227,7 +227,7 @@ function RampChoice({
  * NOTE: This both shows the options and handles
  * autosubmitting the whole form./
  */
-function SimpleStyleOption() {
+export function SimpleStyleOption() {
   useAutoSubmit();
   return (
     <div className="space-y-2">
@@ -280,7 +280,7 @@ function SimpleStyleOption() {
   );
 }
 
-function RampChoices({
+export function RampChoices({
   label,
   colors,
   fieldProps,
@@ -308,7 +308,7 @@ function RampChoices({
   );
 }
 
-function RampWizard() {
+export function RampWizard() {
   const rep = usePersistence();
   const [meta, setMeta] = rep.useMetadata();
   const {
@@ -644,7 +644,7 @@ function RampWizard() {
   );
 }
 
-function CategoryWizard() {
+export function CategoryWizard() {
   const rep = usePersistence();
   const {
     hydraulicModel: { assets },

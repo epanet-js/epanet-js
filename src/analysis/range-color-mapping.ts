@@ -44,6 +44,25 @@ export class RangeColorMapping {
     );
   }
 
+  static fromSymbolizationRamp(symbolization: ISymbolizationRamp) {
+    const ranges = buildRanges(symbolization.stops.map((s) => s.input));
+    const rgbRamp = symbolization.stops.map((s) => {
+      return parseRgb(s.output);
+    });
+    const colorRamp = symbolization.stops.map((s) => s.output);
+    const strokeRamp = symbolization.stops.map((s) => strokeColorFor(s.output));
+    const absoluteValues = false;
+
+    return new RangeColorMapping(
+      ranges,
+      symbolization,
+      rgbRamp,
+      colorRamp,
+      strokeRamp,
+      absoluteValues,
+    );
+  }
+
   private ranges: Range[];
   public readonly symbolization: ISymbolizationRamp;
   private rgbRamp: Rgb[];

@@ -35,6 +35,18 @@ const UpgradeDialog = dynamic<{
   },
 );
 
+const SymbolizationDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/symbolization-dialog").then(
+      (r) => r.SymbolizationDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const InvalidFilesErrorDialog = dynamic<{
   modal: dialogState.InvalidFilesErrorDialogState;
   onClose: () => void;
@@ -189,6 +201,9 @@ export const Dialogs = memo(function Dialogs() {
       <RunSimulationDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "upgrade" }, () => <UpgradeDialog onClose={onClose} />)
+    .with({ type: "symbolization" }, () => (
+      <SymbolizationDialog onClose={onClose} />
+    ))
     .with({ type: "simulationReport" }, () => (
       <SimulationReportDialog onClose={onClose} />
     ))
