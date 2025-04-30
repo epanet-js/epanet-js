@@ -73,12 +73,11 @@ export function ColorPopover({
         )}
       >
         <div
-          className="h-3 w-3 rounded-full"
+          className="h-5 w-full"
           style={{
             backgroundColor: color,
           }}
         ></div>
-        <span>{color ? rgba2hex(color) : ""}</span>
       </P.Trigger>
       <E.PopoverContent2 size="no-width">
         <div className="space-y-2">
