@@ -432,9 +432,6 @@ const RampWizard = ({
                 )}
               </FieldArray>
               <ErrorMessage name={`stops`} component={InlineError} />
-              <label className="block space-y-1">
-                <InterpolateOption />
-              </label>
             </Form>
           );
         }}
