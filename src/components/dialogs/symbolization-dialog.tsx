@@ -1,4 +1,8 @@
-import { ColorWheelIcon, Pencil1Icon } from "@radix-ui/react-icons";
+import {
+  MixerVerticalIcon,
+  Pencil1Icon,
+  PlusIcon,
+} from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import debounce from "lodash/debounce";
 import { DoneButton, RampChoices } from "../panels/symbolization_editor";
@@ -34,15 +38,6 @@ import { Asset } from "src/hydraulic-model";
 import { translate, translateUnit } from "src/infra/i18n";
 
 export const SymbolizationDialog = () => {
-  return (
-    <>
-      <DialogHeader title="Symbolization" titleIcon={ColorWheelIcon} />
-      <SymbolizationEditor />
-    </>
-  );
-};
-
-export function SymbolizationEditor() {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
 
   if (nodes.type === "none") return null;
@@ -58,29 +53,58 @@ export function SymbolizationEditor() {
     }));
   };
 
+  const symbolization = nodes.rangeColorMapping.symbolization;
+
+  let title = translate(symbolization.property);
+  if (symbolization.unit) title += ` (${translateUnit(symbolization.unit)})`;
+
   return (
-    <div className="flex-auto overflow-y-auto placemark-scrollbar">
-      <div className="divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
-        <div className="text-sm">
-          <RampWizard
-            symbolization={nodes.rangeColorMapping.symbolization}
-            onChange={handleChange}
-          />
+    <>
+      <DialogHeader title={title} titleIcon={MixerVerticalIcon} />
+      <div className="flex-auto overflow-y-auto placemark-scrollbar">
+        <div className="divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
+          <div className="text-sm">
+            <RampWizard
+              symbolization={nodes.rangeColorMapping.symbolization}
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
-}
+};
 
 const generateLinearStops = (dataValues: number[], colors: string[]) => {
   const values = dataValues.length > 1 ? dataValues : [0, 100];
   const [min, max] = d3.extent(values) as [number, number];
   return colors.map((output, i, arr) => {
     return {
-      input: +lerp(min, max, i / (arr.length - 1)).toFixed(4),
+      input: Number(+lerp(min, max, i / (arr.length - 1)).toFixed(4)),
       output,
     };
   });
+};
+
+const generateQuantileStops = (dataValues: number[], colors: string[]) => {
+  const values = dataValues.length > 1 ? dataValues : [0, 100];
+  const stops = colors
+    .map((output, i, arr) => {
+      return {
+        input: Number(
+          (d3.quantile(values, i / (arr.length - 1)) || 0).toFixed(4),
+        ),
+        output,
+      };
+    })
+    // Quantile stops could be repeated. Make sure they aren't.
+    .filter((stop, i, stops) => {
+      if (i === 0) return true;
+      if (stops[i - 1].input === stop.input) return false;
+      return true;
+    });
+
+  return stops;
 };
 
 const RampWizard = ({
@@ -169,6 +193,40 @@ const RampWizard = ({
     });
   };
 
+  const handleChangeToEqualIntervals = () => {
+    const ramp = COLORBREWER_ALL.find(
+      (ramp) => ramp.name === symbolization.rampName,
+    )!;
+
+    const count = symbolization.stops.length;
+    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
+    const dataValues = options.get(symbolization.property)! || [];
+    const newStops = generateLinearStops(dataValues, colors);
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      stops: newStops,
+    });
+  };
+
+  const handleChangeToQuantiles = () => {
+    const ramp = COLORBREWER_ALL.find(
+      (ramp) => ramp.name === symbolization.rampName,
+    )!;
+
+    const count = symbolization.stops.length;
+    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
+    const dataValues = options.get(symbolization.property)! || [];
+    const newStops = generateQuantileStops(dataValues, colors);
+
+    setStops(newStops);
+    debouncedSubmit({
+      ...symbolization,
+      stops: newStops,
+    });
+  };
+
   const rampSize = symbolization.stops.length as keyof CBColors["colors"];
 
   return (
@@ -181,12 +239,6 @@ const RampWizard = ({
                 {() => (
                   <div className="grid grid-cols-2 gap-4 w-full">
                     <div>
-                      <div className="font-normal pb-4">
-                        {translate(symbolization.property)}{" "}
-                        {symbolization.unit
-                          ? `(${translateUnit(symbolization.unit)})`
-                          : ""}
-                      </div>
                       <div
                         className="w-full grid gap-2 items-center dark:text-white"
                         style={{
@@ -218,14 +270,28 @@ const RampWizard = ({
                         })}
                       </div>
                     </div>
-                    <div>
-                      <div className="flex flex-col">
-                        <RampSelector
-                          rampSize={rampSize}
-                          onRampChange={handleRampChange}
-                          onStepsCountChange={handleStepsCountChange}
-                        />
+                    <div className="flex flex-col gap-y-2">
+                      <div>
+                        <Button
+                          size="full-width"
+                          onClick={handleChangeToEqualIntervals}
+                        >
+                          <PlusIcon /> Equal Intervals
+                        </Button>
                       </div>
+                      <div>
+                        <Button
+                          size="full-width"
+                          onClick={handleChangeToQuantiles}
+                        >
+                          <PlusIcon /> Equal Quantiles
+                        </Button>
+                      </div>
+                      <RampSelector
+                        rampSize={rampSize}
+                        onRampChange={handleRampChange}
+                        onStepsCountChange={handleStepsCountChange}
+                      />
                     </div>
                   </div>
                 )}
