@@ -15,7 +15,6 @@ import {
   PopoverContent2,
   StyledLabelSpan,
   StyledPopoverArrow,
-  inputClass,
   styledSelect,
 } from "../elements";
 import { dataAtom } from "src/state/jotai";
@@ -36,6 +35,7 @@ import { ColorPopover } from "../color_popover";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
 import { translate, translateUnit } from "src/infra/i18n";
+import { NumericField } from "../form/numeric-field";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -254,15 +254,14 @@ const RampWizard = ({
                                   handleStopColorChange(i, color);
                                 }}
                               />
-                              <input
-                                className={inputClass({ _size: "sm" })}
-                                value={stop.input}
-                                onChange={(event) => {
-                                  const value = event.target.value;
-                                  const numericValue = Number(value);
-                                  if (isNaN(numericValue)) return;
-
-                                  handleStopValueChange(i, numericValue);
+                              <NumericField
+                                key={`stop-${i}`}
+                                label={`stop-${i}`}
+                                isNullable={false}
+                                readOnly={false}
+                                displayValue={String(stop.input)}
+                                onChangeValue={(value) => {
+                                  handleStopValueChange(i, value);
                                 }}
                               />
                             </Fragment>
