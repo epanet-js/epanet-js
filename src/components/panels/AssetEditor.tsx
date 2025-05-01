@@ -1,14 +1,6 @@
 import type { IWrappedFeature } from "src/types";
 import { FeatureEditorId } from "./feature_editor/feature_editor_id";
-import React, {
-  ChangeEventHandler,
-  FocusEventHandler,
-  KeyboardEventHandler,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { RawEditor } from "./feature_editor/raw_editor";
 import {
   Asset,
@@ -19,12 +11,7 @@ import {
   Pump,
 } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel_details";
-import {
-  parseLocaleNumber,
-  reformatWithoutGroups,
-  translate,
-  translateUnit,
-} from "src/infra/i18n";
+import { translate, translateUnit } from "src/infra/i18n";
 import {
   PropertyRow,
   PropertyRowReadonly,
@@ -46,7 +33,6 @@ import {
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
-import * as E from "src/components/elements";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/Selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -62,6 +48,7 @@ import {
   ValveKind,
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
+import { NumericField } from "../form/numeric-field";
 
 export function AssetEditor({
   selectedFeature,
@@ -832,15 +819,18 @@ const QuantityRow = ({
 
   return (
     <PropertyRow label={label}>
-      <NumericField
-        key={lastChange.current + (value === null ? "NULL" : displayValue)}
-        label={label}
-        positiveOnly={positiveOnly}
-        isNullable={isNullable}
-        readOnly={readOnly}
-        displayValue={displayValue}
-        onChangeValue={handleChange}
-      />
+      <div className="relative group-1">
+        <NumericField
+          key={lastChange.current + (value === null ? "NULL" : displayValue)}
+          label={label}
+          positiveOnly={positiveOnly}
+          isNullable={isNullable}
+          readOnly={readOnly}
+          displayValue={displayValue}
+          onChangeValue={handleChange}
+          styleOptions={{ border: "none" }}
+        />
+      </div>
     </PropertyRow>
   );
 };
@@ -859,114 +849,3 @@ export function PropertyTableHead() {
     </thead>
   );
 }
-
-export const NumericField = ({
-  label,
-  displayValue,
-  onChangeValue,
-  positiveOnly = false,
-  readOnly = false,
-  isNullable = true,
-}: {
-  label: string;
-  displayValue: string;
-  onChangeValue?: (newValue: number) => void;
-  isNullable?: boolean;
-  positiveOnly?: boolean;
-  readOnly?: boolean;
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [inputValue, setInputValue] = useState(displayValue);
-  const [hasError, setError] = useState(false);
-  const [isDirty, setDirty] = useState(false);
-
-  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === "Escape") {
-      resetInput();
-      return;
-    }
-    if (e.key === "Enter" && !hasError) {
-      handleCommitLastChange();
-      return;
-    }
-    if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {
-      e.preventDefault();
-    }
-  };
-
-  const resetInput = () => {
-    setInputValue(displayValue);
-    setDirty(false);
-    setError(false);
-    blurInput();
-  };
-
-  const handleBlur = () => {
-    if (isDirty && !hasError) {
-      handleCommitLastChange();
-    } else {
-      resetInput();
-    }
-  };
-
-  const handleFocus: FocusEventHandler<HTMLInputElement> = (e) => {
-    e.preventDefault();
-    setInputValue(reformatWithoutGroups(displayValue));
-    setTimeout(() => inputRef.current && inputRef.current.select(), 0);
-  };
-
-  const handleCommitLastChange = () => {
-    const numericValue = parseLocaleNumber(inputValue);
-    setInputValue(String(numericValue));
-    onChangeValue && onChangeValue(numericValue);
-
-    setDirty(false);
-    setError(false);
-    blurInput();
-  };
-
-  const blurInput = () => {
-    if (inputRef.current !== document.activeElement) return;
-
-    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
-  };
-
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    let newInputValue = e.target.value;
-    newInputValue = newInputValue.replace(/[^0-9\-eE.,]/g, "");
-
-    if (positiveOnly) {
-      newInputValue = newInputValue.replace(/^-/g, "");
-    }
-    setInputValue(newInputValue);
-    const numericValue = parseLocaleNumber(newInputValue);
-    setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
-    setDirty(true);
-  };
-
-  if (hasError && inputRef.current) {
-    inputRef.current.className = E.styledPropertyInputWithError("right");
-  }
-  if (!hasError && inputRef.current) {
-    inputRef.current.className = E.styledPropertyInput("right");
-  }
-
-  return (
-    <div className="relative group-1">
-      <input
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        spellCheck="false"
-        type="text"
-        className={E.styledPropertyInput("right")}
-        aria-label={`Value for: ${label}`}
-        readOnly={readOnly}
-        onBlur={handleBlur}
-        ref={inputRef}
-        value={inputValue}
-        onFocus={handleFocus}
-        tabIndex={1}
-      />
-    </div>
-  );
-};

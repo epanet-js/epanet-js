@@ -337,6 +337,7 @@ export function styledPropertyInput(
     dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500`,
   );
 }
+
 export function styledPropertyInputWithError(
   side: "left" | "right" | "table",
   missing = false,
