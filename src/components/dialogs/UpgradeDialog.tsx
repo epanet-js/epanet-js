@@ -15,7 +15,7 @@ import {
   useState,
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
-import { Selector } from "../form/Selector";
+import { Selector } from "../form/selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
 import { studentAccountActiviationHelpUrl } from "src/global-config";

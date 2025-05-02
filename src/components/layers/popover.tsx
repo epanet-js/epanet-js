@@ -51,7 +51,7 @@ import { zTileJSON } from "src/mapbox-layers/validations";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
-import { Selector } from "../form/Selector";
+import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";

@@ -14,7 +14,7 @@ import {
 } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
 import { translate } from "src/infra/i18n";
-import { Selector } from "../form/Selector";
+import { Selector } from "../form/selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";

@@ -5,7 +5,7 @@ import { translate } from "src/infra/i18n";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom } from "src/state/jotai";
-import { Selector } from "../form/Selector";
+import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const AnalysisEditor = () => {
