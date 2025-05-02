@@ -1,6 +1,6 @@
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { aNodesAnalysis, setInitialState } from "src/__helpers__/state";
-import { screen, render } from "@testing-library/react";
+import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import { SymbolizationDialog } from "./symbolization-dialog";
 import { Dialog } from "@radix-ui/react-dialog";
@@ -100,6 +100,35 @@ describe("symbolization dialog", () => {
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops[1].input).toEqual(22);
     expect(stops[1].output).toEqual(green);
+  });
+
+  it.only("can change the colors manually", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: startingStops,
+    });
+
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /color for step 1/i,
+      }),
+    );
+    const field = screen.getByRole("textbox", { name: "color input" });
+    expect(field).toHaveValue(green);
+    await user.clear(field);
+    await user.type(field, "#123456");
+    await user.click(screen.getByText(/done/i));
+
+    await waitFor(() => {
+      expectStopColor(1, "#123456");
+    });
+    expectStopValue(1, "20");
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[1].output).toEqual("#123456");
   });
 
   const getUpdateNodesAnalysisSymbolization = (
