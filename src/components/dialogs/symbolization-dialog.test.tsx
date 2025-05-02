@@ -132,7 +132,7 @@ describe("symbolization dialog", () => {
     expect(stops[1].output).toEqual("#123456");
   });
 
-  it("can apply equal spacing based on data", async () => {
+  it("can apply equal intervals based on data", async () => {
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1", { simulation: { pressure: 10 } })
@@ -157,6 +157,36 @@ describe("symbolization dialog", () => {
     expect(stops[0].input).toEqual(10);
     expect(stops[0].output).toEqual(red);
     expect(stops[1].input).toEqual(55);
+    expect(stops[1].output).toEqual(green);
+    expect(stops[2].input).toEqual(100);
+    expect(stops[2].output).toEqual(blue);
+  });
+
+  it("can apply equal quantiles based on data", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", { simulation: { pressure: 10 } })
+      .aJunction("j2", { simulation: { pressure: 15 } })
+      .aJunction("j3", { simulation: { pressure: 100 } })
+      .build();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 0, output: red },
+        { input: 2, output: green },
+        { input: 3, output: blue },
+      ],
+    });
+
+    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByText(/equal quantiles/i));
+
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[0].input).toEqual(10);
+    expect(stops[0].output).toEqual(red);
+    expect(stops[1].input).toEqual(15);
     expect(stops[1].output).toEqual(green);
     expect(stops[2].input).toEqual(100);
     expect(stops[2].output).toEqual(blue);
