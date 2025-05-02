@@ -210,12 +210,7 @@ const RampWizard = ({
   };
 
   const handleChangeToEqualIntervals = () => {
-    const ramp = COLORBREWER_ALL.find(
-      (ramp) => ramp.name === symbolization.rampName,
-    )!;
-
-    const count = symbolization.stops.length;
-    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
+    const colors = symbolization.stops.map((s) => s.output);
     const dataValues = options.get(symbolization.property)! || [];
     const newStops = generateLinearStops(dataValues, colors);
 
