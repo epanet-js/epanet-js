@@ -102,7 +102,7 @@ describe("symbolization dialog", () => {
     expect(stops[1].output).toEqual(green);
   });
 
-  it.only("can change the colors manually", async () => {
+  it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: startingStops,
