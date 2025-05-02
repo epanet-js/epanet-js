@@ -245,6 +245,23 @@ describe("symbolization dialog", () => {
     expect(stops[3].input).toEqual(30);
   });
 
+  it("shows error when attempting to apply quantiles without enough data", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+        { input: 30, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByText(/equal quantiles/i));
+    expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
+  });
+
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
   ): ISymbolizationRamp => {

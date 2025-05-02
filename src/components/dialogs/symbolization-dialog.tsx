@@ -229,13 +229,17 @@ const RampWizard = ({
   const handleChangeToQuantiles = () => {
     const colors = symbolization.stops.map((s) => s.output);
     const dataValues = options.get(symbolization.property)! || [];
-    const newStops = generateQuantileStops(dataValues, colors);
+    if (!dataValues.length) {
+      setError(translate("notEnoughDataForQuantiles"));
+    } else {
+      const newStops = generateQuantileStops(dataValues, colors);
 
-    setStops(newStops);
-    submit({
-      ...symbolization,
-      stops: newStops,
-    });
+      setStops(newStops);
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
   };
 
   const rampSize = stops.length as keyof CBColors["colors"];
