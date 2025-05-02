@@ -312,6 +312,7 @@ export const translations = {
   setting: "Setting",
   valveType: "Valve Type",
   fixedStatus: "Fixed Status",
+  rampShouldBeAscending: "Ramp input values need to be in ascending order.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

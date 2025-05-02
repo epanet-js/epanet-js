@@ -321,6 +321,8 @@ export const translations: Translations = {
   setting: "Ajuste",
   valveType: "Tipo de Válvula",
   fixedStatus: "Estado Fijado",
+  rampShouldBeAscending:
+    "Los valores de la rampa deben estar en orden ascendente.",
 };
 
 export const units: UnitsLocale = {
