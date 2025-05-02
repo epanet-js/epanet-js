@@ -2,7 +2,6 @@ import { Unit } from "src/quantity";
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
-import { parseHexColor } from "src/vendor/mapshaper/color/color-utils";
 import { strokeColorFor } from "src/lib/color";
 
 export type Rgb = [number, number, number];
@@ -131,7 +130,7 @@ const buildRanges = (steps: number[]) => {
 
 export const parseRgb = (color: string): Rgb => {
   if (color.startsWith("#")) {
-    const parsed = parseHexColor(color);
+    const parsed = colorfulHexToRgbaObject(color);
     if (parsed === null) throw new Error(`Invalid color ${color}`);
     const { r, g, b } = parsed;
     return [r, g, b];
@@ -176,3 +175,69 @@ const generateRampStops = (name: string, steps: number[]) => {
   );
   return stops as ISymbolizationRamp["stops"];
 };
+
+interface RgbaObject {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
+function colorfulHexToRgbaObject(hexString: string): RgbaObject | null {
+  if (!hexString) {
+    return null;
+  }
+
+  let hex = hexString.trim().toLowerCase();
+
+  if (hex.startsWith("#")) {
+    hex = hex.slice(1);
+  }
+
+  const hexLength = hex.length;
+
+  if (hexLength === 1) {
+    const val = parseInt(hex + hex, 16);
+    return { r: val, g: val, b: val, a: 1 };
+  } else if (hexLength === 2) {
+    const val = parseInt(hex, 16);
+    return { r: val, g: val, b: val, a: 1 };
+  } else if (hexLength === 3) {
+    const r = parseInt(hex[0] + hex[0], 16);
+    const g = parseInt(hex[1] + hex[1], 16);
+    const b = parseInt(hex[2] + hex[2], 16);
+    return { r, g, b, a: 1 };
+  } else if (hexLength === 4) {
+    const r = parseInt(hex[0] + hex[0], 16);
+    const g = parseInt(hex[1] + hex[1], 16);
+    const b = parseInt(hex[2] + hex[2], 16);
+    const a = Math.round(parseInt(hex[3] + hex[3], 16) / 2.55) / 100;
+    return { r, g, b, a };
+  } else if (hexLength === 5) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex[2] + hex[2], 16);
+    const b = parseInt(hex[3] + hex[3], 16);
+    const a = Math.round(parseInt(hex[4] + hex[4], 16) / 2.55) / 100;
+    return { r, g, b, a };
+  } else if (hexLength === 6) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return { r, g, b, a: 1 };
+  } else if (hexLength === 7) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const a =
+      Math.round(parseInt(hex.slice(6, 7) + hex.slice(6, 7), 16) / 2.55) / 100;
+    return { r, g, b, a };
+  } else if (hexLength === 8) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const a = parseInt(hex.slice(6, 8), 16) / 255;
+    return { r, g, b, a };
+  }
+
+  return null;
+}
