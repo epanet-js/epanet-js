@@ -60,8 +60,10 @@ export function ColorPopover({
   onChange,
   onBlur,
   _size = "sm",
+  ariaLabel = "",
 }: React.ComponentProps<typeof HexColorPicker> & {
   _size?: E.B3Size;
+  ariaLabel?: string
 }) {
   return (
     <P.Root>
@@ -71,6 +73,8 @@ export function ColorPopover({
           E.sharedPadding(_size),
           "flex items-center w-full gap-x-2 font-mono dark:text-white",
         )}
+        aria-label={ariaLabel}
+        data-color={color}
       >
         <div
           className="h-5 w-full"
