@@ -16,8 +16,10 @@ import {
 } from "src/state/jotai";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
-import { ILayerConfig, LayerConfigMap } from "src/types";
+import { ILayerConfig, ISymbolizationRamp, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
+import { LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { analysisAtom } from "src/state/analysis";
 
 export const setInitialState = ({
   store = createStore(),
@@ -27,6 +29,8 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
+  nodesAnalysis = { type: "none" },
+  linksAnalysis = { type: "none" },
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -35,6 +39,8 @@ export const setInitialState = ({
   selection?: Sel;
   fileInfo?: FileInfo | null;
   layerConfigs?: LayerConfigMap;
+  nodesAnalysis?: NodesAnalysis;
+  linksAnalysis?: LinksAnalysis;
 } = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
@@ -45,6 +51,8 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
+  store.set(analysisAtom, { links: linksAnalysis, nodes: nodesAnalysis });
+
   return store;
 };
 
@@ -93,6 +101,27 @@ export const aSingleSelection = ({
     type: "single",
     id,
     parts: [],
+  };
+};
+
+export const aSymbolization = (
+  symbolization: Partial<ISymbolizationRamp>,
+): ISymbolizationRamp => {
+  const defaults: ISymbolizationRamp = {
+    type: "ramp",
+    simplestyle: true,
+    property: "pressure",
+    unit: "m",
+    defaultColor: "#ff00ff",
+    defaultOpacity: 0.3,
+    interpolate: "step",
+    rampName: "epanet-ramp",
+    stops: [],
+  };
+
+  return {
+    ...defaults,
+    ...symbolization,
   };
 };
 

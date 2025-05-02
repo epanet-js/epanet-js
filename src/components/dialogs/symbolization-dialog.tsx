@@ -286,11 +286,13 @@ const RampWizard = ({
                           <PlusIcon /> Equal Quantiles
                         </Button>
                       </div>
-                      <RampSelector
-                        rampSize={rampSize}
-                        onRampChange={handleRampChange}
-                        onStepsCountChange={handleStepsCountChange}
-                      />
+                      <div>
+                        <RampSelector
+                          rampSize={rampSize}
+                          onRampChange={handleRampChange}
+                          onStepsCountChange={handleStepsCountChange}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -315,7 +317,7 @@ const RampSelector = ({
 }) => {
   return (
     <P.Root>
-      <P.Trigger>
+      <P.Trigger asChild>
         <Button size="full-width">
           <Pencil1Icon /> Change Color Ramp
         </Button>
