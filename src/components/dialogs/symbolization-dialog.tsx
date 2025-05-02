@@ -4,7 +4,6 @@ import {
   PlusIcon,
 } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
-import debounce from "lodash/debounce";
 import { DoneButton, RampChoices } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
@@ -126,12 +125,24 @@ const RampWizard = ({
     symbolization.stops,
   );
 
-  const debouncedSubmit = useCallback(
-    debounce((newSymbolization: ISymbolizationRamp) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = useCallback(
+    (newSymbolization: ISymbolizationRamp) => {
+      setError(null);
       onChange(newSymbolization);
-    }, 100),
+    },
     [onChange],
   );
+
+  const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
+    for (let i = 1; i < candidates.length; i++) {
+      if (candidates[i].input < candidates[i - 1].input) {
+        return false;
+      }
+    }
+    return true;
+  };
 
   const handleStopColorChange = (index: number, color: string) => {
     const newStops = symbolization.stops.map((stop, i) => {
@@ -141,7 +152,7 @@ const RampWizard = ({
     });
 
     setStops(newStops);
-    debouncedSubmit({
+    submit({
       ...symbolization,
       stops: newStops,
     });
@@ -155,10 +166,15 @@ const RampWizard = ({
     });
 
     setStops(newStops);
-    debouncedSubmit({
-      ...symbolization,
-      stops: newStops,
-    });
+    const isValid = validateAscendingOrder(newStops);
+    if (!isValid) {
+      setError(translate("rampShouldBeAscending"));
+    } else {
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
   };
 
   const handleStepsCountChange = (value: number) => {
@@ -171,7 +187,7 @@ const RampWizard = ({
     const newStops = generateLinearStops(dataValues, colors);
 
     setStops(newStops);
-    debouncedSubmit({
+    submit({
       ...symbolization,
       stops: newStops,
     });
@@ -186,7 +202,7 @@ const RampWizard = ({
     const newStops = generateLinearStops(dataValues, colors);
 
     setStops(newStops);
-    debouncedSubmit({
+    submit({
       ...symbolization,
       rampName: newRampName,
       stops: newStops,
@@ -204,7 +220,7 @@ const RampWizard = ({
     const newStops = generateLinearStops(dataValues, colors);
 
     setStops(newStops);
-    debouncedSubmit({
+    submit({
       ...symbolization,
       stops: newStops,
     });
@@ -221,7 +237,7 @@ const RampWizard = ({
     const newStops = generateQuantileStops(dataValues, colors);
 
     setStops(newStops);
-    debouncedSubmit({
+    submit({
       ...symbolization,
       stops: newStops,
     });
@@ -294,6 +310,13 @@ const RampWizard = ({
                           onStepsCountChange={handleStepsCountChange}
                         />
                       </div>
+                      {!!error && (
+                        <div>
+                          <p className="py-2 text-sm font-semibold text-orange-800">
+                            {error}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
