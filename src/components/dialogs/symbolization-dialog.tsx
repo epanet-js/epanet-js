@@ -14,7 +14,6 @@ import {
   PopoverContent2,
   StyledLabelSpan,
   StyledPopoverArrow,
-  styledSelect,
 } from "../elements";
 import { dataAtom } from "src/state/jotai";
 import { ErrorMessage, FieldArray, Form, Formik } from "formik";
@@ -36,6 +35,7 @@ import { Asset } from "src/hydraulic-model";
 import { translate, translateUnit } from "src/infra/i18n";
 import { NumericField } from "../form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { Selector } from "../form/selector";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -184,7 +184,9 @@ const RampWizard = ({
     )!;
 
     const colors = ramp.colors[value as keyof CBColors["colors"]] as string[];
-    const dataValues = options.get(symbolization.property)! || [];
+    let dataValues = options.get(symbolization.property) || [];
+    if (!dataValues.length) dataValues = stops.map((s) => s.input);
+
     const newStops = generateLinearStops(dataValues, colors);
 
     setStops(newStops);
@@ -332,6 +334,13 @@ const RampSelector = ({
   onRampChange: (rampName: string) => void;
   onStepsCountChange: (count: number) => void;
 }) => {
+  const countOptions = useMemo(() => {
+    return d3.range(3, 8).map((count) => ({
+      label: String(count),
+      value: String(count),
+    }));
+  }, []);
+
   return (
     <P.Root>
       <P.Trigger asChild>
@@ -347,30 +356,17 @@ const RampSelector = ({
           }}
           className="space-y-2 p-1 overflow-y-auto placemark-scrollbar"
         >
-          <div className="grid grid-cols-2 gap-x-2">
-            <label className="block">
-              <StyledLabelSpan>Classes</StyledLabelSpan>
-              <select
-                className={styledSelect({ size: "sm" }) + " w-full"}
-                onChange={(event) => {
-                  const numericValue = Number(event.target.value);
-                  onStepsCountChange(numericValue);
-                }}
-              >
-                {d3.range(3, 8).map((count) => {
-                  return (
-                    <option
-                      key={count}
-                      value={String(count)}
-                      selected={count === rampSize}
-                    >
-                      {count}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
-          </div>
+          <label className="flex flex-col block">
+            <StyledLabelSpan>Classes</StyledLabelSpan>
+            <Selector
+              options={countOptions}
+              selected={String(rampSize)}
+              ariaLabel="ramp size"
+              onChange={(newValue) => {
+                onStepsCountChange(Number(newValue));
+              }}
+            />
+          </label>
           <div>
             <RampChoices
               label="Continuous (ColorBrewer)"

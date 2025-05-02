@@ -34,7 +34,7 @@ import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Selector } from "../form/Selector";
+import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
 import {

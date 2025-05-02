@@ -217,6 +217,34 @@ describe("symbolization dialog", () => {
     expect(stops[2].output).toEqual("rgb(227,74,51)");
   });
 
+  it("can choose a ramp with more values", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+        { input: 30, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByText(/change color ramp/i));
+    expect(
+      screen.getByRole("combobox", { name: /ramp size/i }),
+    ).toHaveTextContent("3");
+
+    await user.click(screen.getByRole("combobox", { name: /ramp size/i }));
+    await user.click(screen.getByText(/4/));
+
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[0].input).toEqual(10);
+    expect(stops[1].input).toEqual(16.6667);
+    expect(stops[2].input).toEqual(23.3333);
+    expect(stops[3].input).toEqual(30);
+  });
+
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
   ): ISymbolizationRamp => {
