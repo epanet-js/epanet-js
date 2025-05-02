@@ -10,6 +10,8 @@ import { FieldProps } from "formik";
 import * as d3 from "d3-color";
 import clsx from "clsx";
 import * as E from "./elements";
+import debounce from "lodash/debounce";
+import { useMemo} from "react";
 
 export function ColorPopoverField({
   field,
@@ -65,6 +67,14 @@ export function ColorPopover({
   _size?: E.B3Size;
   ariaLabel?: string
 }) {
+
+
+  const debouncedOnChange = useMemo(() => {
+    return debounce((color: string) => {
+      onChange && onChange(color);
+    }, 100);
+  }, [onChange]);
+
   return (
     <P.Root>
       <P.Trigger
@@ -88,7 +98,7 @@ export function ColorPopover({
           <div className="border border-white" style={{ borderRadius: 5 }}>
             <RgbaStringColorPicker
               color={color2rgb(color!)}
-              onChange={onChange}
+              onChange={debouncedOnChange}
               onBlur={onBlur}
             />
           </div>
@@ -97,7 +107,8 @@ export function ColorPopover({
             prefixed
             alpha
             color={color}
-            onChange={onChange}
+            onChange={debouncedOnChange}
+            aria-label="color input"
           />
           <P.Close asChild>
             <E.Button>Done</E.Button>
