@@ -146,7 +146,7 @@ const RampWizard = ({
   };
 
   const handleStopColorChange = (index: number, color: string) => {
-    const newStops = symbolization.stops.map((stop, i) => {
+    const newStops = stops.map((stop, i) => {
       if (i !== index) return stop;
 
       return { ...stop, output: color };
@@ -160,7 +160,7 @@ const RampWizard = ({
   };
 
   const handleStopValueChange = (index: number, value: number) => {
-    const newStops = symbolization.stops.map((stop, i) => {
+    const newStops = stops.map((stop, i) => {
       if (i !== index) return stop;
 
       return { ...stop, input: value };
@@ -201,7 +201,7 @@ const RampWizard = ({
     const count = symbolization.stops.length;
     const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
 
-    const newStops = symbolization.stops.map((stop, i) => ({
+    const newStops = stops.map((stop, i) => ({
       input: stop.input,
       output: colors[i],
     }));
@@ -238,7 +238,7 @@ const RampWizard = ({
     });
   };
 
-  const rampSize = symbolization.stops.length as keyof CBColors["colors"];
+  const rampSize = stops.length as keyof CBColors["colors"];
 
   return (
     <div>

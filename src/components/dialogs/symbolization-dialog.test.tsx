@@ -90,17 +90,17 @@ describe("symbolization dialog", () => {
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     field = screen.getByRole("textbox", {
-      name: /value for: step 1/i,
+      name: /value for: step 2/i,
     });
     await user.click(field);
     await user.clear(field);
-    await user.type(field, "22");
+    await user.type(field, "110");
     await user.keyboard("{Enter}");
 
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(22);
-    expect(stops[1].output).toEqual(green);
+    expect(stops[1].input).toEqual(100);
+    expect(stops[2].input).toEqual(110);
   });
 
   it("can change the colors manually", async () => {
