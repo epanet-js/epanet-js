@@ -274,7 +274,7 @@ const RampWizard = ({
                               <NumericField
                                 key={`step-${i}`}
                                 label={`step ${i}`}
-                                isNullable={false}
+                                isNullable={true}
                                 readOnly={false}
                                 displayValue={String(stop.input)}
                                 onChangeValue={(value) => {
