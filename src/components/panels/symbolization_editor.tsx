@@ -60,7 +60,7 @@ import find from "lodash/find";
 import last from "lodash/last";
 import { dataAtom, panelSymbolizationExportOpen } from "src/state/jotai";
 import * as d3 from "d3-array";
-import { ColorPopoverField } from "src/components/color_popover";
+import { ColorPopoverField } from "src/components/color-popover";
 import { linearGradient } from "src/lib/color";
 import { lerp, writeToClipboard } from "src/lib/utils";
 import { InlineError } from "../inline_error";

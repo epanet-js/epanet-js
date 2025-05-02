@@ -30,7 +30,7 @@ import * as d3 from "d3-array";
 import { lerp } from "src/lib/utils";
 import * as P from "@radix-ui/react-popover";
 import { InlineError } from "../inline_error";
-import { ColorPopover } from "../color_popover";
+import { ColorPopover } from "../color-popover";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
 import { translate, translateUnit } from "src/infra/i18n";
