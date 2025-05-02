@@ -247,7 +247,7 @@ const RampWizard = ({
                       >
                         {stops.map((stop, i) => {
                           return (
-                            <Fragment key={i}>
+                            <Fragment key={`${stop.input}-${i}`}>
                               <ColorPopover
                                 color={stop.output}
                                 onChange={(color) => {
