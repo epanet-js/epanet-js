@@ -20,6 +20,7 @@ import { ILayerConfig, ISymbolizationRamp, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { analysisAtom } from "src/state/analysis";
+import { RangeColorMapping } from "src/analysis/range-color-mapping";
 
 export const setInitialState = ({
   store = createStore(),
@@ -101,6 +102,17 @@ export const aSingleSelection = ({
     type: "single",
     id,
     parts: [],
+  };
+};
+
+export const aNodesAnalysis = (
+  symbolization: Partial<ISymbolizationRamp>,
+): NodesAnalysis => {
+  return {
+    type: "pressures",
+    rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+      aSymbolization(symbolization),
+    ),
   };
 };
 

@@ -253,10 +253,11 @@ const RampWizard = ({
                                 onChange={(color) => {
                                   handleStopColorChange(i, color);
                                 }}
+                                ariaLabel={`color for step ${i}`}
                               />
                               <NumericField
-                                key={`stop-${i}`}
-                                label={`stop-${i}`}
+                                key={`step-${i}`}
+                                label={`step ${i}`}
                                 isNullable={false}
                                 readOnly={false}
                                 displayValue={String(stop.input)}
