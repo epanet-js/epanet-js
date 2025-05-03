@@ -38,6 +38,8 @@ import { NumericField } from "../form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/selector";
 
+export const defaultNewColor = "#0fffff";
+
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
 
@@ -179,6 +181,49 @@ const RampWizard = ({
     }
   };
 
+  const handlePrependStop = () => {
+    const firstValue = stops[0].input;
+    const newValue = firstValue > 0 ? 0 : Math.floor(firstValue - 1);
+    const newStops = [
+      {
+        input: newValue,
+        output: defaultNewColor,
+      },
+      ...stops,
+    ];
+    setStops(newStops);
+    const isValid = validateAscendingOrder(newStops);
+    if (!isValid) {
+      setError(translate("rampShouldBeAscending"));
+    } else {
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
+  };
+
+  const handleAppendStop = () => {
+    const lastStop = stops[stops.length - 1];
+    const newStops = [
+      ...stops,
+      {
+        input: Math.floor(lastStop.input + 1),
+        output: defaultNewColor,
+      },
+    ];
+    setStops(newStops);
+    const isValid = validateAscendingOrder(newStops);
+    if (!isValid) {
+      setError(translate("rampShouldBeAscending"));
+    } else {
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
+  };
+
   const handleDeleteStop = (index: number) => {
     const newStops = stops.filter((stop, i) => i !== index);
 
@@ -288,6 +333,16 @@ const RampWizard = ({
                           gridTemplateColumns: "1fr 1fr min-content",
                         }}
                       >
+                        <div className="col-span-3">
+                          <Button
+                            type="button"
+                            className="opacity-60 border-none"
+                            onClick={() => handlePrependStop()}
+                            aria-label={`Prepend stop`}
+                          >
+                            <PlusIcon /> Add stop
+                          </Button>
+                        </div>
                         {stops.map((stop, i) => {
                           return (
                             <Fragment key={`${stop.input}-${i}`}>
@@ -323,6 +378,16 @@ const RampWizard = ({
                             </Fragment>
                           );
                         })}
+                        <div className="col-span-3">
+                          <Button
+                            type="button"
+                            className="opacity-60 border-none"
+                            onClick={() => handleAppendStop()}
+                            aria-label={`Append stop`}
+                          >
+                            <PlusIcon /> Add stop
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-col gap-y-4">

@@ -2,7 +2,7 @@ import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { aNodesAnalysis, setInitialState } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
-import { SymbolizationDialog } from "./symbolization-dialog";
+import { SymbolizationDialog, defaultNewColor } from "./symbolization-dialog";
 import { Dialog } from "@radix-ui/react-dialog";
 import { analysisAtom } from "src/state/analysis";
 import { PressuresAnalysis } from "src/analysis";
@@ -178,13 +178,77 @@ describe("symbolization dialog", () => {
     expect(stops[2].output).toEqual("rgb(227,74,51)");
   });
 
+  it("can prepend stops", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /prepend stop/i }));
+
+    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: 0, output: defaultNewColor },
+      { input: 10, output: red },
+      { input: 20, output: green },
+    ]);
+
+    await user.click(screen.getByRole("button", { name: /prepend stop/i }));
+
+    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: -1, output: defaultNewColor },
+      { input: 0, output: defaultNewColor },
+      { input: 10, output: red },
+      { input: 20, output: green },
+    ]);
+  });
+
+  it("can append stops", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /append stop/i }));
+
+    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: 10, output: red },
+      { input: 20, output: green },
+      { input: 21, output: defaultNewColor },
+    ]);
+
+    await user.click(screen.getByRole("button", { name: /append stop/i }));
+
+    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: 10, output: red },
+      { input: 20, output: green },
+      { input: 21, output: defaultNewColor },
+      { input: 22, output: defaultNewColor },
+    ]);
+  });
+
   it("can delete a stop", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
         { input: 0, output: red },
-        { input: 3, output: green },
-        { input: 2, output: blue },
+        { input: 2, output: green },
+        { input: 3, output: blue },
       ],
     });
     const store = setInitialState({ nodesAnalysis });
@@ -196,7 +260,7 @@ describe("symbolization dialog", () => {
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: 0, output: red },
-      { input: 2, output: blue },
+      { input: 3, output: blue },
     ]);
   });
 
@@ -274,6 +338,9 @@ describe("symbolization dialog", () => {
     await user.clear(field);
     await user.type(field, "1000");
     await user.keyboard("{Enter}");
+    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /append stop/i }));
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /delete stop 1/i }));
