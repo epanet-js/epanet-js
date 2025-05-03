@@ -221,9 +221,9 @@ describe("symbolization dialog", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
-        { input: 30, output: blue },
+        { input: 10.1, output: red },
+        { input: 20.1, output: green },
+        { input: 30.1, output: blue },
       ],
     });
     const store = setInitialState({ nodesAnalysis });
@@ -239,13 +239,30 @@ describe("symbolization dialog", () => {
     await user.click(screen.getByText(/4/));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(10);
-    expect(stops[1].input).toEqual(16.6667);
-    expect(stops[2].input).toEqual(23.3333);
-    expect(stops[3].input).toEqual(30);
+    expect(stops[0].input).toEqual(10.1);
+    expect(stops[1].input).toEqual(20.1);
+    expect(stops[2].input).toEqual(30.1);
+    expect(stops[3].input).toEqual(31);
   });
 
-  it("shows error when attempting to apply quantiles without enough data", async () => {
+  it("shows error when applying equal intervals with no data", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+        { input: 30, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByText(/equal intervals/i));
+    expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
+  });
+
+  it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [

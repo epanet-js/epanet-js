@@ -178,16 +178,24 @@ const RampWizard = ({
     }
   };
 
-  const handleStepsCountChange = (value: number) => {
+  const handleStepsCountChange = (rampSize: number) => {
     const ramp = COLORBREWER_ALL.find(
       (ramp) => ramp.name === symbolization.rampName,
     )!;
 
-    const colors = ramp.colors[value as keyof CBColors["colors"]] as string[];
-    let dataValues = options.get(symbolization.property) || [];
-    if (!dataValues.length) dataValues = stops.map((s) => s.input);
+    const colors = ramp.colors[
+      rampSize as keyof CBColors["colors"]
+    ] as string[];
 
-    const newStops = generateLinearStops(dataValues, colors);
+    const newStops: ISymbolizationRamp["stops"] = [];
+    colors.forEach((color, index) => {
+      if (stops[index]) {
+        newStops.push({ input: stops[index].input, output: color });
+      } else {
+        const previous = newStops[newStops.length - 1];
+        newStops.push({ input: Math.floor(previous.input + 1), output: color });
+      }
+    });
 
     setStops(newStops);
     submit({
@@ -217,13 +225,17 @@ const RampWizard = ({
   const handleChangeToEqualIntervals = () => {
     const colors = symbolization.stops.map((s) => s.output);
     const dataValues = options.get(symbolization.property)! || [];
-    const newStops = generateLinearStops(dataValues, colors);
+    if (!dataValues.length) {
+      setError(translate("notEnoughDataForLinear"));
+    } else {
+      const newStops = generateLinearStops(dataValues, colors);
 
-    setStops(newStops);
-    submit({
-      ...symbolization,
-      stops: newStops,
-    });
+      setStops(newStops);
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
   };
 
   const handleChangeToQuantiles = () => {
@@ -285,29 +297,34 @@ const RampWizard = ({
                         })}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-y-2">
-                      <div>
-                        <Button
-                          size="full-width"
-                          onClick={handleChangeToEqualIntervals}
-                        >
-                          <PlusIcon /> Equal Intervals
-                        </Button>
-                      </div>
-                      <div>
-                        <Button
-                          size="full-width"
-                          onClick={handleChangeToQuantiles}
-                        >
-                          <PlusIcon /> Equal Quantiles
-                        </Button>
-                      </div>
+                    <div className="flex flex-col gap-y-4">
                       <div>
                         <RampSelector
                           rampSize={rampSize}
                           onRampChange={handleRampChange}
                           onStepsCountChange={handleStepsCountChange}
                         />
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <span className="text-sm text-gray-500">
+                          Data-driven helpers:
+                        </span>
+                        <div>
+                          <Button
+                            size="full-width"
+                            onClick={handleChangeToEqualIntervals}
+                          >
+                            <PlusIcon /> Equal Intervals
+                          </Button>
+                        </div>
+                        <div>
+                          <Button
+                            size="full-width"
+                            onClick={handleChangeToQuantiles}
+                          >
+                            <PlusIcon /> Equal Quantiles
+                          </Button>
+                        </div>
                       </div>
                       {!!error && (
                         <div>
