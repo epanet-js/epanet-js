@@ -2,6 +2,7 @@ import {
   MixerVerticalIcon,
   Pencil1Icon,
   PlusIcon,
+  TrashIcon,
 } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { DoneButton, RampChoices } from "../panels/symbolization_editor";
@@ -178,6 +179,21 @@ const RampWizard = ({
     }
   };
 
+  const handleDeleteStop = (index: number) => {
+    const newStops = stops.filter((stop, i) => i !== index);
+
+    setStops(newStops);
+    const isValid = validateAscendingOrder(newStops);
+    if (!isValid) {
+      setError(translate("rampShouldBeAscending"));
+    } else {
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
+  };
+
   const handleStepsCountChange = (rampSize: number) => {
     const ramp = COLORBREWER_ALL.find(
       (ramp) => ramp.name === symbolization.rampName,
@@ -264,12 +280,12 @@ const RampWizard = ({
             <Form className="space-y-4">
               <FieldArray name="stops">
                 {() => (
-                  <div className="grid grid-cols-2 gap-4 w-full">
+                  <div className="grid grid-cols-2 gap-6 w-full">
                     <div>
                       <div
                         className="w-full grid gap-2 items-center dark:text-white"
                         style={{
-                          gridTemplateColumns: "1fr 1fr",
+                          gridTemplateColumns: "1fr 1fr min-content",
                         }}
                       >
                         {stops.map((stop, i) => {
@@ -292,6 +308,18 @@ const RampWizard = ({
                                   handleStopValueChange(i, value);
                                 }}
                               />
+                              {stops.length > 1 ? (
+                                <div>
+                                  <Button
+                                    type="button"
+                                    variant="quiet"
+                                    aria-label={`Delete stop ${i}`}
+                                    onClick={() => handleDeleteStop(i)}
+                                  >
+                                    <TrashIcon className="opacity-60" />
+                                  </Button>
+                                </div>
+                              ) : null}
                             </Fragment>
                           );
                         })}
