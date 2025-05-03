@@ -314,6 +314,7 @@ export const translations = {
   fixedStatus: "Fixed Status",
   rampShouldBeAscending: "Ramp input values need to be in ascending order.",
   notEnoughDataForQuantiles: "Not enough data to compute quantiles.",
+  notEnoughDataForLinear: "Not enough data to compute linear intervals.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
