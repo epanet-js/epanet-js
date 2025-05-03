@@ -64,45 +64,6 @@ describe("symbolization dialog", () => {
     expect(stops[1].output).toEqual(green);
   });
 
-  it("shows an error when range not in order", async () => {
-    const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
-      stops: startingStops,
-    });
-
-    const store = setInitialState({ nodesAnalysis });
-
-    renderComponent({ store });
-
-    let field = screen.getByRole("textbox", {
-      name: /value for: step 1/i,
-    });
-    await user.click(field);
-    expect(field).toHaveValue("20");
-    await user.clear(field);
-    await user.type(field, "100");
-    await user.keyboard("{Enter}");
-
-    expectStopValue(1, "100");
-    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(20);
-    expect(stops[1].output).toEqual(green);
-    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
-
-    field = screen.getByRole("textbox", {
-      name: /value for: step 2/i,
-    });
-    await user.click(field);
-    await user.clear(field);
-    await user.type(field, "110");
-    await user.keyboard("{Enter}");
-
-    expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(100);
-    expect(stops[2].input).toEqual(110);
-  });
-
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
@@ -217,6 +178,28 @@ describe("symbolization dialog", () => {
     expect(stops[2].output).toEqual("rgb(227,74,51)");
   });
 
+  it("can delete a stop", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: 0, output: red },
+        { input: 3, output: green },
+        { input: 2, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /delete stop 1/i }));
+
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: 0, output: red },
+      { input: 2, output: blue },
+    ]);
+  });
+
   it("can choose a ramp with more values", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
@@ -243,6 +226,61 @@ describe("symbolization dialog", () => {
     expect(stops[1].input).toEqual(20.1);
     expect(stops[2].input).toEqual(30.1);
     expect(stops[3].input).toEqual(31);
+  });
+
+  it("shows an error when range not in order", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: startingStops,
+    });
+
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    let field = screen.getByRole("textbox", {
+      name: /value for: step 1/i,
+    });
+    await user.click(field);
+    expect(field).toHaveValue("20");
+    await user.clear(field);
+    await user.type(field, "100");
+    await user.keyboard("{Enter}");
+
+    expectStopValue(1, "100");
+    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[1].input).toEqual(20);
+    expect(stops[1].output).toEqual(green);
+    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
+
+    field = screen.getByRole("textbox", {
+      name: /value for: step 2/i,
+    });
+    await user.click(field);
+    await user.clear(field);
+    await user.type(field, "110");
+    await user.keyboard("{Enter}");
+
+    expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
+    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[1].input).toEqual(100);
+    expect(stops[2].input).toEqual(110);
+
+    field = screen.getByRole("textbox", {
+      name: /value for: step 0/i,
+    });
+    await user.click(field);
+    expect(field).toHaveValue("10");
+    await user.clear(field);
+    await user.type(field, "1000");
+    await user.keyboard("{Enter}");
+    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /delete stop 1/i }));
+    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+    expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
   });
 
   it("shows error when applying equal intervals with no data", async () => {
