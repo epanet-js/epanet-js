@@ -36,37 +36,44 @@ const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
     ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
     : translate(symbolization.property);
 
+  const stops = [...symbolization.stops];
+  const totalStops = stops.length;
+
   return (
-    <LegendContainer>
-      <div className="block w-full px-2 pt-2 text-right flex justify-between items-center">
-        {title}
-        <Button
-          variant="quiet"
-          aria-label="Edit symbolization"
-          onClick={() => {
-            setDialogState({
-              type: "symbolization",
-            });
-          }}
-        >
-          <Pencil2Icon className="w-3 h-3" />
-        </Button>
-      </div>
-      <div className="p-2">
+    <LegendContainer
+      onClick={() => {
+        setDialogState({ type: "symbolization" });
+      }}
+    >
+      <div className="block w-full p-2 text-right flex flex-col justify-between items-start">
+        <div className="pb-2 text-xs whitespace-nowrap select-none">
+          {title}
+        </div>
         <div
-          className="h-4 rounded dark:border dark:border-white"
+          className="relative w-4 h-32 rounded dark:border dark:border-white "
           style={{
             background: linearGradient({
-              colors: symbolization.stops.map((stop) => stop.output),
+              colors: stops.map((stop) => stop.output),
               interpolate: symbolization.interpolate,
+              vertical: true,
             }),
           }}
-        />
-        <div className="flex justify-between pt-1">
-          <div className="truncate">{symbolization.stops[0]?.input}</div>
-          <div className="truncate">
-            {last(symbolization.stops)?.input + "+"}
-          </div>
+        >
+          {Array.from({ length: totalStops - 1 }).map((_, i) => {
+            const topPct = ((i + 1) / totalStops) * 100;
+            return (
+              <div
+                key={stops[i + 1].input}
+                className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
+                style={{
+                  top: `${topPct}%`,
+                  transform: "translateY(-50%)",
+                }}
+              >
+                {stops[i + 1].input}
+              </div>
+            );
+          })}
         </div>
       </div>
     </LegendContainer>
@@ -79,9 +86,9 @@ const LegendDeprecated = ({
   symbolization: ISymbolizationRamp;
 }) => {
   return (
-    <LegendContainer>
+    <LegendContainerDeprecated>
       <LegendRamp symbolization={symbolization} />
-    </LegendContainer>
+    </LegendContainerDeprecated>
   );
 };
 
@@ -139,13 +146,37 @@ const LegendRamp = ({
   );
 };
 
-const LegendContainer = ({ children }: { children: React.ReactNode }) => {
+const LegendContainer = ({
+  onClick,
+  children,
+}: {
+  onClick?: () => void;
+  children: React.ReactNode;
+}) => {
   return (
     <div
       className="space-y-1 text-xs
       bg-white dark:bg-gray-900
       dark:text-white
-      border border-gray-300 dark:border-black w-48 rounded-sm"
+      border border-gray-300 dark:border-black w-32 rounded-sm cursor-pointer hover:bg-gray-100"
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+};
+
+const LegendContainerDeprecated = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <div
+      className="space-y-1 text-xs
+      bg-white dark:bg-gray-900
+      dark:text-white
+  border border-gray-300 dark:border-black w-48 rounded-sm"
     >
       {children}
     </div>
