@@ -2,6 +2,7 @@ import {
   MixerVerticalIcon,
   Pencil1Icon,
   PlusIcon,
+  SymbolIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
@@ -229,6 +230,24 @@ const RampWizard = ({
     }
   };
 
+  const handleReverseColors = () => {
+    const colors = [...stops].reverse().map((s) => s.output);
+    const newStops = stops.map((s, i) => ({
+      input: s.input,
+      output: colors[i],
+    }));
+    setStops(newStops);
+    const isValid = validateAscendingOrder(newStops);
+    if (!isValid) {
+      setError(translate("rampShouldBeAscending"));
+    } else {
+      submit({
+        ...symbolization,
+        stops: newStops,
+      });
+    }
+  };
+
   const handleDeleteStop = (index: number) => {
     let newStops;
     if (index === 1) {
@@ -422,12 +441,20 @@ const RampWizard = ({
                       </div>
                     </div>
                     <div className="flex flex-col gap-y-4">
-                      <div>
+                      <div className="flex flex-col gap-y-2">
                         <RampSelector
                           rampSize={rampSize}
                           onRampChange={handleRampChange}
                           onStepsCountChange={handleStepsCountChange}
                         />
+                        <div>
+                          <Button
+                            size="full-width"
+                            onClick={handleReverseColors}
+                          >
+                            <SymbolIcon /> Reverse Colors
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-y-2">
                         <span className="text-sm text-gray-500">

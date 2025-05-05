@@ -289,6 +289,29 @@ describe("symbolization dialog", () => {
     ]);
   });
 
+  it("can reverse colors", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      stops: [
+        { input: -Infinity, output: red },
+        { input: 2, output: green },
+        { input: 3, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /reverse colors/i }));
+
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: -Infinity, output: blue },
+      { input: 2, output: green },
+      { input: 3, output: red },
+    ]);
+  });
+
   it("can choose a ramp with more values", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
