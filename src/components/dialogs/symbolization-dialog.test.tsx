@@ -118,12 +118,11 @@ describe("symbolization dialog", () => {
     await user.click(screen.getByText(/equal intervals/i));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(10);
-    expect(stops[0].output).toEqual(red);
-    expect(stops[1].input).toEqual(55);
-    expect(stops[1].output).toEqual(green);
-    expect(stops[2].input).toEqual(100);
-    expect(stops[2].output).toEqual(blue);
+    expect(stops).toEqual([
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 100, output: blue },
+    ]);
   });
 
   it("can apply equal quantiles based on data", async () => {
@@ -131,11 +130,12 @@ describe("symbolization dialog", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1", { simulation: { pressure: 10 } })
       .aJunction("j2", { simulation: { pressure: 15 } })
-      .aJunction("j3", { simulation: { pressure: 100 } })
+      .aJunction("j3", { simulation: { pressure: 20 } })
+      .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
-        { input: 0, output: red },
+        { input: -Infinity, output: red },
         { input: 2, output: green },
         { input: 3, output: blue },
       ],
@@ -148,12 +148,11 @@ describe("symbolization dialog", () => {
     await user.click(screen.getByText(/equal quantiles/i));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(10);
-    expect(stops[0].output).toEqual(red);
-    expect(stops[1].input).toEqual(15);
-    expect(stops[1].output).toEqual(green);
-    expect(stops[2].input).toEqual(100);
-    expect(stops[2].output).toEqual(blue);
+    expect(stops).toEqual([
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 100, output: blue },
+    ]);
   });
 
   it("can apply different ramp color", async () => {
