@@ -65,7 +65,7 @@ export const SymbolizationDialog = () => {
   return (
     <>
       <DialogHeader title={title} titleIcon={MixerVerticalIcon} />
-      <div className="flex-auto overflow-y-auto placemark-scrollbar">
+      <div className="flex-auto">
         <div className="divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
           <div className="text-sm">
             <RampWizard
