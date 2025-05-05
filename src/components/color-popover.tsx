@@ -78,20 +78,16 @@ export function ColorPopover({
   return (
     <P.Root>
       <P.Trigger
-        className={clsx(
-          E.sharedOutline("default"),
-          E.sharedPadding(_size),
-          "flex items-center w-full gap-x-2 font-mono dark:text-white",
-        )}
+        asChild
+      >
+        <button
+          className="h-full w-full rounded-sm"
         aria-label={ariaLabel}
         data-color={color}
-      >
-        <div
-          className="h-5 w-full"
           style={{
             backgroundColor: color,
           }}
-        ></div>
+        ></button>
       </P.Trigger>
       <E.PopoverContent2 size="no-width">
         <div className="space-y-2">
