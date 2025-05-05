@@ -9,8 +9,12 @@ import { PressuresAnalysis } from "src/analysis";
 import userEvent from "@testing-library/user-event";
 import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("symbolization dialog", () => {
+  beforeEach(() => {
+    stubFeatureOn("FLAG_CUSTOMIZE");
+  });
   const red = "#ff0000";
   const green = "#00ff00";
   const blue = "#0000ff";
@@ -181,8 +185,9 @@ describe("symbolization dialog", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
+        { input: -Infinity, output: red },
+        { input: 10, output: green },
+        { input: 20, output: blue },
       ],
     });
     const store = setInitialState({ nodesAnalysis });
@@ -193,19 +198,40 @@ describe("symbolization dialog", () => {
 
     let stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
-      { input: 0, output: defaultNewColor },
-      { input: 10, output: red },
-      { input: 20, output: green },
+      { input: -Infinity, output: defaultNewColor },
+      { input: 0, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
     ]);
 
     await user.click(screen.getByRole("button", { name: /prepend stop/i }));
 
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
+      { input: -Infinity, output: defaultNewColor },
       { input: -1, output: defaultNewColor },
-      { input: 0, output: defaultNewColor },
-      { input: 10, output: red },
-      { input: 20, output: green },
+      { input: 0, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
+    ]);
+
+    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+
+    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: -Infinity, output: defaultNewColor },
+      { input: 0, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
+    ]);
+
+    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+
+    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops).toEqual([
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
     ]);
   });
 
@@ -245,7 +271,7 @@ describe("symbolization dialog", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
-        { input: 0, output: red },
+        { input: -Infinity, output: red },
         { input: 2, output: green },
         { input: 3, output: blue },
       ],
@@ -258,7 +284,7 @@ describe("symbolization dialog", () => {
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
-      { input: 0, output: red },
+      { input: -Infinity, output: red },
       { input: 2, output: green },
     ]);
   });

@@ -3,6 +3,7 @@ import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { strokeColorFor } from "src/lib/color";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
@@ -21,13 +22,12 @@ export class RangeColorMapping {
     unit: Unit;
     absoluteValues?: boolean;
   }) {
-    const ranges = buildRanges(steps);
-    const symbolization = buildSymbolization(
-      paletteName,
-      steps,
-      property,
-      unit,
-    );
+    const ranges = isFeatureOn("FLAG_CUSTOMIZE")
+      ? buildRanges(steps)
+      : buildRangesDeprecated(steps);
+    const symbolization = isFeatureOn("FLAG_CUSTOMIZE")
+      ? buildSymbolization(paletteName, steps, property, unit)
+      : buildSymbolizationDeprecated(paletteName, steps, property, unit);
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
@@ -44,7 +44,9 @@ export class RangeColorMapping {
   }
 
   static fromSymbolizationRamp(symbolization: ISymbolizationRamp) {
-    const ranges = buildRanges(symbolization.stops.map((s) => s.input));
+    const ranges = isFeatureOn("FLAG_CUSTOMIZE")
+      ? buildRanges([...symbolization.stops.map((s) => s.input), Infinity])
+      : buildRangesDeprecated(symbolization.stops.map((s) => s.input));
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
@@ -113,6 +115,14 @@ export class RangeColorMapping {
 const buildRanges = (steps: number[]) => {
   const ranges: Range[] = [];
   for (let i = 0; i < steps.length; i++) {
+    ranges.push([steps[i], steps[i + 1]]);
+  }
+  return ranges;
+};
+
+const buildRangesDeprecated = (steps: number[]) => {
+  const ranges: Range[] = [];
+  for (let i = 0; i < steps.length; i++) {
     if (i === 0) {
       ranges.push([-Infinity, steps[i + 1]]);
       continue;
@@ -165,6 +175,36 @@ const buildSymbolization = (
 });
 
 const generateRampStops = (name: string, steps: number[]) => {
+  const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === name);
+  if (!ramp) throw new Error("Ramp not found!");
+
+  const rampSize = steps.length - 1;
+  const stops = ramp.colors[rampSize as keyof CBColors["colors"]]?.map(
+    (color: string, i: number) => {
+      return { input: steps[i], output: color };
+    },
+  );
+  return stops as ISymbolizationRamp["stops"];
+};
+
+const buildSymbolizationDeprecated = (
+  rampName: string,
+  steps: number[],
+  property: string,
+  unit: Unit,
+): ISymbolizationRamp => ({
+  type: "ramp",
+  simplestyle: true,
+  property,
+  unit,
+  defaultColor: colors.indigo900,
+  defaultOpacity: 0.3,
+  interpolate: "step",
+  rampName,
+  stops: generateRampStopsDeprecated(rampName, steps),
+});
+
+const generateRampStopsDeprecated = (name: string, steps: number[]) => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === name);
   if (!ramp) throw new Error("Ramp not found!");
 
