@@ -40,6 +40,8 @@ import { Selector } from "../form/selector";
 import clsx from "clsx";
 
 export const defaultNewColor = "#0fffff";
+const maxRampSize = 7;
+const minRampSize = 2;
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -325,6 +327,8 @@ const RampWizard = ({
   };
 
   const rampSize = stops.length as keyof CBColors["colors"];
+  const canAddMore = rampSize < maxRampSize;
+  const canDeleteStop = rampSize > minRampSize;
 
   return (
     <div>
@@ -362,6 +366,7 @@ const RampWizard = ({
                           <div className="w-full">
                             <Button
                               type="button"
+                              disabled={!canAddMore}
                               className="opacity-60 border-none"
                               onClick={() => handlePrependStop()}
                               aria-label={`Prepend stop`}
@@ -387,7 +392,7 @@ const RampWizard = ({
                                     handleStopValueChange(i, value);
                                   }}
                                 />
-                                {stops.length > 1 ? (
+                                {stops.length > 1 && canDeleteStop ? (
                                   <div>
                                     <Button
                                       type="button"
@@ -405,6 +410,7 @@ const RampWizard = ({
                           <div className="w-full">
                             <Button
                               type="button"
+                              disabled={!canAddMore}
                               className="opacity-60 border-none"
                               onClick={() => handleAppendStop()}
                               aria-label={`Append stop`}
@@ -474,7 +480,7 @@ const RampSelector = ({
   onStepsCountChange: (count: number) => void;
 }) => {
   const countOptions = useMemo(() => {
-    return d3.range(3, 8).map((count) => ({
+    return d3.range(3, maxRampSize + 1).map((count) => ({
       label: String(count),
       value: String(count),
     }));
