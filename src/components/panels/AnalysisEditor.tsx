@@ -7,6 +7,7 @@ import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
@@ -79,7 +80,9 @@ export const AnalysisEditor = () => {
           nodes: {
             type: "pressures",
             rangeColorMapping: RangeColorMapping.build({
-              steps: [0, 25, 50, 75, 100],
+              steps: isFeatureOn("FLAG_CUSTOMIZE")
+                ? [-Infinity, 25, 50, 75, 100, +Infinity]
+                : [0, 25, 50, 75, 100],
               property: "pressure",
               unit: hydraulicModel.units.pressure,
               paletteName: "epanet-ramp",

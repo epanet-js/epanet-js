@@ -183,14 +183,16 @@ const RampWizard = ({
   };
 
   const handlePrependStop = () => {
-    const firstValue = stops[0].input;
+    const [first, ...rest] = stops;
+    const firstValue = first.input === -Infinity ? rest[0].input : first.input;
     const newValue = firstValue > 0 ? 0 : Math.floor(firstValue - 1);
     const newStops = [
+      { input: first.input, output: defaultNewColor },
       {
         input: newValue,
-        output: defaultNewColor,
+        output: first.output,
       },
-      ...stops,
+      ...rest,
     ];
     setStops(newStops);
     const isValid = validateAscendingOrder(newStops);
@@ -226,7 +228,13 @@ const RampWizard = ({
   };
 
   const handleDeleteStop = (index: number) => {
-    const newStops = stops.filter((stop, i) => i !== index);
+    let newStops;
+    if (index === 1) {
+      const [, target, ...rest] = stops;
+      newStops = [{ input: -Infinity, output: target.output }, ...rest];
+    } else {
+      newStops = stops.filter((stop, i) => i !== index);
+    }
 
     setStops(newStops);
     const isValid = validateAscendingOrder(newStops);
@@ -362,7 +370,8 @@ const RampWizard = ({
                             </Button>
                           </div>
                           {stops.map((stop, i) => {
-                            if (i == 0) return null;
+                            if (i === 0) return null;
+
                             return (
                               <div
                                 className="flex items-center gap-2"
