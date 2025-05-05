@@ -85,17 +85,20 @@ export const SymbolizationDialog = () => {
 const generateLinearStops = (dataValues: number[], colors: string[]) => {
   const values = dataValues.length > 1 ? dataValues : [0, 100];
   const [min, max] = d3.extent(values) as [number, number];
-  return colors.map((output, i, arr) => {
+  const [firstColor, ...restColors] = colors;
+  const stops = restColors.map((output, i, arr) => {
     return {
       input: Number(+lerp(min, max, i / (arr.length - 1)).toFixed(4)),
       output,
     };
   });
+  return [{ input: -Infinity, output: firstColor }, ...stops];
 };
 
 const generateQuantileStops = (dataValues: number[], colors: string[]) => {
   const values = dataValues.length > 1 ? dataValues : [0, 100];
-  const stops = colors
+  const [firstColor, ...restColors] = colors;
+  const stops = restColors
     .map((output, i, arr) => {
       return {
         input: Number(
@@ -111,7 +114,7 @@ const generateQuantileStops = (dataValues: number[], colors: string[]) => {
       return true;
     });
 
-  return stops;
+  return [{ input: -Infinity, output: firstColor }, ...stops];
 };
 
 const RampWizard = ({
