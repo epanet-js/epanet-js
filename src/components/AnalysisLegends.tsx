@@ -23,7 +23,9 @@ export const AnalysisLegends = () => {
           />
         ))}
       {links.type !== "none" && (
-        <Legend symbolization={links.rangeColorMapping.symbolization} />
+        <LegendDeprecated
+          symbolization={links.rangeColorMapping.symbolization}
+        />
       )}
     </div>
   );
