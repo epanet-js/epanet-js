@@ -8,7 +8,7 @@ import { DialogHeader } from "../dialog";
 import { DoneButton, RampChoices } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
 import {
   Button,
@@ -37,6 +37,7 @@ import { translate, translateUnit } from "src/infra/i18n";
 import { NumericField } from "../form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/selector";
+import clsx from "clsx";
 
 export const defaultNewColor = "#0fffff";
 
@@ -327,66 +328,81 @@ const RampWizard = ({
                 {() => (
                   <div className="grid grid-cols-2 gap-6 w-full">
                     <div>
-                      <div
-                        className="w-full grid gap-2 items-center dark:text-white"
-                        style={{
-                          gridTemplateColumns: "1fr 1fr min-content",
-                        }}
-                      >
-                        <div className="col-span-3">
-                          <Button
-                            type="button"
-                            className="opacity-60 border-none"
-                            onClick={() => handlePrependStop()}
-                            aria-label={`Prepend stop`}
-                          >
-                            <PlusIcon /> Add stop
-                          </Button>
-                        </div>
-                        {stops.map((stop, i) => {
-                          return (
-                            <Fragment key={`${stop.input}-${i}`}>
+                      <div className="w-full flex flex-row gap-2 items-start dark:text-white">
+                        <div className="flex flex-col gap-1">
+                          {stops.map((stop, i) => (
+                            <div
+                              className={clsx(
+                                i === 0 || i === stops.length - 1
+                                  ? "h-[54px]"
+                                  : "h-[37.5px]",
+                                "rounded rounded-md padding-1 w-4",
+                              )}
+                              key={`${stop.input}-${i}`}
+                            >
                               <ColorPopover
                                 color={stop.output}
                                 onChange={(color) => {
                                   handleStopColorChange(i, color);
                                 }}
-                                ariaLabel={`color for step ${i}`}
+                                ariaLabel={`color ${i}`}
                               />
-                              <NumericField
-                                key={`step-${i}`}
-                                label={`step ${i}`}
-                                isNullable={true}
-                                readOnly={false}
-                                displayValue={localizeDecimal(stop.input)}
-                                onChangeValue={(value) => {
-                                  handleStopValueChange(i, value);
-                                }}
-                              />
-                              {stops.length > 1 ? (
-                                <div>
-                                  <Button
-                                    type="button"
-                                    variant="quiet"
-                                    aria-label={`Delete stop ${i}`}
-                                    onClick={() => handleDeleteStop(i)}
-                                  >
-                                    <TrashIcon className="opacity-60" />
-                                  </Button>
-                                </div>
-                              ) : null}
-                            </Fragment>
-                          );
-                        })}
-                        <div className="col-span-3">
-                          <Button
-                            type="button"
-                            className="opacity-60 border-none"
-                            onClick={() => handleAppendStop()}
-                            aria-label={`Append stop`}
-                          >
-                            <PlusIcon /> Add stop
-                          </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-full">
+                            <Button
+                              type="button"
+                              className="opacity-60 border-none"
+                              onClick={() => handlePrependStop()}
+                              aria-label={`Prepend stop`}
+                            >
+                              <PlusIcon /> Add stop
+                            </Button>
+                          </div>
+                          {stops.map((stop, i) => {
+                            if (i == 0) return null;
+                            return (
+                              <div
+                                className="flex items-center gap-2"
+                                key={`${stop.input}-${i}`}
+                              >
+                                <NumericField
+                                  key={`step-${i - 1}`}
+                                  label={`step ${i - 1}`}
+                                  isNullable={true}
+                                  readOnly={false}
+                                  displayValue={localizeDecimal(stop.input)}
+                                  onChangeValue={(value) => {
+                                    handleStopValueChange(i, value);
+                                  }}
+                                />
+                                {stops.length > 1 ? (
+                                  <div>
+                                    <Button
+                                      type="button"
+                                      variant="quiet"
+                                      aria-label={`Delete stop ${i - 1}`}
+                                      onClick={() => handleDeleteStop(i)}
+                                    >
+                                      <TrashIcon className="opacity-60" />
+                                    </Button>
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                          <div className="w-full">
+                            <Button
+                              type="button"
+                              className="opacity-60 border-none"
+                              onClick={() => handleAppendStop()}
+                              aria-label={`Append stop`}
+                            >
+                              <PlusIcon /> Add stop
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
