@@ -1,7 +1,7 @@
 import {
   MixerVerticalIcon,
-  Pencil1Icon,
   PlusIcon,
+  ReloadIcon,
   SymbolIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -48,7 +48,10 @@ import {
   RampSize,
   RampMode,
   rampModes,
+  getColors,
+  applyRampColors,
 } from "src/analysis/symbolization-ramp";
+import { linearGradient } from "src/lib/color";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -200,6 +203,10 @@ const RampWizard = ({
     updateState(changeRampName(symbolization, newRampName));
   };
 
+  const handleApplyColors = () => {
+    updateState(applyRampColors(symbolization));
+  };
+
   const handleModeChange = (newMode: RampMode) => {
     if (newMode === "linear") {
       const colors = symbolization.stops.map((s) => s.output);
@@ -323,20 +330,6 @@ const RampWizard = ({
                     </div>
                     <div className="flex flex-col gap-y-4">
                       <div className="flex flex-col gap-y-2">
-                        <RampSelector
-                          rampSize={rampSize}
-                          onRampChange={handleRampChange}
-                        />
-                        <div>
-                          <Button
-                            size="full-width"
-                            onClick={handleReverseColors}
-                          >
-                            <SymbolIcon /> Reverse Colors
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-y-2">
                         <span className="text-sm text-gray-500">Mode</span>
                         <ModeSelector
                           rampMode={symbolization.mode}
@@ -349,6 +342,29 @@ const RampWizard = ({
                           rampSize={rampSize}
                           onChange={handleRampSizeChange}
                         />
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <span className="text-sm text-gray-500">
+                          Color Ramp
+                        </span>
+                        <RampSelector
+                          rampName={symbolization.rampName}
+                          rampSize={rampSize}
+                          onRampChange={handleRampChange}
+                        />
+                        <div>
+                          <Button size="full-width" onClick={handleApplyColors}>
+                            <ReloadIcon /> Apply Colors
+                          </Button>
+                        </div>
+                        <div>
+                          <Button
+                            size="full-width"
+                            onClick={handleReverseColors}
+                          >
+                            <SymbolIcon /> Reverse Colors
+                          </Button>
+                        </div>
                       </div>
                       {!!error && (
                         <div>
@@ -428,18 +444,32 @@ const ModeSelector = ({
 };
 
 const RampSelector = ({
+  rampName,
   rampSize,
   onRampChange,
 }: {
+  rampName: string;
   rampSize: keyof CBColors["colors"];
   onRampChange: (rampName: string) => void;
 }) => {
+  const rampColors = useMemo(() => {
+    return getColors(rampName, rampSize);
+  }, [rampName, rampSize]);
+
   return (
     <P.Root>
       <P.Trigger asChild>
-        <Button size="full-width">
-          <Pencil1Icon /> Change Color Ramp
-        </Button>
+        <div
+          title={"ramp select"}
+          className="cursor-pointer w-full h-8 border rounded-sm"
+          style={{
+            background: linearGradient({
+              colors: rampColors,
+              interpolate: "step",
+            }),
+            borderColor: rampColors[rampColors.length - 1],
+          }}
+        />
       </P.Trigger>
       <PopoverContent2 side="right">
         <StyledPopoverArrow />

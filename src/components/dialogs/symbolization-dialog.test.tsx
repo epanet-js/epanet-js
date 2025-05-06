@@ -173,8 +173,33 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/change color ramp/i));
+    await user.click(screen.getByTitle(/ramp select/i));
     await user.click(screen.getByTitle("OrRd"));
+
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    expect(stops[0].input).toEqual(0);
+    expect(stops[0].output).toEqual("rgb(254,232,200)");
+    expect(stops[1].input).toEqual(2);
+    expect(stops[1].output).toEqual("rgb(253,187,132)");
+    expect(stops[2].input).toEqual(3);
+    expect(stops[2].output).toEqual("rgb(227,74,51)");
+  });
+
+  it("can force ramp colors", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      rampName: "OrRd",
+      stops: [
+        { input: 0, output: red },
+        { input: 2, output: green },
+        { input: 3, output: blue },
+      ],
+    });
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /apply colors/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops[0].input).toEqual(0);
