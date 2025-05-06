@@ -128,6 +128,7 @@ export const aSymbolization = (
     defaultOpacity: 0.3,
     interpolate: "step",
     rampName: "epanet-ramp",
+    mode: "linear",
     stops: [],
   };
 

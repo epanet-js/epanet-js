@@ -11,12 +11,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
 import { useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
-import {
-  Button,
-  PopoverContent2,
-  StyledLabelSpan,
-  StyledPopoverArrow,
-} from "../elements";
+import { Button, PopoverContent2, StyledPopoverArrow } from "../elements";
 import { dataAtom } from "src/state/jotai";
 import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import {
@@ -51,6 +46,8 @@ import {
   maxRampSize,
   minRampSize,
   RampSize,
+  RampMode,
+  rampModes,
 } from "src/analysis/symbolization-ramp";
 
 export const SymbolizationDialog = () => {
@@ -195,7 +192,7 @@ const RampWizard = ({
     updateState(deleteStop(symbolization, index));
   };
 
-  const handleStepsCountChange = (rampSize: number) => {
+  const handleRampSizeChange = (rampSize: number) => {
     updateState(changeRampSize(symbolization, rampSize));
   };
 
@@ -203,27 +200,28 @@ const RampWizard = ({
     updateState(changeRampName(symbolization, newRampName));
   };
 
-  const handleChangeToEqualIntervals = () => {
-    const colors = symbolization.stops.map((s) => s.output);
-    const dataValues = options.get(symbolization.property)! || [];
-    if (!dataValues.length) {
-      setError(translate("notEnoughDataForLinear"));
-    } else {
-      const newStops = generateLinearStops(dataValues, colors);
+  const handleModeChange = (newMode: RampMode) => {
+    if (newMode === "linear") {
+      const colors = symbolization.stops.map((s) => s.output);
+      const dataValues = options.get(symbolization.property)! || [];
+      if (!dataValues.length) {
+        setError(translate("notEnoughDataForLinear"));
+      } else {
+        const newStops = generateLinearStops(dataValues, colors);
 
-      updateState({ ...symbolization, stops: newStops });
+        updateState({ ...symbolization, stops: newStops, mode: newMode });
+      }
     }
-  };
+    if (newMode === "quantiles") {
+      const colors = symbolization.stops.map((s) => s.output);
+      const dataValues = options.get(symbolization.property)! || [];
+      if (!dataValues.length) {
+        setError(translate("notEnoughDataForQuantiles"));
+      } else {
+        const newStops = generateQuantileStops(dataValues, colors);
 
-  const handleChangeToQuantiles = () => {
-    const colors = symbolization.stops.map((s) => s.output);
-    const dataValues = options.get(symbolization.property)! || [];
-    if (!dataValues.length) {
-      setError(translate("notEnoughDataForQuantiles"));
-    } else {
-      const newStops = generateQuantileStops(dataValues, colors);
-
-      updateState({ ...symbolization, stops: newStops });
+        updateState({ ...symbolization, stops: newStops, mode: newMode });
+      }
     }
   };
 
@@ -328,7 +326,6 @@ const RampWizard = ({
                         <RampSelector
                           rampSize={rampSize}
                           onRampChange={handleRampChange}
-                          onStepsCountChange={handleStepsCountChange}
                         />
                         <div>
                           <Button
@@ -340,25 +337,18 @@ const RampWizard = ({
                         </div>
                       </div>
                       <div className="flex flex-col gap-y-2">
-                        <span className="text-sm text-gray-500">
-                          Data-driven helpers:
-                        </span>
-                        <div>
-                          <Button
-                            size="full-width"
-                            onClick={handleChangeToEqualIntervals}
-                          >
-                            <PlusIcon /> Equal Intervals
-                          </Button>
-                        </div>
-                        <div>
-                          <Button
-                            size="full-width"
-                            onClick={handleChangeToQuantiles}
-                          >
-                            <PlusIcon /> Equal Quantiles
-                          </Button>
-                        </div>
+                        <span className="text-sm text-gray-500">Mode</span>
+                        <ModeSelector
+                          rampMode={symbolization.mode}
+                          onModeChange={handleModeChange}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <span className="text-sm text-gray-500">Classes</span>
+                        <ClassesSelector
+                          rampSize={rampSize}
+                          onChange={handleRampSizeChange}
+                        />
                       </div>
                       {!!error && (
                         <div>
@@ -380,22 +370,70 @@ const RampWizard = ({
   );
 };
 
-const RampSelector = ({
+const ClassesSelector = ({
   rampSize,
-  onRampChange,
-  onStepsCountChange,
+  onChange,
 }: {
-  rampSize: keyof CBColors["colors"];
-  onRampChange: (rampName: string) => void;
-  onStepsCountChange: (count: number) => void;
+  rampSize: number;
+  onChange: (rampSize: number) => void;
 }) => {
-  const countOptions = useMemo(() => {
+  const options = useMemo(() => {
     return d3.range(3, maxRampSize + 1).map((count) => ({
       label: String(count),
       value: String(count),
     }));
   }, []);
 
+  return (
+    <Selector
+      options={options}
+      selected={String(rampSize)}
+      ariaLabel="ramp size"
+      onChange={(newValue) => {
+        onChange(Number(newValue));
+      }}
+    />
+  );
+};
+
+const modeLabels = {
+  linear: "Equal Intervals",
+  quantiles: "Equal Quantiles",
+};
+
+const ModeSelector = ({
+  rampMode,
+  onModeChange,
+}: {
+  rampMode: RampMode;
+  onModeChange: (newMode: RampMode) => void;
+}) => {
+  const modeOptions = useMemo(() => {
+    return rampModes.map((mode) => ({
+      label: modeLabels[mode],
+      value: mode,
+    }));
+  }, []);
+
+  return (
+    <Selector
+      options={modeOptions}
+      selected={rampMode}
+      ariaLabel="ramp mode"
+      onChange={(newMode) => {
+        onModeChange(newMode);
+      }}
+    />
+  );
+};
+
+const RampSelector = ({
+  rampSize,
+  onRampChange,
+}: {
+  rampSize: keyof CBColors["colors"];
+  onRampChange: (rampName: string) => void;
+}) => {
   return (
     <P.Root>
       <P.Trigger asChild>
@@ -411,17 +449,6 @@ const RampSelector = ({
           }}
           className="space-y-2 p-1 overflow-y-auto placemark-scrollbar"
         >
-          <label className="flex flex-col block">
-            <StyledLabelSpan>Classes</StyledLabelSpan>
-            <Selector
-              options={countOptions}
-              selected={String(rampSize)}
-              ariaLabel="ramp size"
-              onChange={(newValue) => {
-                onStepsCountChange(Number(newValue));
-              }}
-            />
-          </label>
           <div>
             <RampChoices
               label="Epanet"

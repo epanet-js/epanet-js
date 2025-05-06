@@ -106,6 +106,7 @@ describe("symbolization dialog", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "quantiles",
       stops: [
         { input: 0, output: red },
         { input: 2, output: green },
@@ -117,7 +118,8 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/equal intervals/i));
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /equal intervals/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -147,7 +149,8 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/equal quantiles/i));
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -328,13 +331,12 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/change color ramp/i));
     expect(
       screen.getByRole("combobox", { name: /ramp size/i }),
     ).toHaveTextContent("3");
 
     await user.click(screen.getByRole("combobox", { name: /ramp size/i }));
-    await user.click(screen.getByText(/4/));
+    await user.click(screen.getByRole("option", { name: /4/ }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops[0].input).toEqual(10.1);
@@ -404,6 +406,7 @@ describe("symbolization dialog", () => {
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "quantiles",
       stops: [
         { input: 10, output: red },
         { input: 20, output: green },
@@ -414,13 +417,15 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/equal intervals/i));
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /equal intervals/i }));
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
 
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "linear",
       stops: [
         { input: 10, output: red },
         { input: 20, output: green },
@@ -431,7 +436,8 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByText(/equal quantiles/i));
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
 

@@ -3,6 +3,9 @@ import { ISymbolizationRamp } from "src/types";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
+export const rampModes = ["linear", "quantiles"] as const;
+export type RampMode = (typeof rampModes)[number];
+
 export type RampSize = keyof CBColors["colors"];
 
 export const defaultNewColor = "#0fffff";
