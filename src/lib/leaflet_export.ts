@@ -65,7 +65,6 @@ export function leaflet(symbolization: ISymbolization) {
 
     case "ramp": {
       return `function style(feature) {
-  ${sharedDataDrivenPreamble(symbolization)}
 
   const ramp = ${JSON.stringify(
     symbolization.stops.flatMap((stop) => [stop.input, stop.output]),
@@ -79,7 +78,7 @@ export function leaflet(symbolization: ISymbolization) {
       color = ramp[i + 1];
     }
   }
-  
+
   ${dataReturn({ symbolization, color: true })}
 }`;
     }

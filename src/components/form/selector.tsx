@@ -11,7 +11,7 @@ export const Selector = <T extends string>({
   styleOptions = {
     border: true,
     textSize: "text-sm",
-    paddingX: 1,
+    paddingX: 2,
     paddingY: 2,
   },
 }: {
