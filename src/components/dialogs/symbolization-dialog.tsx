@@ -52,6 +52,7 @@ import {
   applyMode,
 } from "src/analysis/symbolization-ramp";
 import { linearGradient } from "src/lib/color";
+import { isDebugOn } from "src/infra/debug-mode";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -108,6 +109,35 @@ const RampWizard = ({
 
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
+
+  const histogram = useMemo(() => {
+    if (!isDebugOn) return [];
+
+    function createHistogram(values: number[], breaks: number[]) {
+      const histogram = new Array(breaks.length - 1).fill(0);
+      let valueIndex = 0;
+
+      for (let bin = 0; bin < breaks.length - 1; bin++) {
+        const left = breaks[bin];
+        const right = breaks[bin + 1];
+
+        while (valueIndex < values.length && values[valueIndex] <= right) {
+          if (values[valueIndex] > left) {
+            histogram[bin]++;
+          }
+          valueIndex++;
+        }
+      }
+
+      return histogram;
+    }
+    const dataValues = options.get(symbolization.property) || [];
+
+    return createHistogram(dataValues, [
+      ...symbolization.stops.map((s) => s.input),
+      +Infinity,
+    ]);
+  }, [assets, symbolization.property, symbolization.stops, options]);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -279,6 +309,7 @@ const RampWizard = ({
                               <PlusIcon /> Add stop
                             </Button>
                           </div>
+                          {isDebugOn && <div>{JSON.stringify(histogram)}</div>}
                         </div>
                       </div>
                     </div>
@@ -506,7 +537,7 @@ export function getNumericPropertyMap(assets: Asset[]) {
   }
 
   for (const val of numericPropertyMap.values()) {
-    val.sort();
+    val.sort((a, b) => a - b);
   }
   return numericPropertyMap;
 }
