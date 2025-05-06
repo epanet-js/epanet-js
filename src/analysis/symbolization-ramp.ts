@@ -1,4 +1,6 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
+import { lerp } from "src/lib/utils";
+import * as d3 from "d3-array";
 import { ISymbolizationRamp } from "src/types";
 
 type SymbolizationRamp = ISymbolizationRamp;
@@ -112,8 +114,15 @@ export const changeRampName = (
 
 export const changeRampSize = (
   symbolization: SymbolizationRamp,
+  dataValues: number[],
   rampSize: number,
 ) => {
+  const stops = generateStops(
+    symbolization.mode,
+    getColors(symbolization.rampName, rampSize),
+    dataValues,
+  );
+  return { ...symbolization, stops };
   const colors = getColors(symbolization.rampName, rampSize);
 
   const newStops: ISymbolizationRamp["stops"] = [];
@@ -145,4 +154,65 @@ export const applyRampColors = (symbolization: SymbolizationRamp) => {
 export const getColors = (rampName: string, rampSize: number): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
   return ramp.colors[rampSize as RampSize] as string[];
+};
+
+export const applyMode = (
+  symbolization: SymbolizationRamp,
+  mode: RampMode,
+  dataValues: number[],
+): SymbolizationRamp => {
+  const stops = generateStops(
+    mode,
+    symbolization.stops.map((s) => s.output),
+    dataValues,
+  );
+  return { ...symbolization, mode, stops };
+};
+
+const generateStops = (
+  mode: RampMode,
+  colors: string[],
+  dataValues: number[],
+): SymbolizationRamp["stops"] => {
+  switch (mode) {
+    case "linear":
+      return generateLinearStops(dataValues, colors);
+    case "quantiles":
+      return generateQuantileStops(dataValues, colors);
+  }
+};
+
+const generateLinearStops = (dataValues: number[], colors: string[]) => {
+  const values = dataValues.length > 1 ? dataValues : [0, 100];
+  const [min, max] = d3.extent(values) as [number, number];
+  const [firstColor, ...restColors] = colors;
+  const stops = restColors.map((output, i, arr) => {
+    return {
+      input: Number(+lerp(min, max, i / (arr.length - 1)).toFixed(4)),
+      output,
+    };
+  });
+  return [{ input: -Infinity, output: firstColor }, ...stops];
+};
+
+const generateQuantileStops = (dataValues: number[], colors: string[]) => {
+  const values = dataValues.length > 1 ? dataValues : [0, 100];
+  const [firstColor, ...restColors] = colors;
+  const stops = restColors
+    .map((output, i, arr) => {
+      return {
+        input: Number(
+          (d3.quantile(values, i / (arr.length - 1)) || 0).toFixed(4),
+        ),
+        output,
+      };
+    })
+    // Quantile stops could be repeated. Make sure they aren't.
+    .filter((stop, i, stops) => {
+      if (i === 0) return true;
+      if (stops[i - 1].input === stop.input) return false;
+      return true;
+    });
+
+  return [{ input: -Infinity, output: firstColor }, ...stops];
 };

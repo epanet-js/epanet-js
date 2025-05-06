@@ -23,7 +23,6 @@ import {
   epanetColors,
 } from "src/lib/colorbrewer";
 import * as d3 from "d3-array";
-import { lerp } from "src/lib/utils";
 import * as P from "@radix-ui/react-popover";
 import { InlineError } from "../inline_error";
 import { ColorPopover } from "../color-popover";
@@ -50,6 +49,7 @@ import {
   rampModes,
   getColors,
   applyRampColors,
+  applyMode,
 } from "src/analysis/symbolization-ramp";
 import { linearGradient } from "src/lib/color";
 
@@ -89,41 +89,6 @@ export const SymbolizationDialog = () => {
       </div>
     </>
   );
-};
-
-const generateLinearStops = (dataValues: number[], colors: string[]) => {
-  const values = dataValues.length > 1 ? dataValues : [0, 100];
-  const [min, max] = d3.extent(values) as [number, number];
-  const [firstColor, ...restColors] = colors;
-  const stops = restColors.map((output, i, arr) => {
-    return {
-      input: Number(+lerp(min, max, i / (arr.length - 1)).toFixed(4)),
-      output,
-    };
-  });
-  return [{ input: -Infinity, output: firstColor }, ...stops];
-};
-
-const generateQuantileStops = (dataValues: number[], colors: string[]) => {
-  const values = dataValues.length > 1 ? dataValues : [0, 100];
-  const [firstColor, ...restColors] = colors;
-  const stops = restColors
-    .map((output, i, arr) => {
-      return {
-        input: Number(
-          (d3.quantile(values, i / (arr.length - 1)) || 0).toFixed(4),
-        ),
-        output,
-      };
-    })
-    // Quantile stops could be repeated. Make sure they aren't.
-    .filter((stop, i, stops) => {
-      if (i === 0) return true;
-      if (stops[i - 1].input === stop.input) return false;
-      return true;
-    });
-
-  return [{ input: -Infinity, output: firstColor }, ...stops];
 };
 
 const RampWizard = ({
@@ -196,7 +161,12 @@ const RampWizard = ({
   };
 
   const handleRampSizeChange = (rampSize: number) => {
-    updateState(changeRampSize(symbolization, rampSize));
+    const dataValues = options.get(symbolization.property)! || [];
+    if (!dataValues.length) {
+      setError(translate("notEnoughData"));
+      return;
+    }
+    updateState(changeRampSize(symbolization, dataValues, rampSize));
   };
 
   const handleRampChange = (newRampName: string) => {
@@ -208,28 +178,12 @@ const RampWizard = ({
   };
 
   const handleModeChange = (newMode: RampMode) => {
-    if (newMode === "linear") {
-      const colors = symbolization.stops.map((s) => s.output);
-      const dataValues = options.get(symbolization.property)! || [];
-      if (!dataValues.length) {
-        setError(translate("notEnoughDataForLinear"));
-      } else {
-        const newStops = generateLinearStops(dataValues, colors);
-
-        updateState({ ...symbolization, stops: newStops, mode: newMode });
-      }
+    const dataValues = options.get(symbolization.property)! || [];
+    if (!dataValues.length) {
+      setError(translate("notEnoughData"));
+      return;
     }
-    if (newMode === "quantiles") {
-      const colors = symbolization.stops.map((s) => s.output);
-      const dataValues = options.get(symbolization.property)! || [];
-      if (!dataValues.length) {
-        setError(translate("notEnoughDataForQuantiles"));
-      } else {
-        const newStops = generateQuantileStops(dataValues, colors);
-
-        updateState({ ...symbolization, stops: newStops, mode: newMode });
-      }
-    }
+    updateState(applyMode(symbolization, newMode, dataValues));
   };
 
   const rampSize = symbolization.stops.length as RampSize;
