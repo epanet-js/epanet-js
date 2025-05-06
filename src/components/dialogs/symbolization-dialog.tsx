@@ -26,6 +26,7 @@ import {
   COLORBREWER_ALL,
   COLORBREWER_DIVERGING,
   COLORBREWER_SEQUENTIAL,
+  epanetColors,
 } from "src/lib/colorbrewer";
 import * as d3 from "d3-array";
 import { lerp } from "src/lib/utils";
@@ -542,6 +543,14 @@ const RampSelector = ({
               }}
             />
           </label>
+          <div>
+            <RampChoices
+              label="Epanet"
+              colors={epanetColors}
+              onSelect={onRampChange}
+              size={rampSize}
+            />
+          </div>
           <div>
             <RampChoices
               label="Continuous (ColorBrewer)"
