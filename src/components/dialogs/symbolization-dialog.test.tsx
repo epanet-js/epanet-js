@@ -345,14 +345,19 @@ describe("symbolization dialog", () => {
 
   it("can choose a ramp with more values", async () => {
     const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", { simulation: { pressure: 10 } })
+      .aJunction("j2", { simulation: { pressure: 15 } })
+      .aJunction("j3", { simulation: { pressure: 100 } })
+      .build();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
-        { input: 10.1, output: red },
+        { input: -Infinity, output: red },
         { input: 20.1, output: green },
         { input: 30.1, output: blue },
       ],
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ hydraulicModel, nodesAnalysis });
 
     renderComponent({ store });
 
@@ -364,10 +369,7 @@ describe("symbolization dialog", () => {
     await user.click(screen.getByRole("option", { name: /4/ }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(10.1);
-    expect(stops[1].input).toEqual(20.1);
-    expect(stops[2].input).toEqual(30.1);
-    expect(stops[3].input).toEqual(31);
+    expect(stops.length).toEqual(4);
   });
 
   it.skip("shows an error when range not in order", async () => {

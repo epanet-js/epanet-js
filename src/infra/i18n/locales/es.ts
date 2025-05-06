@@ -323,10 +323,7 @@ export const translations: Translations = {
   fixedStatus: "Estado Fijado",
   rampShouldBeAscending:
     "Los valores de la rampa deben estar en orden ascendente.",
-  notEnoughDataForQuantiles:
-    "No hay suficientes datos para calcular los cuantiles.",
-  notEnoughDataForLinear:
-    "No hay suficientes datos para calcular los intervalos.",
+  notEnoughData: "No hay suficientes datos.",
 };
 
 export const units: UnitsLocale = {
