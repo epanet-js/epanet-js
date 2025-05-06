@@ -138,6 +138,8 @@ describe("symbolization dialog", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "linear",
+      property: "pressure",
       stops: [
         { input: -Infinity, output: red },
         { input: 2, output: green },
@@ -152,11 +154,13 @@ describe("symbolization dialog", () => {
     await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
+    expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ascending/)).not.toBeInTheDocument();
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 100, output: blue },
+      { input: 15, output: green },
+      { input: 20, output: blue },
     ]);
   });
 

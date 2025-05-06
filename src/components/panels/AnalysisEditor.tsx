@@ -126,6 +126,10 @@ export const AnalysisEditor = () => {
             ).map((type) => ({
               value: type,
               label: translate(type),
+              disabled:
+                isFeatureOn("FLAG_CUSTOMIZE") &&
+                simulation.status === "idle" &&
+                ["flows", "velocities"].includes(type),
             }))}
             selected={analysis.links.type}
             onChange={handleLinksChange}
