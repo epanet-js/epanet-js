@@ -1,5 +1,6 @@
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
+import clsx from "clsx";
 import { KeyboardEventHandler, useMemo, useState } from "react";
 
 export const Selector = <T extends string>({
@@ -15,7 +16,12 @@ export const Selector = <T extends string>({
     paddingY: 2,
   },
 }: {
-  options: { label: string; description?: string; value: T }[];
+  options: {
+    label: string;
+    description?: string;
+    value: T;
+    disabled?: boolean;
+  }[];
   selected: T;
   onChange: (selected: T, oldValue: T) => void;
   ariaLabel?: string;
@@ -88,7 +94,14 @@ export const Selector = <T extends string>({
                 <Select.Item
                   key={i}
                   value={option.value}
-                  className="flex items-center justify-between gap-4 px-2 py-2 cursor-pointer focus:bg-purple-300/40"
+                  disabled={option.disabled}
+                  className={clsx([
+                    "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
+                    {
+                      "cursor-pointer": !option.disabled,
+                      "text-gray-400": !!option.disabled,
+                    },
+                  ])}
                 >
                   <Select.ItemText>
                     {option.description ? option.description : option.label}

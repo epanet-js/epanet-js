@@ -4,13 +4,14 @@ import { analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
-import { dataAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
+  const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
     modelMetadata: { quantities },
@@ -107,6 +108,10 @@ export const AnalysisEditor = () => {
               (type) => ({
                 value: type,
                 label: translate(type),
+                disabled:
+                  isFeatureOn("FLAG_CUSTOMIZE") &&
+                  simulation.status === "idle" &&
+                  ["pressures"].includes(type),
               }),
             )}
             selected={analysis.nodes.type}
