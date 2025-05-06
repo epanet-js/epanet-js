@@ -2,7 +2,7 @@ import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { aNodesAnalysis, setInitialState } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
-import { SymbolizationDialog, defaultNewColor } from "./symbolization-dialog";
+import { SymbolizationDialog } from "./symbolization-dialog";
 import { Dialog } from "@radix-ui/react-dialog";
 import { analysisAtom } from "src/state/analysis";
 import { PressuresAnalysis } from "src/analysis";
@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { defaultNewColor } from "src/analysis/symbolization-ramp";
 
 describe("symbolization dialog", () => {
   beforeEach(() => {
