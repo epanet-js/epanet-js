@@ -23,7 +23,6 @@ import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
   CBColors,
-  COLORBREWER_ALL,
   COLORBREWER_DIVERGING,
   COLORBREWER_SEQUENTIAL,
   epanetColors,
@@ -40,10 +39,19 @@ import { NumericField } from "../form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Selector } from "../form/selector";
 import clsx from "clsx";
-
-export const defaultNewColor = "#0fffff";
-const maxRampSize = 7;
-const minRampSize = 3;
+import {
+  appendStop,
+  reverseColors,
+  prependStop,
+  deleteStop,
+  changeRampSize,
+  changeRampName,
+  changeStopColor,
+  changeStopValue,
+  maxRampSize,
+  minRampSize,
+  RampSize,
+} from "src/analysis/symbolization-ramp";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -119,7 +127,7 @@ const generateQuantileStops = (dataValues: number[], colors: string[]) => {
 };
 
 const RampWizard = ({
-  symbolization,
+  symbolization: initialSymbolization,
   onChange,
 }: {
   symbolization: ISymbolizationRamp;
@@ -133,19 +141,10 @@ const RampWizard = ({
     return getNumericPropertyMap([...assets.values()].filter((a) => a.isNode));
   }, [assets]);
 
-  const [stops, setStops] = useState<ISymbolizationRamp["stops"]>(
-    symbolization.stops,
-  );
+  const [symbolization, setSymbolization] =
+    useState<ISymbolizationRamp>(initialSymbolization);
 
   const [error, setError] = useState<string | null>(null);
-
-  const submit = useCallback(
-    (newSymbolization: ISymbolizationRamp) => {
-      setError(null);
-      onChange(newSymbolization);
-    },
-    [onChange],
-  );
 
   const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
     for (let i = 1; i < candidates.length; i++) {
@@ -156,165 +155,52 @@ const RampWizard = ({
     return true;
   };
 
+  const updateState = useCallback(
+    (newSymbolization: ISymbolizationRamp) => {
+      setSymbolization(newSymbolization);
+      const isValid = validateAscendingOrder(newSymbolization.stops);
+      if (!isValid) {
+        setError(translate("rampShouldBeAscending"));
+      } else {
+        setError(null);
+        onChange(newSymbolization);
+      }
+    },
+    [onChange],
+  );
+
   const handleStopColorChange = (index: number, color: string) => {
-    const newStops = stops.map((stop, i) => {
-      if (i !== index) return stop;
-
-      return { ...stop, output: color };
-    });
-
-    setStops(newStops);
-    submit({
-      ...symbolization,
-      stops: newStops,
-    });
+    updateState(changeStopColor(symbolization, index, color));
   };
 
   const handleStopValueChange = (index: number, value: number) => {
-    const newStops = stops.map((stop, i) => {
-      if (i !== index) return stop;
-
-      return { ...stop, input: value };
-    });
-
-    setStops(newStops);
-    const isValid = validateAscendingOrder(newStops);
-    if (!isValid) {
-      setError(translate("rampShouldBeAscending"));
-    } else {
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
-    }
+    updateState(changeStopValue(symbolization, index, value));
   };
 
   const handlePrependStop = () => {
-    const [first, ...rest] = stops;
-    const firstValue = first.input === -Infinity ? rest[0].input : first.input;
-    const newValue = firstValue > 0 ? 0 : Math.floor(firstValue - 1);
-    const newStops = [
-      { input: first.input, output: defaultNewColor },
-      {
-        input: newValue,
-        output: first.output,
-      },
-      ...rest,
-    ];
-    setStops(newStops);
-    const isValid = validateAscendingOrder(newStops);
-    if (!isValid) {
-      setError(translate("rampShouldBeAscending"));
-    } else {
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
-    }
+    const newSymbolization = prependStop(symbolization);
+    updateState(newSymbolization);
   };
 
   const handleAppendStop = () => {
-    const lastStop = stops[stops.length - 1];
-    const newStops = [
-      ...stops,
-      {
-        input: Math.floor(lastStop.input + 1),
-        output: defaultNewColor,
-      },
-    ];
-    setStops(newStops);
-    const isValid = validateAscendingOrder(newStops);
-    if (!isValid) {
-      setError(translate("rampShouldBeAscending"));
-    } else {
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
-    }
+    const newSymbolization = appendStop(symbolization);
+    updateState(newSymbolization);
   };
 
   const handleReverseColors = () => {
-    const colors = [...stops].reverse().map((s) => s.output);
-    const newStops = stops.map((s, i) => ({
-      input: s.input,
-      output: colors[i],
-    }));
-    setStops(newStops);
-    const isValid = validateAscendingOrder(newStops);
-    if (!isValid) {
-      setError(translate("rampShouldBeAscending"));
-    } else {
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
-    }
+    updateState(reverseColors(symbolization));
   };
 
   const handleDeleteStop = (index: number) => {
-    let newStops;
-    if (index === 1) {
-      const [, target, ...rest] = stops;
-      newStops = [{ input: -Infinity, output: target.output }, ...rest];
-    } else {
-      newStops = stops.filter((stop, i) => i !== index);
-    }
-
-    setStops(newStops);
-    const isValid = validateAscendingOrder(newStops);
-    if (!isValid) {
-      setError(translate("rampShouldBeAscending"));
-    } else {
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
-    }
+    updateState(deleteStop(symbolization, index));
   };
 
   const handleStepsCountChange = (rampSize: number) => {
-    const ramp = COLORBREWER_ALL.find(
-      (ramp) => ramp.name === symbolization.rampName,
-    )!;
-
-    const colors = ramp.colors[
-      rampSize as keyof CBColors["colors"]
-    ] as string[];
-
-    const newStops: ISymbolizationRamp["stops"] = [];
-    colors.forEach((color, index) => {
-      if (stops[index]) {
-        newStops.push({ input: stops[index].input, output: color });
-      } else {
-        const previous = newStops[newStops.length - 1];
-        newStops.push({ input: Math.floor(previous.input + 1), output: color });
-      }
-    });
-
-    setStops(newStops);
-    submit({
-      ...symbolization,
-      stops: newStops,
-    });
+    updateState(changeRampSize(symbolization, rampSize));
   };
 
   const handleRampChange = (newRampName: string) => {
-    const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === newRampName)!;
-    const count = symbolization.stops.length;
-    const colors = ramp.colors[count as keyof CBColors["colors"]] as string[];
-
-    const newStops = stops.map((stop, i) => ({
-      input: stop.input,
-      output: colors[i],
-    }));
-
-    setStops(newStops);
-    submit({
-      ...symbolization,
-      rampName: newRampName,
-      stops: newStops,
-    });
+    updateState(changeRampName(symbolization, newRampName));
   };
 
   const handleChangeToEqualIntervals = () => {
@@ -325,11 +211,7 @@ const RampWizard = ({
     } else {
       const newStops = generateLinearStops(dataValues, colors);
 
-      setStops(newStops);
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
+      updateState({ ...symbolization, stops: newStops });
     }
   };
 
@@ -341,15 +223,11 @@ const RampWizard = ({
     } else {
       const newStops = generateQuantileStops(dataValues, colors);
 
-      setStops(newStops);
-      submit({
-        ...symbolization,
-        stops: newStops,
-      });
+      updateState({ ...symbolization, stops: newStops });
     }
   };
 
-  const rampSize = stops.length as keyof CBColors["colors"];
+  const rampSize = symbolization.stops.length as RampSize;
   const canAddMore = rampSize < maxRampSize;
   const canDeleteStop = rampSize > minRampSize;
 
@@ -365,10 +243,10 @@ const RampWizard = ({
                     <div>
                       <div className="w-full flex flex-row gap-2 items-start dark:text-white">
                         <div className="flex flex-col gap-1">
-                          {stops.map((stop, i) => (
+                          {symbolization.stops.map((stop, i) => (
                             <div
                               className={clsx(
-                                i === 0 || i === stops.length - 1
+                                i === 0 || i === symbolization.stops.length - 1
                                   ? "h-[54px]"
                                   : "h-[37.5px]",
                                 "rounded rounded-md padding-1 w-4",
@@ -397,7 +275,7 @@ const RampWizard = ({
                               <PlusIcon /> Add stop
                             </Button>
                           </div>
-                          {stops.map((stop, i) => {
+                          {symbolization.stops.map((stop, i) => {
                             if (i === 0) return null;
 
                             return (
@@ -415,7 +293,8 @@ const RampWizard = ({
                                     handleStopValueChange(i, value);
                                   }}
                                 />
-                                {stops.length > 1 && canDeleteStop ? (
+                                {symbolization.stops.length > 1 &&
+                                canDeleteStop ? (
                                   <div>
                                     <Button
                                       type="button"
