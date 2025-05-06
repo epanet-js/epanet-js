@@ -18,6 +18,7 @@ describe("symbolization dialog", () => {
   const red = "#ff0000";
   const green = "#00ff00";
   const blue = "#0000ff";
+  const white = "#ffffff";
   const startingStops = [
     { input: 10, output: red },
     { input: 20, output: green },
@@ -273,6 +274,7 @@ describe("symbolization dialog", () => {
         { input: -Infinity, output: red },
         { input: 2, output: green },
         { input: 3, output: blue },
+        { input: 4, output: white },
       ],
     });
     const store = setInitialState({ nodesAnalysis });
@@ -285,6 +287,7 @@ describe("symbolization dialog", () => {
     expect(stops).toEqual([
       { input: -Infinity, output: red },
       { input: 2, output: green },
+      { input: 4, output: white },
     ]);
   });
 
