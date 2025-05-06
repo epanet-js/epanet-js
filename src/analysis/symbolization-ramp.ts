@@ -1,8 +1,9 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
-import { lerp } from "src/lib/utils";
-import * as d3 from "d3-array";
 import { ISymbolizationRamp } from "src/types";
-import { calculateEqualQuantileBreaks } from "./modes";
+import {
+  calculateEqualIntervalBreaks,
+  calculateEqualQuantileBreaks,
+} from "./modes";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
@@ -184,25 +185,24 @@ const generateStops = (
 };
 
 const generateLinearStops = (sortedValues: number[], colors: string[]) => {
-  const values = sortedValues.length > 1 ? sortedValues : [0, 100];
-  const [min, max] = d3.extent(values) as [number, number];
-  const [firstColor, ...restColors] = colors;
-  const stops = restColors.map((output, i, arr) => {
-    return {
-      input: Number(+lerp(min, max, i / (arr.length - 1)).toFixed(4)),
-      output,
-    };
+  const breaks = calculateEqualIntervalBreaks(sortedValues, colors.length - 1);
+
+  const newValues = [-Infinity, ...breaks];
+  if (newValues.length !== colors.length)
+    throw new Error("Invalid stops for ramp");
+
+  return newValues.map((value, i) => {
+    return { input: Number(value.toFixed(2)), output: colors[i] };
   });
-  return [{ input: -Infinity, output: firstColor }, ...stops];
 };
 
 const generateQuantileStops = (sortedValues: number[], colors: string[]) => {
-  const quantileStops = calculateEqualQuantileBreaks(
+  const quantileBreaks = calculateEqualQuantileBreaks(
     sortedValues,
     colors.length - 1,
   );
 
-  const newValues = [-Infinity, ...quantileStops];
+  const newValues = [-Infinity, ...quantileBreaks];
   if (newValues.length !== colors.length)
     throw new Error("Invalid stops for ramp");
 

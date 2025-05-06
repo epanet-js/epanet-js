@@ -125,7 +125,7 @@ describe("symbolization dialog", () => {
     expect(stops).toEqual([
       { input: -Infinity, output: red },
       { input: 10, output: green },
-      { input: 100, output: blue },
+      { input: 55, output: blue },
     ]);
   });
 
