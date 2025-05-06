@@ -110,12 +110,15 @@ const RampWizard = ({
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
 
-  const histogram = useMemo(() => {
-    if (!isDebugOn) return [];
+  const debugData = useMemo(() => {
+    if (!isDebugOn) return { histogram: [], min: 0, max: 0 };
 
     function createHistogram(values: number[], breaks: number[]) {
       const histogram = new Array(breaks.length - 1).fill(0);
       let valueIndex = 0;
+
+      const min = values[0];
+      const max = values[values.length - 1];
 
       for (let bin = 0; bin < breaks.length - 1; bin++) {
         const left = breaks[bin];
@@ -129,7 +132,7 @@ const RampWizard = ({
         }
       }
 
-      return histogram;
+      return { histogram, min, max };
     }
     const dataValues = options.get(symbolization.property) || [];
 
@@ -309,7 +312,15 @@ const RampWizard = ({
                               <PlusIcon /> Add stop
                             </Button>
                           </div>
-                          {isDebugOn && <div>{JSON.stringify(histogram)}</div>}
+                          {isDebugOn && (
+                            <>
+                              <div>
+                                Histogram: {JSON.stringify(debugData.histogram)}
+                              </div>
+                              <div>Min: {debugData.min}</div>
+                              <div>Max: {debugData.max}</div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
