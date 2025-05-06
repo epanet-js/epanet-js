@@ -335,6 +335,14 @@ const RampWizard = ({
                           rampMode={symbolization.mode}
                           onModeChange={handleModeChange}
                         />
+                        <div>
+                          <Button
+                            size="full-width"
+                            onClick={() => handleModeChange(symbolization.mode)}
+                          >
+                            <ReloadIcon /> Classify
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-y-2">
                         <span className="text-sm text-gray-500">Classes</span>
