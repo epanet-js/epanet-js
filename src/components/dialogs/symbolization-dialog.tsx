@@ -42,7 +42,7 @@ import clsx from "clsx";
 
 export const defaultNewColor = "#0fffff";
 const maxRampSize = 7;
-const minRampSize = 2;
+const minRampSize = 3;
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
