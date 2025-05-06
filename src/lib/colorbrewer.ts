@@ -3329,8 +3329,7 @@ export const CARTO_COLOR_QUALITATIVE: CBColors[] = [
   },
 ];
 
-//only customized 5
-const epanetColors: CBColors[] = [
+export const epanetColors: CBColors[] = [
   {
     name: "epanet-ramp",
     colors: {
