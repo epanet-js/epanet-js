@@ -47,7 +47,7 @@ import { useImportFile, useImportString } from "src/hooks/use_import";
 import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
-import {AnalysisLegends} from './AnalysisLegends';
+import {AnalysisLegends} from './analysis-legends';
 import {Toolbar} from './toolbar/Toolbar';
 import {translate} from 'src/infra/i18n';
 import {Footer} from './footer';
