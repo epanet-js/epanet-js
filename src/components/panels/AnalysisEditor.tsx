@@ -86,7 +86,9 @@ export const AnalysisEditor = () => {
                 : [0, 25, 50, 75, 100],
               property: "pressure",
               unit: hydraulicModel.units.pressure,
-              paletteName: "epanet-ramp",
+              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
+                ? "Temps"
+                : "epanet-ramp",
             }),
           },
         }));

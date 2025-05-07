@@ -19,7 +19,6 @@ import {
   CBColors,
   COLORBREWER_DIVERGING,
   COLORBREWER_SEQUENTIAL,
-  epanetColors,
 } from "src/lib/colorbrewer";
 import * as d3 from "d3-array";
 import * as Select from "@radix-ui/react-select";
@@ -493,12 +492,6 @@ const RampSelector = ({
         <Select.Viewport className="p-1">
           <div className="pointer-events-auto">
             <div className="space-y-2 p-1 overflow-y-auto max-h-[320px]">
-              <RampChoices
-                label="Epanet"
-                colors={epanetColors}
-                onSelect={onRampChange}
-                size={rampSize}
-              />
               <div>
                 <RampChoices
                   label="Continuous (ColorBrewer)"
