@@ -324,6 +324,8 @@ export const translations: Translations = {
   rampShouldBeAscending:
     "Los valores de la rampa deben estar en orden ascendente.",
   notEnoughData: "No hay suficientes datos.",
+  updated: "Actualizado",
+  unableToUpdate: "No ha sido posible actualizar",
 };
 
 export const units: UnitsLocale = {

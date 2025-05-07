@@ -50,6 +50,7 @@ import {
 } from "src/analysis/symbolization-ramp";
 import { linearGradient } from "src/lib/color";
 import { isFeatureOn } from "src/infra/feature-flags";
+import toast from "react-hot-toast";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -157,8 +158,14 @@ const RampWizard = ({
       const isValid = validateAscendingOrder(newSymbolization.stops);
       if (!isValid) {
         setError(translate("rampShouldBeAscending"));
+        toast.error(translate("unableToUpdate"), {
+          id: "symbolization",
+        });
       } else {
         setError(null);
+        toast.success(translate("updated"), {
+          id: "symbolization",
+        });
         onChange(newSymbolization);
       }
     },
