@@ -90,7 +90,7 @@ export const SymbolizationDialog = () => {
   );
 };
 
-const RampWizard = ({
+export const RampWizard = ({
   symbolization: initialSymbolization,
   onChange,
 }: {
@@ -245,24 +245,22 @@ const RampWizard = ({
                           onModeChange={handleModeChange}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-y-2 w-full">
-                          <span className="text-sm text-gray-500">Classes</span>
-                          <ClassesSelector
-                            rampSize={rampSize}
-                            onChange={handleRampSizeChange}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-y-2 w-full">
-                          <span className="text-sm text-gray-500">
-                            Color Ramp
-                          </span>
-                          <RampSelector
-                            rampName={symbolization.rampName}
-                            rampSize={rampSize}
-                            onRampChange={handleRampChange}
-                          />
-                        </div>
+                      <div className="flex flex-col gap-y-2 w-full">
+                        <span className="text-sm text-gray-500">Classes</span>
+                        <ClassesSelector
+                          rampSize={rampSize}
+                          onChange={handleRampSizeChange}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-y-2 w-full">
+                        <span className="text-sm text-gray-500">
+                          Color Ramp
+                        </span>
+                        <RampSelector
+                          rampName={symbolization.rampName}
+                          rampSize={rampSize}
+                          onRampChange={handleRampChange}
+                        />
                       </div>
                     </div>
 
@@ -352,23 +350,23 @@ const RampWizard = ({
                             </div>
                           </div>
                         </div>
-                        <div className="min-w-[200px]">
-                          {!!error && (
-                            <p className="py-2 text-sm font-semibold text-orange-800">
-                              {error}
-                            </p>
-                          )}
-                          {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
-                            <>
-                              <p>
-                                Histogram: {JSON.stringify(debugData.histogram)}
-                              </p>
-                              <p>Min: {debugData.min}</p>
-                              <p>Max: {debugData.max}</p>
-                            </>
-                          )}
-                        </div>
                       </div>
+                    </div>
+                    <div>
+                      {!!error && (
+                        <p className="py-2 text-sm font-semibold text-orange-800">
+                          {error}
+                        </p>
+                      )}
+                      {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+                        <>
+                          <p>
+                            Histogram: {JSON.stringify(debugData.histogram)}
+                          </p>
+                          <p>Min: {debugData.min}</p>
+                          <p>Max: {debugData.max}</p>
+                        </>
+                      )}
                     </div>
                     <div className="flex items-center w-full gap-x-2">
                       <Button

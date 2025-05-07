@@ -1,22 +1,40 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import last from "lodash/last";
 import { linearGradient } from "src/lib/color";
 import { analysisAtom } from "src/state/analysis";
 import { TabOption, dialogAtom, tabAtom } from "src/state/jotai";
 import { ISymbolizationRamp } from "src/types";
-import { Button } from "./elements";
+import { Button, StyledPopoverArrow } from "./elements";
 import { Pencil2Icon } from "@radix-ui/react-icons";
 import { translate, translateUnit } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
+import * as Popover from "@radix-ui/react-popover";
+import { StyledPopoverContent } from "src/components/elements";
+import { RangeColorMapping } from "src/analysis/range-color-mapping";
+import { RampWizard } from "src/components/dialogs/symbolization-dialog";
 
 export const AnalysisLegends = () => {
-  const { nodes, links } = useAtomValue(analysisAtom);
+  const [{ nodes, links }, setAnalysis] = useAtom(analysisAtom);
+
+  const handleNodesChange = (newSymbolization: ISymbolizationRamp) => {
+    setAnalysis((prev) => ({
+      ...prev,
+      nodes: {
+        type: "pressures",
+        rangeColorMapping:
+          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
+      },
+    }));
+  };
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {nodes.type !== "none" &&
         (isFeatureOn("FLAG_CUSTOMIZE") ? (
-          <Legend symbolization={nodes.rangeColorMapping.symbolization} />
+          <Legend
+            symbolization={nodes.rangeColorMapping.symbolization}
+            onChange={handleNodesChange}
+          />
         ) : (
           <LegendDeprecated
             symbolization={nodes.rangeColorMapping.symbolization}
@@ -31,9 +49,13 @@ export const AnalysisLegends = () => {
   );
 };
 
-const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
-  const setDialogState = useSetAtom(dialogAtom);
-
+const Legend = ({
+  symbolization,
+  onChange,
+}: {
+  symbolization: ISymbolizationRamp;
+  onChange: (newSymbolization: ISymbolizationRamp) => void;
+}) => {
   const title = symbolization.unit
     ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
     : translate(symbolization.property);
@@ -42,43 +64,54 @@ const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
   const totalStops = stops.length;
 
   return (
-    <LegendContainer
-      onClick={() => {
-        setDialogState({ type: "symbolization" });
-      }}
-    >
-      <div className="block w-full p-2 text-right flex flex-col justify-between items-start">
-        <div className="pb-2 text-xs whitespace-nowrap select-none">
-          {title}
-        </div>
-        <div
-          className="relative w-4 h-32 rounded dark:border dark:border-white "
-          style={{
-            background: linearGradient({
-              colors: stops.map((stop) => stop.output),
-              interpolate: symbolization.interpolate,
-              vertical: true,
-            }),
-          }}
-        >
-          {Array.from({ length: totalStops - 1 }).map((_, i) => {
-            const topPct = ((i + 1) / totalStops) * 100;
-            return (
-              <div
-                key={stops[i + 1].input}
-                className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
-                style={{
-                  top: `${topPct}%`,
-                  transform: "translateY(-50%)",
-                }}
-              >
-                {stops[i + 1].input}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </LegendContainer>
+    <Popover.Root>
+      <LegendContainer>
+        <Popover.Trigger asChild>
+          <div className="block w-full p-2 text-right flex flex-col justify-between items-start">
+            <div className="pb-2 text-xs whitespace-nowrap select-none">
+              {title}
+            </div>
+            <div
+              className="relative w-4 h-32 rounded dark:border dark:border-white "
+              style={{
+                background: linearGradient({
+                  colors: stops.map((stop) => stop.output),
+                  interpolate: symbolization.interpolate,
+                  vertical: true,
+                }),
+              }}
+            >
+              {Array.from({ length: totalStops - 1 }).map((_, i) => {
+                const topPct = ((i + 1) / totalStops) * 100;
+                return (
+                  <div
+                    key={stops[i + 1].input}
+                    className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
+                    style={{
+                      top: `${topPct}%`,
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+                    {stops[i + 1].input}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Popover.Trigger>
+        <Popover.Portal>
+          <StyledPopoverContent
+            size="md"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            side="right"
+            align="start"
+          >
+            <StyledPopoverArrow />
+            <RampWizard symbolization={symbolization} onChange={onChange} />
+          </StyledPopoverContent>
+        </Popover.Portal>
+      </LegendContainer>
+    </Popover.Root>
   );
 };
 
