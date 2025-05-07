@@ -580,7 +580,8 @@ export type B3Variant =
   | "quiet"
   | "code"
   | "quiet/mode"
-  | "destructive";
+  | "destructive"
+  | "ultra-quiet";
 export type B3Side = "default" | "left" | "right" | "middle";
 
 export const sharedPadding = (
@@ -664,6 +665,8 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
       return !disabled && `hover:bg-gray-100 dark:hover:bg-gray-800`;
     case "quiet":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+    case "ultra-quiet":
+      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "quiet/mode":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "destructive":
@@ -679,6 +682,8 @@ const sharedText = (variant: B3Variant): ClassValue => {
     case "default": {
       return "font-medium text-gray-700 dark:text-white";
     }
+    case "ultra-quiet":
+      return "text-gray-500 hover:text-gray-700";
     case "primary": {
       return "font-medium text-white";
     }
