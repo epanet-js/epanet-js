@@ -13,7 +13,7 @@ import { useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
 import { Button, PopoverContent2, StyledPopoverArrow } from "../elements";
 import { dataAtom } from "src/state/jotai";
-import { ErrorMessage, FieldArray, Form, Formik } from "formik";
+import { FieldArray, Form, Formik } from "formik";
 import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
@@ -24,7 +24,6 @@ import {
 } from "src/lib/colorbrewer";
 import * as d3 from "d3-array";
 import * as P from "@radix-ui/react-popover";
-import { InlineError } from "../inline_error";
 import { ColorPopover } from "../color-popover";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
@@ -52,7 +51,7 @@ import {
   applyMode,
 } from "src/analysis/symbolization-ramp";
 import { linearGradient } from "src/lib/color";
-import { isDebugOn } from "src/infra/debug-mode";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const SymbolizationDialog = () => {
   const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
@@ -111,7 +110,8 @@ const RampWizard = ({
     useState<ISymbolizationRamp>(initialSymbolization);
 
   const debugData = useMemo(() => {
-    if (!isDebugOn) return { histogram: [], min: 0, max: 0 };
+    if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
+      return { histogram: [], min: 0, max: 0 };
 
     function createHistogram(values: number[], breaks: number[]) {
       const histogram = new Array(breaks.length - 1).fill(0);
@@ -231,157 +231,161 @@ const RampWizard = ({
             <Form className="space-y-4">
               <FieldArray name="stops">
                 {() => (
-                  <div className="grid grid-cols-2 gap-6 w-full">
-                    <div>
-                      <div className="w-full flex flex-row gap-2 items-start dark:text-white">
-                        <div className="flex flex-col gap-1">
-                          {symbolization.stops.map((stop, i) => (
-                            <div
-                              className={clsx(
-                                i === 0 || i === symbolization.stops.length - 1
-                                  ? "h-[54px]"
-                                  : "h-[37.5px]",
-                                "rounded rounded-md padding-1 w-4",
-                              )}
-                              key={`${stop.input}-${i}`}
-                            >
-                              <ColorPopover
-                                color={stop.output}
-                                onChange={(color) => {
-                                  handleStopColorChange(i, color);
-                                }}
-                                ariaLabel={`color ${i}`}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-full">
-                            <Button
-                              type="button"
-                              disabled={!canAddMore}
-                              className="opacity-60 border-none"
-                              onClick={() => handlePrependStop()}
-                              aria-label={`Prepend stop`}
-                            >
-                              <PlusIcon /> Add stop
-                            </Button>
-                          </div>
-                          {symbolization.stops.map((stop, i) => {
-                            if (i === 0) return null;
-
-                            return (
-                              <div
-                                className="flex items-center gap-2"
-                                key={`${stop.input}-${i}`}
-                              >
-                                <NumericField
-                                  key={`step-${i - 1}`}
-                                  label={`step ${i - 1}`}
-                                  isNullable={true}
-                                  readOnly={false}
-                                  displayValue={localizeDecimal(stop.input)}
-                                  onChangeValue={(value) => {
-                                    handleStopValueChange(i, value);
-                                  }}
-                                />
-                                {symbolization.stops.length > 1 &&
-                                canDeleteStop ? (
-                                  <div>
-                                    <Button
-                                      type="button"
-                                      variant="quiet"
-                                      aria-label={`Delete stop ${i - 1}`}
-                                      onClick={() => handleDeleteStop(i)}
-                                    >
-                                      <TrashIcon className="opacity-60" />
-                                    </Button>
-                                  </div>
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                          <div className="w-full">
-                            <Button
-                              type="button"
-                              disabled={!canAddMore}
-                              className="opacity-60 border-none"
-                              onClick={() => handleAppendStop()}
-                              aria-label={`Append stop`}
-                            >
-                              <PlusIcon /> Add stop
-                            </Button>
-                          </div>
-                          {isDebugOn && (
-                            <>
-                              <div>
-                                Histogram: {JSON.stringify(debugData.histogram)}
-                              </div>
-                              <div>Min: {debugData.min}</div>
-                              <div>Max: {debugData.max}</div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-y-4">
-                      <div className="flex flex-col gap-y-2">
+                  <>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-y-2 w-full">
                         <span className="text-sm text-gray-500">Mode</span>
                         <ModeSelector
                           rampMode={symbolization.mode}
                           onModeChange={handleModeChange}
                         />
-                        <div>
-                          <Button
-                            size="full-width"
-                            onClick={() => handleModeChange(symbolization.mode)}
-                          >
-                            <ReloadIcon /> Classify
-                          </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-y-2 w-full">
+                          <span className="text-sm text-gray-500">Classes</span>
+                          <ClassesSelector
+                            rampSize={rampSize}
+                            onChange={handleRampSizeChange}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-y-2 w-full">
+                          <span className="text-sm text-gray-500">
+                            Color Ramp
+                          </span>
+                          <RampSelector
+                            rampName={symbolization.rampName}
+                            rampSize={rampSize}
+                            onRampChange={handleRampChange}
+                          />
                         </div>
                       </div>
-                      <div className="flex flex-col gap-y-2">
-                        <span className="text-sm text-gray-500">Classes</span>
-                        <ClassesSelector
-                          rampSize={rampSize}
-                          onChange={handleRampSizeChange}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-y-2">
-                        <span className="text-sm text-gray-500">
-                          Color Ramp
-                        </span>
-                        <RampSelector
-                          rampName={symbolization.rampName}
-                          rampSize={rampSize}
-                          onRampChange={handleRampChange}
-                        />
-                        <div>
-                          <Button size="full-width" onClick={handleApplyColors}>
-                            <ReloadIcon /> Apply Colors
-                          </Button>
+                    </div>
+
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
+                        <div className="w-full flex flex-row gap-2 items-start dark:text-white">
+                          <div className="flex flex-col gap-1">
+                            {symbolization.stops.map((stop, i) => (
+                              <div
+                                className={clsx(
+                                  i === 0 ||
+                                    i === symbolization.stops.length - 1
+                                    ? "h-[54px]"
+                                    : "h-[37.5px]",
+                                  "rounded rounded-md padding-1 w-4",
+                                )}
+                                key={`${stop.input}-${i}`}
+                              >
+                                <ColorPopover
+                                  color={stop.output}
+                                  onChange={(color) => {
+                                    handleStopColorChange(i, color);
+                                  }}
+                                  ariaLabel={`color ${i}`}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-full">
+                              <Button
+                                type="button"
+                                disabled={!canAddMore}
+                                className="opacity-60 border-none"
+                                onClick={() => handlePrependStop()}
+                                aria-label={`Prepend stop`}
+                              >
+                                <PlusIcon /> Add stop
+                              </Button>
+                            </div>
+                            {symbolization.stops.map((stop, i) => {
+                              if (i === 0) return null;
+
+                              return (
+                                <div
+                                  className="flex items-center gap-2"
+                                  key={`${stop.input}-${i}`}
+                                >
+                                  <NumericField
+                                    key={`step-${i - 1}`}
+                                    label={`step ${i - 1}`}
+                                    isNullable={true}
+                                    readOnly={false}
+                                    displayValue={localizeDecimal(stop.input)}
+                                    onChangeValue={(value) => {
+                                      handleStopValueChange(i, value);
+                                    }}
+                                  />
+                                  {symbolization.stops.length > 1 &&
+                                  canDeleteStop ? (
+                                    <div>
+                                      <Button
+                                        type="button"
+                                        variant="quiet"
+                                        aria-label={`Delete stop ${i - 1}`}
+                                        onClick={() => handleDeleteStop(i)}
+                                      >
+                                        <TrashIcon className="opacity-60" />
+                                      </Button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                            <div className="w-full">
+                              <Button
+                                type="button"
+                                disabled={!canAddMore}
+                                className="opacity-60 border-none"
+                                onClick={() => handleAppendStop()}
+                                aria-label={`Append stop`}
+                              >
+                                <PlusIcon /> Add stop
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <Button
-                            size="full-width"
-                            onClick={handleReverseColors}
-                          >
-                            <SymbolIcon /> Reverse Colors
-                          </Button>
-                        </div>
                       </div>
-                      {!!error && (
-                        <div>
+                      <div className="min-w-[200px]">
+                        {!!error && (
                           <p className="py-2 text-sm font-semibold text-orange-800">
                             {error}
                           </p>
-                        </div>
-                      )}
+                        )}
+                        {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+                          <>
+                            <p>
+                              Histogram: {JSON.stringify(debugData.histogram)}
+                            </p>
+                            <p>Min: {debugData.min}</p>
+                            <p>Max: {debugData.max}</p>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                    <div className="flex items-center w-full gap-x-2">
+                      <Button
+                        className="flex-1 text-center"
+                        onClick={() => handleModeChange(symbolization.mode)}
+                      >
+                        <ReloadIcon /> Classify
+                      </Button>
+                      <Button
+                        className="flex-1 text-center"
+                        onClick={handleApplyColors}
+                      >
+                        <ReloadIcon /> Apply Colors
+                      </Button>
+                      <Button
+                        className="flex-1 text-center"
+                        onClick={handleReverseColors}
+                      >
+                        <SymbolIcon /> Reverse Colors
+                      </Button>
+                    </div>
+                  </>
                 )}
               </FieldArray>
-              <ErrorMessage name={`stops`} component={InlineError} />
             </Form>
           );
         }}
