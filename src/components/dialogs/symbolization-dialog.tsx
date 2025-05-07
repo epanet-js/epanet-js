@@ -5,7 +5,7 @@ import {
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
-import { RampChoices } from "../panels/symbolization_editor";
+import { RampChoice } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
 import { useCallback, useMemo, useState } from "react";
@@ -488,38 +488,41 @@ const RampSelector = ({
           <ChevronDownIcon />
         </span>
       </Select.Trigger>
-      <Select.Content position="popper" className={contentStyles}>
+      <Select.Content
+        position="popper"
+        className={contentStyles}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <Select.Viewport className="p-1">
           <div className="pointer-events-auto">
-            <div className="space-y-2 p-1 overflow-y-auto max-h-[320px]">
-              <div>
-                <RampChoices
-                  label="Continuous (ColorBrewer)"
-                  colors={COLORBREWER_SEQUENTIAL}
-                  onSelect={onRampChange}
-                  size={rampSize}
-                />
-                <RampChoices
-                  label="Continuous (CARTO Colors)"
-                  colors={CARTO_COLOR_SEQUENTIAL}
-                  onSelect={onRampChange}
-                  size={rampSize}
-                />
-              </div>
-              <div>
-                <RampChoices
-                  label="Diverging (ColorBrewer)"
-                  colors={COLORBREWER_DIVERGING}
-                  onSelect={onRampChange}
-                  size={rampSize}
-                />
-                <RampChoices
-                  label="Diverging (CARTO Colors)"
-                  colors={CARTO_COLOR_DIVERGING}
-                  onSelect={onRampChange}
-                  size={rampSize}
-                />
-              </div>
+            <div className="flex flex-col space-y-2 p-1 overflow-y-auto max-h-[320px]">
+              <RampChoices
+                label="Continuous (ColorBrewer)"
+                colors={COLORBREWER_SEQUENTIAL}
+                onSelect={onRampChange}
+                size={rampSize}
+              />
+              <Divider />
+              <RampChoices
+                label="Continuous (CARTO Colors)"
+                colors={CARTO_COLOR_SEQUENTIAL}
+                onSelect={onRampChange}
+                size={rampSize}
+              />
+              <Divider />
+              <RampChoices
+                label="Diverging (ColorBrewer)"
+                colors={COLORBREWER_DIVERGING}
+                onSelect={onRampChange}
+                size={rampSize}
+              />
+              <Divider />
+              <RampChoices
+                label="Diverging (CARTO Colors)"
+                colors={CARTO_COLOR_DIVERGING}
+                onSelect={onRampChange}
+                size={rampSize}
+              />
             </div>
           </div>
         </Select.Viewport>
@@ -527,6 +530,42 @@ const RampSelector = ({
     </Select.Root>
   );
 };
+
+const Divider = () => (
+  <div className="py-2">
+    <div className="border-t border-gray-200"></div>
+  </div>
+);
+
+export function RampChoices({
+  label,
+  colors,
+  onSelect,
+  size,
+}: {
+  label: string;
+  colors: CBColors[];
+  onSelect?: (name: string) => void;
+  size: keyof CBColors["colors"];
+}) {
+  return (
+    <div className="flex flex-col gap-y-2">
+      <span className="text-sm text-gray-500 select-none">{label}</span>
+      <div className="grid gap-x-2 gap-y-2 grid-cols-3">
+        {colors.map((ramp) => {
+          return (
+            <RampChoice
+              key={ramp.name}
+              ramp={ramp}
+              size={size}
+              onSelect={onSelect}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const nodeProperties = ["pressure", "elevation"];
 
