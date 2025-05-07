@@ -1,11 +1,16 @@
-import { MixerVerticalIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon,
+  MixerVerticalIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
-import { DoneButton, RampChoices } from "../panels/symbolization_editor";
+import { RampChoices } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
 import { analysisAtom } from "src/state/analysis";
 import { useCallback, useMemo, useState } from "react";
 import { ISymbolizationRamp } from "src/types";
-import { Button, PopoverContent2, StyledPopoverArrow } from "../elements";
+import { Button } from "../elements";
 import { dataAtom } from "src/state/jotai";
 import { FieldArray, Form, Formik } from "formik";
 import {
@@ -17,7 +22,7 @@ import {
   epanetColors,
 } from "src/lib/colorbrewer";
 import * as d3 from "d3-array";
-import * as P from "@radix-ui/react-popover";
+import * as Select from "@radix-ui/react-select";
 import { ColorPopover } from "../color-popover";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { Asset } from "src/hydraulic-model";
@@ -460,72 +465,73 @@ const RampSelector = ({
   onRampChange: (rampName: string) => void;
 }) => {
   const rampColors = useMemo(() => {
-    return getColors(rampName, rampSize);
+    return getColors(rampName, maxRampSize);
   }, [rampName, rampSize]);
 
+  const triggerStyles = `flex items-center gap-x-2 border rounded-sm text-sm text-gray-700 dark:items-center justify-between w-full min-w-[90px] focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 px-2 py-2 min-h-9`;
+
+  const contentStyles = `bg-white w-[--radix-select-trigger-width] border text-sm rounded-sm shadow-md z-50`;
+
   return (
-    <P.Root>
-      <P.Trigger asChild>
-        <div
+    <Select.Root>
+      <Select.Trigger className={triggerStyles}>
+        <span
           title={"ramp select"}
-          className="cursor-pointer w-full h-8 border rounded-sm"
+          className="cursor-pointer w-full h-5 border rounded-sm"
           style={{
             background: linearGradient({
               colors: rampColors,
-              interpolate: "step",
+              interpolate: "linear",
             }),
-            borderColor: rampColors[rampColors.length - 1],
           }}
-        />
-      </P.Trigger>
-      <PopoverContent2 side="right">
-        <StyledPopoverArrow />
-        <div
-          style={{
-            maxHeight: 480,
-          }}
-          className="space-y-2 p-1 overflow-y-auto placemark-scrollbar"
-        >
-          <div>
-            <RampChoices
-              label="Epanet"
-              colors={epanetColors}
-              onSelect={onRampChange}
-              size={rampSize}
-            />
+        ></span>
+        <span className="px-1">
+          <ChevronDownIcon />
+        </span>
+      </Select.Trigger>
+      <Select.Content position="popper" className={contentStyles}>
+        <Select.Viewport className="p-1">
+          <div className="pointer-events-auto">
+            <div className="space-y-2 p-1 overflow-y-auto max-h-[320px]">
+              <RampChoices
+                label="Epanet"
+                colors={epanetColors}
+                onSelect={onRampChange}
+                size={rampSize}
+              />
+              <div>
+                <RampChoices
+                  label="Continuous (ColorBrewer)"
+                  colors={COLORBREWER_SEQUENTIAL}
+                  onSelect={onRampChange}
+                  size={rampSize}
+                />
+                <RampChoices
+                  label="Continuous (CARTO Colors)"
+                  colors={CARTO_COLOR_SEQUENTIAL}
+                  onSelect={onRampChange}
+                  size={rampSize}
+                />
+              </div>
+              <div>
+                <RampChoices
+                  label="Diverging (ColorBrewer)"
+                  colors={COLORBREWER_DIVERGING}
+                  onSelect={onRampChange}
+                  size={rampSize}
+                />
+                <RampChoices
+                  label="Diverging (CARTO Colors)"
+                  colors={CARTO_COLOR_DIVERGING}
+                  onSelect={onRampChange}
+                  size={rampSize}
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <RampChoices
-              label="Continuous (ColorBrewer)"
-              colors={COLORBREWER_SEQUENTIAL}
-              onSelect={onRampChange}
-              size={rampSize}
-            />
-            <RampChoices
-              label="Continuous (CARTO Colors)"
-              colors={CARTO_COLOR_SEQUENTIAL}
-              onSelect={onRampChange}
-              size={rampSize}
-            />
-          </div>
-          <div>
-            <RampChoices
-              label="Diverging (ColorBrewer)"
-              colors={COLORBREWER_DIVERGING}
-              onSelect={onRampChange}
-              size={rampSize}
-            />
-            <RampChoices
-              label="Diverging (CARTO Colors)"
-              colors={CARTO_COLOR_DIVERGING}
-              onSelect={onRampChange}
-              size={rampSize}
-            />
-          </div>
-          <DoneButton />
-        </div>
-      </PopoverContent2>
-    </P.Root>
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Root>
   );
 };
 
