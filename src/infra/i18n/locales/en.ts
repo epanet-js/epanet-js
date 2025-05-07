@@ -314,6 +314,8 @@ export const translations = {
   fixedStatus: "Fixed Status",
   rampShouldBeAscending: "Ramp input values need to be in ascending order.",
   notEnoughData: "Not enough data.",
+  updated: "Updated",
+  unableToUpdate: "Cannot Update",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
