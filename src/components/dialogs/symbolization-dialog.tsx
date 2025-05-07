@@ -285,6 +285,7 @@ const RampWizard = ({
                               <Button
                                 type="button"
                                 disabled={!canAddMore}
+                                variant="ultra-quiet"
                                 className="opacity-60 border-none"
                                 onClick={() => handlePrependStop()}
                                 aria-label={`Prepend stop`}
@@ -297,7 +298,7 @@ const RampWizard = ({
 
                               return (
                                 <div
-                                  className="flex items-center gap-2"
+                                  className="flex items-center gap-1"
                                   key={`${stop.input}-${i}`}
                                 >
                                   <NumericField
@@ -315,7 +316,7 @@ const RampWizard = ({
                                     <div>
                                       <Button
                                         type="button"
-                                        variant="quiet"
+                                        variant="ultra-quiet"
                                         aria-label={`Delete stop ${i - 1}`}
                                         onClick={() => handleDeleteStop(i)}
                                       >
@@ -330,7 +331,8 @@ const RampWizard = ({
                               <Button
                                 type="button"
                                 disabled={!canAddMore}
-                                className="opacity-60 border-none"
+                                variant="ultra-quiet"
+                                className="text-gray-200 opacity-60 border-none"
                                 onClick={() => handleAppendStop()}
                                 aria-label={`Append stop`}
                               >
