@@ -1,10 +1,4 @@
-import {
-  MixerVerticalIcon,
-  PlusIcon,
-  ReloadIcon,
-  SymbolIcon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
+import { MixerVerticalIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { DoneButton, RampChoices } from "../panels/symbolization_editor";
 import { useAtom, useAtomValue } from "jotai";
@@ -295,7 +289,7 @@ const RampWizard = ({
                                 onClick={() => handlePrependStop()}
                                 aria-label={`Prepend stop`}
                               >
-                                <PlusIcon /> Add stop
+                                <PlusIcon /> Add Break
                               </Button>
                             </div>
                             {symbolization.stops.map((stop, i) => {
@@ -340,47 +334,50 @@ const RampWizard = ({
                                 onClick={() => handleAppendStop()}
                                 aria-label={`Append stop`}
                               >
-                                <PlusIcon /> Add stop
+                                <PlusIcon /> Add Break
                               </Button>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="min-w-[200px]">
-                        {!!error && (
-                          <p className="py-2 text-sm font-semibold text-orange-800">
-                            {error}
-                          </p>
-                        )}
-                        {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
-                          <>
-                            <p>
-                              Histogram: {JSON.stringify(debugData.histogram)}
+                        <div className="min-w-[200px]">
+                          {!!error && (
+                            <p className="py-2 text-sm font-semibold text-orange-800">
+                              {error}
                             </p>
-                            <p>Min: {debugData.min}</p>
-                            <p>Max: {debugData.max}</p>
-                          </>
-                        )}
+                          )}
+                          {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+                            <>
+                              <p>
+                                Histogram: {JSON.stringify(debugData.histogram)}
+                              </p>
+                              <p>Min: {debugData.min}</p>
+                              <p>Max: {debugData.max}</p>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center w-full gap-x-2">
                       <Button
                         className="flex-1 text-center"
+                        size="full-width"
                         onClick={() => handleModeChange(symbolization.mode)}
                       >
-                        <ReloadIcon /> Classify
+                        Regenerate Breaks
                       </Button>
                       <Button
                         className="flex-1 text-center"
+                        size="full-width"
                         onClick={handleApplyColors}
                       >
-                        <ReloadIcon /> Apply Colors
+                        Reapply Ramp
                       </Button>
                       <Button
                         className="flex-1 text-center"
+                        size="full-width"
                         onClick={handleReverseColors}
                       >
-                        <SymbolIcon /> Reverse Colors
+                        Reverse Colors
                       </Button>
                     </div>
                   </>

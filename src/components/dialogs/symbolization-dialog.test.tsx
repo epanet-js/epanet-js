@@ -203,7 +203,7 @@ describe("symbolization dialog", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("button", { name: /apply colors/i }));
+    await user.click(screen.getByRole("button", { name: /reapply ramp/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops[0].input).toEqual(0);
