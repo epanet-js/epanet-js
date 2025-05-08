@@ -23,6 +23,19 @@ describe("report utils", () => {
     expect(output).toContain("Error 216: a longer message P56_LABEL invalid.");
   });
 
+  it("doesn't replace error codes with labels", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aPipe("233", { label: "LABEL_2" })
+      .build().assets;
+    const report = `
+    Error 233: Error 233
+    `;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain("Error 233: Error LABEL_2");
+  });
+
   it("doesnot replace errors from values", () => {
     const assets = HydraulicModelBuilder.with()
       .aPipe("0", { label: "P1_LABEL" })

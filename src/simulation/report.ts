@@ -24,7 +24,12 @@ export const replaceIdWithLabels = (
 
       return row.replace(regexp, (match, id) => {
         const asset = assets.get(id) as Asset;
-        return match.replace(id, asset.label);
+        const groupIndexInMatch = match.lastIndexOf(id);
+        return (
+          match.slice(0, groupIndexInMatch) +
+          asset.label +
+          match.slice(groupIndexInMatch + id.length)
+        );
       });
     })
     .join("\n");
