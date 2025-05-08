@@ -109,7 +109,7 @@ export const aNodesAnalysis = (
   symbolization: Partial<ISymbolizationRamp>,
 ): NodesAnalysis => {
   return {
-    type: "pressures",
+    type: "pressure",
     rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
       aSymbolization(symbolization),
     ),

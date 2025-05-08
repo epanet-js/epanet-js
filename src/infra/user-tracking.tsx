@@ -92,7 +92,7 @@ type AssetDeselected = {
 type AnalysisApplied = {
   name: "analysis.applied";
   type: "links" | "nodes";
-  subtype: "none" | "flows" | "velocities" | "pressures";
+  subtype: string;
 };
 
 type SatelliteViewToggled = {

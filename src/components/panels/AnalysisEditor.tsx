@@ -75,11 +75,11 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: { type },
         }));
-      case "pressures":
+      case "pressure":
         return setAnalysis((prev) => ({
           ...prev,
           nodes: {
-            type: "pressures",
+            type: "pressure",
             rangeColorMapping: RangeColorMapping.build({
               steps: isFeatureOn("FLAG_CUSTOMIZE")
                 ? [-Infinity, 25, 50, 75, 100, +Infinity]
@@ -106,14 +106,14 @@ export const AnalysisEditor = () => {
         <PanelDetails title={translate("nodes")}>
           <Selector
             ariaLabel={translate("nodes")}
-            options={(["none", "pressures"] as NodesAnalysis["type"][]).map(
+            options={(["none", "pressure"] as NodesAnalysis["type"][]).map(
               (type) => ({
                 value: type,
                 label: translate(type),
                 disabled:
                   isFeatureOn("FLAG_CUSTOMIZE") &&
                   simulation.status === "idle" &&
-                  ["pressures"].includes(type),
+                  ["pressure"].includes(type),
               }),
             )}
             selected={analysis.nodes.type}

@@ -64,6 +64,16 @@ export class RangeColorMapping {
     );
   }
 
+  static asNull() {
+    return RangeColorMapping.build({
+      steps: [],
+      property: "",
+      paletteName: "Temps",
+      unit: null,
+      absoluteValues: false,
+    });
+  }
+
   private ranges: Range[];
   public readonly symbolization: ISymbolizationRamp;
   private rgbRamp: Rgb[];
