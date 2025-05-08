@@ -1,4 +1,9 @@
-import { ChevronDownIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon,
+  PlusIcon,
+  TrashIcon,
+  UpdateIcon,
+} from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { FieldArray, Form, Formik } from "formik";
 import { useAtom, useAtomValue } from "jotai";
@@ -194,8 +199,8 @@ export const AnalysisRangeEditor = ({
     updateState(changeRampSize(symbolization, sortedData, rampSize));
   };
 
-  const handleRampChange = (newRampName: string) => {
-    updateState(changeRampName(symbolization, newRampName));
+  const handleRampChange = (newRampName: string, isReversed: boolean) => {
+    updateState(changeRampName(symbolization, newRampName, isReversed));
   };
 
   const handleModeChange = (newMode: RampMode) => {
@@ -241,7 +246,9 @@ export const AnalysisRangeEditor = ({
                         <RampSelector
                           rampColors={symbolization.stops.map((s) => s.output)}
                           rampSize={rampSize}
+                          reversedRamp={Boolean(symbolization.reversedRamp)}
                           onRampChange={handleRampChange}
+                          onReverse={handleReverseColors}
                         />
                       </div>
                     </div>
@@ -358,13 +365,6 @@ export const AnalysisRangeEditor = ({
                       >
                         Regenerate Breaks
                       </Button>
-                      <Button
-                        className="text-center"
-                        size="full-width"
-                        onClick={handleReverseColors}
-                      >
-                        Reverse Colors
-                      </Button>
                     </div>
                   </>
                 )}
@@ -438,10 +438,14 @@ const RampSelector = ({
   rampColors,
   rampSize,
   onRampChange,
+  reversedRamp,
+  onReverse,
 }: {
   rampColors: string[];
   rampSize: keyof CBColors["colors"];
-  onRampChange: (rampName: string) => void;
+  reversedRamp: boolean;
+  onRampChange: (rampName: string, isReversed: boolean) => void;
+  onReverse: () => void;
 }) => {
   const triggerStyles = `flex items-center gap-x-2 border rounded-sm text-sm text-gray-700 dark:items-center justify-between w-full min-w-[90px] focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 px-2 py-2 min-h-9`;
 
@@ -449,9 +453,8 @@ const RampSelector = ({
 
   return (
     <Select.Root>
-      <Select.Trigger className={triggerStyles}>
+      <Select.Trigger aria-label="ramp select" className={triggerStyles}>
         <span
-          title={"ramp select"}
           className="cursor-pointer w-full h-5 border rounded-md"
           style={{
             background: linearGradient({
@@ -470,21 +473,33 @@ const RampSelector = ({
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <Select.Viewport className="p-1">
-          <div className="pointer-events-auto">
-            <div className="flex flex-col space-y-2 p-1 overflow-y-auto max-h-[320px]">
-              <RampChoices
-                label="Continuous"
-                colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
-                onSelect={onRampChange}
-                size={rampSize}
-              />
-              <Divider />
-              <RampChoices
-                label="Diverging"
-                colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
-                onSelect={onRampChange}
-                size={rampSize}
-              />
+          <div className="flex flex-col gap-y-2">
+            <div className="pointer-events-auto">
+              <div className="flex flex-col space-y-2 p-1 overflow-y-auto max-h-[320px]">
+                <RampChoices
+                  label="Continuous"
+                  colors={[
+                    ...COLORBREWER_SEQUENTIAL,
+                    ...CARTO_COLOR_SEQUENTIAL,
+                  ]}
+                  onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
+                  size={rampSize}
+                  reverse={reversedRamp}
+                />
+                <Divider />
+                <RampChoices
+                  label="Diverging"
+                  colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
+                  onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
+                  size={rampSize}
+                  reverse={reversedRamp}
+                />
+              </div>
+            </div>
+            <div className="w-full p-2">
+              <Button variant="quiet" size="full-width" onClick={onReverse}>
+                <UpdateIcon className="-rotate-90" /> Reverse Colors
+              </Button>
             </div>
           </div>
         </Select.Viewport>
@@ -504,11 +519,13 @@ export function RampChoices({
   colors,
   onSelect,
   size,
+  reverse,
 }: {
   label: string;
   colors: CBColors[];
   onSelect?: (name: string) => void;
   size: keyof CBColors["colors"];
+  reverse: boolean;
 }) {
   return (
     <div className="flex flex-col gap-y-2">
@@ -523,6 +540,7 @@ export function RampChoices({
               ramp={ramp}
               size={size}
               onSelect={onSelect}
+              reverse={reverse}
             />
           );
         })}

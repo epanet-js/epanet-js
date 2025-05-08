@@ -57,7 +57,11 @@ export const reverseColors = (symbolization: SymbolizationRamp) => {
     output: colors[i],
   }));
 
-  return { ...symbolization, stops: newStops };
+  return {
+    ...symbolization,
+    reversedRamp: !symbolization.reversedRamp,
+    stops: newStops,
+  };
 };
 
 export const changeStopColor = (
@@ -103,15 +107,21 @@ export const deleteStop = (symbolization: SymbolizationRamp, index: number) => {
 export const changeRampName = (
   symbolization: SymbolizationRamp,
   newRampName: string,
+  isReversed: boolean,
 ) => {
-  const colors = getColors(newRampName, symbolization.stops.length);
+  const colors = getColors(newRampName, symbolization.stops.length, isReversed);
 
   const newStops = symbolization.stops.map((stop, i) => ({
     input: stop.input,
     output: colors[i],
   }));
 
-  return { ...symbolization, rampName: newRampName, stops: newStops };
+  return {
+    ...symbolization,
+    rampName: newRampName,
+    reversedRamp: isReversed,
+    stops: newStops,
+  };
 };
 
 export const changeRampSize = (
@@ -121,11 +131,19 @@ export const changeRampSize = (
 ) => {
   const stops = generateStops(
     symbolization.mode,
-    getColors(symbolization.rampName, rampSize),
+    getColors(
+      symbolization.rampName,
+      rampSize,
+      Boolean(symbolization.reversedRamp),
+    ),
     sortedValues,
   );
   return { ...symbolization, stops };
-  const colors = getColors(symbolization.rampName, rampSize);
+  const colors = getColors(
+    symbolization.rampName,
+    rampSize,
+    Boolean(symbolization.reversedRamp),
+  );
 
   const newStops: ISymbolizationRamp["stops"] = [];
   colors.forEach((color, index) => {
@@ -143,9 +161,14 @@ export const changeRampSize = (
   return { ...symbolization, stops: newStops };
 };
 
-export const getColors = (rampName: string, rampSize: number): string[] => {
+export const getColors = (
+  rampName: string,
+  rampSize: number,
+  reverse: boolean,
+): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
-  return ramp.colors[rampSize as RampSize] as string[];
+  const colors = ramp.colors[rampSize as RampSize] as string[];
+  return reverse ? [...colors].reverse() : colors;
 };
 
 export const applyMode = (
