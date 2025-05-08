@@ -22,6 +22,7 @@ import {
   getColors,
   maxRampSize,
   minRampSize,
+  nullRampSymbolization,
   prependStop,
   rampModes,
   reverseColors,
@@ -43,31 +44,52 @@ import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
-import { nodesAnalysisAtom } from "src/state/analysis";
-import { NodesAnalysis } from "src/analysis";
+import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
-import { PressureAnalysis } from "src/analysis/analysis-types";
 
-export const AnalysisRangeEditor = () => {
+export const AnalysisRangeEditor = ({
+  geometryType = "nodes",
+}: {
+  geometryType?: "nodes" | "links";
+}) => {
   const {
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
   const [nodesAnalysis, setNodesAnalysis] = useAtom(nodesAnalysisAtom);
+  const [linksAnalysis, setLinksAnalysis] = useAtom(linksAnalysisAtom);
 
-  const initialSymbolization = (nodesAnalysis as PressureAnalysis)
-    .rangeColorMapping.symbolization;
+  const activeAnalysis =
+    geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
+
+  const initialSymbolization =
+    activeAnalysis.type === "none"
+      ? nullRampSymbolization
+      : activeAnalysis.rangeColorMapping.symbolization;
 
   const onChange = (newSymbolization: ISymbolizationRamp) => {
-    setNodesAnalysis({
-      type: newSymbolization.property as NodesAnalysis["type"],
-      rangeColorMapping:
-        RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-    });
+    if (geometryType === "nodes") {
+      setNodesAnalysis({
+        type: newSymbolization.property as NodesAnalysis["type"],
+        rangeColorMapping:
+          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
+      });
+    } else {
+      setLinksAnalysis({
+        type: newSymbolization.property as LinksAnalysis["type"],
+        rangeColorMapping:
+          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
+      });
+    }
   };
 
   const options = useMemo(() => {
-    return getNumericPropertyMap([...assets.values()].filter((a) => a.isNode));
-  }, [assets]);
+    return getNumericPropertyMap(
+      [...assets.values()].filter((a) =>
+        geometryType === "nodes" ? a.isNode : a.isLink,
+      ),
+    );
+  }, [assets, geometryType]);
 
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
@@ -537,15 +559,18 @@ export function RampChoices({
 }
 
 const nodeProperties = ["pressure", "elevation"];
+const linkProperties = ["velocity", "flow"];
+
+const allProperties = [...nodeProperties, ...linkProperties];
 
 export function getNumericPropertyMap(assets: Asset[]) {
   const numericPropertyMap = new Map<string, number[]>();
-  for (const property of nodeProperties) {
+  for (const property of allProperties) {
     numericPropertyMap.set(property, []);
   }
 
   for (const asset of assets) {
-    for (const property of nodeProperties) {
+    for (const property of allProperties) {
       const value = asset[property as keyof Asset];
       if (value === undefined || value === null) continue;
 

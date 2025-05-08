@@ -210,3 +210,16 @@ const generateQuantileStops = (sortedValues: number[], colors: string[]) => {
     return { input: Number(value.toFixed(2)), output: colors[i] };
   });
 };
+
+export const nullRampSymbolization: SymbolizationRamp = {
+  type: "ramp",
+  simplestyle: true,
+  property: "",
+  unit: null,
+  defaultColor: "",
+  defaultOpacity: 0.3,
+  interpolate: "step",
+  rampName: "Temps",
+  mode: "linear",
+  stops: [],
+};
