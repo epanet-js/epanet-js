@@ -73,6 +73,7 @@ import {
 import { useAutoSubmit } from "src/hooks/use_auto_submit";
 import { colors } from "src/lib/constants";
 import { isFeatureOn } from "src/infra/feature-flags";
+import clsx from "clsx";
 
 const regenerateAtom = atom<boolean>(false);
 const DEFAULT_CLASSES = 7;
@@ -176,8 +177,10 @@ export function RampPreview({
   name,
   interpolate,
   classes,
+  reverse = false,
 }: {
   name: string;
+  reverse?: boolean;
 } & Pick<RampValues, "interpolate" | "classes">) {
   const ramp = find(COLORBREWER_ALL, { name })!;
   const colors = ramp.colors[classes]! || ramp.colors[DEFAULT_CLASSES];
@@ -185,7 +188,7 @@ export function RampPreview({
   return (
     <div
       title={name}
-      className="w-full h-5 rounded-md"
+      className={clsx("w-full h-5 rounded-md", { "rotate-180": reverse })}
       style={{
         background: linearGradient({
           colors,
@@ -202,9 +205,11 @@ export function RampPreview({
 export function RampChoice({
   ramp,
   size = DEFAULT_CLASSES,
+  reverse = false,
   onSelect,
 }: {
   ramp: CBColors;
+  reverse?: boolean;
   onSelect?: (name: string) => void;
   size?: keyof CBColors["colors"];
 }) {
@@ -225,6 +230,7 @@ export function RampChoice({
         name={ramp.name}
         classes={size || DEFAULT_CLASSES}
         interpolate={isFeatureOn("FLAG_CUSTOMIZE") ? "step" : "step"}
+        reverse={reverse}
       />
     </label>
   );

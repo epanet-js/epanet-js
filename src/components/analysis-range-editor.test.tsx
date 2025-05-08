@@ -161,7 +161,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByTitle(/ramp select/i));
+    await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
     await user.click(screen.getByTitle("OrRd"));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
@@ -296,6 +296,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
+    await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
     await user.click(screen.getByRole("button", { name: /reverse colors/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
