@@ -185,13 +185,12 @@ export function RampPreview({
   return (
     <div
       title={name}
-      className="w-full h-5 border"
+      className="w-full h-5 rounded-md"
       style={{
         background: linearGradient({
           colors,
           interpolate,
         }),
-        borderColor: colors[colors.length - 1],
       }}
     />
   );
@@ -225,7 +224,7 @@ export function RampChoice({
       <RampPreview
         name={ramp.name}
         classes={size || DEFAULT_CLASSES}
-        interpolate={isFeatureOn("FLAG_CUSTOMIZE") ? "linear" : "step"}
+        interpolate={isFeatureOn("FLAG_CUSTOMIZE") ? "step" : "step"}
       />
     </label>
   );

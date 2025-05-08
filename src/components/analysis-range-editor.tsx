@@ -469,11 +469,11 @@ const RampSelector = ({
       <Select.Trigger className={triggerStyles}>
         <span
           title={"ramp select"}
-          className="cursor-pointer w-full h-5 border rounded-sm"
+          className="cursor-pointer w-full h-5 border rounded-md"
           style={{
             background: linearGradient({
               colors: rampColors,
-              interpolate: "linear",
+              interpolate: "step",
             }),
           }}
         ></span>
@@ -490,29 +490,15 @@ const RampSelector = ({
           <div className="pointer-events-auto">
             <div className="flex flex-col space-y-2 p-1 overflow-y-auto max-h-[320px]">
               <RampChoices
-                label="Continuous (ColorBrewer)"
-                colors={COLORBREWER_SEQUENTIAL}
+                label="Continuous"
+                colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
                 onSelect={onRampChange}
                 size={rampSize}
               />
               <Divider />
               <RampChoices
-                label="Continuous (CARTO Colors)"
-                colors={CARTO_COLOR_SEQUENTIAL}
-                onSelect={onRampChange}
-                size={rampSize}
-              />
-              <Divider />
-              <RampChoices
-                label="Diverging (ColorBrewer)"
-                colors={COLORBREWER_DIVERGING}
-                onSelect={onRampChange}
-                size={rampSize}
-              />
-              <Divider />
-              <RampChoices
-                label="Diverging (CARTO Colors)"
-                colors={CARTO_COLOR_DIVERGING}
+                label="Diverging"
+                colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
                 onSelect={onRampChange}
                 size={rampSize}
               />
@@ -543,8 +529,10 @@ export function RampChoices({
 }) {
   return (
     <div className="flex flex-col gap-y-2">
-      <span className="text-sm text-gray-500 select-none">{label}</span>
-      <div className="grid gap-x-2 gap-y-2 grid-cols-3">
+      <span className="text-sm text-gray-500 select-none">
+        {label.toUpperCase()}
+      </span>
+      <div className="flex flex-col gap-y-2">
         {colors.map((ramp) => {
           return (
             <RampChoice
@@ -558,34 +546,4 @@ export function RampChoices({
       </div>
     </div>
   );
-}
-
-const nodeProperties = ["pressure", "elevation"];
-const linkProperties = ["velocity", "flow"];
-
-const allProperties = [...nodeProperties, ...linkProperties];
-
-export function getNumericPropertyMap(assets: Asset[]) {
-  const numericPropertyMap = new Map<string, number[]>();
-  for (const property of allProperties) {
-    numericPropertyMap.set(property, []);
-  }
-
-  for (const asset of assets) {
-    for (const property of allProperties) {
-      const value = asset[property as keyof Asset];
-      if (value === undefined || value === null) continue;
-
-      if (typeof value === "number") {
-        const values = numericPropertyMap.get(property) as number[];
-        values.push(value);
-        numericPropertyMap.set(property, values);
-      }
-    }
-  }
-
-  for (const val of numericPropertyMap.values()) {
-    val.sort((a, b) => a - b);
-  }
-  return numericPropertyMap;
 }
