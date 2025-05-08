@@ -95,7 +95,7 @@ const Legend = ({
         </Popover.Trigger>
         <Popover.Portal>
           <StyledPopoverContent
-            size="md"
+            size="sm"
             onOpenAutoFocus={(e) => e.preventDefault()}
             side="right"
             align="start"
