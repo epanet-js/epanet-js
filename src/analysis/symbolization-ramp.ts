@@ -143,16 +143,6 @@ export const changeRampSize = (
   return { ...symbolization, stops: newStops };
 };
 
-export const applyRampColors = (symbolization: SymbolizationRamp) => {
-  const colors = getColors(symbolization.rampName, symbolization.stops.length);
-
-  const newStops = symbolization.stops.map((stop, i) => {
-    return { input: stop.input, output: colors[i] };
-  });
-
-  return { ...symbolization, stops: newStops };
-};
-
 export const getColors = (rampName: string, rampSize: number): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
   return ramp.colors[rampSize as RampSize] as string[];

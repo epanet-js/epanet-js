@@ -13,13 +13,11 @@ import {
   RampSize,
   appendStop,
   applyMode,
-  applyRampColors,
   changeRampName,
   changeRampSize,
   changeStopColor,
   changeStopValue,
   deleteStop,
-  getColors,
   maxRampSize,
   minRampSize,
   nullRampSymbolization,
@@ -200,10 +198,6 @@ export const AnalysisRangeEditor = ({
     updateState(changeRampName(symbolization, newRampName));
   };
 
-  const handleApplyColors = () => {
-    updateState(applyRampColors(symbolization));
-  };
-
   const handleModeChange = (newMode: RampMode) => {
     if (!sortedData.length) {
       setError(translate("notEnoughData"));
@@ -245,7 +239,7 @@ export const AnalysisRangeEditor = ({
                           Color Ramp
                         </span>
                         <RampSelector
-                          rampName={symbolization.rampName}
+                          rampColors={symbolization.stops.map((s) => s.output)}
                           rampSize={rampSize}
                           onRampChange={handleRampChange}
                         />
@@ -367,13 +361,6 @@ export const AnalysisRangeEditor = ({
                       <Button
                         className="text-center"
                         size="full-width"
-                        onClick={handleApplyColors}
-                      >
-                        Reapply Ramp
-                      </Button>
-                      <Button
-                        className="text-center"
-                        size="full-width"
                         onClick={handleReverseColors}
                       >
                         Reverse Colors
@@ -448,18 +435,14 @@ const ModeSelector = ({
 };
 
 const RampSelector = ({
-  rampName,
+  rampColors,
   rampSize,
   onRampChange,
 }: {
-  rampName: string;
+  rampColors: string[];
   rampSize: keyof CBColors["colors"];
   onRampChange: (rampName: string) => void;
 }) => {
-  const rampColors = useMemo(() => {
-    return getColors(rampName, maxRampSize);
-  }, [rampName, rampSize]);
-
   const triggerStyles = `flex items-center gap-x-2 border rounded-sm text-sm text-gray-700 dark:items-center justify-between w-full min-w-[90px] focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 px-2 py-2 min-h-9`;
 
   const contentStyles = `bg-white w-[--radix-select-trigger-width] border text-sm rounded-sm shadow-md z-50`;
