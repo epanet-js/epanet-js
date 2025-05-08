@@ -83,13 +83,18 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const options = useMemo(() => {
-    return getNumericPropertyMap(
-      [...assets.values()].filter((a) =>
-        geometryType === "nodes" ? a.isNode : a.isLink,
-      ),
-    );
-  }, [assets, geometryType]);
+  const sortedData = useMemo(() => {
+    const values: number[] = [];
+    for (const asset of [...assets.values()]) {
+      const value = asset[initialSymbolization.property as keyof Asset];
+      if (value === undefined || value === null || typeof value !== "number")
+        continue;
+
+      values.push(value);
+    }
+
+    return values.sort((a, b) => a - b);
+  }, [assets, geometryType, initialSymbolization.property]);
 
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
@@ -119,13 +124,12 @@ export const AnalysisRangeEditor = ({
 
       return { histogram, min, max };
     }
-    const dataValues = options.get(symbolization.property) || [];
 
-    return createHistogram(dataValues, [
+    return createHistogram(sortedData, [
       ...symbolization.stops.map((s) => s.input),
       +Infinity,
     ]);
-  }, [assets, symbolization.property, symbolization.stops, options]);
+  }, [assets, symbolization.property, symbolization.stops, sortedData]);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -185,12 +189,11 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleRampSizeChange = (rampSize: number) => {
-    const dataValues = options.get(symbolization.property)! || [];
-    if (!dataValues.length) {
+    if (!sortedData.length) {
       setError(translate("notEnoughData"));
       return;
     }
-    updateState(changeRampSize(symbolization, dataValues, rampSize));
+    updateState(changeRampSize(symbolization, sortedData, rampSize));
   };
 
   const handleRampChange = (newRampName: string) => {
@@ -202,12 +205,11 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleModeChange = (newMode: RampMode) => {
-    const dataValues = options.get(symbolization.property)! || [];
-    if (!dataValues.length) {
+    if (!sortedData.length) {
       setError(translate("notEnoughData"));
       return;
     }
-    updateState(applyMode(symbolization, newMode, dataValues));
+    updateState(applyMode(symbolization, newMode, sortedData));
   };
 
   const rampSize = symbolization.stops.length as RampSize;
