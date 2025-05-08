@@ -10,12 +10,14 @@ export type VelocityAnalysis = {
   rangeColorMapping: RangeColorMapping;
 };
 
-export type PressureAnalysis = {
-  type: "pressure";
+export type PropertyAnalysis = {
+  type: string;
   rangeColorMapping: RangeColorMapping;
 };
 
-export type NodesAnalysis = { type: "none" } | PressureAnalysis;
+export type NodesAnalysis =
+  | { type: "none" }
+  | { type: "elevation" | "pressure"; rangeColorMapping: RangeColorMapping };
 
 export type LinksAnalysis = { type: "none" } | FlowAnalysis | VelocityAnalysis;
 

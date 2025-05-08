@@ -4,7 +4,7 @@ import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./AnalysisEditor";
 import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
-import { PressureAnalysis, FlowAnalysis } from "src/analysis/analysis-types";
+import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 
 describe("Analysis Editor", () => {
   it("displays nodes analysis options", async () => {
@@ -26,7 +26,7 @@ describe("Analysis Editor", () => {
     await userEvent.click(screen.getByText("Pressure"));
 
     const { nodes } = store.get(analysisAtom);
-    const nodesAnalysis = nodes as PressureAnalysis;
+    const nodesAnalysis = nodes as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
     expect(nodesAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
     expect(nodesAnalysis.rangeColorMapping.symbolization).toEqual(

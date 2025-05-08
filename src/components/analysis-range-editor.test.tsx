@@ -13,7 +13,7 @@ import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { defaultNewColor } from "src/analysis/symbolization-ramp";
-import { FlowAnalysis, PressureAnalysis } from "src/analysis/analysis-types";
+import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 
 describe("analysis range editor", () => {
   beforeEach(() => {
@@ -483,7 +483,7 @@ describe("analysis range editor", () => {
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
   ): ISymbolizationRamp => {
-    return (store.get(analysisAtom).nodes as PressureAnalysis).rangeColorMapping
+    return (store.get(analysisAtom).nodes as PropertyAnalysis).rangeColorMapping
       .symbolization;
   };
 
