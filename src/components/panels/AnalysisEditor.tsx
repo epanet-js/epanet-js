@@ -104,6 +104,23 @@ export const AnalysisEditor = () => {
             }),
           },
         }));
+      case "elevation":
+        return setAnalysis((prev) => ({
+          ...prev,
+          nodes: {
+            type: "elevation",
+            rangeColorMapping: RangeColorMapping.build({
+              steps: isFeatureOn("FLAG_CUSTOMIZE")
+                ? [-Infinity, 25, 50, 75, 100, +Infinity]
+                : [0, 25, 50, 75, 100],
+              property: "elevation",
+              unit: hydraulicModel.units.elevation,
+              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
+                ? "Temps"
+                : "epanet-ramp",
+            }),
+          },
+        }));
     }
   };
 
@@ -118,16 +135,20 @@ export const AnalysisEditor = () => {
         <PanelDetails title={translate("nodes")}>
           <Selector
             ariaLabel={translate("nodes")}
-            options={(["none", "pressure"] as NodesAnalysis["type"][]).map(
-              (type) => ({
-                value: type,
-                label: translate(type),
-                disabled:
-                  isFeatureOn("FLAG_CUSTOMIZE") &&
-                  simulation.status === "idle" &&
-                  ["pressure"].includes(type),
-              }),
-            )}
+            options={(
+              [
+                "none",
+                ...(isFeatureOn("FLAG_CUSTOMIZE") ? ["elevation"] : []),
+                "pressure",
+              ] as NodesAnalysis["type"][]
+            ).map((type) => ({
+              value: type,
+              label: translate(type),
+              disabled:
+                isFeatureOn("FLAG_CUSTOMIZE") &&
+                simulation.status === "idle" &&
+                ["pressure"].includes(type),
+            }))}
             selected={analysis.nodes.type}
             onChange={handleNodesChange}
           />
