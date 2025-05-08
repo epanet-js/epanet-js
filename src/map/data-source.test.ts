@@ -62,7 +62,7 @@ describe("build optimized source", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
       nodes: {
-        type: "pressures",
+        type: "pressure",
         rangeColorMapping: RangeColorMapping.build({
           steps: [0, 10, 20, 30],
           property: "pressure",

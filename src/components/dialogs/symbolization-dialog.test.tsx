@@ -5,12 +5,12 @@ import { Store } from "src/state/jotai";
 import { SymbolizationDialog } from "./symbolization-dialog";
 import { Dialog } from "@radix-ui/react-dialog";
 import { analysisAtom } from "src/state/analysis";
-import { PressuresAnalysis } from "src/analysis";
 import userEvent from "@testing-library/user-event";
 import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { defaultNewColor } from "src/analysis/symbolization-ramp";
+import { PressureAnalysis } from "src/analysis/analysis-types";
 
 describe("symbolization dialog", () => {
   beforeEach(() => {
@@ -475,8 +475,8 @@ describe("symbolization dialog", () => {
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
   ): ISymbolizationRamp => {
-    return (store.get(analysisAtom).nodes as PressuresAnalysis)
-      .rangeColorMapping.symbolization;
+    return (store.get(analysisAtom).nodes as PressureAnalysis).rangeColorMapping
+      .symbolization;
   };
 
   const expectStopValue = (index: number, value: string) => {

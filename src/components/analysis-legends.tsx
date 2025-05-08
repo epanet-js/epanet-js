@@ -11,7 +11,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverContent } from "src/components/elements";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
-import { RampWizard } from "src/components/dialogs/symbolization-dialog";
+import { AnalysisRangeEditor } from "./analysis-range-editor";
 
 export const AnalysisLegends = () => {
   const [{ nodes, links }, setAnalysis] = useAtom(analysisAtom);
@@ -20,7 +20,7 @@ export const AnalysisLegends = () => {
     setAnalysis((prev) => ({
       ...prev,
       nodes: {
-        type: "pressures",
+        type: "pressure",
         rangeColorMapping:
           RangeColorMapping.fromSymbolizationRamp(newSymbolization),
       },
@@ -107,7 +107,10 @@ const Legend = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <RampWizard symbolization={symbolization} onChange={onChange} />
+            <AnalysisRangeEditor
+              symbolization={symbolization}
+              onChange={onChange}
+            />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>

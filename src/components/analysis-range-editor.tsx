@@ -1,18 +1,36 @@
-import {
-  ChevronDownIcon,
-  MixerVerticalIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
-import { DialogHeader } from "../dialog";
-import { RampChoice } from "../panels/symbolization_editor";
-import { useAtom, useAtomValue } from "jotai";
-import { analysisAtom } from "src/state/analysis";
-import { useCallback, useMemo, useState } from "react";
-import { ISymbolizationRamp } from "src/types";
-import { Button } from "../elements";
-import { dataAtom } from "src/state/jotai";
+import { ChevronDownIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import clsx from "clsx";
 import { FieldArray, Form, Formik } from "formik";
+import { useAtomValue } from "jotai";
+import { ColorPopover } from "src/components/color-popover";
+import { Button } from "src/components/elements";
+import { NumericField } from "src/components/form/numeric-field";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { localizeDecimal } from "src/infra/i18n/numbers";
+import { ISymbolizationRamp } from "src/types";
+import {
+  RampMode,
+  RampSize,
+  appendStop,
+  applyMode,
+  applyRampColors,
+  changeRampName,
+  changeRampSize,
+  changeStopColor,
+  changeStopValue,
+  deleteStop,
+  getColors,
+  maxRampSize,
+  minRampSize,
+  prependStop,
+  rampModes,
+  reverseColors,
+} from "src/analysis/symbolization-ramp";
+import { translate } from "src/infra/i18n";
+import toast from "react-hot-toast";
+import { useCallback, useMemo, useState } from "react";
+import { dataAtom } from "src/state/jotai";
+import { Asset } from "src/hydraulic-model";
 import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
@@ -20,77 +38,13 @@ import {
   COLORBREWER_DIVERGING,
   COLORBREWER_SEQUENTIAL,
 } from "src/lib/colorbrewer";
-import * as d3 from "d3-array";
+import { RampChoice } from "src/components/panels/symbolization_editor";
 import * as Select from "@radix-ui/react-select";
-import { ColorPopover } from "../color-popover";
-import { RangeColorMapping } from "src/analysis/range-color-mapping";
-import { Asset } from "src/hydraulic-model";
-import { translate, translateUnit } from "src/infra/i18n";
-import { NumericField } from "../form/numeric-field";
-import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Selector } from "../form/selector";
-import clsx from "clsx";
-import {
-  appendStop,
-  reverseColors,
-  prependStop,
-  deleteStop,
-  changeRampSize,
-  changeRampName,
-  changeStopColor,
-  changeStopValue,
-  maxRampSize,
-  minRampSize,
-  RampSize,
-  RampMode,
-  rampModes,
-  getColors,
-  applyRampColors,
-  applyMode,
-} from "src/analysis/symbolization-ramp";
 import { linearGradient } from "src/lib/color";
-import { isFeatureOn } from "src/infra/feature-flags";
-import toast from "react-hot-toast";
+import { Selector } from "src/components/form/selector";
+import * as d3 from "d3-array";
 
-export const SymbolizationDialog = () => {
-  const [{ nodes }, setAnalysis] = useAtom(analysisAtom);
-
-  if (nodes.type === "none") return null;
-
-  const handleChange = (newSymbolization: ISymbolizationRamp) => {
-    setAnalysis((prev) => ({
-      ...prev,
-      nodes: {
-        type: "pressure",
-        rangeColorMapping:
-          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-      },
-    }));
-  };
-
-  const symbolization = nodes.rangeColorMapping.symbolization;
-
-  let title = translate(symbolization.property);
-  if (symbolization.unit) title += ` (${translateUnit(symbolization.unit)})`;
-
-  return (
-    <>
-      <DialogHeader title={title} titleIcon={MixerVerticalIcon} />
-      <div className="flex-auto">
-        <div className="divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
-          <div className="text-sm">
-            <RampWizard
-              symbolization={nodes.rangeColorMapping.symbolization}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export const RampWizard = ({
+export const AnalysisRangeEditor = ({
   symbolization: initialSymbolization,
   onChange,
 }: {
