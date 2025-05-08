@@ -10,31 +10,16 @@ import { translate, translateUnit } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverContent } from "src/components/elements";
-import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
 
 export const AnalysisLegends = () => {
-  const [{ nodes, links }, setAnalysis] = useAtom(analysisAtom);
-
-  const handleNodesChange = (newSymbolization: ISymbolizationRamp) => {
-    setAnalysis((prev) => ({
-      ...prev,
-      nodes: {
-        type: "pressure",
-        rangeColorMapping:
-          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-      },
-    }));
-  };
+  const [{ nodes, links }] = useAtom(analysisAtom);
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {nodes.type !== "none" &&
         (isFeatureOn("FLAG_CUSTOMIZE") ? (
-          <Legend
-            symbolization={nodes.rangeColorMapping.symbolization}
-            onChange={handleNodesChange}
-          />
+          <Legend symbolization={nodes.rangeColorMapping.symbolization} />
         ) : (
           <LegendDeprecated
             symbolization={nodes.rangeColorMapping.symbolization}
@@ -49,13 +34,7 @@ export const AnalysisLegends = () => {
   );
 };
 
-const Legend = ({
-  symbolization,
-  onChange,
-}: {
-  symbolization: ISymbolizationRamp;
-  onChange: (newSymbolization: ISymbolizationRamp) => void;
-}) => {
+const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
   const title = symbolization.unit
     ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
     : translate(symbolization.property);
@@ -107,10 +86,7 @@ const Legend = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <AnalysisRangeEditor
-              symbolization={symbolization}
-              onChange={onChange}
-            />
+            <AnalysisRangeEditor symbolization={symbolization} />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>
