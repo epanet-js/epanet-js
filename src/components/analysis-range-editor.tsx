@@ -70,21 +70,24 @@ export const AnalysisRangeEditor = ({
       ? nullRampSymbolization
       : activeAnalysis.rangeColorMapping.symbolization;
 
-  const onChange = (newSymbolization: ISymbolizationRamp) => {
-    if (geometryType === "nodes") {
-      setNodesAnalysis({
-        type: newSymbolization.property as NodesAnalysis["type"],
-        rangeColorMapping:
-          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-      });
-    } else {
-      setLinksAnalysis({
-        type: newSymbolization.property as LinksAnalysis["type"],
-        rangeColorMapping:
-          RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-      });
-    }
-  };
+  const onChange = useCallback(
+    (newSymbolization: ISymbolizationRamp) => {
+      if (geometryType === "nodes") {
+        setNodesAnalysis({
+          type: newSymbolization.property as NodesAnalysis["type"],
+          rangeColorMapping:
+            RangeColorMapping.fromSymbolizationRamp(newSymbolization),
+        });
+      } else {
+        setLinksAnalysis({
+          type: newSymbolization.property as LinksAnalysis["type"],
+          rangeColorMapping:
+            RangeColorMapping.fromSymbolizationRamp(newSymbolization),
+        });
+      }
+    },
+    [geometryType, setLinksAnalysis, setNodesAnalysis],
+  );
 
   const sortedData = useMemo(() => {
     const values: number[] = [];
@@ -97,7 +100,7 @@ export const AnalysisRangeEditor = ({
     }
 
     return values.sort((a, b) => a - b);
-  }, [assets, geometryType, initialSymbolization.property]);
+  }, [assets, initialSymbolization.property]);
 
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
@@ -132,7 +135,7 @@ export const AnalysisRangeEditor = ({
       ...symbolization.stops.map((s) => s.input),
       +Infinity,
     ]);
-  }, [assets, symbolization.property, symbolization.stops, sortedData]);
+  }, [symbolization.stops, sortedData]);
 
   const [error, setError] = useState<string | null>(null);
 
