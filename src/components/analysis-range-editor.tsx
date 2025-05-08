@@ -296,7 +296,7 @@ export const AnalysisRangeEditor = ({
 
                               return (
                                 <div
-                                  className="flex items-center gap-1"
+                                  className="flex w-full items-center gap-1"
                                   key={`${stop.input}-${i}`}
                                 >
                                   <NumericField
@@ -475,7 +475,7 @@ const RampSelector = ({
         <Select.Viewport className="p-1">
           <div className="flex flex-col gap-y-2">
             <div className="pointer-events-auto">
-              <div className="flex flex-col space-y-2 p-1 overflow-y-auto max-h-[320px]">
+              <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
                 <RampChoices
                   label="Continuous"
                   colors={[
@@ -486,7 +486,6 @@ const RampSelector = ({
                   size={rampSize}
                   reverse={reversedRamp}
                 />
-                <Divider />
                 <RampChoices
                   label="Diverging"
                   colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
@@ -508,12 +507,6 @@ const RampSelector = ({
   );
 };
 
-const Divider = () => (
-  <div className="py-2">
-    <div className="border-t border-gray-200"></div>
-  </div>
-);
-
 export function RampChoices({
   label,
   colors,
@@ -529,7 +522,7 @@ export function RampChoices({
 }) {
   return (
     <div className="flex flex-col gap-y-2">
-      <span className="text-sm text-gray-500 select-none">
+      <span className="text-xs font-semibold text-gray-600 select-none">
         {label.toUpperCase()}
       </span>
       <div className="flex flex-col gap-y-2">
