@@ -521,7 +521,7 @@ export function RampChoices({
   reverse: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-y-2">
+    <div className="flex flex-col gap-y-2 p-2">
       <span className="text-xs font-semibold text-gray-600 select-none">
         {label.toUpperCase()}
       </span>
