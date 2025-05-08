@@ -356,23 +356,23 @@ export const AnalysisRangeEditor = ({
                         </>
                       )}
                     </div>
-                    <div className="flex items-center w-full gap-x-2">
+                    <div className="flex flex-col items-center w-full gap-y-2">
                       <Button
-                        className="flex-1 text-center"
+                        className="text-center"
                         size="full-width"
                         onClick={() => handleModeChange(symbolization.mode)}
                       >
                         Regenerate Breaks
                       </Button>
                       <Button
-                        className="flex-1 text-center"
+                        className="text-center"
                         size="full-width"
                         onClick={handleApplyColors}
                       >
                         Reapply Ramp
                       </Button>
                       <Button
-                        className="flex-1 text-center"
+                        className="text-center"
                         size="full-width"
                         onClick={handleReverseColors}
                       >
