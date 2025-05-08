@@ -67,10 +67,6 @@ export type UpgradeDialogState = {
   type: "upgrade";
 };
 
-export type SymbolizationDialogState = {
-  type: "symbolization";
-};
-
 export type DialogState =
   | DialogStateImport
   | OpenInpDialogState
@@ -89,7 +85,6 @@ export type DialogState =
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
-  | SymbolizationDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
