@@ -19,22 +19,37 @@ export const AnalysisLegends = () => {
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {nodes.type !== "none" &&
         (isFeatureOn("FLAG_CUSTOMIZE") ? (
-          <Legend symbolization={nodes.rangeColorMapping.symbolization} />
+          <Legend
+            geometryType="nodes"
+            symbolization={nodes.rangeColorMapping.symbolization}
+          />
         ) : (
           <LegendDeprecated
             symbolization={nodes.rangeColorMapping.symbolization}
           />
         ))}
-      {links.type !== "none" && (
-        <LegendDeprecated
-          symbolization={links.rangeColorMapping.symbolization}
-        />
-      )}
+      {links.type !== "none" &&
+        (isFeatureOn("FLAG_CUSTOMIZE") ? (
+          <Legend
+            geometryType="links"
+            symbolization={links.rangeColorMapping.symbolization}
+          />
+        ) : (
+          <LegendDeprecated
+            symbolization={links.rangeColorMapping.symbolization}
+          />
+        ))}
     </div>
   );
 };
 
-const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
+const Legend = ({
+  geometryType,
+  symbolization,
+}: {
+  geometryType: "nodes" | "links";
+  symbolization: ISymbolizationRamp;
+}) => {
   const title = symbolization.unit
     ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
     : translate(symbolization.property);
@@ -86,7 +101,7 @@ const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
             align="start"
           >
             <StyledPopoverArrow />
-            <AnalysisRangeEditor />
+            <AnalysisRangeEditor geometryType={geometryType} />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>

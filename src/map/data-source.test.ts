@@ -96,7 +96,7 @@ describe("build optimized source", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
       links: {
-        type: "flows",
+        type: "flow",
         rangeColorMapping: RangeColorMapping.build({
           steps: [0, 10, 20, 30],
           property: "flow",
@@ -159,7 +159,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: {
-          type: "velocities",
+          type: "velocity",
           rangeColorMapping: RangeColorMapping.build({
             steps: [0, 10, 20, 30],
             property: "velocity",

@@ -31,30 +31,42 @@ export const AnalysisEditor = () => {
           ...prev,
           links: { type: "none" },
         }));
-      case "flows":
+      case "flow":
         return setAnalysis((prev) => ({
           ...prev,
           links: {
-            type: "flows",
-            rangeColorMapping: RangeColorMapping.build({
-              steps: [0, 25, 50, 75, 100],
-              property: "flow",
-              unit: hydraulicModel.units.flow,
-              paletteName: "epanet-ramp",
-              absoluteValues: true,
-            }),
+            type: "flow",
+            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
+              ? RangeColorMapping.build({
+                  steps: [-Infinity, 25, 50, 75, 100, +Infinity],
+                  property: "flow",
+                  unit: hydraulicModel.units.flow,
+                  paletteName: "Temps",
+                  absoluteValues: true,
+                })
+              : RangeColorMapping.build({
+                  steps: [0, 25, 50, 75, 100],
+                  property: "flow",
+                  unit: hydraulicModel.units.flow,
+                  paletteName: "epanet-ramp",
+                  absoluteValues: true,
+                }),
           },
         }));
-      case "velocities":
+      case "velocity":
         return setAnalysis((prev) => ({
           ...prev,
           links: {
-            type: "velocities",
+            type: "velocity",
             rangeColorMapping: RangeColorMapping.build({
-              steps: quantities.analysis.velocitySteps,
+              steps: isFeatureOn("FLAG_CUSTOMIZE")
+                ? [-Infinity, ...quantities.analysis.velocitySteps, +Infinity]
+                : quantities.analysis.velocitySteps,
               property: "velocity",
               unit: hydraulicModel.units.velocity,
-              paletteName: "epanet-ramp",
+              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
+                ? "Temps"
+                : "epanet-ramp",
               absoluteValues: true,
             }),
           },
@@ -124,14 +136,14 @@ export const AnalysisEditor = () => {
           <Selector
             ariaLabel={translate("links")}
             options={(
-              ["none", "flows", "velocities"] as LinksAnalysis["type"][]
+              ["none", "flow", "velocity"] as LinksAnalysis["type"][]
             ).map((type) => ({
               value: type,
               label: translate(type),
               disabled:
                 isFeatureOn("FLAG_CUSTOMIZE") &&
                 simulation.status === "idle" &&
-                ["flows", "velocities"].includes(type),
+                ["flow", "velocity"].includes(type),
             }))}
             selected={analysis.links.type}
             onChange={handleLinksChange}

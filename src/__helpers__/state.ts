@@ -116,6 +116,17 @@ export const aNodesAnalysis = (
   };
 };
 
+export const aLinksAnalysis = (
+  symbolization: Partial<ISymbolizationRamp>,
+): LinksAnalysis => {
+  return {
+    type: "flow",
+    rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+      aSymbolization(symbolization),
+    ),
+  };
+};
+
 export const aSymbolization = (
   symbolization: Partial<ISymbolizationRamp>,
 ): ISymbolizationRamp => {

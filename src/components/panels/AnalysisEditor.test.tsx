@@ -4,8 +4,7 @@ import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./AnalysisEditor";
 import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
-import { FlowsAnalysis } from "src/analysis";
-import { PressureAnalysis } from "src/analysis/analysis-types";
+import { PressureAnalysis, FlowAnalysis } from "src/analysis/analysis-types";
 
 describe("Analysis Editor", () => {
   it("displays nodes analysis options", async () => {
@@ -46,8 +45,8 @@ describe("Analysis Editor", () => {
       "None",
     );
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
-    expect(screen.getByText("Flows")).toBeInTheDocument();
-    expect(screen.getByText("Velocities")).toBeInTheDocument();
+    expect(screen.getByText("Flow")).toBeInTheDocument();
+    expect(screen.getByText("Velocity")).toBeInTheDocument();
   });
 
   it("can change link analysis", async () => {
@@ -55,11 +54,11 @@ describe("Analysis Editor", () => {
     renderComponent(store);
 
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
-    await userEvent.click(screen.getByText(/flows/i));
+    await userEvent.click(screen.getByText(/flow/i));
 
     const { links } = store.get(analysisAtom);
-    const linksAnalysis = links as FlowsAnalysis;
-    expect(linksAnalysis.type).toEqual("flows");
+    const linksAnalysis = links as FlowAnalysis;
+    expect(linksAnalysis.type).toEqual("flow");
     expect(linksAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
     expect(linksAnalysis.rangeColorMapping.symbolization).toEqual(
       expect.objectContaining({
@@ -69,7 +68,7 @@ describe("Analysis Editor", () => {
     );
 
     expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
-      "Flows",
+      "Flow",
     );
   });
 

@@ -1,5 +1,9 @@
 import { CommandContainer } from "src/commands/__helpers__/command-container";
-import { aNodesAnalysis, setInitialState } from "src/__helpers__/state";
+import {
+  aLinksAnalysis,
+  aNodesAnalysis,
+  setInitialState,
+} from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
@@ -9,7 +13,7 @@ import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { defaultNewColor } from "src/analysis/symbolization-ramp";
-import { PressureAnalysis } from "src/analysis/analysis-types";
+import { FlowAnalysis, PressureAnalysis } from "src/analysis/analysis-types";
 
 describe("analysis range editor", () => {
   beforeEach(() => {
@@ -452,10 +456,41 @@ describe("analysis range editor", () => {
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
 
+  it("can also handle links", async () => {
+    const user = userEvent.setup();
+    const linksAnalysis = aLinksAnalysis({
+      stops: startingStops,
+    });
+
+    const store = setInitialState({ linksAnalysis });
+
+    renderComponent({ store, geometryType: "links" });
+
+    const field = screen.getByRole("textbox", {
+      name: /value for: step 0/i,
+    });
+    await user.click(field);
+    expect(field).toHaveValue("20");
+    await user.clear(field);
+    await user.type(field, "25");
+    await user.keyboard("{Enter}");
+
+    const { stops } = getUpdateLinksAnalysisSymbolization(store);
+    expect(stops[1].input).toEqual(25);
+    expect(stops[1].output).toEqual(green);
+  });
+
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
   ): ISymbolizationRamp => {
     return (store.get(analysisAtom).nodes as PressureAnalysis).rangeColorMapping
+      .symbolization;
+  };
+
+  const getUpdateLinksAnalysisSymbolization = (
+    store: Store,
+  ): ISymbolizationRamp => {
+    return (store.get(analysisAtom).links as FlowAnalysis).rangeColorMapping
       .symbolization;
   };
 
@@ -477,10 +512,16 @@ describe("analysis range editor", () => {
     ).toEqual(color);
   };
 
-  const renderComponent = ({ store }: { store: Store }) => {
+  const renderComponent = ({
+    store,
+    geometryType = "nodes",
+  }: {
+    store: Store;
+    geometryType?: "nodes" | "links";
+  }) => {
     render(
       <CommandContainer store={store}>
-        <AnalysisRangeEditor />
+        <AnalysisRangeEditor geometryType={geometryType} />
       </CommandContainer>,
     );
   };
