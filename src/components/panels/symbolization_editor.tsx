@@ -217,15 +217,8 @@ export function RampChoice({
     <label
       key={ramp.name}
       className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200"
+      onClick={() => onSelect && onSelect(ramp.name)}
     >
-      <input
-        className="hidden"
-        type="radio"
-        value={ramp.name}
-        onChange={() => {
-          onSelect && onSelect(ramp.name);
-        }}
-      />
       <RampPreview
         name={ramp.name}
         classes={size || DEFAULT_CLASSES}
