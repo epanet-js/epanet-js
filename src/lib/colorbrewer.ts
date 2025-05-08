@@ -3420,4 +3420,4 @@ export const COLORBREWER_ALL: CBColors[] = [
   ...CARTO_COLOR_DIVERGING,
   ...CARTO_COLOR_SEQUENTIAL,
   ...CARTO_COLOR_QUALITATIVE,
-];
+] as const;

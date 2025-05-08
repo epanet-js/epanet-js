@@ -477,26 +477,21 @@ const RampSelector = ({
       >
         <Select.Viewport className="p-1">
           <div className="flex flex-col gap-y-2">
-            <div className="pointer-events-auto">
-              <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
-                <RampChoices
-                  label="Continuous"
-                  colors={[
-                    ...COLORBREWER_SEQUENTIAL,
-                    ...CARTO_COLOR_SEQUENTIAL,
-                  ]}
-                  onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                  size={rampSize}
-                  reverse={reversedRamp}
-                />
-                <RampChoices
-                  label="Diverging"
-                  colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
-                  onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                  size={rampSize}
-                  reverse={reversedRamp}
-                />
-              </div>
+            <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
+              <RampChoices
+                label="Continuous"
+                colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
+                onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
+                size={rampSize}
+                reverse={reversedRamp}
+              />
+              <RampChoices
+                label="Diverging"
+                colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
+                onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
+                size={rampSize}
+                reverse={reversedRamp}
+              />
             </div>
             <div className="w-full p-2">
               <Button variant="quiet" size="full-width" onClick={onReverse}>
