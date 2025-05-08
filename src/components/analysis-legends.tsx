@@ -2,7 +2,7 @@ import { useAtom, useSetAtom } from "jotai";
 import last from "lodash/last";
 import { linearGradient } from "src/lib/color";
 import { analysisAtom } from "src/state/analysis";
-import { TabOption, dialogAtom, tabAtom } from "src/state/jotai";
+import { TabOption, tabAtom } from "src/state/jotai";
 import { ISymbolizationRamp } from "src/types";
 import { Button, StyledPopoverArrow } from "./elements";
 import { Pencil2Icon } from "@radix-ui/react-icons";
@@ -86,7 +86,7 @@ const Legend = ({ symbolization }: { symbolization: ISymbolizationRamp }) => {
             align="start"
           >
             <StyledPopoverArrow />
-            <AnalysisRangeEditor symbolization={symbolization} />
+            <AnalysisRangeEditor />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>
@@ -108,7 +108,6 @@ const LegendDeprecated = ({
 
 const LegendTitle = ({ title }: { title: string }) => {
   const setTab = useSetAtom(tabAtom);
-  const setDialogState = useSetAtom(dialogAtom);
 
   return (
     <div className="block w-full px-2 pt-2 text-right flex justify-between items-center">
@@ -117,9 +116,7 @@ const LegendTitle = ({ title }: { title: string }) => {
         variant="quiet"
         aria-label="Edit symbolization"
         onClick={() => {
-          isFeatureOn("FLAG_CUSTOMIZE")
-            ? setDialogState({ type: "symbolization" })
-            : setTab(TabOption.Analysis);
+          setTab(TabOption.Analysis);
         }}
       >
         <Pencil2Icon className="w-3 h-3" />

@@ -2,8 +2,7 @@ import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { aNodesAnalysis, setInitialState } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
-import { SymbolizationDialog } from "./symbolization-dialog";
-import { Dialog } from "@radix-ui/react-dialog";
+import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { analysisAtom } from "src/state/analysis";
 import userEvent from "@testing-library/user-event";
 import { ISymbolizationRamp } from "src/types";
@@ -12,7 +11,7 @@ import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { defaultNewColor } from "src/analysis/symbolization-ramp";
 import { PressureAnalysis } from "src/analysis/analysis-types";
 
-describe("symbolization dialog", () => {
+describe("analysis range editor", () => {
   beforeEach(() => {
     stubFeatureOn("FLAG_CUSTOMIZE");
   });
@@ -25,25 +24,6 @@ describe("symbolization dialog", () => {
     { input: 20, output: green },
     { input: 30, output: blue },
   ];
-
-  it("shows the property being changed", () => {
-    const nodesAnalysis = aNodesAnalysis({
-      property: "pressure",
-      stops: startingStops,
-    });
-
-    const store = setInitialState({ nodesAnalysis });
-
-    renderComponent({ store });
-
-    expect(screen.getByText(/Pressure \(m\)/)).toBeInTheDocument();
-
-    expectColor(0, red);
-    expectStopValue(0, "20");
-    expectColor(1, green);
-    expectStopValue(1, "30");
-    expectColor(2, blue);
-  });
 
   it("can change the range stops manually", async () => {
     const user = userEvent.setup();
@@ -500,9 +480,7 @@ describe("symbolization dialog", () => {
   const renderComponent = ({ store }: { store: Store }) => {
     render(
       <CommandContainer store={store}>
-        <Dialog>
-          <SymbolizationDialog />
-        </Dialog>
+        <AnalysisRangeEditor />
       </CommandContainer>,
     );
   };

@@ -1,7 +1,7 @@
 import { ChevronDownIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { FieldArray, Form, Formik } from "formik";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
 import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
@@ -46,16 +46,16 @@ import * as d3 from "d3-array";
 import { nodesAnalysisAtom } from "src/state/analysis";
 import { NodesAnalysis } from "src/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
+import { PressureAnalysis } from "src/analysis/analysis-types";
 
-export const AnalysisRangeEditor = ({
-  symbolization: initialSymbolization,
-}: {
-  symbolization: ISymbolizationRamp;
-}) => {
+export const AnalysisRangeEditor = () => {
   const {
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
-  const setNodesAnalysis = useSetAtom(nodesAnalysisAtom);
+  const [nodesAnalysis, setNodesAnalysis] = useAtom(nodesAnalysisAtom);
+
+  const initialSymbolization = (nodesAnalysis as PressureAnalysis)
+    .rangeColorMapping.symbolization;
 
   const onChange = (newSymbolization: ISymbolizationRamp) => {
     setNodesAnalysis({
