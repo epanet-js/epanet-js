@@ -18,7 +18,7 @@ export const calculateEqualQuantileBreaks = (
       const interpolatedValue =
         sortedData[lowerIndex] +
         (sortedData[upperIndex] - sortedData[lowerIndex]) * fractionalPart;
-      breaks.push(interpolatedValue);
+      breaks.push(roundToSignificantDigits(interpolatedValue));
     }
   }
 
@@ -32,21 +32,21 @@ export const calculateEqualIntervalBreaks = (
   const minValue = sortedData[0];
   const maxValue = sortedData[sortedData.length - 1];
   if (minValue === maxValue) {
-    return Array(numBreaks + 1).fill(roundToSignificantDigits(minValue, 3)); // Round single value
+    return Array(numBreaks + 1).fill(roundToSignificantDigits(minValue));
   }
 
   const intervalSize = (maxValue - minValue) / numBreaks;
-  const breaks = [roundToSignificantDigits(minValue, 3)]; // Round the starting value
+  const breaks = [roundToSignificantDigits(minValue)];
 
   for (let i = 1; i < numBreaks; i++) {
     const rawBreak = minValue + i * intervalSize;
-    breaks.push(roundToSignificantDigits(rawBreak, 3)); // Round each break point
+    breaks.push(roundToSignificantDigits(rawBreak));
   }
 
   return breaks;
 };
 
-function roundToSignificantDigits(num: number, digits: number) {
+function roundToSignificantDigits(num: number, digits = 3) {
   if (num === 0) {
     return 0;
   }
