@@ -26,7 +26,7 @@ export class RangeColorMapping {
       ? buildRanges(steps)
       : buildRangesDeprecated(steps);
     const symbolization = isFeatureOn("FLAG_CUSTOMIZE")
-      ? buildSymbolization(paletteName, steps, property, unit)
+      ? buildSymbolization(paletteName, steps, property, unit, absoluteValues)
       : buildSymbolizationDeprecated(paletteName, steps, property, unit);
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
@@ -52,7 +52,7 @@ export class RangeColorMapping {
     });
     const colorRamp = symbolization.stops.map((s) => s.output);
     const strokeRamp = symbolization.stops.map((s) => strokeColorFor(s.output));
-    const absoluteValues = false;
+    const absoluteValues = Boolean(symbolization.absValues);
 
     return new RangeColorMapping(
       ranges,
@@ -79,7 +79,7 @@ export class RangeColorMapping {
   private rgbRamp: Rgb[];
   private colorRamp: string[];
   private strokeRamp: string[];
-  private absoluteValues: boolean;
+  public readonly absoluteValues: boolean;
 
   constructor(
     ranges: Range[],
@@ -172,6 +172,7 @@ const buildSymbolization = (
   steps: number[],
   property: string,
   unit: Unit,
+  absValues: boolean,
 ): ISymbolizationRamp => ({
   type: "ramp",
   simplestyle: true,
@@ -183,6 +184,7 @@ const buildSymbolization = (
   rampName,
   mode: "linear",
   stops: generateRampStops(rampName, steps),
+  absValues,
 });
 
 const generateRampStops = (name: string, steps: number[]) => {
