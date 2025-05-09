@@ -11,6 +11,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverContent } from "src/components/elements";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export const AnalysisLegends = () => {
   const [{ nodes, links }] = useAtom(analysisAtom);
@@ -86,7 +87,7 @@ const Legend = ({
                       transform: "translateY(-50%)",
                     }}
                   >
-                    {stops[i + 1].input}
+                    {localizeDecimal(stops[i + 1].input)}
                   </div>
                 );
               })}
