@@ -4,6 +4,7 @@ import {
   calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
 } from "./modes";
+import { Unit } from "src/quantity";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
@@ -15,6 +16,44 @@ export type RampSize = keyof CBColors["colors"];
 export const defaultNewColor = "#0fffff";
 export const maxRampSize = 7;
 export const minRampSize = 3;
+
+export const initializeSymbolization = ({
+  mode,
+  rampName,
+  rampSize,
+  sortedValues,
+  property,
+  unit,
+  absValues = false,
+  reverseRamp = false,
+}: {
+  rampName: string;
+  rampSize: number;
+  mode: RampMode;
+  sortedValues: number[];
+  property: string;
+  unit: Unit;
+  absValues?: boolean;
+  reverseRamp?: boolean;
+}): SymbolizationRamp => {
+  const colors = getColors(rampName, rampSize, reverseRamp);
+  const stops = generateStops(mode, colors, sortedValues);
+
+  return {
+    type: "ramp",
+    simplestyle: true,
+    property,
+    unit,
+    defaultColor: "",
+    defaultOpacity: 0.3,
+    interpolate: "step",
+    rampName,
+    mode,
+    stops,
+    absValues,
+    reversedRamp: reverseRamp,
+  };
+};
 
 export const prependStop = (
   symbolization: SymbolizationRamp,

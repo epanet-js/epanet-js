@@ -34,7 +34,6 @@ import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
 import { useCallback, useMemo, useState } from "react";
 import { dataAtom } from "src/state/jotai";
-import { Asset } from "src/hydraulic-model";
 import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
@@ -49,6 +48,7 @@ import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
+import { getSortedValues } from "src/analysis/analysis-data";
 
 export const AnalysisRangeEditor = ({
   geometryType = "nodes",
@@ -89,16 +89,9 @@ export const AnalysisRangeEditor = ({
   );
 
   const sortedData = useMemo(() => {
-    const values: number[] = [];
-    for (const asset of [...assets.values()]) {
-      const value = asset[initialSymbolization.property as keyof Asset];
-      if (value === undefined || value === null || typeof value !== "number")
-        continue;
-
-      values.push(initialSymbolization.absValues ? Math.abs(value) : value);
-    }
-
-    return values.sort((a, b) => a - b);
+    return getSortedValues(assets, initialSymbolization.property, {
+      absValues: Boolean(initialSymbolization.absValues),
+    });
   }, [assets, initialSymbolization.property, initialSymbolization.absValues]);
 
   const [symbolization, setSymbolization] =

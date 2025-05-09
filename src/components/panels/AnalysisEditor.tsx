@@ -9,6 +9,8 @@ import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { AnalysisType } from "src/analysis/analysis-types";
+import { getSortedValues } from "src/analysis/analysis-data";
+import { initializeSymbolization } from "src/analysis/symbolization-ramp";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -46,13 +48,21 @@ export const AnalysisEditor = () => {
           links: {
             type: "flow",
             rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
-              ? RangeColorMapping.build({
-                  steps: [-Infinity, 25, 50, 75, 100, +Infinity],
-                  property: "flow",
-                  unit: hydraulicModel.units.flow,
-                  paletteName: "Temps",
-                  absoluteValues: true,
-                })
+              ? RangeColorMapping.fromSymbolizationRamp(
+                  initializeSymbolization({
+                    property: "flow",
+                    unit: hydraulicModel.units.flow,
+                    rampName: "Teal",
+                    mode: "quantiles",
+                    rampSize: 5,
+                    absValues: true,
+                    sortedValues: getSortedValues(
+                      hydraulicModel.assets,
+                      "flow",
+                      { absValues: true },
+                    ),
+                  }),
+                )
               : RangeColorMapping.build({
                   steps: [0, 25, 50, 75, 100],
                   property: "flow",
@@ -118,16 +128,21 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: {
             type: "elevation",
-            rangeColorMapping: RangeColorMapping.build({
-              steps: isFeatureOn("FLAG_CUSTOMIZE")
-                ? [-Infinity, 25, 50, 75, 100, +Infinity]
-                : [0, 25, 50, 75, 100],
-              property: "elevation",
-              unit: hydraulicModel.units.elevation,
-              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
-                ? "Temps"
-                : "epanet-ramp",
-            }),
+            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+              initializeSymbolization({
+                property: "elevation",
+                unit: hydraulicModel.units.elevation,
+                rampName: "Sunset",
+                mode: "quantiles",
+                rampSize: 5,
+                absValues: false,
+                sortedValues: getSortedValues(
+                  hydraulicModel.assets,
+                  "elevation",
+                  { absValues: false },
+                ),
+              }),
+            ),
           },
         }));
     }
