@@ -326,6 +326,7 @@ export const translations: Translations = {
   notEnoughData: "No hay suficientes datos.",
   updated: "Actualizado",
   unableToUpdate: "No ha sido posible actualizar",
+  flowAbs: "Flujo (Abs.)",
 };
 
 export const units: UnitsLocale = {

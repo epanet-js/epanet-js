@@ -48,7 +48,6 @@ import { linearGradient } from "src/lib/color";
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
-import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 
 export const AnalysisRangeEditor = ({
@@ -73,17 +72,17 @@ export const AnalysisRangeEditor = ({
   const onChange = useCallback(
     (newSymbolization: ISymbolizationRamp) => {
       if (geometryType === "nodes") {
-        setNodesAnalysis({
-          type: newSymbolization.property as NodesAnalysis["type"],
+        setNodesAnalysis((prev) => ({
+          ...prev,
           rangeColorMapping:
             RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-        });
+        }));
       } else {
-        setLinksAnalysis({
-          type: newSymbolization.property as LinksAnalysis["type"],
+        setLinksAnalysis((prev) => ({
+          ...prev,
           rangeColorMapping:
             RangeColorMapping.fromSymbolizationRamp(newSymbolization),
-        });
+        }));
       }
     },
     [geometryType, setLinksAnalysis, setNodesAnalysis],
