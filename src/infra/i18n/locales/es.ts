@@ -327,6 +327,7 @@ export const translations: Translations = {
   updated: "Actualizado",
   unableToUpdate: "No ha sido posible actualizar",
   flowAbs: "Flujo (Abs.)",
+  regenerate: "Regenerar",
 };
 
 export const units: UnitsLocale = {

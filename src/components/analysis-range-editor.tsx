@@ -361,7 +361,8 @@ export const AnalysisRangeEditor = ({
                         size="full-width"
                         onClick={() => handleModeChange(symbolization.mode)}
                       >
-                        Regenerate Breaks
+                        <UpdateIcon />
+                        {translate("regenerate")}
                       </Button>
                     </div>
                   </>
