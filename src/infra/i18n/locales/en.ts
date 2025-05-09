@@ -318,6 +318,15 @@ export const translations = {
   unableToUpdate: "Cannot Update",
   flowAbs: "Flow (Abs.)",
   regenerate: "Regenerate",
+  mode: "Mode",
+  classes: "Classes",
+  colorRamp: "Color Ramp",
+  continuousRamp: "Continuous",
+  divergingRamp: "Diverging",
+  reverseColors: "Reverse Colors",
+  addBreak: "Add Break",
+  equalIntervals: "Equal Intervals",
+  equalQuantiles: "Equal Quantiles",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

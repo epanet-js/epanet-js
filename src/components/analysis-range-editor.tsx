@@ -221,14 +221,18 @@ export const AnalysisRangeEditor = ({
                   <>
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-col gap-y-2 w-full">
-                        <span className="text-sm text-gray-500">Mode</span>
+                        <span className="text-sm text-gray-500">
+                          {translate("mode")}
+                        </span>
                         <ModeSelector
                           rampMode={symbolization.mode}
                           onModeChange={handleModeChange}
                         />
                       </div>
                       <div className="flex flex-col gap-y-2 w-full">
-                        <span className="text-sm text-gray-500">Classes</span>
+                        <span className="text-sm text-gray-500">
+                          {translate("classes")}
+                        </span>
                         <ClassesSelector
                           rampSize={rampSize}
                           onChange={handleRampSizeChange}
@@ -236,7 +240,7 @@ export const AnalysisRangeEditor = ({
                       </div>
                       <div className="flex flex-col gap-y-2 w-full">
                         <span className="text-sm text-gray-500">
-                          Color Ramp
+                          {translate("colorRamp")}
                         </span>
                         <RampSelector
                           rampColors={symbolization.stops.map((s) => s.output)}
@@ -283,7 +287,7 @@ export const AnalysisRangeEditor = ({
                                 onClick={() => handlePrependStop()}
                                 aria-label={`Prepend stop`}
                               >
-                                <PlusIcon /> Add Break
+                                <PlusIcon /> {translate("addBreak")}
                               </Button>
                             </div>
                             {symbolization.stops.map((stop, i) => {
@@ -332,7 +336,7 @@ export const AnalysisRangeEditor = ({
                                 onClick={() => handleAppendStop()}
                                 aria-label={`Append stop`}
                               >
-                                <PlusIcon /> Add Break
+                                <PlusIcon /> {translate("addBreak")}
                               </Button>
                             </div>
                           </div>
@@ -403,8 +407,8 @@ const ClassesSelector = ({
 };
 
 const modeLabels = {
-  linear: "Equal Intervals",
-  quantiles: "Equal Quantiles",
+  linear: "equalIntervals",
+  quantiles: "equalQuantiles",
 };
 
 const ModeSelector = ({
@@ -416,7 +420,7 @@ const ModeSelector = ({
 }) => {
   const modeOptions = useMemo(() => {
     return rampModes.map((mode) => ({
-      label: modeLabels[mode],
+      label: translate(modeLabels[mode]),
       value: mode,
     }));
   }, []);
@@ -475,14 +479,14 @@ const RampSelector = ({
           <div className="flex flex-col gap-y-2">
             <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
               <RampChoices
-                label="Continuous"
+                label={translate("continuousRamp")}
                 colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
                 onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
                 size={rampSize}
                 reverse={reversedRamp}
               />
               <RampChoices
-                label="Diverging"
+                label={translate("divergingRamp")}
                 colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
                 onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
                 size={rampSize}
@@ -491,7 +495,8 @@ const RampSelector = ({
             </div>
             <div className="w-full p-2">
               <Button variant="quiet" size="full-width" onClick={onReverse}>
-                <UpdateIcon className="-rotate-90" /> Reverse Colors
+                <UpdateIcon className="-rotate-90" />{" "}
+                {translate("reverseColors")}
               </Button>
             </div>
           </div>

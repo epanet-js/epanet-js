@@ -328,6 +328,15 @@ export const translations: Translations = {
   unableToUpdate: "No ha sido posible actualizar",
   flowAbs: "Flujo (Abs.)",
   regenerate: "Regenerar",
+  mode: "Modo",
+  classes: "Clases",
+  colorRamp: "Rampa de Color",
+  continuousRamp: "Continua",
+  divergingRamp: "Divergente",
+  reverseColors: "Invertir Colores",
+  addBreak: "Añadir Corte",
+  equalIntervals: "Intervalos Iguales",
+  equalQuantiles: "Cuantiles Iguales",
 };
 
 export const units: UnitsLocale = {
