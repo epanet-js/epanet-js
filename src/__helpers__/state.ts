@@ -141,6 +141,7 @@ export const aSymbolization = (
     rampName: "epanet-ramp",
     mode: "linear",
     stops: [],
+    absValues: false,
   };
 
   return {

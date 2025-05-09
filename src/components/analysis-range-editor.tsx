@@ -96,11 +96,11 @@ export const AnalysisRangeEditor = ({
       if (value === undefined || value === null || typeof value !== "number")
         continue;
 
-      values.push(value);
+      values.push(initialSymbolization.absValues ? Math.abs(value) : value);
     }
 
     return values.sort((a, b) => a - b);
-  }, [assets, initialSymbolization.property]);
+  }, [assets, initialSymbolization.property, initialSymbolization.absValues]);
 
   const [symbolization, setSymbolization] =
     useState<ISymbolizationRamp>(initialSymbolization);
@@ -307,6 +307,9 @@ export const AnalysisRangeEditor = ({
                                     label={`step ${i - 1}`}
                                     isNullable={true}
                                     readOnly={false}
+                                    positiveOnly={Boolean(
+                                      symbolization.absValues,
+                                    )}
                                     displayValue={localizeDecimal(stop.input)}
                                     onChangeValue={(value) => {
                                       handleStopValueChange(i, value);
