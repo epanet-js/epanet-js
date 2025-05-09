@@ -79,7 +79,7 @@ const Legend = ({
                 const topPct = ((i + 1) / totalStops) * 100;
                 return (
                   <div
-                    key={stops[i + 1].input}
+                    key={stops[i + 1].input + "_" + i}
                     className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
                     style={{
                       top: `${topPct}%`,
