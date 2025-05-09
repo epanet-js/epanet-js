@@ -8,6 +8,15 @@ import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { AnalysisType } from "src/analysis/analysis-types";
+
+const analysisLabelFor = (type: AnalysisType) => {
+  if (type === "flow") {
+    return translate("flowAbs");
+  } else {
+    return translate(type);
+  }
+};
 
 export const AnalysisEditor = () => {
   const [analysis, setAnalysis] = useAtom(analysisAtom);
@@ -143,7 +152,7 @@ export const AnalysisEditor = () => {
               ] as NodesAnalysis["type"][]
             ).map((type) => ({
               value: type,
-              label: translate(type),
+              label: analysisLabelFor(type),
               disabled:
                 isFeatureOn("FLAG_CUSTOMIZE") &&
                 simulation.status === "idle" &&
@@ -160,7 +169,7 @@ export const AnalysisEditor = () => {
               ["none", "flow", "velocity"] as LinksAnalysis["type"][]
             ).map((type) => ({
               value: type,
-              label: translate(type),
+              label: analysisLabelFor(type),
               disabled:
                 isFeatureOn("FLAG_CUSTOMIZE") &&
                 simulation.status === "idle" &&

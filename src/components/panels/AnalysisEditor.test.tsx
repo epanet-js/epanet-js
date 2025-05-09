@@ -45,7 +45,7 @@ describe("Analysis Editor", () => {
       "None",
     );
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
-    expect(screen.getByText("Flow")).toBeInTheDocument();
+    expect(screen.getByText("Flow (Abs.)")).toBeInTheDocument();
     expect(screen.getByText("Velocity")).toBeInTheDocument();
   });
 

@@ -316,6 +316,7 @@ export const translations = {
   notEnoughData: "Not enough data.",
   updated: "Updated",
   unableToUpdate: "Cannot Update",
+  flowAbs: "Flow (Abs.)",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
