@@ -464,6 +464,9 @@ importers:
       secure-password:
         specifier: ^4.0.0
         version: 4.0.0
+      simple-statistics:
+        specifier: ^7.8.8
+        version: 7.8.8
       strip-ansi:
         specifier: ^6.0.1
         version: 6.0.1
@@ -6433,6 +6436,9 @@ packages:
 
   simple-get@3.1.1:
     resolution: {integrity: sha512-CQ5LTKGfCpvE1K0n2us+kuMPbk/q0EKl82s4aheV9oXjFEz6W/Y7oQFVJuU6QG77hRT4Ghb5RURteF5vnWjupA==}
+
+  simple-statistics@7.8.8:
+    resolution: {integrity: sha512-CUtP0+uZbcbsFpqEyvNDYjJCl+612fNgjT8GaVuvMG7tBuJg8gXGpsP5M7X658zy0IcepWOZ6nPBu1Qb9ezA1w==}
 
   sirv@2.0.4:
     resolution: {integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==}
@@ -13689,6 +13695,8 @@ snapshots:
       decompress-response: 4.2.1
       once: 1.4.0
       simple-concat: 1.0.1
+
+  simple-statistics@7.8.8: {}
 
   sirv@2.0.4:
     dependencies:

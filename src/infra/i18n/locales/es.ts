@@ -339,6 +339,7 @@ export const translations: Translations = {
   equalQuantiles: "Cuantiles Iguales",
   manual: "Manual",
   prettyBreaks: "Intervalos Bonitos",
+  naturalBreaksCkMeans: "Intervalos Naturales (ckmeans)",
 };
 
 export const units: UnitsLocale = {

@@ -329,6 +329,7 @@ export const translations = {
   equalQuantiles: "Equal Quantiles",
   manual: "Manual",
   prettyBreaks: "Pretty Breaks",
+  naturalBreaksCkMeans: "Natural Breaks (ckmeans)",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
