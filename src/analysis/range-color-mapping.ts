@@ -151,7 +151,9 @@ const buildRangesDeprecated = (steps: number[]) => {
 export const parseRgb = (color: string): Rgb => {
   if (color.startsWith("#")) {
     const parsed = colorfulHexToRgbaObject(color);
-    if (parsed === null) throw new Error(`Invalid color ${color}`);
+    if (parsed === null) {
+      return [0, 0, 0];
+    }
     const { r, g, b } = parsed;
     return [r, g, b];
   }
