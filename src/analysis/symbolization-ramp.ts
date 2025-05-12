@@ -14,8 +14,8 @@ export const rampModes = [
   "equalIntervals",
   "equalQuantiles",
   "prettyBreaks",
-  "manual",
   "ckmeans",
+  "manual",
 ] as const;
 export type RampMode = (typeof rampModes)[number];
 
