@@ -409,6 +409,7 @@ const ClassesSelector = ({
 const modeLabels = {
   linear: "equalIntervals",
   quantiles: "equalQuantiles",
+  manual: "manual",
 };
 
 const ModeSelector = ({

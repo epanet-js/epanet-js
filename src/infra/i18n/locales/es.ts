@@ -337,6 +337,7 @@ export const translations: Translations = {
   addBreak: "Añadir Corte",
   equalIntervals: "Intervalos Iguales",
   equalQuantiles: "Cuantiles Iguales",
+  manual: "Manual",
 };
 
 export const units: UnitsLocale = {

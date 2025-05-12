@@ -8,7 +8,7 @@ import { Unit } from "src/quantity";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
-export const rampModes = ["linear", "quantiles"] as const;
+export const rampModes = ["linear", "quantiles", "manual"] as const;
 export type RampMode = (typeof rampModes)[number];
 
 export type RampSize = keyof CBColors["colors"];
@@ -72,7 +72,7 @@ export const prependStop = (
     ...rest,
   ];
 
-  return { ...symbolization, stops: newStops };
+  return { ...symbolization, mode: "manual", stops: newStops };
 };
 
 export const appendStop = (
@@ -86,7 +86,7 @@ export const appendStop = (
       output: defaultNewColor,
     },
   ];
-  return { ...symbolization, stops: newStops };
+  return { ...symbolization, mode: "manual", stops: newStops };
 };
 
 export const reverseColors = (symbolization: SymbolizationRamp) => {
@@ -121,14 +121,14 @@ export const changeStopValue = (
   symbolization: SymbolizationRamp,
   index: number,
   value: number,
-) => {
+): SymbolizationRamp => {
   const newStops = symbolization.stops.map((stop, i) => {
     if (i !== index) return stop;
 
     return { ...stop, input: value };
   });
 
-  return { ...symbolization, stops: newStops };
+  return { ...symbolization, mode: "manual", stops: newStops };
 };
 
 export const deleteStop = (symbolization: SymbolizationRamp, index: number) => {
@@ -233,6 +233,8 @@ const generateStops = (
       return generateLinearStops(sortedValues, colors);
     case "quantiles":
       return generateQuantileStops(sortedValues, colors);
+    case "manual":
+      throw new Error("Missing manual implementation");
   }
 };
 
