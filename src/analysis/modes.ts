@@ -1,6 +1,13 @@
+import {
+  calculatePrettyBreaks as calculatePrettyBreaksImpl,
+  PrettyBreaksResult,
+} from "./pretty-breaks";
+
+import { calculatePrettyBreaks as calculatePrettyBreaksAltImpl } from "./pretty-breaks-alt";
+
 export const calculateEqualQuantileBreaks = (
   sortedData: number[],
-  numBreaks: number,
+  numBreaks: number
 ): number[] => {
   const n = sortedData.length;
   const breaks = [];
@@ -27,7 +34,7 @@ export const calculateEqualQuantileBreaks = (
 
 export const calculateEqualIntervalBreaks = (
   sortedData: number[],
-  numBreaks: number,
+  numBreaks: number
 ) => {
   const minValue = sortedData[0];
   const maxValue = sortedData[sortedData.length - 1];
@@ -52,15 +59,38 @@ function roundToSignificantDigits(num: number, digits: number) {
   }
   const scale = Math.pow(
     10,
-    digits - Math.floor(Math.log10(Math.abs(num))) - 1,
+    digits - Math.floor(Math.log10(Math.abs(num))) - 1
   );
   return Math.round(num * scale) / scale;
 }
 
-export const calculatePrettyBreaks = (
+export function calculatePrettyBreaks(
+  sortedValues: number[],
+  numBreaks: number
+): PrettyBreaksResult {
+  const result = calculatePrettyBreaksImpl(sortedValues, numBreaks);
+  console.log("calculatePrettyBreaks result:", result);
+  return result;
+}
+
+export function calculatePrettyBreaksAlt(
+  sortedValues: number[],
+  numBreaks: number
+): number[] {
+  console.log("calculatePrettyBreaksAlt sortedValues:", sortedValues);
+  console.log("calculatePrettyBreaksAlt numBreaks:", numBreaks);
+  const minValue = sortedValues[0];
+  const maxValue = sortedValues[sortedValues.length - 1];
+  const breaks = calculatePrettyBreaksAltImpl(minValue, maxValue, numBreaks);
+
+  console.log("calculatePrettyBreaksAlt breaks:", breaks);
+  return breaks;
+}
+
+export function calculatePrettyBreaksAlt2(
   sortedData: number[],
-  numBreaks: number,
-): number[] => {
+  numBreaks: number
+): number[] {
   const minVal = sortedData[0];
   const maxVal = sortedData[sortedData.length - 1];
   const range = maxVal - minVal;
@@ -100,6 +130,5 @@ export const calculatePrettyBreaks = (
   if (breaks[breaks.length - 1] < maxVal) {
     breaks[breaks.length - 1] = maxVal;
   }
-
   return breaks;
-};
+}

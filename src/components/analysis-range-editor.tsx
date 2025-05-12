@@ -85,7 +85,7 @@ export const AnalysisRangeEditor = ({
         }));
       }
     },
-    [geometryType, setLinksAnalysis, setNodesAnalysis],
+    [geometryType, setLinksAnalysis, setNodesAnalysis]
   );
 
   const sortedData = useMemo(() => {
@@ -157,7 +157,7 @@ export const AnalysisRangeEditor = ({
         onChange(newSymbolization);
       }
     },
-    [onChange],
+    [onChange]
   );
 
   const handleStopColorChange = (index: number, color: string) => {
@@ -259,7 +259,7 @@ export const AnalysisRangeEditor = ({
                                     i === symbolization.stops.length - 1
                                     ? "h-[54px]"
                                     : "h-[37.5px]",
-                                  "rounded rounded-md padding-1 w-4",
+                                  "rounded rounded-md padding-1 w-4"
                                 )}
                                 key={`${stop.input}-${i}`}
                               >
@@ -300,7 +300,7 @@ export const AnalysisRangeEditor = ({
                                     isNullable={true}
                                     readOnly={false}
                                     positiveOnly={Boolean(
-                                      symbolization.absValues,
+                                      symbolization.absValues
                                     )}
                                     displayValue={localizeDecimal(stop.input)}
                                     onChangeValue={(value) => {
@@ -404,6 +404,8 @@ const ClassesSelector = ({
 const modeLabels = {
   linear: "Equal Intervals",
   quantiles: "Equal Quantiles",
+  pretty: "Pretty Breaks",
+  "pretty-alt": "Pretty Breaks (Alt)",
 };
 
 const ModeSelector = ({
