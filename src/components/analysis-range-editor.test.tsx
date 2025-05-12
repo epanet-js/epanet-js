@@ -48,14 +48,20 @@ describe("analysis range editor", () => {
     await user.type(field, "25");
     await user.keyboard("{Enter}");
 
-    const { stops } = getUpdateNodesAnalysisSymbolization(store);
+    const { mode, stops } = getUpdateNodesAnalysisSymbolization(store);
     expect(stops[1].input).toEqual(25);
     expect(stops[1].output).toEqual(green);
+    expect(mode).toEqual("manual");
+
+    expect(
+      screen.getByRole("combobox", { name: "ramp mode" }),
+    ).toHaveTextContent("Manual");
   });
 
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "quantiles",
       stops: startingStops,
     });
 
@@ -78,8 +84,9 @@ describe("analysis range editor", () => {
       expectColor(1, "#123456");
     });
     expectStopValue(0, "20");
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
     expect(stops[1].output).toEqual("#123456");
+    expect(mode).toEqual("quantiles");
   });
 
   it("can apply equal intervals based on data", async () => {
@@ -176,6 +183,7 @@ describe("analysis range editor", () => {
   it("can prepend stops", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "quantiles",
       stops: [
         { input: -Infinity, output: red },
         { input: 10, output: green },
@@ -188,17 +196,18 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /prepend stop/i }));
 
-    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
+    const firstState = getUpdateNodesAnalysisSymbolization(store);
+    expect(firstState.stops).toEqual([
       { input: -Infinity, output: defaultNewColor },
       { input: 0, output: red },
       { input: 10, output: green },
       { input: 20, output: blue },
     ]);
+    expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getByRole("button", { name: /prepend stop/i }));
 
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: -Infinity, output: defaultNewColor },
       { input: -1, output: defaultNewColor },
@@ -241,16 +250,17 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /append stop/i }));
 
-    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
+    const firstState = getUpdateNodesAnalysisSymbolization(store);
+    expect(firstState.stops).toEqual([
       { input: 10, output: red },
       { input: 20, output: green },
       { input: 21, output: defaultNewColor },
     ]);
+    expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getByRole("button", { name: /append stop/i }));
 
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
+    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: 10, output: red },
       { input: 20, output: green },
