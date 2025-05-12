@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
-import { AnalysisEditor } from "./AnalysisEditor";
+import { AnalysisEditor } from "./analysis-editor";
 import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
