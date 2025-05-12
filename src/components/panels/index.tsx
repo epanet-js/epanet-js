@@ -12,7 +12,7 @@ import clsx from "clsx";
 import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
-import { AnalysisEditor } from "./AnalysisEditor";
+import { AnalysisEditor } from "./analysis-editor";
 
 function Tab({
   onClick,
