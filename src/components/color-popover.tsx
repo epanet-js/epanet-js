@@ -101,7 +101,6 @@ export function ColorPopover({
           <HexColorInput
             className={E.inputClass({ _size })}
             prefixed
-            alpha
             color={color}
             onChange={debouncedOnChange}
             aria-label="color input"
