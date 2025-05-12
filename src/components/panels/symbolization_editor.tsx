@@ -441,7 +441,7 @@ export function RampWizard() {
           rampName: values.rampName,
           defaultColor: values.defaultColor,
           defaultOpacity: values.defaultOpacity,
-          mode: "linear",
+          mode: "equalIntervals",
           stops:
             values.breaks === "linear"
               ? getStopsLinear({ colors })

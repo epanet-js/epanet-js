@@ -184,7 +184,7 @@ const buildSymbolization = (
   defaultOpacity: 0.3,
   interpolate: "step",
   rampName,
-  mode: "linear",
+  mode: "equalIntervals",
   stops: generateRampStops(rampName, steps),
   absValues,
 });
@@ -216,7 +216,7 @@ const buildSymbolizationDeprecated = (
   defaultOpacity: 0.3,
   interpolate: "step",
   rampName,
-  mode: "linear",
+  mode: "equalIntervals",
   stops: generateRampStopsDeprecated(rampName, steps),
 });
 

@@ -10,8 +10,8 @@ import { Unit } from "src/quantity";
 type SymbolizationRamp = ISymbolizationRamp;
 
 export const rampModes = [
-  "linear",
-  "quantiles",
+  "equalIntervals",
+  "equalQuantiles",
   "prettyBreaks",
   "manual",
 ] as const;
@@ -230,9 +230,9 @@ const generateBreaks = (
   numBreaks: number,
 ): number[] => {
   switch (mode) {
-    case "linear":
+    case "equalIntervals":
       return calculateEqualIntervalBreaks(sortedValues, numBreaks);
-    case "quantiles":
+    case "equalQuantiles":
       return calculateEqualQuantileBreaks(sortedValues, numBreaks);
     case "prettyBreaks":
       return calculatePrettyBreaks(sortedValues, numBreaks);
@@ -250,6 +250,6 @@ export const nullRampSymbolization: SymbolizationRamp = {
   defaultOpacity: 0.3,
   interpolate: "step",
   rampName: "Temps",
-  mode: "linear",
+  mode: "equalIntervals",
   stops: [],
 };

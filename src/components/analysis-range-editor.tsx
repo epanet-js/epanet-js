@@ -407,8 +407,8 @@ const ClassesSelector = ({
 };
 
 const modeLabels = {
-  linear: "equalIntervals",
-  quantiles: "equalQuantiles",
+  equalIntervals: "equalIntervals",
+  equalQuantiles: "equalQuantiles",
   manual: "manual",
   prettyBreaks: "prettyBreaks",
 };

@@ -388,7 +388,7 @@ export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp> & {
   unit?: Unit;
   reversedRamp?: boolean;
   absValues?: boolean;
-  mode: "linear" | "quantiles" | "manual" | "prettyBreaks";
+  mode: "equalIntervals" | "equalQuantiles" | "manual" | "prettyBreaks";
 };
 export type ISymbolizationCategorical = z.infer<
   typeof SymbolizationCategorical
