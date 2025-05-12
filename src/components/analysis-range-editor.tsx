@@ -410,6 +410,7 @@ const modeLabels = {
   linear: "equalIntervals",
   quantiles: "equalQuantiles",
   manual: "manual",
+  prettyBreaks: "prettyBreaks",
 };
 
 const ModeSelector = ({

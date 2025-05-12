@@ -3,12 +3,18 @@ import { ISymbolizationRamp } from "src/types";
 import {
   calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
+  calculatePrettyBreaks,
 } from "./ramp-modes";
 import { Unit } from "src/quantity";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
-export const rampModes = ["linear", "quantiles", "manual"] as const;
+export const rampModes = [
+  "linear",
+  "quantiles",
+  "prettyBreaks",
+  "manual",
+] as const;
 export type RampMode = (typeof rampModes)[number];
 
 export type RampSize = keyof CBColors["colors"];
@@ -208,41 +214,31 @@ const generateStops = (
   colors: string[],
   sortedValues: number[],
 ): SymbolizationRamp["stops"] => {
+  const breaks = generateBreaks(mode, sortedValues, colors.length - 1);
+  const stopValues = [-Infinity, ...breaks];
+  if (stopValues.length !== colors.length)
+    throw new Error("Invalid stops for ramp");
+
+  return stopValues.map((value, i) => {
+    return { input: Number(value.toFixed(2)), output: colors[i] };
+  });
+};
+
+const generateBreaks = (
+  mode: RampMode,
+  sortedValues: number[],
+  numBreaks: number,
+): number[] => {
   switch (mode) {
     case "linear":
-      return generateLinearStops(sortedValues, colors);
+      return calculateEqualIntervalBreaks(sortedValues, numBreaks);
     case "quantiles":
-      return generateQuantileStops(sortedValues, colors);
+      return calculateEqualQuantileBreaks(sortedValues, numBreaks);
+    case "prettyBreaks":
+      return calculatePrettyBreaks(sortedValues, numBreaks);
     case "manual":
-      return generateLinearStops(sortedValues, colors);
+      return calculateEqualIntervalBreaks(sortedValues, numBreaks);
   }
-};
-
-const generateLinearStops = (sortedValues: number[], colors: string[]) => {
-  const breaks = calculateEqualIntervalBreaks(sortedValues, colors.length - 1);
-
-  const newValues = [-Infinity, ...breaks];
-  if (newValues.length !== colors.length)
-    throw new Error("Invalid stops for ramp");
-
-  return newValues.map((value, i) => {
-    return { input: Number(value.toFixed(2)), output: colors[i] };
-  });
-};
-
-const generateQuantileStops = (sortedValues: number[], colors: string[]) => {
-  const quantileBreaks = calculateEqualQuantileBreaks(
-    sortedValues,
-    colors.length - 1,
-  );
-
-  const newValues = [-Infinity, ...quantileBreaks];
-  if (newValues.length !== colors.length)
-    throw new Error("Invalid stops for ramp");
-
-  return newValues.map((value, i) => {
-    return { input: Number(value.toFixed(2)), output: colors[i] };
-  });
 };
 
 export const nullRampSymbolization: SymbolizationRamp = {
