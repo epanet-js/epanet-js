@@ -411,6 +411,7 @@ const modeLabels = {
   equalQuantiles: "equalQuantiles",
   manual: "manual",
   prettyBreaks: "prettyBreaks",
+  ckmeans: "naturalBreaksCkMeans",
 };
 
 const ModeSelector = ({

@@ -1,6 +1,7 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
 import {
+  calculateCkmeansBreaks,
   calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
   calculatePrettyBreaks,
@@ -14,6 +15,7 @@ export const rampModes = [
   "equalQuantiles",
   "prettyBreaks",
   "manual",
+  "ckmeans",
 ] as const;
 export type RampMode = (typeof rampModes)[number];
 
@@ -236,6 +238,8 @@ const generateBreaks = (
       return calculateEqualQuantileBreaks(sortedValues, numBreaks);
     case "prettyBreaks":
       return calculatePrettyBreaks(sortedValues, numBreaks);
+    case "ckmeans":
+      return calculateCkmeansBreaks(sortedValues, numBreaks);
     case "manual":
       return calculateEqualIntervalBreaks(sortedValues, numBreaks);
   }
