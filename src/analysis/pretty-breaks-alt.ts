@@ -26,7 +26,7 @@ function generateFocusedPrettySteps(
   dataRange: number,
   numBreaksTarget: number,
   prettyBaseUnits: number[],
-  epsilon: number
+  epsilon: number,
 ): number[] {
   const idealRawStep =
     dataRange > epsilon ? dataRange / Math.max(1, numBreaksTarget) : 1.0; // Avoid division by zero if dataRange is 0
@@ -37,7 +37,7 @@ function generateFocusedPrettySteps(
     // If ideal step is tiny (e.g. dataRange is small, numBreaksTarget is large)
     // calculate exponent based on a fraction of the dataRange if possible
     idealExponent = Math.floor(
-      Math.log10(Math.max(epsilon, dataRange / Math.max(100, numBreaksTarget)))
+      Math.log10(Math.max(epsilon, dataRange / Math.max(100, numBreaksTarget))),
     );
   } else {
     idealExponent = Math.floor(Math.log10(idealRawStep));
@@ -69,7 +69,7 @@ function generateFocusedPrettySteps(
   // Fallback if the focused list is empty (e.g. extreme values)
   if (candidateStepsSet.size === 0 && dataRange > epsilon) {
     const fallbackExponent = Math.floor(
-      Math.log10(dataRange / Math.max(1, numBreaksTarget))
+      Math.log10(dataRange / Math.max(1, numBreaksTarget)),
     );
     for (let expOffset = -1; expOffset <= 1; expOffset++) {
       const currentExponent = fallbackExponent + expOffset;
@@ -85,8 +85,8 @@ function generateFocusedPrettySteps(
   if (candidateStepsSet.size === 0 && dataRange <= epsilon && dataRange > 0) {
     prettyBaseUnits.forEach((unit) =>
       candidateStepsSet.add(
-        unit * Math.pow(10, Math.floor(Math.log10(dataRange)) - 1)
-      )
+        unit * Math.pow(10, Math.floor(Math.log10(dataRange)) - 1),
+      ),
     );
   }
 
@@ -104,7 +104,7 @@ function generateFocusedPrettySteps(
 export function calculatePrettyBreaks(
   minValue: number,
   maxValue: number,
-  numBreaksTarget: number
+  numBreaksTarget: number,
 ): number[] {
   if (minValue >= maxValue - EPSILON || numBreaksTarget <= 0) {
     return [];
@@ -128,7 +128,7 @@ export function calculatePrettyBreaks(
     dataRange,
     numBreaksTarget,
     prettyBaseUnits,
-    EPSILON
+    EPSILON,
   );
 
   // Sort by largest step first
@@ -146,20 +146,20 @@ export function calculatePrettyBreaks(
       Math.max(
         getDecimalPlaces(currentStep),
         getDecimalPlaces(minValue),
-        getDecimalPlaces(maxValue)
+        getDecimalPlaces(maxValue),
       ) + 6; // Increased safety buffer for precision
 
     // Calculate the very first multiple of currentStep that is strictly > minValue
     const initialFirstPossibleBreak = roundToDecimalPlaces(
       Math.ceil((minValue + EPSILON) / currentStep) * currentStep,
-      maxPrecision
+      maxPrecision,
     );
 
     // Iterate through possible starting breaks for the sequence (m shifts the window)
     for (let m = 0; ; m++) {
       const firstBreakInSequence = roundToDecimalPlaces(
         initialFirstPossibleBreak + m * currentStep,
-        maxPrecision
+        maxPrecision,
       );
 
       // If the first break itself (before forming the sequence) is already too large, stop for this step.
@@ -174,7 +174,7 @@ export function calculatePrettyBreaks(
       for (let i = 0; i < numBreaksTarget; i++) {
         const breakVal = roundToDecimalPlaces(
           firstBreakInSequence + i * currentStep,
-          maxPrecision
+          maxPrecision,
         );
         potentialBreaks.push(breakVal);
         if (i === numBreaksTarget - 1) {
@@ -192,7 +192,7 @@ export function calculatePrettyBreaks(
       // relative to minValue and maxValue.
 
       const currentCenteringScore = Math.abs(
-        maxValue - lastBreakInSequence - (firstBreakInSequence - minValue)
+        maxValue - lastBreakInSequence - (firstBreakInSequence - minValue),
       );
 
       if (
@@ -200,7 +200,7 @@ export function calculatePrettyBreaks(
         currentCenteringScore <
           bestSequenceForThisStep.centeringScore - EPSILON ||
         (Math.abs(
-          currentCenteringScore - bestSequenceForThisStep.centeringScore
+          currentCenteringScore - bestSequenceForThisStep.centeringScore,
         ) < EPSILON &&
           firstBreakInSequence <
             bestSequenceForThisStep.firstBreakValue - EPSILON) // Tie-break: first break closer to min

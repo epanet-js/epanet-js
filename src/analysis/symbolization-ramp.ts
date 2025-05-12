@@ -5,7 +5,6 @@ import {
   calculateEqualQuantileBreaks,
   calculatePrettyBreaks,
   calculatePrettyBreaksAlt,
-  calculatePrettyBreaksAlt2,
   calculateCkmeansBreaks,
 } from "./modes";
 import { Unit } from "src/quantity";
@@ -66,7 +65,7 @@ export const initializeSymbolization = ({
 };
 
 export const prependStop = (
-  symbolization: SymbolizationRamp
+  symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
   const { stops } = symbolization;
   const [first, ...rest] = stops;
@@ -86,7 +85,7 @@ export const prependStop = (
 };
 
 export const appendStop = (
-  symbolization: SymbolizationRamp
+  symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
   const lastStop = symbolization.stops[symbolization.stops.length - 1];
   const newStops = [
@@ -116,7 +115,7 @@ export const reverseColors = (symbolization: SymbolizationRamp) => {
 export const changeStopColor = (
   symbolization: SymbolizationRamp,
   index: number,
-  color: string
+  color: string,
 ) => {
   const newStops = symbolization.stops.map((stop, i) => {
     if (i !== index) return stop;
@@ -130,7 +129,7 @@ export const changeStopColor = (
 export const changeStopValue = (
   symbolization: SymbolizationRamp,
   index: number,
-  value: number
+  value: number,
 ) => {
   const newStops = symbolization.stops.map((stop, i) => {
     if (i !== index) return stop;
@@ -156,7 +155,7 @@ export const deleteStop = (symbolization: SymbolizationRamp, index: number) => {
 export const changeRampName = (
   symbolization: SymbolizationRamp,
   newRampName: string,
-  isReversed: boolean
+  isReversed: boolean,
 ) => {
   const colors = getColors(newRampName, symbolization.stops.length, isReversed);
 
@@ -176,7 +175,7 @@ export const changeRampName = (
 export const changeRampSize = (
   symbolization: SymbolizationRamp,
   sortedValues: number[],
-  rampSize: number
+  rampSize: number,
 ) => {
   if (symbolization.mode === "pretty") {
     const tryRampSize = (size: number): SymbolizationRamp => {
@@ -184,13 +183,14 @@ export const changeRampSize = (
       const actualRampSize = result.breaks.length + 1;
 
       if (actualRampSize > maxRampSize) {
+        // eslint-disable-next-line no-console
         console.log(
-          `Too many breaks (${actualRampSize}), reducing from ${size} colors`
+          `Too many breaks (${actualRampSize}), reducing from ${size} colors`,
         );
 
         if (size <= minRampSize) {
           throw new Error(
-            `Pretty breaks algorithm would return too many breaks: ${actualRampSize}. Maximum allowed is ${maxRampSize} and minimum is ${minRampSize}`
+            `Pretty breaks algorithm would return too many breaks: ${actualRampSize}. Maximum allowed is ${maxRampSize} and minimum is ${minRampSize}`,
           );
         }
 
@@ -200,7 +200,7 @@ export const changeRampSize = (
       const colors = getColors(
         symbolization.rampName,
         actualRampSize,
-        Boolean(symbolization.reversedRamp)
+        Boolean(symbolization.reversedRamp),
       );
 
       const stops = generateStops(symbolization.mode, colors, sortedValues);
@@ -213,7 +213,7 @@ export const changeRampSize = (
   const colors = getColors(
     symbolization.rampName,
     rampSize,
-    Boolean(symbolization.reversedRamp)
+    Boolean(symbolization.reversedRamp),
   );
 
   const stops = generateStops(symbolization.mode, colors, sortedValues);
@@ -223,7 +223,7 @@ export const changeRampSize = (
 export const getColors = (
   rampName: string,
   rampSize: number,
-  reverse: boolean
+  reverse: boolean,
 ): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
   const colors = ramp.colors[rampSize as RampSize] as string[];
@@ -233,12 +233,12 @@ export const getColors = (
 export const applyMode = (
   symbolization: SymbolizationRamp,
   mode: RampMode,
-  sortedValues: number[]
+  sortedValues: number[],
 ): SymbolizationRamp => {
   const stops = generateStops(
     mode,
     symbolization.stops.map((s) => s.output),
-    sortedValues
+    sortedValues,
   );
   return { ...symbolization, mode, stops };
 };
@@ -246,7 +246,7 @@ export const applyMode = (
 const generateStops = (
   mode: RampMode,
   colors: string[],
-  sortedValues: number[]
+  sortedValues: number[],
 ): SymbolizationRamp["stops"] => {
   switch (mode) {
     case "linear":
@@ -277,13 +277,14 @@ const generateLinearStops = (sortedValues: number[], colors: string[]) => {
 const generateQuantileStops = (sortedValues: number[], colors: string[]) => {
   const quantileBreaks = calculateEqualQuantileBreaks(
     sortedValues,
-    colors.length - 1
+    colors.length - 1,
   );
 
   const newValues = [-Infinity, ...quantileBreaks];
   if (newValues.length !== colors.length)
     throw new Error("Invalid stops for ramp");
 
+  // eslint-disable-next-line no-console
   console.log("generateQuantileStops newValues:", newValues);
 
   return newValues.map((value, i) => {
@@ -295,6 +296,7 @@ const generateCkmeansStops = (sortedValues: number[], colors: string[]) => {
   const startTime = performance.now();
   const breaks = calculateCkmeansBreaks(sortedValues, colors.length);
   const endTime = performance.now();
+  // eslint-disable-next-line no-console
   console.log(`calculateCkmeansBreaks took ${endTime - startTime}ms`);
   const newValues = [-Infinity, ...breaks];
   if (newValues.length !== colors.length)
@@ -313,6 +315,7 @@ const generatePrettyStopsAlt = (sortedValues: number[], colors: string[]) => {
   if (newValues.length !== colors.length)
     throw new Error("Invalid stops for ramp");
 
+  // eslint-disable-next-line no-console
   console.log("generatePrettyStopsAlt newValues:", newValues);
 
   return newValues.map((value, i) => {
@@ -324,19 +327,20 @@ const generatePrettyStops = (sortedValues: number[], colors: string[]) => {
   const breaks = result.breaks;
 
   if (breaks.length > maxRampSize) {
+    // eslint-disable-next-line no-console
     console.log(
-      `Too many breaks (${breaks.length}), reducing number of colors from ${colors.length}`
+      `Too many breaks (${breaks.length}), reducing number of colors from ${colors.length}`,
     );
 
     if (colors.length <= minRampSize) {
       throw new Error(
-        `Pretty breaks algorithm returned too many breaks: ${breaks.length}. Maximum allowed is ${maxRampSize} and minimum is ${minRampSize}`
+        `Pretty breaks algorithm returned too many breaks: ${breaks.length}. Maximum allowed is ${maxRampSize} and minimum is ${minRampSize}`,
       );
     }
 
     return generatePrettyStops(
       sortedValues,
-      colors.slice(0, colors.length - 1)
+      colors.slice(0, colors.length - 1),
     );
   }
 
@@ -346,11 +350,12 @@ const generatePrettyStops = (sortedValues: number[], colors: string[]) => {
       : [
           ...colors,
           ...Array(breaks.length - colors.length + 1).fill(
-            colors[colors.length - 1]
+            colors[colors.length - 1],
           ),
         ];
 
   const newValues = [-Infinity, ...breaks];
+  // eslint-disable-next-line no-console
   console.log("Generated values:", newValues, "with colors:", adjustedColors);
 
   if (newValues.length !== adjustedColors.length) {

@@ -15,7 +15,7 @@ export interface PrettyBreaksResult {
  */
 export function calculatePrettyBreaks(
   sortedValues: number[],
-  numBreaks: number
+  numBreaks: number,
 ): PrettyBreaksResult {
   if (!sortedValues.length) {
     return { breaks: [], unit: 0 };
@@ -182,8 +182,9 @@ function rPrettyNative(params: RPrettyNativeParams): RPrettyNativeResult {
     } else {
       // up - lo = +Inf (overflow; both are finite)
       if (current_ndiv < 2) {
+        // eslint-disable-next-line no-console
         console.warn(
-          `rPrettyNative: infinite range; ndiv_in=${current_ndiv}, should have ndiv_in >= 2`
+          `rPrettyNative: infinite range; ndiv_in=${current_ndiv}, should have ndiv_in >= 2`,
         );
         // R sets cell to Inf too if ndiv < 2, or if up_ or lo_ were Inf.
         // Here, if dx is Inf but lo/up are finite, it means huge difference.
@@ -206,13 +207,15 @@ function rPrettyNative(params: RPrettyNativeParams): RPrettyNativeResult {
 
   if (cell < subsmall) {
     // possibly subnormal
+    // eslint-disable-next-line no-console
     console.warn(
-      `rPrettyNative: very small range 'cell'=${cell}, corrected to ${subsmall}`
+      `rPrettyNative: very small range 'cell'=${cell}, corrected to ${subsmall}`,
     );
     cell = subsmall;
   } else if (cell > C_DBL_MAX / MAX_F_CONST) {
+    // eslint-disable-next-line no-console
     console.warn(
-      `rPrettyNative: very large range 'cell'=${cell}, corrected to ${C_DBL_MAX / MAX_F_CONST}`
+      `rPrettyNative: very large range 'cell'=${cell}, corrected to ${C_DBL_MAX / MAX_F_CONST}`,
     );
     cell = C_DBL_MAX / MAX_F_CONST;
   }
@@ -228,7 +231,7 @@ function rPrettyNative(params: RPrettyNativeParams): RPrettyNativeResult {
 
   const base = Math.pow(
     10.0,
-    Math.floor(Math.log10(cell))
+    Math.floor(Math.log10(cell)),
   ); /* base <= cell < 10*base */
   let unit = base;
   let U_temp: number; // Temporary variable for candidate unit values

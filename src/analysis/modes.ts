@@ -3,13 +3,16 @@ import {
   PrettyBreaksResult,
 } from "./pretty-breaks";
 
-import { ckmeans, jenks } from "simple-statistics";
+import { ckmeans } from "simple-statistics";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+//import { jenks } from "simple-statistics";
 
 import { calculatePrettyBreaks as calculatePrettyBreaksAltImpl } from "./pretty-breaks-alt";
 
 export const calculateEqualQuantileBreaks = (
   sortedData: number[],
-  numBreaks: number
+  numBreaks: number,
 ): number[] => {
   const n = sortedData.length;
   const breaks = [];
@@ -36,7 +39,7 @@ export const calculateEqualQuantileBreaks = (
 
 export const calculateEqualIntervalBreaks = (
   sortedData: number[],
-  numBreaks: number
+  numBreaks: number,
 ) => {
   const minValue = sortedData[0];
   const maxValue = sortedData[sortedData.length - 1];
@@ -61,50 +64,57 @@ function roundToSignificantDigits(num: number, digits: number) {
   }
   const scale = Math.pow(
     10,
-    digits - Math.floor(Math.log10(Math.abs(num))) - 1
+    digits - Math.floor(Math.log10(Math.abs(num))) - 1,
   );
   return Math.round(num * scale) / scale;
 }
 
 export function calculatePrettyBreaks(
   sortedValues: number[],
-  numBreaks: number
+  numBreaks: number,
 ): PrettyBreaksResult {
   const result = calculatePrettyBreaksImpl(sortedValues, numBreaks);
+  // eslint-disable-next-line no-console
   console.log("calculatePrettyBreaks result:", result);
   return result;
 }
 
 export function calculatePrettyBreaksAlt(
   sortedValues: number[],
-  numBreaks: number
+  numBreaks: number,
 ): number[] {
+  // eslint-disable-next-line no-console
   console.log("calculatePrettyBreaksAlt sortedValues:", sortedValues);
+  // eslint-disable-next-line no-console
   console.log("calculatePrettyBreaksAlt numBreaks:", numBreaks);
   const minValue = sortedValues[0];
   const maxValue = sortedValues[sortedValues.length - 1];
   const breaks = calculatePrettyBreaksAltImpl(minValue, maxValue, numBreaks);
 
+  // eslint-disable-next-line no-console
   console.log("calculatePrettyBreaksAlt breaks:", breaks);
   return breaks;
 }
 
 export function calculateCkmeansBreaks(
   sortedValues: number[],
-  numBreaks: number
+  numBreaks: number,
 ): number[] {
   const sortedData = ckmeans(sortedValues, numBreaks);
   //const jenksData = jenks(sortedValues, numBreaks);
+  //// eslint-disable-next-line no-console
   //console.log("calculateCkmeansBreaks jenksData:", jenksData);
+  // eslint-disable-next-line no-console
   console.log("calculateCkmeansBreaks sortedData:", sortedData);
   const breaks = sortedData.slice(1).map((cluster) => cluster[0]);
+  // eslint-disable-next-line no-console
   console.log("calculateCkmeansBreaks breaks:", breaks);
   return breaks;
 }
 
 export function calculatePrettyBreaksAlt2(
   sortedData: number[],
-  numBreaks: number
+  numBreaks: number,
 ): number[] {
   const minVal = sortedData[0];
   const maxVal = sortedData[sortedData.length - 1];
