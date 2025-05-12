@@ -338,6 +338,7 @@ export const translations: Translations = {
   equalIntervals: "Intervalos Iguales",
   equalQuantiles: "Cuantiles Iguales",
   manual: "Manual",
+  prettyBreaks: "Intervalos Bonitos",
 };
 
 export const units: UnitsLocale = {

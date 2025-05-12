@@ -328,6 +328,7 @@ export const translations = {
   equalIntervals: "Equal Intervals",
   equalQuantiles: "Equal Quantiles",
   manual: "Manual",
+  prettyBreaks: "Pretty Breaks",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
