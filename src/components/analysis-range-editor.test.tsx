@@ -61,7 +61,7 @@ describe("analysis range editor", () => {
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "quantiles",
+      mode: "equalQuantiles",
       stops: startingStops,
     });
 
@@ -86,7 +86,7 @@ describe("analysis range editor", () => {
     expectStopValue(0, "20");
     const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
     expect(stops[1].output).toEqual("#123456");
-    expect(mode).toEqual("quantiles");
+    expect(mode).toEqual("equalQuantiles");
   });
 
   it("can apply equal intervals based on data", async () => {
@@ -97,7 +97,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "quantiles",
+      mode: "equalQuantiles",
       stops: [
         { input: 0, output: red },
         { input: 2, output: green },
@@ -129,7 +129,7 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "linear",
+      mode: "equalIntervals",
       property: "pressure",
       stops: [
         { input: -Infinity, output: red },
@@ -164,7 +164,7 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "linear",
+      mode: "equalIntervals",
       property: "pressure",
       stops: startingStops,
     });
@@ -214,7 +214,7 @@ describe("analysis range editor", () => {
   it("can prepend stops", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "quantiles",
+      mode: "equalQuantiles",
       stops: [
         { input: -Infinity, output: red },
         { input: 10, output: green },
@@ -438,7 +438,7 @@ describe("analysis range editor", () => {
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "quantiles",
+      mode: "equalQuantiles",
       stops: [
         { input: 10, output: red },
         { input: 20, output: green },
@@ -457,7 +457,7 @@ describe("analysis range editor", () => {
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "linear",
+      mode: "equalIntervals",
       stops: [
         { input: 10, output: red },
         { input: 20, output: green },

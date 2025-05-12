@@ -53,7 +53,7 @@ export const AnalysisEditor = () => {
                     property: "flow",
                     unit: hydraulicModel.units.flow,
                     rampName: "Teal",
-                    mode: "quantiles",
+                    mode: "equalQuantiles",
                     rampSize: 5,
                     absValues: true,
                     sortedValues: getSortedValues(
@@ -133,7 +133,7 @@ export const AnalysisEditor = () => {
                 property: "elevation",
                 unit: hydraulicModel.units.elevation,
                 rampName: "Sunset",
-                mode: "linear",
+                mode: "equalIntervals",
                 rampSize: 5,
                 absValues: false,
                 sortedValues: getSortedValues(
