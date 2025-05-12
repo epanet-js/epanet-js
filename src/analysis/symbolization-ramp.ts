@@ -322,7 +322,13 @@ const generatePrettyStopsAlt = (sortedValues: number[], colors: string[]) => {
     return { input: Number(value.toFixed(2)), output: colors[i] };
   });
 };
-const generatePrettyStops = (sortedValues: number[], colors: string[]) => {
+const generatePrettyStops = (
+  sortedValues: number[],
+  colors: string[],
+): {
+  input: number;
+  output: string;
+}[] => {
   const result = calculatePrettyBreaks(sortedValues, colors.length - 1);
   const breaks = result.breaks;
 
@@ -344,7 +350,7 @@ const generatePrettyStops = (sortedValues: number[], colors: string[]) => {
     );
   }
 
-  const adjustedColors =
+  const adjustedColors: string[] =
     breaks.length < colors.length
       ? colors.slice(0, breaks.length + 1)
       : [

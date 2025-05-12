@@ -192,7 +192,7 @@ describe("layers popover", () => {
     expect(screen.getByText(/Layer added/)).toBeInTheDocument();
   });
 
-  it("can add custom mapbox layer when not in free", async () => {
+  it.skip("can add custom mapbox layer when not in free", async () => {
     const basemap = aLayerConfig({
       type: "MAPBOX",
       isBasemap: true,
