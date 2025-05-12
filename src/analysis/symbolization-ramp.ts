@@ -6,6 +6,7 @@ import {
   calculatePrettyBreaks,
   calculatePrettyBreaksAlt,
   calculatePrettyBreaksAlt2,
+  calculateCkmeansBreaks,
 } from "./modes";
 import { Unit } from "src/quantity";
 
@@ -16,6 +17,7 @@ export const rampModes = [
   "quantiles",
   "pretty",
   "pretty-alt",
+  "ckmeans",
 ] as const;
 export type RampMode = (typeof rampModes)[number];
 
@@ -255,6 +257,8 @@ const generateStops = (
       return generatePrettyStops(sortedValues, colors);
     case "pretty-alt":
       return generatePrettyStopsAlt(sortedValues, colors);
+    case "ckmeans":
+      return generateCkmeansStops(sortedValues, colors);
   }
 };
 
@@ -281,6 +285,20 @@ const generateQuantileStops = (sortedValues: number[], colors: string[]) => {
     throw new Error("Invalid stops for ramp");
 
   console.log("generateQuantileStops newValues:", newValues);
+
+  return newValues.map((value, i) => {
+    return { input: Number(value.toFixed(2)), output: colors[i] };
+  });
+};
+
+const generateCkmeansStops = (sortedValues: number[], colors: string[]) => {
+  const startTime = performance.now();
+  const breaks = calculateCkmeansBreaks(sortedValues, colors.length);
+  const endTime = performance.now();
+  console.log(`calculateCkmeansBreaks took ${endTime - startTime}ms`);
+  const newValues = [-Infinity, ...breaks];
+  if (newValues.length !== colors.length)
+    throw new Error("Invalid stops for ramp");
 
   return newValues.map((value, i) => {
     return { input: Number(value.toFixed(2)), output: colors[i] };

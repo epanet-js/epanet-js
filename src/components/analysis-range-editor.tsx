@@ -406,6 +406,7 @@ const modeLabels = {
   quantiles: "Equal Quantiles",
   pretty: "Pretty Breaks",
   "pretty-alt": "Pretty Breaks (Alt)",
+  ckmeans: "Natural Breaks (ckmeans)",
 };
 
 const ModeSelector = ({

@@ -3,6 +3,8 @@ import {
   PrettyBreaksResult,
 } from "./pretty-breaks";
 
+import { ckmeans, jenks } from "simple-statistics";
+
 import { calculatePrettyBreaks as calculatePrettyBreaksAltImpl } from "./pretty-breaks-alt";
 
 export const calculateEqualQuantileBreaks = (
@@ -84,6 +86,19 @@ export function calculatePrettyBreaksAlt(
   const breaks = calculatePrettyBreaksAltImpl(minValue, maxValue, numBreaks);
 
   console.log("calculatePrettyBreaksAlt breaks:", breaks);
+  return breaks;
+}
+
+export function calculateCkmeansBreaks(
+  sortedValues: number[],
+  numBreaks: number
+): number[] {
+  const sortedData = ckmeans(sortedValues, numBreaks);
+  //const jenksData = jenks(sortedValues, numBreaks);
+  //console.log("calculateCkmeansBreaks jenksData:", jenksData);
+  console.log("calculateCkmeansBreaks sortedData:", sortedData);
+  const breaks = sortedData.slice(1).map((cluster) => cluster[0]);
+  console.log("calculateCkmeansBreaks breaks:", breaks);
   return breaks;
 }
 
