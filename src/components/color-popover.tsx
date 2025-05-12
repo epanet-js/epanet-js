@@ -92,8 +92,8 @@ export function ColorPopover({
       <E.PopoverContent2 size="no-width">
         <div className="space-y-2">
           <div className="border border-white" style={{ borderRadius: 5 }}>
-            <RgbaStringColorPicker
-              color={color2rgb(color!)}
+            <HexColorPicker
+              color={color}
               onChange={debouncedOnChange}
               onBlur={onBlur}
             />
