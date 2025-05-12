@@ -178,26 +178,6 @@ export const changeRampSize = (
     sortedValues,
   );
   return { ...symbolization, stops };
-  const colors = getColors(
-    symbolization.rampName,
-    rampSize,
-    Boolean(symbolization.reversedRamp),
-  );
-
-  const newStops: ISymbolizationRamp["stops"] = [];
-  colors.forEach((color, index) => {
-    if (symbolization.stops[index]) {
-      newStops.push({
-        input: symbolization.stops[index].input,
-        output: color,
-      });
-    } else {
-      const previous = newStops[newStops.length - 1];
-      newStops.push({ input: Math.floor(previous.input + 1), output: color });
-    }
-  });
-
-  return { ...symbolization, stops: newStops };
 };
 
 export const getColors = (
@@ -234,7 +214,7 @@ const generateStops = (
     case "quantiles":
       return generateQuantileStops(sortedValues, colors);
     case "manual":
-      throw new Error("Missing manual implementation");
+      return generateLinearStops(sortedValues, colors);
   }
 };
 

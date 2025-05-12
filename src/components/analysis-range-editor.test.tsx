@@ -155,6 +155,37 @@ describe("analysis range editor", () => {
     ]);
   });
 
+  it("can switch to manual mode", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", { simulation: { pressure: 10 } })
+      .aJunction("j2", { simulation: { pressure: 15 } })
+      .aJunction("j3", { simulation: { pressure: 20 } })
+      .aJunction("j4", { simulation: { pressure: 100 } })
+      .build();
+    const nodesAnalysis = aNodesAnalysis({
+      mode: "linear",
+      property: "pressure",
+      stops: startingStops,
+    });
+
+    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /manual/i }));
+
+    const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
+    expect(mode).toEqual("manual");
+    const asEqualIntervalStops = [
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 55, output: blue },
+    ];
+    expect(stops).toEqual(asEqualIntervalStops);
+  });
+
   it("can apply different ramp color", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
