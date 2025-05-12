@@ -3,7 +3,7 @@ import { ISymbolizationRamp } from "src/types";
 import {
   calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
-} from "./modes";
+} from "./ramp-modes";
 import { Unit } from "src/quantity";
 
 type SymbolizationRamp = ISymbolizationRamp;

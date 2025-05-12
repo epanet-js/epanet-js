@@ -1,7 +1,7 @@
 import {
   calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
-} from "./modes";
+} from "./ramp-modes";
 
 describe("quantiles", () => {
   it("assigns equal counts on each bucket", () => {
@@ -24,10 +24,18 @@ describe("quantiles", () => {
 
     expect(breaks).toEqual([2, expect.closeTo(4.33)]);
   });
+
+  it("defaults to new values when not enough data", () => {
+    const sortedValues = [1, 1, 2, 2, 3, 4, 5, 10, 15];
+    const numBreaks = 2;
+    const breaks = calculateEqualQuantileBreaks(sortedValues, numBreaks);
+
+    expect(breaks).toEqual([2, expect.closeTo(4.33)]);
+  });
 });
 
 describe("equal interval breaks", () => {
-  it("assign breaks that are round", () => {
+  it("assign breaks that with equal distance betweent them", () => {
     const sortedData = [12, 34, 56, 23, 78, 45, 90];
     const numBreaks = 3;
     const breaks = calculateEqualIntervalBreaks(sortedData, numBreaks);
