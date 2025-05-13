@@ -1,36 +1,23 @@
-import { calculateEqualQuantileBreaks } from "./equal-quantiles";
 import { calculatePrettyBreaks } from "./pretty-breaks";
 import { calculateCkmeansBreaks } from "./ckmeans";
 import { calculateEqualIntervalRange } from "./equal-intervals";
+import { calculateEqualQuantilesRange } from "./equal-quantiles";
 
 describe("quantiles", () => {
   it("assigns equal counts on each bucket", () => {
     const sortedValues = [1, 2, 3, 10, 20, 100, 200, 500, 750];
-    const numBreaks = 4;
-    const breaks = calculateEqualQuantileBreaks(sortedValues, numBreaks);
+    const numIntervals = 4;
+    const breaks = calculateEqualQuantilesRange(sortedValues, numIntervals);
 
-    expect(breaks).toEqual([
-      expect.closeTo(2.6),
-      expect.closeTo(12),
-      expect.closeTo(84),
-      expect.closeTo(320),
-    ]);
+    expect(breaks).toEqual([1, 3, 20, 200, 750]);
   });
 
   it("can compute with 3", () => {
     const sortedValues = [1, 1, 2, 2, 3, 4, 5, 10, 15];
-    const numBreaks = 2;
-    const breaks = calculateEqualQuantileBreaks(sortedValues, numBreaks);
+    const numIntervals = 3;
+    const breaks = calculateEqualQuantilesRange(sortedValues, numIntervals);
 
-    expect(breaks).toEqual([2, expect.closeTo(4.33)]);
-  });
-
-  it("defaults to new values when not enough data", () => {
-    const sortedValues = [1, 1, 2, 2, 3, 4, 5, 10, 15];
-    const numBreaks = 2;
-    const breaks = calculateEqualQuantileBreaks(sortedValues, numBreaks);
-
-    expect(breaks).toEqual([2, expect.closeTo(4.33)]);
+    expect(breaks).toEqual([1, 2, expect.closeTo(4.33), 15]);
   });
 });
 

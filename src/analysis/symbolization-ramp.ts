@@ -1,12 +1,9 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
-import {
-  calculateCkmeansBreaks,
-  calculateEqualQuantileBreaks,
-  calculatePrettyBreaks,
-} from "./ramp-modes";
+import { calculateCkmeansBreaks, calculatePrettyBreaks } from "./ramp-modes";
 import { Unit } from "src/quantity";
 import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
+import { calculateEqualQuantilesRange } from "./ramp-modes/equal-quantiles";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
@@ -217,7 +214,11 @@ const generateStops = (
   sortedValues: number[],
 ): SymbolizationRamp["stops"] => {
   let stopValues;
-  if (mode === "equalIntervals" || mode === "manual") {
+  if (
+    mode === "equalIntervals" ||
+    mode === "manual" ||
+    mode === "equalQuantiles"
+  ) {
     const breaks = calculateRange(mode, sortedValues, colors.length);
     stopValues = [-Infinity, ...breaks.slice(1, -1)];
   } else {
@@ -242,10 +243,12 @@ const calculateRange = (
     case "equalIntervals":
       return calculateEqualIntervalRange(sortedValues, numIntervals);
     case "equalQuantiles":
-    case "prettyBreaks":
-    case "ckmeans":
+      return calculateEqualQuantilesRange(sortedValues, numIntervals);
     case "manual":
       return calculateEqualIntervalRange(sortedValues, numIntervals);
+    case "prettyBreaks":
+    case "ckmeans":
+      throw new Error("Not implement");
   }
 };
 
@@ -255,13 +258,12 @@ const generateBreaks = (
   numBreaks: number,
 ): number[] => {
   switch (mode) {
-    case "equalQuantiles":
-      return calculateEqualQuantileBreaks(sortedValues, numBreaks);
     case "prettyBreaks":
       return calculatePrettyBreaks(sortedValues, numBreaks);
     case "ckmeans":
       return calculateCkmeansBreaks(sortedValues, numBreaks);
     case "equalIntervals":
+    case "equalQuantiles":
     case "manual":
       throw new Error("Not implemented");
   }
