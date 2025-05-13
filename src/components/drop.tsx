@@ -7,6 +7,8 @@ import { translate } from "src/infra/i18n";
 import { useImportInp } from "src/commands/import-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
+import { useAtomValue } from "jotai";
+import { dialogAtom } from "src/state/dialog_state";
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -31,6 +33,7 @@ const Drop = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();
   const userTracking = useUserTracking();
+  const dialog = useAtomValue(dialogAtom);
 
   useEffect(() => {
     const onDropFiles = (files: FileWithHandle[]) => {
@@ -93,6 +96,8 @@ const Drop = () => {
       window.removeEventListener("drop", stopWindowDrag);
     };
   }, [setDragging, checkUnsavedChanges, importInp, userTracking]);
+
+  if (dialog && dialog.type !== "welcome") return null;
 
   return dragging ? (
     <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>
