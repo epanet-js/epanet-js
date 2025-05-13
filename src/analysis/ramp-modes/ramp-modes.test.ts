@@ -70,6 +70,18 @@ describe("pretty breaks", () => {
       1.5, 2, 2.5, 3, 3.5, 4, 4.5,
     ]);
   });
+
+  it("can generate breaks with outliers in big data sets", () => {
+    const sortedData = [
+      ...Array(10).fill(-50),
+      ...Array(200).fill(12),
+      ...Array(400).fill(90),
+      ...Array(10).fill(1000),
+    ];
+
+    const breaks = calculatePrettyBreaks(sortedData, 3);
+    expect(breaks).toEqual([25, 50, 75]);
+  });
 });
 
 describe("ckmeans", () => {

@@ -5,8 +5,8 @@ export function calculatePrettyBreaks(
   sortedValues: number[],
   numBreaksTarget: number,
 ): number[] {
-  const minValue = sortedValues[0];
-  const maxValue = sortedValues[sortedValues.length - 1];
+  const minValue = sortedValues[Math.floor(sortedValues.length * 0.02)];
+  const maxValue = sortedValues[Math.ceil(sortedValues.length * 0.98 - 1)];
   const dataRange = maxValue - minValue;
 
   if (dataRange < EPSILON) {
