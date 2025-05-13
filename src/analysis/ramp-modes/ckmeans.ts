@@ -8,10 +8,20 @@ export const calculateCkmeansRange = (
   return sortedClusters.map((cluster) => cluster[0]);
 };
 
-export const calculateCkmeansBreaks = (
+export const checkCkmeansData = (
   sortedData: number[],
-  numBreaks: number,
-): number[] => {
-  const sortedClusters = ckmeans(sortedData, numBreaks + 1);
-  return sortedClusters.slice(1).map((cluster) => cluster[0]);
+  numIntervals: number,
+): boolean => {
+  const distinctSet = new Set<number>();
+  let i = 0;
+  while (i < sortedData.length) {
+    if (distinctSet.size > numIntervals) break;
+    const value = sortedData[i];
+    if (!distinctSet.has(value)) {
+      distinctSet.add(value);
+    }
+    i++;
+  }
+
+  return distinctSet.size > numIntervals;
 };
