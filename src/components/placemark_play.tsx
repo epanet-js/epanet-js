@@ -48,7 +48,7 @@ import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
 import {AnalysisLegends} from './analysis-legends';
-import {Toolbar} from './toolbar/Toolbar';
+import {Toolbar} from './toolbar/toolbar';
 import {translate} from 'src/infra/i18n';
 import {Footer} from './footer';
 import {useHydrateAtoms} from 'jotai/utils';

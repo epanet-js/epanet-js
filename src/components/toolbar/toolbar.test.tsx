@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { Toolbar } from "./Toolbar";
+import { Toolbar } from "./toolbar";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { UIDMap } from "src/lib/id_mapper";

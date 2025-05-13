@@ -305,7 +305,7 @@ export const TContent = classed(Tooltip.Content)(
       "w-64": size === "md",
     },
     `px-2 py-1 rounded
-  z-50
+  z-20
   text-sm
   border
   shadow-sm
@@ -412,7 +412,7 @@ export const StyledPopoverContent = classed(Popover.Content)(
       flush === "yes" ? "" : "p-3",
       `shadow-lg
       placemark-appear
-      z-50
+      z-20
       bg-white dark:bg-gray-900
       dark:text-white
       border border-gray-200 dark:border-gray-700 rounded-md`,
@@ -471,7 +471,7 @@ export const contentLike = `py-1
     rounded-sm
     shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
     ring-1 ring-gray-200 dark:ring-gray-700
-    content-layout z-50`;
+    content-layout z-30`;
 
 export const DDContent = classed(DD.Content)(contentLike);
 export const DDSubContent = classed(DD.SubContent)(contentLike);
