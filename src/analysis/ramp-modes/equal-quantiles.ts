@@ -26,3 +26,21 @@ export const calculateEqualQuantilesRange = (
 
   return breaks;
 };
+
+export const checkEqualQuantilesData = (
+  sortedData: number[],
+  numIntervals: number,
+) => {
+  const distinctSet = new Set<number>();
+  let i = 0;
+  while (i < sortedData.length) {
+    if (distinctSet.size >= numIntervals) break;
+    const value = sortedData[i];
+    if (!distinctSet.has(value)) {
+      distinctSet.add(value);
+    }
+    i++;
+  }
+
+  return distinctSet.size >= numIntervals;
+};
