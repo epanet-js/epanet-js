@@ -115,8 +115,8 @@ describe("analysis range editor", () => {
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 55, output: blue },
+      { input: 40, output: green },
+      { input: 70, output: blue },
     ]);
   });
 
@@ -180,8 +180,8 @@ describe("analysis range editor", () => {
     expect(mode).toEqual("manual");
     const asEqualIntervalStops = [
       { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 55, output: blue },
+      { input: 40, output: green },
+      { input: 70, output: blue },
     ];
     expect(stops).toEqual(asEqualIntervalStops);
   });
