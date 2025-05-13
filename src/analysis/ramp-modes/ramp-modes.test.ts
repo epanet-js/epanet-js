@@ -4,7 +4,10 @@ import {
   calculateEqualIntervalRange,
   checkEqualIntervalsData,
 } from "./equal-intervals";
-import { calculateEqualQuantilesRange } from "./equal-quantiles";
+import {
+  calculateEqualQuantilesRange,
+  checkEqualQuantilesData,
+} from "./equal-quantiles";
 
 describe("quantiles", () => {
   it("assigns equal counts on each bucket", () => {
@@ -22,6 +25,12 @@ describe("quantiles", () => {
 
     expect(breaks).toEqual([1, 2, expect.closeTo(4.33), 15]);
   });
+
+  it("says when data is valid", () => {
+    expect(checkEqualQuantilesData([], 3)).toEqual(false);
+    expect(checkEqualQuantilesData([0, 0, 0], 3)).toEqual(false);
+    expect(checkEqualQuantilesData([0, 1, 2], 3)).toEqual(true);
+  });
 });
 
 describe("equal interval breaks", () => {
@@ -35,7 +44,7 @@ describe("equal interval breaks", () => {
     ]);
   });
 
-  it("says when data is not valid", () => {
+  it("says when data is valid", () => {
     expect(checkEqualIntervalsData([])).toEqual(false);
     expect(checkEqualIntervalsData([0, 0])).toEqual(false);
     expect(checkEqualIntervalsData([1, 0])).toEqual(false);
