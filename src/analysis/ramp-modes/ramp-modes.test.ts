@@ -1,7 +1,7 @@
 import { calculateEqualQuantileBreaks } from "./equal-quantiles";
-import { calculateEqualIntervalBreaks } from "./equal-intervals";
 import { calculatePrettyBreaks } from "./pretty-breaks";
 import { calculateCkmeansBreaks } from "./ckmeans";
+import { calculateEqualIntervalRange } from "./equal-intervals";
 
 describe("quantiles", () => {
   it("assigns equal counts on each bucket", () => {
@@ -36,10 +36,13 @@ describe("quantiles", () => {
 
 describe("equal interval breaks", () => {
   it("assign breaks that with equal distance between them", () => {
-    const sortedData = [12, 34, 56, 23, 78, 45, 90];
-    const numBreaks = 3;
-    const breaks = calculateEqualIntervalBreaks(sortedData, numBreaks);
-    expect(breaks).toEqual([12, 38, 64]);
+    const sortedData = [0, 1, 2, 3, 10];
+    expect(calculateEqualIntervalRange(sortedData, 4)).toEqual([
+      0, 2.5, 5, 7.5, 10,
+    ]);
+    expect(calculateEqualIntervalRange(sortedData, 5)).toEqual([
+      0, 2, 4, 6, 8, 10,
+    ]);
   });
 });
 

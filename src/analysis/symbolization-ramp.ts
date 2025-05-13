@@ -2,11 +2,11 @@ import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
 import {
   calculateCkmeansBreaks,
-  calculateEqualIntervalBreaks,
   calculateEqualQuantileBreaks,
   calculatePrettyBreaks,
 } from "./ramp-modes";
 import { Unit } from "src/quantity";
+import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
@@ -216,8 +216,15 @@ const generateStops = (
   colors: string[],
   sortedValues: number[],
 ): SymbolizationRamp["stops"] => {
-  const breaks = generateBreaks(mode, sortedValues, colors.length - 1);
-  const stopValues = [-Infinity, ...breaks];
+  let stopValues;
+  if (mode === "equalIntervals" || mode === "manual") {
+    const breaks = calculateRange(mode, sortedValues, colors.length);
+    stopValues = [-Infinity, ...breaks.slice(1, -1)];
+  } else {
+    const breaks = generateBreaks(mode, sortedValues, colors.length - 1);
+    stopValues = [-Infinity, ...breaks];
+  }
+
   if (stopValues.length !== colors.length)
     throw new Error("Invalid stops for ramp");
 
@@ -226,22 +233,37 @@ const generateStops = (
   });
 };
 
+const calculateRange = (
+  mode: RampMode,
+  sortedValues: number[],
+  numIntervals: number,
+): number[] => {
+  switch (mode) {
+    case "equalIntervals":
+      return calculateEqualIntervalRange(sortedValues, numIntervals);
+    case "equalQuantiles":
+    case "prettyBreaks":
+    case "ckmeans":
+    case "manual":
+      return calculateEqualIntervalRange(sortedValues, numIntervals);
+  }
+};
+
 const generateBreaks = (
   mode: RampMode,
   sortedValues: number[],
   numBreaks: number,
 ): number[] => {
   switch (mode) {
-    case "equalIntervals":
-      return calculateEqualIntervalBreaks(sortedValues, numBreaks);
     case "equalQuantiles":
       return calculateEqualQuantileBreaks(sortedValues, numBreaks);
     case "prettyBreaks":
       return calculatePrettyBreaks(sortedValues, numBreaks);
     case "ckmeans":
       return calculateCkmeansBreaks(sortedValues, numBreaks);
+    case "equalIntervals":
     case "manual":
-      return calculateEqualIntervalBreaks(sortedValues, numBreaks);
+      throw new Error("Not implemented");
   }
 };
 
