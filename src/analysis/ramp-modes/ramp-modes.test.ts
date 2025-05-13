@@ -1,6 +1,9 @@
 import { calculatePrettyBreaks } from "./pretty-breaks";
 import { calculateCkmeansRange } from "./ckmeans";
-import { calculateEqualIntervalRange } from "./equal-intervals";
+import {
+  calculateEqualIntervalRange,
+  checkEqualIntervalsData,
+} from "./equal-intervals";
 import { calculateEqualQuantilesRange } from "./equal-quantiles";
 
 describe("quantiles", () => {
@@ -30,6 +33,13 @@ describe("equal interval breaks", () => {
     expect(calculateEqualIntervalRange(sortedData, 5)).toEqual([
       0, 2, 4, 6, 8, 10,
     ]);
+  });
+
+  it("says when data is not valid", () => {
+    expect(checkEqualIntervalsData([])).toEqual(false);
+    expect(checkEqualIntervalsData([0, 0])).toEqual(false);
+    expect(checkEqualIntervalsData([1, 0])).toEqual(false);
+    expect(checkEqualIntervalsData([0, 1])).toEqual(true);
   });
 });
 
