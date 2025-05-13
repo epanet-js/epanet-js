@@ -1,4 +1,4 @@
-import { calculatePrettyBreaks } from "./pretty-breaks";
+import { calculatePrettyBreaks, checkPrettyBreaksData } from "./pretty-breaks";
 import { calculateCkmeansRange } from "./ckmeans";
 import {
   calculateEqualIntervalRange,
@@ -100,6 +100,12 @@ describe("pretty breaks", () => {
 
     const breaks = calculatePrettyBreaks(sortedData, 3);
     expect(breaks).toEqual([25, 50, 75]);
+  });
+
+  it("says when data is valid", () => {
+    expect(checkPrettyBreaksData([])).toEqual(false);
+    expect(checkPrettyBreaksData([0, 0])).toEqual(false);
+    expect(checkPrettyBreaksData([0, 1])).toEqual(true);
   });
 });
 

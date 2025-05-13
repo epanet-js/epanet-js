@@ -1,6 +1,12 @@
 const prettyBaseUnits = [1, 2, 2.5, 5, 10];
 const EPSILON = 1e-9;
 
+export const checkPrettyBreaksData = (sortedData: number[]): boolean => {
+  return (
+    sortedData.length > 1 && sortedData[0] != sortedData[sortedData.length - 1]
+  );
+};
+
 export function calculatePrettyBreaks(
   sortedValues: number[],
   numBreaksTarget: number,
