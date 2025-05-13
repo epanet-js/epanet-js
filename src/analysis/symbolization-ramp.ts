@@ -215,19 +215,13 @@ const generateStops = (
   sortedValues: number[],
 ): SymbolizationRamp["stops"] => {
   let stopValues;
-  if (
-    mode === "equalIntervals" ||
-    mode === "manual" ||
-    mode === "equalQuantiles" ||
-    mode === "ckmeans"
-  ) {
+  if (mode === "prettyBreaks") {
+    const breaks = calculatePrettyBreaks(sortedValues, colors.length - 1);
+    stopValues = [-Infinity, ...breaks];
+  } else {
     const breaks = calculateRange(mode, sortedValues, colors.length);
     stopValues = [-Infinity, ...breaks.slice(1, -1)];
-  } else {
-    const breaks = generateBreaks(mode, sortedValues, colors.length - 1);
-    stopValues = [-Infinity, ...breaks];
   }
-
   if (stopValues.length !== colors.length)
     throw new Error("Invalid stops for ramp");
 
@@ -251,22 +245,6 @@ const calculateRange = (
     case "ckmeans":
       return calculateCkmeansRange(sortedValues, numIntervals);
     case "prettyBreaks":
-      throw new Error("Not implement");
-  }
-};
-
-const generateBreaks = (
-  mode: RampMode,
-  sortedValues: number[],
-  numBreaks: number,
-): number[] => {
-  switch (mode) {
-    case "prettyBreaks":
-      return calculatePrettyBreaks(sortedValues, numBreaks);
-    case "ckmeans":
-    case "equalIntervals":
-    case "equalQuantiles":
-    case "manual":
       throw new Error("Not implemented");
   }
 };
