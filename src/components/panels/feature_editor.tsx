@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { AssetEditor } from "./AssetEditor";
+import { AssetEditor } from "./asset-editor";
 import React from "react";
 import { NothingSelected } from "src/components/nothing_selected";
 import { dataAtom, selectedFeaturesAtom } from "src/state/jotai";

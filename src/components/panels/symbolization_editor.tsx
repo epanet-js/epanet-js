@@ -216,8 +216,9 @@ export function RampChoice({
   return (
     <label
       key={ramp.name}
-      className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200"
+      className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200 focus:ring-purple-300"
       onClick={() => onSelect && onSelect(ramp.name)}
+      tabIndex={1}
     >
       <RampPreview
         name={ramp.name}

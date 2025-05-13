@@ -4,7 +4,7 @@ import { KeyboardEventHandler, useRef, useState } from "react";
 import { PanelDetails } from "../panel_details";
 import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow_navigation";
-import { PropertyTableHead } from "./AssetEditor";
+import { PropertyTableHead } from "./asset-editor";
 import { translate, translateUnit } from "src/infra/i18n";
 import * as P from "@radix-ui/react-popover";
 import { PropertyRowValue } from "./feature_editor/property_row/value";

@@ -102,7 +102,10 @@ const Legend = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <AnalysisRangeEditor geometryType={geometryType} />
+            <AnalysisRangeEditor
+              key={symbolization.property}
+              geometryType={geometryType}
+            />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>

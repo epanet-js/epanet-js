@@ -734,6 +734,7 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
           options={options}
           selected={selected}
           onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
+          disableFocusOnClose={true}
           styleOptions={{
             border: false,
             textSize: "text-xs",
@@ -775,6 +776,7 @@ const StatusRow = <T extends AssetStatus>({
           options={options}
           selected={status}
           onChange={onChange}
+          disableFocusOnClose={true}
           styleOptions={{ border: false, textSize: "text-xs" }}
         />
       </div>
