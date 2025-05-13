@@ -1,5 +1,5 @@
 import { calculatePrettyBreaks } from "./pretty-breaks";
-import { calculateCkmeansBreaks } from "./ckmeans";
+import { calculateCkmeansRange } from "./ckmeans";
 import { calculateEqualIntervalRange } from "./equal-intervals";
 import { calculateEqualQuantilesRange } from "./equal-quantiles";
 
@@ -75,15 +75,16 @@ describe("pretty breaks", () => {
 describe("ckmeans", () => {
   it("assigns breaks matching the target breaks", () => {
     const sortedData = [12, 34, 56, 78, 45, 60, 70, 90];
-    expect(calculateCkmeansBreaks(sortedData, 2)).toEqual([45, 70]);
-    expect(calculateCkmeansBreaks(sortedData, 3)).toEqual([34, 56, 78]);
-    expect(calculateCkmeansBreaks(sortedData, 4)).toEqual([34, 56, 70, 90]);
-    expect(calculateCkmeansBreaks(sortedData, 5)).toEqual([34, 45, 56, 70, 90]);
-    expect(calculateCkmeansBreaks(sortedData, 6)).toEqual([
-      34, 45, 56, 70, 78, 90,
+    expect(calculateCkmeansRange(sortedData, 3)).toEqual([12, 34, 56, 78]);
+    expect(calculateCkmeansRange(sortedData, 4)).toEqual([12, 34, 56, 70, 90]);
+    expect(calculateCkmeansRange(sortedData, 5)).toEqual([
+      12, 34, 45, 56, 70, 90,
     ]);
-    expect(calculateCkmeansBreaks(sortedData, 7)).toEqual([
-      34, 45, 56, 60, 70, 78, 90,
+    expect(calculateCkmeansRange(sortedData, 6)).toEqual([
+      12, 34, 45, 56, 70, 78, 90,
+    ]);
+    expect(calculateCkmeansRange(sortedData, 7)).toEqual([
+      12, 34, 45, 56, 60, 70, 78, 90,
     ]);
   });
 });

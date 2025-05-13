@@ -1,9 +1,10 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
-import { calculateCkmeansBreaks, calculatePrettyBreaks } from "./ramp-modes";
+import { calculatePrettyBreaks } from "./ramp-modes";
 import { Unit } from "src/quantity";
 import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./ramp-modes/equal-quantiles";
+import { calculateCkmeansRange } from "./ramp-modes/ckmeans";
 
 type SymbolizationRamp = ISymbolizationRamp;
 
@@ -217,7 +218,8 @@ const generateStops = (
   if (
     mode === "equalIntervals" ||
     mode === "manual" ||
-    mode === "equalQuantiles"
+    mode === "equalQuantiles" ||
+    mode === "ckmeans"
   ) {
     const breaks = calculateRange(mode, sortedValues, colors.length);
     stopValues = [-Infinity, ...breaks.slice(1, -1)];
@@ -246,8 +248,9 @@ const calculateRange = (
       return calculateEqualQuantilesRange(sortedValues, numIntervals);
     case "manual":
       return calculateEqualIntervalRange(sortedValues, numIntervals);
-    case "prettyBreaks":
     case "ckmeans":
+      return calculateCkmeansRange(sortedValues, numIntervals);
+    case "prettyBreaks":
       throw new Error("Not implement");
   }
 };
@@ -261,7 +264,6 @@ const generateBreaks = (
     case "prettyBreaks":
       return calculatePrettyBreaks(sortedValues, numBreaks);
     case "ckmeans":
-      return calculateCkmeansBreaks(sortedValues, numBreaks);
     case "equalIntervals":
     case "equalQuantiles":
     case "manual":
