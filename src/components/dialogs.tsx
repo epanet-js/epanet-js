@@ -53,7 +53,7 @@ const InpIssuesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/InpIssues").then((r) => r.InpIssuesDialog),
+    import("src/components/dialogs/inp-issues").then((r) => r.InpIssuesDialog),
   {
     loading: () => <Loading />,
   },
@@ -63,7 +63,7 @@ const GeocodingNotSupportedDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/InpIssues").then(
+    import("src/components/dialogs/inp-issues").then(
       (r) => r.GeocodingNotSupportedDialog,
     ),
   {
@@ -76,7 +76,7 @@ const MissingCoordinatesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/InpIssues").then(
+    import("src/components/dialogs/inp-issues").then(
       (r) => r.MissingCoordinatesDialog,
     ),
   {
