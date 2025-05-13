@@ -1,2 +1,25 @@
+import { RampMode } from "../symbolization-ramp";
+import { checkCkmeansData } from "./ckmeans";
+import { checkEqualIntervalsData } from "./equal-intervals";
+import { checkEqualQuantilesData } from "./equal-quantiles";
+import { checkPrettyBreaksData } from "./pretty-breaks";
+
 export { calculatePrettyBreaks } from "./pretty-breaks";
-export { calculateCkmeansBreaks } from "./ckmeans";
+
+export const checkValidData = (
+  mode: RampMode,
+  sortedData: number[],
+  numIntervals: number,
+) => {
+  switch (mode) {
+    case "equalIntervals":
+      return checkEqualIntervalsData(sortedData);
+    case "equalQuantiles":
+    case "manual":
+      return checkEqualQuantilesData(sortedData, numIntervals);
+    case "prettyBreaks":
+      return checkPrettyBreaksData(sortedData);
+    case "ckmeans":
+      return checkCkmeansData(sortedData, numIntervals);
+  }
+};

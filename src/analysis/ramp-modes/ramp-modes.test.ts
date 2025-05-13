@@ -1,5 +1,5 @@
 import { calculatePrettyBreaks, checkPrettyBreaksData } from "./pretty-breaks";
-import { calculateCkmeansRange } from "./ckmeans";
+import { calculateCkmeansRange, checkCkmeansData } from "./ckmeans";
 import {
   calculateEqualIntervalRange,
   checkEqualIntervalsData,
@@ -123,5 +123,11 @@ describe("ckmeans", () => {
     expect(calculateCkmeansRange(sortedData, 7)).toEqual([
       12, 34, 45, 56, 60, 70, 78, 90,
     ]);
+  });
+
+  it("says when data is valid", () => {
+    expect(checkCkmeansData([0, 1, 2], 3)).toEqual(false);
+    expect(checkCkmeansData([0, 1, 1, 2], 3)).toEqual(false);
+    expect(checkCkmeansData([0, 1, 2, 3], 3)).toEqual(true);
   });
 });
