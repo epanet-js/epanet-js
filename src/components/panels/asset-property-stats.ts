@@ -5,7 +5,7 @@ import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
 import { roundToDecimal } from "src/infra/i18n/numbers";
 import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
-import { valveStatusLabel } from "./AssetEditor";
+import { valveStatusLabel } from "./asset-editor";
 
 export type QuantityStats = {
   type: "quantity";

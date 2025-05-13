@@ -9,6 +9,7 @@ export const Selector = <T extends string>({
   onChange,
   ariaLabel,
   tabIndex = 1,
+  disableFocusOnClose = false,
   styleOptions = {
     border: true,
     textSize: "text-sm",
@@ -32,6 +33,7 @@ export const Selector = <T extends string>({
     paddingX?: number;
     paddingY?: number;
   };
+  disableFocusOnClose?: boolean;
 }) => {
   const [isOpen, setOpen] = useState(false);
 
@@ -86,7 +88,7 @@ export const Selector = <T extends string>({
         <Select.Portal>
           <Select.Content
             onKeyDown={handleKeyDown}
-            onCloseAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => disableFocusOnClose && e.preventDefault()}
             className={contentStyles}
           >
             <Select.Viewport className="p-1">

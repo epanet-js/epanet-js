@@ -615,7 +615,6 @@ describe("AssetEditor", () => {
       name: /value for: status/i,
     });
     expect(updatedSelector).toHaveTextContent("Open");
-    expect(updatedSelector).not.toHaveFocus();
 
     await user.tab();
     expect(

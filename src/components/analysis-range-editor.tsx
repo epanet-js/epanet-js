@@ -281,6 +281,7 @@ export const AnalysisRangeEditor = ({
                             <div className="w-full">
                               <Button
                                 type="button"
+                                tabIndex={1}
                                 disabled={!canAddMore}
                                 variant="ultra-quiet"
                                 className="opacity-60 border-none"
@@ -315,6 +316,7 @@ export const AnalysisRangeEditor = ({
                                   canDeleteStop ? (
                                     <div>
                                       <Button
+                                        tabIndex={2}
                                         type="button"
                                         variant="ultra-quiet"
                                         aria-label={`Delete stop ${i - 1}`}
@@ -330,6 +332,7 @@ export const AnalysisRangeEditor = ({
                             <div className="w-full">
                               <Button
                                 type="button"
+                                tabIndex={1}
                                 disabled={!canAddMore}
                                 variant="ultra-quiet"
                                 className="text-gray-200 opacity-60 border-none"
@@ -459,7 +462,11 @@ const RampSelector = ({
 
   return (
     <Select.Root>
-      <Select.Trigger aria-label="ramp select" className={triggerStyles}>
+      <Select.Trigger
+        tabIndex={1}
+        aria-label="ramp select"
+        className={triggerStyles}
+      >
         <span
           className="cursor-pointer w-full h-5 border rounded-md"
           style={{
@@ -473,11 +480,7 @@ const RampSelector = ({
           <ChevronDownIcon />
         </span>
       </Select.Trigger>
-      <Select.Content
-        position="popper"
-        className={contentStyles}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-      >
+      <Select.Content position="popper" className={contentStyles}>
         <Select.Viewport className="p-1">
           <div className="flex flex-col gap-y-2">
             <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
