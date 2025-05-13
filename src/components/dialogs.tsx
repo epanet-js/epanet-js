@@ -86,7 +86,7 @@ const MissingCoordinatesDialog = dynamic<{
 
 const CreateNewDialog = dynamic<{
   onClose: () => void;
-}>(() => import("src/components/dialogs/CreateNew").then((r) => r.CreateNew), {
+}>(() => import("src/components/dialogs/create-new").then((r) => r.CreateNew), {
   loading: () => <Loading />,
 });
 
