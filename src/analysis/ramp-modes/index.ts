@@ -13,9 +13,9 @@ export const checkValidData = (
 ) => {
   switch (mode) {
     case "equalIntervals":
+    case "manual":
       return checkEqualIntervalsData(sortedData);
     case "equalQuantiles":
-    case "manual":
       return checkEqualQuantilesData(sortedData, numIntervals);
     case "prettyBreaks":
       return checkPrettyBreaksData(sortedData);

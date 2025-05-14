@@ -14,6 +14,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { ISymbolizationRamp } from "src/types";
 import {
+  RampError,
   RampMode,
   RampSize,
   appendStop,
@@ -49,6 +50,8 @@ import * as d3 from "d3-array";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { getSortedValues } from "src/analysis/analysis-data";
+
+type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
 export const AnalysisRangeEditor = ({
   geometryType = "nodes",
@@ -129,7 +132,7 @@ export const AnalysisRangeEditor = ({
     ]);
   }, [symbolization.stops, sortedData]);
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorType | null>(null);
 
   const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
     for (let i = 1; i < candidates.length; i++) {
@@ -139,6 +142,27 @@ export const AnalysisRangeEditor = ({
     }
     return true;
   };
+
+  const updateStateNext = useCallback(
+    (newState: {
+      symbolization: ISymbolizationRamp;
+      error: RampError | null;
+    }) => {
+      setSymbolization(newState.symbolization);
+      setError(newState.error);
+      if (!!newState.error) {
+        toast.error(translate("unableToUpdate"), {
+          id: "symbolization",
+        });
+      } else {
+        toast.success(translate("updated"), {
+          id: "symbolization",
+        });
+        onChange(newState.symbolization);
+      }
+    },
+    [onChange],
+  );
 
   const updateState = useCallback(
     (newSymbolization: ISymbolizationRamp) => {
@@ -165,7 +189,7 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleStopValueChange = (index: number, value: number) => {
-    updateState(changeStopValue(symbolization, index, value));
+    updateStateNext(changeStopValue(symbolization, index, value));
   };
 
   const handlePrependStop = () => {
@@ -183,15 +207,12 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleDeleteStop = (index: number) => {
-    updateState(deleteStop(symbolization, index));
+    updateStateNext(deleteStop(symbolization, index));
   };
 
   const handleRampSizeChange = (rampSize: number) => {
-    if (!sortedData.length) {
-      setError("notEnoughData");
-      return;
-    }
-    updateState(changeRampSize(symbolization, sortedData, rampSize));
+    const result = changeRampSize(symbolization, sortedData, rampSize);
+    updateStateNext(result);
   };
 
   const handleRampChange = (newRampName: string, isReversed: boolean) => {
@@ -199,11 +220,8 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleModeChange = (newMode: RampMode) => {
-    if (!sortedData.length) {
-      setError("notEnoughData");
-      return;
-    }
-    updateState(applyMode(symbolization, newMode, sortedData));
+    const result = applyMode(symbolization, newMode, sortedData);
+    updateStateNext(result);
   };
 
   const rampSize = symbolization.stops.length as RampSize;
@@ -236,58 +254,72 @@ export const AnalysisRangeEditor = ({
                           onChange={handleRampSizeChange}
                         />
                       </div>
-                      <div className="flex flex-col gap-y-2 w-full">
-                        <span className="text-sm text-gray-500">
-                          {translate("colorRamp")}
-                        </span>
-                        <RampSelector
-                          rampColors={symbolization.stops.map((s) => s.output)}
-                          rampSize={rampSize}
-                          reversedRamp={Boolean(symbolization.reversedRamp)}
-                          onRampChange={handleRampChange}
-                          onReverse={handleReverseColors}
-                        />
-                      </div>
+                      {error !== "notEnoughData" && (
+                        <div className="flex flex-col gap-y-2 w-full">
+                          <span className="text-sm text-gray-500">
+                            {translate("colorRamp")}
+                          </span>
+                          <ColorRampSelector
+                            rampColors={symbolization.stops.map(
+                              (s) => s.output,
+                            )}
+                            rampSize={rampSize}
+                            reversedRamp={Boolean(symbolization.reversedRamp)}
+                            onRampChange={handleRampChange}
+                            onReverse={handleReverseColors}
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    <div className="max-h-[400px] overflow-y-auto">
-                      <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
-                        <RangeEditor
-                          symbolization={symbolization}
-                          onAppend={handleAppendStop}
-                          onPrepend={handlePrependStop}
-                          onDelete={handleDeleteStop}
-                          onChangeColor={handleStopColorChange}
-                          onChangeValue={handleStopValueChange}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      {error && (
-                        <p className="py-2 text-sm font-semibold text-orange-800">
-                          {translate(error)}
-                        </p>
-                      )}
-                      {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
-                        <>
-                          <p>
-                            Histogram: {JSON.stringify(debugData.histogram)}
-                          </p>
-                          <p>Min: {debugData.min}</p>
-                          <p>Max: {debugData.max}</p>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-center w-full gap-y-2">
-                      <Button
-                        className="text-center"
-                        size="full-width"
-                        onClick={() => handleModeChange(symbolization.mode)}
-                      >
-                        <UpdateIcon />
-                        {translate("regenerate")}
-                      </Button>
-                    </div>
+                    {error === "notEnoughData" && (
+                      <p className="py-2 text-sm font-semibold text-orange-800">
+                        {translate(error)}
+                      </p>
+                    )}
+
+                    {error !== "notEnoughData" && (
+                      <>
+                        <div className="max-h-[400px] overflow-y-auto">
+                          <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
+                            <RangeEditor
+                              symbolization={symbolization}
+                              onAppend={handleAppendStop}
+                              onPrepend={handlePrependStop}
+                              onDelete={handleDeleteStop}
+                              onChangeColor={handleStopColorChange}
+                              onChangeValue={handleStopValueChange}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          {error && (
+                            <p className="py-2 text-sm font-semibold text-orange-800">
+                              {translate(error)}
+                            </p>
+                          )}
+                          {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+                            <>
+                              <p>
+                                Histogram: {JSON.stringify(debugData.histogram)}
+                              </p>
+                              <p>Min: {debugData.min}</p>
+                              <p>Max: {debugData.max}</p>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-center w-full gap-y-2">
+                          <Button
+                            className="text-center"
+                            size="full-width"
+                            onClick={() => handleModeChange(symbolization.mode)}
+                          >
+                            <UpdateIcon />
+                            {translate("regenerate")}
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </FieldArray>
@@ -468,7 +500,7 @@ const ModeSelector = ({
   );
 };
 
-const RampSelector = ({
+const ColorRampSelector = ({
   rampColors,
   rampSize,
   onRampChange,
