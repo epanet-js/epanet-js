@@ -1,6 +1,6 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
-import { calculatePrettyBreaks } from "./ramp-modes";
+import { calculatePrettyBreaks, checkValidData } from "./ramp-modes";
 import { Unit } from "src/quantity";
 import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./ramp-modes/equal-quantiles";
@@ -22,6 +22,13 @@ export type RampSize = keyof CBColors["colors"];
 export const defaultNewColor = "#0fffff";
 export const maxRampSize = 7;
 export const minRampSize = 3;
+
+export type RampError = "rampShouldBeAscending" | "notEnoughData";
+
+type UpdateResult = {
+  symbolization: SymbolizationRamp;
+  error: RampError | null;
+};
 
 export const initializeSymbolization = ({
   mode,
@@ -123,21 +130,37 @@ export const changeStopColor = (
   return { ...symbolization, stops: newStops };
 };
 
+const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
+  for (let i = 1; i < candidates.length; i++) {
+    if (candidates[i].input < candidates[i - 1].input) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const changeStopValue = (
   symbolization: SymbolizationRamp,
   index: number,
   value: number,
-): SymbolizationRamp => {
+): UpdateResult => {
   const newStops = symbolization.stops.map((stop, i) => {
     if (i !== index) return stop;
 
     return { ...stop, input: value };
   });
+  const valid = validateAscendingOrder(newStops);
 
-  return { ...symbolization, mode: "manual", stops: newStops };
+  return {
+    symbolization: { ...symbolization, mode: "manual", stops: newStops },
+    error: !valid ? "rampShouldBeAscending" : null,
+  };
 };
 
-export const deleteStop = (symbolization: SymbolizationRamp, index: number) => {
+export const deleteStop = (
+  symbolization: SymbolizationRamp,
+  index: number,
+): UpdateResult => {
   let newStops;
   if (index === 1) {
     const [, target, ...rest] = symbolization.stops;
@@ -146,7 +169,11 @@ export const deleteStop = (symbolization: SymbolizationRamp, index: number) => {
     newStops = symbolization.stops.filter((stop, i) => i !== index);
   }
 
-  return { ...symbolization, stops: newStops };
+  const valid = validateAscendingOrder(newStops);
+  return {
+    symbolization: { ...symbolization, stops: newStops },
+    error: !valid ? "rampShouldBeAscending" : null,
+  };
 };
 
 export const changeRampName = (
@@ -173,17 +200,26 @@ export const changeRampSize = (
   symbolization: SymbolizationRamp,
   sortedValues: number[],
   rampSize: number,
-) => {
-  const stops = generateStops(
-    symbolization.mode,
-    getColors(
-      symbolization.rampName,
-      rampSize,
-      Boolean(symbolization.reversedRamp),
-    ),
-    sortedValues,
+): UpdateResult => {
+  const valid = checkValidData(symbolization.mode, sortedValues, rampSize);
+
+  const colors = getColors(
+    symbolization.rampName,
+    rampSize,
+    Boolean(symbolization.reversedRamp),
   );
-  return { ...symbolization, stops };
+
+  const stops = valid
+    ? generateStops(symbolization.mode, colors, sortedValues)
+    : Array.from({ length: rampSize }, (_, i) => ({
+        input: i,
+        output: colors[i],
+      }));
+
+  return {
+    symbolization: { ...symbolization, stops },
+    error: !valid ? "notEnoughData" : null,
+  };
 };
 
 export const getColors = (
@@ -200,13 +236,21 @@ export const applyMode = (
   symbolization: SymbolizationRamp,
   mode: RampMode,
   sortedValues: number[],
-): SymbolizationRamp => {
-  const stops = generateStops(
-    mode,
-    symbolization.stops.map((s) => s.output),
-    sortedValues,
-  );
-  return { ...symbolization, mode, stops };
+): UpdateResult => {
+  const rampSize = symbolization.stops.length as RampSize;
+  const valid = checkValidData(mode, sortedValues, rampSize);
+  const stops = valid
+    ? generateStops(
+        mode,
+        symbolization.stops.map((s) => s.output),
+        sortedValues,
+      )
+    : symbolization.stops;
+
+  return {
+    symbolization: { ...symbolization, mode, stops },
+    error: !valid ? "notEnoughData" : null,
+  };
 };
 
 const generateStops = (
