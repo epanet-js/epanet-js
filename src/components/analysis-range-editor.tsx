@@ -145,7 +145,7 @@ export const AnalysisRangeEditor = ({
       setSymbolization(newSymbolization);
       const isValid = validateAscendingOrder(newSymbolization.stops);
       if (!isValid) {
-        setError(translate("rampShouldBeAscending"));
+        setError("rampShouldBeAscending");
         toast.error(translate("unableToUpdate"), {
           id: "symbolization",
         });
@@ -188,7 +188,7 @@ export const AnalysisRangeEditor = ({
 
   const handleRampSizeChange = (rampSize: number) => {
     if (!sortedData.length) {
-      setError(translate("notEnoughData"));
+      setError("notEnoughData");
       return;
     }
     updateState(changeRampSize(symbolization, sortedData, rampSize));
@@ -200,15 +200,13 @@ export const AnalysisRangeEditor = ({
 
   const handleModeChange = (newMode: RampMode) => {
     if (!sortedData.length) {
-      setError(translate("notEnoughData"));
+      setError("notEnoughData");
       return;
     }
     updateState(applyMode(symbolization, newMode, sortedData));
   };
 
   const rampSize = symbolization.stops.length as RampSize;
-  const canAddMore = rampSize < maxRampSize;
-  const canDeleteStop = rampSize > minRampSize;
 
   return (
     <div>
@@ -254,102 +252,20 @@ export const AnalysisRangeEditor = ({
 
                     <div className="max-h-[400px] overflow-y-auto">
                       <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
-                        <div className="w-full flex flex-row gap-2 items-start dark:text-white">
-                          <div className="flex flex-col gap-1">
-                            {symbolization.stops.map((stop, i) => (
-                              <div
-                                className={clsx(
-                                  i === 0 ||
-                                    i === symbolization.stops.length - 1
-                                    ? "h-[54px]"
-                                    : "h-[37.5px]",
-                                  "rounded rounded-md padding-1 w-4",
-                                )}
-                                key={`${stop.input}-${i}`}
-                              >
-                                <ColorPopover
-                                  color={stop.output}
-                                  onChange={(color) => {
-                                    handleStopColorChange(i, color);
-                                  }}
-                                  ariaLabel={`color ${i}`}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-full">
-                              <Button
-                                type="button"
-                                tabIndex={1}
-                                disabled={!canAddMore}
-                                variant="ultra-quiet"
-                                className="opacity-60 border-none"
-                                onClick={() => handlePrependStop()}
-                                aria-label={`Prepend stop`}
-                              >
-                                <PlusIcon /> {translate("addBreak")}
-                              </Button>
-                            </div>
-                            {symbolization.stops.map((stop, i) => {
-                              if (i === 0) return null;
-
-                              return (
-                                <div
-                                  className="flex w-full items-center gap-1"
-                                  key={`${stop.input}-${i}`}
-                                >
-                                  <NumericField
-                                    key={`step-${i - 1}`}
-                                    label={`step ${i - 1}`}
-                                    isNullable={true}
-                                    readOnly={false}
-                                    positiveOnly={Boolean(
-                                      symbolization.absValues,
-                                    )}
-                                    displayValue={localizeDecimal(stop.input)}
-                                    onChangeValue={(value) => {
-                                      handleStopValueChange(i, value);
-                                    }}
-                                  />
-                                  {symbolization.stops.length > 1 &&
-                                  canDeleteStop ? (
-                                    <div>
-                                      <Button
-                                        tabIndex={2}
-                                        type="button"
-                                        variant="ultra-quiet"
-                                        aria-label={`Delete stop ${i - 1}`}
-                                        onClick={() => handleDeleteStop(i)}
-                                      >
-                                        <TrashIcon className="opacity-60" />
-                                      </Button>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              );
-                            })}
-                            <div className="w-full">
-                              <Button
-                                type="button"
-                                tabIndex={1}
-                                disabled={!canAddMore}
-                                variant="ultra-quiet"
-                                className="text-gray-200 opacity-60 border-none"
-                                onClick={() => handleAppendStop()}
-                                aria-label={`Append stop`}
-                              >
-                                <PlusIcon /> {translate("addBreak")}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                        <RangeEditor
+                          symbolization={symbolization}
+                          onAppend={handleAppendStop}
+                          onPrepend={handlePrependStop}
+                          onDelete={handleDeleteStop}
+                          onChangeColor={handleStopColorChange}
+                          onChangeValue={handleStopValueChange}
+                        />
                       </div>
                     </div>
                     <div>
-                      {!!error && (
+                      {error && (
                         <p className="py-2 text-sm font-semibold text-orange-800">
-                          {error}
+                          {translate(error)}
                         </p>
                       )}
                       {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
@@ -379,6 +295,115 @@ export const AnalysisRangeEditor = ({
           );
         }}
       </Formik>
+    </div>
+  );
+};
+
+const RangeEditor = ({
+  symbolization,
+  onChangeColor,
+  onChangeValue,
+  onPrepend,
+  onAppend,
+  onDelete,
+}: {
+  symbolization: ISymbolizationRamp;
+  onChangeColor: (index: number, color: string) => void;
+  onChangeValue: (index: number, value: number) => void;
+  onPrepend: () => void;
+  onAppend: () => void;
+  onDelete: (index: number) => void;
+}) => {
+  const rampSize = symbolization.stops.length as RampSize;
+  const canAddMore = rampSize < maxRampSize;
+  const canDeleteStop = rampSize > minRampSize;
+
+  return (
+    <div className="w-full flex flex-row gap-2 items-start dark:text-white">
+      <div className="flex flex-col gap-1">
+        {symbolization.stops.map((stop, i) => (
+          <div
+            className={clsx(
+              i === 0 || i === symbolization.stops.length - 1
+                ? "h-[54px]"
+                : "h-[37.5px]",
+              "rounded rounded-md padding-1 w-4",
+            )}
+            key={`${stop.input}-${i}`}
+          >
+            <ColorPopover
+              color={stop.output}
+              onChange={(color) => {
+                onChangeColor(i, color);
+              }}
+              ariaLabel={`color ${i}`}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-full">
+          <Button
+            type="button"
+            tabIndex={1}
+            disabled={!canAddMore}
+            variant="ultra-quiet"
+            className="opacity-60 border-none"
+            onClick={onPrepend}
+            aria-label={`Prepend stop`}
+          >
+            <PlusIcon /> {translate("addBreak")}
+          </Button>
+        </div>
+        {symbolization.stops.map((stop, i) => {
+          if (i === 0) return null;
+
+          return (
+            <div
+              className="flex w-full items-center gap-1"
+              key={`${stop.input}-${i}`}
+            >
+              <NumericField
+                key={`step-${i - 1}`}
+                label={`step ${i - 1}`}
+                isNullable={true}
+                readOnly={false}
+                positiveOnly={Boolean(symbolization.absValues)}
+                displayValue={localizeDecimal(stop.input)}
+                onChangeValue={(value) => {
+                  onChangeValue(i, value);
+                }}
+              />
+              {symbolization.stops.length > 1 && canDeleteStop ? (
+                <div>
+                  <Button
+                    tabIndex={2}
+                    type="button"
+                    variant="ultra-quiet"
+                    aria-label={`Delete stop ${i - 1}`}
+                    onClick={() => onDelete(i)}
+                  >
+                    <TrashIcon className="opacity-60" />
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+        <div className="w-full">
+          <Button
+            type="button"
+            tabIndex={1}
+            disabled={!canAddMore}
+            variant="ultra-quiet"
+            className="text-gray-200 opacity-60 border-none"
+            onClick={onAppend}
+            aria-label={`Append stop`}
+          >
+            <PlusIcon /> {translate("addBreak")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
