@@ -5,7 +5,6 @@ import {
   UpdateIcon,
 } from "@radix-ui/react-icons";
 import clsx from "clsx";
-import { FieldArray, Form, Formik } from "formik";
 import { useAtom, useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
 import { Button } from "src/components/elements";
@@ -227,106 +226,84 @@ export const AnalysisRangeEditor = ({
   const rampSize = symbolization.stops.length as RampSize;
 
   return (
-    <div>
-      <Formik onSubmit={() => {}} initialValues={{}}>
-        {() => {
-          return (
-            <Form className="space-y-4">
-              <FieldArray name="stops">
-                {() => (
-                  <>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-y-2 w-full">
-                        <span className="text-sm text-gray-500">
-                          {translate("mode")}
-                        </span>
-                        <ModeSelector
-                          rampMode={symbolization.mode}
-                          onModeChange={handleModeChange}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-y-2 w-full">
-                        <span className="text-sm text-gray-500">
-                          {translate("classes")}
-                        </span>
-                        <ClassesSelector
-                          rampSize={rampSize}
-                          onChange={handleRampSizeChange}
-                        />
-                      </div>
-                      {error !== "notEnoughData" && (
-                        <div className="flex flex-col gap-y-2 w-full">
-                          <span className="text-sm text-gray-500">
-                            {translate("colorRamp")}
-                          </span>
-                          <ColorRampSelector
-                            rampColors={symbolization.stops.map(
-                              (s) => s.output,
-                            )}
-                            rampSize={rampSize}
-                            reversedRamp={Boolean(symbolization.reversedRamp)}
-                            onRampChange={handleRampChange}
-                            onReverse={handleReverseColors}
-                          />
-                        </div>
-                      )}
-                    </div>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-y-2 w-full">
+          <span className="text-sm text-gray-500">{translate("mode")}</span>
+          <ModeSelector
+            rampMode={symbolization.mode}
+            onModeChange={handleModeChange}
+          />
+        </div>
+        <div className="flex flex-col gap-y-2 w-full">
+          <span className="text-sm text-gray-500">{translate("classes")}</span>
+          <ClassesSelector
+            rampSize={rampSize}
+            onChange={handleRampSizeChange}
+          />
+        </div>
+        {error !== "notEnoughData" && (
+          <div className="flex flex-col gap-y-2 w-full">
+            <span className="text-sm text-gray-500">
+              {translate("colorRamp")}
+            </span>
+            <ColorRampSelector
+              rampColors={symbolization.stops.map((s) => s.output)}
+              rampSize={rampSize}
+              reversedRamp={Boolean(symbolization.reversedRamp)}
+              onRampChange={handleRampChange}
+              onReverse={handleReverseColors}
+            />
+          </div>
+        )}
+      </div>
 
-                    {error === "notEnoughData" && (
-                      <p className="py-2 text-sm font-semibold text-orange-800">
-                        {translate(error)}
-                      </p>
-                    )}
+      {error === "notEnoughData" && (
+        <p className="py-2 text-sm font-semibold text-orange-800">
+          {translate(error)}
+        </p>
+      )}
 
-                    {error !== "notEnoughData" && (
-                      <>
-                        <div className="max-h-[400px] overflow-y-auto">
-                          <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
-                            <RangeEditor
-                              symbolization={symbolization}
-                              onAppend={handleAppendStop}
-                              onPrepend={handlePrependStop}
-                              onDelete={handleDeleteStop}
-                              onChangeColor={handleStopColorChange}
-                              onChangeValue={handleStopValueChange}
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          {error && (
-                            <p className="py-2 text-sm font-semibold text-orange-800">
-                              {translate(error)}
-                            </p>
-                          )}
-                          {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
-                            <>
-                              <p>
-                                Histogram: {JSON.stringify(debugData.histogram)}
-                              </p>
-                              <p>Min: {debugData.min}</p>
-                              <p>Max: {debugData.max}</p>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-center w-full gap-y-2">
-                          <Button
-                            className="text-center"
-                            size="full-width"
-                            onClick={() => handleModeChange(symbolization.mode)}
-                          >
-                            <UpdateIcon />
-                            {translate("regenerate")}
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-              </FieldArray>
-            </Form>
-          );
-        }}
-      </Formik>
+      {error !== "notEnoughData" && (
+        <>
+          <div className="max-h-[400px] overflow-y-auto">
+            <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
+              <RangeEditor
+                symbolization={symbolization}
+                onAppend={handleAppendStop}
+                onPrepend={handlePrependStop}
+                onDelete={handleDeleteStop}
+                onChangeColor={handleStopColorChange}
+                onChangeValue={handleStopValueChange}
+              />
+            </div>
+          </div>
+          <div>
+            {error && (
+              <p className="py-2 text-sm font-semibold text-orange-800">
+                {translate(error)}
+              </p>
+            )}
+            {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+              <>
+                <p>Histogram: {JSON.stringify(debugData.histogram)}</p>
+                <p>Min: {debugData.min}</p>
+                <p>Max: {debugData.max}</p>
+              </>
+            )}
+          </div>
+          <div className="flex flex-col items-center w-full gap-y-2">
+            <Button
+              className="text-center"
+              size="full-width"
+              onClick={() => handleModeChange(symbolization.mode)}
+            >
+              <UpdateIcon />
+              {translate("regenerate")}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
