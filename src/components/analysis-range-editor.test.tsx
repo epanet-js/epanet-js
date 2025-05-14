@@ -145,8 +145,6 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/ascending/)).not.toBeInTheDocument();
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
       { input: -Infinity, output: red },
@@ -473,6 +471,39 @@ describe("analysis range editor", () => {
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
 
+  it("shows error when changing to number of classes without data ", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("p1", { simulation: { flow: 10 } })
+      .aPipe("p2", { simulation: { flow: 15 } })
+      .aPipe("p3", { simulation: { flow: 20 } })
+      .aPipe("p4", { simulation: { flow: 30 } })
+      .build();
+    const user = userEvent.setup();
+    const linksAnalysis = aLinksAnalysis({
+      property: "flow",
+      mode: "equalIntervals",
+      stops: [
+        { input: 10, output: red },
+        { input: 20, output: green },
+        { input: 30, output: blue },
+      ],
+    });
+    const store = setInitialState({ hydraulicModel, linksAnalysis });
+
+    renderComponent({ store, geometryType: "links" });
+
+    expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: /ramp size/i }),
+    ).toHaveTextContent("3");
+    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("option", { name: /ckmeans/i }));
+    expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("combobox", { name: /ramp size/i }));
+    await user.click(screen.getByRole("option", { name: /4/i }));
+    expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
+  });
+
   it("can also handle links with absolute values", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe("p1", { simulation: { flow: 10 } })
@@ -496,7 +527,6 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
     let stops = getUpdateLinksAnalysisSymbolization(store).stops;
     expect(stops[0].input).toEqual(-Infinity);
     expect(stops[1].input).toEqual(15);

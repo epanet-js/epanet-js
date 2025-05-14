@@ -13,7 +13,6 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { ISymbolizationRamp } from "src/types";
 import {
-  RampError,
   RampMode,
   RampSize,
   appendStop,
@@ -29,6 +28,7 @@ import {
   prependStop,
   rampModes,
   reverseColors,
+  validateAscendingOrder,
 } from "src/analysis/symbolization-ramp";
 import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
@@ -133,94 +133,100 @@ export const AnalysisRangeEditor = ({
 
   const [error, setError] = useState<ErrorType | null>(null);
 
-  const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
-    for (let i = 1; i < candidates.length; i++) {
-      if (candidates[i].input < candidates[i - 1].input) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const updateStateNext = useCallback(
-    (newState: {
-      symbolization: ISymbolizationRamp;
-      error: RampError | null;
-    }) => {
-      setSymbolization(newState.symbolization);
-      setError(newState.error);
-      if (!!newState.error) {
-        toast.error(translate("unableToUpdate"), {
-          id: "symbolization",
-        });
-      } else {
-        toast.success(translate("updated"), {
-          id: "symbolization",
-        });
-        onChange(newState.symbolization);
-      }
-    },
-    [onChange],
-  );
-
-  const updateState = useCallback(
-    (newSymbolization: ISymbolizationRamp) => {
-      setSymbolization(newSymbolization);
-      const isValid = validateAscendingOrder(newSymbolization.stops);
-      if (!isValid) {
-        setError("rampShouldBeAscending");
-        toast.error(translate("unableToUpdate"), {
-          id: "symbolization",
-        });
-      } else {
-        setError(null);
-        toast.success(translate("updated"), {
-          id: "symbolization",
-        });
-        onChange(newSymbolization);
-      }
-    },
-    [onChange],
-  );
-
-  const handleStopColorChange = (index: number, color: string) => {
-    updateState(changeStopColor(symbolization, index, color));
-  };
-
-  const handleStopValueChange = (index: number, value: number) => {
-    updateStateNext(changeStopValue(symbolization, index, value));
-  };
-
-  const handlePrependStop = () => {
-    const newSymbolization = prependStop(symbolization);
-    updateState(newSymbolization);
-  };
-
-  const handleAppendStop = () => {
-    const newSymbolization = appendStop(symbolization);
-    updateState(newSymbolization);
-  };
-
-  const handleReverseColors = () => {
-    updateState(reverseColors(symbolization));
-  };
-
-  const handleDeleteStop = (index: number) => {
-    updateStateNext(deleteStop(symbolization, index));
-  };
-
-  const handleRampSizeChange = (rampSize: number) => {
-    const result = changeRampSize(symbolization, sortedData, rampSize);
-    updateStateNext(result);
-  };
-
-  const handleRampChange = (newRampName: string, isReversed: boolean) => {
-    updateState(changeRampName(symbolization, newRampName, isReversed));
+  const submitChange = (newSymbolization: ISymbolizationRamp) => {
+    toast.success(translate("updated"), {
+      id: "symbolization",
+    });
+    onChange(newSymbolization);
   };
 
   const handleModeChange = (newMode: RampMode) => {
     const result = applyMode(symbolization, newMode, sortedData);
-    updateStateNext(result);
+    setSymbolization(result.symbolization);
+    if (result.error) {
+      setError("notEnoughData");
+    } else {
+      setError(null);
+      submitChange(result.symbolization);
+    }
+  };
+
+  const handleRampSizeChange = (rampSize: number) => {
+    const result = changeRampSize(symbolization, sortedData, rampSize);
+    setSymbolization(result.symbolization);
+    if (result.error) {
+      setError("notEnoughData");
+    } else {
+      setError(null);
+      submitChange(result.symbolization);
+    }
+  };
+
+  const handleStopColorChange = (index: number, color: string) => {
+    const newSymbolization = changeStopColor(symbolization, index, color);
+    setSymbolization(newSymbolization);
+
+    if (!error) {
+      submitChange(newSymbolization);
+    }
+  };
+
+  const handleStopValueChange = (index: number, value: number) => {
+    const newSymbolization = changeStopValue(symbolization, index, value);
+    setSymbolization(newSymbolization);
+
+    const isValid = validateAscendingOrder(newSymbolization.stops);
+    if (!isValid) {
+      setError("rampShouldBeAscending");
+    } else {
+      setError(null);
+      submitChange(newSymbolization);
+    }
+  };
+
+  const handleDeleteStop = (index: number) => {
+    const newSymbolization = deleteStop(symbolization, index);
+    setSymbolization(newSymbolization);
+
+    const isValid = validateAscendingOrder(newSymbolization.stops);
+    if (!isValid) {
+      setError("rampShouldBeAscending");
+    } else {
+      setError(null);
+      submitChange(newSymbolization);
+    }
+  };
+
+  const handlePrependStop = () => {
+    const newSymbolization = prependStop(symbolization);
+    setSymbolization(newSymbolization);
+    if (!error) {
+      submitChange(newSymbolization);
+    }
+  };
+
+  const handleAppendStop = () => {
+    const newSymbolization = appendStop(symbolization);
+    setSymbolization(newSymbolization);
+    if (!error) {
+      submitChange(newSymbolization);
+    }
+  };
+
+  const handleReverseColors = () => {
+    const newSymbolization = reverseColors(symbolization);
+    setSymbolization(newSymbolization);
+    if (!error) submitChange(newSymbolization);
+  };
+
+  const handleRampChange = (newRampName: string, isReversed: boolean) => {
+    const newSymbolization = changeRampName(
+      symbolization,
+      newRampName,
+      isReversed,
+    );
+    setSymbolization(newSymbolization);
+    if (!error) submitChange(newSymbolization);
   };
 
   const rampSize = symbolization.stops.length as RampSize;

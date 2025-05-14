@@ -23,13 +23,6 @@ export const defaultNewColor = "#0fffff";
 export const maxRampSize = 7;
 export const minRampSize = 3;
 
-export type RampError = "rampShouldBeAscending" | "notEnoughData";
-
-type UpdateResult = {
-  symbolization: SymbolizationRamp;
-  error: RampError | null;
-};
-
 export const initializeSymbolization = ({
   mode,
   rampName,
@@ -130,7 +123,9 @@ export const changeStopColor = (
   return { ...symbolization, stops: newStops };
 };
 
-const validateAscendingOrder = (candidates: ISymbolizationRamp["stops"]) => {
+export const validateAscendingOrder = (
+  candidates: ISymbolizationRamp["stops"],
+) => {
   for (let i = 1; i < candidates.length; i++) {
     if (candidates[i].input < candidates[i - 1].input) {
       return false;
@@ -143,24 +138,20 @@ export const changeStopValue = (
   symbolization: SymbolizationRamp,
   index: number,
   value: number,
-): UpdateResult => {
+): SymbolizationRamp => {
   const newStops = symbolization.stops.map((stop, i) => {
     if (i !== index) return stop;
 
     return { ...stop, input: value };
   });
-  const valid = validateAscendingOrder(newStops);
 
-  return {
-    symbolization: { ...symbolization, mode: "manual", stops: newStops },
-    error: !valid ? "rampShouldBeAscending" : null,
-  };
+  return { ...symbolization, mode: "manual", stops: newStops };
 };
 
 export const deleteStop = (
   symbolization: SymbolizationRamp,
   index: number,
-): UpdateResult => {
+): SymbolizationRamp => {
   let newStops;
   if (index === 1) {
     const [, target, ...rest] = symbolization.stops;
@@ -169,10 +160,9 @@ export const deleteStop = (
     newStops = symbolization.stops.filter((stop, i) => i !== index);
   }
 
-  const valid = validateAscendingOrder(newStops);
   return {
-    symbolization: { ...symbolization, stops: newStops },
-    error: !valid ? "rampShouldBeAscending" : null,
+    ...symbolization,
+    stops: newStops,
   };
 };
 
@@ -200,7 +190,7 @@ export const changeRampSize = (
   symbolization: SymbolizationRamp,
   sortedValues: number[],
   rampSize: number,
-): UpdateResult => {
+): { symbolization: SymbolizationRamp; error?: boolean } => {
   const valid = checkValidData(symbolization.mode, sortedValues, rampSize);
 
   const colors = getColors(
@@ -218,7 +208,7 @@ export const changeRampSize = (
 
   return {
     symbolization: { ...symbolization, stops },
-    error: !valid ? "notEnoughData" : null,
+    error: !valid,
   };
 };
 
@@ -236,7 +226,7 @@ export const applyMode = (
   symbolization: SymbolizationRamp,
   mode: RampMode,
   sortedValues: number[],
-): UpdateResult => {
+): { symbolization: SymbolizationRamp; error?: boolean } => {
   const rampSize = symbolization.stops.length as RampSize;
   const valid = checkValidData(mode, sortedValues, rampSize);
   const stops = valid
@@ -249,7 +239,7 @@ export const applyMode = (
 
   return {
     symbolization: { ...symbolization, mode, stops },
-    error: !valid ? "notEnoughData" : null,
+    error: !valid,
   };
 };
 
