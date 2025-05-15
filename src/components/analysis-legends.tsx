@@ -12,6 +12,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverContent } from "src/components/elements";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const AnalysisLegends = () => {
   const [{ nodes, links }] = useAtom(analysisAtom);
@@ -51,6 +52,7 @@ const Legend = ({
   geometryType: "nodes" | "links";
   symbolization: ISymbolizationRamp;
 }) => {
+  const userTracking = useUserTracking();
   const title = symbolization.unit
     ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
     : translate(symbolization.property);
@@ -62,7 +64,15 @@ const Legend = ({
     <Popover.Root>
       <LegendContainer>
         <Popover.Trigger asChild>
-          <div className="block w-full p-2 text-right flex flex-col justify-between items-start">
+          <div
+            className="block w-full p-2 text-right flex flex-col justify-between items-start"
+            onClick={() => {
+              userTracking.capture({
+                name: "analysis.legend.clicked",
+                property: symbolization.property,
+              });
+            }}
+          >
             <div className="pb-2 text-xs whitespace-nowrap select-none">
               {title}
             </div>

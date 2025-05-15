@@ -362,6 +362,24 @@ type UserEvent =
   | PageReloaded
   | LayersPopoverOpened
   | LayerOpacityChanged
+  | { name: "analysis.rangeMode.changed"; mode: string; property: string }
+  | { name: "analysis.classes.changed"; classesCount: number; property: string }
+  | { name: "analysis.break.updated"; breakValue: number; property: string }
+  | { name: "analysis.break.prepended"; property: string }
+  | { name: "analysis.break.appended"; property: string }
+  | { name: "analysis.break.deleted"; property: string }
+  | { name: "analysis.colorRamp.changed"; rampName: string; property: string }
+  | { name: "analysis.colorRamp.reversed"; rampName: string; property: string }
+  | { name: "analysis.breakColor.changed"; property: string }
+  | { name: "analysis.breaks.regenerated"; property: string }
+  | { name: "analysis.legend.clicked"; property: string }
+  | {
+      name: "analysis.rangeError.seen";
+      property: string;
+      errorKey: string;
+      mode: string;
+      classesCount: number;
+    }
   | { name: "layerLabelVisibility.changed"; visible: boolean; type: string }
   | { name: "layer.removed"; type: string }
   | { name: "layerVisibility.changed"; visible: boolean; type: string }

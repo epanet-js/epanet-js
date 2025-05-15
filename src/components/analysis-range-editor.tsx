@@ -49,6 +49,7 @@ import * as d3 from "d3-array";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { getSortedValues } from "src/analysis/analysis-data";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -62,6 +63,8 @@ export const AnalysisRangeEditor = ({
   } = useAtomValue(dataAtom);
   const [nodesAnalysis, setNodesAnalysis] = useAtom(nodesAnalysisAtom);
   const [linksAnalysis, setLinksAnalysis] = useAtom(linksAnalysisAtom);
+
+  const userTracking = useUserTracking();
 
   const activeAnalysis =
     geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
@@ -140,7 +143,17 @@ export const AnalysisRangeEditor = ({
     onChange(newSymbolization);
   };
 
-  const showError = (error: ErrorType) => {
+  const showError = (
+    error: ErrorType,
+    newSymbolization: ISymbolizationRamp,
+  ) => {
+    userTracking.capture({
+      name: "analysis.rangeError.seen",
+      errorKey: error,
+      property: newSymbolization.property,
+      mode: newSymbolization.mode,
+      classesCount: newSymbolization.stops.length,
+    });
     setError(error);
     toast.error(translate("unableToUpdate"), { id: "symbolization" });
   };
@@ -150,10 +163,15 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleModeChange = (newMode: RampMode) => {
+    userTracking.capture({
+      name: "analysis.rangeMode.changed",
+      mode: newMode,
+      property: symbolization.property,
+    });
     const result = applyMode(symbolization, newMode, sortedData);
     setSymbolization(result.symbolization);
     if (result.error) {
-      showError("notEnoughData");
+      showError("notEnoughData", result.symbolization);
     } else {
       clearError();
       submitChange(result.symbolization);
@@ -161,10 +179,16 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleRampSizeChange = (rampSize: number) => {
+    userTracking.capture({
+      name: "analysis.classes.changed",
+      classesCount: rampSize,
+      property: symbolization.property,
+    });
+
     const result = changeRampSize(symbolization, sortedData, rampSize);
     setSymbolization(result.symbolization);
     if (result.error) {
-      showError("notEnoughData");
+      showError("notEnoughData", result.symbolization);
     } else {
       clearError();
       submitChange(result.symbolization);
@@ -172,6 +196,11 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleStopColorChange = (index: number, color: string) => {
+    userTracking.capture({
+      name: "analysis.breakColor.changed",
+      property: symbolization.property,
+    });
+
     const newSymbolization = changeStopColor(symbolization, index, color);
     setSymbolization(newSymbolization);
 
@@ -181,12 +210,18 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleStopValueChange = (index: number, value: number) => {
+    userTracking.capture({
+      name: "analysis.break.updated",
+      breakValue: value,
+      property: symbolization.property,
+    });
+
     const newSymbolization = changeStopValue(symbolization, index, value);
     setSymbolization(newSymbolization);
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
     if (!isValid) {
-      showError("rampShouldBeAscending");
+      showError("rampShouldBeAscending", newSymbolization);
     } else {
       clearError();
       submitChange(newSymbolization);
@@ -194,12 +229,17 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleDeleteStop = (index: number) => {
+    userTracking.capture({
+      name: "analysis.break.deleted",
+      property: symbolization.property,
+    });
+
     const newSymbolization = deleteStop(symbolization, index);
     setSymbolization(newSymbolization);
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
     if (!isValid) {
-      showError("rampShouldBeAscending");
+      showError("rampShouldBeAscending", newSymbolization);
     } else {
       clearError();
       submitChange(newSymbolization);
@@ -207,6 +247,11 @@ export const AnalysisRangeEditor = ({
   };
 
   const handlePrependStop = () => {
+    userTracking.capture({
+      name: "analysis.break.prepended",
+      property: symbolization.property,
+    });
+
     const newSymbolization = prependStop(symbolization);
     setSymbolization(newSymbolization);
     if (!error) {
@@ -215,6 +260,11 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleAppendStop = () => {
+    userTracking.capture({
+      name: "analysis.break.appended",
+      property: symbolization.property,
+    });
+
     const newSymbolization = appendStop(symbolization);
     setSymbolization(newSymbolization);
     if (!error) {
@@ -223,12 +273,24 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleReverseColors = () => {
+    userTracking.capture({
+      name: "analysis.colorRamp.reversed",
+      rampName: symbolization.rampName,
+      property: symbolization.property,
+    });
+
     const newSymbolization = reverseColors(symbolization);
     setSymbolization(newSymbolization);
     if (!error) submitChange(newSymbolization);
   };
 
   const handleRampChange = (newRampName: string, isReversed: boolean) => {
+    userTracking.capture({
+      name: "analysis.colorRamp.changed",
+      rampName: newRampName,
+      property: symbolization.property,
+    });
+
     const newSymbolization = changeRampName(
       symbolization,
       newRampName,
@@ -236,6 +298,21 @@ export const AnalysisRangeEditor = ({
     );
     setSymbolization(newSymbolization);
     if (!error) submitChange(newSymbolization);
+  };
+
+  const handleRegenerate = () => {
+    userTracking.capture({
+      name: "analysis.breaks.regenerated",
+      property: symbolization.property,
+    });
+    const result = applyMode(symbolization, symbolization.mode, sortedData);
+    setSymbolization(result.symbolization);
+    if (result.error) {
+      showError("notEnoughData", result.symbolization);
+    } else {
+      clearError();
+      submitChange(result.symbolization);
+    }
   };
 
   const rampSize = symbolization.stops.length as RampSize;
@@ -311,7 +388,7 @@ export const AnalysisRangeEditor = ({
             <Button
               className="text-center"
               size="full-width"
-              onClick={() => handleModeChange(symbolization.mode)}
+              onClick={handleRegenerate}
             >
               <UpdateIcon />
               {translate("regenerate")}
