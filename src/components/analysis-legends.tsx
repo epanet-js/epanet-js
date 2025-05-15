@@ -1,13 +1,9 @@
-import { useAtom, useSetAtom } from "jotai";
-import last from "lodash/last";
+import { useAtom } from "jotai";
 import { linearGradient } from "src/lib/color";
 import { analysisAtom } from "src/state/analysis";
-import { TabOption, tabAtom } from "src/state/jotai";
 import { ISymbolizationRamp } from "src/types";
-import { Button, StyledPopoverArrow } from "./elements";
-import { Pencil2Icon } from "@radix-ui/react-icons";
+import { StyledPopoverArrow } from "./elements";
 import { translate, translateUnit } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverContent } from "src/components/elements";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
@@ -19,28 +15,18 @@ export const AnalysisLegends = () => {
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
-      {nodes.type !== "none" &&
-        (isFeatureOn("FLAG_CUSTOMIZE") ? (
-          <Legend
-            geometryType="nodes"
-            symbolization={nodes.rangeColorMapping.symbolization}
-          />
-        ) : (
-          <LegendDeprecated
-            symbolization={nodes.rangeColorMapping.symbolization}
-          />
-        ))}
-      {links.type !== "none" &&
-        (isFeatureOn("FLAG_CUSTOMIZE") ? (
-          <Legend
-            geometryType="links"
-            symbolization={links.rangeColorMapping.symbolization}
-          />
-        ) : (
-          <LegendDeprecated
-            symbolization={links.rangeColorMapping.symbolization}
-          />
-        ))}
+      {nodes.type !== "none" && (
+        <Legend
+          geometryType="nodes"
+          symbolization={nodes.rangeColorMapping.symbolization}
+        />
+      )}
+      {links.type !== "none" && (
+        <Legend
+          geometryType="links"
+          symbolization={links.rangeColorMapping.symbolization}
+        />
+      )}
     </div>
   );
 };
@@ -123,69 +109,6 @@ const Legend = ({
   );
 };
 
-const LegendDeprecated = ({
-  symbolization,
-}: {
-  symbolization: ISymbolizationRamp;
-}) => {
-  return (
-    <LegendContainerDeprecated>
-      <LegendRamp symbolization={symbolization} />
-    </LegendContainerDeprecated>
-  );
-};
-
-const LegendTitle = ({ title }: { title: string }) => {
-  const setTab = useSetAtom(tabAtom);
-
-  return (
-    <div className="block w-full px-2 pt-2 text-right flex justify-between items-center">
-      {title}
-      <Button
-        variant="quiet"
-        aria-label="Edit symbolization"
-        onClick={() => {
-          setTab(TabOption.Analysis);
-        }}
-      >
-        <Pencil2Icon className="w-3 h-3" />
-      </Button>
-    </div>
-  );
-};
-
-const LegendRamp = ({
-  symbolization,
-}: {
-  symbolization: ISymbolizationRamp;
-}) => {
-  const title = symbolization.unit
-    ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
-    : translate(symbolization.property);
-  return (
-    <>
-      <LegendTitle title={title} />
-      <div className="p-2">
-        <div
-          className="h-4 rounded dark:border dark:border-white"
-          style={{
-            background: linearGradient({
-              colors: symbolization.stops.map((stop) => stop.output),
-              interpolate: symbolization.interpolate,
-            }),
-          }}
-        />
-        <div className="flex justify-between pt-1">
-          <div className="truncate">{symbolization.stops[0]?.input}</div>
-          <div className="truncate">
-            {last(symbolization.stops)?.input + "+"}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
 const LegendContainer = ({
   onClick,
   children,
@@ -200,23 +123,6 @@ const LegendContainer = ({
       dark:text-white
       border border-gray-300 dark:border-black w-32 rounded-sm cursor-pointer hover:bg-gray-100"
       onClick={onClick}
-    >
-      {children}
-    </div>
-  );
-};
-
-const LegendContainerDeprecated = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  return (
-    <div
-      className="space-y-1 text-xs
-      bg-white dark:bg-gray-900
-      dark:text-white
-  border border-gray-300 dark:border-black w-48 rounded-sm"
     >
       {children}
     </div>

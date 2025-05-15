@@ -88,6 +88,13 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
   return { ...defaults, ...data };
 };
 
+export const aSimulationSuccess = ({
+  report = "CONTENT",
+  modelVersion = "1",
+} = {}): SimulationFinished => {
+  return { status: "success", report, modelVersion };
+};
+
 export const aSimulationFailure = ({
   report = "CONTENT",
   modelVersion = "1",

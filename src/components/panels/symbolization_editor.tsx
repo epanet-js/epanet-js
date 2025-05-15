@@ -72,7 +72,6 @@ import {
 } from "src/components/panel_details";
 import { useAutoSubmit } from "src/hooks/use_auto_submit";
 import { colors } from "src/lib/constants";
-import { isFeatureOn } from "src/infra/feature-flags";
 import clsx from "clsx";
 
 const regenerateAtom = atom<boolean>(false);
@@ -223,7 +222,7 @@ export function RampChoice({
       <RampPreview
         name={ramp.name}
         classes={size || DEFAULT_CLASSES}
-        interpolate={isFeatureOn("FLAG_CUSTOMIZE") ? "step" : "step"}
+        interpolate={"step"}
         reverse={reverse}
       />
     </label>

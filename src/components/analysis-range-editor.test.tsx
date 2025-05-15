@@ -11,14 +11,10 @@ import { analysisAtom } from "src/state/analysis";
 import userEvent from "@testing-library/user-event";
 import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { defaultNewColor } from "src/analysis/symbolization-ramp";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 
 describe("analysis range editor", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOMIZE");
-  });
   const red = "#ff0000";
   const green = "#00ff00";
   const blue = "#0000ff";
