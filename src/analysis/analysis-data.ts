@@ -3,7 +3,7 @@ import { Asset, HydraulicModel } from "src/hydraulic-model";
 export const getSortedValues = (
   assets: HydraulicModel["assets"],
   property: string,
-  { absValues }: { absValues: boolean },
+  { absValues = false }: { absValues?: boolean } = {},
 ): number[] => {
   const values: number[] = [];
   for (const asset of [...assets.values()]) {
