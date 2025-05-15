@@ -54,7 +54,6 @@ export const AnalysisEditor = () => {
                     unit: hydraulicModel.units.flow,
                     rampName: "Teal",
                     mode: "equalQuantiles",
-                    rampSize: 5,
                     absValues: true,
                     sortedData: getSortedValues(hydraulicModel.assets, "flow", {
                       absValues: true,
@@ -75,17 +74,28 @@ export const AnalysisEditor = () => {
           ...prev,
           links: {
             type: "velocity",
-            rangeColorMapping: RangeColorMapping.build({
-              steps: isFeatureOn("FLAG_CUSTOMIZE")
-                ? [-Infinity, ...quantities.analysis.velocitySteps, +Infinity]
-                : quantities.analysis.velocitySteps,
-              property: "velocity",
-              unit: hydraulicModel.units.velocity,
-              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
-                ? "Temps"
-                : "epanet-ramp",
-              absoluteValues: true,
-            }),
+            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
+              ? RangeColorMapping.fromSymbolizationRamp(
+                  initializeSymbolization({
+                    property: "velocity",
+                    unit: hydraulicModel.units.velocity,
+                    rampName: "RedOr",
+                    mode: "equalQuantiles",
+                    sortedData: getSortedValues(
+                      hydraulicModel.assets,
+                      "velocity",
+                    ),
+                    fallbackEndpoints:
+                      quantities.analysis.velocityFallbackEndpoints,
+                  }),
+                )
+              : RangeColorMapping.build({
+                  steps: quantities.analysis.velocitySteps,
+                  property: "velocity",
+                  unit: hydraulicModel.units.velocity,
+                  paletteName: "epanet-ramp",
+                  absoluteValues: true,
+                }),
           },
         }));
     }
