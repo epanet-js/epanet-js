@@ -42,7 +42,10 @@ export type AssetQuantitiesSpec = {
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
-  analysis: { velocitySteps: number[] };
+  analysis: {
+    velocitySteps: number[];
+    velocityFallbackEndpoints: [number, number];
+  };
 };
 
 const metricSpec: AssetQuantitiesSpec = {
@@ -90,6 +93,7 @@ const metricSpec: AssetQuantitiesSpec = {
   },
   analysis: {
     velocitySteps: [0, 1, 2, 3, 4],
+    velocityFallbackEndpoints: [0, 4],
   },
 };
 
@@ -139,6 +143,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
   },
   analysis: {
     velocitySteps: [0, 2.5, 5, 7.5, 10],
+    velocityFallbackEndpoints: [0, 10],
   },
 };
 
