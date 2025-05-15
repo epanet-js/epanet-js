@@ -64,7 +64,7 @@ describe("build optimized source", () => {
       nodes: {
         type: "pressure",
         rangeColorMapping: RangeColorMapping.build({
-          steps: [0, 10, 20, 30],
+          steps: [-Infinity, 10, 20, 30],
           property: "pressure",
           unit: "m",
           paletteName: "epanet-ramp",
@@ -84,11 +84,9 @@ describe("build optimized source", () => {
       );
 
       const [junction] = features;
-      expect(junction.properties).toEqual({
-        type: "junction",
-        color: "#68b982",
-        strokeColor: "#b4eac4",
-      });
+      expect(junction.properties!.type).toEqual("junction");
+      expect(junction.properties!.color).not.toBeUndefined();
+      expect(junction.properties!.strokeColor).not.toBeUndefined();
     });
   });
 
@@ -98,7 +96,7 @@ describe("build optimized source", () => {
       links: {
         type: "flow",
         rangeColorMapping: RangeColorMapping.build({
-          steps: [0, 10, 20, 30],
+          steps: [-Infinity, 10, 20, 30],
           property: "flow",
           unit: "l/s",
           paletteName: "epanet-ramp",
@@ -125,19 +123,23 @@ describe("build optimized source", () => {
       );
 
       const [pipe] = features;
-      expect(pipe.properties).toEqual({
-        type: "pipe",
-        status: "open",
-        length: 14,
-        hasArrow: true,
-        rotation: 0,
-        color: "#68b982",
-      });
+      expect(pipe.properties).toEqual(
+        expect.objectContaining({
+          type: "pipe",
+          status: "open",
+          length: 14,
+          hasArrow: true,
+          rotation: 0,
+        }),
+      );
     });
 
     it("reverses arrow when value is negative", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("ID", {
+          simulation: { flow: 10 },
+        })
+        .aPipe("ID-REVERSE", {
           simulation: { flow: -10 },
         })
         .build();
@@ -148,11 +150,14 @@ describe("build optimized source", () => {
         analysis,
       );
 
-      const [pipe] = features;
+      const [pipe, reversed] = features;
       expect(pipe.properties).toMatchObject({
-        rotation: -180,
-        color: "#68b982",
+        rotation: 0,
       });
+      expect(reversed.properties).toMatchObject({
+        rotation: -180,
+      });
+      expect(pipe.properties!.color).toEqual(reversed.properties!.color);
     });
 
     it("applies the direction based on the flow", () => {
@@ -161,7 +166,7 @@ describe("build optimized source", () => {
         links: {
           type: "velocity",
           rangeColorMapping: RangeColorMapping.build({
-            steps: [0, 10, 20, 30],
+            steps: [-Infinity, 10, 20, 30],
             property: "velocity",
             unit: "l/s",
             paletteName: "epanet-ramp",

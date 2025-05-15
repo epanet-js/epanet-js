@@ -2,11 +2,12 @@ import { RangeColorMapping, parseRgb } from "./range-color-mapping";
 
 describe("Range color mapping", () => {
   const mapping = RangeColorMapping.build({
-    steps: [0, 10, 20],
+    steps: [-Infinity, 10, 20],
     paletteName: "epanet-ramp",
     unit: "mwc",
     property: "myprop",
   });
+
   it("assigns a color to each range", () => {
     expect(mapping.colorFor(5)).toEqual(mapping.colorFor(0));
     expect(mapping.colorFor(-1)).toEqual(mapping.colorFor(0));
@@ -28,7 +29,7 @@ describe("Range color mapping", () => {
 
   it("when specified assigns to absolute values", () => {
     const mapping = RangeColorMapping.build({
-      steps: [0, 10, 20],
+      steps: [-Infinity, 10, 20],
       paletteName: "epanet-ramp",
       unit: "mwc",
       property: "myprop",

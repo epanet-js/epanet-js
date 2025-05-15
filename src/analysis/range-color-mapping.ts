@@ -3,7 +3,6 @@ import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { strokeColorFor } from "src/lib/color";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { RampEndpoints } from "./symbolization-ramp";
 
 export type Rgb = [number, number, number];
@@ -23,19 +22,15 @@ export class RangeColorMapping {
     unit: Unit;
     absoluteValues?: boolean;
   }) {
-    const ranges = isFeatureOn("FLAG_CUSTOMIZE")
-      ? buildRanges(steps)
-      : buildRangesDeprecated(steps);
-    const symbolization = isFeatureOn("FLAG_CUSTOMIZE")
-      ? buildSymbolization(
-          paletteName,
-          steps,
-          property,
-          unit,
-          absoluteValues,
-          [0, 100],
-        )
-      : buildSymbolizationDeprecated(paletteName, steps, property, unit);
+    const ranges = buildRanges(steps);
+    const symbolization = buildSymbolization(
+      paletteName,
+      steps,
+      property,
+      unit,
+      absoluteValues,
+      [0, 100],
+    );
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
@@ -52,9 +47,10 @@ export class RangeColorMapping {
   }
 
   static fromSymbolizationRamp(symbolization: ISymbolizationRamp) {
-    const ranges = isFeatureOn("FLAG_CUSTOMIZE")
-      ? buildRanges([...symbolization.stops.map((s) => s.input), Infinity])
-      : buildRangesDeprecated(symbolization.stops.map((s) => s.input));
+    const ranges = buildRanges([
+      ...symbolization.stops.map((s) => s.input),
+      Infinity,
+    ]);
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
     });
@@ -138,24 +134,6 @@ const buildRanges = (steps: number[]) => {
   return ranges;
 };
 
-const buildRangesDeprecated = (steps: number[]) => {
-  const ranges: Range[] = [];
-  for (let i = 0; i < steps.length; i++) {
-    if (i === 0) {
-      ranges.push([-Infinity, steps[i + 1]]);
-      continue;
-    }
-
-    if (i == steps.length - 1) {
-      ranges.push([steps[i], Infinity]);
-      continue;
-    }
-
-    ranges.push([steps[i], steps[i + 1]]);
-  }
-  return ranges;
-};
-
 export const parseRgb = (color: string): Rgb => {
   if (color.startsWith("#")) {
     const parsed = colorfulHexToRgbaObject(color);
@@ -205,37 +183,6 @@ const generateRampStops = (name: string, steps: number[]) => {
 
   const rampSize = steps.length - 1;
   const stops = ramp.colors[rampSize as keyof CBColors["colors"]]?.map(
-    (color: string, i: number) => {
-      return { input: steps[i], output: color };
-    },
-  );
-  return stops as ISymbolizationRamp["stops"];
-};
-
-const buildSymbolizationDeprecated = (
-  rampName: string,
-  steps: number[],
-  property: string,
-  unit: Unit,
-): ISymbolizationRamp => ({
-  type: "ramp",
-  simplestyle: true,
-  property,
-  unit,
-  defaultColor: colors.indigo900,
-  defaultOpacity: 0.3,
-  interpolate: "step",
-  rampName,
-  mode: "equalIntervals",
-  stops: generateRampStopsDeprecated(rampName, steps),
-  fallbackEndpoints: [0, 100],
-});
-
-const generateRampStopsDeprecated = (name: string, steps: number[]) => {
-  const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === name);
-  if (!ramp) throw new Error("Ramp not found!");
-
-  const stops = ramp.colors[steps.length as keyof CBColors["colors"]]?.map(
     (color: string, i: number) => {
       return { input: steps[i], output: color };
     },

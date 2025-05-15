@@ -7,7 +7,6 @@ import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { AnalysisType } from "src/analysis/analysis-types";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { initializeSymbolization } from "src/analysis/symbolization-ramp";
@@ -47,26 +46,18 @@ export const AnalysisEditor = () => {
           ...prev,
           links: {
             type: "flow",
-            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
-              ? RangeColorMapping.fromSymbolizationRamp(
-                  initializeSymbolization({
-                    property: "flow",
-                    unit: hydraulicModel.units.flow,
-                    rampName: "Teal",
-                    mode: "equalQuantiles",
-                    absValues: true,
-                    sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                      absValues: true,
-                    }),
-                  }),
-                )
-              : RangeColorMapping.build({
-                  steps: [0, 25, 50, 75, 100],
-                  property: "flow",
-                  unit: hydraulicModel.units.flow,
-                  paletteName: "epanet-ramp",
-                  absoluteValues: true,
+            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+              initializeSymbolization({
+                property: "flow",
+                unit: hydraulicModel.units.flow,
+                rampName: "Teal",
+                mode: "equalQuantiles",
+                absValues: true,
+                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
+                  absValues: true,
                 }),
+              }),
+            ),
           },
         }));
       case "velocity":
@@ -74,28 +65,17 @@ export const AnalysisEditor = () => {
           ...prev,
           links: {
             type: "velocity",
-            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
-              ? RangeColorMapping.fromSymbolizationRamp(
-                  initializeSymbolization({
-                    property: "velocity",
-                    unit: hydraulicModel.units.velocity,
-                    rampName: "RedOr",
-                    mode: "equalQuantiles",
-                    sortedData: getSortedValues(
-                      hydraulicModel.assets,
-                      "velocity",
-                    ),
-                    fallbackEndpoints:
-                      quantities.analysis.velocityFallbackEndpoints,
-                  }),
-                )
-              : RangeColorMapping.build({
-                  steps: quantities.analysis.velocitySteps,
-                  property: "velocity",
-                  unit: hydraulicModel.units.velocity,
-                  paletteName: "epanet-ramp",
-                  absoluteValues: true,
-                }),
+            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+              initializeSymbolization({
+                property: "velocity",
+                unit: hydraulicModel.units.velocity,
+                rampName: "RedOr",
+                mode: "equalQuantiles",
+                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+                fallbackEndpoints:
+                  quantities.analysis.velocityFallbackEndpoints,
+              }),
+            ),
           },
         }));
     }
@@ -119,26 +99,16 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: {
             type: "pressure",
-            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
-              ? RangeColorMapping.fromSymbolizationRamp(
-                  initializeSymbolization({
-                    property: "pressure",
-                    unit: hydraulicModel.units.pressure,
-                    rampName: "Temps",
-                    mode: "prettyBreaks",
-                    fallbackEndpoints: [0, 100],
-                    sortedData: getSortedValues(
-                      hydraulicModel.assets,
-                      "pressure",
-                    ),
-                  }),
-                )
-              : RangeColorMapping.build({
-                  steps: [0, 25, 50, 75, 100],
-                  property: "pressure",
-                  unit: hydraulicModel.units.pressure,
-                  paletteName: "epanet-ramp",
-                }),
+            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
+              initializeSymbolization({
+                property: "pressure",
+                unit: hydraulicModel.units.pressure,
+                rampName: "Temps",
+                mode: "prettyBreaks",
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+              }),
+            ),
           },
         }));
       case "elevation":
@@ -173,18 +143,12 @@ export const AnalysisEditor = () => {
           <Selector
             ariaLabel={translate("nodes")}
             options={(
-              [
-                "none",
-                ...(isFeatureOn("FLAG_CUSTOMIZE") ? ["elevation"] : []),
-                "pressure",
-              ] as NodesAnalysis["type"][]
+              ["none", "elevation", "pressure"] as NodesAnalysis["type"][]
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),
               disabled:
-                isFeatureOn("FLAG_CUSTOMIZE") &&
-                simulation.status === "idle" &&
-                ["pressure"].includes(type),
+                simulation.status === "idle" && ["pressure"].includes(type),
             }))}
             selected={analysis.nodes.type}
             onChange={handleNodesChange}
@@ -199,7 +163,6 @@ export const AnalysisEditor = () => {
               value: type,
               label: analysisLabelFor(type),
               disabled:
-                isFeatureOn("FLAG_CUSTOMIZE") &&
                 simulation.status === "idle" &&
                 ["flow", "velocity"].includes(type),
             }))}

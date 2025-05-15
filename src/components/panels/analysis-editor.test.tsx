@@ -5,6 +5,7 @@ import { AnalysisEditor } from "./analysis-editor";
 import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
+import { aSimulationSuccess, setInitialState } from "src/__helpers__/state";
 
 describe("Analysis Editor", () => {
   it("displays nodes analysis options", async () => {
@@ -18,8 +19,33 @@ describe("Analysis Editor", () => {
     expect(screen.getByText("Pressure")).toBeInTheDocument();
   });
 
+  it("disables node analysis that require a simulation", async () => {
+    const store = setInitialState({ simulation: { status: "idle" } });
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
+
+    expect(screen.getByRole("option", { name: /pressure/i })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
+  it("disables link analysis that require a simulation", async () => {
+    const store = setInitialState({ simulation: { status: "idle" } });
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
+
+    expect(screen.getByRole("option", { name: /flow/i })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
   it("can change nodes analysis", async () => {
-    const store = getDefaultStore();
+    const store = setInitialState({ simulation: aSimulationSuccess() });
+
     renderComponent(store);
 
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
@@ -50,7 +76,8 @@ describe("Analysis Editor", () => {
   });
 
   it("can change link analysis", async () => {
-    const store = getDefaultStore();
+    const store = setInitialState({ simulation: aSimulationSuccess() });
+
     renderComponent(store);
 
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
