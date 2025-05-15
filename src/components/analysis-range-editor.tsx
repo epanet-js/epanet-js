@@ -140,13 +140,22 @@ export const AnalysisRangeEditor = ({
     onChange(newSymbolization);
   };
 
+  const showError = (error: ErrorType) => {
+    setError(error);
+    toast.error(translate("unableToUpdate"), { id: "symbolization" });
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
+
   const handleModeChange = (newMode: RampMode) => {
     const result = applyMode(symbolization, newMode, sortedData);
     setSymbolization(result.symbolization);
     if (result.error) {
-      setError("notEnoughData");
+      showError("notEnoughData");
     } else {
-      setError(null);
+      clearError();
       submitChange(result.symbolization);
     }
   };
@@ -155,9 +164,9 @@ export const AnalysisRangeEditor = ({
     const result = changeRampSize(symbolization, sortedData, rampSize);
     setSymbolization(result.symbolization);
     if (result.error) {
-      setError("notEnoughData");
+      showError("notEnoughData");
     } else {
-      setError(null);
+      clearError();
       submitChange(result.symbolization);
     }
   };
@@ -177,9 +186,9 @@ export const AnalysisRangeEditor = ({
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
     if (!isValid) {
-      setError("rampShouldBeAscending");
+      showError("rampShouldBeAscending");
     } else {
-      setError(null);
+      clearError();
       submitChange(newSymbolization);
     }
   };
@@ -190,9 +199,9 @@ export const AnalysisRangeEditor = ({
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
     if (!isValid) {
-      setError("rampShouldBeAscending");
+      showError("rampShouldBeAscending");
     } else {
-      setError(null);
+      clearError();
       submitChange(newSymbolization);
     }
   };
