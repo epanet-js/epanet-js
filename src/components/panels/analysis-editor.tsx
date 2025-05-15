@@ -56,11 +56,9 @@ export const AnalysisEditor = () => {
                     mode: "equalQuantiles",
                     rampSize: 5,
                     absValues: true,
-                    sortedValues: getSortedValues(
-                      hydraulicModel.assets,
-                      "flow",
-                      { absValues: true },
-                    ),
+                    sortedData: getSortedValues(hydraulicModel.assets, "flow", {
+                      absValues: true,
+                    }),
                   }),
                 )
               : RangeColorMapping.build({
@@ -135,10 +133,8 @@ export const AnalysisEditor = () => {
                 rampName: "Fall",
                 mode: "prettyBreaks",
                 rampSize: 5,
-                sortedValues: getSortedValues(
-                  hydraulicModel.assets,
-                  "elevation",
-                ),
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
               }),
             ),
           },

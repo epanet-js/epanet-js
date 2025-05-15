@@ -388,6 +388,7 @@ export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp> & {
   unit?: Unit;
   reversedRamp?: boolean;
   absValues?: boolean;
+  fallbackEndpoints: number[];
   mode:
     | "equalIntervals"
     | "equalQuantiles"

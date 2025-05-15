@@ -142,6 +142,7 @@ export const aSymbolization = (
     mode: "equalIntervals",
     stops: [],
     absValues: false,
+    fallbackEndpoints: [0, 100],
   };
 
   return {

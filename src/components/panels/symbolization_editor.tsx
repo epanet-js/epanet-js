@@ -443,6 +443,7 @@ export function RampWizard() {
           defaultColor: values.defaultColor,
           defaultOpacity: values.defaultOpacity,
           mode: "equalIntervals",
+          fallbackEndpoints: [],
           stops:
             values.breaks === "linear"
               ? getStopsLinear({ colors })

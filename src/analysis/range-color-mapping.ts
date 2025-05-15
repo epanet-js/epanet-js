@@ -26,7 +26,14 @@ export class RangeColorMapping {
       ? buildRanges(steps)
       : buildRangesDeprecated(steps);
     const symbolization = isFeatureOn("FLAG_CUSTOMIZE")
-      ? buildSymbolization(paletteName, steps, property, unit, absoluteValues)
+      ? buildSymbolization(
+          paletteName,
+          steps,
+          property,
+          unit,
+          absoluteValues,
+          [],
+        )
       : buildSymbolizationDeprecated(paletteName, steps, property, unit);
     const rgbRamp = symbolization.stops.map((s) => {
       return parseRgb(s.output);
@@ -175,6 +182,7 @@ const buildSymbolization = (
   property: string,
   unit: Unit,
   absValues: boolean,
+  fallbackEndpoints: number[],
 ): ISymbolizationRamp => ({
   type: "ramp",
   simplestyle: true,
@@ -187,6 +195,7 @@ const buildSymbolization = (
   mode: "equalIntervals",
   stops: generateRampStops(rampName, steps),
   absValues,
+  fallbackEndpoints,
 });
 
 const generateRampStops = (name: string, steps: number[]) => {
@@ -218,6 +227,7 @@ const buildSymbolizationDeprecated = (
   rampName,
   mode: "equalIntervals",
   stops: generateRampStopsDeprecated(rampName, steps),
+  fallbackEndpoints: [],
 });
 
 const generateRampStopsDeprecated = (name: string, steps: number[]) => {
