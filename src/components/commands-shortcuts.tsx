@@ -41,6 +41,8 @@ import {
   toggleSatelliteShorcut,
   useToggleSatellite,
 } from "src/commands/toggle-satellite";
+import { useAtomValue } from "jotai";
+import { simulationAtom } from "src/state/jotai";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -57,11 +59,13 @@ export const CommandShortcuts = () => {
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const selectAll = useSelectAll();
   const toggleSatellite = useToggleSatellite();
+  const simulation = useAtomValue(simulationAtom);
 
   useHotkeys(
     showReportShorcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      if (simulation.status === "idle") return;
 
       void showReport({ source: "shortcut" });
     },
