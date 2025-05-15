@@ -5,8 +5,10 @@ import { Unit } from "src/quantity";
 import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./ramp-modes/equal-quantiles";
 import { calculateCkmeansRange } from "./ramp-modes/ckmeans";
+import { calculateManualBreaks } from "./ramp-modes/manual";
 
 type SymbolizationRamp = ISymbolizationRamp;
+export type RampEndpoints = [number, number];
 
 export const rampModes = [
   "equalIntervals",
@@ -40,7 +42,7 @@ export const initializeSymbolization = ({
   sortedData: number[];
   property: string;
   unit: Unit;
-  fallbackEndpoints?: number[];
+  fallbackEndpoints?: RampEndpoints;
   absValues?: boolean;
   reverseRamp?: boolean;
 }): SymbolizationRamp => {
@@ -49,10 +51,10 @@ export const initializeSymbolization = ({
   let effectiveMode: RampMode, stops;
   if (isValid) {
     effectiveMode = mode;
-    stops = generateStops(mode, colors, sortedData);
+    stops = generateStops(mode, colors, sortedData, fallbackEndpoints);
   } else {
     effectiveMode = "manual";
-    stops = generateStops("manual", colors, fallbackEndpoints);
+    stops = generateStops("manual", colors, sortedData, fallbackEndpoints);
   }
 
   return {
@@ -202,16 +204,17 @@ export const changeRampSize = (
   sortedValues: number[],
   rampSize: number,
 ): { symbolization: SymbolizationRamp; error?: boolean } => {
-  const valid = checkValidData(symbolization.mode, sortedValues, rampSize);
+  const { mode, fallbackEndpoints, rampName } = symbolization;
+  const valid = checkValidData(mode, sortedValues, rampSize);
 
   const colors = getColors(
-    symbolization.rampName,
+    rampName,
     rampSize,
     Boolean(symbolization.reversedRamp),
   );
 
   const stops = valid
-    ? generateStops(symbolization.mode, colors, sortedValues)
+    ? generateStops(mode, colors, sortedValues, fallbackEndpoints)
     : Array.from({ length: rampSize }, (_, i) => ({
         input: i,
         output: colors[i],
@@ -245,6 +248,7 @@ export const applyMode = (
         mode,
         symbolization.stops.map((s) => s.output),
         sortedValues,
+        symbolization.fallbackEndpoints,
       )
     : symbolization.stops;
 
@@ -258,10 +262,16 @@ const generateStops = (
   mode: RampMode,
   colors: string[],
   sortedValues: number[],
+  fallbackEndpoints: [number, number],
 ): SymbolizationRamp["stops"] => {
   let stopValues;
-  if (mode === "prettyBreaks") {
-    const breaks = calculatePrettyBreaks(sortedValues, colors.length - 1);
+  if (mode === "prettyBreaks" || mode === "manual") {
+    const breaks = calculateBreaks(
+      mode,
+      sortedValues,
+      colors.length - 1,
+      fallbackEndpoints,
+    );
     stopValues = [-Infinity, ...breaks];
   } else {
     const breaks = calculateRange(mode, sortedValues, colors.length);
@@ -275,6 +285,28 @@ const generateStops = (
   });
 };
 
+const calculateBreaks = (
+  mode: RampMode,
+  sortedValues: number[],
+  numIntervals: number,
+  fallbackEndpoints: RampEndpoints,
+) => {
+  switch (mode) {
+    case "equalIntervals":
+    case "equalQuantiles":
+    case "ckmeans":
+      throw new Error("Not implemented");
+    case "manual":
+      return calculateManualBreaks(
+        sortedValues,
+        numIntervals,
+        fallbackEndpoints,
+      );
+    case "prettyBreaks":
+      return calculatePrettyBreaks(sortedValues, numIntervals);
+  }
+};
+
 const calculateRange = (
   mode: RampMode,
   sortedValues: number[],
@@ -285,11 +317,10 @@ const calculateRange = (
       return calculateEqualIntervalRange(sortedValues, numIntervals);
     case "equalQuantiles":
       return calculateEqualQuantilesRange(sortedValues, numIntervals);
-    case "manual":
-      return calculateEqualIntervalRange(sortedValues, numIntervals);
     case "ckmeans":
       return calculateCkmeansRange(sortedValues, numIntervals);
     case "prettyBreaks":
+    case "manual":
       throw new Error("Not implemented");
   }
 };

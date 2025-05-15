@@ -4,6 +4,7 @@ import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { strokeColorFor } from "src/lib/color";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { RampEndpoints } from "./symbolization-ramp";
 
 export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
@@ -32,7 +33,7 @@ export class RangeColorMapping {
           property,
           unit,
           absoluteValues,
-          [],
+          [0, 100],
         )
       : buildSymbolizationDeprecated(paletteName, steps, property, unit);
     const rgbRamp = symbolization.stops.map((s) => {
@@ -182,7 +183,7 @@ const buildSymbolization = (
   property: string,
   unit: Unit,
   absValues: boolean,
-  fallbackEndpoints: number[],
+  fallbackEndpoints: RampEndpoints,
 ): ISymbolizationRamp => ({
   type: "ramp",
   simplestyle: true,
@@ -227,7 +228,7 @@ const buildSymbolizationDeprecated = (
   rampName,
   mode: "equalIntervals",
   stops: generateRampStopsDeprecated(rampName, steps),
-  fallbackEndpoints: [],
+  fallbackEndpoints: [0, 100],
 });
 
 const generateRampStopsDeprecated = (name: string, steps: number[]) => {
