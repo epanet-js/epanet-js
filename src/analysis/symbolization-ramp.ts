@@ -28,7 +28,7 @@ export const minRampSize = 3;
 export const initializeSymbolization = ({
   mode,
   rampName,
-  rampSize,
+  rampSize = 5,
   sortedData,
   property,
   unit,
@@ -37,7 +37,7 @@ export const initializeSymbolization = ({
   reverseRamp = false,
 }: {
   rampName: string;
-  rampSize: number;
+  rampSize?: number;
   mode: RampMode;
   sortedData: number[];
   property: string;

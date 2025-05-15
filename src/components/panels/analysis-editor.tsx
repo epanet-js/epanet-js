@@ -109,16 +109,26 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: {
             type: "pressure",
-            rangeColorMapping: RangeColorMapping.build({
-              steps: isFeatureOn("FLAG_CUSTOMIZE")
-                ? [-Infinity, 25, 50, 75, 100, +Infinity]
-                : [0, 25, 50, 75, 100],
-              property: "pressure",
-              unit: hydraulicModel.units.pressure,
-              paletteName: isFeatureOn("FLAG_CUSTOMIZE")
-                ? "Temps"
-                : "epanet-ramp",
-            }),
+            rangeColorMapping: isFeatureOn("FLAG_CUSTOMIZE")
+              ? RangeColorMapping.fromSymbolizationRamp(
+                  initializeSymbolization({
+                    property: "pressure",
+                    unit: hydraulicModel.units.pressure,
+                    rampName: "Temps",
+                    mode: "prettyBreaks",
+                    fallbackEndpoints: [0, 100],
+                    sortedData: getSortedValues(
+                      hydraulicModel.assets,
+                      "pressure",
+                    ),
+                  }),
+                )
+              : RangeColorMapping.build({
+                  steps: [0, 25, 50, 75, 100],
+                  property: "pressure",
+                  unit: hydraulicModel.units.pressure,
+                  paletteName: "epanet-ramp",
+                }),
           },
         }));
       case "elevation":
@@ -132,7 +142,6 @@ export const AnalysisEditor = () => {
                 unit: hydraulicModel.units.elevation,
                 rampName: "Fall",
                 mode: "prettyBreaks",
-                rampSize: 5,
                 fallbackEndpoints: [0, 100],
                 sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
               }),
