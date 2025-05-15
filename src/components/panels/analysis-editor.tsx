@@ -132,14 +132,12 @@ export const AnalysisEditor = () => {
               initializeSymbolization({
                 property: "elevation",
                 unit: hydraulicModel.units.elevation,
-                rampName: "Sunset",
-                mode: "equalIntervals",
+                rampName: "Fall",
+                mode: "prettyBreaks",
                 rampSize: 5,
-                absValues: false,
                 sortedValues: getSortedValues(
                   hydraulicModel.assets,
                   "elevation",
-                  { absValues: false },
                 ),
               }),
             ),
