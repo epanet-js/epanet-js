@@ -178,8 +178,8 @@ describe("analysis range editor", () => {
     expect(mode).toEqual("manual");
     const asEqualIntervalStops = [
       { input: -Infinity, output: red },
-      { input: 40, output: green },
-      { input: 70, output: blue },
+      { input: 50, output: green },
+      { input: 75, output: blue },
     ];
     expect(stops).toEqual(asEqualIntervalStops);
   });

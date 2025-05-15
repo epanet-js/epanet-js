@@ -13,7 +13,6 @@ export const checkValidData = (
 ) => {
   switch (mode) {
     case "equalIntervals":
-    case "manual":
       return checkEqualIntervalsData(sortedData);
     case "equalQuantiles":
       return checkEqualQuantilesData(sortedData, numIntervals);
@@ -21,5 +20,7 @@ export const checkValidData = (
       return checkPrettyBreaksData(sortedData);
     case "ckmeans":
       return checkCkmeansData(sortedData, numIntervals);
+    case "manual":
+      return true;
   }
 };
