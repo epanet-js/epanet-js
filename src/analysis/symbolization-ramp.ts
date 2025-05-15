@@ -27,23 +27,33 @@ export const initializeSymbolization = ({
   mode,
   rampName,
   rampSize,
-  sortedValues,
+  sortedData,
   property,
   unit,
+  fallbackEndpoints = [0, 100],
   absValues = false,
   reverseRamp = false,
 }: {
   rampName: string;
   rampSize: number;
   mode: RampMode;
-  sortedValues: number[];
+  sortedData: number[];
   property: string;
   unit: Unit;
+  fallbackEndpoints?: number[];
   absValues?: boolean;
   reverseRamp?: boolean;
 }): SymbolizationRamp => {
   const colors = getColors(rampName, rampSize, reverseRamp);
-  const stops = generateStops(mode, colors, sortedValues);
+  const isValid = checkValidData(mode, sortedData, rampSize);
+  let effectiveMode: RampMode, stops;
+  if (isValid) {
+    effectiveMode = mode;
+    stops = generateStops(mode, colors, sortedData);
+  } else {
+    effectiveMode = "manual";
+    stops = generateStops("manual", colors, fallbackEndpoints);
+  }
 
   return {
     type: "ramp",
@@ -54,7 +64,8 @@ export const initializeSymbolization = ({
     defaultOpacity: 0.3,
     interpolate: "step",
     rampName,
-    mode,
+    mode: effectiveMode,
+    fallbackEndpoints,
     stops,
     absValues,
     reversedRamp: reverseRamp,
@@ -294,4 +305,5 @@ export const nullRampSymbolization: SymbolizationRamp = {
   rampName: "Temps",
   mode: "equalIntervals",
   stops: [],
+  fallbackEndpoints: [0, 100],
 };
