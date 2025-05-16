@@ -1,7 +1,6 @@
 import { useAtom } from "jotai";
 import { linearGradient } from "src/lib/color";
 import { analysisAtom } from "src/state/analysis";
-import { ISymbolizationRamp } from "src/types";
 import { StyledPopoverArrow } from "./elements";
 import { translate, translateUnit } from "src/infra/i18n";
 import * as Popover from "@radix-ui/react-popover";
@@ -9,6 +8,7 @@ import { StyledPopoverContent } from "src/components/elements";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
+import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
 
 export const AnalysisLegends = () => {
   const [{ nodes, links }] = useAtom(analysisAtom);
@@ -36,7 +36,7 @@ const Legend = ({
   symbolization,
 }: {
   geometryType: "nodes" | "links";
-  symbolization: ISymbolizationRamp;
+  symbolization: SymbolizationRamp;
 }) => {
   const userTracking = useUserTracking();
   const title = symbolization.unit

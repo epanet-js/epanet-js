@@ -11,7 +11,7 @@ import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { ISymbolizationRamp } from "src/types";
+import find from "lodash/find";
 import {
   RangeMode,
   RampSize,
@@ -29,6 +29,7 @@ import {
   reverseColors,
   updateBreakValue,
   validateAscendingOrder,
+  SymbolizationRamp,
 } from "src/analysis/symbolization-ramp";
 import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
@@ -38,10 +39,10 @@ import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
   CBColors,
+  COLORBREWER_ALL,
   COLORBREWER_DIVERGING,
   COLORBREWER_SEQUENTIAL,
 } from "src/lib/colorbrewer";
-import { RampChoice } from "src/components/panels/symbolization_editor";
 import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
 import { Selector } from "src/components/form/selector";
@@ -75,7 +76,7 @@ export const AnalysisRangeEditor = ({
       : activeAnalysis.rangeColorMapping.symbolization;
 
   const onChange = useCallback(
-    (newSymbolization: ISymbolizationRamp) => {
+    (newSymbolization: SymbolizationRamp) => {
       if (geometryType === "nodes") {
         setNodesAnalysis((prev) => ({
           ...prev,
@@ -100,7 +101,7 @@ export const AnalysisRangeEditor = ({
   }, [assets, initialSymbolization.property, initialSymbolization.absValues]);
 
   const [symbolization, setSymbolization] =
-    useState<ISymbolizationRamp>(initialSymbolization);
+    useState<SymbolizationRamp>(initialSymbolization);
 
   const debugData = useMemo(() => {
     if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
@@ -136,17 +137,14 @@ export const AnalysisRangeEditor = ({
 
   const [error, setError] = useState<ErrorType | null>(null);
 
-  const submitChange = (newSymbolization: ISymbolizationRamp) => {
+  const submitChange = (newSymbolization: SymbolizationRamp) => {
     toast.success(translate("updated"), {
       id: "symbolization",
     });
     onChange(newSymbolization);
   };
 
-  const showError = (
-    error: ErrorType,
-    newSymbolization: ISymbolizationRamp,
-  ) => {
+  const showError = (error: ErrorType, newSymbolization: SymbolizationRamp) => {
     userTracking.capture({
       name: "analysis.rangeError.seen",
       errorKey: error,
@@ -408,7 +406,7 @@ const IntervalsEditor = ({
   onAppend,
   onDelete,
 }: {
-  symbolization: ISymbolizationRamp;
+  symbolization: SymbolizationRamp;
   onChangeColor: (index: number, color: string) => void;
   onChangeBreak: (index: number, value: number) => void;
   onPrepend: () => void;
@@ -670,5 +668,65 @@ export function RampChoices({
         })}
       </div>
     </div>
+  );
+}
+
+function RampChoice({
+  ramp,
+  size = 7,
+  reverse = false,
+  onSelect,
+}: {
+  ramp: CBColors;
+  reverse?: boolean;
+  onSelect?: (name: string) => void;
+  size?: keyof CBColors["colors"];
+}) {
+  return (
+    <label
+      key={ramp.name}
+      className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200 focus:ring-purple-300"
+      onClick={() => onSelect && onSelect(ramp.name)}
+      tabIndex={1}
+    >
+      <RampPreview
+        name={ramp.name}
+        classes={size}
+        interpolate={"step"}
+        reverse={reverse}
+      />
+    </label>
+  );
+}
+
+const DEFAULT_CLASSES = 7;
+
+function RampPreview({
+  name,
+  interpolate,
+  classes,
+  reverse = false,
+}: {
+  name: string;
+  reverse?: boolean;
+  interpolate: "linear" | "step";
+  classes: number;
+}) {
+  const ramp = find(COLORBREWER_ALL, { name })!;
+  const colors =
+    ramp.colors[classes as keyof CBColors["colors"]]! ||
+    ramp.colors[DEFAULT_CLASSES];
+
+  return (
+    <div
+      title={name}
+      className={clsx("w-full h-5 rounded-md", { "rotate-180": reverse })}
+      style={{
+        background: linearGradient({
+          colors,
+          interpolate,
+        }),
+      }}
+    />
   );
 }

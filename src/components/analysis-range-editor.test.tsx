@@ -9,9 +9,11 @@ import { Store } from "src/state/jotai";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { analysisAtom } from "src/state/analysis";
 import userEvent from "@testing-library/user-event";
-import { ISymbolizationRamp } from "src/types";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { defaultNewColor } from "src/analysis/symbolization-ramp";
+import {
+  SymbolizationRamp,
+  defaultNewColor,
+} from "src/analysis/symbolization-ramp";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 
 describe("analysis range editor", () => {
@@ -549,14 +551,14 @@ describe("analysis range editor", () => {
 
   const getUpdateNodesAnalysisSymbolization = (
     store: Store,
-  ): ISymbolizationRamp => {
+  ): SymbolizationRamp => {
     return (store.get(analysisAtom).nodes as PropertyAnalysis).rangeColorMapping
       .symbolization;
   };
 
   const getUpdateLinksAnalysisSymbolization = (
     store: Store,
-  ): ISymbolizationRamp => {
+  ): SymbolizationRamp => {
     return (store.get(analysisAtom).links as FlowAnalysis).rangeColorMapping
       .symbolization;
   };

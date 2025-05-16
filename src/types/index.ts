@@ -24,7 +24,6 @@ import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
-import { Unit } from "src/quantity";
 
 export interface CoordProps {
   x: number;
@@ -272,64 +271,6 @@ const SymbolizationCategorical = SymbolizationBaseInternal.extend({
  * The previous version of symbolization ramp,
  * used for upgrading.
  */
-export const SymbolizationRamp_v0 = z.object({
-  type: z.literal("ramp"),
-  min: z.object({
-    input: z.number(),
-    output: z.string(),
-  }),
-  max: z.object({
-    input: z.number(),
-    output: z.string(),
-  }),
-  property: z.string(),
-});
-
-const SymbolizationSimpleStyle_v0 = z.object({
-  type: z.literal("simplestyle"),
-});
-
-export function tryUpgrading(symbolization: any): Maybe<ISymbolization> {
-  {
-    const parsed = SymbolizationRamp_v0.safeParse(symbolization);
-    if (parsed.success) {
-      const p = parsed.data;
-      return safeParseMaybe(
-        Symbolization.safeParse({
-          type: "ramp",
-          property: p.property,
-          defaultColor: colors.indigo900,
-          rampName: "RdBl",
-          interpolate: "linear",
-          simplestyle: false,
-          defaultOpacity: 0.3,
-          stops: [
-            {
-              input: p.min.input,
-              output: p.min.output,
-            },
-            {
-              input: p.max.input,
-              output: p.max.output,
-            },
-          ],
-        }),
-      );
-    }
-  }
-  {
-    const parsed = SymbolizationSimpleStyle_v0.safeParse(symbolization);
-    if (parsed.success) {
-      return Just({
-        type: "none",
-        defaultColor: colors.indigo900,
-        simplestyle: false,
-        defaultOpacity: 0.3,
-      });
-    }
-  }
-  return Nothing;
-}
 
 /**
  * Make stops unique based on their 'input' value.
@@ -347,25 +288,6 @@ function uniqueStops<T extends { input: JsonValue }>(stops: T[]): T[] {
   return transformedStops;
 }
 
-const SymbolizationRamp = SymbolizationBaseInternal.extend({
-  type: z.literal("ramp"),
-  property: z.string(),
-  rampName: z.string(),
-  interpolate: z.enum(["step", "linear"]),
-  stops: z
-    .array(
-      z.object({
-        input: z.number(),
-        output: z.string(),
-      }),
-    )
-    .transform((stops) => {
-      return uniqueStops(stops).sort((a, b) => {
-        return a.input - b.input;
-      });
-    }),
-});
-
 export const SymbolizationNone = SymbolizationBaseInternal.extend({
   type: z.literal("none"),
 });
@@ -373,7 +295,6 @@ export const SymbolizationNone = SymbolizationBaseInternal.extend({
 export const Symbolization = z.union([
   SymbolizationNone,
   SymbolizationCategorical,
-  SymbolizationRamp,
 ]);
 
 export const SYMBOLIZATION_NONE: ISymbolizationNone = {
@@ -384,18 +305,6 @@ export const SYMBOLIZATION_NONE: ISymbolizationNone = {
 };
 
 export type ISymbolizationNone = z.infer<typeof SymbolizationNone>;
-export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp> & {
-  unit: Unit;
-  reversedRamp?: boolean;
-  absValues?: boolean;
-  fallbackEndpoints: [number, number];
-  mode:
-    | "equalIntervals"
-    | "equalQuantiles"
-    | "manual"
-    | "prettyBreaks"
-    | "ckmeans";
-};
 export type ISymbolizationCategorical = z.infer<
   typeof SymbolizationCategorical
 >;
@@ -433,16 +342,6 @@ export type CoordinateHavers =
   | MultiPoint
   | MultiPolygon
   | Point;
-
-export type RampValues = Pick<ISymbolizationRamp, "interpolate"> & {
-  breaks: "quantile" | "linear";
-  property: string;
-  rampName: string;
-  simplestyle: boolean;
-  defaultColor: string;
-  defaultOpacity: number;
-  classes: keyof CBColors["colors"];
-};
 
 export type CategoricalValues = {
   property: string;

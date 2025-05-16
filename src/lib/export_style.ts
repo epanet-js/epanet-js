@@ -1,4 +1,3 @@
-import { leaflet } from "src/lib/leaflet_export";
 import {
   CIRCLE_PAINT,
   FILL_PAINT,
@@ -38,10 +37,6 @@ export function exportStyle(symbolization: ISymbolization): EOption[] {
         null,
         2,
       ),
-    },
-    {
-      name: "Leaflet",
-      value: leaflet(symbolization),
     },
   ];
 }
