@@ -360,13 +360,13 @@ export const AnalysisRangeEditor = ({
         <>
           <div className="max-h-[400px] overflow-y-auto">
             <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
-              <RangeEditor
+              <IntervalsEditor
                 symbolization={symbolization}
                 onAppend={handleAppendBreak}
                 onPrepend={handlePrependBreak}
                 onDelete={handleDeleteBreak}
                 onChangeColor={handleIntervalColorChange}
-                onChangeValue={handleBreakUpdate}
+                onChangeBreak={handleBreakUpdate}
               />
             </div>
           </div>
@@ -400,17 +400,17 @@ export const AnalysisRangeEditor = ({
   );
 };
 
-const RangeEditor = ({
+const IntervalsEditor = ({
   symbolization,
   onChangeColor,
-  onChangeValue,
+  onChangeBreak,
   onPrepend,
   onAppend,
   onDelete,
 }: {
   symbolization: ISymbolizationRamp;
   onChangeColor: (index: number, color: string) => void;
-  onChangeValue: (index: number, value: number) => void;
+  onChangeBreak: (index: number, value: number) => void;
   onPrepend: () => void;
   onAppend: () => void;
   onDelete: (index: number) => void;
@@ -472,7 +472,7 @@ const RangeEditor = ({
                 positiveOnly={Boolean(symbolization.absValues)}
                 displayValue={localizeDecimal(stop.input)}
                 onChangeValue={(value) => {
-                  onChangeValue(i, value);
+                  onChangeBreak(i, value);
                 }}
               />
               {symbolization.stops.length > 1 && canDelete ? (

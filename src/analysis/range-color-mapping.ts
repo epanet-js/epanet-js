@@ -3,7 +3,7 @@ import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { colors } from "src/lib/constants";
 import { ISymbolizationRamp } from "src/types";
 import { strokeColorFor } from "src/lib/color";
-import { RampEndpoints } from "./symbolization-ramp";
+import { RangeEndpoints } from "./symbolization-ramp";
 
 export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
@@ -161,7 +161,7 @@ const buildSymbolization = (
   property: string,
   unit: Unit,
   absValues: boolean,
-  fallbackEndpoints: RampEndpoints,
+  fallbackEndpoints: RangeEndpoints,
 ): ISymbolizationRamp => ({
   type: "ramp",
   simplestyle: true,
