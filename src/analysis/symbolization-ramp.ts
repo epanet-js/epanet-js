@@ -1,14 +1,10 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
-import { ISymbolizationRamp } from "src/types";
 import { calculatePrettyBreaks, checkValidData } from "./range-modes";
 import { Unit } from "src/quantity";
 import { calculateEqualIntervalRange } from "./range-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./range-modes/equal-quantiles";
 import { calculateCkmeansRange } from "./range-modes/ckmeans";
 import { calculateManualBreaks } from "./range-modes/manual";
-
-type SymbolizationRamp = ISymbolizationRamp;
-export type RangeEndpoints = [number, number];
 
 export const rangeModes = [
   "equalIntervals",
@@ -18,6 +14,24 @@ export const rangeModes = [
   "manual",
 ] as const;
 export type RangeMode = (typeof rangeModes)[number];
+
+type SymbolizationRamp = {
+  type: "ramp";
+  simplestyle: boolean;
+  defaultColor: string;
+  defaultOpacity: number;
+  interpolate: "step" | "linear";
+  property: string;
+  unit: Unit;
+  reversedRamp?: boolean;
+  absValues?: boolean;
+  fallbackEndpoints: [number, number];
+  mode: RangeMode;
+  rampName: string;
+  stops: { input: number; output: string }[];
+};
+
+export type RangeEndpoints = [number, number];
 
 export type RampSize = keyof CBColors["colors"];
 
@@ -137,7 +151,7 @@ export const changeIntervalColor = (
 };
 
 export const validateAscendingOrder = (
-  candidates: ISymbolizationRamp["stops"],
+  candidates: SymbolizationRamp["stops"],
 ) => {
   for (let i = 1; i < candidates.length; i++) {
     if (candidates[i].input < candidates[i - 1].input) {

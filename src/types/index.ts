@@ -385,7 +385,7 @@ export const SYMBOLIZATION_NONE: ISymbolizationNone = {
 
 export type ISymbolizationNone = z.infer<typeof SymbolizationNone>;
 export type ISymbolizationRamp = z.infer<typeof SymbolizationRamp> & {
-  unit?: Unit;
+  unit: Unit;
   reversedRamp?: boolean;
   absValues?: boolean;
   fallbackEndpoints: [number, number];

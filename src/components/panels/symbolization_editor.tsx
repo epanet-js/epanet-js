@@ -447,6 +447,7 @@ export function RampWizard() {
             values.breaks === "linear"
               ? getStopsLinear({ colors })
               : getStopsQuantile({ colors }),
+          unit: null,
         };
 
         await Promise.resolve(
