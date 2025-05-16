@@ -33,12 +33,10 @@ const Legend = ({
   symbolization: SymbolizationRamp;
 }) => {
   const userTracking = useUserTracking();
-  const title = symbolization.unit
-    ? `${translate(symbolization.property)} (${translateUnit(symbolization.unit)})`
-    : translate(symbolization.property);
-
-  const stops = [...symbolization.stops];
-  const totalStops = stops.length;
+  const { breaks, colors, interpolate, property, unit } = symbolization;
+  const title = unit
+    ? `${translate(property)} (${translateUnit(unit)})`
+    : translate(property);
 
   return (
     <Popover.Root>
@@ -49,7 +47,7 @@ const Legend = ({
             onClick={() => {
               userTracking.capture({
                 name: "analysis.legend.clicked",
-                property: symbolization.property,
+                property,
               });
             }}
           >
@@ -60,24 +58,24 @@ const Legend = ({
               className="relative w-4 h-32 rounded dark:border dark:border-white "
               style={{
                 background: linearGradient({
-                  colors: stops.map((stop) => stop.output),
-                  interpolate: symbolization.interpolate,
+                  colors: colors,
+                  interpolate: interpolate,
                   vertical: true,
                 }),
               }}
             >
-              {Array.from({ length: totalStops - 1 }).map((_, i) => {
-                const topPct = ((i + 1) / totalStops) * 100;
+              {Array.from({ length: breaks.length }).map((_, i) => {
+                const topPct = ((i + 1) / (breaks.length + 1)) * 100;
                 return (
                   <div
-                    key={stops[i + 1].input + "_" + i}
+                    key={breaks[i] + "_" + i}
                     className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
                     style={{
                       top: `${topPct}%`,
                       transform: "translateY(-50%)",
                     }}
                   >
-                    {localizeDecimal(stops[i + 1].input)}
+                    {localizeDecimal(breaks[i])}
                   </div>
                 );
               })}
@@ -92,10 +90,7 @@ const Legend = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <AnalysisRangeEditor
-              key={symbolization.property}
-              geometryType={geometryType}
-            />
+            <AnalysisRangeEditor key={property} geometryType={geometryType} />
           </StyledPopoverContent>
         </Popover.Portal>
       </LegendContainer>

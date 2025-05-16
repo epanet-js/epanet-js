@@ -20,7 +20,10 @@ import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { analysisAtom } from "src/state/analysis";
-import { SymbolizationRamp, stopsFrom } from "src/analysis/symbolization-ramp";
+import {
+  SymbolizationRamp,
+  nullRampSymbolization,
+} from "src/analysis/symbolization-ramp";
 
 export const setInitialState = ({
   store = createStore(),
@@ -135,16 +138,12 @@ export const aSymbolization = (
   symbolization: Partial<SymbolizationRamp>,
 ): SymbolizationRamp => {
   const defaults: SymbolizationRamp = {
-    type: "ramp",
-    simplestyle: true,
+    ...nullRampSymbolization,
     property: "pressure",
     unit: "m",
-    defaultColor: "#ff00ff",
-    defaultOpacity: 0.3,
     interpolate: "step",
     rampName: "epanet-ramp",
     mode: "equalIntervals",
-    stops: [],
     absValues: false,
     fallbackEndpoints: [0, 100],
     breaks: [20, 30],
@@ -159,7 +158,6 @@ export const aSymbolization = (
     ...symbolization,
     breaks,
     colors,
-    stops: stopsFrom(breaks, colors),
   };
 };
 

@@ -16,8 +16,7 @@ export const rangeModes = [
 export type RangeMode = (typeof rangeModes)[number];
 
 export type SymbolizationRamp = {
-  type: "ramp";
-  simplestyle: boolean;
+  type: "range";
   defaultColor: string;
   defaultOpacity: number;
   interpolate: "step" | "linear";
@@ -28,7 +27,6 @@ export type SymbolizationRamp = {
   fallbackEndpoints: [number, number];
   mode: RangeMode;
   rampName: string;
-  stops: { input: number; output: string }[];
   breaks: number[];
   colors: string[];
 };
@@ -80,8 +78,7 @@ export const initializeSymbolization = ({
   }
 
   return {
-    type: "ramp",
-    simplestyle: true,
+    type: "range",
     property,
     unit,
     defaultColor: "",
@@ -94,7 +91,6 @@ export const initializeSymbolization = ({
     reversedRamp: reverseRamp,
     breaks,
     colors,
-    stops: stopsFrom(breaks, colors),
   };
 };
 
@@ -113,7 +109,6 @@ export const prependBreak = (
     mode: "manual",
     breaks: newBreaks,
     colors: newColors,
-    stops: stopsFrom(newBreaks, newColors),
   };
 };
 
@@ -131,7 +126,6 @@ export const appendBreak = (
     mode: "manual",
     breaks: newBreaks,
     colors: newColors,
-    stops: stopsFrom(newBreaks, newColors),
   };
 };
 
@@ -142,7 +136,6 @@ export const reverseColors = (symbolization: SymbolizationRamp) => {
     ...symbolization,
     reversedRamp: !symbolization.reversedRamp,
     colors: newColors,
-    stops: stopsFrom(symbolization.breaks, newColors),
   };
 };
 
@@ -158,7 +151,6 @@ export const changeIntervalColor = (
   return {
     ...symbolization,
     colors: newColors,
-    stops: stopsFrom(symbolization.breaks, newColors),
   };
 };
 
@@ -184,7 +176,6 @@ export const updateBreakValue = (
     ...symbolization,
     mode: "manual",
     breaks: newBreaks,
-    stops: stopsFrom(newBreaks, symbolization.colors),
   };
 };
 
@@ -201,7 +192,6 @@ export const deleteBreak = (
     ...symbolization,
     breaks: newBreaks,
     colors: newColors,
-    stops: stopsFrom(newBreaks, newColors),
   };
 };
 
@@ -221,7 +211,6 @@ export const changeRampName = (
     rampName: newRampName,
     reversedRamp: isReversed,
     colors: newColors,
-    stops: stopsFrom(symbolization.breaks, newColors),
   };
 };
 
@@ -248,7 +237,6 @@ export const changeRangeSize = (
       ...symbolization,
       breaks: newBreaks,
       colors: newColors,
-      stops: stopsFrom(newBreaks, newColors),
     },
     error: !valid,
   };
@@ -275,7 +263,6 @@ export const applyMode = (
       ...symbolization,
       mode,
       breaks: newBreaks,
-      stops: stopsFrom(newBreaks, symbolization.colors),
     },
     error: !valid,
   };
@@ -350,8 +337,7 @@ const calculateRange = (
 };
 
 export const nullRampSymbolization: SymbolizationRamp = {
-  type: "ramp",
-  simplestyle: true,
+  type: "range",
   property: "",
   unit: null,
   defaultColor: "",
@@ -359,21 +345,9 @@ export const nullRampSymbolization: SymbolizationRamp = {
   interpolate: "step",
   rampName: "Temps",
   mode: "equalIntervals",
-  stops: [],
   fallbackEndpoints: [0, 100],
   breaks: [],
   colors: [],
-};
-
-export const stopsFrom = (
-  breaks: number[],
-  colors: string[],
-): SymbolizationRamp["stops"] => {
-  const stopValues = [-Infinity, ...breaks];
-  return stopValues.map((v, i) => ({
-    input: v,
-    output: colors[i],
-  }));
 };
 
 export const getColors = (
