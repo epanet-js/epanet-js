@@ -1,4 +1,4 @@
-import { RampMode } from "../symbolization-ramp";
+import { RangeMode } from "../symbolization-ramp";
 import { checkCkmeansData } from "./ckmeans";
 import { checkEqualIntervalsData } from "./equal-intervals";
 import { checkEqualQuantilesData } from "./equal-quantiles";
@@ -7,7 +7,7 @@ import { checkPrettyBreaksData } from "./pretty-breaks";
 export { calculatePrettyBreaks } from "./pretty-breaks";
 
 export const checkValidData = (
-  mode: RampMode,
+  mode: RangeMode,
   sortedData: number[],
   numIntervals: number,
 ) => {

@@ -370,7 +370,7 @@ type UserEvent =
   | { name: "analysis.break.deleted"; property: string }
   | { name: "analysis.colorRamp.changed"; rampName: string; property: string }
   | { name: "analysis.colorRamp.reversed"; rampName: string; property: string }
-  | { name: "analysis.breakColor.changed"; property: string }
+  | { name: "analysis.intervalColor.changed"; property: string }
   | { name: "analysis.breaks.regenerated"; property: string }
   | { name: "analysis.legend.clicked"; property: string }
   | {

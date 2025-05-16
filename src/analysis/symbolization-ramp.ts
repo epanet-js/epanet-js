@@ -10,20 +10,20 @@ import { calculateManualBreaks } from "./ramp-modes/manual";
 type SymbolizationRamp = ISymbolizationRamp;
 export type RampEndpoints = [number, number];
 
-export const rampModes = [
+export const rangeModes = [
   "equalIntervals",
   "equalQuantiles",
   "prettyBreaks",
   "ckmeans",
   "manual",
 ] as const;
-export type RampMode = (typeof rampModes)[number];
+export type RangeMode = (typeof rangeModes)[number];
 
 export type RampSize = keyof CBColors["colors"];
 
 export const defaultNewColor = "#0fffff";
-export const maxRampSize = 7;
-export const minRampSize = 3;
+export const maxIntervals = 7;
+export const minIntervals = 3;
 
 export const initializeSymbolization = ({
   mode,
@@ -38,7 +38,7 @@ export const initializeSymbolization = ({
 }: {
   rampName: string;
   rampSize?: number;
-  mode: RampMode;
+  mode: RangeMode;
   sortedData: number[];
   property: string;
   unit: Unit;
@@ -48,7 +48,7 @@ export const initializeSymbolization = ({
 }): SymbolizationRamp => {
   const colors = getColors(rampName, rampSize, reverseRamp);
   const isValid = checkValidData(mode, sortedData, rampSize);
-  let effectiveMode: RampMode, stops;
+  let effectiveMode: RangeMode, stops;
   if (isValid) {
     effectiveMode = mode;
     stops = generateStops(mode, colors, sortedData, fallbackEndpoints);
@@ -74,7 +74,7 @@ export const initializeSymbolization = ({
   };
 };
 
-export const prependStop = (
+export const prependBreak = (
   symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
   const { stops } = symbolization;
@@ -94,7 +94,7 @@ export const prependStop = (
   return { ...symbolization, mode: "manual", stops: newStops };
 };
 
-export const appendStop = (
+export const appendBreak = (
   symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
   const lastStop = symbolization.stops[symbolization.stops.length - 1];
@@ -122,7 +122,7 @@ export const reverseColors = (symbolization: SymbolizationRamp) => {
   };
 };
 
-export const changeStopColor = (
+export const changeIntervalColor = (
   symbolization: SymbolizationRamp,
   index: number,
   color: string,
@@ -147,7 +147,7 @@ export const validateAscendingOrder = (
   return true;
 };
 
-export const changeStopValue = (
+export const updateBreakValue = (
   symbolization: SymbolizationRamp,
   index: number,
   value: number,
@@ -161,7 +161,7 @@ export const changeStopValue = (
   return { ...symbolization, mode: "manual", stops: newStops };
 };
 
-export const deleteStop = (
+export const deleteBreak = (
   symbolization: SymbolizationRamp,
   index: number,
 ): SymbolizationRamp => {
@@ -199,7 +199,7 @@ export const changeRampName = (
   };
 };
 
-export const changeRampSize = (
+export const changeRangeSize = (
   symbolization: SymbolizationRamp,
   sortedValues: number[],
   rampSize: number,
@@ -238,7 +238,7 @@ export const getColors = (
 
 export const applyMode = (
   symbolization: SymbolizationRamp,
-  mode: RampMode,
+  mode: RangeMode,
   sortedValues: number[],
 ): { symbolization: SymbolizationRamp; error?: boolean } => {
   const rampSize = symbolization.stops.length as RampSize;
@@ -259,7 +259,7 @@ export const applyMode = (
 };
 
 const generateStops = (
-  mode: RampMode,
+  mode: RangeMode,
   colors: string[],
   sortedValues: number[],
   fallbackEndpoints: [number, number],
@@ -286,7 +286,7 @@ const generateStops = (
 };
 
 const calculateBreaks = (
-  mode: RampMode,
+  mode: RangeMode,
   sortedValues: number[],
   numIntervals: number,
   fallbackEndpoints: RampEndpoints,
@@ -308,7 +308,7 @@ const calculateBreaks = (
 };
 
 const calculateRange = (
-  mode: RampMode,
+  mode: RangeMode,
   sortedValues: number[],
   numIntervals: number,
 ): number[] => {
