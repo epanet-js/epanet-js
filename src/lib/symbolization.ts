@@ -46,30 +46,5 @@ function asColorExpressionInner({
         defaultColor,
       ];
     }
-    case "ramp": {
-      return [
-        "match",
-        ["typeof", ["get", symbolization.property]],
-        "number",
-        symbolization.interpolate === "linear"
-          ? [
-              "interpolate-lab",
-              ["linear"],
-              ["get", symbolization.property],
-              ...symbolization.stops.flatMap((stop) => {
-                return [stop.input, stop.output];
-              }),
-            ]
-          : [
-              "step",
-              ["get", symbolization.property],
-              defaultColor,
-              ...symbolization.stops.flatMap((stop) => {
-                return [stop.input, stop.output];
-              }),
-            ],
-        defaultColor,
-      ];
-    }
   }
 }

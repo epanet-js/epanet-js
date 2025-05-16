@@ -15,7 +15,7 @@ export const rangeModes = [
 ] as const;
 export type RangeMode = (typeof rangeModes)[number];
 
-type SymbolizationRamp = {
+export type SymbolizationRamp = {
   type: "ramp";
   simplestyle: boolean;
   defaultColor: string;

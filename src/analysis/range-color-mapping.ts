@@ -1,9 +1,8 @@
 import { Unit } from "src/quantity";
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { colors } from "src/lib/constants";
-import { ISymbolizationRamp } from "src/types";
 import { strokeColorFor } from "src/lib/color";
-import { RangeEndpoints } from "./symbolization-ramp";
+import { RangeEndpoints, SymbolizationRamp } from "./symbolization-ramp";
 
 export type Rgb = [number, number, number];
 type Range = [start: number, end: number];
@@ -46,7 +45,7 @@ export class RangeColorMapping {
     );
   }
 
-  static fromSymbolizationRamp(symbolization: ISymbolizationRamp) {
+  static fromSymbolizationRamp(symbolization: SymbolizationRamp) {
     const ranges = buildRanges([
       ...symbolization.stops.map((s) => s.input),
       Infinity,
@@ -79,7 +78,7 @@ export class RangeColorMapping {
   }
 
   private ranges: Range[];
-  public readonly symbolization: ISymbolizationRamp;
+  public readonly symbolization: SymbolizationRamp;
   private rgbRamp: Rgb[];
   private colorRamp: string[];
   private strokeRamp: string[];
@@ -87,7 +86,7 @@ export class RangeColorMapping {
 
   constructor(
     ranges: Range[],
-    symbolization: ISymbolizationRamp,
+    symbolization: SymbolizationRamp,
     rgbRamp: Rgb[],
     colorRamp: string[],
     strokeRamp: string[],
@@ -162,7 +161,7 @@ const buildSymbolization = (
   unit: Unit,
   absValues: boolean,
   fallbackEndpoints: RangeEndpoints,
-): ISymbolizationRamp => ({
+): SymbolizationRamp => ({
   type: "ramp",
   simplestyle: true,
   property,
@@ -187,7 +186,7 @@ const generateRampStops = (name: string, steps: number[]) => {
       return { input: steps[i], output: color };
     },
   );
-  return stops as ISymbolizationRamp["stops"];
+  return stops as SymbolizationRamp["stops"];
 };
 
 interface RgbaObject {

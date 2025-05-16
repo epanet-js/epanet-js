@@ -1,5 +1,5 @@
 import randomColor from "randomcolor";
-import type { IPresence, RampValues } from "src/types";
+import type { IPresence } from "src/types";
 import * as d3 from "d3-color";
 import chroma from "chroma-js";
 
@@ -32,7 +32,7 @@ export function linearGradient({
   vertical = false,
 }: {
   colors: string[];
-  interpolate: RampValues["interpolate"];
+  interpolate: "step" | "linear";
   vertical?: boolean;
 }) {
   const angle = vertical ? "180deg" : "90deg";

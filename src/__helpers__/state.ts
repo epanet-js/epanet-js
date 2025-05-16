@@ -16,11 +16,12 @@ import {
 } from "src/state/jotai";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
-import { ILayerConfig, ISymbolizationRamp, LayerConfigMap } from "src/types";
+import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { analysisAtom } from "src/state/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
+import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
 
 export const setInitialState = ({
   store = createStore(),
@@ -113,7 +114,7 @@ export const aSingleSelection = ({
 };
 
 export const aNodesAnalysis = (
-  symbolization: Partial<ISymbolizationRamp>,
+  symbolization: Partial<SymbolizationRamp>,
 ): NodesAnalysis => {
   return {
     type: "pressure",
@@ -124,7 +125,7 @@ export const aNodesAnalysis = (
 };
 
 export const aLinksAnalysis = (
-  symbolization: Partial<ISymbolizationRamp>,
+  symbolization: Partial<SymbolizationRamp>,
 ): LinksAnalysis => {
   return {
     type: "flow",
@@ -135,9 +136,9 @@ export const aLinksAnalysis = (
 };
 
 export const aSymbolization = (
-  symbolization: Partial<ISymbolizationRamp>,
-): ISymbolizationRamp => {
-  const defaults: ISymbolizationRamp = {
+  symbolization: Partial<SymbolizationRamp>,
+): SymbolizationRamp => {
+  const defaults: SymbolizationRamp = {
     type: "ramp",
     simplestyle: true,
     property: "pressure",
