@@ -4,18 +4,19 @@ import { SimulationStatus } from "../result";
 import { SimulationResults } from "./epanet-results";
 import { extractSimulationResults } from "./extract-simulation-results";
 
-export const runSimulation = (
+export const runSimulation = async (
   inp: string,
   flags: Record<string, boolean>,
-): {
+): Promise<{
   status: SimulationStatus;
   report: string;
   results: SimulationResults;
-} => {
+}> => {
   // eslint-disable-next-line
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
   const ws = new Workspace();
+  await ws.loadModule();
   const model = new Project(ws);
 
   ws.writeFile("net.inp", inp);
