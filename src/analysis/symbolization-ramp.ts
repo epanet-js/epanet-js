@@ -1,14 +1,14 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { ISymbolizationRamp } from "src/types";
-import { calculatePrettyBreaks, checkValidData } from "./ramp-modes";
+import { calculatePrettyBreaks, checkValidData } from "./range-modes";
 import { Unit } from "src/quantity";
-import { calculateEqualIntervalRange } from "./ramp-modes/equal-intervals";
-import { calculateEqualQuantilesRange } from "./ramp-modes/equal-quantiles";
-import { calculateCkmeansRange } from "./ramp-modes/ckmeans";
-import { calculateManualBreaks } from "./ramp-modes/manual";
+import { calculateEqualIntervalRange } from "./range-modes/equal-intervals";
+import { calculateEqualQuantilesRange } from "./range-modes/equal-quantiles";
+import { calculateCkmeansRange } from "./range-modes/ckmeans";
+import { calculateManualBreaks } from "./range-modes/manual";
 
 type SymbolizationRamp = ISymbolizationRamp;
-export type RampEndpoints = [number, number];
+export type RangeEndpoints = [number, number];
 
 export const rangeModes = [
   "equalIntervals",
@@ -28,7 +28,7 @@ export const minIntervals = 3;
 export const initializeSymbolization = ({
   mode,
   rampName,
-  rampSize = 5,
+  numIntervals = 5,
   sortedData,
   property,
   unit,
@@ -37,17 +37,17 @@ export const initializeSymbolization = ({
   reverseRamp = false,
 }: {
   rampName: string;
-  rampSize?: number;
+  numIntervals?: number;
   mode: RangeMode;
   sortedData: number[];
   property: string;
   unit: Unit;
-  fallbackEndpoints?: RampEndpoints;
+  fallbackEndpoints?: RangeEndpoints;
   absValues?: boolean;
   reverseRamp?: boolean;
 }): SymbolizationRamp => {
-  const colors = getColors(rampName, rampSize, reverseRamp);
-  const isValid = checkValidData(mode, sortedData, rampSize);
+  const colors = getColors(rampName, numIntervals, reverseRamp);
+  const isValid = checkValidData(mode, sortedData, numIntervals);
   let effectiveMode: RangeMode, stops;
   if (isValid) {
     effectiveMode = mode;
@@ -202,20 +202,20 @@ export const changeRampName = (
 export const changeRangeSize = (
   symbolization: SymbolizationRamp,
   sortedValues: number[],
-  rampSize: number,
+  numIntervals: number,
 ): { symbolization: SymbolizationRamp; error?: boolean } => {
   const { mode, fallbackEndpoints, rampName } = symbolization;
-  const valid = checkValidData(mode, sortedValues, rampSize);
+  const valid = checkValidData(mode, sortedValues, numIntervals);
 
   const colors = getColors(
     rampName,
-    rampSize,
+    numIntervals,
     Boolean(symbolization.reversedRamp),
   );
 
   const stops = valid
     ? generateStops(mode, colors, sortedValues, fallbackEndpoints)
-    : Array.from({ length: rampSize }, (_, i) => ({
+    : Array.from({ length: numIntervals }, (_, i) => ({
         input: i,
         output: colors[i],
       }));
@@ -228,11 +228,11 @@ export const changeRangeSize = (
 
 export const getColors = (
   rampName: string,
-  rampSize: number,
+  numIntervals: number,
   reverse: boolean,
 ): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
-  const colors = ramp.colors[rampSize as RampSize] as string[];
+  const colors = ramp.colors[numIntervals as RampSize] as string[];
   return reverse ? [...colors].reverse() : colors;
 };
 
@@ -241,8 +241,8 @@ export const applyMode = (
   mode: RangeMode,
   sortedValues: number[],
 ): { symbolization: SymbolizationRamp; error?: boolean } => {
-  const rampSize = symbolization.stops.length as RampSize;
-  const valid = checkValidData(mode, sortedValues, rampSize);
+  const numIntervals = symbolization.stops.length as RampSize;
+  const valid = checkValidData(mode, sortedValues, numIntervals);
   const stops = valid
     ? generateStops(
         mode,
@@ -289,7 +289,7 @@ const calculateBreaks = (
   mode: RangeMode,
   sortedValues: number[],
   numIntervals: number,
-  fallbackEndpoints: RampEndpoints,
+  fallbackEndpoints: RangeEndpoints,
 ) => {
   switch (mode) {
     case "equalIntervals":
