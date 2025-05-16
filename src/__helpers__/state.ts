@@ -21,7 +21,7 @@ import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { analysisAtom } from "src/state/analysis";
 import { RangeColorMapping } from "src/analysis/range-color-mapping";
-import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
+import { SymbolizationRamp, stopsFrom } from "src/analysis/symbolization-ramp";
 
 export const setInitialState = ({
   store = createStore(),
@@ -135,6 +135,7 @@ export const aLinksAnalysis = (
   };
 };
 
+const anyColor = "#f12345";
 export const aSymbolization = (
   symbolization: Partial<SymbolizationRamp>,
 ): SymbolizationRamp => {
@@ -151,11 +152,19 @@ export const aSymbolization = (
     stops: [],
     absValues: false,
     fallbackEndpoints: [0, 100],
+    breaks: [20, 30],
+    colors: [anyColor, anyColor, anyColor],
   };
+
+  const breaks = symbolization.breaks || defaults.breaks;
+  const colors = symbolization.colors || defaults.colors;
 
   return {
     ...defaults,
     ...symbolization,
+    breaks,
+    colors,
+    stops: stopsFrom(breaks, colors),
   };
 };
 

@@ -29,6 +29,8 @@ export type SymbolizationRamp = {
   mode: RangeMode;
   rampName: string;
   stops: { input: number; output: string }[];
+  breaks: number[];
+  colors: string[];
 };
 
 export type RangeEndpoints = [number, number];
@@ -62,13 +64,19 @@ export const initializeSymbolization = ({
 }): SymbolizationRamp => {
   const colors = getColors(rampName, numIntervals, reverseRamp);
   const isValid = checkValidData(mode, sortedData, numIntervals);
-  let effectiveMode: RangeMode, stops;
+
+  let effectiveMode: RangeMode, breaks: number[];
   if (isValid) {
     effectiveMode = mode;
-    stops = generateStops(mode, colors, sortedData, fallbackEndpoints);
+    breaks = generateBreaks(mode, sortedData, numIntervals, fallbackEndpoints);
   } else {
     effectiveMode = "manual";
-    stops = generateStops("manual", colors, sortedData, fallbackEndpoints);
+    breaks = generateBreaks(
+      "manual",
+      sortedData,
+      numIntervals,
+      fallbackEndpoints,
+    );
   }
 
   return {
@@ -82,57 +90,59 @@ export const initializeSymbolization = ({
     rampName,
     mode: effectiveMode,
     fallbackEndpoints,
-    stops,
     absValues,
     reversedRamp: reverseRamp,
+    breaks,
+    colors,
+    stops: stopsFrom(breaks, colors),
   };
 };
 
 export const prependBreak = (
   symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
-  const { stops } = symbolization;
-  const [first, ...rest] = stops;
-  const firstValue = first.input === -Infinity ? rest[0].input : first.input;
-  const newValue = firstValue > 0 ? 0 : Math.floor(firstValue - 1);
+  const { breaks, colors } = symbolization;
 
-  const newStops = [
-    { input: first.input, output: defaultNewColor },
-    {
-      input: newValue,
-      output: first.output,
-    },
-    ...rest,
-  ];
+  const newValue = breaks[0] > 0 ? 0 : Math.floor(breaks[0] - 1);
 
-  return { ...symbolization, mode: "manual", stops: newStops };
+  const newBreaks = [newValue, ...breaks];
+  const newColors = [defaultNewColor, ...colors];
+
+  return {
+    ...symbolization,
+    mode: "manual",
+    breaks: newBreaks,
+    colors: newColors,
+    stops: stopsFrom(newBreaks, newColors),
+  };
 };
 
 export const appendBreak = (
   symbolization: SymbolizationRamp,
 ): SymbolizationRamp => {
-  const lastStop = symbolization.stops[symbolization.stops.length - 1];
-  const newStops = [
-    ...symbolization.stops,
-    {
-      input: Math.floor(lastStop.input + 1),
-      output: defaultNewColor,
-    },
-  ];
-  return { ...symbolization, mode: "manual", stops: newStops };
+  const { breaks, colors } = symbolization;
+
+  const lastBreak = breaks[breaks.length - 1];
+  const newBreaks = [...breaks, Math.floor(lastBreak + 1)];
+  const newColors = [...colors, defaultNewColor];
+
+  return {
+    ...symbolization,
+    mode: "manual",
+    breaks: newBreaks,
+    colors: newColors,
+    stops: stopsFrom(newBreaks, newColors),
+  };
 };
 
 export const reverseColors = (symbolization: SymbolizationRamp) => {
-  const colors = [...symbolization.stops].reverse().map((s) => s.output);
-  const newStops = symbolization.stops.map((s, i) => ({
-    input: s.input,
-    output: colors[i],
-  }));
+  const newColors = [...symbolization.colors].reverse();
 
   return {
     ...symbolization,
     reversedRamp: !symbolization.reversedRamp,
-    stops: newStops,
+    colors: newColors,
+    stops: stopsFrom(symbolization.breaks, newColors),
   };
 };
 
@@ -141,13 +151,15 @@ export const changeIntervalColor = (
   index: number,
   color: string,
 ) => {
-  const newStops = symbolization.stops.map((stop, i) => {
-    if (i !== index) return stop;
+  const newColors = symbolization.colors.map((oldColor, i) =>
+    i === index ? color : oldColor,
+  );
 
-    return { ...stop, output: color };
-  });
-
-  return { ...symbolization, stops: newStops };
+  return {
+    ...symbolization,
+    colors: newColors,
+    stops: stopsFrom(symbolization.breaks, newColors),
+  };
 };
 
 export const validateAscendingOrder = (
@@ -166,30 +178,34 @@ export const updateBreakValue = (
   index: number,
   value: number,
 ): SymbolizationRamp => {
-  const newStops = symbolization.stops.map((stop, i) => {
-    if (i !== index) return stop;
+  const newBreaks = symbolization.breaks.map((oldValue, i) => {
+    if (i !== index) return oldValue;
 
-    return { ...stop, input: value };
+    return value;
   });
 
-  return { ...symbolization, mode: "manual", stops: newStops };
+  return {
+    ...symbolization,
+    mode: "manual",
+    breaks: newBreaks,
+    stops: stopsFrom(newBreaks, symbolization.colors),
+  };
 };
 
 export const deleteBreak = (
   symbolization: SymbolizationRamp,
   index: number,
 ): SymbolizationRamp => {
-  let newStops;
-  if (index === 1) {
-    const [, target, ...rest] = symbolization.stops;
-    newStops = [{ input: -Infinity, output: target.output }, ...rest];
-  } else {
-    newStops = symbolization.stops.filter((stop, i) => i !== index);
-  }
+  const { breaks, colors } = symbolization;
+  const newBreaks = breaks.filter((_, i) => i !== index);
+  const newColors =
+    index === 0 ? colors.slice(1) : colors.filter((c, i) => i - 1 !== index);
 
   return {
     ...symbolization,
-    stops: newStops,
+    breaks: newBreaks,
+    colors: newColors,
+    stops: stopsFrom(newBreaks, newColors),
   };
 };
 
@@ -198,18 +214,18 @@ export const changeRampName = (
   newRampName: string,
   isReversed: boolean,
 ) => {
-  const colors = getColors(newRampName, symbolization.stops.length, isReversed);
-
-  const newStops = symbolization.stops.map((stop, i) => ({
-    input: stop.input,
-    output: colors[i],
-  }));
+  const newColors = getColors(
+    newRampName,
+    symbolization.colors.length,
+    isReversed,
+  );
 
   return {
     ...symbolization,
     rampName: newRampName,
     reversedRamp: isReversed,
-    stops: newStops,
+    colors: newColors,
+    stops: stopsFrom(symbolization.breaks, newColors),
   };
 };
 
@@ -221,33 +237,25 @@ export const changeRangeSize = (
   const { mode, fallbackEndpoints, rampName } = symbolization;
   const valid = checkValidData(mode, sortedValues, numIntervals);
 
-  const colors = getColors(
+  const newColors = getColors(
     rampName,
     numIntervals,
     Boolean(symbolization.reversedRamp),
   );
 
-  const stops = valid
-    ? generateStops(mode, colors, sortedValues, fallbackEndpoints)
-    : Array.from({ length: numIntervals }, (_, i) => ({
-        input: i,
-        output: colors[i],
-      }));
+  const newBreaks = valid
+    ? generateBreaks(mode, sortedValues, numIntervals, fallbackEndpoints)
+    : Array(numIntervals - 1).fill(1);
 
   return {
-    symbolization: { ...symbolization, stops },
+    symbolization: {
+      ...symbolization,
+      breaks: newBreaks,
+      colors: newColors,
+      stops: stopsFrom(newBreaks, newColors),
+    },
     error: !valid,
   };
-};
-
-export const getColors = (
-  rampName: string,
-  numIntervals: number,
-  reverse: boolean,
-): string[] => {
-  const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
-  const colors = ramp.colors[numIntervals as RampSize] as string[];
-  return reverse ? [...colors].reverse() : colors;
 };
 
 export const applyMode = (
@@ -255,48 +263,54 @@ export const applyMode = (
   mode: RangeMode,
   sortedValues: number[],
 ): { symbolization: SymbolizationRamp; error?: boolean } => {
-  const numIntervals = symbolization.stops.length as RampSize;
+  const numIntervals = symbolization.colors.length as RampSize;
   const valid = checkValidData(mode, sortedValues, numIntervals);
-  const stops = valid
-    ? generateStops(
+  const newBreaks = valid
+    ? generateBreaks(
         mode,
-        symbolization.stops.map((s) => s.output),
         sortedValues,
+        numIntervals,
         symbolization.fallbackEndpoints,
       )
-    : symbolization.stops;
+    : symbolization.breaks;
 
   return {
-    symbolization: { ...symbolization, mode, stops },
+    symbolization: {
+      ...symbolization,
+      mode,
+      breaks: newBreaks,
+      stops: stopsFrom(newBreaks, symbolization.colors),
+    },
     error: !valid,
   };
 };
 
-const generateStops = (
+const generateBreaks = (
   mode: RangeMode,
-  colors: string[],
   sortedValues: number[],
-  fallbackEndpoints: [number, number],
-): SymbolizationRamp["stops"] => {
-  let stopValues;
+  numIntervals: number,
+  fallbackEndpoints: RangeEndpoints,
+): number[] => {
+  let breaks;
   if (mode === "prettyBreaks" || mode === "manual") {
-    const breaks = calculateBreaks(
+    const totalBreaks = numIntervals - 1;
+    breaks = calculateBreaks(
       mode,
       sortedValues,
-      colors.length - 1,
+      totalBreaks,
       fallbackEndpoints,
     );
-    stopValues = [-Infinity, ...breaks];
   } else {
-    const breaks = calculateRange(mode, sortedValues, colors.length);
-    stopValues = [-Infinity, ...breaks.slice(1, -1)];
+    const totalPoints = numIntervals;
+    const points = calculateRange(mode, sortedValues, totalPoints);
+    breaks = points.slice(1, -1);
   }
-  if (stopValues.length !== colors.length)
-    throw new Error("Invalid stops for ramp");
 
-  return stopValues.map((value, i) => {
-    return { input: Number(value.toFixed(2)), output: colors[i] };
-  });
+  if (breaks.length !== numIntervals - 1) {
+    throw new Error("Invalid number of breaks!");
+  }
+
+  return breaks.map((value) => Number(value.toFixed(2)));
 };
 
 const calculateBreaks = (
@@ -351,4 +365,27 @@ export const nullRampSymbolization: SymbolizationRamp = {
   mode: "equalIntervals",
   stops: [],
   fallbackEndpoints: [0, 100],
+  breaks: [],
+  colors: [],
+};
+
+export const stopsFrom = (
+  breaks: number[],
+  colors: string[],
+): SymbolizationRamp["stops"] => {
+  const stopValues = [-Infinity, ...breaks];
+  return stopValues.map((v, i) => ({
+    input: v,
+    output: colors[i],
+  }));
+};
+
+export const getColors = (
+  rampName: string,
+  numIntervals: number,
+  reverse: boolean,
+): string[] => {
+  const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
+  const colors = ramp.colors[numIntervals as RampSize] as string[];
+  return reverse ? [...colors].reverse() : colors;
 };

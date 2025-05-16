@@ -21,16 +21,12 @@ describe("analysis range editor", () => {
   const green = "#00ff00";
   const blue = "#0000ff";
   const white = "#ffffff";
-  const startingStops = [
-    { input: 10, output: red },
-    { input: 20, output: green },
-    { input: 30, output: blue },
-  ];
 
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: startingStops,
+      breaks: [20, 30],
+      colors: [red, green, blue],
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -60,7 +56,8 @@ describe("analysis range editor", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalQuantiles",
-      stops: startingStops,
+      breaks: [20, 30],
+      colors: [red, green, blue],
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -96,11 +93,7 @@ describe("analysis range editor", () => {
       .build();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalQuantiles",
-      stops: [
-        { input: 0, output: red },
-        { input: 2, output: green },
-        { input: 3, output: blue },
-      ],
+      colors: [red, green, blue],
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -129,11 +122,7 @@ describe("analysis range editor", () => {
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalIntervals",
       property: "pressure",
-      stops: [
-        { input: -Infinity, output: red },
-        { input: 2, output: green },
-        { input: 3, output: blue },
-      ],
+      colors: [red, green, blue],
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -162,7 +151,8 @@ describe("analysis range editor", () => {
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalIntervals",
       property: "pressure",
-      stops: startingStops,
+      breaks: [50, 75],
+      colors: [red, green, blue],
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -185,11 +175,8 @@ describe("analysis range editor", () => {
   it("can apply different ramp color", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: 0, output: red },
-        { input: 2, output: green },
-        { input: 3, output: blue },
-      ],
+      breaks: [2, 3],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -199,11 +186,8 @@ describe("analysis range editor", () => {
     await user.click(screen.getByTitle("OrRd"));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(0);
     expect(stops[0].output).toEqual("rgb(254,232,200)");
-    expect(stops[1].input).toEqual(2);
     expect(stops[1].output).toEqual("rgb(253,187,132)");
-    expect(stops[2].input).toEqual(3);
     expect(stops[2].output).toEqual("rgb(227,74,51)");
   });
 
@@ -211,11 +195,8 @@ describe("analysis range editor", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalQuantiles",
-      stops: [
-        { input: -Infinity, output: red },
-        { input: 10, output: green },
-        { input: 20, output: blue },
-      ],
+      breaks: [10, 20],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -266,10 +247,8 @@ describe("analysis range editor", () => {
   it("can append breaks", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
-      ],
+      breaks: [10, 20],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -279,8 +258,9 @@ describe("analysis range editor", () => {
 
     const firstState = getUpdateNodesAnalysisSymbolization(store);
     expect(firstState.stops).toEqual([
-      { input: 10, output: red },
-      { input: 20, output: green },
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
       { input: 21, output: defaultNewColor },
     ]);
     expect(firstState.mode).toEqual("manual");
@@ -289,8 +269,9 @@ describe("analysis range editor", () => {
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
-      { input: 10, output: red },
-      { input: 20, output: green },
+      { input: -Infinity, output: red },
+      { input: 10, output: green },
+      { input: 20, output: blue },
       { input: 21, output: defaultNewColor },
       { input: 22, output: defaultNewColor },
     ]);
@@ -299,12 +280,8 @@ describe("analysis range editor", () => {
   it("can delete a break", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: -Infinity, output: red },
-        { input: 2, output: green },
-        { input: 3, output: blue },
-        { input: 4, output: white },
-      ],
+      colors: [red, green, blue, white],
+      breaks: [2, 3, 4],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -323,11 +300,8 @@ describe("analysis range editor", () => {
   it("can reverse colors", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: -Infinity, output: red },
-        { input: 2, output: green },
-        { input: 3, output: blue },
-      ],
+      breaks: [2, 3],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -352,11 +326,8 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: -Infinity, output: red },
-        { input: 20.1, output: green },
-        { input: 30.1, output: blue },
-      ],
+      breaks: [20.1, 30.1],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
 
@@ -376,12 +347,8 @@ describe("analysis range editor", () => {
   it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: [
-        { input: -Infinity, output: white },
-        { input: 10, output: red },
-        { input: 20, output: green },
-        { input: 30, output: blue },
-      ],
+      breaks: [10, 20, 30],
+      colors: [white, red, green, blue],
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -440,11 +407,8 @@ describe("analysis range editor", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalQuantiles",
-      stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
-        { input: 30, output: blue },
-      ],
+      breaks: [20, 30],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -459,11 +423,8 @@ describe("analysis range editor", () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalIntervals",
-      stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
-        { input: 30, output: blue },
-      ],
+      breaks: [20, 30],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -485,11 +446,8 @@ describe("analysis range editor", () => {
     const linksAnalysis = aLinksAnalysis({
       property: "flow",
       mode: "equalIntervals",
-      stops: [
-        { input: 10, output: red },
-        { input: 20, output: green },
-        { input: 30, output: blue },
-      ],
+      breaks: [20, 30],
+      colors: [red, green, blue],
     });
     const store = setInitialState({ hydraulicModel, linksAnalysis });
 
@@ -519,7 +477,8 @@ describe("analysis range editor", () => {
     const user = userEvent.setup();
     const linksAnalysis = aLinksAnalysis({
       property: "flow",
-      stops: startingStops,
+      breaks: [20, 30],
+      colors: [red, green, blue],
       absValues: true,
     });
 
