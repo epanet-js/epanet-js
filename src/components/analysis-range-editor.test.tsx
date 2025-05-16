@@ -36,7 +36,7 @@ describe("analysis range editor", () => {
     renderComponent({ store });
 
     const field = screen.getByRole("textbox", {
-      name: /value for: step 0/i,
+      name: /value for: break 0/i,
     });
     await user.click(field);
     expect(field).toHaveValue("20");
@@ -49,9 +49,9 @@ describe("analysis range editor", () => {
     expect(stops[1].output).toEqual(green);
     expect(mode).toEqual("manual");
 
-    expect(
-      screen.getByRole("combobox", { name: "ramp mode" }),
-    ).toHaveTextContent("Manual");
+    expect(screen.getByRole("combobox", { name: "Mode" })).toHaveTextContent(
+      "Manual",
+    );
   });
 
   it("can change the colors manually", async () => {
@@ -105,7 +105,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal intervals/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
@@ -138,7 +138,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
@@ -167,7 +167,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /manual/i }));
 
     const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
@@ -219,7 +219,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("button", { name: /prepend stop/i }));
+    await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
     const firstState = getUpdateNodesAnalysisSymbolization(store);
     expect(firstState.stops).toEqual([
@@ -230,7 +230,7 @@ describe("analysis range editor", () => {
     ]);
     expect(firstState.mode).toEqual("manual");
 
-    await user.click(screen.getByRole("button", { name: /prepend stop/i }));
+    await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
     let stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -241,7 +241,7 @@ describe("analysis range editor", () => {
       { input: 20, output: blue },
     ]);
 
-    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+    await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -251,7 +251,7 @@ describe("analysis range editor", () => {
       { input: 20, output: blue },
     ]);
 
-    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+    await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -273,7 +273,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("button", { name: /append stop/i }));
+    await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
     const firstState = getUpdateNodesAnalysisSymbolization(store);
     expect(firstState.stops).toEqual([
@@ -283,7 +283,7 @@ describe("analysis range editor", () => {
     ]);
     expect(firstState.mode).toEqual("manual");
 
-    await user.click(screen.getByRole("button", { name: /append stop/i }));
+    await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -308,7 +308,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("button", { name: /delete stop 1/i }));
+    await user.click(screen.getByRole("button", { name: /delete 1/i }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
     expect(stops).toEqual([
@@ -361,10 +361,10 @@ describe("analysis range editor", () => {
     renderComponent({ store });
 
     expect(
-      screen.getByRole("combobox", { name: /ramp size/i }),
+      screen.getByRole("combobox", { name: /classes/i }),
     ).toHaveTextContent("3");
 
-    await user.click(screen.getByRole("combobox", { name: /ramp size/i }));
+    await user.click(screen.getByRole("combobox", { name: /classes/i }));
     await user.click(screen.getByRole("option", { name: /4/ }));
 
     const stops = getUpdateNodesAnalysisSymbolization(store).stops;
@@ -382,7 +382,7 @@ describe("analysis range editor", () => {
     renderComponent({ store });
 
     let field = screen.getByRole("textbox", {
-      name: /value for: step 1/i,
+      name: /value for: break 1/i,
     });
     await user.click(field);
     expect(field).toHaveValue("20");
@@ -397,7 +397,7 @@ describe("analysis range editor", () => {
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     field = screen.getByRole("textbox", {
-      name: /value for: step 2/i,
+      name: /value for: break 2/i,
     });
     await user.click(field);
     await user.clear(field);
@@ -410,7 +410,7 @@ describe("analysis range editor", () => {
     expect(stops[2].input).toEqual(110);
 
     field = screen.getByRole("textbox", {
-      name: /value for: step 0/i,
+      name: /value for: break 0/i,
     });
     await user.click(field);
     expect(field).toHaveValue("10");
@@ -422,10 +422,10 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("button", { name: /append stop/i }));
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /delete stop 1/i }));
+    await user.click(screen.getByRole("button", { name: /delete 1/i }));
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /delete stop 0/i }));
+    await user.click(screen.getByRole("button", { name: /delete 0/i }));
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
   });
 
@@ -443,7 +443,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal intervals/i }));
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
@@ -462,7 +462,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
@@ -490,12 +490,12 @@ describe("analysis range editor", () => {
 
     expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("combobox", { name: /ramp size/i }),
+      screen.getByRole("combobox", { name: /classes/i }),
     ).toHaveTextContent("3");
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /ckmeans/i }));
     expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
-    await user.click(screen.getByRole("combobox", { name: /ramp size/i }));
+    await user.click(screen.getByRole("combobox", { name: /classes/i }));
     await user.click(screen.getByRole("option", { name: /4/i }));
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
@@ -520,7 +520,7 @@ describe("analysis range editor", () => {
 
     renderComponent({ store, geometryType: "links" });
 
-    await user.click(screen.getByRole("combobox", { name: /ramp mode/i }));
+    await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
     let stops = getUpdateLinksAnalysisSymbolization(store).stops;
@@ -529,7 +529,7 @@ describe("analysis range editor", () => {
     expect(stops[2].input).toEqual(20);
 
     const field = screen.getByRole("textbox", {
-      name: /value for: step 0/i,
+      name: /value for: break 0/i,
     });
     await user.click(field);
     expect(field).toHaveValue("15");
@@ -559,7 +559,7 @@ describe("analysis range editor", () => {
   const expectStopValue = (index: number, value: string) => {
     expect(
       screen.getByRole("textbox", {
-        name: new RegExp(`value for: step ${index}`, "i"),
+        name: new RegExp(`value for: break ${index}`, "i"),
       }),
     ).toHaveValue(value);
   };

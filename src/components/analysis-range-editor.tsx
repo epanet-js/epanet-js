@@ -13,21 +13,21 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { ISymbolizationRamp } from "src/types";
 import {
-  RampMode,
+  RangeMode,
   RampSize,
-  appendStop,
+  appendBreak,
   applyMode,
+  changeIntervalColor,
   changeRampName,
-  changeRampSize,
-  changeStopColor,
-  changeStopValue,
-  deleteStop,
-  maxRampSize,
-  minRampSize,
+  changeRangeSize,
+  deleteBreak,
+  maxIntervals,
+  minIntervals,
   nullRampSymbolization,
-  prependStop,
-  rampModes,
+  prependBreak,
+  rangeModes,
   reverseColors,
+  updateBreakValue,
   validateAscendingOrder,
 } from "src/analysis/symbolization-ramp";
 import { translate } from "src/infra/i18n";
@@ -162,7 +162,7 @@ export const AnalysisRangeEditor = ({
     setError(null);
   };
 
-  const handleModeChange = (newMode: RampMode) => {
+  const handleModeChange = (newMode: RangeMode) => {
     userTracking.capture({
       name: "analysis.rangeMode.changed",
       mode: newMode,
@@ -178,14 +178,14 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handleRampSizeChange = (rampSize: number) => {
+  const handleRangeSizeChange = (numIntervals: number) => {
     userTracking.capture({
       name: "analysis.classes.changed",
-      classesCount: rampSize,
+      classesCount: numIntervals,
       property: symbolization.property,
     });
 
-    const result = changeRampSize(symbolization, sortedData, rampSize);
+    const result = changeRangeSize(symbolization, sortedData, numIntervals);
     setSymbolization(result.symbolization);
     if (result.error) {
       showError("notEnoughData", result.symbolization);
@@ -195,13 +195,13 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handleStopColorChange = (index: number, color: string) => {
+  const handleIntervalColorChange = (index: number, color: string) => {
     userTracking.capture({
-      name: "analysis.breakColor.changed",
+      name: "analysis.intervalColor.changed",
       property: symbolization.property,
     });
 
-    const newSymbolization = changeStopColor(symbolization, index, color);
+    const newSymbolization = changeIntervalColor(symbolization, index, color);
     setSymbolization(newSymbolization);
 
     if (!error) {
@@ -209,14 +209,14 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handleStopValueChange = (index: number, value: number) => {
+  const handleBreakUpdate = (index: number, value: number) => {
     userTracking.capture({
       name: "analysis.break.updated",
       breakValue: value,
       property: symbolization.property,
     });
 
-    const newSymbolization = changeStopValue(symbolization, index, value);
+    const newSymbolization = updateBreakValue(symbolization, index, value);
     setSymbolization(newSymbolization);
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
@@ -228,13 +228,13 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handleDeleteStop = (index: number) => {
+  const handleDeleteBreak = (index: number) => {
     userTracking.capture({
       name: "analysis.break.deleted",
       property: symbolization.property,
     });
 
-    const newSymbolization = deleteStop(symbolization, index);
+    const newSymbolization = deleteBreak(symbolization, index);
     setSymbolization(newSymbolization);
 
     const isValid = validateAscendingOrder(newSymbolization.stops);
@@ -246,26 +246,26 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handlePrependStop = () => {
+  const handlePrependBreak = () => {
     userTracking.capture({
       name: "analysis.break.prepended",
       property: symbolization.property,
     });
 
-    const newSymbolization = prependStop(symbolization);
+    const newSymbolization = prependBreak(symbolization);
     setSymbolization(newSymbolization);
     if (!error) {
       submitChange(newSymbolization);
     }
   };
 
-  const handleAppendStop = () => {
+  const handleAppendBreak = () => {
     userTracking.capture({
       name: "analysis.break.appended",
       property: symbolization.property,
     });
 
-    const newSymbolization = appendStop(symbolization);
+    const newSymbolization = appendBreak(symbolization);
     setSymbolization(newSymbolization);
     if (!error) {
       submitChange(newSymbolization);
@@ -315,7 +315,7 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const rampSize = symbolization.stops.length as RampSize;
+  const numIntervals = symbolization.stops.length as RampSize;
 
   return (
     <div className="space-y-4">
@@ -323,15 +323,15 @@ export const AnalysisRangeEditor = ({
         <div className="flex flex-col gap-y-2 w-full">
           <span className="text-sm text-gray-500">{translate("mode")}</span>
           <ModeSelector
-            rampMode={symbolization.mode}
+            rangeMode={symbolization.mode}
             onModeChange={handleModeChange}
           />
         </div>
         <div className="flex flex-col gap-y-2 w-full">
           <span className="text-sm text-gray-500">{translate("classes")}</span>
           <ClassesSelector
-            rampSize={rampSize}
-            onChange={handleRampSizeChange}
+            numIntervals={numIntervals}
+            onChange={handleRangeSizeChange}
           />
         </div>
         {error !== "notEnoughData" && (
@@ -341,7 +341,7 @@ export const AnalysisRangeEditor = ({
             </span>
             <ColorRampSelector
               rampColors={symbolization.stops.map((s) => s.output)}
-              rampSize={rampSize}
+              size={numIntervals}
               reversedRamp={Boolean(symbolization.reversedRamp)}
               onRampChange={handleRampChange}
               onReverse={handleReverseColors}
@@ -362,11 +362,11 @@ export const AnalysisRangeEditor = ({
             <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
               <RangeEditor
                 symbolization={symbolization}
-                onAppend={handleAppendStop}
-                onPrepend={handlePrependStop}
-                onDelete={handleDeleteStop}
-                onChangeColor={handleStopColorChange}
-                onChangeValue={handleStopValueChange}
+                onAppend={handleAppendBreak}
+                onPrepend={handlePrependBreak}
+                onDelete={handleDeleteBreak}
+                onChangeColor={handleIntervalColorChange}
+                onChangeValue={handleBreakUpdate}
               />
             </div>
           </div>
@@ -415,9 +415,9 @@ const RangeEditor = ({
   onAppend: () => void;
   onDelete: (index: number) => void;
 }) => {
-  const rampSize = symbolization.stops.length as RampSize;
-  const canAddMore = rampSize < maxRampSize;
-  const canDeleteStop = rampSize > minRampSize;
+  const numIntervals = symbolization.stops.length as RampSize;
+  const canAddMore = numIntervals < maxIntervals;
+  const canDelete = numIntervals > minIntervals;
 
   return (
     <div className="w-full flex flex-row gap-2 items-start dark:text-white">
@@ -451,7 +451,7 @@ const RangeEditor = ({
             variant="ultra-quiet"
             className="opacity-60 border-none"
             onClick={onPrepend}
-            aria-label={`Prepend stop`}
+            aria-label={translate("addBreak")}
           >
             <PlusIcon /> {translate("addBreak")}
           </Button>
@@ -465,8 +465,8 @@ const RangeEditor = ({
               key={`${stop.input}-${i}`}
             >
               <NumericField
-                key={`step-${i - 1}`}
-                label={`step ${i - 1}`}
+                key={`break-${i - 1}`}
+                label={`break ${i - 1}`}
                 isNullable={true}
                 readOnly={false}
                 positiveOnly={Boolean(symbolization.absValues)}
@@ -475,13 +475,13 @@ const RangeEditor = ({
                   onChangeValue(i, value);
                 }}
               />
-              {symbolization.stops.length > 1 && canDeleteStop ? (
+              {symbolization.stops.length > 1 && canDelete ? (
                 <div>
                   <Button
                     tabIndex={2}
                     type="button"
                     variant="ultra-quiet"
-                    aria-label={`Delete stop ${i - 1}`}
+                    aria-label={`${translate("Delete")} ${i - 1}`}
                     onClick={() => onDelete(i)}
                   >
                     <TrashIcon className="opacity-60" />
@@ -499,7 +499,7 @@ const RangeEditor = ({
             variant="ultra-quiet"
             className="text-gray-200 opacity-60 border-none"
             onClick={onAppend}
-            aria-label={`Append stop`}
+            aria-label={translate("addBreak")}
           >
             <PlusIcon /> {translate("addBreak")}
           </Button>
@@ -510,14 +510,14 @@ const RangeEditor = ({
 };
 
 const ClassesSelector = ({
-  rampSize,
+  numIntervals,
   onChange,
 }: {
-  rampSize: number;
-  onChange: (rampSize: number) => void;
+  numIntervals: number;
+  onChange: (numIntervals: number) => void;
 }) => {
   const options = useMemo(() => {
-    return d3.range(3, maxRampSize + 1).map((count) => ({
+    return d3.range(3, maxIntervals + 1).map((count) => ({
       label: String(count),
       value: String(count),
     }));
@@ -526,8 +526,8 @@ const ClassesSelector = ({
   return (
     <Selector
       options={options}
-      selected={String(rampSize)}
-      ariaLabel="ramp size"
+      selected={String(numIntervals)}
+      ariaLabel={translate("classes")}
       onChange={(newValue) => {
         onChange(Number(newValue));
       }}
@@ -544,14 +544,14 @@ const modeLabels = {
 };
 
 const ModeSelector = ({
-  rampMode,
+  rangeMode,
   onModeChange,
 }: {
-  rampMode: RampMode;
-  onModeChange: (newMode: RampMode) => void;
+  rangeMode: RangeMode;
+  onModeChange: (newMode: RangeMode) => void;
 }) => {
   const modeOptions = useMemo(() => {
-    return rampModes.map((mode) => ({
+    return rangeModes.map((mode) => ({
       label: translate(modeLabels[mode]),
       value: mode,
     }));
@@ -560,8 +560,8 @@ const ModeSelector = ({
   return (
     <Selector
       options={modeOptions}
-      selected={rampMode}
-      ariaLabel="ramp mode"
+      selected={rangeMode}
+      ariaLabel={translate("mode")}
       onChange={(newMode) => {
         onModeChange(newMode);
       }}
@@ -571,13 +571,13 @@ const ModeSelector = ({
 
 const ColorRampSelector = ({
   rampColors,
-  rampSize,
+  size,
   onRampChange,
   reversedRamp,
   onReverse,
 }: {
   rampColors: string[];
-  rampSize: keyof CBColors["colors"];
+  size: keyof CBColors["colors"];
   reversedRamp: boolean;
   onRampChange: (rampName: string, isReversed: boolean) => void;
   onReverse: () => void;
@@ -614,14 +614,14 @@ const ColorRampSelector = ({
                 label={translate("continuousRamp")}
                 colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
                 onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                size={rampSize}
+                size={size}
                 reverse={reversedRamp}
               />
               <RampChoices
                 label={translate("divergingRamp")}
                 colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
                 onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                size={rampSize}
+                size={size}
                 reverse={reversedRamp}
               />
             </div>
