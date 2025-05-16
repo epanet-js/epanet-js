@@ -80,12 +80,14 @@ export const AnalysisRangeEditor = ({
       if (geometryType === "nodes") {
         setNodesAnalysis((prev) => ({
           ...prev,
+          symbolization: newSymbolization,
           rangeColorMapping:
             RangeColorMapping.fromSymbolizationRamp(newSymbolization),
         }));
       } else {
         setLinksAnalysis((prev) => ({
           ...prev,
+          symbolization: newSymbolization,
           rangeColorMapping:
             RangeColorMapping.fromSymbolizationRamp(newSymbolization),
         }));

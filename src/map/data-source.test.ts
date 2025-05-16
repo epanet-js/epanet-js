@@ -9,6 +9,8 @@ import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
+import { aSymbolization } from "src/__helpers__/state";
+import { getColors } from "src/analysis/symbolization-ramp";
 
 describe("build optimized source", () => {
   it("preserves core properties", () => {
@@ -63,6 +65,12 @@ describe("build optimized source", () => {
       ...nullAnalysis,
       nodes: {
         type: "pressure",
+        symbolization: aSymbolization({
+          breaks: [10, 20, 30],
+          property: "pressure",
+          unit: "m",
+          colors: getColors("epanet-ramp", 4),
+        }),
         rangeColorMapping: RangeColorMapping.build({
           steps: [-Infinity, 10, 20, 30],
           property: "pressure",
@@ -95,6 +103,12 @@ describe("build optimized source", () => {
       ...nullAnalysis,
       links: {
         type: "flow",
+        symbolization: aSymbolization({
+          breaks: [10, 20, 30],
+          property: "flow",
+          colors: getColors("epanet-ramp", 4),
+          absValues: true,
+        }),
         rangeColorMapping: RangeColorMapping.build({
           steps: [-Infinity, 10, 20, 30],
           property: "flow",
@@ -165,10 +179,16 @@ describe("build optimized source", () => {
         ...nullAnalysis,
         links: {
           type: "velocity",
+          symbolization: aSymbolization({
+            breaks: [10, 20, 30],
+            property: "velocity",
+            colors: getColors("epanet-ramp", 4),
+            absValues: true,
+          }),
           rangeColorMapping: RangeColorMapping.build({
             steps: [-Infinity, 10, 20, 30],
             property: "velocity",
-            unit: "l/s",
+            unit: "m/s",
             paletteName: "epanet-ramp",
             absoluteValues: true,
           }),

@@ -118,6 +118,7 @@ export const aNodesAnalysis = (
 ): NodesAnalysis => {
   return {
     type: "pressure",
+    symbolization: aSymbolization(symbolization),
     rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
       aSymbolization(symbolization),
     ),
@@ -129,6 +130,7 @@ export const aLinksAnalysis = (
 ): LinksAnalysis => {
   return {
     type: "flow",
+    symbolization: aSymbolization(symbolization),
     rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
       aSymbolization(symbolization),
     ),

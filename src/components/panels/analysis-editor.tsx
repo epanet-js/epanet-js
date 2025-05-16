@@ -46,6 +46,16 @@ export const AnalysisEditor = () => {
           ...prev,
           links: {
             type: "flow",
+            symbolization: initializeSymbolization({
+              property: "flow",
+              unit: hydraulicModel.units.flow,
+              rampName: "Teal",
+              mode: "equalQuantiles",
+              absValues: true,
+              sortedData: getSortedValues(hydraulicModel.assets, "flow", {
+                absValues: true,
+              }),
+            }),
             rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
               initializeSymbolization({
                 property: "flow",
@@ -65,6 +75,14 @@ export const AnalysisEditor = () => {
           ...prev,
           links: {
             type: "velocity",
+            symbolization: initializeSymbolization({
+              property: "velocity",
+              unit: hydraulicModel.units.velocity,
+              rampName: "RedOr",
+              mode: "equalQuantiles",
+              sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+              fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
+            }),
             rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
               initializeSymbolization({
                 property: "velocity",
@@ -99,6 +117,14 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: {
             type: "pressure",
+            symbolization: initializeSymbolization({
+              property: "pressure",
+              unit: hydraulicModel.units.pressure,
+              rampName: "Temps",
+              mode: "prettyBreaks",
+              fallbackEndpoints: [0, 100],
+              sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+            }),
             rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
               initializeSymbolization({
                 property: "pressure",
@@ -116,6 +142,14 @@ export const AnalysisEditor = () => {
           ...prev,
           nodes: {
             type: "elevation",
+            symbolization: initializeSymbolization({
+              property: "elevation",
+              unit: hydraulicModel.units.elevation,
+              rampName: "Fall",
+              mode: "prettyBreaks",
+              fallbackEndpoints: [0, 100],
+              sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+            }),
             rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
               initializeSymbolization({
                 property: "elevation",

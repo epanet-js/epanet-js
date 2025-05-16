@@ -379,9 +379,25 @@ export const stopsFrom = (
 export const getColors = (
   rampName: string,
   numIntervals: number,
-  reverse: boolean,
+  reverse = false,
 ): string[] => {
   const ramp = COLORBREWER_ALL.find((ramp) => ramp.name === rampName)!;
   const colors = ramp.colors[numIntervals as RampSize] as string[];
   return reverse ? [...colors].reverse() : colors;
+};
+
+export const colorFor = (symbolization: SymbolizationRamp, value: number) => {
+  const { absValues, colors, breaks } = symbolization;
+  const effectiveValue = absValues ? Math.abs(value) : value;
+
+  if (effectiveValue < breaks[0]) return colors[0];
+  if (effectiveValue >= breaks[breaks.length - 1])
+    return colors[colors.length - 1];
+
+  for (let i = 0; i < breaks.length - 1; i++) {
+    if (effectiveValue >= breaks[i] && effectiveValue < breaks[i + 1])
+      return colors[i + 1];
+  }
+
+  throw new Error("Value without color");
 };
