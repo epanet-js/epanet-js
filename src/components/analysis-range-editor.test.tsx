@@ -25,7 +25,7 @@ describe("analysis range editor", () => {
     { input: 30, output: blue },
   ];
 
-  it("can change the range stops manually", async () => {
+  it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: startingStops,
@@ -77,9 +77,9 @@ describe("analysis range editor", () => {
     await user.click(screen.getByText(/done/i));
 
     await waitFor(() => {
-      expectColor(1, "#123456");
+      expectIntervalColor(1, "#123456");
     });
-    expectStopValue(0, "20");
+    expectBreakValue(0, "20");
     const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
     expect(stops[1].output).toEqual("#123456");
     expect(mode).toEqual("equalQuantiles");
@@ -205,7 +205,7 @@ describe("analysis range editor", () => {
     expect(stops[2].output).toEqual("rgb(227,74,51)");
   });
 
-  it("can prepend stops", async () => {
+  it("can prepend breaks", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       mode: "equalQuantiles",
@@ -261,7 +261,7 @@ describe("analysis range editor", () => {
     ]);
   });
 
-  it("can append stops", async () => {
+  it("can append breaks", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
@@ -294,7 +294,7 @@ describe("analysis range editor", () => {
     ]);
   });
 
-  it("can delete a stop", async () => {
+  it("can delete a break", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
       stops: [
@@ -371,10 +371,15 @@ describe("analysis range editor", () => {
     expect(stops.length).toEqual(4);
   });
 
-  it.skip("shows an error when range not in order", async () => {
+  it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      stops: startingStops,
+      stops: [
+        { input: -Infinity, output: white },
+        { input: 10, output: red },
+        { input: 20, output: green },
+        { input: 30, output: blue },
+      ],
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -390,10 +395,10 @@ describe("analysis range editor", () => {
     await user.type(field, "100");
     await user.keyboard("{Enter}");
 
-    expectStopValue(1, "100");
+    expectBreakValue(1, "100");
     let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(20);
-    expect(stops[1].output).toEqual(green);
+    expect(stops[2].input).toEqual(20);
+    expect(stops[2].output).toEqual(green);
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     field = screen.getByRole("textbox", {
@@ -406,8 +411,8 @@ describe("analysis range editor", () => {
 
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
     stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(100);
-    expect(stops[2].input).toEqual(110);
+    expect(stops[2].input).toEqual(100);
+    expect(stops[3].input).toEqual(110);
 
     field = screen.getByRole("textbox", {
       name: /value for: break 0/i,
@@ -419,13 +424,13 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /append stop/i }));
+    await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
+    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /delete 2/i }));
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /delete 1/i }));
-    expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /delete 0/i }));
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
   });
 
@@ -556,7 +561,7 @@ describe("analysis range editor", () => {
       .symbolization;
   };
 
-  const expectStopValue = (index: number, value: string) => {
+  const expectBreakValue = (index: number, value: string) => {
     expect(
       screen.getByRole("textbox", {
         name: new RegExp(`value for: break ${index}`, "i"),
@@ -564,7 +569,7 @@ describe("analysis range editor", () => {
     ).toHaveValue(value);
   };
 
-  const expectColor = (index: number, color: string) => {
+  const expectIntervalColor = (index: number, color: string) => {
     expect(
       screen
         .getByRole("button", {
