@@ -470,7 +470,7 @@ const IntervalsEditor = ({
                 positiveOnly={Boolean(symbolization.absValues)}
                 displayValue={localizeDecimal(stop.input)}
                 onChangeValue={(value) => {
-                  onChangeBreak(i, value);
+                  onChangeBreak(i - 1, value);
                 }}
               />
               {symbolization.stops.length > 1 && canDelete ? (
@@ -480,7 +480,7 @@ const IntervalsEditor = ({
                     type="button"
                     variant="ultra-quiet"
                     aria-label={`${translate("Delete")} ${i - 1}`}
-                    onClick={() => onDelete(i)}
+                    onClick={() => onDelete(i - 1)}
                   >
                     <TrashIcon className="opacity-60" />
                   </Button>

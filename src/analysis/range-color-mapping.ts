@@ -174,6 +174,8 @@ const buildSymbolization = (
   stops: generateRampStops(rampName, steps),
   absValues,
   fallbackEndpoints,
+  breaks: [],
+  colors: [],
 });
 
 const generateRampStops = (name: string, steps: number[]) => {
