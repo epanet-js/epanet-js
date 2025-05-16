@@ -2,7 +2,6 @@ import { useAtom, useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
 import { analysisAtom } from "src/state/analysis";
 import { translate } from "src/infra/i18n";
-import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
@@ -56,18 +55,6 @@ export const AnalysisEditor = () => {
                 absValues: true,
               }),
             }),
-            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-              initializeSymbolization({
-                property: "flow",
-                unit: hydraulicModel.units.flow,
-                rampName: "Teal",
-                mode: "equalQuantiles",
-                absValues: true,
-                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                  absValues: true,
-                }),
-              }),
-            ),
           },
         }));
       case "velocity":
@@ -83,17 +70,6 @@ export const AnalysisEditor = () => {
               sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
               fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
             }),
-            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-              initializeSymbolization({
-                property: "velocity",
-                unit: hydraulicModel.units.velocity,
-                rampName: "RedOr",
-                mode: "equalQuantiles",
-                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-                fallbackEndpoints:
-                  quantities.analysis.velocityFallbackEndpoints,
-              }),
-            ),
           },
         }));
     }
@@ -125,16 +101,6 @@ export const AnalysisEditor = () => {
               fallbackEndpoints: [0, 100],
               sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
             }),
-            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-              initializeSymbolization({
-                property: "pressure",
-                unit: hydraulicModel.units.pressure,
-                rampName: "Temps",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-              }),
-            ),
           },
         }));
       case "elevation":
@@ -150,16 +116,6 @@ export const AnalysisEditor = () => {
               fallbackEndpoints: [0, 100],
               sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
             }),
-            rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-              initializeSymbolization({
-                property: "elevation",
-                unit: hydraulicModel.units.elevation,
-                rampName: "Fall",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-              }),
-            ),
           },
         }));
     }

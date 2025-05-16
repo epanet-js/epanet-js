@@ -488,13 +488,11 @@ describe("analysis range editor", () => {
   });
 
   const getNodesAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(analysisAtom).nodes as PropertyAnalysis).rangeColorMapping
-      .symbolization;
+    return (store.get(analysisAtom).nodes as PropertyAnalysis).symbolization;
   };
 
   const getLinksAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(analysisAtom).links as FlowAnalysis).rangeColorMapping
-      .symbolization;
+    return (store.get(analysisAtom).links as FlowAnalysis).symbolization;
   };
 
   const expectBreakValue = (index: number, value: string) => {

@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { analysisAtom } from "src/state/analysis";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 import { aSimulationSuccess, setInitialState } from "src/__helpers__/state";
+import { colorFor } from "src/analysis/symbolization-ramp";
 
 describe("Analysis Editor", () => {
   it("displays nodes analysis options", async () => {
@@ -54,13 +55,8 @@ describe("Analysis Editor", () => {
     const { nodes } = store.get(analysisAtom);
     const nodesAnalysis = nodes as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
-    expect(nodesAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
-    expect(nodesAnalysis.rangeColorMapping.symbolization).toEqual(
-      expect.objectContaining({
-        type: "ramp",
-        property: "pressure",
-      }),
-    );
+    expect(colorFor(nodesAnalysis.symbolization, 10)).not.toBeUndefined();
+    expect(nodesAnalysis.symbolization.property).toEqual("pressure");
   });
 
   it("displays link analysis options", async () => {
@@ -86,13 +82,8 @@ describe("Analysis Editor", () => {
     const { links } = store.get(analysisAtom);
     const linksAnalysis = links as FlowAnalysis;
     expect(linksAnalysis.type).toEqual("flow");
-    expect(linksAnalysis.rangeColorMapping.colorFor(10)).not.toBeUndefined();
-    expect(linksAnalysis.rangeColorMapping.symbolization).toEqual(
-      expect.objectContaining({
-        type: "ramp",
-        property: "flow",
-      }),
-    );
+    expect(colorFor(linksAnalysis.symbolization, 10)).not.toBeUndefined();
+    expect(linksAnalysis.symbolization.property).toEqual("flow");
 
     expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
       "Flow",

@@ -20,7 +20,6 @@ import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { analysisAtom } from "src/state/analysis";
-import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { SymbolizationRamp, stopsFrom } from "src/analysis/symbolization-ramp";
 
 export const setInitialState = ({
@@ -119,9 +118,6 @@ export const aNodesAnalysis = (
   return {
     type: "pressure",
     symbolization: aSymbolization(symbolization),
-    rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-      aSymbolization(symbolization),
-    ),
   };
 };
 
@@ -131,9 +127,6 @@ export const aLinksAnalysis = (
   return {
     type: "flow",
     symbolization: aSymbolization(symbolization),
-    rangeColorMapping: RangeColorMapping.fromSymbolizationRamp(
-      aSymbolization(symbolization),
-    ),
   };
 };
 

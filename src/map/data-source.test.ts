@@ -5,7 +5,6 @@ import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
 } from "./data-source";
-import { RangeColorMapping } from "src/analysis/range-color-mapping";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
@@ -71,12 +70,6 @@ describe("build optimized source", () => {
           unit: "m",
           colors: getColors("epanet-ramp", 4),
         }),
-        rangeColorMapping: RangeColorMapping.build({
-          steps: [-Infinity, 10, 20, 30],
-          property: "pressure",
-          unit: "m",
-          paletteName: "epanet-ramp",
-        }),
       },
     };
 
@@ -108,13 +101,6 @@ describe("build optimized source", () => {
           property: "flow",
           colors: getColors("epanet-ramp", 4),
           absValues: true,
-        }),
-        rangeColorMapping: RangeColorMapping.build({
-          steps: [-Infinity, 10, 20, 30],
-          property: "flow",
-          unit: "l/s",
-          paletteName: "epanet-ramp",
-          absoluteValues: true,
         }),
       },
     };
@@ -184,13 +170,6 @@ describe("build optimized source", () => {
             property: "velocity",
             colors: getColors("epanet-ramp", 4),
             absValues: true,
-          }),
-          rangeColorMapping: RangeColorMapping.build({
-            steps: [-Infinity, 10, 20, 30],
-            property: "velocity",
-            unit: "m/s",
-            paletteName: "epanet-ramp",
-            absoluteValues: true,
           }),
         },
       };
