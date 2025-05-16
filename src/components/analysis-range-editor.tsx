@@ -28,8 +28,8 @@ import {
   rangeModes,
   reverseColors,
   updateBreakValue,
-  validateAscendingOrder,
   SymbolizationRamp,
+  validateAscindingBreaks,
 } from "src/analysis/symbolization-ramp";
 import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
@@ -130,10 +130,11 @@ export const AnalysisRangeEditor = ({
     }
 
     return createHistogram(sortedData, [
-      ...symbolization.stops.map((s) => s.input),
+      -Infinity,
+      ...symbolization.breaks,
       +Infinity,
     ]);
-  }, [symbolization.stops, sortedData]);
+  }, [symbolization.breaks, sortedData]);
 
   const [error, setError] = useState<ErrorType | null>(null);
 
@@ -150,7 +151,7 @@ export const AnalysisRangeEditor = ({
       errorKey: error,
       property: newSymbolization.property,
       mode: newSymbolization.mode,
-      classesCount: newSymbolization.stops.length,
+      classesCount: newSymbolization.colors.length,
     });
     setError(error);
     toast.error(translate("unableToUpdate"), { id: "symbolization" });
@@ -217,7 +218,7 @@ export const AnalysisRangeEditor = ({
     const newSymbolization = updateBreakValue(symbolization, index, value);
     setSymbolization(newSymbolization);
 
-    const isValid = validateAscendingOrder(newSymbolization.stops);
+    const isValid = validateAscindingBreaks(newSymbolization.breaks);
     if (!isValid) {
       showError("rampShouldBeAscending", newSymbolization);
     } else {
@@ -235,7 +236,7 @@ export const AnalysisRangeEditor = ({
     const newSymbolization = deleteBreak(symbolization, index);
     setSymbolization(newSymbolization);
 
-    const isValid = validateAscendingOrder(newSymbolization.stops);
+    const isValid = validateAscindingBreaks(newSymbolization.breaks);
     if (!isValid) {
       showError("rampShouldBeAscending", newSymbolization);
     } else {
@@ -313,7 +314,7 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const numIntervals = symbolization.stops.length as RampSize;
+  const numIntervals = symbolization.breaks.length + 1;
 
   return (
     <div className="space-y-4">
@@ -338,8 +339,8 @@ export const AnalysisRangeEditor = ({
               {translate("colorRamp")}
             </span>
             <ColorRampSelector
-              rampColors={symbolization.stops.map((s) => s.output)}
-              size={numIntervals}
+              rampColors={symbolization.colors}
+              size={numIntervals as RampSize}
               reversedRamp={Boolean(symbolization.reversedRamp)}
               onRampChange={handleRampChange}
               onReverse={handleReverseColors}
@@ -359,7 +360,10 @@ export const AnalysisRangeEditor = ({
           <div className="max-h-[400px] overflow-y-auto">
             <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
               <IntervalsEditor
-                symbolization={symbolization}
+                numIntervals={numIntervals}
+                breaks={symbolization.breaks}
+                colors={symbolization.colors}
+                absValues={Boolean(symbolization.absValues)}
                 onAppend={handleAppendBreak}
                 onPrepend={handlePrependBreak}
                 onDelete={handleDeleteBreak}
@@ -399,39 +403,42 @@ export const AnalysisRangeEditor = ({
 };
 
 const IntervalsEditor = ({
-  symbolization,
+  numIntervals,
+  breaks,
+  colors,
+  absValues,
   onChangeColor,
   onChangeBreak,
   onPrepend,
   onAppend,
   onDelete,
 }: {
-  symbolization: SymbolizationRamp;
+  numIntervals: number;
+  breaks: number[];
+  colors: string[];
+  absValues: boolean;
   onChangeColor: (index: number, color: string) => void;
   onChangeBreak: (index: number, value: number) => void;
   onPrepend: () => void;
   onAppend: () => void;
   onDelete: (index: number) => void;
 }) => {
-  const numIntervals = symbolization.stops.length as RampSize;
   const canAddMore = numIntervals < maxIntervals;
   const canDelete = numIntervals > minIntervals;
 
   return (
     <div className="w-full flex flex-row gap-2 items-start dark:text-white">
       <div className="flex flex-col gap-1">
-        {symbolization.stops.map((stop, i) => (
+        {colors.map((color, i) => (
           <div
             className={clsx(
-              i === 0 || i === symbolization.stops.length - 1
-                ? "h-[54px]"
-                : "h-[37.5px]",
+              i === 0 || i === colors.length - 1 ? "h-[54px]" : "h-[37.5px]",
               "rounded rounded-md padding-1 w-4",
             )}
-            key={`${stop.input}-${i}`}
+            key={`${color}-${i}`}
           >
             <ColorPopover
-              color={stop.output}
+              color={color}
               onChange={(color) => {
                 onChangeColor(i, color);
               }}
@@ -454,33 +461,31 @@ const IntervalsEditor = ({
             <PlusIcon /> {translate("addBreak")}
           </Button>
         </div>
-        {symbolization.stops.map((stop, i) => {
-          if (i === 0) return null;
-
+        {breaks.map((breakValue, i) => {
           return (
             <div
               className="flex w-full items-center gap-1"
-              key={`${stop.input}-${i}`}
+              key={`${breakValue}-${i}`}
             >
               <NumericField
-                key={`break-${i - 1}`}
-                label={`break ${i - 1}`}
+                key={`break-${i}`}
+                label={`break ${i}`}
                 isNullable={true}
                 readOnly={false}
-                positiveOnly={Boolean(symbolization.absValues)}
-                displayValue={localizeDecimal(stop.input)}
+                positiveOnly={Boolean(absValues)}
+                displayValue={localizeDecimal(breakValue)}
                 onChangeValue={(value) => {
-                  onChangeBreak(i - 1, value);
+                  onChangeBreak(i, value);
                 }}
               />
-              {symbolization.stops.length > 1 && canDelete ? (
+              {canDelete ? (
                 <div>
                   <Button
                     tabIndex={2}
                     type="button"
                     variant="ultra-quiet"
-                    aria-label={`${translate("Delete")} ${i - 1}`}
-                    onClick={() => onDelete(i - 1)}
+                    aria-label={`${translate("delete")} ${i}`}
+                    onClick={() => onDelete(i)}
                   >
                     <TrashIcon className="opacity-60" />
                   </Button>

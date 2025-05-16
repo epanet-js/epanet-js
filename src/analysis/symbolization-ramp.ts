@@ -162,13 +162,9 @@ export const changeIntervalColor = (
   };
 };
 
-export const validateAscendingOrder = (
-  candidates: SymbolizationRamp["stops"],
-) => {
+export const validateAscindingBreaks = (candidates: number[]) => {
   for (let i = 1; i < candidates.length; i++) {
-    if (candidates[i].input < candidates[i - 1].input) {
-      return false;
-    }
+    if (candidates[i] < candidates[i - 1]) return false;
   }
   return true;
 };

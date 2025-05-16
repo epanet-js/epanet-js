@@ -42,9 +42,9 @@ describe("analysis range editor", () => {
     await user.type(field, "25");
     await user.keyboard("{Enter}");
 
-    const { mode, stops } = getUpdateNodesAnalysisSymbolization(store);
-    expect(stops[1].input).toEqual(25);
-    expect(stops[1].output).toEqual(green);
+    const { mode, breaks, colors } = getNodesAnalysisSymbolization(store);
+    expect(breaks).toEqual([25, 30]);
+    expect(colors).toEqual([red, green, blue]);
     expect(mode).toEqual("manual");
 
     expect(screen.getByRole("combobox", { name: "Mode" })).toHaveTextContent(
@@ -79,8 +79,9 @@ describe("analysis range editor", () => {
       expectIntervalColor(1, "#123456");
     });
     expectBreakValue(0, "20");
-    const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
-    expect(stops[1].output).toEqual("#123456");
+    const { breaks, colors, mode } = getNodesAnalysisSymbolization(store);
+    expect(breaks).toEqual([20, 30]);
+    expect(colors).toEqual([red, "#123456", blue]);
     expect(mode).toEqual("equalQuantiles");
   });
 
@@ -92,7 +93,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalQuantiles",
+      breaks: [20, 30],
       colors: [red, green, blue],
     });
 
@@ -103,12 +104,10 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal intervals/i }));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 40, output: green },
-      { input: 70, output: blue },
-    ]);
+    const { mode, breaks, colors } = getNodesAnalysisSymbolization(store);
+    expect(mode).toEqual("equalIntervals");
+    expect(breaks).toEqual([20, 30]);
+    expect(colors).toEqual([red, green, blue]);
   });
 
   it("can apply equal quantiles based on data", async () => {
@@ -120,7 +119,6 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalIntervals",
       property: "pressure",
       colors: [red, green, blue],
     });
@@ -132,12 +130,10 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 15, output: green },
-      { input: 20, output: blue },
-    ]);
+    const { mode, breaks, colors } = getNodesAnalysisSymbolization(store);
+    expect(mode).toEqual("equalQuantiles");
+    expect(breaks).toEqual([15, 20]);
+    expect(colors).toEqual([red, green, blue]);
   });
 
   it("can switch to manual mode", async () => {
@@ -149,9 +145,9 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalIntervals",
       property: "pressure",
-      breaks: [50, 75],
+      mode: "prettyBreaks",
+      breaks: [20, 40],
       colors: [red, green, blue],
     });
 
@@ -162,19 +158,16 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /manual/i }));
 
-    const { stops, mode } = getUpdateNodesAnalysisSymbolization(store);
+    const { mode, breaks, colors } = getNodesAnalysisSymbolization(store);
     expect(mode).toEqual("manual");
-    const asEqualIntervalStops = [
-      { input: -Infinity, output: red },
-      { input: 50, output: green },
-      { input: 75, output: blue },
-    ];
-    expect(stops).toEqual(asEqualIntervalStops);
+    expect(breaks).toEqual([50, 75]);
+    expect(colors).toEqual([red, green, blue]);
   });
 
   it("can apply different ramp color", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
+      mode: "prettyBreaks",
       breaks: [2, 3],
       colors: [red, green, blue],
     });
@@ -185,10 +178,14 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
     await user.click(screen.getByTitle("OrRd"));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[0].output).toEqual("rgb(254,232,200)");
-    expect(stops[1].output).toEqual("rgb(253,187,132)");
-    expect(stops[2].output).toEqual("rgb(227,74,51)");
+    const { mode, colors, breaks } = getNodesAnalysisSymbolization(store);
+    expect(mode).toEqual("prettyBreaks");
+    expect(breaks).toEqual([2, 3]);
+    expect(colors).toEqual([
+      "rgb(254,232,200)",
+      "rgb(253,187,132)",
+      "rgb(227,74,51)",
+    ]);
   });
 
   it("can prepend breaks", async () => {
@@ -204,44 +201,34 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    const firstState = getUpdateNodesAnalysisSymbolization(store);
-    expect(firstState.stops).toEqual([
-      { input: -Infinity, output: defaultNewColor },
-      { input: 0, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
-    ]);
+    const firstState = getNodesAnalysisSymbolization(store);
+    expect(firstState.breaks).toEqual([0, 10, 20]);
+    expect(firstState.colors).toEqual([defaultNewColor, red, green, blue]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: defaultNewColor },
-      { input: -1, output: defaultNewColor },
-      { input: 0, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
+    const secondState = getNodesAnalysisSymbolization(store);
+    expect(secondState.breaks).toEqual([-1, 0, 10, 20]);
+    expect(secondState.colors).toEqual([
+      defaultNewColor,
+      defaultNewColor,
+      red,
+      green,
+      blue,
     ]);
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: defaultNewColor },
-      { input: 0, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
-    ]);
+    const thirdState = getNodesAnalysisSymbolization(store);
+    expect(thirdState.breaks).toEqual([0, 10, 20]);
+    expect(thirdState.colors).toEqual([defaultNewColor, red, green, blue]);
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
-    ]);
+    const forthState = getNodesAnalysisSymbolization(store);
+    expect(forthState.breaks).toEqual([10, 20]);
+    expect(forthState.colors).toEqual([red, green, blue]);
   });
 
   it("can append breaks", async () => {
@@ -256,24 +243,21 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const firstState = getUpdateNodesAnalysisSymbolization(store);
-    expect(firstState.stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
-      { input: 21, output: defaultNewColor },
-    ]);
+    const firstState = getNodesAnalysisSymbolization(store);
+    expect(firstState.breaks).toEqual([10, 20, 21]);
+    expect(firstState.colors).toEqual([red, green, blue, defaultNewColor]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 10, output: green },
-      { input: 20, output: blue },
-      { input: 21, output: defaultNewColor },
-      { input: 22, output: defaultNewColor },
+    const secondState = getNodesAnalysisSymbolization(store);
+    expect(secondState.breaks).toEqual([10, 20, 21, 22]);
+    expect(secondState.colors).toEqual([
+      red,
+      green,
+      blue,
+      defaultNewColor,
+      defaultNewColor,
     ]);
   });
 
@@ -289,12 +273,9 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 1/i }));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: red },
-      { input: 2, output: green },
-      { input: 4, output: white },
-    ]);
+    const { breaks, colors } = getNodesAnalysisSymbolization(store);
+    expect(breaks).toEqual([2, 4]);
+    expect(colors).toEqual([red, green, white]);
   });
 
   it("can reverse colors", async () => {
@@ -310,12 +291,11 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
     await user.click(screen.getByRole("button", { name: /reverse colors/i }));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops).toEqual([
-      { input: -Infinity, output: blue },
-      { input: 2, output: green },
-      { input: 3, output: red },
-    ]);
+    const { breaks, colors, reversedRamp } =
+      getNodesAnalysisSymbolization(store);
+    expect(breaks).toEqual([2, 3]);
+    expect(colors).toEqual([blue, green, red]);
+    expect(reversedRamp).toEqual(true);
   });
 
   it("can choose a ramp with more values", async () => {
@@ -326,7 +306,8 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [20.1, 30.1],
+      mode: "prettyBreaks",
+      breaks: [20, 30],
       colors: [red, green, blue],
     });
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -340,8 +321,9 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /classes/i }));
     await user.click(screen.getByRole("option", { name: /4/ }));
 
-    const stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops.length).toEqual(4);
+    const { breaks, colors } = getNodesAnalysisSymbolization(store);
+    expect(breaks).toEqual([25, 50, 75]);
+    expect(colors.length).toEqual(4);
   });
 
   it("shows an error when range not in order", async () => {
@@ -365,9 +347,8 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expectBreakValue(1, "100");
-    let stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[2].input).toEqual(20);
-    expect(stops[2].output).toEqual(green);
+    const firstState = getNodesAnalysisSymbolization(store);
+    expect(firstState.breaks[1]).toEqual(20);
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
     field = screen.getByRole("textbox", {
@@ -379,9 +360,9 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
-    stops = getUpdateNodesAnalysisSymbolization(store).stops;
-    expect(stops[2].input).toEqual(100);
-    expect(stops[3].input).toEqual(110);
+    const secondState = getNodesAnalysisSymbolization(store);
+    expect(secondState.breaks[1]).toEqual(100);
+    expect(secondState.breaks[2]).toEqual(110);
 
     field = screen.getByRole("textbox", {
       name: /value for: break 0/i,
@@ -489,10 +470,8 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    let stops = getUpdateLinksAnalysisSymbolization(store).stops;
-    expect(stops[0].input).toEqual(-Infinity);
-    expect(stops[1].input).toEqual(15);
-    expect(stops[2].input).toEqual(20);
+    const firstState = getLinksAnalysisSymbolization(store);
+    expect(firstState.breaks).toEqual([15, 20]);
 
     const field = screen.getByRole("textbox", {
       name: /value for: break 0/i,
@@ -503,21 +482,17 @@ describe("analysis range editor", () => {
     await user.type(field, "-14");
     await user.keyboard("{Enter}");
 
-    stops = getUpdateLinksAnalysisSymbolization(store).stops;
-    expect(stops[1].input).toEqual(14);
-    expect(stops[1].output).toEqual(green);
+    const secondState = getLinksAnalysisSymbolization(store);
+    expect(secondState.breaks).toEqual([14, 20]);
+    expect(secondState.colors).toEqual([red, green, blue]);
   });
 
-  const getUpdateNodesAnalysisSymbolization = (
-    store: Store,
-  ): SymbolizationRamp => {
+  const getNodesAnalysisSymbolization = (store: Store): SymbolizationRamp => {
     return (store.get(analysisAtom).nodes as PropertyAnalysis).rangeColorMapping
       .symbolization;
   };
 
-  const getUpdateLinksAnalysisSymbolization = (
-    store: Store,
-  ): SymbolizationRamp => {
+  const getLinksAnalysisSymbolization = (store: Store): SymbolizationRamp => {
     return (store.get(analysisAtom).links as FlowAnalysis).rangeColorMapping
       .symbolization;
   };
