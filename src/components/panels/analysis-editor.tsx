@@ -1,6 +1,9 @@
 import { useAtom, useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
-import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
+import {
+  linksAnalysisAtomDeprecated,
+  nodesAnalysisAtomDeprecated,
+} from "src/state/analysis-deprecated";
 import { translate } from "src/infra/i18n";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
@@ -19,7 +22,8 @@ const analysisLabelFor = (type: AnalysisType) => {
 };
 
 export const AnalysisEditor = () => {
-  const [analysis, setAnalysis] = useAtom(analysisAtomDeprecated);
+  const [nodes, setNodesAnalysis] = useAtom(nodesAnalysisAtomDeprecated);
+  const [links, setLinksAnalysis] = useAtom(linksAnalysisAtomDeprecated);
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
@@ -36,42 +40,33 @@ export const AnalysisEditor = () => {
 
     switch (type) {
       case "none":
-        return setAnalysis((prev) => ({
-          ...prev,
-          links: { type: "none" },
-        }));
+        return setLinksAnalysis({ type: "none" });
       case "flow":
-        return setAnalysis((prev) => ({
-          ...prev,
-          links: {
-            type: "flow",
-            symbolization: initializeSymbolization({
-              property: "flow",
-              unit: hydraulicModel.units.flow,
-              rampName: "Teal",
-              mode: "equalQuantiles",
+        return setLinksAnalysis({
+          type: "flow",
+          symbolization: initializeSymbolization({
+            property: "flow",
+            unit: hydraulicModel.units.flow,
+            rampName: "Teal",
+            mode: "equalQuantiles",
+            absValues: true,
+            sortedData: getSortedValues(hydraulicModel.assets, "flow", {
               absValues: true,
-              sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                absValues: true,
-              }),
             }),
-          },
-        }));
+          }),
+        });
       case "velocity":
-        return setAnalysis((prev) => ({
-          ...prev,
-          links: {
-            type: "velocity",
-            symbolization: initializeSymbolization({
-              property: "velocity",
-              unit: hydraulicModel.units.velocity,
-              rampName: "RedOr",
-              mode: "equalQuantiles",
-              sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-              fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
-            }),
-          },
-        }));
+        return setLinksAnalysis({
+          type: "velocity",
+          symbolization: initializeSymbolization({
+            property: "velocity",
+            unit: hydraulicModel.units.velocity,
+            rampName: "RedOr",
+            mode: "equalQuantiles",
+            sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+            fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
+          }),
+        });
     }
   };
 
@@ -84,40 +79,31 @@ export const AnalysisEditor = () => {
 
     switch (type) {
       case "none":
-        return setAnalysis((prev) => ({
-          ...prev,
-          nodes: { type },
-        }));
+        return setNodesAnalysis({ type: "none" });
       case "pressure":
-        return setAnalysis((prev) => ({
-          ...prev,
-          nodes: {
-            type: "pressure",
-            symbolization: initializeSymbolization({
-              property: "pressure",
-              unit: hydraulicModel.units.pressure,
-              rampName: "Temps",
-              mode: "prettyBreaks",
-              fallbackEndpoints: [0, 100],
-              sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-            }),
-          },
-        }));
+        return setNodesAnalysis({
+          type: "pressure",
+          symbolization: initializeSymbolization({
+            property: "pressure",
+            unit: hydraulicModel.units.pressure,
+            rampName: "Temps",
+            mode: "prettyBreaks",
+            fallbackEndpoints: [0, 100],
+            sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+          }),
+        });
       case "elevation":
-        return setAnalysis((prev) => ({
-          ...prev,
-          nodes: {
-            type: "elevation",
-            symbolization: initializeSymbolization({
-              property: "elevation",
-              unit: hydraulicModel.units.elevation,
-              rampName: "Fall",
-              mode: "prettyBreaks",
-              fallbackEndpoints: [0, 100],
-              sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-            }),
-          },
-        }));
+        return setNodesAnalysis({
+          type: "elevation",
+          symbolization: initializeSymbolization({
+            property: "elevation",
+            unit: hydraulicModel.units.elevation,
+            rampName: "Fall",
+            mode: "prettyBreaks",
+            fallbackEndpoints: [0, 100],
+            sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+          }),
+        });
     }
   };
 
@@ -140,7 +126,7 @@ export const AnalysisEditor = () => {
               disabled:
                 simulation.status === "idle" && ["pressure"].includes(type),
             }))}
-            selected={analysis.nodes.type}
+            selected={nodes.type}
             onChange={handleNodesChange}
           />
         </PanelDetails>
@@ -156,7 +142,7 @@ export const AnalysisEditor = () => {
                 simulation.status === "idle" &&
                 ["flow", "velocity"].includes(type),
             }))}
-            selected={analysis.links.type}
+            selected={links.type}
             onChange={handleLinksChange}
           />
         </PanelDetails>
