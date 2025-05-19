@@ -54,7 +54,7 @@ export const computePropertyStats = (
     }
   }
 
-  return statsMap;
+  return statsMap as StatsMap;
 };
 
 const appendPipeStats = (
