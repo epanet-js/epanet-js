@@ -1,16 +1,6 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
-import type { FileGroups } from "src/lib/group_files";
-
-/**
- * Modal state, controlled by dragging and dropping,
- * keybindings, etc.
- */
-export type DialogStateImport = {
-  type: "import";
-  files: FileGroups;
-};
 
 export type OpenInpDialogState = {
   type: "openInp";
@@ -19,10 +9,6 @@ export type OpenInpDialogState = {
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
-};
-
-export type DialogStateExamples = {
-  type: "import_example";
 };
 
 export type UnsavedChangesDialogState = {
@@ -68,7 +54,6 @@ export type UpgradeDialogState = {
 };
 
 export type DialogState =
-  | DialogStateImport
   | OpenInpDialogState
   | InvalidFilesErrorDialogState
   | {

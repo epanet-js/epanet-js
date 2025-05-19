@@ -117,13 +117,6 @@ const WelcomeDialog = dynamic<{
   loading: () => <Loading />,
 });
 
-const ImportDialog = dynamic<{
-  modal: dialogState.DialogStateImport;
-  onClose: () => void;
-}>(() => import("src/components/dialogs/import").then((r) => r.ImportDialog), {
-  loading: () => <Loading />,
-});
-
 const UnsavedChangesDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
@@ -168,9 +161,6 @@ export const Dialogs = memo(function Dialogs() {
 
   const content = match(dialog)
     .with(null, () => null)
-    .with({ type: "import" }, (modal) => (
-      <ImportDialog modal={modal} onClose={onClose} />
-    ))
     .with({ type: "unsavedChanges" }, ({ onContinue }) => (
       <UnsavedChangesDialog onContinue={onContinue} onClose={onClose} />
     ))
