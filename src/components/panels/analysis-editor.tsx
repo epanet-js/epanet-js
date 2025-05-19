@@ -12,6 +12,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { initializeSymbolization } from "src/analysis/symbolization-ramp";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useAnalysisSettings } from "src/state/analysis";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -22,7 +24,10 @@ const analysisLabelFor = (type: AnalysisType) => {
 };
 
 export const AnalysisEditor = () => {
-  const [nodes, setNodesAnalysis] = useAtom(nodesAnalysisAtomDeprecated);
+  const [nodesDeprecated, setNodesAnalysisDeprecated] = useAtom(
+    nodesAnalysisAtomDeprecated,
+  );
+  const { setNodesAnalysis } = useAnalysisSettings();
   const [links, setLinksAnalysis] = useAtom(linksAnalysisAtomDeprecated);
   const simulation = useAtomValue(simulationAtom);
   const {
@@ -79,31 +84,55 @@ export const AnalysisEditor = () => {
 
     switch (type) {
       case "none":
-        return setNodesAnalysis({ type: "none" });
+        return setNodesAnalysisDeprecated({ type: "none" });
       case "pressure":
-        return setNodesAnalysis({
-          type: "pressure",
-          symbolization: initializeSymbolization({
-            property: "pressure",
-            unit: hydraulicModel.units.pressure,
-            rampName: "Temps",
-            mode: "prettyBreaks",
-            fallbackEndpoints: [0, 100],
-            sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-          }),
-        });
+        return isFeatureOn("FLAG_MEMORIZE")
+          ? setNodesAnalysis("pressure", () => ({
+              type: "pressure",
+              symbolization: initializeSymbolization({
+                property: "pressure",
+                unit: hydraulicModel.units.pressure,
+                rampName: "Temps",
+                mode: "prettyBreaks",
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+              }),
+            }))
+          : setNodesAnalysisDeprecated({
+              type: "pressure",
+              symbolization: initializeSymbolization({
+                property: "pressure",
+                unit: hydraulicModel.units.pressure,
+                rampName: "Temps",
+                mode: "prettyBreaks",
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+              }),
+            });
       case "elevation":
-        return setNodesAnalysis({
-          type: "elevation",
-          symbolization: initializeSymbolization({
-            property: "elevation",
-            unit: hydraulicModel.units.elevation,
-            rampName: "Fall",
-            mode: "prettyBreaks",
-            fallbackEndpoints: [0, 100],
-            sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-          }),
-        });
+        return isFeatureOn("FLAG_MEMORIZE")
+          ? setNodesAnalysis("elevation", () => ({
+              type: "elevation",
+              symbolization: initializeSymbolization({
+                property: "elevation",
+                unit: hydraulicModel.units.elevation,
+                rampName: "Fall",
+                mode: "prettyBreaks",
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+              }),
+            }))
+          : setNodesAnalysisDeprecated({
+              type: "elevation",
+              symbolization: initializeSymbolization({
+                property: "elevation",
+                unit: hydraulicModel.units.elevation,
+                rampName: "Fall",
+                mode: "prettyBreaks",
+                fallbackEndpoints: [0, 100],
+                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+              }),
+            });
     }
   };
 
@@ -126,7 +155,7 @@ export const AnalysisEditor = () => {
               disabled:
                 simulation.status === "idle" && ["pressure"].includes(type),
             }))}
-            selected={nodes.type}
+            selected={nodesDeprecated.type}
             onChange={handleNodesChange}
           />
         </PanelDetails>

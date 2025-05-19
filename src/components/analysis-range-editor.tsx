@@ -53,6 +53,8 @@ import {
 } from "src/state/analysis-deprecated";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useAnalysisSettings } from "src/state/analysis";
+import { NodesAnalysis } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -67,6 +69,7 @@ export const AnalysisRangeEditor = ({
   const [nodesAnalysis, setNodesAnalysis] = useAtom(
     nodesAnalysisAtomDeprecated,
   );
+  const { updateNodesAnalysis } = useAnalysisSettings();
   const [linksAnalysis, setLinksAnalysis] = useAtom(
     linksAnalysisAtomDeprecated,
   );
@@ -84,10 +87,15 @@ export const AnalysisRangeEditor = ({
   const onChange = useCallback(
     (newSymbolization: SymbolizationRamp) => {
       if (geometryType === "nodes") {
-        setNodesAnalysis((prev) => ({
-          ...prev,
-          symbolization: newSymbolization,
-        }));
+        isFeatureOn("FLAG_MEMORIZE")
+          ? updateNodesAnalysis({
+              type: activeAnalysis.type as NodesAnalysis["type"],
+              symbolization: newSymbolization,
+            })
+          : setNodesAnalysis((prev) => ({
+              ...prev,
+              symbolization: newSymbolization,
+            }));
       } else {
         setLinksAnalysis((prev) => ({
           ...prev,
@@ -95,7 +103,7 @@ export const AnalysisRangeEditor = ({
         }));
       }
     },
-    [geometryType, setLinksAnalysis, setNodesAnalysis],
+    [geometryType, setLinksAnalysis, setNodesAnalysis, updateNodesAnalysis],
   );
 
   const sortedData = useMemo(() => {

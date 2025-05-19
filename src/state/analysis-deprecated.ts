@@ -1,18 +1,18 @@
 import { atom } from "jotai";
-import { focusAtom } from "jotai-optics";
 import { AnalysisState } from "src/analysis";
 
 export type { AnalysisState };
-export const analysisAtomDeprecated = atom<AnalysisState>({
-  nodes: { type: "none" },
-  links: { type: "none" },
+
+export const linksAnalysisAtomDeprecated = atom<AnalysisState["links"]>({
+  type: "none",
+});
+export const nodesAnalysisAtomDeprecated = atom<AnalysisState["nodes"]>({
+  type: "none",
 });
 
-export const linksAnalysisAtomDeprecated = focusAtom(
-  analysisAtomDeprecated,
-  (optic) => optic.prop("links"),
-);
-export const nodesAnalysisAtomDeprecated = focusAtom(
-  analysisAtomDeprecated,
-  (optic) => optic.prop("nodes"),
-);
+export const analysisAtomDeprecated = atom((get) => {
+  const nodes = get(nodesAnalysisAtomDeprecated);
+  const links = get(linksAnalysisAtomDeprecated);
+
+  return { nodes, links };
+});
