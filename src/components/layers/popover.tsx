@@ -660,6 +660,7 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     Math.round(layerConfig.opacity * 100),
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSubmit = useCallback(
     debounce((newValue: number) => {
       userTracking.capture({
