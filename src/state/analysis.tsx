@@ -1,6 +1,9 @@
 import { atom, useAtom } from "jotai";
 import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
-import { nodesAnalysisAtomDeprecated } from "./analysis-deprecated";
+import {
+  linksAnalysisAtomDeprecated,
+  nodesAnalysisAtomDeprecated,
+} from "./analysis-deprecated";
 
 export type { AnalysisState };
 
@@ -11,6 +14,7 @@ export const analysisSettingsAtom = atom<
 export const useAnalysisSettings = () => {
   const [settings, setSettings] = useAtom(analysisSettingsAtom);
   const [nodes, setNodesActive] = useAtom(nodesAnalysisAtomDeprecated);
+  const [links, setLinksActive] = useAtom(linksAnalysisAtomDeprecated);
 
   const setNodesAnalysis = (
     type: NodesAnalysis["type"],
@@ -28,6 +32,22 @@ export const useAnalysisSettings = () => {
     }
   };
 
+  const setLinksAnalysis = (
+    type: LinksAnalysis["type"],
+    initializeFn: () => LinksAnalysis,
+  ) => {
+    if (settings.has(type)) {
+      const linksSettings = settings.get(type) as LinksAnalysis;
+      setLinksActive(linksSettings);
+    } else {
+      const linksSettings = initializeFn();
+      setLinksActive(linksSettings);
+      const updatedSettings = new Map([...settings.entries()]);
+      updatedSettings.set(linksSettings.type, linksSettings);
+      setSettings(updatedSettings);
+    }
+  };
+
   const updateNodesAnalysis = (nodesSettings: NodesAnalysis) => {
     setNodesActive(nodesSettings);
     const updatedSettings = new Map([...settings.entries()]);
@@ -35,9 +55,19 @@ export const useAnalysisSettings = () => {
     setSettings(updatedSettings);
   };
 
+  const updateLinksAnalysis = (linksSettings: LinksAnalysis) => {
+    setLinksActive(linksSettings);
+    const updatedSettings = new Map([...settings.entries()]);
+    updatedSettings.set(linksSettings.type, linksSettings);
+    setSettings(updatedSettings);
+  };
+
   return {
+    links,
     nodes,
     setNodesAnalysis,
+    setLinksAnalysis,
     updateNodesAnalysis,
+    updateLinksAnalysis,
   };
 };

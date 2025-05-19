@@ -54,7 +54,7 @@ import {
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAnalysisSettings } from "src/state/analysis";
-import { NodesAnalysis } from "src/analysis";
+import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -69,7 +69,7 @@ export const AnalysisRangeEditor = ({
   const [nodesAnalysis, setNodesAnalysis] = useAtom(
     nodesAnalysisAtomDeprecated,
   );
-  const { updateNodesAnalysis } = useAnalysisSettings();
+  const { updateNodesAnalysis, updateLinksAnalysis } = useAnalysisSettings();
   const [linksAnalysis, setLinksAnalysis] = useAtom(
     linksAnalysisAtomDeprecated,
   );
@@ -97,13 +97,25 @@ export const AnalysisRangeEditor = ({
               symbolization: newSymbolization,
             }));
       } else {
-        setLinksAnalysis((prev) => ({
-          ...prev,
-          symbolization: newSymbolization,
-        }));
+        isFeatureOn("FLAG_MEMORIZE")
+          ? updateLinksAnalysis({
+              type: activeAnalysis.type as LinksAnalysis["type"],
+              symbolization: newSymbolization,
+            })
+          : setLinksAnalysis((prev) => ({
+              ...prev,
+              symbolization: newSymbolization,
+            }));
       }
     },
-    [geometryType, setLinksAnalysis, setNodesAnalysis, updateNodesAnalysis],
+    [
+      activeAnalysis.type,
+      geometryType,
+      setLinksAnalysis,
+      setNodesAnalysis,
+      updateNodesAnalysis,
+      updateLinksAnalysis,
+    ],
   );
 
   const sortedData = useMemo(() => {

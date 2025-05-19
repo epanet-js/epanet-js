@@ -27,8 +27,10 @@ export const AnalysisEditor = () => {
   const [nodesDeprecated, setNodesAnalysisDeprecated] = useAtom(
     nodesAnalysisAtomDeprecated,
   );
-  const { setNodesAnalysis } = useAnalysisSettings();
-  const [links, setLinksAnalysis] = useAtom(linksAnalysisAtomDeprecated);
+  const [linksDeprecated, setLinksAnalysisDeprecated] = useAtom(
+    linksAnalysisAtomDeprecated,
+  );
+  const { setNodesAnalysis, setLinksAnalysis } = useAnalysisSettings();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
@@ -45,33 +47,61 @@ export const AnalysisEditor = () => {
 
     switch (type) {
       case "none":
-        return setLinksAnalysis({ type: "none" });
+        return setLinksAnalysisDeprecated({ type: "none" });
       case "flow":
-        return setLinksAnalysis({
-          type: "flow",
-          symbolization: initializeSymbolization({
-            property: "flow",
-            unit: hydraulicModel.units.flow,
-            rampName: "Teal",
-            mode: "equalQuantiles",
-            absValues: true,
-            sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-              absValues: true,
-            }),
-          }),
-        });
+        return isFeatureOn("FLAG_MEMORIZE")
+          ? setLinksAnalysis("flow", () => ({
+              type: "flow",
+              symbolization: initializeSymbolization({
+                property: "flow",
+                unit: hydraulicModel.units.flow,
+                rampName: "Teal",
+                mode: "equalQuantiles",
+                absValues: true,
+                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
+                  absValues: true,
+                }),
+              }),
+            }))
+          : setLinksAnalysisDeprecated({
+              type: "flow",
+              symbolization: initializeSymbolization({
+                property: "flow",
+                unit: hydraulicModel.units.flow,
+                rampName: "Teal",
+                mode: "equalQuantiles",
+                absValues: true,
+                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
+                  absValues: true,
+                }),
+              }),
+            });
       case "velocity":
-        return setLinksAnalysis({
-          type: "velocity",
-          symbolization: initializeSymbolization({
-            property: "velocity",
-            unit: hydraulicModel.units.velocity,
-            rampName: "RedOr",
-            mode: "equalQuantiles",
-            sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-            fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
-          }),
-        });
+        return isFeatureOn("FLAG_MEMORIZE")
+          ? setLinksAnalysis("velocity", () => ({
+              type: "velocity",
+              symbolization: initializeSymbolization({
+                property: "velocity",
+                unit: hydraulicModel.units.velocity,
+                rampName: "RedOr",
+                mode: "equalQuantiles",
+                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+                fallbackEndpoints:
+                  quantities.analysis.velocityFallbackEndpoints,
+              }),
+            }))
+          : setLinksAnalysisDeprecated({
+              type: "velocity",
+              symbolization: initializeSymbolization({
+                property: "velocity",
+                unit: hydraulicModel.units.velocity,
+                rampName: "RedOr",
+                mode: "equalQuantiles",
+                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+                fallbackEndpoints:
+                  quantities.analysis.velocityFallbackEndpoints,
+              }),
+            });
     }
   };
 
@@ -171,7 +201,7 @@ export const AnalysisEditor = () => {
                 simulation.status === "idle" &&
                 ["flow", "velocity"].includes(type),
             }))}
-            selected={links.type}
+            selected={linksDeprecated.type}
             onChange={handleLinksChange}
           />
         </PanelDetails>
