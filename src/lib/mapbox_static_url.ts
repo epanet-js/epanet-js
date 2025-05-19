@@ -10,7 +10,7 @@ import { targetSize } from "./constants";
  */
 export function mapboxStaticURL(
   mapboxLayer: Pick<PartialLayer, "type" | "url" | "token">,
-) {
+): string {
   switch (mapboxLayer.type) {
     case "MAPBOX": {
       const params = new URLSearchParams({
@@ -37,5 +37,7 @@ export function mapboxStaticURL(
         .replace("{y}", "0")
         .replace("{z}", "0");
     }
+    default:
+      throw new Error('Not implemented')
   }
 }
