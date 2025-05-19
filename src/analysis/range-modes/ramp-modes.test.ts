@@ -125,6 +125,11 @@ describe("ckmeans", () => {
     ]);
   });
 
+  it("rounds to significant digits", () => {
+    const sortedData = [120.4, 340.3, 569.9, 840.2];
+    expect(calculateCkmeansRange(sortedData, 3)).toEqual([120, 340, 570, 840]);
+  });
+
   it("says when data is valid", () => {
     expect(checkCkmeansData([0, 1, 2], 3)).toEqual(false);
     expect(checkCkmeansData([0, 1, 1, 2], 3)).toEqual(false);

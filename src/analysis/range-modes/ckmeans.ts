@@ -1,11 +1,12 @@
 import { ckmeans } from "simple-statistics";
+import { roundToSignificantDigits } from "src/infra/rounding";
 
 export const calculateCkmeansRange = (
   sortedData: number[],
   numIntervals: number,
 ): number[] => {
   const sortedClusters = ckmeans(sortedData, numIntervals + 1);
-  return sortedClusters.map((cluster) => cluster[0]);
+  return sortedClusters.map((cluster) => roundToSignificantDigits(cluster[0]));
 };
 
 export const checkCkmeansData = (
