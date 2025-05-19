@@ -46,6 +46,7 @@ import {
   linksAnalysisAtomDeprecated,
   nodesAnalysisAtomDeprecated,
 } from "src/state/analysis-deprecated";
+import { analysisSettingsAtom } from "src/state/analysis";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -91,8 +92,10 @@ export class MemPersistence implements IPersistence {
       this.store.set(simulationAtom, { status: "idle" });
       this.store.set(nodesAnalysisAtomDeprecated, { type: "none" });
       this.store.set(linksAnalysisAtomDeprecated, { type: "none" });
+      this.store.set(analysisSettingsAtom, new Map());
     };
   }
+
   useTransact() {
     return (moment: ModelMoment) => {
       const momentLog = this.store.get(momentLogAtom).copy();
