@@ -1,16 +1,10 @@
-import {
-  FeatureCollection,
-  FeatureMap,
-  FolderMap,
-  UWrappedFeature,
-} from "src/types";
+import { FeatureCollection, FeatureMap, FolderMap } from "src/types";
 import { ConvertResult, getExtension } from "./utils";
 
 import { CSV } from "./csv";
 import { OSM } from "./osm";
 import { XLS } from "./xls";
 import { GeoJSON } from "./geojson";
-import { Shapefile } from "./shapefile";
 import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
@@ -18,7 +12,6 @@ import { Left } from "purify-ts/Either";
 import { CoordinateString } from "./coordinate_string";
 import isPlainObject from "lodash/isPlainObject";
 import { JsonObject, JsonValue } from "type-fest";
-import { Data } from "src/state/jotai";
 import { ProxyMarked } from "comlink";
 import { Inp } from "./inp";
 
@@ -182,14 +175,7 @@ export type RawProgressCb = (progress: Progress) => void;
 export type ProgressCb = RawProgressCb & ProxyMarked;
 
 export interface FileType {
-  readonly id:
-    | "geojson"
-    | "inp"
-    | "csv"
-    | "shapefile"
-    | "coordinate-string"
-    | "xls"
-    | "osm";
+  readonly id: "geojson" | "inp" | "csv" | "coordinate-string" | "xls" | "osm";
   readonly label: string | string[];
   readonly extensions: string[];
   readonly mimes: string[];
@@ -219,7 +205,6 @@ export const FILE_TYPES = [
   Inp,
   CSV,
   XLS,
-  Shapefile,
   CoordinateString,
   OSM,
 ] as const;
@@ -309,48 +294,4 @@ export function importToExportOptions(
     type: options.type,
     folderId: null,
   };
-}
-
-/**
- * From a list of wrapped features,
- * produce an ExportedData object that can contain
- * the results of any format.
- */
-export function fromGeoJSON(
-  { hydraulicModel, folderMap }: Pick<Data, "hydraulicModel" | "folderMap">,
-  exportOptions: ExportOptions,
-) {
-  return EitherAsync<ConvertError, ExportedData>(
-    async ({ throwE, fromPromise }) => {
-      const type = findType(exportOptions.type);
-      if (!("back" in type)) {
-        return throwE(new ConvertError("Unexpected missing type"));
-      }
-
-      const { filteredFeatures } = UWrappedFeature.filterMapByFolder(
-        hydraulicModel.assets,
-        folderMap,
-        exportOptions.folderId,
-      );
-
-      const geojson = UWrappedFeature.toFeatureCollection(
-        Array.from(filteredFeatures.values()),
-      );
-
-      const result = await fromPromise(
-        type.back(
-          {
-            geojson,
-            featureMapDeprecated: filteredFeatures,
-          },
-          exportOptions,
-        ),
-      );
-
-      return {
-        result,
-        extensions: type.extensions,
-      };
-    },
-  );
 }

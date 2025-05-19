@@ -1,5 +1,5 @@
 import { getIssues } from "@placemarkio/check-geojson";
-import { fromGeoJSON, fileToGeoJSON } from "src/lib/convert";
+import { fileToGeoJSON } from "src/lib/convert";
 import * as Comlink from "comlink";
 import { EitherHandler } from "./shared";
 import { bufferFeature } from "src/lib/buffer";
@@ -11,7 +11,6 @@ const lib = {
   bufferFeature,
   booleanFeatures,
   fileToGeoJSON,
-  fromGeoJSON,
   runSimulation,
 };
 

@@ -14,7 +14,6 @@ export { divideFeature } from "./divide_feature";
 export { spliceNewVertex } from "./splice_new_vertex";
 export { splitLine } from "./split_line";
 export { addPolygonCoordinate } from "./add_polygon_coordinate";
-export { makeConvexHull } from "./make_convex_hull";
 export { polygonToLine } from "./polygon_to_line";
 export { geometryToPoints } from "./geometry_to_points";
 export { moveFeature } from "./move_feature";
