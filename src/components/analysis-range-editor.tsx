@@ -47,7 +47,10 @@ import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import {
+  linksAnalysisAtomDeprecated,
+  nodesAnalysisAtomDeprecated,
+} from "src/state/analysis-deprecated";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -61,8 +64,12 @@ export const AnalysisRangeEditor = ({
   const {
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
-  const [nodesAnalysis, setNodesAnalysis] = useAtom(nodesAnalysisAtom);
-  const [linksAnalysis, setLinksAnalysis] = useAtom(linksAnalysisAtom);
+  const [nodesAnalysis, setNodesAnalysis] = useAtom(
+    nodesAnalysisAtomDeprecated,
+  );
+  const [linksAnalysis, setLinksAnalysis] = useAtom(
+    linksAnalysisAtomDeprecated,
+  );
 
   const userTracking = useUserTracking();
 

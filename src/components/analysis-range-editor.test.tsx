@@ -7,7 +7,7 @@ import {
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
@@ -488,11 +488,13 @@ describe("analysis range editor", () => {
   });
 
   const getNodesAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(analysisAtom).nodes as PropertyAnalysis).symbolization;
+    return (store.get(analysisAtomDeprecated).nodes as PropertyAnalysis)
+      .symbolization;
   };
 
   const getLinksAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(analysisAtom).links as FlowAnalysis).symbolization;
+    return (store.get(analysisAtomDeprecated).links as FlowAnalysis)
+      .symbolization;
   };
 
   const expectBreakValue = (index: number, value: string) => {

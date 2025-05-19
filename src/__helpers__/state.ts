@@ -19,7 +19,7 @@ import { ExportOptions } from "src/lib/convert";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import {
   SymbolizationRamp,
   nullRampSymbolization,
@@ -55,7 +55,10 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
-  store.set(analysisAtom, { links: linksAnalysis, nodes: nodesAnalysis });
+  store.set(analysisAtomDeprecated, {
+    links: linksAnalysis,
+    nodes: nodesAnalysis,
+  });
 
   return store;
 };

@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { translate } from "src/infra/i18n";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
@@ -19,7 +19,7 @@ const analysisLabelFor = (type: AnalysisType) => {
 };
 
 export const AnalysisEditor = () => {
-  const [analysis, setAnalysis] = useAtom(analysisAtom);
+  const [analysis, setAnalysis] = useAtom(analysisAtomDeprecated);
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,

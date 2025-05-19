@@ -3,7 +3,7 @@ import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
 import { AnalysisEditor } from "./analysis-editor";
 import userEvent from "@testing-library/user-event";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 import { aSimulationSuccess, setInitialState } from "src/__helpers__/state";
 import { colorFor } from "src/analysis/symbolization-ramp";
@@ -52,7 +52,7 @@ describe("Analysis Editor", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
     await userEvent.click(screen.getByText("Pressure"));
 
-    const { nodes } = store.get(analysisAtom);
+    const { nodes } = store.get(analysisAtomDeprecated);
     const nodesAnalysis = nodes as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
     expect(colorFor(nodesAnalysis.symbolization, 10)).not.toBeUndefined();
@@ -79,7 +79,7 @@ describe("Analysis Editor", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
     await userEvent.click(screen.getByText(/flow/i));
 
-    const { links } = store.get(analysisAtom);
+    const { links } = store.get(analysisAtomDeprecated);
     const linksAnalysis = links as FlowAnalysis;
     expect(linksAnalysis.type).toEqual("flow");
     expect(colorFor(linksAnalysis.symbolization, 10)).not.toBeUndefined();

@@ -3,7 +3,7 @@ import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { convertTo } from "src/quantity";
-import { AnalysisState } from "src/state/analysis";
+import { AnalysisState } from "src/state/analysis-deprecated";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";

@@ -12,7 +12,7 @@ import {
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding, translate } from "src/infra/i18n";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 
 export const tipLike = `
     bg-white dark:bg-gray-900
@@ -72,7 +72,7 @@ export function Hints() {
   const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
   const dialogState = useAtomValue(dialogAtom);
-  const analysis = useAtomValue(analysisAtom);
+  const analysis = useAtomValue(analysisAtomDeprecated);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
 

@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { linearGradient } from "src/lib/color";
-import { analysisAtom } from "src/state/analysis";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { StyledPopoverArrow } from "./elements";
 import { translate, translateUnit } from "src/infra/i18n";
 import * as Popover from "@radix-ui/react-popover";
@@ -11,7 +11,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
 
 export const AnalysisLegends = () => {
-  const [{ nodes, links }] = useAtom(analysisAtom);
+  const [{ nodes, links }] = useAtom(analysisAtomDeprecated);
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">

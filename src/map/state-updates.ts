@@ -36,7 +36,10 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import { AnalysisState, analysisAtom } from "src/state/analysis";
+import {
+  AnalysisState,
+  analysisAtomDeprecated,
+} from "src/state/analysis-deprecated";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 
@@ -101,7 +104,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
-  const analysis = get(analysisAtom);
+  const analysis = get(analysisAtomDeprecated);
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
