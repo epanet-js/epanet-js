@@ -22,13 +22,13 @@ export type SymbolizationRamp = {
   interpolate: "step" | "linear";
   property: string;
   unit: Unit;
-  reversedRamp?: boolean;
-  absValues?: boolean;
   fallbackEndpoints: [number, number];
   mode: RangeMode;
   rampName: string;
   breaks: number[];
   colors: string[];
+  reversedRamp?: boolean;
+  absValues?: boolean;
 };
 
 export type RangeEndpoints = [number, number];

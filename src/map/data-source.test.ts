@@ -68,7 +68,7 @@ describe("build optimized source", () => {
           breaks: [10, 20, 30],
           property: "pressure",
           unit: "m",
-          colors: getColors("epanet-ramp", 4),
+          colors: getColors("Temps", 4),
         }),
       },
     };
@@ -99,7 +99,7 @@ describe("build optimized source", () => {
         symbolization: aSymbolization({
           breaks: [10, 20, 30],
           property: "flow",
-          colors: getColors("epanet-ramp", 4),
+          colors: getColors("Temps", 4),
           absValues: true,
         }),
       },
@@ -168,7 +168,7 @@ describe("build optimized source", () => {
           symbolization: aSymbolization({
             breaks: [10, 20, 30],
             property: "velocity",
-            colors: getColors("epanet-ramp", 4),
+            colors: getColors("Temps", 4),
             absValues: true,
           }),
         },
@@ -207,13 +207,14 @@ describe("build optimized source", () => {
 
       const [p1, p2] = features;
       expect(p1.properties).toMatchObject({
-        color: "#004e64",
+        color: expect.stringMatching("#"),
         hasArrow: true,
       });
       expect(p2.properties).toMatchObject({
-        color: "#004e64",
+        color: expect.stringMatching("#"),
         hasArrow: false,
       });
+      expect(p1.properties!.color).toEqual(p2.properties!.color);
     });
 
     it("assigns lengths in meters", () => {

@@ -142,7 +142,7 @@ export const aSymbolization = (
     property: "pressure",
     unit: "m",
     interpolate: "step",
-    rampName: "epanet-ramp",
+    rampName: "Temps",
     mode: "equalIntervals",
     absValues: false,
     fallbackEndpoints: [0, 100],
