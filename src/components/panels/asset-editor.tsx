@@ -766,7 +766,7 @@ const StatusRow = <T extends AssetStatus>({
       value: status,
     })) as { label: string; value: T }[];
     return options;
-  }, [availableStatuses]);
+  }, [availableStatuses, type]);
 
   return (
     <PropertyRow label={label}>
