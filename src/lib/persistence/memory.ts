@@ -42,6 +42,8 @@ import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
+import { analysisAtom } from "src/state/analysis";
+import { nullAnalysis } from "src/analysis";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -85,6 +87,7 @@ export class MemPersistence implements IPersistence {
       });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(simulationAtom, { status: "idle" });
+      this.store.set(analysisAtom, nullAnalysis);
     };
   }
   useTransact() {

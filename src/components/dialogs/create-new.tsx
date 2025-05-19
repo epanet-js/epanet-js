@@ -19,8 +19,6 @@ import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
-import { analysisAtom } from "src/state/analysis";
-import { nullAnalysis } from "src/analysis";
 
 type SubmitProps = {
   unitsSpec: keyof Presets;
@@ -32,7 +30,6 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
-  const setAnalysis = useSetAtom(analysisAtom);
 
   const handleSumbit = ({ unitsSpec, headlossFormula }: SubmitProps) => {
     const quantities = new Quantities(presets[unitsSpec]);
@@ -49,7 +46,6 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       headlossFormula,
     });
     setFileInfo(null);
-    setAnalysis(nullAnalysis);
     onClose();
   };
   return (

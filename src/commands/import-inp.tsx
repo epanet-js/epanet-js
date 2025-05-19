@@ -16,14 +16,11 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
-import { analysisAtom } from "src/state/analysis";
-import { nullAnalysis } from "src/analysis";
 
 export const inpExtension = ".inp";
 
 export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const setAnalysis = useSetAtom(analysisAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
   const rep = usePersistence();
@@ -71,7 +68,6 @@ export const useImportInp = () => {
         }
 
         transactImport(hydraulicModel, modelMetadata, file.name);
-        setAnalysis(nullAnalysis);
 
         const features: FeatureCollection = {
           type: "FeatureCollection",
