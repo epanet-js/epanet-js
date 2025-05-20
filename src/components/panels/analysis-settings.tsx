@@ -60,6 +60,8 @@ export const AnalysisSettingsPanel = () => {
       switch (type) {
         case "none":
           return setLinksAnalysisDeprecated({ type: "none" });
+        case "unitHeadloss":
+          throw new Error("Not implemented");
         case "flow":
           return setLinksAnalysisDeprecated({
             type: "flow",
@@ -161,14 +163,20 @@ export const AnalysisSettingsPanel = () => {
         <PanelDetails title={translate("links")}>
           <Selector
             ariaLabel={translate("links")}
-            options={(
-              ["none", "flow", "velocity"] as LinksAnalysis["type"][]
+            options={(isFeatureOn("FLAG_UNIT_HEADLOSS")
+              ? ([
+                  "none",
+                  "flow",
+                  "velocity",
+                  "unitHeadloss",
+                ] as LinksAnalysis["type"][])
+              : (["none", "flow", "velocity"] as LinksAnalysis["type"][])
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),
               disabled:
                 simulation.status === "idle" &&
-                ["flow", "velocity"].includes(type),
+                ["flow", "velocity", "unitHeadloss"].includes(type),
             }))}
             selected={
               isFeatureOn("FLAG_MEMORIZE")

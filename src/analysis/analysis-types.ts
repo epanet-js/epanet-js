@@ -1,7 +1,7 @@
 import { RangeSymbology } from "./range-symbology";
 
 const nodeAnalysisTypes = ["elevation", "pressure"] as const;
-const linkAnalysisTypes = ["flow", "velocity"] as const;
+const linkAnalysisTypes = ["flow", "velocity", "unitHeadloss"] as const;
 
 const analysisTypes = [
   "none",
@@ -33,7 +33,9 @@ export type NodesAnalysis =
       symbology: RangeSymbology;
     };
 
-export type LinksAnalysis = { type: "none" } | FlowAnalysis | VelocityAnalysis;
+export type LinksAnalysis =
+  | { type: "none" }
+  | { type: "flow" | "velocity" | "unitHeadloss"; symbology: RangeSymbology };
 
 export type AnalysisState = {
   nodes: NodesAnalysis;
