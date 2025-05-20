@@ -3,9 +3,8 @@ import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 export type { AnalysisState };
 
-export const savedAnalysesAtom = atom<
-  Map<string, NodesAnalysis | LinksAnalysis>
->(new Map());
+export type AnalysesMap = Map<string, NodesAnalysis | LinksAnalysis>;
+export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
 export const nodesAnalysisAtom = atom<NodesAnalysis>({ type: "none" });
 export const linksAnalysisAtom = atom<LinksAnalysis>({ type: "none" });
