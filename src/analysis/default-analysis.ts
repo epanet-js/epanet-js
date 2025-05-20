@@ -1,0 +1,60 @@
+import { HydraulicModel } from "src/hydraulic-model";
+import { Quantities } from "src/model-metadata/quantities-spec";
+import { initializeSymbolization } from "./symbolization-ramp";
+import { getSortedValues } from "./analysis-data";
+import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
+
+export const defaultAnalysis = {
+  flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {
+    return (): LinksAnalysis => {
+      const property = "flow";
+      const sortedData = getSortedValues(hydraulicModel.assets, "flow", {
+        absValues: true,
+      });
+      const symbolization = initializeSymbolization({
+        property,
+        unit: hydraulicModel.units.flow,
+        rampName: "Teal",
+        mode: "equalQuantiles",
+        absValues: true,
+        sortedData,
+      });
+      return { type: "flow", symbolization };
+    };
+  },
+  velocity:
+    (hydraulicModel: HydraulicModel, quantities: Quantities) =>
+    (): LinksAnalysis => {
+      const symbolization = initializeSymbolization({
+        property: "velocity",
+        unit: hydraulicModel.units.velocity,
+        rampName: "RedOr",
+        mode: "equalQuantiles",
+        sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+        fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
+      });
+      return { type: "velocity", symbolization };
+    },
+  pressure: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
+    const symbolization = initializeSymbolization({
+      property: "pressure",
+      unit: hydraulicModel.units.pressure,
+      rampName: "Temps",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+    });
+    return { type: "pressure", symbolization };
+  },
+  elevation: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
+    const symbolization = initializeSymbolization({
+      property: "elevation",
+      unit: hydraulicModel.units.elevation,
+      rampName: "Fall",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+    });
+    return { type: "elevation", symbolization };
+  },
+};

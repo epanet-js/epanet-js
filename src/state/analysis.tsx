@@ -16,7 +16,7 @@ export const useAnalysisSettings = () => {
   const [nodes, setNodesActive] = useAtom(nodesAnalysisAtomDeprecated);
   const [links, setLinksActive] = useAtom(linksAnalysisAtomDeprecated);
 
-  const setNodesAnalysis = (
+  const switchNodesAnalysisTo = (
     type: NodesAnalysis["type"],
     initializeFn: () => NodesAnalysis,
   ) => {
@@ -32,7 +32,7 @@ export const useAnalysisSettings = () => {
     }
   };
 
-  const setLinksAnalysis = (
+  const switchLinksAnalysisTo = (
     type: LinksAnalysis["type"],
     initializeFn: () => LinksAnalysis,
   ) => {
@@ -65,8 +65,8 @@ export const useAnalysisSettings = () => {
   return {
     links,
     nodes,
-    setNodesAnalysis,
-    setLinksAnalysis,
+    switchNodesAnalysisTo,
+    switchLinksAnalysisTo,
     updateNodesAnalysis,
     updateLinksAnalysis,
   };

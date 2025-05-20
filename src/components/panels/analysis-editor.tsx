@@ -14,6 +14,7 @@ import { getSortedValues } from "src/analysis/analysis-data";
 import { initializeSymbolization } from "src/analysis/symbolization-ramp";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useAnalysisSettings } from "src/state/analysis";
+import { defaultAnalysis } from "src/analysis/default-analysis";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -30,7 +31,8 @@ export const AnalysisEditor = () => {
   const [linksDeprecated, setLinksAnalysisDeprecated] = useAtom(
     linksAnalysisAtomDeprecated,
   );
-  const { setNodesAnalysis, setLinksAnalysis } = useAnalysisSettings();
+  const { switchNodesAnalysisTo, switchLinksAnalysisTo } =
+    useAnalysisSettings();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
@@ -50,19 +52,7 @@ export const AnalysisEditor = () => {
         return setLinksAnalysisDeprecated({ type: "none" });
       case "flow":
         return isFeatureOn("FLAG_MEMORIZE")
-          ? setLinksAnalysis("flow", () => ({
-              type: "flow",
-              symbolization: initializeSymbolization({
-                property: "flow",
-                unit: hydraulicModel.units.flow,
-                rampName: "Teal",
-                mode: "equalQuantiles",
-                absValues: true,
-                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                  absValues: true,
-                }),
-              }),
-            }))
+          ? switchLinksAnalysisTo("flow", defaultAnalysis.flow(hydraulicModel))
           : setLinksAnalysisDeprecated({
               type: "flow",
               symbolization: initializeSymbolization({
@@ -78,18 +68,10 @@ export const AnalysisEditor = () => {
             });
       case "velocity":
         return isFeatureOn("FLAG_MEMORIZE")
-          ? setLinksAnalysis("velocity", () => ({
-              type: "velocity",
-              symbolization: initializeSymbolization({
-                property: "velocity",
-                unit: hydraulicModel.units.velocity,
-                rampName: "RedOr",
-                mode: "equalQuantiles",
-                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-                fallbackEndpoints:
-                  quantities.analysis.velocityFallbackEndpoints,
-              }),
-            }))
+          ? switchLinksAnalysisTo(
+              "velocity",
+              defaultAnalysis.velocity(hydraulicModel, quantities),
+            )
           : setLinksAnalysisDeprecated({
               type: "velocity",
               symbolization: initializeSymbolization({
@@ -117,17 +99,10 @@ export const AnalysisEditor = () => {
         return setNodesAnalysisDeprecated({ type: "none" });
       case "pressure":
         return isFeatureOn("FLAG_MEMORIZE")
-          ? setNodesAnalysis("pressure", () => ({
-              type: "pressure",
-              symbolization: initializeSymbolization({
-                property: "pressure",
-                unit: hydraulicModel.units.pressure,
-                rampName: "Temps",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-              }),
-            }))
+          ? switchNodesAnalysisTo(
+              "pressure",
+              defaultAnalysis.pressure(hydraulicModel),
+            )
           : setNodesAnalysisDeprecated({
               type: "pressure",
               symbolization: initializeSymbolization({
@@ -141,17 +116,10 @@ export const AnalysisEditor = () => {
             });
       case "elevation":
         return isFeatureOn("FLAG_MEMORIZE")
-          ? setNodesAnalysis("elevation", () => ({
-              type: "elevation",
-              symbolization: initializeSymbolization({
-                property: "elevation",
-                unit: hydraulicModel.units.elevation,
-                rampName: "Fall",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-              }),
-            }))
+          ? switchNodesAnalysisTo(
+              "elevation",
+              defaultAnalysis.elevation(hydraulicModel),
+            )
           : setNodesAnalysisDeprecated({
               type: "elevation",
               symbolization: initializeSymbolization({
