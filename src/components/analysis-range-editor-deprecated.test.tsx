@@ -7,25 +7,20 @@ import {
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   SymbolizationRamp,
   defaultNewColor,
 } from "src/analysis/symbolization-ramp";
-import { PropertyAnalysis } from "src/analysis/analysis-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 
 describe("analysis range editor", () => {
   const red = "#ff0000";
   const green = "#00ff00";
   const blue = "#0000ff";
   const white = "#ffffff";
-
-  beforeEach(() => {
-    stubFeatureOn("FLAG_MEMORIZE");
-  });
 
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
@@ -493,11 +488,13 @@ describe("analysis range editor", () => {
   });
 
   const getNodesAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(nodesAnalysisAtom) as PropertyAnalysis).symbolization;
+    return (store.get(analysisAtomDeprecated).nodes as PropertyAnalysis)
+      .symbolization;
   };
 
   const getLinksAnalysisSymbolization = (store: Store): SymbolizationRamp => {
-    return (store.get(linksAnalysisAtom) as PropertyAnalysis).symbolization;
+    return (store.get(analysisAtomDeprecated).links as FlowAnalysis)
+      .symbolization;
   };
 
   const expectBreakValue = (index: number, value: string) => {

@@ -3,17 +3,12 @@ import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
 import { AnalysisSettingsPanel } from "./analysis-settings";
 import userEvent from "@testing-library/user-event";
-import { PropertyAnalysis } from "src/analysis/analysis-types";
+import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
+import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 import { aSimulationSuccess, setInitialState } from "src/__helpers__/state";
 import { colorFor } from "src/analysis/symbolization-ramp";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 
 describe("Analysis Settings Panel", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_MEMORIZE");
-  });
-
   it("displays nodes analysis options", async () => {
     const store = getDefaultStore();
     renderComponent(store);
@@ -57,7 +52,8 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
     await userEvent.click(screen.getByText("Pressure"));
 
-    const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
+    const { nodes } = store.get(analysisAtomDeprecated);
+    const nodesAnalysis = nodes as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
     expect(colorFor(nodesAnalysis.symbolization, 10)).not.toBeUndefined();
     expect(nodesAnalysis.symbolization.property).toEqual("pressure");
@@ -83,7 +79,8 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
     await userEvent.click(screen.getByText(/flow/i));
 
-    const linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
+    const { links } = store.get(analysisAtomDeprecated);
+    const linksAnalysis = links as FlowAnalysis;
     expect(linksAnalysis.type).toEqual("flow");
     expect(colorFor(linksAnalysis.symbolization, 10)).not.toBeUndefined();
     expect(linksAnalysis.symbolization.property).toEqual("flow");
