@@ -1,18 +1,18 @@
 import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { LINE_COLORS_SELECTED } from "src/lib/constants";
-import { ISymbolization } from "src/types";
-import { asNumberExpression } from "src/lib/symbolization";
+import { ISymbology } from "src/types";
+import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 
 export const pipesLayer = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): LineLayer => {
   const paint = {
     "line-opacity": [
@@ -20,7 +20,7 @@ export const pipesLayer = ({
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "stroke-opacity",
         defaultValue: 1,
       }),
@@ -31,7 +31,7 @@ export const pipesLayer = ({
       ["feature-state", "selected"],
       "true",
       LINE_COLORS_SELECTED,
-      ["coalesce", ["get", "color"], symbolization.defaultColor],
+      ["coalesce", ["get", "color"], symbology.defaultColor],
     ],
     "line-dasharray": [
       "case",
@@ -52,11 +52,11 @@ export const pipesLayer = ({
 export const pipeArrows = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): SymbolLayer => {
   return {
     id: layerId,
@@ -76,7 +76,7 @@ export const pipeArrows = ({
         ["feature-state", "selected"],
         "true",
         LINE_COLORS_SELECTED,
-        ["coalesce", ["get", "color"], symbolization.defaultColor],
+        ["coalesce", ["get", "color"], symbology.defaultColor],
       ],
       "icon-opacity": [
         ...zoomExpression(

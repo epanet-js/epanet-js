@@ -142,7 +142,7 @@ export const presencesAtom = atom<{
 });
 
 export const memoryMetaAtom = atom<Omit<PersistenceMetadataMemory, "type">>({
-  symbolization: SYMBOLIZATION_NONE,
+  symbology: SYMBOLIZATION_NONE,
   label: null,
   layer: null,
 });
@@ -207,8 +207,8 @@ export const panelExportOpen = atomWithStorage("panelExportOpen", false);
 export const panelNullOpen = atomWithStorage("panelNullOpen", true);
 export const panelCircleOpen = atomWithStorage("panelCircleOpen", true);
 export const panelStyleOpen = atomWithStorage("panelStyleOpen", false);
-export const panelSymbolizationExportOpen = atomWithStorage(
-  "panelSymbolizationExportOpen",
+export const panelSymbologyExportOpen = atomWithStorage(
+  "panelSymbologyExportOpen",
   true,
 );
 export type PanelAtom = typeof panelIdOpen;

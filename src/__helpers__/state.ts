@@ -24,9 +24,9 @@ import {
   nodesAnalysisAtomDeprecated,
 } from "src/state/analysis-deprecated";
 import {
-  SymbolizationRamp,
-  nullRampSymbolization,
-} from "src/analysis/symbolization-ramp";
+  RangeSymbology,
+  nullRangeSymbology,
+} from "src/analysis/range-symbology";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
 
@@ -127,30 +127,30 @@ export const aSingleSelection = ({
 };
 
 export const aNodesAnalysis = (
-  symbolizationData: Partial<SymbolizationRamp>,
+  symbologyData: Partial<RangeSymbology>,
 ): NodesAnalysis => {
-  const symbolization = aSymbolization(symbolizationData);
+  const symbology = aSymbology(symbologyData);
   return {
-    type: symbolization.property as NodesAnalysis["type"],
-    symbolization,
+    type: symbology.property as NodesAnalysis["type"],
+    symbology,
   };
 };
 
 export const aLinksAnalysis = (
-  symbolization: Partial<SymbolizationRamp>,
+  symbology: Partial<RangeSymbology>,
 ): LinksAnalysis => {
   return {
     type: "flow",
-    symbolization: aSymbolization(symbolization),
+    symbology: aSymbology(symbology),
   };
 };
 
 const anyColor = "#f12345";
-export const aSymbolization = (
-  symbolization: Partial<SymbolizationRamp>,
-): SymbolizationRamp => {
-  const defaults: SymbolizationRamp = {
-    ...nullRampSymbolization,
+export const aSymbology = (
+  symbology: Partial<RangeSymbology>,
+): RangeSymbology => {
+  const defaults: RangeSymbology = {
+    ...nullRangeSymbology,
     property: "pressure",
     unit: "m",
     interpolate: "step",
@@ -162,12 +162,12 @@ export const aSymbolization = (
     colors: [anyColor, anyColor, anyColor],
   };
 
-  const breaks = symbolization.breaks || defaults.breaks;
-  const colors = symbolization.colors || defaults.colors;
+  const breaks = symbology.breaks || defaults.breaks;
+  const colors = symbology.colors || defaults.colors;
 
   return {
     ...defaults,
-    ...symbolization,
+    ...symbology,
     breaks,
     colors,
   };

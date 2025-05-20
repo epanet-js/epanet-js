@@ -1,16 +1,16 @@
 import { SymbolLayer } from "mapbox-gl";
 import { LayerId } from "./layer";
-import { ISymbolization } from "src/types";
+import { ISymbology } from "src/types";
 import { POINT_COLORS_SELECTED } from "src/lib/constants";
 
 export const reservoirsLayer = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: string;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): SymbolLayer => {
   return {
     id: layerId,
@@ -29,7 +29,7 @@ export const reservoirsLayer = ({
         "case",
         ["==", ["feature-state", "selected"], "true"],
         POINT_COLORS_SELECTED,
-        symbolization.defaultColor,
+        symbology.defaultColor,
       ],
     },
   };

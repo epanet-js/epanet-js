@@ -23,14 +23,14 @@ import {
   deleteBreak,
   maxIntervals,
   minIntervals,
-  nullRampSymbolization,
+  nullRangeSymbology,
   prependBreak,
   rangeModes,
   reverseColors,
   updateBreakValue,
-  SymbolizationRamp,
+  RangeSymbology,
   validateAscindingBreaks,
-} from "src/analysis/symbolization-ramp";
+} from "src/analysis/range-symbology";
 import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
 import { useCallback, useMemo, useState } from "react";
@@ -92,32 +92,32 @@ export const AnalysisRangeEditor = ({
         : linksAnalysisDeprecated;
   }
 
-  const initialSymbolization =
+  const initialSymbology =
     activeAnalysis.type === "none"
-      ? nullRampSymbolization
-      : activeAnalysis.symbolization;
+      ? nullRangeSymbology
+      : activeAnalysis.symbology;
 
   const onChange = useCallback(
-    (newSymbolization: SymbolizationRamp) => {
+    (newSymbology: RangeSymbology) => {
       if (geometryType === "nodes") {
         isFeatureOn("FLAG_MEMORIZE")
           ? updateNodesAnalysis({
               type: activeAnalysis.type as NodesAnalysis["type"],
-              symbolization: newSymbolization,
+              symbology: newSymbology,
             })
           : setNodesAnalysisDeprecated((prev) => ({
               ...prev,
-              symbolization: newSymbolization,
+              symbology: newSymbology,
             }));
       } else {
         isFeatureOn("FLAG_MEMORIZE")
           ? updateLinksAnalysis({
               type: activeAnalysis.type as LinksAnalysis["type"],
-              symbolization: newSymbolization,
+              symbology: newSymbology,
             })
           : setLinksAnalysisDeprecated((prev) => ({
               ...prev,
-              symbolization: newSymbolization,
+              symbology: newSymbology,
             }));
       }
     },
@@ -132,13 +132,12 @@ export const AnalysisRangeEditor = ({
   );
 
   const sortedData = useMemo(() => {
-    return getSortedValues(assets, initialSymbolization.property, {
-      absValues: Boolean(initialSymbolization.absValues),
+    return getSortedValues(assets, initialSymbology.property, {
+      absValues: Boolean(initialSymbology.absValues),
     });
-  }, [assets, initialSymbolization.property, initialSymbolization.absValues]);
+  }, [assets, initialSymbology.property, initialSymbology.absValues]);
 
-  const [symbolization, setSymbolization] =
-    useState<SymbolizationRamp>(initialSymbolization);
+  const [symbology, setSymbology] = useState<RangeSymbology>(initialSymbology);
 
   const debugData = useMemo(() => {
     if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
@@ -168,30 +167,30 @@ export const AnalysisRangeEditor = ({
 
     return createHistogram(sortedData, [
       -Infinity,
-      ...symbolization.breaks,
+      ...symbology.breaks,
       +Infinity,
     ]);
-  }, [symbolization.breaks, sortedData]);
+  }, [symbology.breaks, sortedData]);
 
   const [error, setError] = useState<ErrorType | null>(null);
 
-  const submitChange = (newSymbolization: SymbolizationRamp) => {
+  const submitChange = (newSymbology: RangeSymbology) => {
     toast.success(translate("updated"), {
-      id: "symbolization",
+      id: "symbology",
     });
-    onChange(newSymbolization);
+    onChange(newSymbology);
   };
 
-  const showError = (error: ErrorType, newSymbolization: SymbolizationRamp) => {
+  const showError = (error: ErrorType, newSymbology: RangeSymbology) => {
     userTracking.capture({
       name: "analysis.rangeError.seen",
       errorKey: error,
-      property: newSymbolization.property,
-      mode: newSymbolization.mode,
-      classesCount: newSymbolization.colors.length,
+      property: newSymbology.property,
+      mode: newSymbology.mode,
+      classesCount: newSymbology.colors.length,
     });
     setError(error);
-    toast.error(translate("unableToUpdate"), { id: "symbolization" });
+    toast.error(translate("unableToUpdate"), { id: "symbology" });
   };
 
   const clearError = () => {
@@ -202,15 +201,15 @@ export const AnalysisRangeEditor = ({
     userTracking.capture({
       name: "analysis.rangeMode.changed",
       mode: newMode,
-      property: symbolization.property,
+      property: symbology.property,
     });
-    const result = applyMode(symbolization, newMode, sortedData);
-    setSymbolization(result.symbolization);
+    const result = applyMode(symbology, newMode, sortedData);
+    setSymbology(result.symbology);
     if (result.error) {
-      showError("notEnoughData", result.symbolization);
+      showError("notEnoughData", result.symbology);
     } else {
       clearError();
-      submitChange(result.symbolization);
+      submitChange(result.symbology);
     }
   };
 
@@ -218,30 +217,30 @@ export const AnalysisRangeEditor = ({
     userTracking.capture({
       name: "analysis.classes.changed",
       classesCount: numIntervals,
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const result = changeRangeSize(symbolization, sortedData, numIntervals);
-    setSymbolization(result.symbolization);
+    const result = changeRangeSize(symbology, sortedData, numIntervals);
+    setSymbology(result.symbology);
     if (result.error) {
-      showError("notEnoughData", result.symbolization);
+      showError("notEnoughData", result.symbology);
     } else {
       clearError();
-      submitChange(result.symbolization);
+      submitChange(result.symbology);
     }
   };
 
   const handleIntervalColorChange = (index: number, color: string) => {
     userTracking.capture({
       name: "analysis.intervalColor.changed",
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = changeIntervalColor(symbolization, index, color);
-    setSymbolization(newSymbolization);
+    const newSymbology = changeIntervalColor(symbology, index, color);
+    setSymbology(newSymbology);
 
     if (!error) {
-      submitChange(newSymbolization);
+      submitChange(newSymbology);
     }
   };
 
@@ -249,109 +248,105 @@ export const AnalysisRangeEditor = ({
     userTracking.capture({
       name: "analysis.break.updated",
       breakValue: value,
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = updateBreakValue(symbolization, index, value);
-    setSymbolization(newSymbolization);
+    const newSymbology = updateBreakValue(symbology, index, value);
+    setSymbology(newSymbology);
 
-    const isValid = validateAscindingBreaks(newSymbolization.breaks);
+    const isValid = validateAscindingBreaks(newSymbology.breaks);
     if (!isValid) {
-      showError("rampShouldBeAscending", newSymbolization);
+      showError("rampShouldBeAscending", newSymbology);
     } else {
       clearError();
-      submitChange(newSymbolization);
+      submitChange(newSymbology);
     }
   };
 
   const handleDeleteBreak = (index: number) => {
     userTracking.capture({
       name: "analysis.break.deleted",
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = deleteBreak(symbolization, index);
-    setSymbolization(newSymbolization);
+    const newSymbology = deleteBreak(symbology, index);
+    setSymbology(newSymbology);
 
-    const isValid = validateAscindingBreaks(newSymbolization.breaks);
+    const isValid = validateAscindingBreaks(newSymbology.breaks);
     if (!isValid) {
-      showError("rampShouldBeAscending", newSymbolization);
+      showError("rampShouldBeAscending", newSymbology);
     } else {
       clearError();
-      submitChange(newSymbolization);
+      submitChange(newSymbology);
     }
   };
 
   const handlePrependBreak = () => {
     userTracking.capture({
       name: "analysis.break.prepended",
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = prependBreak(symbolization);
-    setSymbolization(newSymbolization);
+    const newSymbology = prependBreak(symbology);
+    setSymbology(newSymbology);
     if (!error) {
-      submitChange(newSymbolization);
+      submitChange(newSymbology);
     }
   };
 
   const handleAppendBreak = () => {
     userTracking.capture({
       name: "analysis.break.appended",
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = appendBreak(symbolization);
-    setSymbolization(newSymbolization);
+    const newSymbology = appendBreak(symbology);
+    setSymbology(newSymbology);
     if (!error) {
-      submitChange(newSymbolization);
+      submitChange(newSymbology);
     }
   };
 
   const handleReverseColors = () => {
     userTracking.capture({
       name: "analysis.colorRamp.reversed",
-      rampName: symbolization.rampName,
-      property: symbolization.property,
+      rampName: symbology.rampName,
+      property: symbology.property,
     });
 
-    const newSymbolization = reverseColors(symbolization);
-    setSymbolization(newSymbolization);
-    if (!error) submitChange(newSymbolization);
+    const newSymbology = reverseColors(symbology);
+    setSymbology(newSymbology);
+    if (!error) submitChange(newSymbology);
   };
 
   const handleRampChange = (newRampName: string, isReversed: boolean) => {
     userTracking.capture({
       name: "analysis.colorRamp.changed",
       rampName: newRampName,
-      property: symbolization.property,
+      property: symbology.property,
     });
 
-    const newSymbolization = changeRampName(
-      symbolization,
-      newRampName,
-      isReversed,
-    );
-    setSymbolization(newSymbolization);
-    if (!error) submitChange(newSymbolization);
+    const newSymbology = changeRampName(symbology, newRampName, isReversed);
+    setSymbology(newSymbology);
+    if (!error) submitChange(newSymbology);
   };
 
   const handleRegenerate = () => {
     userTracking.capture({
       name: "analysis.breaks.regenerated",
-      property: symbolization.property,
+      property: symbology.property,
     });
-    const result = applyMode(symbolization, symbolization.mode, sortedData);
-    setSymbolization(result.symbolization);
+    const result = applyMode(symbology, symbology.mode, sortedData);
+    setSymbology(result.symbology);
     if (result.error) {
-      showError("notEnoughData", result.symbolization);
+      showError("notEnoughData", result.symbology);
     } else {
       clearError();
-      submitChange(result.symbolization);
+      submitChange(result.symbology);
     }
   };
 
-  const numIntervals = symbolization.breaks.length + 1;
+  const numIntervals = symbology.breaks.length + 1;
 
   return (
     <div className="space-y-4">
@@ -359,7 +354,7 @@ export const AnalysisRangeEditor = ({
         <div className="flex flex-col gap-y-2 w-full">
           <span className="text-sm text-gray-500">{translate("mode")}</span>
           <ModeSelector
-            rangeMode={symbolization.mode}
+            rangeMode={symbology.mode}
             onModeChange={handleModeChange}
           />
         </div>
@@ -376,9 +371,9 @@ export const AnalysisRangeEditor = ({
               {translate("colorRamp")}
             </span>
             <ColorRampSelector
-              rampColors={symbolization.colors}
+              rampColors={symbology.colors}
               size={numIntervals as RampSize}
-              reversedRamp={Boolean(symbolization.reversedRamp)}
+              reversedRamp={Boolean(symbology.reversedRamp)}
               onRampChange={handleRampChange}
               onReverse={handleReverseColors}
             />
@@ -398,9 +393,9 @@ export const AnalysisRangeEditor = ({
             <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
               <IntervalsEditor
                 numIntervals={numIntervals}
-                breaks={symbolization.breaks}
-                colors={symbolization.colors}
-                absValues={Boolean(symbolization.absValues)}
+                breaks={symbology.breaks}
+                colors={symbology.colors}
+                absValues={Boolean(symbology.absValues)}
                 onAppend={handleAppendBreak}
                 onPrepend={handlePrependBreak}
                 onDelete={handleDeleteBreak}

@@ -236,10 +236,10 @@ const WrappedFeatureLocal = z.object({
 });
 
 /**
- * Symbolization --------------------------------------------------
+ * Symbology --------------------------------------------------
  */
 
-export const SymbolizationBaseInternal = z.object({
+export const SymbologyBaseInternal = z.object({
   simplestyle: z.boolean(),
   defaultColor: z.string().default(colors.indigo900),
   defaultOpacity: z
@@ -248,7 +248,7 @@ export const SymbolizationBaseInternal = z.object({
     .transform((num) => clamp(num, 0, 1)),
 });
 
-const SymbolizationCategorical = SymbolizationBaseInternal.extend({
+const SymbologyCategorical = SymbologyBaseInternal.extend({
   type: z.literal("categorical"),
   stops: z
     .array(
@@ -265,7 +265,7 @@ const SymbolizationCategorical = SymbolizationBaseInternal.extend({
 });
 
 /**
- * The previous version of symbolization ramp,
+ * The previous version of symbology ramp,
  * used for upgrading.
  */
 
@@ -285,27 +285,22 @@ function uniqueStops<T extends { input: JsonValue }>(stops: T[]): T[] {
   return transformedStops;
 }
 
-export const SymbolizationNone = SymbolizationBaseInternal.extend({
+export const SymbologyNone = SymbologyBaseInternal.extend({
   type: z.literal("none"),
 });
 
-export const Symbolization = z.union([
-  SymbolizationNone,
-  SymbolizationCategorical,
-]);
+export const Symbology = z.union([SymbologyNone, SymbologyCategorical]);
 
-export const SYMBOLIZATION_NONE: ISymbolizationNone = {
+export const SYMBOLIZATION_NONE: ISymbologyNone = {
   type: "none",
   simplestyle: true,
   defaultColor: colors.indigo900,
   defaultOpacity: 0.3,
 };
 
-export type ISymbolizationNone = z.infer<typeof SymbolizationNone>;
-export type ISymbolizationCategorical = z.infer<
-  typeof SymbolizationCategorical
->;
-export type ISymbolization = z.infer<typeof Symbolization>;
+export type ISymbologyNone = z.infer<typeof SymbologyNone>;
+export type ISymbologyCategorical = z.infer<typeof SymbologyCategorical>;
+export type ISymbology = z.infer<typeof Symbology>;
 
 // @ts-expect-error todo
 export const WrappedFeature: z.ZodSchema<IWrappedFeature> = WrappedFeatureLocal;

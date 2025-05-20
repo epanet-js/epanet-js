@@ -11,7 +11,7 @@ import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
 import { getSortedValues } from "src/analysis/analysis-data";
-import { initializeSymbolization } from "src/analysis/symbolization-ramp";
+import { initializeSymbology } from "src/analysis/range-symbology";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
@@ -63,7 +63,7 @@ export const AnalysisSettingsPanel = () => {
         case "flow":
           return setLinksAnalysisDeprecated({
             type: "flow",
-            symbolization: initializeSymbolization({
+            symbology: initializeSymbology({
               property: "flow",
               unit: hydraulicModel.units.flow,
               rampName: "Teal",
@@ -77,7 +77,7 @@ export const AnalysisSettingsPanel = () => {
         case "velocity":
           return setLinksAnalysisDeprecated({
             type: "velocity",
-            symbolization: initializeSymbolization({
+            symbology: initializeSymbology({
               property: "velocity",
               unit: hydraulicModel.units.velocity,
               rampName: "RedOr",
@@ -106,7 +106,7 @@ export const AnalysisSettingsPanel = () => {
         case "pressure":
           return setNodesAnalysisDeprecated({
             type: "pressure",
-            symbolization: initializeSymbolization({
+            symbology: initializeSymbology({
               property: "pressure",
               unit: hydraulicModel.units.pressure,
               rampName: "Temps",
@@ -118,7 +118,7 @@ export const AnalysisSettingsPanel = () => {
         case "elevation":
           return setNodesAnalysisDeprecated({
             type: "elevation",
-            symbolization: initializeSymbolization({
+            symbology: initializeSymbology({
               property: "elevation",
               unit: hydraulicModel.units.elevation,
               rampName: "Fall",

@@ -10,7 +10,7 @@ import {
   aSimulationSuccess,
   setInitialState,
 } from "src/__helpers__/state";
-import { colorFor } from "src/analysis/symbolization-ramp";
+import { colorFor } from "src/analysis/range-symbology";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   AnalysesMap,
@@ -69,8 +69,8 @@ describe("Analysis Settings Panel", () => {
 
     const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
-    expect(colorFor(nodesAnalysis.symbolization, 10)).not.toBeUndefined();
-    expect(nodesAnalysis.symbolization.property).toEqual("pressure");
+    expect(colorFor(nodesAnalysis.symbology, 10)).not.toBeUndefined();
+    expect(nodesAnalysis.symbology.property).toEqual("pressure");
   });
 
   it("displays link analysis options", async () => {
@@ -95,8 +95,8 @@ describe("Analysis Settings Panel", () => {
 
     const linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
     expect(linksAnalysis.type).toEqual("flow");
-    expect(colorFor(linksAnalysis.symbolization, 10)).not.toBeUndefined();
-    expect(linksAnalysis.symbolization.property).toEqual("flow");
+    expect(colorFor(linksAnalysis.symbology, 10)).not.toBeUndefined();
+    expect(linksAnalysis.symbology.property).toEqual("flow");
 
     expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
       "Flow",
@@ -121,7 +121,7 @@ describe("Analysis Settings Panel", () => {
 
     const linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
     expect(linksAnalysis.type).toEqual("flow");
-    expect(linksAnalysis.symbolization.rampName).toEqual("PREVIOUS");
+    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
   });
 
   it("uses a previous nodes analysis when available", async () => {
@@ -142,7 +142,7 @@ describe("Analysis Settings Panel", () => {
 
     const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
-    expect(nodesAnalysis.symbolization.rampName).toEqual("PREVIOUS");
+    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
   });
 
   const renderComponent = (store: Store) => {

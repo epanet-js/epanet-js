@@ -6,14 +6,17 @@ import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
 } from "src/lib/constants";
-import type { ISymbolization, LayerConfigMap } from "src/types";
+import type { ISymbology, LayerConfigMap } from "src/types";
 import {
   addMapboxStyle,
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer_config_adapters";
 import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
-import { asColorExpression, asNumberExpression } from "src/lib/symbolization";
+import {
+  asColorExpression,
+  asNumberExpression,
+} from "src/lib/symbolization-deprecated";
 import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
@@ -64,11 +67,11 @@ function addPreviewFilter(
 
 export default async function loadAndAugmentStyle({
   layerConfigs,
-  symbolization,
+  symbology,
   previewProperty,
 }: {
   layerConfigs: LayerConfigMap;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   previewProperty: PreviewProperty;
 }): Promise<Style> {
   let style = getEmptyStyle();
@@ -92,18 +95,18 @@ export default async function loadAndAugmentStyle({
     }
   }
 
-  addEditingLayers({ style, symbolization, previewProperty });
+  addEditingLayers({ style, symbology, previewProperty });
 
   return style;
 }
 
 export function addEditingLayers({
   style,
-  symbolization,
+  symbology,
   previewProperty,
 }: {
   style: Style;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   previewProperty: PreviewProperty;
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
@@ -115,15 +118,15 @@ export function addEditingLayers({
   }
 
   style.layers = style.layers.concat(
-    makeLayers({ symbolization, previewProperty }),
+    makeLayers({ symbology, previewProperty }),
   );
 }
 
 export function makeLayers({
-  symbolization,
+  symbology,
   previewProperty,
 }: {
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   previewProperty: PreviewProperty;
 }): mapboxgl.AnyLayer[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -131,62 +134,62 @@ export function makeLayers({
     pipesLayer({
       source: "imported-features",
       layerId: "imported-pipes",
-      symbolization,
+      symbology,
     }),
     pipesLayer({
       source: "features",
       layerId: "pipes",
-      symbolization,
+      symbology,
     }),
     pumpLines({
       source: "imported-features",
       layerId: "imported-pump-lines",
-      symbolization,
+      symbology,
     }),
     pumpLines({
       source: "features",
       layerId: "pump-lines",
-      symbolization,
+      symbology,
     }),
     valveLines({
       source: "imported-features",
       layerId: "imported-valve-lines",
-      symbolization,
+      symbology,
     }),
     valveLines({
       source: "features",
       layerId: "valve-lines",
-      symbolization,
+      symbology,
     }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
-      symbolization,
+      symbology,
     }),
     pipeArrows({
       source: "features",
       layerId: "pipe-arrows",
-      symbolization,
+      symbology,
     }),
     junctionsLayer({
       source: "imported-features",
       layerId: "imported-junctions",
-      symbolization,
+      symbology,
     }),
     junctionsLayer({
       source: "features",
       layerId: "junctions",
-      symbolization,
+      symbology,
     }),
     junctionResultsLayer({
       source: "imported-features",
       layerId: "imported-junction-results",
-      symbolization,
+      symbology,
     }),
     junctionResultsLayer({
       source: "features",
       layerId: "junction-results",
-      symbolization,
+      symbology,
     }),
     ...valveIcons({
       source: "icons",
@@ -195,17 +198,17 @@ export function makeLayers({
     ...pumpIcons({
       source: "icons",
       layerId: "pump-icons",
-      symbolization,
+      symbology,
     }),
     reservoirsLayer({
       source: "features",
       layerId: "reservoirs",
-      symbolization,
+      symbology,
     }),
     reservoirsLayer({
       source: "imported-features",
       layerId: "imported-reservoirs",
-      symbolization,
+      symbology,
     }),
     ...(typeof previewProperty === "string"
       ? [
@@ -213,7 +216,7 @@ export function makeLayers({
             id: FEATURES_POINT_LABEL_LAYER_NAME,
             type: "symbol",
             source: "features",
-            paint: LABEL_PAINT(symbolization, previewProperty),
+            paint: LABEL_PAINT(symbology, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "point"),
             filter: addPreviewFilter(
               CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
@@ -224,7 +227,7 @@ export function makeLayers({
             id: FEATURES_LINE_LABEL_LAYER_NAME,
             type: "symbol",
             source: "features",
-            paint: LABEL_PAINT(symbolization, previewProperty),
+            paint: LABEL_PAINT(symbology, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "line"),
             filter: addPreviewFilter(
               CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
@@ -237,7 +240,7 @@ export function makeLayers({
 }
 
 function LABEL_PAINT(
-  _symbolization: ISymbolization,
+  _symbology: ISymbology,
   _previewProperty: PreviewProperty,
 ): mapboxgl.SymbolPaint {
   const paint: mapboxgl.SymbolPaint = {
@@ -264,16 +267,14 @@ function LABEL_LAYOUT(
   return paint;
 }
 
-export function CIRCLE_PAINT(
-  symbolization: ISymbolization,
-): mapboxgl.CirclePaint {
+export function CIRCLE_PAINT(symbology: ISymbology): mapboxgl.CirclePaint {
   return {
     "circle-opacity": [
       "case",
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "circle-opacity",
         defaultValue: 1,
       }),
@@ -293,7 +294,7 @@ export function CIRCLE_PAINT(
       "true",
       LINE_COLORS_SELECTED,
       asColorExpression({
-        symbolization,
+        symbology,
         part: "stroke",
       }),
     ],
@@ -317,7 +318,7 @@ function handleSelected(
 }
 
 export function FILL_PAINT(
-  symbolization: ISymbolization,
+  symbology: ISymbology,
   exp = false,
 ): mapboxgl.FillPaint {
   return {
@@ -326,16 +327,16 @@ export function FILL_PAINT(
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "fill-opacity",
         defaultValue:
-          typeof symbolization.defaultOpacity === "number"
-            ? symbolization.defaultOpacity
+          typeof symbology.defaultOpacity === "number"
+            ? symbology.defaultOpacity
             : 0.3,
       }),
     ],
     "fill-color": handleSelected(
-      asColorExpression({ symbolization, part: "fill" }),
+      asColorExpression({ symbology, part: "fill" }),
       exp,
       LINE_COLORS_SELECTED,
     ),
@@ -343,7 +344,7 @@ export function FILL_PAINT(
 }
 
 export function LINE_PAINT(
-  symbolization: ISymbolization,
+  symbology: ISymbology,
   exp = false,
 ): mapboxgl.LinePaint {
   return {
@@ -352,18 +353,18 @@ export function LINE_PAINT(
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "stroke-opacity",
         defaultValue: 1,
       }),
     ],
     "line-width": asNumberExpression({
-      symbolization,
+      symbology,
       part: "stroke-width",
       defaultValue: 4,
     }),
     "line-color": handleSelected(
-      asColorExpression({ symbolization, part: "stroke" }),
+      asColorExpression({ symbology, part: "stroke" }),
       exp,
       LINE_COLORS_SELECTED,
     ),

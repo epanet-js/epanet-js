@@ -9,7 +9,7 @@ import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
-import { colorFor } from "src/analysis/symbolization-ramp";
+import { colorFor } from "src/analysis/range-symbology";
 import { strokeColorFor } from "src/lib/color";
 
 export type DataSource = "imported-features" | "features" | "icons";
@@ -126,16 +126,13 @@ const appendPipeAnalysisProps = (
 ) => {
   if (linkAnalysis.type === "none") return;
 
-  const property = linkAnalysis.symbolization.property;
+  const property = linkAnalysis.symbology.property;
 
   const value = pipe[property as keyof Pipe] as number | null;
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
-  feature.properties!.color = colorFor(
-    linkAnalysis.symbolization,
-    numericValue,
-  );
+  feature.properties!.color = colorFor(linkAnalysis.symbology, numericValue);
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
@@ -151,11 +148,11 @@ const appendJunctionAnalysisProps = (
 ) => {
   if (nodesAnalysis.type === "none") return;
 
-  const property = nodesAnalysis.symbolization.property;
+  const property = nodesAnalysis.symbology.property;
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
 
-  const fillColor = colorFor(nodesAnalysis.symbolization, numericValue);
+  const fillColor = colorFor(nodesAnalysis.symbology, numericValue);
   const strokeColor = strokeColorFor(fillColor);
 
   feature.properties!.color = fillColor;

@@ -1,7 +1,7 @@
 import { CircleLayer } from "mapbox-gl";
 import { POINT_COLORS_SELECTED, colors } from "src/lib/constants";
-import { asNumberExpression } from "src/lib/symbolization";
-import { ISymbolization } from "src/types";
+import { asNumberExpression } from "src/lib/symbolization-deprecated";
+import { ISymbology } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
@@ -12,11 +12,11 @@ const selectedInnerColor = POINT_COLORS_SELECTED;
 export const junctionsLayer = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): CircleLayer => {
   return {
     id: layerId,
@@ -24,7 +24,7 @@ export const junctionsLayer = ({
     source,
     filter: ["==", ["get", "type"], "junction"],
     paint: {
-      "circle-opacity": opacityExpression(symbolization),
+      "circle-opacity": opacityExpression(symbology),
       "circle-stroke-color": strokeColorExpression(),
       "circle-stroke-width": [
         "interpolate",
@@ -35,7 +35,7 @@ export const junctionsLayer = ({
         16,
         1,
       ],
-      "circle-stroke-opacity": opacityExpression(symbolization),
+      "circle-stroke-opacity": opacityExpression(symbology),
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
       "circle-color": colorExpression(),
     },
@@ -46,11 +46,11 @@ export const junctionsLayer = ({
 export const junctionResultsLayer = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): CircleLayer => ({
   id: layerId,
   type: "circle",
@@ -58,7 +58,7 @@ export const junctionResultsLayer = ({
   filter: ["==", ["get", "type"], "junction"],
   layout: { visibility: "none" },
   paint: {
-    "circle-opacity": opacityExpression(symbolization),
+    "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": strokeColorExpression(),
     "circle-stroke-width": [
       "interpolate",
@@ -69,21 +69,19 @@ export const junctionResultsLayer = ({
       14,
       0.5,
     ],
-    "circle-stroke-opacity": opacityExpression(symbolization),
+    "circle-stroke-opacity": opacityExpression(symbology),
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": colorExpression(),
   },
   maxzoom: 14,
 });
 
-const opacityExpression = (
-  symbolization: ISymbolization,
-): mapboxgl.Expression => [
+const opacityExpression = (symbology: ISymbology): mapboxgl.Expression => [
   "case",
   ["boolean", ["feature-state", "hidden"], false],
   0,
   asNumberExpression({
-    symbolization,
+    symbology,
     part: "circle-opacity",
     defaultValue: 1,
   }),

@@ -8,8 +8,8 @@ import {
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
-import { aSymbolization } from "src/__helpers__/state";
-import { getColors } from "src/analysis/symbolization-ramp";
+import { aSymbology } from "src/__helpers__/state";
+import { getColors } from "src/analysis/range-symbology";
 
 describe("build optimized source", () => {
   it("preserves core properties", () => {
@@ -64,7 +64,7 @@ describe("build optimized source", () => {
       ...nullAnalysis,
       nodes: {
         type: "pressure",
-        symbolization: aSymbolization({
+        symbology: aSymbology({
           breaks: [10, 20, 30],
           property: "pressure",
           unit: "m",
@@ -96,7 +96,7 @@ describe("build optimized source", () => {
       ...nullAnalysis,
       links: {
         type: "flow",
-        symbolization: aSymbolization({
+        symbology: aSymbology({
           breaks: [10, 20, 30],
           property: "flow",
           colors: getColors("Temps", 4),
@@ -165,7 +165,7 @@ describe("build optimized source", () => {
         ...nullAnalysis,
         links: {
           type: "velocity",
-          symbolization: aSymbolization({
+          symbology: aSymbology({
             breaks: [10, 20, 30],
             property: "velocity",
             colors: getColors("Temps", 4),

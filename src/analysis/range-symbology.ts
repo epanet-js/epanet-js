@@ -15,7 +15,7 @@ export const rangeModes = [
 ] as const;
 export type RangeMode = (typeof rangeModes)[number];
 
-export type SymbolizationRamp = {
+export type RangeSymbology = {
   type: "range";
   defaultColor: string;
   defaultOpacity: number;
@@ -39,7 +39,7 @@ export const defaultNewColor = "#0fffff";
 export const maxIntervals = 7;
 export const minIntervals = 3;
 
-export const initializeSymbolization = ({
+export const initializeSymbology = ({
   mode,
   rampName,
   numIntervals = 5,
@@ -59,7 +59,7 @@ export const initializeSymbolization = ({
   fallbackEndpoints?: RangeEndpoints;
   absValues?: boolean;
   reverseRamp?: boolean;
-}): SymbolizationRamp => {
+}): RangeSymbology => {
   const colors = getColors(rampName, numIntervals, reverseRamp);
   const isValid = checkValidData(mode, sortedData, numIntervals);
 
@@ -94,10 +94,8 @@ export const initializeSymbolization = ({
   };
 };
 
-export const prependBreak = (
-  symbolization: SymbolizationRamp,
-): SymbolizationRamp => {
-  const { breaks, colors } = symbolization;
+export const prependBreak = (symbology: RangeSymbology): RangeSymbology => {
+  const { breaks, colors } = symbology;
 
   const newValue = breaks[0] > 0 ? 0 : Math.floor(breaks[0] - 1);
 
@@ -105,51 +103,49 @@ export const prependBreak = (
   const newColors = [defaultNewColor, ...colors];
 
   return {
-    ...symbolization,
+    ...symbology,
     mode: "manual",
     breaks: newBreaks,
     colors: newColors,
   };
 };
 
-export const appendBreak = (
-  symbolization: SymbolizationRamp,
-): SymbolizationRamp => {
-  const { breaks, colors } = symbolization;
+export const appendBreak = (symbology: RangeSymbology): RangeSymbology => {
+  const { breaks, colors } = symbology;
 
   const lastBreak = breaks[breaks.length - 1];
   const newBreaks = [...breaks, Math.floor(lastBreak + 1)];
   const newColors = [...colors, defaultNewColor];
 
   return {
-    ...symbolization,
+    ...symbology,
     mode: "manual",
     breaks: newBreaks,
     colors: newColors,
   };
 };
 
-export const reverseColors = (symbolization: SymbolizationRamp) => {
-  const newColors = [...symbolization.colors].reverse();
+export const reverseColors = (symbology: RangeSymbology) => {
+  const newColors = [...symbology.colors].reverse();
 
   return {
-    ...symbolization,
-    reversedRamp: !symbolization.reversedRamp,
+    ...symbology,
+    reversedRamp: !symbology.reversedRamp,
     colors: newColors,
   };
 };
 
 export const changeIntervalColor = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   index: number,
   color: string,
 ) => {
-  const newColors = symbolization.colors.map((oldColor, i) =>
+  const newColors = symbology.colors.map((oldColor, i) =>
     i === index ? color : oldColor,
   );
 
   return {
-    ...symbolization,
+    ...symbology,
     colors: newColors,
   };
 };
@@ -162,52 +158,48 @@ export const validateAscindingBreaks = (candidates: number[]) => {
 };
 
 export const updateBreakValue = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   index: number,
   value: number,
-): SymbolizationRamp => {
-  const newBreaks = symbolization.breaks.map((oldValue, i) => {
+): RangeSymbology => {
+  const newBreaks = symbology.breaks.map((oldValue, i) => {
     if (i !== index) return oldValue;
 
     return value;
   });
 
   return {
-    ...symbolization,
+    ...symbology,
     mode: "manual",
     breaks: newBreaks,
   };
 };
 
 export const deleteBreak = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   index: number,
-): SymbolizationRamp => {
-  const { breaks, colors } = symbolization;
+): RangeSymbology => {
+  const { breaks, colors } = symbology;
   const newBreaks = breaks.filter((_, i) => i !== index);
   const newColors =
     index === 0 ? colors.slice(1) : colors.filter((c, i) => i - 1 !== index);
 
   return {
-    ...symbolization,
+    ...symbology,
     breaks: newBreaks,
     colors: newColors,
   };
 };
 
 export const changeRampName = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   newRampName: string,
   isReversed: boolean,
 ) => {
-  const newColors = getColors(
-    newRampName,
-    symbolization.colors.length,
-    isReversed,
-  );
+  const newColors = getColors(newRampName, symbology.colors.length, isReversed);
 
   return {
-    ...symbolization,
+    ...symbology,
     rampName: newRampName,
     reversedRamp: isReversed,
     colors: newColors,
@@ -215,17 +207,17 @@ export const changeRampName = (
 };
 
 export const changeRangeSize = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   sortedValues: number[],
   numIntervals: number,
-): { symbolization: SymbolizationRamp; error?: boolean } => {
-  const { mode, fallbackEndpoints, rampName } = symbolization;
+): { symbology: RangeSymbology; error?: boolean } => {
+  const { mode, fallbackEndpoints, rampName } = symbology;
   const valid = checkValidData(mode, sortedValues, numIntervals);
 
   const newColors = getColors(
     rampName,
     numIntervals,
-    Boolean(symbolization.reversedRamp),
+    Boolean(symbology.reversedRamp),
   );
 
   const newBreaks = valid
@@ -233,8 +225,8 @@ export const changeRangeSize = (
     : Array(numIntervals - 1).fill(1);
 
   return {
-    symbolization: {
-      ...symbolization,
+    symbology: {
+      ...symbology,
       breaks: newBreaks,
       colors: newColors,
     },
@@ -243,24 +235,24 @@ export const changeRangeSize = (
 };
 
 export const applyMode = (
-  symbolization: SymbolizationRamp,
+  symbology: RangeSymbology,
   mode: RangeMode,
   sortedValues: number[],
-): { symbolization: SymbolizationRamp; error?: boolean } => {
-  const numIntervals = symbolization.colors.length as RampSize;
+): { symbology: RangeSymbology; error?: boolean } => {
+  const numIntervals = symbology.colors.length as RampSize;
   const valid = checkValidData(mode, sortedValues, numIntervals);
   const newBreaks = valid
     ? generateBreaks(
         mode,
         sortedValues,
         numIntervals,
-        symbolization.fallbackEndpoints,
+        symbology.fallbackEndpoints,
       )
-    : symbolization.breaks;
+    : symbology.breaks;
 
   return {
-    symbolization: {
-      ...symbolization,
+    symbology: {
+      ...symbology,
       mode,
       breaks: newBreaks,
     },
@@ -336,7 +328,7 @@ const calculateRange = (
   }
 };
 
-export const nullRampSymbolization: SymbolizationRamp = {
+export const nullRangeSymbology: RangeSymbology = {
   type: "range",
   property: "",
   unit: null,
@@ -360,8 +352,8 @@ export const getColors = (
   return reverse ? [...colors].reverse() : colors;
 };
 
-export const colorFor = (symbolization: SymbolizationRamp, value: number) => {
-  const { absValues, colors, breaks } = symbolization;
+export const colorFor = (symbology: RangeSymbology, value: number) => {
+  const { absValues, colors, breaks } = symbology;
   const effectiveValue = absValues ? Math.abs(value) : value;
 
   if (effectiveValue < breaks[0]) return colors[0];

@@ -21,7 +21,7 @@ import {
   buildOptimizedAssetsSource,
 } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
-import { ISymbolization, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
+import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load_and_augment_style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -57,7 +57,7 @@ const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
 };
 
 type StylesConfig = {
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   layerConfigs: LayerConfigMap;
   previewProperty: PreviewProperty;
 };
@@ -78,7 +78,7 @@ const nullMapState: MapState = {
   momentLogId: "",
   momentLogPointer: -1,
   stylesConfig: {
-    symbolization: SYMBOLIZATION_NONE,
+    symbology: SYMBOLIZATION_NONE,
     previewProperty: null,
     layerConfigs: new Map(),
   },
@@ -92,10 +92,10 @@ const nullMapState: MapState = {
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
   const layerConfigs = get(layerConfigAtom);
-  const { symbolization, label } = get(memoryMetaAtom);
+  const { symbology, label } = get(memoryMetaAtom);
 
   return {
-    symbolization: symbolization || SYMBOLIZATION_NONE,
+    symbology: symbology || SYMBOLIZATION_NONE,
     previewProperty: label,
     layerConfigs,
   };

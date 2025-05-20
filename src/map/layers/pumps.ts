@@ -1,4 +1,4 @@
-import { ISymbolization } from "src/types";
+import { ISymbology } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import {
@@ -9,16 +9,16 @@ import {
   SymbolLayer,
 } from "mapbox-gl";
 import { LINE_COLORS_SELECTED, colors } from "src/lib/constants";
-import { asNumberExpression } from "src/lib/symbolization";
+import { asNumberExpression } from "src/lib/symbolization-deprecated";
 
 export const pumpLines = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): LineLayer => {
   const paint = {
     "line-opacity": [
@@ -26,7 +26,7 @@ export const pumpLines = ({
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "stroke-opacity",
         defaultValue: 1,
       }),
@@ -58,11 +58,11 @@ export const pumpLines = ({
 export const pumpIcons = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): AnyLayer[] => {
   return [
     {
@@ -105,7 +105,7 @@ export const pumpIcons = ({
           ["feature-state", "selected"],
           "true",
           LINE_COLORS_SELECTED,
-          ["coalesce", ["get", "color"], symbolization.defaultColor],
+          ["coalesce", ["get", "color"], symbology.defaultColor],
         ],
         "icon-opacity": [
           "case",

@@ -1,4 +1,4 @@
-import { RangeMode } from "../symbolization-ramp";
+import { RangeMode } from "../range-symbology";
 import { checkCkmeansData } from "./ckmeans";
 import { checkEqualIntervalsData } from "./equal-intervals";
 import { checkEqualQuantilesData } from "./equal-quantiles";

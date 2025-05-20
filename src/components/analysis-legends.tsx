@@ -7,7 +7,7 @@ import { StyledPopoverContent } from "src/components/elements";
 import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
-import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
+import { RangeSymbology } from "src/analysis/range-symbology";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useAtomValue } from "jotai";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
@@ -21,16 +21,10 @@ export const AnalysisLegends = () => {
     return (
       <div className="space-y-1 absolute top-10 left-3 w-48">
         {nodesAnalysis.type !== "none" && (
-          <Legend
-            geometryType="nodes"
-            symbolization={nodesAnalysis.symbolization}
-          />
+          <Legend geometryType="nodes" symbology={nodesAnalysis.symbology} />
         )}
         {linksAnalysis.type !== "none" && (
-          <Legend
-            geometryType="links"
-            symbolization={linksAnalysis.symbolization}
-          />
+          <Legend geometryType="links" symbology={linksAnalysis.symbology} />
         )}
       </div>
     );
@@ -40,13 +34,13 @@ export const AnalysisLegends = () => {
         {analysisDeprecated.nodes.type !== "none" && (
           <Legend
             geometryType="nodes"
-            symbolization={analysisDeprecated.nodes.symbolization}
+            symbology={analysisDeprecated.nodes.symbology}
           />
         )}
         {analysisDeprecated.links.type !== "none" && (
           <Legend
             geometryType="links"
-            symbolization={analysisDeprecated.links.symbolization}
+            symbology={analysisDeprecated.links.symbology}
           />
         )}
       </div>
@@ -56,13 +50,13 @@ export const AnalysisLegends = () => {
 
 const Legend = ({
   geometryType,
-  symbolization,
+  symbology,
 }: {
   geometryType: "nodes" | "links";
-  symbolization: SymbolizationRamp;
+  symbology: RangeSymbology;
 }) => {
   const userTracking = useUserTracking();
-  const { breaks, colors, interpolate, property, unit } = symbolization;
+  const { breaks, colors, interpolate, property, unit } = symbology;
   const title = unit
     ? `${translate(property)} (${translateUnit(unit)})`
     : translate(property);

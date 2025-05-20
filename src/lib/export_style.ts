@@ -3,34 +3,34 @@ import {
   FILL_PAINT,
   LINE_PAINT,
 } from "src/lib/load_and_augment_style";
-import { ISymbolization } from "src/types";
-import { asColorExpression } from "./symbolization";
+import { ISymbology } from "src/types";
+import { asColorExpression } from "./symbolization-deprecated";
 
 export interface EOption {
   name: string;
   value: string;
 }
 
-export function exportStyle(symbolization: ISymbolization): EOption[] {
+export function exportStyle(symbology: ISymbology): EOption[] {
   return [
     {
       name: "Mapbox GL Style: Line",
-      value: JSON.stringify(LINE_PAINT(symbolization, true), null, 2),
+      value: JSON.stringify(LINE_PAINT(symbology, true), null, 2),
     },
     {
       name: "Mapbox GL Style: Fill",
-      value: JSON.stringify(FILL_PAINT(symbolization, true), null, 2),
+      value: JSON.stringify(FILL_PAINT(symbology, true), null, 2),
     },
     {
       name: "Mapbox GL Style: Circle",
-      value: JSON.stringify(CIRCLE_PAINT(symbolization), null, 2),
+      value: JSON.stringify(CIRCLE_PAINT(symbology), null, 2),
     },
     {
       name: "Mapbox GL Expression",
       value: JSON.stringify(
         asColorExpression({
-          symbolization: {
-            ...symbolization,
+          symbology: {
+            ...symbology,
             simplestyle: false,
           },
         }),

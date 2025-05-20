@@ -1,48 +1,48 @@
-import { ISymbolization } from "src/types";
+import { ISymbology } from "src/types";
 
 export function asNumberExpression({
-  symbolization,
+  symbology,
   defaultValue = 2,
   part,
 }: {
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   defaultValue?: number;
   part: "stroke-width" | "fill-opacity" | "stroke-opacity" | "circle-opacity";
 }): mapboxgl.Expression | number {
-  if (symbolization.simplestyle) {
+  if (symbology.simplestyle) {
     return ["coalesce", ["get", part], defaultValue];
   }
   return defaultValue;
 }
 export function asColorExpression({
-  symbolization,
+  symbology,
   part = "fill",
 }: {
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   part?: "fill" | "stroke";
 }): mapboxgl.Expression | string {
-  const expression = asColorExpressionInner({ symbolization });
-  if (symbolization.simplestyle) {
+  const expression = asColorExpressionInner({ symbology });
+  if (symbology.simplestyle) {
     return ["coalesce", ["get", part], expression];
   }
   return expression;
 }
 
 function asColorExpressionInner({
-  symbolization,
+  symbology,
 }: {
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): mapboxgl.Expression | string {
-  const { defaultColor } = symbolization;
-  switch (symbolization.type) {
+  const { defaultColor } = symbology;
+  switch (symbology.type) {
     case "none": {
       return defaultColor;
     }
     case "categorical": {
       return [
         "match",
-        ["get", symbolization.property],
-        ...symbolization.stops.flatMap((stop) => [stop.input, stop.output]),
+        ["get", symbology.property],
+        ...symbology.stops.flatMap((stop) => [stop.input, stop.output]),
         defaultColor,
       ];
     }

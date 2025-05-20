@@ -1,4 +1,4 @@
-import type { ISymbolization } from "src/types";
+import type { ISymbology } from "src/types";
 import type { MomentInput } from "./moment";
 import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
@@ -8,7 +8,7 @@ import { ModelMetadata } from "src/model-metadata";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
-  symbolization: ISymbolization;
+  symbology: ISymbology;
   label: string | null;
   layer: any;
 };
@@ -26,7 +26,7 @@ export const EditWrappedFeatureCollection = z.object({
   layerId: z.optional(z.number().int().nullable()),
   defaultLayer: z.any(),
   access: z.any(),
-  symbolization: z.any(),
+  symbology: z.any(),
   wrappedFeatureCollectionFolderId: z.string().uuid().nullable().optional(),
 });
 

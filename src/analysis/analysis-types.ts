@@ -1,4 +1,4 @@
-import { SymbolizationRamp } from "./symbolization-ramp";
+import { RangeSymbology } from "./range-symbology";
 
 const nodeAnalysisTypes = ["elevation", "pressure"] as const;
 const linkAnalysisTypes = ["flow", "velocity"] as const;
@@ -12,25 +12,25 @@ export type AnalysisType = (typeof analysisTypes)[number];
 
 export type FlowAnalysis = {
   type: "flow";
-  symbolization: SymbolizationRamp;
+  symbology: RangeSymbology;
 };
 
 export type VelocityAnalysis = {
   type: "velocity";
-  symbolization: SymbolizationRamp;
+  symbology: RangeSymbology;
 };
 
 export type PropertyAnalysis = {
   type: string;
   label?: string;
-  symbolization: SymbolizationRamp;
+  symbology: RangeSymbology;
 };
 
 export type NodesAnalysis =
   | { type: "none" }
   | {
       type: "elevation" | "pressure";
-      symbolization: SymbolizationRamp;
+      symbology: RangeSymbology;
     };
 
 export type LinksAnalysis = { type: "none" } | FlowAnalysis | VelocityAnalysis;

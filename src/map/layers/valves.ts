@@ -1,18 +1,18 @@
-import { ISymbolization } from "src/types";
+import { ISymbology } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { AnyLayer, CircleLayer, LineLayer, LinePaint } from "mapbox-gl";
 import { LINE_COLORS_SELECTED, colors } from "src/lib/constants";
-import { asNumberExpression } from "src/lib/symbolization";
+import { asNumberExpression } from "src/lib/symbolization-deprecated";
 
 export const valveLines = ({
   source,
   layerId,
-  symbolization,
+  symbology,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbolization: ISymbolization;
+  symbology: ISymbology;
 }): LineLayer => {
   const paint = {
     "line-opacity": [
@@ -20,7 +20,7 @@ export const valveLines = ({
       ["boolean", ["feature-state", "hidden"], false],
       0,
       asNumberExpression({
-        symbolization,
+        symbology,
         part: "stroke-opacity",
         defaultValue: 1,
       }),
