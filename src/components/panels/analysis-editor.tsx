@@ -47,43 +47,43 @@ export const AnalysisEditor = () => {
       subtype: type,
     });
 
-    switch (type) {
-      case "none":
-        return setLinksAnalysisDeprecated({ type: "none" });
-      case "flow":
-        return isFeatureOn("FLAG_MEMORIZE")
-          ? switchLinksAnalysisTo("flow", defaultAnalysis.flow(hydraulicModel))
-          : setLinksAnalysisDeprecated({
-              type: "flow",
-              symbolization: initializeSymbolization({
-                property: "flow",
-                unit: hydraulicModel.units.flow,
-                rampName: "Teal",
-                mode: "equalQuantiles",
+    if (type === "none") {
+      return setLinksAnalysisDeprecated({ type: "none" });
+    }
+    if (isFeatureOn("FLAG_MEMORIZE")) {
+      switchLinksAnalysisTo(
+        type,
+        defaultAnalysis[type](hydraulicModel, quantities),
+      );
+    } else {
+      switch (type) {
+        case "flow":
+          return setLinksAnalysisDeprecated({
+            type: "flow",
+            symbolization: initializeSymbolization({
+              property: "flow",
+              unit: hydraulicModel.units.flow,
+              rampName: "Teal",
+              mode: "equalQuantiles",
+              absValues: true,
+              sortedData: getSortedValues(hydraulicModel.assets, "flow", {
                 absValues: true,
-                sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                  absValues: true,
-                }),
               }),
-            });
-      case "velocity":
-        return isFeatureOn("FLAG_MEMORIZE")
-          ? switchLinksAnalysisTo(
-              "velocity",
-              defaultAnalysis.velocity(hydraulicModel, quantities),
-            )
-          : setLinksAnalysisDeprecated({
-              type: "velocity",
-              symbolization: initializeSymbolization({
-                property: "velocity",
-                unit: hydraulicModel.units.velocity,
-                rampName: "RedOr",
-                mode: "equalQuantiles",
-                sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-                fallbackEndpoints:
-                  quantities.analysis.velocityFallbackEndpoints,
-              }),
-            });
+            }),
+          });
+        case "velocity":
+          return setLinksAnalysisDeprecated({
+            type: "velocity",
+            symbolization: initializeSymbolization({
+              property: "velocity",
+              unit: hydraulicModel.units.velocity,
+              rampName: "RedOr",
+              mode: "equalQuantiles",
+              sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
+              fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
+            }),
+          });
+      }
     }
   };
 
