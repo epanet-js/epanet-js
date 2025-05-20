@@ -127,11 +127,12 @@ export const aSingleSelection = ({
 };
 
 export const aNodesAnalysis = (
-  symbolization: Partial<SymbolizationRamp>,
+  symbolizationData: Partial<SymbolizationRamp>,
 ): NodesAnalysis => {
+  const symbolization = aSymbolization(symbolizationData);
   return {
-    type: "pressure",
-    symbolization: aSymbolization(symbolization),
+    type: symbolization.property as NodesAnalysis["type"],
+    symbolization,
   };
 };
 

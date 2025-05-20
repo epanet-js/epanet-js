@@ -3,7 +3,7 @@ import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 export type { AnalysisState };
 
-export const analysisSettingsAtom = atom<
+export const savedAnalysesAtom = atom<
   Map<string, NodesAnalysis | LinksAnalysis>
 >(new Map());
 
@@ -18,7 +18,7 @@ export const analysisAtom = atom((get) => {
 });
 
 export const useAnalysisSettings = () => {
-  const [settings, setSettings] = useAtom(analysisSettingsAtom);
+  const [savedAnalyses, setSavedAnalyises] = useAtom(savedAnalysesAtom);
   const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtom);
   const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtom);
 
@@ -26,15 +26,15 @@ export const useAnalysisSettings = () => {
     type: NodesAnalysis["type"],
     initializeFn: () => NodesAnalysis,
   ) => {
-    if (settings.has(type)) {
-      const nodesSettings = settings.get(type) as NodesAnalysis;
-      setNodesActive(nodesSettings);
+    if (savedAnalyses.has(type)) {
+      const nodesAnalysis = savedAnalyses.get(type) as NodesAnalysis;
+      setNodesActive(nodesAnalysis);
     } else {
-      const nodesSettings = initializeFn();
-      setNodesActive(nodesSettings);
-      const updatedSettings = new Map([...settings.entries()]);
-      updatedSettings.set(nodesSettings.type, nodesSettings);
-      setSettings(updatedSettings);
+      const nodesAnalysis = initializeFn();
+      setNodesActive(nodesAnalysis);
+      const analysesMap = new Map([...savedAnalyses.entries()]);
+      analysesMap.set(nodesAnalysis.type, nodesAnalysis);
+      setSavedAnalyises(analysesMap);
     }
   };
 
@@ -42,30 +42,30 @@ export const useAnalysisSettings = () => {
     type: LinksAnalysis["type"],
     initializeFn: () => LinksAnalysis,
   ) => {
-    if (settings.has(type)) {
-      const linksSettings = settings.get(type) as LinksAnalysis;
-      setLinksActive(linksSettings);
+    if (savedAnalyses.has(type)) {
+      const linksAnalysis = savedAnalyses.get(type) as LinksAnalysis;
+      setLinksActive(linksAnalysis);
     } else {
-      const linksSettings = initializeFn();
-      setLinksActive(linksSettings);
-      const updatedSettings = new Map([...settings.entries()]);
-      updatedSettings.set(linksSettings.type, linksSettings);
-      setSettings(updatedSettings);
+      const linksAnalysis = initializeFn();
+      setLinksActive(linksAnalysis);
+      const analysesMap = new Map([...savedAnalyses.entries()]);
+      analysesMap.set(linksAnalysis.type, linksAnalysis);
+      setSavedAnalyises(analysesMap);
     }
   };
 
-  const updateNodesAnalysis = (nodesSettings: NodesAnalysis) => {
-    setNodesActive(nodesSettings);
-    const updatedSettings = new Map([...settings.entries()]);
-    updatedSettings.set(nodesSettings.type, nodesSettings);
-    setSettings(updatedSettings);
+  const updateNodesAnalysis = (newNodesAnalysis: NodesAnalysis) => {
+    setNodesActive(newNodesAnalysis);
+    const analysesMap = new Map([...savedAnalyses.entries()]);
+    analysesMap.set(newNodesAnalysis.type, newNodesAnalysis);
+    setSavedAnalyises(analysesMap);
   };
 
-  const updateLinksAnalysis = (linksSettings: LinksAnalysis) => {
-    setLinksActive(linksSettings);
-    const updatedSettings = new Map([...settings.entries()]);
-    updatedSettings.set(linksSettings.type, linksSettings);
-    setSettings(updatedSettings);
+  const updateLinksAnalysis = (newLinksAnalysis: LinksAnalysis) => {
+    setLinksActive(newLinksAnalysis);
+    const analysesMap = new Map([...savedAnalyses.entries()]);
+    analysesMap.set(newLinksAnalysis.type, newLinksAnalysis);
+    setSavedAnalyises(analysesMap);
   };
 
   return {

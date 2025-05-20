@@ -47,9 +47,9 @@ import {
   nodesAnalysisAtomDeprecated,
 } from "src/state/analysis-deprecated";
 import {
-  analysisSettingsAtom,
   linksAnalysisAtom,
   nodesAnalysisAtom,
+  savedAnalysesAtom,
 } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
 
@@ -98,7 +98,7 @@ export class MemPersistence implements IPersistence {
       if (isFeatureOn("FLAG_MEMORIZE")) {
         this.store.set(nodesAnalysisAtom, { type: "none" });
         this.store.set(linksAnalysisAtom, { type: "none" });
-        this.store.set(analysisSettingsAtom, new Map());
+        this.store.set(savedAnalysesAtom, new Map());
       } else {
         this.store.set(nodesAnalysisAtomDeprecated, { type: "none" });
         this.store.set(linksAnalysisAtomDeprecated, { type: "none" });

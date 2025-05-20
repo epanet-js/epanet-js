@@ -15,7 +15,11 @@ import {
 } from "src/analysis/symbolization-ramp";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import {
+  linksAnalysisAtom,
+  nodesAnalysisAtom,
+  savedAnalysesAtom,
+} from "src/state/analysis";
 
 describe("analysis range editor", () => {
   const red = "#ff0000";
@@ -490,6 +494,48 @@ describe("analysis range editor", () => {
     const secondState = getLinksAnalysisSymbolization(store);
     expect(secondState.breaks).toEqual([14, 20]);
     expect(secondState.colors).toEqual([red, green, blue]);
+  });
+
+  it("preserves nodes settings for later", async () => {
+    const user = userEvent.setup();
+    const nodesAnalysis = aNodesAnalysis({
+      property: "pressure",
+      rampName: "Temps",
+    });
+
+    const store = setInitialState({ nodesAnalysis });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
+    await user.click(screen.getByTitle("OrRd"));
+
+    expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
+    const savedAnalyses = store.get(savedAnalysesAtom);
+    expect(savedAnalyses.get("pressure")).toMatchObject({
+      symbolization: { rampName: "OrRd" },
+    });
+  });
+
+  it("preserves links settings for later", async () => {
+    const user = userEvent.setup();
+    const linksAnalysis = aLinksAnalysis({
+      property: "flow",
+      rampName: "Temps",
+    });
+
+    const store = setInitialState({ linksAnalysis });
+
+    renderComponent({ store, geometryType: "links" });
+
+    await user.click(screen.getByRole("combobox", { name: /ramp select/i }));
+    await user.click(screen.getByTitle("OrRd"));
+
+    expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
+    const savedAnalyses = store.get(savedAnalysesAtom);
+    expect(savedAnalyses.get("flow")).toMatchObject({
+      symbolization: { rampName: "OrRd" },
+    });
   });
 
   const getNodesAnalysisSymbolization = (store: Store): SymbolizationRamp => {
