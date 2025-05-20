@@ -11,6 +11,7 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -52,10 +53,16 @@ describe("AssetEditor", () => {
     });
 
     it("can show simulation results", () => {
+      stubFeatureOn("FLAG_UNIT_HEADLOSS");
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, {
-          simulation: { flow: 20.1234, velocity: 10.1234, headloss: 0.234 },
+          simulation: {
+            flow: 20.1234,
+            velocity: 10.1234,
+            headloss: 0.234,
+            unitHeadloss: 0.1234,
+          },
         })
         .build();
       const store = setInitialState({
@@ -68,6 +75,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("flow (l/s)", "20.123");
       expectPropertyDisplayed("velocity (m/s)", "10.123");
       expectPropertyDisplayed("headloss (m)", "0.234");
+      expectPropertyDisplayed("unit headloss", "0.123");
     });
   });
 

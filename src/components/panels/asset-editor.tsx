@@ -335,6 +335,13 @@ const PipeEditor = ({
                 readOnly={true}
               />
               <QuantityRow
+                name="unitHeadloss"
+                value={pipe.unitHeadloss}
+                unit={quantitiesMetadata.getUnit("unitHeadloss")}
+                decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
+                readOnly={true}
+              />
+              <QuantityRow
                 name="headlossShort"
                 value={pipe.headloss}
                 unit={quantitiesMetadata.getUnit("headloss")}

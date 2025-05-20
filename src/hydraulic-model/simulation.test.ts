@@ -8,6 +8,7 @@ describe("attach simulation", () => {
       flow: 20,
       velocity: 5,
       headloss: 10,
+      unitHeadloss: 20,
     }),
     getPump: () => ({
       flow: 10,
@@ -38,6 +39,7 @@ describe("attach simulation", () => {
 
     const pipe = hydraulicModel.assets.get("p1") as Pipe;
     expect(pipe.flow).toEqual(20);
+    expect(pipe.unitHeadloss).toEqual(20);
 
     const junction = hydraulicModel.assets.get("j1") as Junction;
     expect(junction.pressure).toEqual(10);

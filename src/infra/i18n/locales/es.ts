@@ -340,6 +340,7 @@ export const translations: Translations = {
   manual: "Manual",
   prettyBreaks: "Intervalos Bonitos",
   naturalBreaksCkMeans: "Intervalos Naturales (ckmeans)",
+  unitHeadloss: "Pérd. Carga",
 };
 
 export const units: UnitsLocale = {

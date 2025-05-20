@@ -159,6 +159,7 @@ export class HydraulicModelBuilder {
           flow: number;
           velocity: number;
           headloss: number;
+          unitHeadloss: number;
         }>;
       }
     > = {},
@@ -179,6 +180,7 @@ export class HydraulicModelBuilder {
         flow: 10,
         velocity: 10,
         headloss: 10,
+        unitHeadloss: 10,
         ...simulation,
       });
     }

@@ -34,6 +34,7 @@ export type PipeSimulation = {
   flow: number;
   velocity: number;
   headloss: number;
+  unitHeadloss: number;
 };
 
 export class Pipe extends Link<PipeProperties> {
@@ -83,6 +84,12 @@ export class Pipe extends Link<PipeProperties> {
     if (!this.simulation) return null;
 
     return this.simulation.headloss;
+  }
+
+  get unitHeadloss() {
+    if (!this.simulation) return null;
+
+    return this.simulation.unitHeadloss;
   }
 
   setSimulation(simulation: PipeSimulation | null) {

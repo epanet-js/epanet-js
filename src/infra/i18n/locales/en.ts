@@ -330,6 +330,7 @@ export const translations = {
   manual: "Manual",
   prettyBreaks: "Pretty Breaks",
   naturalBreaksCkMeans: "Natural Breaks (ckmeans)",
+  unitHeadloss: "Unit Headloss",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

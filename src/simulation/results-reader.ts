@@ -3,6 +3,7 @@ export type PipeSimulation = {
   flow: number;
   velocity: number;
   headloss: number;
+  unitHeadloss: number;
 };
 
 export type ValveSimulation = {

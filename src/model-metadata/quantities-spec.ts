@@ -21,6 +21,7 @@ export type UnitsSpec = Record<
   | "demand"
   | "pressure"
   | "headloss"
+  | "unitHeadloss"
   | "head"
   | "power"
   | "speed"
@@ -64,6 +65,7 @@ const metricSpec: AssetQuantitiesSpec = {
     pressure: "mwc",
     head: "m",
     headloss: "m",
+    unitHeadloss: null,
     power: "kW",
     speed: null,
     tcvSetting: null,
@@ -73,6 +75,7 @@ const metricSpec: AssetQuantitiesSpec = {
     pressure: 3,
     velocity: 3,
     headloss: 3,
+    unitHeadloss: 3,
   },
   defaults: {
     pipe: {
@@ -113,6 +116,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     pressure: "psi",
     head: "ft",
     headloss: "ft",
+    unitHeadloss: null,
     power: "hp",
     speed: null,
     tcvSetting: null,
@@ -123,6 +127,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     velocity: 3,
     elevation: 1,
     headloss: 3,
+    unitHeadloss: 3,
   },
   defaults: {
     pipe: {

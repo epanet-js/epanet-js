@@ -70,11 +70,14 @@ const appendPipeResults = (
   const flow = model.getLinkValue(index, LinkProperty.Flow);
   const velocity = model.getLinkValue(index, LinkProperty.Velocity);
   const headloss = model.getLinkValue(index, LinkProperty.Headloss);
+  const length = model.getLinkValue(index, LinkProperty.Length);
+  const unitHeadloss = length === 0 ? 0 : headloss / (length / 1000);
   results.set(id, {
     type: "pipe",
     flow,
     velocity,
     headloss,
+    unitHeadloss,
   });
 };
 
