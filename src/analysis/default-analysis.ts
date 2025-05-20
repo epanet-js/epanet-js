@@ -4,7 +4,17 @@ import { initializeSymbolization } from "./symbolization-ramp";
 import { getSortedValues } from "./analysis-data";
 import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
 
-export const defaultAnalysis = {
+type DefaultAnalysisBuilders = {
+  flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
+  velocity: (
+    hydraulicModel: HydraulicModel,
+    quantities: Quantities,
+  ) => () => LinksAnalysis;
+  pressure: (hydraulicModel: HydraulicModel) => () => NodesAnalysis;
+  elevation: (HydraulicModel: HydraulicModel) => () => NodesAnalysis;
+};
+
+export const defaultAnalysis: DefaultAnalysisBuilders = {
   flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {
     return (): LinksAnalysis => {
       const property = "flow";
