@@ -1,9 +1,5 @@
 import { atom, useAtom } from "jotai";
 import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
-import {
-  linksAnalysisAtomDeprecated,
-  nodesAnalysisAtomDeprecated,
-} from "./analysis-deprecated";
 
 export type { AnalysisState };
 
@@ -11,10 +7,20 @@ export const analysisSettingsAtom = atom<
   Map<string, NodesAnalysis | LinksAnalysis>
 >(new Map());
 
+export const nodesAnalysisAtom = atom<NodesAnalysis>({ type: "none" });
+export const linksAnalysisAtom = atom<LinksAnalysis>({ type: "none" });
+
+export const analysisAtom = atom((get) => {
+  const nodes = get(nodesAnalysisAtom);
+  const links = get(linksAnalysisAtom);
+
+  return { nodes, links };
+});
+
 export const useAnalysisSettings = () => {
   const [settings, setSettings] = useAtom(analysisSettingsAtom);
-  const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtomDeprecated);
-  const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtomDeprecated);
+  const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtom);
+  const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtom);
 
   const switchNodesAnalysisTo = (
     type: NodesAnalysis["type"],

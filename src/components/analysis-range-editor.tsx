@@ -66,18 +66,31 @@ export const AnalysisRangeEditor = ({
   const {
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
-  const [nodesAnalysis, setNodesAnalysis] = useAtom(
+  const {
+    linksAnalysis,
+    nodesAnalysis,
+    updateNodesAnalysis,
+    updateLinksAnalysis,
+  } = useAnalysisSettings();
+
+  const [nodesAnalysisDeprecated, setNodesAnalysisDeprecated] = useAtom(
     nodesAnalysisAtomDeprecated,
   );
-  const { updateNodesAnalysis, updateLinksAnalysis } = useAnalysisSettings();
-  const [linksAnalysis, setLinksAnalysis] = useAtom(
+  const [linksAnalysisDeprecated, setLinksAnalysisDeprecated] = useAtom(
     linksAnalysisAtomDeprecated,
   );
 
   const userTracking = useUserTracking();
 
-  const activeAnalysis =
-    geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
+  let activeAnalysis;
+  if (isFeatureOn("FLAG_MEMORIZE")) {
+    activeAnalysis = geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
+  } else {
+    activeAnalysis =
+      geometryType === "nodes"
+        ? nodesAnalysisDeprecated
+        : linksAnalysisDeprecated;
+  }
 
   const initialSymbolization =
     activeAnalysis.type === "none"
@@ -92,7 +105,7 @@ export const AnalysisRangeEditor = ({
               type: activeAnalysis.type as NodesAnalysis["type"],
               symbolization: newSymbolization,
             })
-          : setNodesAnalysis((prev) => ({
+          : setNodesAnalysisDeprecated((prev) => ({
               ...prev,
               symbolization: newSymbolization,
             }));
@@ -102,7 +115,7 @@ export const AnalysisRangeEditor = ({
               type: activeAnalysis.type as LinksAnalysis["type"],
               symbolization: newSymbolization,
             })
-          : setLinksAnalysis((prev) => ({
+          : setLinksAnalysisDeprecated((prev) => ({
               ...prev,
               symbolization: newSymbolization,
             }));
@@ -111,8 +124,8 @@ export const AnalysisRangeEditor = ({
     [
       activeAnalysis.type,
       geometryType,
-      setLinksAnalysis,
-      setNodesAnalysis,
+      setLinksAnalysisDeprecated,
+      setNodesAnalysisDeprecated,
       updateNodesAnalysis,
       updateLinksAnalysis,
     ],

@@ -42,6 +42,8 @@ import {
 } from "src/state/analysis-deprecated";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
+import { analysisAtom } from "src/state/analysis";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -104,7 +106,8 @@ const mapStateAtom = atom<MapState>((get) => {
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
-  const analysis = get(analysisAtomDeprecated);
+  const analysisDeprecated = get(analysisAtomDeprecated);
+  const analysis = get(analysisAtom);
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
@@ -116,7 +119,7 @@ const mapStateAtom = atom<MapState>((get) => {
     stylesConfig,
     selection,
     ephemeralState,
-    analysis,
+    analysis: isFeatureOn("FLAG_MEMORIZE") ? analysis : analysisDeprecated,
     simulation,
     selectedAssetIds,
     movedAssetIds,

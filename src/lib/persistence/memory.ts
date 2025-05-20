@@ -46,7 +46,12 @@ import {
   linksAnalysisAtomDeprecated,
   nodesAnalysisAtomDeprecated,
 } from "src/state/analysis-deprecated";
-import { analysisSettingsAtom } from "src/state/analysis";
+import {
+  analysisSettingsAtom,
+  linksAnalysisAtom,
+  nodesAnalysisAtom,
+} from "src/state/analysis";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -90,9 +95,14 @@ export class MemPersistence implements IPersistence {
       });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(simulationAtom, { status: "idle" });
-      this.store.set(nodesAnalysisAtomDeprecated, { type: "none" });
-      this.store.set(linksAnalysisAtomDeprecated, { type: "none" });
-      this.store.set(analysisSettingsAtom, new Map());
+      if (isFeatureOn("FLAG_MEMORIZE")) {
+        this.store.set(nodesAnalysisAtom, { type: "none" });
+        this.store.set(linksAnalysisAtom, { type: "none" });
+        this.store.set(analysisSettingsAtom, new Map());
+      } else {
+        this.store.set(nodesAnalysisAtomDeprecated, { type: "none" });
+        this.store.set(linksAnalysisAtomDeprecated, { type: "none" });
+      }
     };
   }
 

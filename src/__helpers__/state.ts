@@ -27,6 +27,8 @@ import {
   SymbolizationRamp,
   nullRampSymbolization,
 } from "src/analysis/symbolization-ramp";
+import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const setInitialState = ({
   store = createStore(),
@@ -58,8 +60,13 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
-  store.set(nodesAnalysisAtomDeprecated, nodesAnalysis);
-  store.set(linksAnalysisAtomDeprecated, linksAnalysis);
+  if (isFeatureOn("FLAG_MEMORIZE")) {
+    store.set(nodesAnalysisAtom, nodesAnalysis);
+    store.set(linksAnalysisAtom, linksAnalysis);
+  } else {
+    store.set(nodesAnalysisAtomDeprecated, nodesAnalysis);
+    store.set(linksAnalysisAtomDeprecated, linksAnalysis);
+  }
 
   return store;
 };

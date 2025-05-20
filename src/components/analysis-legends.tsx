@@ -1,4 +1,3 @@
-import { useAtom } from "jotai";
 import { linearGradient } from "src/lib/color";
 import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { StyledPopoverArrow } from "./elements";
@@ -9,20 +8,50 @@ import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SymbolizationRamp } from "src/analysis/symbolization-ramp";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useAtomValue } from "jotai";
+import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 
 export const AnalysisLegends = () => {
-  const [{ nodes, links }] = useAtom(analysisAtomDeprecated);
+  const analysisDeprecated = useAtomValue(analysisAtomDeprecated);
+  const nodesAnalysis = useAtomValue(nodesAnalysisAtom);
+  const linksAnalysis = useAtomValue(linksAnalysisAtom);
 
-  return (
-    <div className="space-y-1 absolute top-10 left-3 w-48">
-      {nodes.type !== "none" && (
-        <Legend geometryType="nodes" symbolization={nodes.symbolization} />
-      )}
-      {links.type !== "none" && (
-        <Legend geometryType="links" symbolization={links.symbolization} />
-      )}
-    </div>
-  );
+  if (isFeatureOn("FLAG_MEMORIZE")) {
+    return (
+      <div className="space-y-1 absolute top-10 left-3 w-48">
+        {nodesAnalysis.type !== "none" && (
+          <Legend
+            geometryType="nodes"
+            symbolization={nodesAnalysis.symbolization}
+          />
+        )}
+        {linksAnalysis.type !== "none" && (
+          <Legend
+            geometryType="links"
+            symbolization={linksAnalysis.symbolization}
+          />
+        )}
+      </div>
+    );
+  } else {
+    return (
+      <div className="space-y-1 absolute top-10 left-3 w-48">
+        {analysisDeprecated.nodes.type !== "none" && (
+          <Legend
+            geometryType="nodes"
+            symbolization={analysisDeprecated.nodes.symbolization}
+          />
+        )}
+        {analysisDeprecated.links.type !== "none" && (
+          <Legend
+            geometryType="links"
+            symbolization={analysisDeprecated.links.symbolization}
+          />
+        )}
+      </div>
+    );
+  }
 };
 
 const Legend = ({
