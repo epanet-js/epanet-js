@@ -94,43 +94,39 @@ export const AnalysisEditor = () => {
       subtype: type,
     });
 
-    switch (type) {
-      case "none":
-        return setNodesAnalysisDeprecated({ type: "none" });
-      case "pressure":
-        return isFeatureOn("FLAG_MEMORIZE")
-          ? switchNodesAnalysisTo(
-              "pressure",
-              defaultAnalysis.pressure(hydraulicModel),
-            )
-          : setNodesAnalysisDeprecated({
-              type: "pressure",
-              symbolization: initializeSymbolization({
-                property: "pressure",
-                unit: hydraulicModel.units.pressure,
-                rampName: "Temps",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-              }),
-            });
-      case "elevation":
-        return isFeatureOn("FLAG_MEMORIZE")
-          ? switchNodesAnalysisTo(
-              "elevation",
-              defaultAnalysis.elevation(hydraulicModel),
-            )
-          : setNodesAnalysisDeprecated({
-              type: "elevation",
-              symbolization: initializeSymbolization({
-                property: "elevation",
-                unit: hydraulicModel.units.elevation,
-                rampName: "Fall",
-                mode: "prettyBreaks",
-                fallbackEndpoints: [0, 100],
-                sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-              }),
-            });
+    if (type === "none") {
+      return setNodesAnalysisDeprecated({ type: "none" });
+    }
+
+    if (isFeatureOn("FLAG_MEMORIZE")) {
+      switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
+    } else {
+      switch (type) {
+        case "pressure":
+          return setNodesAnalysisDeprecated({
+            type: "pressure",
+            symbolization: initializeSymbolization({
+              property: "pressure",
+              unit: hydraulicModel.units.pressure,
+              rampName: "Temps",
+              mode: "prettyBreaks",
+              fallbackEndpoints: [0, 100],
+              sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+            }),
+          });
+        case "elevation":
+          return setNodesAnalysisDeprecated({
+            type: "elevation",
+            symbolization: initializeSymbolization({
+              property: "elevation",
+              unit: hydraulicModel.units.elevation,
+              rampName: "Fall",
+              mode: "prettyBreaks",
+              fallbackEndpoints: [0, 100],
+              sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
+            }),
+          });
+      }
     }
   };
 
