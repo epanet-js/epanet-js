@@ -53,7 +53,7 @@ import {
 } from "src/state/analysis-deprecated";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useAnalysisSettings } from "src/state/analysis";
+import { useAnalysisState } from "src/state/analysis";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
@@ -71,7 +71,7 @@ export const AnalysisRangeEditor = ({
     nodesAnalysis,
     updateNodesAnalysis,
     updateLinksAnalysis,
-  } = useAnalysisSettings();
+  } = useAnalysisState();
 
   const [nodesAnalysisDeprecated, setNodesAnalysisDeprecated] = useAtom(
     nodesAnalysisAtomDeprecated,

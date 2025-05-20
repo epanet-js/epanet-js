@@ -16,7 +16,7 @@ export const analysisAtom = atom((get) => {
   return { nodes, links };
 });
 
-export const useAnalysisSettings = () => {
+export const useAnalysisState = () => {
   const [savedAnalyses, setSavedAnalyises] = useAtom(savedAnalysesAtom);
   const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtom);
   const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtom);

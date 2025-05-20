@@ -13,7 +13,7 @@ import { AnalysisType } from "src/analysis/analysis-types";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { initializeSymbolization } from "src/analysis/symbolization-ramp";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useAnalysisSettings } from "src/state/analysis";
+import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 
 const analysisLabelFor = (type: AnalysisType) => {
@@ -36,7 +36,7 @@ export const AnalysisSettingsPanel = () => {
     nodesAnalysis,
     switchNodesAnalysisTo,
     switchLinksAnalysisTo,
-  } = useAnalysisSettings();
+  } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
