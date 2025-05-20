@@ -12,7 +12,7 @@ import clsx from "clsx";
 import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
-import { AnalysisEditor } from "./analysis-editor";
+import { AnalysisSettingsPanel } from "./analysis-settings";
 
 function Tab({
   onClick,
@@ -57,7 +57,7 @@ const ActiveTab = memo(function ActiveTab({
     case TabOption.Asset:
       return <FeatureEditor />;
     case TabOption.Analysis:
-      return <AnalysisEditor />;
+      return <AnalysisSettingsPanel />;
   }
 });
 

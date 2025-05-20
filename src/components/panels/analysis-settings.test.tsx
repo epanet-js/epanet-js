@@ -1,14 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import { Store } from "src/state/jotai";
-import { AnalysisEditor } from "./analysis-editor";
+import { AnalysisSettingsPanel } from "./analysis-settings";
 import userEvent from "@testing-library/user-event";
 import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { FlowAnalysis, PropertyAnalysis } from "src/analysis/analysis-types";
 import { aSimulationSuccess, setInitialState } from "src/__helpers__/state";
 import { colorFor } from "src/analysis/symbolization-ramp";
 
-describe("Analysis Editor", () => {
+describe("Analysis Settings Panel", () => {
   it("displays nodes analysis options", async () => {
     const store = getDefaultStore();
     renderComponent(store);
@@ -93,7 +93,7 @@ describe("Analysis Editor", () => {
   const renderComponent = (store: Store) => {
     return render(
       <JotaiProvider store={store}>
-        <AnalysisEditor />
+        <AnalysisSettingsPanel />
       </JotaiProvider>,
     );
   };

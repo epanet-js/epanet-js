@@ -24,7 +24,7 @@ const analysisLabelFor = (type: AnalysisType) => {
   }
 };
 
-export const AnalysisEditor = () => {
+export const AnalysisSettingsPanel = () => {
   const [nodesDeprecated, setNodesAnalysisDeprecated] = useAtom(
     nodesAnalysisAtomDeprecated,
   );
