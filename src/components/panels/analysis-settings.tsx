@@ -31,8 +31,12 @@ export const AnalysisSettingsPanel = () => {
   const [linksDeprecated, setLinksAnalysisDeprecated] = useAtom(
     linksAnalysisAtomDeprecated,
   );
-  const { switchNodesAnalysisTo, switchLinksAnalysisTo } =
-    useAnalysisSettings();
+  const {
+    linksAnalysis,
+    nodesAnalysis,
+    switchNodesAnalysisTo,
+    switchLinksAnalysisTo,
+  } = useAnalysisSettings();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,
@@ -146,7 +150,11 @@ export const AnalysisSettingsPanel = () => {
               disabled:
                 simulation.status === "idle" && ["pressure"].includes(type),
             }))}
-            selected={nodesDeprecated.type}
+            selected={
+              isFeatureOn("FLAG_MEMORIZE")
+                ? nodesAnalysis.type
+                : nodesDeprecated.type
+            }
             onChange={handleNodesChange}
           />
         </PanelDetails>
@@ -162,7 +170,11 @@ export const AnalysisSettingsPanel = () => {
                 simulation.status === "idle" &&
                 ["flow", "velocity"].includes(type),
             }))}
-            selected={linksDeprecated.type}
+            selected={
+              isFeatureOn("FLAG_MEMORIZE")
+                ? linksAnalysis.type
+                : linksDeprecated.type
+            }
             onChange={handleLinksChange}
           />
         </PanelDetails>

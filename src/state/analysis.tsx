@@ -13,8 +13,8 @@ export const analysisSettingsAtom = atom<
 
 export const useAnalysisSettings = () => {
   const [settings, setSettings] = useAtom(analysisSettingsAtom);
-  const [nodes, setNodesActive] = useAtom(nodesAnalysisAtomDeprecated);
-  const [links, setLinksActive] = useAtom(linksAnalysisAtomDeprecated);
+  const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtomDeprecated);
+  const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtomDeprecated);
 
   const switchNodesAnalysisTo = (
     type: NodesAnalysis["type"],
@@ -63,8 +63,8 @@ export const useAnalysisSettings = () => {
   };
 
   return {
-    links,
-    nodes,
+    linksAnalysis,
+    nodesAnalysis,
     switchNodesAnalysisTo,
     switchLinksAnalysisTo,
     updateNodesAnalysis,
