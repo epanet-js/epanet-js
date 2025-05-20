@@ -12,9 +12,11 @@ type DefaultAnalysisBuilders = {
   ) => () => LinksAnalysis;
   pressure: (hydraulicModel: HydraulicModel) => () => NodesAnalysis;
   elevation: (HydraulicModel: HydraulicModel) => () => NodesAnalysis;
+  none: () => () => { type: "none" };
 };
 
 export const defaultAnalysis: DefaultAnalysisBuilders = {
+  none: () => () => ({ type: "none" }),
   flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {
     return (): LinksAnalysis => {
       const property = "flow";

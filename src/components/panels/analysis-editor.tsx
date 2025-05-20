@@ -47,9 +47,6 @@ export const AnalysisEditor = () => {
       subtype: type,
     });
 
-    if (type === "none") {
-      return setLinksAnalysisDeprecated({ type: "none" });
-    }
     if (isFeatureOn("FLAG_MEMORIZE")) {
       switchLinksAnalysisTo(
         type,
@@ -57,6 +54,8 @@ export const AnalysisEditor = () => {
       );
     } else {
       switch (type) {
+        case "none":
+          return setLinksAnalysisDeprecated({ type: "none" });
         case "flow":
           return setLinksAnalysisDeprecated({
             type: "flow",
@@ -94,14 +93,12 @@ export const AnalysisEditor = () => {
       subtype: type,
     });
 
-    if (type === "none") {
-      return setNodesAnalysisDeprecated({ type: "none" });
-    }
-
     if (isFeatureOn("FLAG_MEMORIZE")) {
       switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
     } else {
       switch (type) {
+        case "none":
+          return setNodesAnalysisDeprecated({ type: "none" });
         case "pressure":
           return setNodesAnalysisDeprecated({
             type: "pressure",
