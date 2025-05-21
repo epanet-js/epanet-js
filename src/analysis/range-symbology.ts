@@ -5,6 +5,7 @@ import { calculateEqualIntervalRange } from "./range-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./range-modes/equal-quantiles";
 import { calculateCkmeansRange } from "./range-modes/ckmeans";
 import { calculateManualBreaks } from "./range-modes/manual";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const rangeModes = [
   "equalIntervals",
@@ -285,7 +286,9 @@ const generateBreaks = (
     throw new Error("Invalid number of breaks!");
   }
 
-  return breaks.map((value) => Number(value.toFixed(2)));
+  return isFeatureOn("FLAG_UNIT_HEADLOSS")
+    ? breaks
+    : breaks.map((value) => Number(value.toFixed(2)));
 };
 
 const calculateBreaks = (
