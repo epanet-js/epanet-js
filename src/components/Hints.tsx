@@ -12,9 +12,7 @@ import {
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding, translate } from "src/infra/i18n";
-import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { analysisAtom } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const tipLike = `
     bg-white dark:bg-gray-900
@@ -75,7 +73,6 @@ export function Hints() {
   const selection = useAtomValue(selectionAtom);
   const dialogState = useAtomValue(dialogAtom);
   const analysis = useAtomValue(analysisAtom);
-  const analysisDeprecated = useAtomValue(analysisAtomDeprecated);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
 
@@ -112,7 +109,6 @@ export function Hints() {
             );
           } else {
             if (
-              isFeatureOn("FLAG_MEMORIZE") &&
               simulation.status === "success" &&
               analysis.links.type === "none" &&
               analysis.nodes.type === "none"
@@ -123,15 +119,6 @@ export function Hints() {
                   text={translate("onboardingAnalysis")}
                 />
               );
-            } else if (
-              simulation.status === "success" &&
-              analysisDeprecated.links.type === "none" &&
-              analysisDeprecated.nodes.type === "none"
-            ) {
-              <Hint
-                hintId={"ADD_ANALYSIS"}
-                text={translate("onboardingAnalysis")}
-              />;
             }
           }
         }

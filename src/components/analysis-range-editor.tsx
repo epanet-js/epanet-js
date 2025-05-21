@@ -5,7 +5,7 @@ import {
   UpdateIcon,
 } from "@radix-ui/react-icons";
 import clsx from "clsx";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
 import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
@@ -47,10 +47,6 @@ import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
-import {
-  linksAnalysisAtomDeprecated,
-  nodesAnalysisAtomDeprecated,
-} from "src/state/analysis-deprecated";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAnalysisState } from "src/state/analysis";
@@ -73,24 +69,10 @@ export const AnalysisRangeEditor = ({
     updateLinksAnalysis,
   } = useAnalysisState();
 
-  const [nodesAnalysisDeprecated, setNodesAnalysisDeprecated] = useAtom(
-    nodesAnalysisAtomDeprecated,
-  );
-  const [linksAnalysisDeprecated, setLinksAnalysisDeprecated] = useAtom(
-    linksAnalysisAtomDeprecated,
-  );
-
   const userTracking = useUserTracking();
 
-  let activeAnalysis;
-  if (isFeatureOn("FLAG_MEMORIZE")) {
-    activeAnalysis = geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
-  } else {
-    activeAnalysis =
-      geometryType === "nodes"
-        ? nodesAnalysisDeprecated
-        : linksAnalysisDeprecated;
-  }
+  const activeAnalysis =
+    geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
 
   const initialSymbology =
     activeAnalysis.type === "none"
@@ -100,32 +82,20 @@ export const AnalysisRangeEditor = ({
   const onChange = useCallback(
     (newSymbology: RangeSymbology) => {
       if (geometryType === "nodes") {
-        isFeatureOn("FLAG_MEMORIZE")
-          ? updateNodesAnalysis({
-              type: activeAnalysis.type as NodesAnalysis["type"],
-              symbology: newSymbology,
-            })
-          : setNodesAnalysisDeprecated((prev) => ({
-              ...prev,
-              symbology: newSymbology,
-            }));
+        updateNodesAnalysis({
+          type: activeAnalysis.type as NodesAnalysis["type"],
+          symbology: newSymbology,
+        });
       } else {
-        isFeatureOn("FLAG_MEMORIZE")
-          ? updateLinksAnalysis({
-              type: activeAnalysis.type as LinksAnalysis["type"],
-              symbology: newSymbology,
-            })
-          : setLinksAnalysisDeprecated((prev) => ({
-              ...prev,
-              symbology: newSymbology,
-            }));
+        updateLinksAnalysis({
+          type: activeAnalysis.type as LinksAnalysis["type"],
+          symbology: newSymbology,
+        });
       }
     },
     [
       activeAnalysis.type,
       geometryType,
-      setLinksAnalysisDeprecated,
-      setNodesAnalysisDeprecated,
       updateNodesAnalysis,
       updateLinksAnalysis,
     ],

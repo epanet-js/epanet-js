@@ -20,15 +20,10 @@ import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import {
-  linksAnalysisAtomDeprecated,
-  nodesAnalysisAtomDeprecated,
-} from "src/state/analysis-deprecated";
-import {
   RangeSymbology,
   nullRangeSymbology,
 } from "src/analysis/range-symbology";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const setInitialState = ({
   store = createStore(),
@@ -60,13 +55,8 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
-  if (isFeatureOn("FLAG_MEMORIZE")) {
-    store.set(nodesAnalysisAtom, nodesAnalysis);
-    store.set(linksAnalysisAtom, linksAnalysis);
-  } else {
-    store.set(nodesAnalysisAtomDeprecated, nodesAnalysis);
-    store.set(linksAnalysisAtomDeprecated, linksAnalysis);
-  }
+  store.set(nodesAnalysisAtom, nodesAnalysis);
+  store.set(linksAnalysisAtom, linksAnalysis);
 
   return store;
 };

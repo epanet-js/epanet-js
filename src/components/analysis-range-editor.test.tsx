@@ -11,7 +11,6 @@ import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { RangeSymbology, defaultNewColor } from "src/analysis/range-symbology";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   linksAnalysisAtom,
   nodesAnalysisAtom,
@@ -23,10 +22,6 @@ describe("analysis range editor", () => {
   const green = "#00ff00";
   const blue = "#0000ff";
   const white = "#ffffff";
-
-  beforeEach(() => {
-    stubFeatureOn("FLAG_MEMORIZE");
-  });
 
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();

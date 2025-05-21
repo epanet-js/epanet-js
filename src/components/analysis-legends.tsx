@@ -1,5 +1,4 @@
 import { linearGradient } from "src/lib/color";
-import { analysisAtomDeprecated } from "src/state/analysis-deprecated";
 import { StyledPopoverArrow } from "./elements";
 import { translate, translateUnit } from "src/infra/i18n";
 import * as Popover from "@radix-ui/react-popover";
@@ -8,44 +7,23 @@ import { AnalysisRangeEditor } from "./analysis-range-editor";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeSymbology } from "src/analysis/range-symbology";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useAtomValue } from "jotai";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
 
 export const AnalysisLegends = () => {
-  const analysisDeprecated = useAtomValue(analysisAtomDeprecated);
   const nodesAnalysis = useAtomValue(nodesAnalysisAtom);
   const linksAnalysis = useAtomValue(linksAnalysisAtom);
 
-  if (isFeatureOn("FLAG_MEMORIZE")) {
-    return (
-      <div className="space-y-1 absolute top-10 left-3 w-48">
-        {nodesAnalysis.type !== "none" && (
-          <Legend geometryType="nodes" symbology={nodesAnalysis.symbology} />
-        )}
-        {linksAnalysis.type !== "none" && (
-          <Legend geometryType="links" symbology={linksAnalysis.symbology} />
-        )}
-      </div>
-    );
-  } else {
-    return (
-      <div className="space-y-1 absolute top-10 left-3 w-48">
-        {analysisDeprecated.nodes.type !== "none" && (
-          <Legend
-            geometryType="nodes"
-            symbology={analysisDeprecated.nodes.symbology}
-          />
-        )}
-        {analysisDeprecated.links.type !== "none" && (
-          <Legend
-            geometryType="links"
-            symbology={analysisDeprecated.links.symbology}
-          />
-        )}
-      </div>
-    );
-  }
+  return (
+    <div className="space-y-1 absolute top-10 left-3 w-48">
+      {nodesAnalysis.type !== "none" && (
+        <Legend geometryType="nodes" symbology={nodesAnalysis.symbology} />
+      )}
+      {linksAnalysis.type !== "none" && (
+        <Legend geometryType="links" symbology={linksAnalysis.symbology} />
+      )}
+    </div>
+  );
 };
 
 const Legend = ({

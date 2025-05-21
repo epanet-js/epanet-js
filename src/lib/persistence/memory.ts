@@ -42,16 +42,12 @@ import { Asset, LinkAsset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
-import {
-  linksAnalysisAtomDeprecated,
-  nodesAnalysisAtomDeprecated,
-} from "src/state/analysis-deprecated";
+
 import {
   linksAnalysisAtom,
   nodesAnalysisAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -95,14 +91,9 @@ export class MemPersistence implements IPersistence {
       });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(simulationAtom, { status: "idle" });
-      if (isFeatureOn("FLAG_MEMORIZE")) {
-        this.store.set(nodesAnalysisAtom, { type: "none" });
-        this.store.set(linksAnalysisAtom, { type: "none" });
-        this.store.set(savedAnalysesAtom, new Map());
-      } else {
-        this.store.set(nodesAnalysisAtomDeprecated, { type: "none" });
-        this.store.set(linksAnalysisAtomDeprecated, { type: "none" });
-      }
+      this.store.set(nodesAnalysisAtom, { type: "none" });
+      this.store.set(linksAnalysisAtom, { type: "none" });
+      this.store.set(savedAnalysesAtom, new Map());
     };
   }
 

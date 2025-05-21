@@ -36,14 +36,9 @@ import {
 import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
-import {
-  AnalysisState,
-  analysisAtomDeprecated,
-} from "src/state/analysis-deprecated";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
-import { analysisAtom } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
+import { AnalysisState, analysisAtom } from "src/state/analysis";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -106,7 +101,6 @@ const mapStateAtom = atom<MapState>((get) => {
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
-  const analysisDeprecated = get(analysisAtomDeprecated);
   const analysis = get(analysisAtom);
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
@@ -119,7 +113,7 @@ const mapStateAtom = atom<MapState>((get) => {
     stylesConfig,
     selection,
     ephemeralState,
-    analysis: isFeatureOn("FLAG_MEMORIZE") ? analysis : analysisDeprecated,
+    analysis,
     simulation,
     selectedAssetIds,
     movedAssetIds,

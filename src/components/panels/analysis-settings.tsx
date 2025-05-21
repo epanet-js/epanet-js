@@ -1,17 +1,11 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
-import {
-  linksAnalysisAtomDeprecated,
-  nodesAnalysisAtomDeprecated,
-} from "src/state/analysis-deprecated";
 import { translate } from "src/infra/i18n";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
-import { getSortedValues } from "src/analysis/analysis-data";
-import { initializeSymbology } from "src/analysis/range-symbology";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
@@ -25,12 +19,6 @@ const analysisLabelFor = (type: AnalysisType) => {
 };
 
 export const AnalysisSettingsPanel = () => {
-  const [nodesDeprecated, setNodesAnalysisDeprecated] = useAtom(
-    nodesAnalysisAtomDeprecated,
-  );
-  const [linksDeprecated, setLinksAnalysisDeprecated] = useAtom(
-    linksAnalysisAtomDeprecated,
-  );
   const {
     linksAnalysis,
     nodesAnalysis,
@@ -51,45 +39,10 @@ export const AnalysisSettingsPanel = () => {
       subtype: type,
     });
 
-    if (isFeatureOn("FLAG_MEMORIZE")) {
-      switchLinksAnalysisTo(
-        type,
-        defaultAnalysis[type](hydraulicModel, quantities),
-      );
-    } else {
-      switch (type) {
-        case "none":
-          return setLinksAnalysisDeprecated({ type: "none" });
-        case "unitHeadloss":
-          throw new Error("Not implemented");
-        case "flow":
-          return setLinksAnalysisDeprecated({
-            type: "flow",
-            symbology: initializeSymbology({
-              property: "flow",
-              unit: hydraulicModel.units.flow,
-              rampName: "Teal",
-              mode: "equalQuantiles",
-              absValues: true,
-              sortedData: getSortedValues(hydraulicModel.assets, "flow", {
-                absValues: true,
-              }),
-            }),
-          });
-        case "velocity":
-          return setLinksAnalysisDeprecated({
-            type: "velocity",
-            symbology: initializeSymbology({
-              property: "velocity",
-              unit: hydraulicModel.units.velocity,
-              rampName: "RedOr",
-              mode: "equalQuantiles",
-              sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-              fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
-            }),
-          });
-      }
-    }
+    switchLinksAnalysisTo(
+      type,
+      defaultAnalysis[type](hydraulicModel, quantities),
+    );
   };
 
   const handleNodesChange = (type: NodesAnalysis["type"]) => {
@@ -99,38 +52,7 @@ export const AnalysisSettingsPanel = () => {
       subtype: type,
     });
 
-    if (isFeatureOn("FLAG_MEMORIZE")) {
-      switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
-    } else {
-      switch (type) {
-        case "none":
-          return setNodesAnalysisDeprecated({ type: "none" });
-        case "pressure":
-          return setNodesAnalysisDeprecated({
-            type: "pressure",
-            symbology: initializeSymbology({
-              property: "pressure",
-              unit: hydraulicModel.units.pressure,
-              rampName: "Temps",
-              mode: "prettyBreaks",
-              fallbackEndpoints: [0, 100],
-              sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
-            }),
-          });
-        case "elevation":
-          return setNodesAnalysisDeprecated({
-            type: "elevation",
-            symbology: initializeSymbology({
-              property: "elevation",
-              unit: hydraulicModel.units.elevation,
-              rampName: "Fall",
-              mode: "prettyBreaks",
-              fallbackEndpoints: [0, 100],
-              sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-            }),
-          });
-      }
-    }
+    switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
   };
 
   return (
@@ -152,11 +74,7 @@ export const AnalysisSettingsPanel = () => {
               disabled:
                 simulation.status === "idle" && ["pressure"].includes(type),
             }))}
-            selected={
-              isFeatureOn("FLAG_MEMORIZE")
-                ? nodesAnalysis.type
-                : nodesDeprecated.type
-            }
+            selected={nodesAnalysis.type}
             onChange={handleNodesChange}
           />
         </PanelDetails>
@@ -178,11 +96,7 @@ export const AnalysisSettingsPanel = () => {
                 simulation.status === "idle" &&
                 ["flow", "velocity", "unitHeadloss"].includes(type),
             }))}
-            selected={
-              isFeatureOn("FLAG_MEMORIZE")
-                ? linksAnalysis.type
-                : linksDeprecated.type
-            }
+            selected={linksAnalysis.type}
             onChange={handleLinksChange}
           />
         </PanelDetails>

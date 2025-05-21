@@ -11,7 +11,6 @@ import {
   setInitialState,
 } from "src/__helpers__/state";
 import { colorFor } from "src/analysis/range-symbology";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   AnalysesMap,
   linksAnalysisAtom,
@@ -20,10 +19,6 @@ import {
 } from "src/state/analysis";
 
 describe("Analysis Settings Panel", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_MEMORIZE");
-  });
-
   it("displays nodes analysis options", async () => {
     const store = getDefaultStore();
     renderComponent(store);
