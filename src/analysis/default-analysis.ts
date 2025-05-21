@@ -32,9 +32,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         property,
         unit: hydraulicModel.units.flow,
         rampName: "Teal",
-        mode: isFeatureOn("FLAG_UNIT_HEADLOSS")
-          ? "prettyBreaks"
-          : "equalQuantiles",
+        mode: "equalQuantiles",
         absValues: true,
         sortedData,
       });
