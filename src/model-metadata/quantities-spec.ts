@@ -44,8 +44,8 @@ export type AssetQuantitiesSpec = {
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
   analysis: {
-    velocitySteps: number[];
     velocityFallbackEndpoints: [number, number];
+    unitHeadlossFallbackEndpoints: [number, number];
   };
 };
 
@@ -95,8 +95,8 @@ const metricSpec: AssetQuantitiesSpec = {
     valve: { diameter: 300 },
   },
   analysis: {
-    velocitySteps: [0, 1, 2, 3, 4],
     velocityFallbackEndpoints: [0, 4],
+    unitHeadlossFallbackEndpoints: [0, 5],
   },
 };
 
@@ -147,8 +147,8 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     valve: { diameter: 12 },
   },
   analysis: {
-    velocitySteps: [0, 2.5, 5, 7.5, 10],
     velocityFallbackEndpoints: [0, 10],
+    unitHeadlossFallbackEndpoints: [3, 12],
   },
 };
 

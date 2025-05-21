@@ -6,7 +6,10 @@ import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
 
 type DefaultAnalysisBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
-  unitHeadloss: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
+  unitHeadloss: (
+    hydraulicModel: HydraulicModel,
+    quantities: Quantities,
+  ) => () => LinksAnalysis;
   velocity: (
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
@@ -48,16 +51,19 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       });
       return { type: "velocity", symbology };
     },
-  unitHeadloss: (hydraulicModel: HydraulicModel) => (): LinksAnalysis => {
-    const symbology = initializeSymbology({
-      property: "unitHeadloss",
-      unit: hydraulicModel.units.unitHeadloss,
-      rampName: "Emrld",
-      mode: "equalQuantiles",
-      sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
-    });
-    return { type: "unitHeadloss", symbology };
-  },
+  unitHeadloss:
+    (hydraulicModel: HydraulicModel, quantities: Quantities) =>
+    (): LinksAnalysis => {
+      const symbology = initializeSymbology({
+        property: "unitHeadloss",
+        unit: hydraulicModel.units.unitHeadloss,
+        rampName: "Emrld",
+        mode: "equalQuantiles",
+        sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
+        fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
+      });
+      return { type: "unitHeadloss", symbology };
+    },
   pressure: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
     const symbology = initializeSymbology({
       property: "pressure",
