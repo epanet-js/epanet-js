@@ -25,7 +25,7 @@ import {
   minIntervals,
   nullRangeSymbology,
   prependBreak,
-  rangeModes,
+  rangeModesInOrder,
   reverseColors,
   updateBreakValue,
   RangeSymbology,
@@ -556,7 +556,7 @@ const ModeSelector = ({
   onModeChange: (newMode: RangeMode) => void;
 }) => {
   const modeOptions = useMemo(() => {
-    return rangeModes.map((mode) => ({
+    return rangeModesInOrder.map((mode) => ({
       label: translate(modeLabels[mode]),
       value: mode,
     }));

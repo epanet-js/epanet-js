@@ -7,14 +7,14 @@ import { calculateCkmeansRange } from "./range-modes/ckmeans";
 import { calculateManualBreaks } from "./range-modes/manual";
 import { isFeatureOn } from "src/infra/feature-flags";
 
-export const rangeModes = [
-  "equalIntervals",
-  "equalQuantiles",
+export const rangeModesInOrder = [
   "prettyBreaks",
   "ckmeans",
+  "equalQuantiles",
+  "equalIntervals",
   "manual",
 ] as const;
-export type RangeMode = (typeof rangeModes)[number];
+export type RangeMode = (typeof rangeModesInOrder)[number];
 
 export type RangeSymbology = {
   type: "range";
@@ -41,7 +41,7 @@ export const maxIntervals = 7;
 export const minIntervals = 3;
 
 export const initializeSymbology = ({
-  mode,
+  mode = "prettyBreaks",
   rampName,
   numIntervals = 5,
   sortedData,
@@ -53,7 +53,7 @@ export const initializeSymbology = ({
 }: {
   rampName: string;
   numIntervals?: number;
-  mode: RangeMode;
+  mode?: RangeMode;
   sortedData: number[];
   property: string;
   unit: Unit;
