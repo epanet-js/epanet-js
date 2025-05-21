@@ -58,7 +58,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         property: "unitHeadloss",
         unit: hydraulicModel.units.unitHeadloss,
         rampName: "Emrld",
-        mode: "equalQuantiles",
+        mode: "prettyBreaks",
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
         fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
       });
