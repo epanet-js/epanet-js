@@ -437,7 +437,7 @@ const IntervalsEditor = ({
               i === 0 || i === colors.length - 1 ? "h-[54px]" : "h-[37.5px]",
               "rounded rounded-md padding-1 w-4",
             )}
-            key={`${color}-${i}`}
+            key={i}
           >
             <ColorPopover
               color={color}
