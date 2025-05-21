@@ -75,7 +75,7 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("flow (l/s)", "20.123");
       expectPropertyDisplayed("velocity (m/s)", "10.123");
       expectPropertyDisplayed("headloss (m)", "0.234");
-      expectPropertyDisplayed("unit headloss", "0.123");
+      expectPropertyDisplayed("unit headloss (m/km)", "0.123");
     });
   });
 

@@ -9,6 +9,8 @@ export type Unit =
   | "l/min"
   | "l/h"
   | "km"
+  | "m/km"
+  | "ft/1000ft"
   | "gal/min"
   | "mwc"
   | "psi"
