@@ -35,6 +35,7 @@ const Legend = ({
 }) => {
   const userTracking = useUserTracking();
   const { breaks, colors, interpolate, property, unit } = symbology;
+
   const title = unit
     ? `${translate(property)} (${translateUnit(unit)})`
     : translate(property);
@@ -44,7 +45,7 @@ const Legend = ({
       <LegendContainer>
         <Popover.Trigger asChild>
           <div
-            className="block w-full p-2 text-right flex flex-col justify-between items-start"
+            className="block w-full p-2 flex flex-col justify-between items-start"
             onClick={() => {
               userTracking.capture({
                 name: "analysis.legend.clicked",
@@ -52,9 +53,7 @@ const Legend = ({
               });
             }}
           >
-            <div className="pb-2 text-xs whitespace-nowrap select-none">
-              {title}
-            </div>
+            <div className="pb-2 text-xs text-wrap select-none">{title}</div>
             <div
               className="relative w-4 h-32 rounded dark:border dark:border-white "
               style={{
