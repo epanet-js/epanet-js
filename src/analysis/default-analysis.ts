@@ -52,7 +52,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
     const symbology = initializeSymbology({
       property: "unitHeadloss",
       unit: hydraulicModel.units.unitHeadloss,
-      rampName: "BuPu",
+      rampName: "Emrld",
       mode: "equalQuantiles",
       sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
     });
