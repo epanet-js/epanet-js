@@ -116,7 +116,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     pressure: "psi",
     head: "ft",
     headloss: "ft",
-    unitHeadloss: "ft/1000ft",
+    unitHeadloss: "ft/kft",
     power: "hp",
     speed: null,
     tcvSetting: null,

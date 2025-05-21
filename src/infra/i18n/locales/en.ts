@@ -357,5 +357,5 @@ export const units: Record<Exclude<Unit, null>, string> = {
   hp: "hp",
   kW: "kW",
   "m/km": "m/km",
-  "ft/1000ft": "ft/1000ft",
+  "ft/kft": "ft/kft",
 };

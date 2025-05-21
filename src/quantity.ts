@@ -10,7 +10,7 @@ export type Unit =
   | "l/h"
   | "km"
   | "m/km"
-  | "ft/1000ft"
+  | "ft/kft"
   | "gal/min"
   | "mwc"
   | "psi"
