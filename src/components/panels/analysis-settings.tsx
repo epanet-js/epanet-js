@@ -6,7 +6,6 @@ import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 
@@ -81,14 +80,13 @@ export const AnalysisSettingsPanel = () => {
         <PanelDetails title={translate("links")}>
           <Selector
             ariaLabel={translate("links")}
-            options={(isFeatureOn("FLAG_UNIT_HEADLOSS")
-              ? ([
-                  "none",
-                  "flow",
-                  "velocity",
-                  "unitHeadloss",
-                ] as LinksAnalysis["type"][])
-              : (["none", "flow", "velocity"] as LinksAnalysis["type"][])
+            options={(
+              [
+                "none",
+                "flow",
+                "velocity",
+                "unitHeadloss",
+              ] as LinksAnalysis["type"][]
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),

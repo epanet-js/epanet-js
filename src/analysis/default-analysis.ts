@@ -3,7 +3,6 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
 import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 type DefaultAnalysisBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
@@ -46,9 +45,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         property: "velocity",
         unit: hydraulicModel.units.velocity,
         rampName: "RedOr",
-        mode: isFeatureOn("FLAG_UNIT_HEADLOSS")
-          ? "prettyBreaks"
-          : "equalQuantiles",
+        mode: "prettyBreaks",
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
         fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
       });

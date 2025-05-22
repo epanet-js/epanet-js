@@ -11,7 +11,6 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -53,7 +52,6 @@ describe("AssetEditor", () => {
     });
 
     it("can show simulation results", () => {
-      stubFeatureOn("FLAG_UNIT_HEADLOSS");
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(pipeId, {
