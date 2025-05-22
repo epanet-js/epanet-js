@@ -21,6 +21,7 @@ import { pipeArrows } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
 import { valveIcons, valveLines } from "src/map/layers/valves";
+import { linkLabelsLayer } from "src/map/layers/link-labels";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -210,6 +211,7 @@ export function makeLayers({
       layerId: "imported-reservoirs",
       symbology,
     }),
+    ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"
       ? [
           {

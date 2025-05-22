@@ -10,6 +10,9 @@ import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { colorFor } from "src/analysis/range-symbology";
 import { strokeColorFor } from "src/lib/color";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { localizeDecimal } from "src/infra/i18n/numbers";
+import { translateUnit } from "src/infra/i18n";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -131,6 +134,12 @@ const appendPipeAnalysisProps = (
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
+  if (isFeatureOn("FLAG_LABELS")) {
+    const unit = pipe.getUnit(property);
+    const localizedNumber = localizeDecimal(numericValue, { decimals: 3 });
+    const unitText = unit ? translateUnit(unit) : "";
+    feature.properties!.label = `${localizedNumber} ${unitText}`;
+  }
   feature.properties!.color = colorFor(linkAnalysis.symbology, numericValue);
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
