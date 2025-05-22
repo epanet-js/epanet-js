@@ -24,6 +24,7 @@ import {
   nullRangeSymbology,
 } from "src/analysis/range-symbology";
 import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { Labeling } from "src/analysis/analysis-types";
 
 export const setInitialState = ({
   store = createStore(),
@@ -34,7 +35,7 @@ export const setInitialState = ({
   fileInfo = null,
   layerConfigs = new Map(),
   nodesAnalysis = { type: "none" },
-  linksAnalysis = { type: "none" },
+  linksAnalysis = { type: "none", labeling: null },
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -128,14 +129,16 @@ export const aNodesAnalysis = (
 
 export const aLinksAnalysis = ({
   symbology: partialSymbology,
+  labeling = null,
 }: {
   symbology: Partial<RangeSymbology>;
+  labeling?: Labeling;
 }): LinksAnalysis => {
   const symbology = aSymbology(partialSymbology);
   return {
     type: symbology.property as LinksAnalysis["type"],
     symbology,
-    labeling: { type: "none" },
+    labeling,
   };
 };
 

@@ -8,6 +8,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
+import { Checkbox } from "../form/Checkbox";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -23,6 +25,7 @@ export const AnalysisSettingsPanel = () => {
     nodesAnalysis,
     switchNodesAnalysisTo,
     switchLinksAnalysisTo,
+    updateLinksAnalysis,
   } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
   const {
@@ -40,8 +43,12 @@ export const AnalysisSettingsPanel = () => {
 
     switchLinksAnalysisTo(
       type,
-      defaultAnalysis[type](hydraulicModel, quantities),
+      defaultAnalysis[type](hydraulicModel, quantities) as () => LinksAnalysis,
     );
+  };
+
+  const handleLinksLabelsChange = (label: string | null) => {
+    updateLinksAnalysis({ ...linksAnalysis, labeling: label });
   };
 
   const handleNodesChange = (type: NodesAnalysis["type"]) => {
@@ -97,6 +104,21 @@ export const AnalysisSettingsPanel = () => {
             selected={linksAnalysis.type}
             onChange={handleLinksChange}
           />
+          {isFeatureOn("FLAG_LABELS") && linksAnalysis.type !== "none" && (
+            <div className="py-4 text-sm flex items-center gap-x-2 ">
+              <Checkbox
+                checked={!!linksAnalysis.labeling}
+                onChange={() =>
+                  handleLinksLabelsChange(
+                    !!linksAnalysis.labeling
+                      ? null
+                      : linksAnalysis.symbology.property,
+                  )
+                }
+              />
+              {translate("showLabels")}
+            </div>
+          )}
         </PanelDetails>
       </div>
     </div>

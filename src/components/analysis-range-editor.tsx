@@ -83,23 +83,17 @@ export const AnalysisRangeEditor = ({
     (newSymbology: RangeSymbology) => {
       if (geometryType === "nodes") {
         updateNodesAnalysis({
-          type: activeAnalysis.type as NodesAnalysis["type"],
+          ...activeAnalysis,
           symbology: newSymbology,
-        });
+        } as NodesAnalysis);
       } else {
         updateLinksAnalysis({
-          type: activeAnalysis.type as LinksAnalysis["type"],
+          ...activeAnalysis,
           symbology: newSymbology,
-          labeling: { type: "none" },
-        });
+        } as LinksAnalysis);
       }
     },
-    [
-      activeAnalysis.type,
-      geometryType,
-      updateNodesAnalysis,
-      updateLinksAnalysis,
-    ],
+    [activeAnalysis, geometryType, updateNodesAnalysis, updateLinksAnalysis],
   );
 
   const sortedData = useMemo(() => {

@@ -1,5 +1,3 @@
-export type Labeling = {
-  type: "none";
-};
+export type Labeling = string | null;
 
-export const nullLabeling: Labeling = { type: "none" };
+export const nullLabeling: Labeling = null;

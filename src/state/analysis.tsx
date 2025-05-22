@@ -7,7 +7,10 @@ export type AnalysesMap = Map<string, NodesAnalysis | LinksAnalysis>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
 export const nodesAnalysisAtom = atom<NodesAnalysis>({ type: "none" });
-export const linksAnalysisAtom = atom<LinksAnalysis>({ type: "none" });
+export const linksAnalysisAtom = atom<LinksAnalysis>({
+  type: "none",
+  labeling: null,
+});
 
 export const analysisAtom = atom((get) => {
   const nodes = get(nodesAnalysisAtom);

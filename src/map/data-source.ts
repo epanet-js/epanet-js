@@ -134,7 +134,7 @@ const appendPipeAnalysisProps = (
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
-  if (isFeatureOn("FLAG_LABELS")) {
+  if (isFeatureOn("FLAG_LABELS") && !!linkAnalysis.labeling) {
     const unit = pipe.getUnit(property);
     const localizedNumber = localizeDecimal(numericValue, { decimals: 3 });
     const unitText = unit ? translateUnit(unit) : "";

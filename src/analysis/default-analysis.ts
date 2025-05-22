@@ -21,7 +21,10 @@ type DefaultAnalysisBuilders = {
 };
 
 export const defaultAnalysis: DefaultAnalysisBuilders = {
-  none: () => () => ({ type: "none" }),
+  none: () => () => {
+    return { type: "none", labeling: nullLabeling };
+  },
+
   flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {
     return (): LinksAnalysis => {
       const property = "flow";

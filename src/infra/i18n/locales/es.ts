@@ -341,6 +341,7 @@ export const translations: Translations = {
   prettyBreaks: "Intervalos Bonitos",
   naturalBreaksCkMeans: "Intervalos Naturales (ckmeans)",
   unitHeadloss: "Pérd. Carga Unitaria",
+  showLabels: "Mostrar Etiquetas",
 };
 
 export const units: UnitsLocale = {

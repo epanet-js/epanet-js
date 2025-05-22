@@ -79,7 +79,10 @@ const nullMapState: MapState = {
   },
   selection: { type: "none" },
   ephemeralState: { type: "none" },
-  analysis: { nodes: { type: "none" }, links: { type: "none" } },
+  analysis: {
+    nodes: { type: "none" },
+    links: { type: "none", labeling: null },
+  },
   simulation: { status: "idle" },
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
