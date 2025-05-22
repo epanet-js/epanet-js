@@ -1,3 +1,4 @@
+import { Labeling } from "./labeling";
 import { RangeSymbology } from "./range-symbology";
 
 const nodeAnalysisTypes = ["elevation", "pressure"] as const;
@@ -9,16 +10,6 @@ const analysisTypes = [
   ...linkAnalysisTypes,
 ] as const;
 export type AnalysisType = (typeof analysisTypes)[number];
-
-export type FlowAnalysis = {
-  type: "flow";
-  symbology: RangeSymbology;
-};
-
-export type VelocityAnalysis = {
-  type: "velocity";
-  symbology: RangeSymbology;
-};
 
 export type PropertyAnalysis = {
   type: string;
@@ -35,7 +26,11 @@ export type NodesAnalysis =
 
 export type LinksAnalysis =
   | { type: "none" }
-  | { type: "flow" | "velocity" | "unitHeadloss"; symbology: RangeSymbology };
+  | {
+      type: "flow" | "velocity" | "unitHeadloss";
+      symbology: RangeSymbology;
+      labeling: Labeling;
+    };
 
 export type AnalysisState = {
   nodes: NodesAnalysis;

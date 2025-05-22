@@ -90,6 +90,7 @@ export const AnalysisRangeEditor = ({
         updateLinksAnalysis({
           type: activeAnalysis.type as LinksAnalysis["type"],
           symbology: newSymbology,
+          labeling: { type: "none" },
         });
       }
     },

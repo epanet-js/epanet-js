@@ -8,7 +8,7 @@ import {
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
-import { aSymbology } from "src/__helpers__/state";
+import { aLinksAnalysis, aSymbology } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
 
 describe("build optimized source", () => {
@@ -94,15 +94,14 @@ describe("build optimized source", () => {
   describe("when links analysis enabled", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
-      links: {
-        type: "flow",
+      links: aLinksAnalysis({
         symbology: aSymbology({
           breaks: [10, 20, 30],
           property: "flow",
           colors: getColors("Temps", 4),
           absValues: true,
         }),
-      },
+      }),
     };
 
     it("includes props for styling to pipes", () => {
@@ -163,15 +162,14 @@ describe("build optimized source", () => {
     it("applies the direction based on the flow", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
-        links: {
-          type: "velocity",
+        links: aLinksAnalysis({
           symbology: aSymbology({
             breaks: [10, 20, 30],
             property: "velocity",
             colors: getColors("Temps", 4),
             absValues: true,
           }),
-        },
+        }),
       };
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("ID", {

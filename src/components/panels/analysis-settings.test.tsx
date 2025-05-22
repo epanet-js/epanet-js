@@ -101,8 +101,7 @@ describe("Analysis Settings Panel", () => {
   it("uses a previous links analysis when available", async () => {
     const simulation = aSimulationSuccess();
     const previousFlowAnalysis = aLinksAnalysis({
-      property: "flow",
-      rampName: "PREVIOUS",
+      symbology: { property: "flow", rampName: "PREVIOUS" },
     });
     const store = setInitialState({ simulation });
     const analysesMap: AnalysesMap = new Map();

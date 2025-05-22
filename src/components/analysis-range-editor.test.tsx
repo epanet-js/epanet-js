@@ -2,6 +2,7 @@ import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
   aLinksAnalysis,
   aNodesAnalysis,
+  aSymbology,
   setInitialState,
 } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
@@ -425,10 +426,12 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linksAnalysis = aLinksAnalysis({
-      property: "flow",
-      mode: "equalIntervals",
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: aSymbology({
+        property: "flow",
+        mode: "equalIntervals",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      }),
     });
     const store = setInitialState({ hydraulicModel, linksAnalysis });
 
@@ -457,10 +460,12 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linksAnalysis = aLinksAnalysis({
-      property: "flow",
-      breaks: [20, 30],
-      colors: [red, green, blue],
-      absValues: true,
+      symbology: aSymbology({
+        property: "flow",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+        absValues: true,
+      }),
     });
 
     const store = setInitialState({ linksAnalysis, hydraulicModel });
@@ -511,8 +516,10 @@ describe("analysis range editor", () => {
   it("preserves links settings for later", async () => {
     const user = userEvent.setup();
     const linksAnalysis = aLinksAnalysis({
-      property: "flow",
-      rampName: "Temps",
+      symbology: aSymbology({
+        property: "flow",
+        rampName: "Temps",
+      }),
     });
 
     const store = setInitialState({ linksAnalysis });

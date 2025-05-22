@@ -126,12 +126,16 @@ export const aNodesAnalysis = (
   };
 };
 
-export const aLinksAnalysis = (
-  symbology: Partial<RangeSymbology>,
-): LinksAnalysis => {
+export const aLinksAnalysis = ({
+  symbology: partialSymbology,
+}: {
+  symbology: Partial<RangeSymbology>;
+}): LinksAnalysis => {
+  const symbology = aSymbology(partialSymbology);
   return {
-    type: "flow",
-    symbology: aSymbology(symbology),
+    type: symbology.property as LinksAnalysis["type"],
+    symbology,
+    labeling: { type: "none" },
   };
 };
 

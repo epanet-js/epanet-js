@@ -3,6 +3,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
 import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
+import { nullLabeling } from "./labeling";
 
 type DefaultAnalysisBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
@@ -35,7 +36,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         absValues: true,
         sortedData,
       });
-      return { type: "flow", symbology };
+      return { type: "flow", symbology, labeling: nullLabeling };
     };
   },
   velocity:
@@ -49,7 +50,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
         fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
       });
-      return { type: "velocity", symbology };
+      return { type: "velocity", symbology, labeling: nullLabeling };
     },
   unitHeadloss:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
@@ -62,7 +63,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
         fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
       });
-      return { type: "unitHeadloss", symbology };
+      return { type: "unitHeadloss", symbology, labeling: nullLabeling };
     },
   pressure: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
     const symbology = initializeSymbology({
