@@ -25,18 +25,17 @@ export const linkLabelsLayer = ({
         layout: {
           "text-field": ["get", "label"],
           "symbol-placement": "line",
-          "symbol-avoid-edges": true,
           "icon-optional": true,
           "text-size": 13,
           "text-letter-spacing": 0.05,
-          "text-max-angle": 10,
-          "text-justify": "left",
+          "text-max-angle": 15,
+          "text-justify": "center",
           "text-offset": [0, -1.1],
           "text-allow-overlap": true,
           "text-ignore-placement": true,
         },
         filter: ["==", "type", "pipe"],
-        minzoom: 14,
+        minzoom: 15,
       }) as SymbolLayer,
   );
 };
