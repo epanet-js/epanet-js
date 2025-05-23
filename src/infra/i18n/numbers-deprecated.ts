@@ -1,6 +1,4 @@
-import { isFeatureOn } from "../feature-flags";
 import { Locale, getLocale, symbols } from "./locale";
-import { localizeDecimalDeprecated } from "./numbers-deprecated";
 
 const maxDecimals = 6;
 const scientificThresholds = {
@@ -8,20 +6,7 @@ const scientificThresholds = {
   max: 1e8,
 };
 
-const cachedFormatters: Record<string, Intl.NumberFormat> = {};
-
-const getFormatter = (locale: string, decimals?: number): Intl.NumberFormat => {
-  const key = `${locale}-${decimals ?? "default"}`;
-  if (!cachedFormatters[key]) {
-    cachedFormatters[key] = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals ?? maxDecimals,
-    });
-  }
-  return cachedFormatters[key];
-};
-
-export const localizeDecimalImpl = (
+export const localizeDecimalDeprecated = (
   num: number,
   {
     locale = getLocale(),
@@ -36,31 +21,28 @@ export const localizeDecimalImpl = (
 
   let formattedNum: string;
   const absValue = Math.abs(roundedValue);
-  if (absValue < 1e-12) return "0";
-
   if (
     (absValue > 0 && absValue < scientificThresholds.min) ||
     absValue > scientificThresholds.max
   ) {
     formattedNum = roundedValue
       .toExponential(3)
+      .toLocaleString()
       .replace(".", symbols[locale].decimals);
   } else {
-    formattedNum = getFormatter(locale, decimals).format(roundedValue);
+    formattedNum = roundedValue.toLocaleString(locale, options);
   }
 
-  return formattedNum;
+  const isAllZero = formattedNum.match(/\d/g)?.every((digit) => digit === "0");
+  return isAllZero ? "0" : formattedNum;
 };
-
-export const localizeDecimal = isFeatureOn("FLAG_LABELS")
-  ? localizeDecimalImpl
-  : localizeDecimalDeprecated;
 
 export const roundToDecimal = (num: number, decimalPlaces?: number): number => {
   return decimalPlaces === undefined ? num : applyRounding(num, decimalPlaces);
 };
 
 const applyRounding = (value: number, decimals = 0): number => {
-  const scale = 10 ** decimals;
-  return Math.round((value + Number.EPSILON) * scale) / scale;
+  const scale = Math.pow(10, decimals);
+  const smallDiff = 1e-12;
+  return Number(Math.round(value * scale + smallDiff) / scale);
 };

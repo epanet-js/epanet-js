@@ -1,4 +1,4 @@
-import { localizeDecimal } from "./numbers";
+import { localizeDecimalImpl as localizeDecimal } from "./numbers";
 
 describe("localize decimal", () => {
   it("shows decimals when available", () => {
@@ -32,6 +32,9 @@ describe("localize decimal", () => {
 
   it("can format to zero", () => {
     expect(localizeDecimal(0.000001)).toEqual("1.000e-6");
+    expect(localizeDecimal(-1e-13)).toEqual("0");
+    expect(localizeDecimal(1e-13)).toEqual("0");
+    expect(localizeDecimal(1e-12)).toEqual("1.000e-12");
     expect(localizeDecimal(-0.000001)).toEqual("-1.000e-6");
   });
 
