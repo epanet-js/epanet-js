@@ -39,6 +39,8 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
+import toast from "react-hot-toast";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -156,7 +158,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
 
-  const doUpdates = useCallback(async () => {
+  const doUpdatesDeprecated = useCallback(async () => {
     if (!map) return;
 
     if (mapState === previousMapStateRef.current) return;
@@ -258,7 +260,121 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     map.setOverlay(ephemeralStateOverlays.current);
   }, [mapState, assets, idMap, map, momentLog]);
 
-  doUpdates().catch((e) => captureError(e));
+  const doUpdates = useCallback(() => {
+    if (!map) return;
+
+    if (mapState === previousMapStateRef.current) return;
+
+    toast.loading("Loading", { id: "map-state" });
+    setTimeout(async () => {
+      try {
+        const previousMapState = previousMapStateRef.current;
+        previousMapStateRef.current = mapState;
+
+        const changes = detectChanges(mapState, previousMapState);
+        const {
+          hasNewImport,
+          hasNewStyles,
+          hasNewEditions,
+          hasNewSelection,
+          hasNewEphemeralState,
+          hasNewAnalysis,
+          hasNewSimulation,
+        } = changes;
+
+        if (hasNewImport || hasNewStyles) {
+          resetMapState(map);
+          await updateLayerStyles(map, mapState.stylesConfig);
+        }
+
+        if (hasNewAnalysis || hasNewStyles) {
+          toggleAnalysisLayers(map, mapState.analysis);
+        }
+
+        if (
+          hasNewImport ||
+          hasNewStyles ||
+          hasNewAnalysis ||
+          (hasNewSimulation && mapState.simulation.status !== "running")
+        ) {
+          await updateImportSource(
+            map,
+            momentLog,
+            assets,
+            idMap,
+            mapState.analysis,
+          );
+        }
+
+        if (
+          hasNewEditions ||
+          hasNewStyles ||
+          hasNewAnalysis ||
+          (hasNewSimulation && mapState.simulation.status !== "running")
+        ) {
+          const editedAssetIds = await updateEditionsSource(
+            map,
+            momentLog,
+            assets,
+            idMap,
+            mapState.analysis,
+          );
+          const newHiddenFeatures = updateImportedSourceVisibility(
+            map,
+            lastHiddenFeatures.current,
+            editedAssetIds,
+            idMap,
+          );
+
+          lastHiddenFeatures.current = newHiddenFeatures;
+        }
+
+        if (
+          hasNewEditions ||
+          hasNewStyles ||
+          hasNewAnalysis ||
+          hasNewSelection ||
+          (hasNewSimulation && mapState.simulation.status !== "running")
+        ) {
+          await updateIconsSource(map, assets, idMap, mapState.selection);
+        }
+
+        if (hasNewEphemeralState) {
+          ephemeralStateOverlays.current = buildEphemeralStateOvelay(
+            map,
+            mapState.ephemeralState,
+          );
+          updateEditionsVisibility(
+            map,
+            previousMapState.movedAssetIds,
+            mapState.movedAssetIds,
+            lastHiddenFeatures.current,
+            idMap,
+          );
+        }
+
+        if (hasNewSelection && !hasNewImport) {
+          updateSelection(
+            map,
+            mapState.selection,
+            previousMapState.selection,
+            idMap,
+          );
+        }
+
+        map.setOverlay(ephemeralStateOverlays.current);
+        toast.remove("map-state");
+      } catch (error) {
+        captureError(error as Error);
+      }
+    }, 0);
+  }, [mapState, assets, idMap, map, momentLog]);
+
+  if (isFeatureOn("FLAG_LABELS")) {
+    doUpdates();
+  } else {
+    doUpdatesDeprecated().catch((e) => captureError(e));
+  }
 };
 
 const resetMapState = withInstrumentation(
