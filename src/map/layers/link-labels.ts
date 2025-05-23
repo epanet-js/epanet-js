@@ -21,6 +21,12 @@ export const linkLabelsLayer = ({
           "text-halo-width": 2,
           "text-halo-blur": 0.8,
           "text-color": colors.gray700,
+          "text-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hidden"], false],
+            0,
+            1,
+          ],
         },
         layout: {
           "text-field": ["get", "label"],
@@ -31,7 +37,7 @@ export const linkLabelsLayer = ({
           "text-max-angle": 10,
           "text-justify": "center",
           "text-offset": [0, -1.1],
-          "text-allow-overlap": false,
+          "text-allow-overlap": true,
           "text-ignore-placement": true,
         },
         filter: ["==", "type", "pipe"],
