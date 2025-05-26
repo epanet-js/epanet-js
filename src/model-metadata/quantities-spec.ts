@@ -10,7 +10,7 @@ import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
 import { ValveQuantity } from "src/hydraulic-model/asset-types/valve";
 
-export type UnitsSpec = Record<
+export type QuantityProperty =
   | "diameter"
   | "length"
   | "roughness"
@@ -25,9 +25,9 @@ export type UnitsSpec = Record<
   | "head"
   | "power"
   | "speed"
-  | "tcvSetting",
-  Unit
->;
+  | "tcvSetting";
+
+export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
 type DefaultsSpec = {
   pipe: Partial<Record<PipeQuantity, number>>;

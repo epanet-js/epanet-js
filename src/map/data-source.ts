@@ -13,6 +13,10 @@ import { strokeColorFor } from "src/lib/color";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { translateUnit } from "src/infra/i18n";
+import {
+  Quantities,
+  QuantityProperty,
+} from "src/model-metadata/quantities-spec";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -20,6 +24,7 @@ export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
   idMap: IDMap,
   analysis: AnalysisState,
+  quantities: Quantities,
 ): Feature[] => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "status"];
@@ -37,7 +42,12 @@ export const buildOptimizedAssetsSource = (
     };
 
     if (asset.type === "pipe")
-      appendPipeAnalysisProps(asset as Pipe, feature, analysis.links);
+      appendPipeAnalysisProps(
+        asset as Pipe,
+        feature,
+        analysis.links,
+        quantities,
+      );
     if (asset.type === "junction")
       appendJunctionAnalysisProps(asset as Junction, feature, analysis.nodes);
     if (asset.type === "pump") {
@@ -125,6 +135,7 @@ const appendPipeAnalysisProps = (
   pipe: Pipe,
   feature: Feature,
   linkAnalysis: LinksAnalysis,
+  quantities: Quantities,
 ) => {
   if (linkAnalysis.type === "none") return;
 
@@ -136,7 +147,9 @@ const appendPipeAnalysisProps = (
 
   if (isFeatureOn("FLAG_LABELS") && !!linkAnalysis.labeling) {
     const unit = pipe.getUnit(property);
-    const localizedNumber = localizeDecimal(numericValue, { decimals: 3 });
+    const localizedNumber = localizeDecimal(numericValue, {
+      decimals: quantities.getDecimals(property as QuantityProperty),
+    });
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }

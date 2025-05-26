@@ -8,6 +8,7 @@ import {
   Sel,
   SimulationState,
   assetsAtom,
+  dataAtom,
   ephemeralStateAtom,
   layerConfigAtom,
   memoryMetaAtom,
@@ -41,6 +42,7 @@ import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemera
 import { AnalysisState, analysisAtom } from "src/state/analysis";
 import toast from "react-hot-toast";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { Quantities } from "src/model-metadata/quantities-spec";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -153,6 +155,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const mapState = useAtomValue(mapStateAtom);
 
   const assets = useAtomValue(assetsAtom);
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
@@ -198,6 +203,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         assets,
         idMap,
         mapState.analysis,
+        quantities,
       );
     }
 
@@ -213,6 +219,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         assets,
         idMap,
         mapState.analysis,
+        quantities,
       );
       const newHiddenFeatures = updateImportedSourceVisibility(
         map,
@@ -258,7 +265,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     map.setOverlay(ephemeralStateOverlays.current);
-  }, [mapState, assets, idMap, map, momentLog]);
+  }, [mapState, assets, idMap, map, momentLog, quantities]);
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -303,6 +310,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             idMap,
             mapState.analysis,
+            quantities,
           );
         }
 
@@ -318,6 +326,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             idMap,
             mapState.analysis,
+            quantities,
           );
           const newHiddenFeatures = updateImportedSourceVisibility(
             map,
@@ -368,7 +377,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         captureError(error as Error);
       }
     }, 0);
-  }, [mapState, assets, idMap, map, momentLog]);
+  }, [mapState, assets, idMap, map, momentLog, quantities]);
 
   if (isFeatureOn("FLAG_LABELS")) {
     doUpdates();
@@ -416,6 +425,7 @@ const updateImportSource = withInstrumentation(
     assets: AssetsMap,
     idMap: IDMap,
     analysisState: AnalysisState,
+    quantities: Quantities,
   ) => {
     const importSnapshot = momentLog.getSnapshot();
     if (!importSnapshot) {
@@ -433,6 +443,7 @@ const updateImportSource = withInstrumentation(
       importedAssets,
       idMap,
       analysisState,
+      quantities,
     );
     await map.setSource("imported-features", features);
   },
@@ -451,6 +462,7 @@ const updateEditionsSource = withInstrumentation(
     assets: AssetsMap,
     idMap: IDMap,
     analysisState: AnalysisState,
+    quantities: Quantities,
   ): Promise<Set<AssetId>> => {
     const editionMoments = momentLog.getDeltas();
 
@@ -461,6 +473,7 @@ const updateEditionsSource = withInstrumentation(
       editedAssets,
       idMap,
       analysisState,
+      quantities,
     );
     await map.setSource("features", features);
 

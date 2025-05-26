@@ -6,12 +6,13 @@ import {
   buildOptimizedAssetsSource,
 } from "./data-source";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
-import { presets } from "src/model-metadata/quantities-spec";
+import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
 import { aLinksAnalysis, aSymbology } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
 
 describe("build optimized source", () => {
+  const defaultQuantities = new Quantities(presets.LPS);
   it("preserves core properties", () => {
     const analysis = nullAnalysis;
     const { assets } = HydraulicModelBuilder.with()
@@ -26,6 +27,7 @@ describe("build optimized source", () => {
       assets,
       initIDMap(assets),
       analysis,
+      defaultQuantities,
     );
 
     expect(features).toHaveLength(2);
@@ -51,6 +53,7 @@ describe("build optimized source", () => {
       assets,
       initIDMap(assets),
       analysis,
+      defaultQuantities,
     );
 
     expect(features).toHaveLength(2);
@@ -82,6 +85,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [junction] = features;
@@ -119,6 +123,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [pipe] = features;
@@ -147,6 +152,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [pipe, reversed] = features;
@@ -181,6 +187,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [pipe] = features;
@@ -201,6 +208,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [p1, p2] = features;
@@ -224,6 +232,7 @@ describe("build optimized source", () => {
         assets,
         initIDMap(assets),
         analysis,
+        defaultQuantities,
       );
 
       const [p1] = features;
