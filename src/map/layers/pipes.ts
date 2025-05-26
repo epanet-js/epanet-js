@@ -70,6 +70,8 @@ export const pipeArrows = ({
         ? ["interpolate", ["linear"], ["zoom"], 14, 0.2, 24, 0.5]
         : ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
+      "icon-ignore-placement": isFeatureOn("FLAG_LABELS") ? true : false,
+      "icon-allow-overlap": isFeatureOn("FLAG_LABELS") ? true : false,
       visibility: "none",
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],
