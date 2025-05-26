@@ -67,7 +67,7 @@ export const pipeArrows = ({
       "symbol-placement": "line-center",
       "icon-image": "triangle",
       "icon-size": isFeatureOn("FLAG_LABELS")
-        ? ["interpolate", ["linear"], ["zoom"], 14, 0.2, 24, 0.5]
+        ? ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5]
         : ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
       "icon-rotate": ["get", "rotation"],
       "icon-ignore-placement": isFeatureOn("FLAG_LABELS") ? true : false,
