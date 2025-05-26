@@ -54,6 +54,7 @@ export const colors = {
   green800: "#166534",
   gray100: "#f3f4f6",
   gray300: "#d1d5db",
+  gray500: "#6b7280",
   gray600: "#4b5563",
   gray700: "#374151",
 };

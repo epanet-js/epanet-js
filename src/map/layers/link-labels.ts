@@ -20,7 +20,7 @@ export const linkLabelsLayer = ({
           "text-halo-color": "#fff",
           "text-halo-width": 2,
           "text-halo-blur": 0.8,
-          "text-color": colors.gray600,
+          "text-color": colors.gray500,
           "text-opacity": [
             "case",
             ["boolean", ["feature-state", "hidden"], false],
