@@ -120,6 +120,7 @@ export const AnalysisSettingsPanel = () => {
           {isFeatureOn("FLAG_LABELS") && nodesAnalysis.type !== "none" && (
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
+                aria-label={translate("showLabels")}
                 checked={!!nodesAnalysis.labeling}
                 onChange={() =>
                   handleNodesLabelingChange(
@@ -164,6 +165,7 @@ export const AnalysisSettingsPanel = () => {
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
                 checked={!!linksAnalysis.labeling}
+                aria-label={translate("showLabels")}
                 onChange={() =>
                   handleLinksLabelsChange(
                     !!linksAnalysis.labeling

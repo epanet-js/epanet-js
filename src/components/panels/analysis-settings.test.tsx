@@ -17,6 +17,7 @@ import {
   nodesAnalysisAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Analysis Settings Panel", () => {
   it("displays nodes analysis options", async () => {
@@ -139,6 +140,88 @@ describe("Analysis Settings Panel", () => {
     const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
     expect(nodesAnalysis.type).toEqual("pressure");
     expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+  });
+
+  it("can show and hide labels for nodes", async () => {
+    stubFeatureOn("FLAG_LABELS");
+    const simulation = aSimulationSuccess();
+    const previousAnalysis = aNodesAnalysis({
+      symbology: {
+        property: "pressure",
+        rampName: "PREVIOUS",
+      },
+      labeling: null,
+    });
+    const store = setInitialState({ simulation });
+    const analysesMap: AnalysesMap = new Map();
+    analysesMap.set(previousAnalysis.type, previousAnalysis);
+    store.set(savedAnalysesAtom, analysesMap);
+
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
+    await userEvent.click(screen.getByText(/pressure/i));
+
+    let nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
+    expect(nodesAnalysis.type).toEqual("pressure");
+    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+
+    await userEvent.click(
+      screen.getAllByRole("checkbox", { name: /show labels/i })[0],
+    );
+
+    nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
+    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodesAnalysis.labeling).toEqual("pressure");
+
+    await userEvent.click(
+      screen.getAllByRole("checkbox", { name: /show labels/i })[0],
+    );
+
+    nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
+    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodesAnalysis.labeling).toEqual(null);
+  });
+
+  it("can show and hide labels for links", async () => {
+    stubFeatureOn("FLAG_LABELS");
+    const simulation = aSimulationSuccess();
+    const previousAnalysis = aLinksAnalysis({
+      symbology: {
+        property: "flow",
+        rampName: "PREVIOUS",
+      },
+      labeling: null,
+    });
+    const store = setInitialState({ simulation });
+    const analysesMap: AnalysesMap = new Map();
+    analysesMap.set(previousAnalysis.type, previousAnalysis);
+    store.set(savedAnalysesAtom, analysesMap);
+
+    renderComponent(store);
+
+    await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
+    await userEvent.click(screen.getByText(/flow/i));
+
+    let linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
+    expect(linksAnalysis.type).toEqual("flow");
+    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
+
+    await userEvent.click(
+      screen.getAllByRole("checkbox", { name: /show labels/i })[0],
+    );
+
+    linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
+    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    expect(linksAnalysis.labeling).toEqual("flow");
+
+    await userEvent.click(
+      screen.getAllByRole("checkbox", { name: /show labels/i })[0],
+    );
+
+    linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
+    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    expect(linksAnalysis.labeling).toEqual(null);
   });
 
   const renderComponent = (store: Store) => {

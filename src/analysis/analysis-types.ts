@@ -20,6 +20,7 @@ export type Labeling = string | null;
 export type PropertyAnalysis = {
   type: string;
   symbology: RangeSymbology;
+  labeling: Labeling;
 };
 
 export type NodesAnalysis =
