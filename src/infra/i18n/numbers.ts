@@ -1,6 +1,4 @@
-import { isFeatureOn } from "../feature-flags";
 import { Locale, getLocale, symbols } from "./locale";
-import { localizeDecimalDeprecated } from "./numbers-deprecated";
 
 const maxDecimals = 6;
 const scientificThresholds = {
@@ -21,7 +19,7 @@ const getFormatter = (locale: string, decimals?: number): Intl.NumberFormat => {
   return cachedFormatters[key];
 };
 
-export const localizeDecimalImpl = (
+export const localizeDecimal = (
   num: number,
   {
     locale = getLocale(),
@@ -51,10 +49,6 @@ export const localizeDecimalImpl = (
 
   return formattedNum;
 };
-
-export const localizeDecimal = isFeatureOn("FLAG_LABELS")
-  ? localizeDecimalImpl
-  : localizeDecimalDeprecated;
 
 export const roundToDecimal = (num: number, decimalPlaces?: number): number => {
   return decimalPlaces === undefined ? num : applyRounding(num, decimalPlaces);

@@ -40,7 +40,6 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullAnalysis } from "src/analysis";
 import { mapLoadingAtom } from "./state";
@@ -162,110 +161,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
 
-  const doUpdatesDeprecated = useCallback(async () => {
-    if (!map) return;
-
-    if (mapState === previousMapStateRef.current) return;
-
-    const previousMapState = previousMapStateRef.current;
-    previousMapStateRef.current = mapState;
-
-    const changes = detectChanges(mapState, previousMapState);
-    const {
-      hasNewImport,
-      hasNewStyles,
-      hasNewEditions,
-      hasNewSelection,
-      hasNewEphemeralState,
-      hasNewAnalysis,
-      hasNewSimulation,
-    } = changes;
-
-    if (hasNewImport || hasNewStyles) {
-      resetMapState(map);
-      await updateLayerStyles(map, mapState.stylesConfig);
-    }
-
-    if (hasNewAnalysis || hasNewStyles) {
-      toggleAnalysisLayers(map, mapState.analysis);
-    }
-
-    if (
-      hasNewImport ||
-      hasNewStyles ||
-      hasNewAnalysis ||
-      (hasNewSimulation && mapState.simulation.status !== "running")
-    ) {
-      await updateImportSource(
-        map,
-        momentLog,
-        assets,
-        idMap,
-        mapState.analysis,
-        quantities,
-      );
-    }
-
-    if (
-      hasNewEditions ||
-      hasNewStyles ||
-      hasNewAnalysis ||
-      (hasNewSimulation && mapState.simulation.status !== "running")
-    ) {
-      const editedAssetIds = await updateEditionsSource(
-        map,
-        momentLog,
-        assets,
-        idMap,
-        mapState.analysis,
-        quantities,
-      );
-      const newHiddenFeatures = updateImportedSourceVisibility(
-        map,
-        lastHiddenFeatures.current,
-        editedAssetIds,
-        idMap,
-      );
-
-      lastHiddenFeatures.current = newHiddenFeatures;
-    }
-
-    if (
-      hasNewEditions ||
-      hasNewStyles ||
-      hasNewAnalysis ||
-      hasNewSelection ||
-      (hasNewSimulation && mapState.simulation.status !== "running")
-    ) {
-      await updateIconsSource(map, assets, idMap, mapState.selection);
-    }
-
-    if (hasNewEphemeralState) {
-      ephemeralStateOverlays.current = buildEphemeralStateOvelay(
-        map,
-        mapState.ephemeralState,
-      );
-      updateEditionsVisibility(
-        map,
-        previousMapState.movedAssetIds,
-        mapState.movedAssetIds,
-        lastHiddenFeatures.current,
-        idMap,
-      );
-    }
-
-    if (hasNewSelection && !hasNewImport) {
-      updateSelection(
-        map,
-        mapState.selection,
-        previousMapState.selection,
-        idMap,
-      );
-    }
-
-    map.setOverlay(ephemeralStateOverlays.current);
-  }, [mapState, assets, idMap, map, momentLog, quantities]);
-
   const doUpdates = useCallback(() => {
     if (!map) return;
 
@@ -379,11 +274,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }, 0);
   }, [mapState, assets, idMap, map, momentLog, quantities, setMapLoading]);
 
-  if (isFeatureOn("FLAG_LABELS")) {
-    doUpdates();
-  } else {
-    doUpdatesDeprecated().catch((e) => captureError(e));
-  }
+  doUpdates();
 };
 
 const resetMapState = withInstrumentation(

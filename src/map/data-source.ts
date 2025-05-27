@@ -10,7 +10,6 @@ import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { colorFor } from "src/analysis/range-symbology";
 import { strokeColorFor } from "src/lib/color";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { translateUnit } from "src/infra/i18n";
 import {
@@ -151,7 +150,7 @@ const appendPipeAnalysisProps = (
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
-  if (isFeatureOn("FLAG_LABELS") && !!linkAnalysis.labeling) {
+  if (!!linkAnalysis.labeling) {
     const labelProperty = linkAnalysis.labeling;
     const unit = pipe.getUnit(labelProperty);
     const localizedNumber = localizeDecimal(numericValue, {
@@ -181,7 +180,7 @@ const appendJunctionAnalysisProps = (
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
 
-  if (isFeatureOn("FLAG_LABELS") && !!nodesAnalysis.labeling) {
+  if (!!nodesAnalysis.labeling) {
     const unit = junction.getUnit(property as JunctionQuantity);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(property as QuantityProperty),

@@ -48,7 +48,6 @@ import { Hints } from "src/components/Hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { MapLoading } from "./map-loader";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -366,7 +365,7 @@ export const MapCanvas = memo(function MapCanvas({
       <MapContextMenu contextInfo={contextInfo} />
       <LastSearchResult />
       <Hints />
-      {isFeatureOn("FLAG_LABELS") && <MapLoading />}
+      <MapLoading />
       <SatelliteToggle />
       <SatelliteResolutionMessage zoom={zoom} />
     </CM.Root>

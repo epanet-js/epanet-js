@@ -1,4 +1,4 @@
-import { localizeDecimalImpl as localizeDecimal } from "./numbers";
+import { localizeDecimal } from "./numbers";
 
 describe("localize decimal", () => {
   it("shows decimals when available", () => {

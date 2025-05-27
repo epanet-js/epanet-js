@@ -45,7 +45,6 @@ import {
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery as reactUseQuery } from "react-query";
 import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
-import toast from "react-hot-toast";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
@@ -204,12 +203,6 @@ function MapboxLayer({
     }
     const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
       maybeDeleteOldMapboxLayer(items);
-    if (oldMapboxLayer && !isFeatureOn("FLAG_LABELS")) {
-      oldMapboxLayer.isBasemap
-        ? toast("Basemap replaced with custom mapbox layer")
-        : toast("Mapbox layer replaced");
-    }
-
     userTracking.capture({ name: "customLayer.added", type: "MAPBOX" });
     applyChanges({
       deleteLayerConfigs,
@@ -392,50 +385,26 @@ function XYZLayer({
       initialValues={initialValues}
       submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
       fullWidthSubmit
-      onSubmit={async (values) => {
+      onSubmit={(values) => {
         userTracking.capture({
           name: "customLayer.added",
           type: "XYZ",
         });
-        if (isFeatureOn("FLAG_LABELS")) {
-          applyChanges({
-            putLayerConfigs: [
-              {
-                ...values,
-                at: layer?.at || getNextAt(items),
-                id: values.id || newFeatureId(),
-              },
-            ],
-          });
-        } else {
-          await toast.promise(
-            Promise.resolve(
-              applyChanges({
-                putLayerConfigs: [
-                  {
-                    ...values,
-                    at: layer?.at || getNextAt(items),
-                    id: values.id || newFeatureId(),
-                  },
-                ],
-              }),
-            ),
+        applyChanges({
+          putLayerConfigs: [
             {
-              loading: isEditing
-                ? translate("updatingLayer")
-                : translate("addingLayer"),
-              success: isEditing
-                ? translate("layerUpdated")
-                : translate("layerAdded"),
-              error: "Error",
+              ...values,
+              at: layer?.at || getNextAt(items),
+              id: values.id || newFeatureId(),
             },
-          );
-        }
+          ],
+        });
 
         setMode("custom");
         if (onDone) {
           onDone();
         }
+        return Promise.resolve();
       }}
     >
       <LayerFormHeader isEditing={isEditing}>XYZ</LayerFormHeader>
@@ -630,9 +599,6 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
           onSelect={(layer) => {
             const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length && !isFeatureOn("FLAG_LABELS")) {
-              toast("Basemap changed");
-            }
             userTracking.capture({
               name: "baseMap.changed",
               newBasemap: layer.name,
@@ -816,9 +782,6 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
             const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length && !isFeatureOn("FLAG_LABELS")) {
-              toast("Basemap changed");
-            }
             userTracking.capture({
               name: "baseMap.changed",
               newBasemap: name,

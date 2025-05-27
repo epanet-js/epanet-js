@@ -4,7 +4,6 @@ import { ISymbology } from "src/types";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const pipesLayer = ({
   source,
@@ -66,12 +65,10 @@ export const pipeArrows = ({
     layout: {
       "symbol-placement": "line-center",
       "icon-image": "triangle",
-      "icon-size": isFeatureOn("FLAG_LABELS")
-        ? ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5]
-        : ["interpolate", ["linear"], ["zoom"], 14, 0.2, 20, 0.5],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5],
       "icon-rotate": ["get", "rotation"],
-      "icon-ignore-placement": isFeatureOn("FLAG_LABELS") ? true : false,
-      "icon-allow-overlap": isFeatureOn("FLAG_LABELS") ? true : false,
+      "icon-ignore-placement": true,
+      "icon-allow-overlap": true,
       visibility: "none",
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],

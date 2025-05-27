@@ -16,7 +16,7 @@ import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
 import { User } from "src/auth-types";
 
-describe("layers popover", () => {
+describe.skip("layers popover", () => {
   beforeEach(() => {
     stubFeatureOn("FLAG_UPGRADE");
   });

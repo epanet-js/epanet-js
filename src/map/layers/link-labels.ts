@@ -1,6 +1,5 @@
 import { SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { colors } from "src/lib/constants";
 
 export const linkLabelsLayer = ({
@@ -8,8 +7,6 @@ export const linkLabelsLayer = ({
 }: {
   sources: DataSource[];
 }): SymbolLayer[] => {
-  if (!isFeatureOn("FLAG_LABELS")) return [];
-
   return sources.map(
     (source) =>
       ({

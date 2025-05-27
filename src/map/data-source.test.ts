@@ -14,7 +14,6 @@ import {
   aSymbology,
 } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
@@ -98,7 +97,6 @@ describe("build optimized source", () => {
     });
 
     it("includes labels when specified", () => {
-      stubFeatureOn("FLAG_LABELS");
       const analysis: AnalysisState = {
         ...nullAnalysis,
         nodes: aNodesAnalysis({
@@ -165,7 +163,6 @@ describe("build optimized source", () => {
     });
 
     it("includes labels to pipes", () => {
-      stubFeatureOn("FLAG_LABELS");
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: aLinksAnalysis({

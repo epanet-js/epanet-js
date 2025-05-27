@@ -17,7 +17,6 @@ import {
   nodesAnalysisAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("Analysis Settings Panel", () => {
   it("displays nodes analysis options", async () => {
@@ -143,7 +142,6 @@ describe("Analysis Settings Panel", () => {
   });
 
   it("can show and hide labels for nodes", async () => {
-    stubFeatureOn("FLAG_LABELS");
     const simulation = aSimulationSuccess();
     const previousAnalysis = aNodesAnalysis({
       symbology: {
@@ -184,7 +182,6 @@ describe("Analysis Settings Panel", () => {
   });
 
   it("can show and hide labels for links", async () => {
-    stubFeatureOn("FLAG_LABELS");
     const simulation = aSimulationSuccess();
     const previousAnalysis = aLinksAnalysis({
       symbology: {
