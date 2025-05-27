@@ -31,6 +31,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       unit: hydraulicModel.units.diameter,
       rampName: "SunsetDark",
       mode: "prettyBreaks",
+      numIntervals: 7,
       sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
     });
     return { type: "diameter", symbology, labeling: nullLabeling };
