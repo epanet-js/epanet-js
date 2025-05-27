@@ -1,4 +1,4 @@
-import { atom, useAtomValue } from "jotai";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useRef } from "react";
 import { Layer as DeckLayer } from "@deck.gl/core";
 import { Moment } from "src/lib/persistence/moment";
@@ -40,10 +40,10 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { AnalysisState, analysisAtom } from "src/state/analysis";
-import toast from "react-hot-toast";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullAnalysis } from "src/analysis";
+import { mapLoadingAtom } from "./state";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -151,6 +151,7 @@ const detectChanges = (
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
   const mapState = useAtomValue(mapStateAtom);
+  const setMapLoading = useSetAtom(mapLoadingAtom);
 
   const assets = useAtomValue(assetsAtom);
   const {
@@ -270,7 +271,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
     if (mapState === previousMapStateRef.current) return;
 
-    toast.loading("Loading", { id: "map-state" });
+    setMapLoading(true);
     setTimeout(async () => {
       try {
         const previousMapState = previousMapStateRef.current;
@@ -370,12 +371,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         map.setOverlay(ephemeralStateOverlays.current);
-        toast.remove("map-state");
+        setMapLoading(false);
       } catch (error) {
         captureError(error as Error);
+        setMapLoading(false);
       }
     }, 0);
-  }, [mapState, assets, idMap, map, momentLog, quantities]);
+  }, [mapState, assets, idMap, map, momentLog, quantities, setMapLoading]);
 
   if (isFeatureOn("FLAG_LABELS")) {
     doUpdates();

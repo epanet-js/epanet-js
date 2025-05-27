@@ -1,0 +1,30 @@
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { useAtomValue } from "jotai";
+import { mapLoadingAtom } from "./state";
+import { useRef } from "react";
+
+export const MapLoading = () => {
+  const mapLoading = useAtomValue(mapLoadingAtom);
+  const ref = useRef();
+
+  const opacityClass = mapLoading ? "opacity-100" : "opacity-0";
+  return (
+    <div className="absolute right-3 top-3 mx-auto mb-2">
+      <div
+        key={ref.current}
+        className={`flex items-center gap-x-2 bg-black bg-opacity-30 text-white
+            px-3 py-1
+            rounded
+            font-semibold
+            text-sm
+            select-none
+            transition-opacity duration-1000
+            ${opacityClass}
+            pointer-events-none`}
+      >
+        <ReloadIcon className="animate-spin" />
+        Loading...
+      </div>
+    </div>
+  );
+};
