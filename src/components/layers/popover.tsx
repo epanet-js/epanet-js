@@ -47,7 +47,6 @@ import { useQuery as reactUseQuery } from "react-query";
 import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { match } from "ts-pattern";
-import { zTileJSON } from "src/mapbox-layers/validations";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
@@ -57,6 +56,7 @@ import { translate } from "src/infra/i18n";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
+import { zTileJSON } from "src/lib/tile-json";
 
 type Mode =
   | "custom"

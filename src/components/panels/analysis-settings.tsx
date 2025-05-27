@@ -136,13 +136,20 @@ export const AnalysisSettingsPanel = () => {
         <PanelDetails title={translate("links")}>
           <Selector
             ariaLabel={translate("links")}
-            options={(
-              [
-                "none",
-                "flow",
-                "velocity",
-                "unitHeadloss",
-              ] as LinksAnalysis["type"][]
+            options={(isFeatureOn("FLAG_DIAMETER")
+              ? ([
+                  "none",
+                  "diameter",
+                  "flow",
+                  "velocity",
+                  "unitHeadloss",
+                ] as LinksAnalysis["type"][])
+              : ([
+                  "none",
+                  "flow",
+                  "velocity",
+                  "unitHeadloss",
+                ] as LinksAnalysis["type"][])
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),

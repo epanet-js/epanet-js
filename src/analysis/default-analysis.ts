@@ -7,6 +7,7 @@ import { nullLabeling } from "./labeling";
 
 type DefaultAnalysisBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
+  diameter: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
   unitHeadloss: (
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
@@ -23,6 +24,16 @@ type DefaultAnalysisBuilders = {
 export const defaultAnalysis: DefaultAnalysisBuilders = {
   none: () => () => {
     return { type: "none", labeling: nullLabeling };
+  },
+  diameter: (hydraulicModel: HydraulicModel) => (): LinksAnalysis => {
+    const symbology = initializeSymbology({
+      property: "diameter",
+      unit: hydraulicModel.units.diameter,
+      rampName: "SunsetDark",
+      mode: "prettyBreaks",
+      sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
+    });
+    return { type: "diameter", symbology, labeling: nullLabeling };
   },
 
   flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {

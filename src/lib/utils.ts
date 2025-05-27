@@ -6,9 +6,9 @@ import { EitherAsync } from "purify-ts/EitherAsync";
 import { Promisable } from "type-fest";
 import { SafeParseReturnType, z } from "zod";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
-import { zTileJSON } from "src/mapbox-layers/validations";
 import { ILayerConfig } from "src/types";
 import { translate } from "src/infra/i18n";
+import { zTileJSON } from "./tile-json";
 
 /**
  * Used for the "title" tag so that if we change
