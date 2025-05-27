@@ -204,7 +204,7 @@ function MapboxLayer({
     }
     const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
       maybeDeleteOldMapboxLayer(items);
-    if (oldMapboxLayer) {
+    if (oldMapboxLayer && !isFeatureOn("FLAG_LABELS")) {
       oldMapboxLayer.isBasemap
         ? toast("Basemap replaced with custom mapbox layer")
         : toast("Mapbox layer replaced");
@@ -397,28 +397,40 @@ function XYZLayer({
           name: "customLayer.added",
           type: "XYZ",
         });
-        await toast.promise(
-          Promise.resolve(
-            applyChanges({
-              putLayerConfigs: [
-                {
-                  ...values,
-                  at: layer?.at || getNextAt(items),
-                  id: values.id || newFeatureId(),
-                },
-              ],
-            }),
-          ),
-          {
-            loading: isEditing
-              ? translate("updatingLayer")
-              : translate("addingLayer"),
-            success: isEditing
-              ? translate("layerUpdated")
-              : translate("layerAdded"),
-            error: "Error",
-          },
-        );
+        if (isFeatureOn("FLAG_LABELS")) {
+          applyChanges({
+            putLayerConfigs: [
+              {
+                ...values,
+                at: layer?.at || getNextAt(items),
+                id: values.id || newFeatureId(),
+              },
+            ],
+          });
+        } else {
+          await toast.promise(
+            Promise.resolve(
+              applyChanges({
+                putLayerConfigs: [
+                  {
+                    ...values,
+                    at: layer?.at || getNextAt(items),
+                    id: values.id || newFeatureId(),
+                  },
+                ],
+              }),
+            ),
+            {
+              loading: isEditing
+                ? translate("updatingLayer")
+                : translate("addingLayer"),
+              success: isEditing
+                ? translate("layerUpdated")
+                : translate("layerAdded"),
+              error: "Error",
+            },
+          );
+        }
 
         setMode("custom");
         if (onDone) {
@@ -618,7 +630,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
           onSelect={(layer) => {
             const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length) {
+            if (deleteLayerConfigs.length && !isFeatureOn("FLAG_LABELS")) {
               toast("Basemap changed");
             }
             userTracking.capture({
@@ -804,7 +816,7 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
             const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
               maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length) {
+            if (deleteLayerConfigs.length && !isFeatureOn("FLAG_LABELS")) {
               toast("Basemap changed");
             }
             userTracking.capture({

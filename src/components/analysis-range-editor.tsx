@@ -140,9 +140,10 @@ export const AnalysisRangeEditor = ({
   const [error, setError] = useState<ErrorType | null>(null);
 
   const submitChange = (newSymbology: RangeSymbology) => {
-    toast.success(translate("updated"), {
-      id: "symbology",
-    });
+    if (!isFeatureOn("FLAG_LABELS"))
+      toast.success(translate("updated"), {
+        id: "symbology",
+      });
     onChange(newSymbology);
   };
 
