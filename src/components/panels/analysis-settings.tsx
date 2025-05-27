@@ -9,7 +9,6 @@ import { AnalysisType } from "src/analysis/analysis-types";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -134,20 +133,14 @@ export const AnalysisSettingsPanel = () => {
         <PanelDetails title={translate("links")}>
           <Selector
             ariaLabel={translate("links")}
-            options={(isFeatureOn("FLAG_DIAMETER")
-              ? ([
-                  "none",
-                  "diameter",
-                  "flow",
-                  "velocity",
-                  "unitHeadloss",
-                ] as LinksAnalysis["type"][])
-              : ([
-                  "none",
-                  "flow",
-                  "velocity",
-                  "unitHeadloss",
-                ] as LinksAnalysis["type"][])
+            options={(
+              [
+                "none",
+                "diameter",
+                "flow",
+                "velocity",
+                "unitHeadloss",
+              ] as LinksAnalysis["type"][]
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),
