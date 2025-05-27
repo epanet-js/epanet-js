@@ -49,10 +49,36 @@ export const AnalysisSettingsPanel = () => {
   };
 
   const handleLinksLabelsChange = (label: string | null) => {
+    if (label !== null) {
+      userTracking.capture({
+        name: "map.labels.shown",
+        type: "links",
+        subtype: label,
+      });
+    }
+    if (label === null) {
+      userTracking.capture({
+        name: "map.labels.hidden",
+        type: "links",
+      });
+    }
     updateLinksAnalysis({ ...linksAnalysis, labeling: label });
   };
 
   const handleNodesLabelingChange = (label: string | null) => {
+    if (label !== null) {
+      userTracking.capture({
+        name: "map.labels.shown",
+        type: "nodes",
+        subtype: label,
+      });
+    }
+    if (label === null) {
+      userTracking.capture({
+        name: "map.labels.hidden",
+        type: "nodes",
+      });
+    }
     updateNodesAnalysis({ ...nodesAnalysis, labeling: label });
   };
 

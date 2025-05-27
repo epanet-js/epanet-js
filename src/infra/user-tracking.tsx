@@ -362,6 +362,8 @@ type UserEvent =
   | PageReloaded
   | LayersPopoverOpened
   | LayerOpacityChanged
+  | { name: "map.labels.shown"; type: string; subtype: string }
+  | { name: "map.labels.hidden"; type: string }
   | { name: "analysis.rangeMode.changed"; mode: string; property: string }
   | { name: "analysis.classes.changed"; classesCount: number; property: string }
   | { name: "analysis.break.updated"; breakValue: number; property: string }
