@@ -91,7 +91,7 @@ export class MemPersistence implements IPersistence {
       });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(simulationAtom, { status: "idle" });
-      this.store.set(nodesAnalysisAtom, { type: "none" });
+      this.store.set(nodesAnalysisAtom, { type: "none", labeling: null });
       this.store.set(linksAnalysisAtom, { type: "none", labeling: null });
       this.store.set(savedAnalysesAtom, new Map());
     };

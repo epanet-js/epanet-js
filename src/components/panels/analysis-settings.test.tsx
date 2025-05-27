@@ -121,8 +121,10 @@ describe("Analysis Settings Panel", () => {
   it("uses a previous nodes analysis when available", async () => {
     const simulation = aSimulationSuccess();
     const previousAnalysis = aNodesAnalysis({
-      property: "pressure",
-      rampName: "PREVIOUS",
+      symbology: {
+        property: "pressure",
+        rampName: "PREVIOUS",
+      },
     });
     const store = setInitialState({ simulation });
     const analysesMap: AnalysesMap = new Map();

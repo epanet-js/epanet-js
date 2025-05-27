@@ -27,8 +27,10 @@ describe("analysis range editor", () => {
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -57,9 +59,11 @@ describe("analysis range editor", () => {
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalQuantiles",
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "equalQuantiles",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -95,8 +99,10 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -121,8 +127,10 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      property: "pressure",
-      colors: [red, green, blue],
+      symbology: {
+        property: "pressure",
+        colors: [red, green, blue],
+      },
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -147,10 +155,12 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      property: "pressure",
-      mode: "prettyBreaks",
-      breaks: [20, 40],
-      colors: [red, green, blue],
+      symbology: {
+        property: "pressure",
+        mode: "prettyBreaks",
+        breaks: [20, 40],
+        colors: [red, green, blue],
+      },
     });
 
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
@@ -169,9 +179,11 @@ describe("analysis range editor", () => {
   it("can apply different ramp color", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "prettyBreaks",
-      breaks: [2, 3],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "prettyBreaks",
+        breaks: [2, 3],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -193,9 +205,11 @@ describe("analysis range editor", () => {
   it("can prepend breaks", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalQuantiles",
-      breaks: [10, 20],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "equalQuantiles",
+        breaks: [10, 20],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -236,8 +250,10 @@ describe("analysis range editor", () => {
   it("can append breaks", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [10, 20],
-      colors: [red, green, blue],
+      symbology: {
+        breaks: [10, 20],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -266,8 +282,10 @@ describe("analysis range editor", () => {
   it("can delete a break", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      colors: [red, green, blue, white],
-      breaks: [2, 3, 4],
+      symbology: {
+        colors: [red, green, blue, white],
+        breaks: [2, 3, 4],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -283,8 +301,10 @@ describe("analysis range editor", () => {
   it("can reverse colors", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [2, 3],
-      colors: [red, green, blue],
+      symbology: {
+        breaks: [2, 3],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -307,9 +327,11 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "prettyBreaks",
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "prettyBreaks",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ hydraulicModel, nodesAnalysis });
 
@@ -330,8 +352,10 @@ describe("analysis range editor", () => {
   it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      breaks: [10, 20, 30],
-      colors: [white, red, green, blue],
+      symbology: {
+        breaks: [10, 20, 30],
+        colors: [white, red, green, blue],
+      },
     });
 
     const store = setInitialState({ nodesAnalysis });
@@ -388,9 +412,11 @@ describe("analysis range editor", () => {
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalQuantiles",
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "equalQuantiles",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -404,9 +430,11 @@ describe("analysis range editor", () => {
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      mode: "equalIntervals",
-      breaks: [20, 30],
-      colors: [red, green, blue],
+      symbology: {
+        mode: "equalIntervals",
+        breaks: [20, 30],
+        colors: [red, green, blue],
+      },
     });
     const store = setInitialState({ nodesAnalysis });
 
@@ -495,8 +523,10 @@ describe("analysis range editor", () => {
   it("preserves nodes settings for later", async () => {
     const user = userEvent.setup();
     const nodesAnalysis = aNodesAnalysis({
-      property: "pressure",
-      rampName: "Temps",
+      symbology: {
+        property: "pressure",
+        rampName: "Temps",
+      },
     });
 
     const store = setInitialState({ nodesAnalysis });

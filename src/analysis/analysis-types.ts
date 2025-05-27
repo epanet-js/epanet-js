@@ -18,10 +18,11 @@ export type PropertyAnalysis = {
 };
 
 export type NodesAnalysis =
-  | { type: "none" }
+  | { type: "none"; labeling: Labeling }
   | {
       type: "elevation" | "pressure";
       symbology: RangeSymbology;
+      labeling: Labeling;
     };
 
 export type LinksAnalysis =
@@ -39,5 +40,5 @@ export type AnalysisState = {
 
 export const nullAnalysis: AnalysisState = {
   links: { type: "none", labeling: null },
-  nodes: { type: "none" },
+  nodes: { type: "none", labeling: null },
 };

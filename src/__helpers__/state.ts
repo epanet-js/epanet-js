@@ -34,7 +34,7 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
-  nodesAnalysis = { type: "none" },
+  nodesAnalysis = { type: "none", labeling: null },
   linksAnalysis = { type: "none", labeling: null },
 }: {
   store?: Store;
@@ -117,13 +117,18 @@ export const aSingleSelection = ({
   };
 };
 
-export const aNodesAnalysis = (
-  symbologyData: Partial<RangeSymbology>,
-): NodesAnalysis => {
-  const symbology = aSymbology(symbologyData);
+export const aNodesAnalysis = ({
+  symbology: partialSymbology,
+  labeling = null,
+}: {
+  symbology: Partial<RangeSymbology>;
+  labeling?: Labeling;
+}): NodesAnalysis => {
+  const symbology = aSymbology(partialSymbology);
   return {
     type: symbology.property as NodesAnalysis["type"],
     symbology,
+    labeling,
   };
 };
 

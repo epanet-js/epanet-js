@@ -26,6 +26,7 @@ export const AnalysisSettingsPanel = () => {
     switchNodesAnalysisTo,
     switchLinksAnalysisTo,
     updateLinksAnalysis,
+    updateNodesAnalysis,
   } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
   const {
@@ -51,6 +52,10 @@ export const AnalysisSettingsPanel = () => {
     updateLinksAnalysis({ ...linksAnalysis, labeling: label });
   };
 
+  const handleNodesLabelingChange = (label: string | null) => {
+    updateNodesAnalysis({ ...nodesAnalysis, labeling: label });
+  };
+
   const handleNodesChange = (type: NodesAnalysis["type"]) => {
     userTracking.capture({
       name: "analysis.applied",
@@ -58,7 +63,10 @@ export const AnalysisSettingsPanel = () => {
       subtype: type,
     });
 
-    switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
+    switchNodesAnalysisTo(
+      type,
+      defaultAnalysis[type](hydraulicModel) as () => NodesAnalysis,
+    );
   };
 
   return (
@@ -83,6 +91,21 @@ export const AnalysisSettingsPanel = () => {
             selected={nodesAnalysis.type}
             onChange={handleNodesChange}
           />
+          {isFeatureOn("FLAG_LABELS") && nodesAnalysis.type !== "none" && (
+            <div className="py-4 text-sm flex items-center gap-x-2 ">
+              <Checkbox
+                checked={!!nodesAnalysis.labeling}
+                onChange={() =>
+                  handleNodesLabelingChange(
+                    !!nodesAnalysis.labeling
+                      ? null
+                      : nodesAnalysis.symbology.property,
+                  )
+                }
+              />
+              {translate("showLabels")}
+            </div>
+          )}
         </PanelDetails>
         <PanelDetails title={translate("links")}>
           <Selector

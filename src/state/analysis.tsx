@@ -6,7 +6,10 @@ export type { AnalysisState };
 export type AnalysesMap = Map<string, NodesAnalysis | LinksAnalysis>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
-export const nodesAnalysisAtom = atom<NodesAnalysis>({ type: "none" });
+export const nodesAnalysisAtom = atom<NodesAnalysis>({
+  type: "none",
+  labeling: null,
+});
 export const linksAnalysisAtom = atom<LinksAnalysis>({
   type: "none",
   labeling: null,

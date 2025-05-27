@@ -77,7 +77,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
     });
-    return { type: "pressure", symbology };
+    return { type: "pressure", symbology, labeling: nullLabeling };
   },
   elevation: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
     const symbology = initializeSymbology({
@@ -88,6 +88,6 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
     });
-    return { type: "elevation", symbology };
+    return { type: "elevation", symbology, labeling: nullLabeling };
   },
 };

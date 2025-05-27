@@ -43,6 +43,7 @@ import { AnalysisState, analysisAtom } from "src/state/analysis";
 import toast from "react-hot-toast";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { Quantities } from "src/model-metadata/quantities-spec";
+import { nullAnalysis } from "src/analysis";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -83,10 +84,7 @@ const nullMapState: MapState = {
   },
   selection: { type: "none" },
   ephemeralState: { type: "none" },
-  analysis: {
-    nodes: { type: "none" },
-    links: { type: "none", labeling: null },
-  },
+  analysis: nullAnalysis,
   simulation: { status: "idle" },
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),

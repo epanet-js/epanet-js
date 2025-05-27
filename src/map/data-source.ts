@@ -17,6 +17,7 @@ import {
   Quantities,
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
+import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -49,7 +50,12 @@ export const buildOptimizedAssetsSource = (
         quantities,
       );
     if (asset.type === "junction")
-      appendJunctionAnalysisProps(asset as Junction, feature, analysis.nodes);
+      appendJunctionAnalysisProps(
+        asset as Junction,
+        feature,
+        analysis.nodes,
+        quantities,
+      );
     if (asset.type === "pump") {
       const pump = asset as Pump;
       feature.properties!.status = pump.status
@@ -166,12 +172,22 @@ const appendJunctionAnalysisProps = (
   junction: Junction,
   feature: Feature,
   nodesAnalysis: NodesAnalysis,
+  quantities: Quantities,
 ) => {
   if (nodesAnalysis.type === "none") return;
 
   const property = nodesAnalysis.symbology.property;
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
+
+  if (isFeatureOn("FLAG_LABELS") && !!nodesAnalysis.labeling) {
+    const unit = junction.getUnit(property as JunctionQuantity);
+    const localizedNumber = localizeDecimal(numericValue, {
+      decimals: quantities.getDecimals(property as QuantityProperty),
+    });
+    const unitText = unit ? translateUnit(unit) : "";
+    feature.properties!.label = `${localizedNumber} ${unitText}`;
+  }
 
   const fillColor = colorFor(nodesAnalysis.symbology, numericValue);
   const strokeColor = strokeColorFor(fillColor);

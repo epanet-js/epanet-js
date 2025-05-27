@@ -8,7 +8,11 @@ import {
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
-import { aLinksAnalysis, aSymbology } from "src/__helpers__/state";
+import {
+  aLinksAnalysis,
+  aNodesAnalysis,
+  aSymbology,
+} from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
 
 describe("build optimized source", () => {
@@ -65,15 +69,14 @@ describe("build optimized source", () => {
   describe("when nodes analysis enabled", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
-      nodes: {
-        type: "pressure",
+      nodes: aNodesAnalysis({
         symbology: aSymbology({
           breaks: [10, 20, 30],
           property: "pressure",
           unit: "m",
           colors: getColors("Temps", 4),
         }),
-      },
+      }),
     };
 
     it("includes props for styling to junctions", () => {
