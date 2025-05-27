@@ -2,7 +2,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
-import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
+import { Labeling, LinksAnalysis, NodesAnalysis } from "./analysis-types";
 import { nullLabeling } from "./labeling";
 
 type DefaultAnalysisBuilders = {
@@ -18,7 +18,7 @@ type DefaultAnalysisBuilders = {
   ) => () => LinksAnalysis;
   pressure: (hydraulicModel: HydraulicModel) => () => NodesAnalysis;
   elevation: (HydraulicModel: HydraulicModel) => () => NodesAnalysis;
-  none: () => () => { type: "none" };
+  none: () => () => { type: "none"; labeling: Labeling };
 };
 
 export const defaultAnalysis: DefaultAnalysisBuilders = {

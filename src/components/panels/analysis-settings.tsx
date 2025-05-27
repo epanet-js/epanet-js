@@ -44,7 +44,7 @@ export const AnalysisSettingsPanel = () => {
 
     switchLinksAnalysisTo(
       type,
-      defaultAnalysis[type](hydraulicModel, quantities) as () => LinksAnalysis,
+      defaultAnalysis[type](hydraulicModel, quantities),
     );
   };
 
@@ -89,10 +89,7 @@ export const AnalysisSettingsPanel = () => {
       subtype: type,
     });
 
-    switchNodesAnalysisTo(
-      type,
-      defaultAnalysis[type](hydraulicModel) as () => NodesAnalysis,
-    );
+    switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
   };
 
   return (
