@@ -14,6 +14,7 @@ import {
   aSymbology,
 } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
@@ -67,19 +68,18 @@ describe("build optimized source", () => {
   });
 
   describe("when nodes analysis enabled", () => {
-    const analysis: AnalysisState = {
-      ...nullAnalysis,
-      nodes: aNodesAnalysis({
-        symbology: aSymbology({
-          breaks: [10, 20, 30],
-          property: "pressure",
-          unit: "m",
-          colors: getColors("Temps", 4),
-        }),
-      }),
-    };
-
     it("includes props for styling to junctions", () => {
+      const analysis: AnalysisState = {
+        ...nullAnalysis,
+        nodes: aNodesAnalysis({
+          symbology: aSymbology({
+            breaks: [10, 20, 30],
+            property: "pressure",
+            unit: "m",
+            colors: getColors("Temps", 4),
+          }),
+        }),
+      };
       const { assets } = HydraulicModelBuilder.with()
         .aJunction("J1", { elevation: 15, simulation: { pressure: 10 } })
         .build();
@@ -95,6 +95,29 @@ describe("build optimized source", () => {
       expect(junction.properties!.type).toEqual("junction");
       expect(junction.properties!.color).not.toBeUndefined();
       expect(junction.properties!.strokeColor).not.toBeUndefined();
+    });
+
+    it("includes labels when specified", () => {
+      stubFeatureOn("FLAG_LABELS");
+      const analysis: AnalysisState = {
+        ...nullAnalysis,
+        nodes: aNodesAnalysis({
+          labeling: "pressure",
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction("J1", { elevation: 15, simulation: { pressure: 10 } })
+        .build();
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        initIDMap(assets),
+        analysis,
+        defaultQuantities,
+      );
+
+      const [junction] = features;
+      expect(junction.properties!.label).toEqual("10 m");
     });
   });
 
@@ -139,6 +162,37 @@ describe("build optimized source", () => {
           rotation: 0,
         }),
       );
+    });
+
+    it("includes labels to pipes", () => {
+      stubFeatureOn("FLAG_LABELS");
+      const analysis: AnalysisState = {
+        ...nullAnalysis,
+        links: aLinksAnalysis({
+          labeling: "flow",
+        }),
+      };
+
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe("ID", {
+          diameter: 300,
+          status: "open",
+          length: 14,
+          simulation: { flow: -10 },
+        })
+        .build();
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        initIDMap(assets),
+        analysis,
+        defaultQuantities,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties).toMatchObject({
+        label: "-10 l/s",
+      });
     });
 
     it("reverses arrow when value is negative", () => {

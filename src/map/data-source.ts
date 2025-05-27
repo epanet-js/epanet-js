@@ -152,9 +152,10 @@ const appendPipeAnalysisProps = (
   const numericValue = value !== null ? value : 0;
 
   if (isFeatureOn("FLAG_LABELS") && !!linkAnalysis.labeling) {
-    const unit = pipe.getUnit(property);
+    const labelProperty = linkAnalysis.labeling;
+    const unit = pipe.getUnit(labelProperty);
     const localizedNumber = localizeDecimal(numericValue, {
-      decimals: quantities.getDecimals(property as QuantityProperty),
+      decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;

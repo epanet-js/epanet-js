@@ -118,10 +118,10 @@ export const aSingleSelection = ({
 };
 
 export const aNodesAnalysis = ({
-  symbology: partialSymbology,
+  symbology: partialSymbology = {},
   labeling = null,
 }: {
-  symbology: Partial<RangeSymbology>;
+  symbology?: Partial<RangeSymbology>;
   labeling?: Labeling;
 }): NodesAnalysis => {
   const symbology = aSymbology(partialSymbology);
@@ -133,13 +133,13 @@ export const aNodesAnalysis = ({
 };
 
 export const aLinksAnalysis = ({
-  symbology: partialSymbology,
+  symbology: partialSymbology = {},
   labeling = null,
 }: {
-  symbology: Partial<RangeSymbology>;
+  symbology?: Partial<RangeSymbology>;
   labeling?: Labeling;
 }): LinksAnalysis => {
-  const symbology = aSymbology(partialSymbology);
+  const symbology = aSymbology({ property: "flow", ...partialSymbology });
   return {
     type: symbology.property as LinksAnalysis["type"],
     symbology,
