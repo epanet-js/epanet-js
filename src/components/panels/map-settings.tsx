@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+import * as Popover from "@radix-ui/react-popover";
 import { translate } from "src/infra/i18n";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
@@ -9,6 +10,9 @@ import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
+import { RangeSymbologyEditor } from "../range-symbology-editor";
+import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
+import { RangeMode } from "src/analysis/range-symbology";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -113,6 +117,13 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
             <>
+              <PanelItem name="Intervals">
+                <RangeSymbologyEditorTrigger
+                  mode={nodesAnalysis.symbology.mode}
+                  numIntervals={nodesAnalysis.symbology.breaks.length + 1}
+                  geometryType="node"
+                />
+              </PanelItem>
               <PanelItem name="Ramp">
                 <ColorRampSelector geometryType="node" />
               </PanelItem>
@@ -213,5 +224,37 @@ const PanelItem = ({
 
       <div className="flex-1">{children}</div>
     </div>
+  );
+};
+
+const RangeSymbologyEditorTrigger = ({
+  geometryType,
+  mode,
+  numIntervals,
+}: {
+  geometryType: "node" | "link";
+  mode: RangeMode;
+  numIntervals: number;
+}) => {
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <Button>
+          {translate(mode)}, {numIntervals}
+        </Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <StyledPopoverContent
+          size="sm"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          side="right"
+          align="start"
+          sideOffset={94}
+        >
+          <StyledPopoverArrow />
+          <RangeSymbologyEditor geometryType={geometryType} />
+        </StyledPopoverContent>
+      </Popover.Portal>
+    </Popover.Root>
   );
 };

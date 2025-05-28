@@ -1,9 +1,4 @@
-import {
-  ChevronDownIcon,
-  PlusIcon,
-  TrashIcon,
-  UpdateIcon,
-} from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
@@ -11,14 +6,11 @@ import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import find from "lodash/find";
 import {
   RangeMode,
-  RampSize,
   appendBreak,
   applyMode,
   changeIntervalColor,
-  changeRampName,
   changeRangeSize,
   deleteBreak,
   maxIntervals,
@@ -26,7 +18,6 @@ import {
   nullRangeSymbology,
   prependBreak,
   rangeModesInOrder,
-  reverseColors,
   updateBreakValue,
   RangeSymbology,
   validateAscindingBreaks,
@@ -35,16 +26,7 @@ import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
 import { useCallback, useMemo, useState } from "react";
 import { dataAtom } from "src/state/jotai";
-import {
-  CARTO_COLOR_DIVERGING,
-  CARTO_COLOR_SEQUENTIAL,
-  CBColors,
-  COLORBREWER_ALL,
-  COLORBREWER_DIVERGING,
-  COLORBREWER_SEQUENTIAL,
-} from "src/lib/colorbrewer";
-import * as Select from "@radix-ui/react-select";
-import { linearGradient } from "src/lib/color";
+
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { getSortedValues } from "src/analysis/analysis-data";
@@ -54,10 +36,10 @@ import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
-export const AnalysisRangeEditor = ({
-  geometryType = "nodes",
+export const RangeSymbologyEditor = ({
+  geometryType = "node",
 }: {
-  geometryType?: "nodes" | "links";
+  geometryType?: "node" | "link";
 }) => {
   const {
     hydraulicModel: { assets },
@@ -72,7 +54,7 @@ export const AnalysisRangeEditor = ({
   const userTracking = useUserTracking();
 
   const activeAnalysis =
-    geometryType === "nodes" ? nodesAnalysis : linksAnalysis;
+    geometryType === "node" ? nodesAnalysis : linksAnalysis;
 
   const initialSymbology =
     activeAnalysis.type === "none"
@@ -81,7 +63,7 @@ export const AnalysisRangeEditor = ({
 
   const onChange = useCallback(
     (newSymbology: RangeSymbology) => {
-      if (geometryType === "nodes") {
+      if (geometryType === "node") {
         updateNodesAnalysis({
           ...activeAnalysis,
           symbology: newSymbology,
@@ -269,30 +251,6 @@ export const AnalysisRangeEditor = ({
     }
   };
 
-  const handleReverseColors = () => {
-    userTracking.capture({
-      name: "analysis.colorRamp.reversed",
-      rampName: symbology.rampName,
-      property: symbology.property,
-    });
-
-    const newSymbology = reverseColors(symbology);
-    setSymbology(newSymbology);
-    if (!error) submitChange(newSymbology);
-  };
-
-  const handleRampChange = (newRampName: string, isReversed: boolean) => {
-    userTracking.capture({
-      name: "analysis.colorRamp.changed",
-      rampName: newRampName,
-      property: symbology.property,
-    });
-
-    const newSymbology = changeRampName(symbology, newRampName, isReversed);
-    setSymbology(newSymbology);
-    if (!error) submitChange(newSymbology);
-  };
-
   const handleRegenerate = () => {
     userTracking.capture({
       name: "analysis.breaks.regenerated",
@@ -327,20 +285,6 @@ export const AnalysisRangeEditor = ({
             onChange={handleRangeSizeChange}
           />
         </div>
-        {error !== "notEnoughData" && !isFeatureOn("FLAG_MAP_TAB") && (
-          <div className="flex flex-col gap-y-2 w-full">
-            <span className="text-sm text-gray-500">
-              {translate("colorRamp")}
-            </span>
-            <ColorRampSelector
-              rampColors={symbology.colors}
-              size={numIntervals as RampSize}
-              reversedRamp={Boolean(symbology.reversedRamp)}
-              onRampChange={handleRampChange}
-              onReverse={handleReverseColors}
-            />
-          </div>
-        )}
       </div>
 
       {error === "notEnoughData" && (
@@ -565,167 +509,3 @@ const ModeSelector = ({
     />
   );
 };
-
-const ColorRampSelector = ({
-  rampColors,
-  size,
-  onRampChange,
-  reversedRamp,
-  onReverse,
-}: {
-  rampColors: string[];
-  size: keyof CBColors["colors"];
-  reversedRamp: boolean;
-  onRampChange: (rampName: string, isReversed: boolean) => void;
-  onReverse: () => void;
-}) => {
-  const triggerStyles = `flex items-center gap-x-2 border rounded-sm text-sm text-gray-700 dark:items-center justify-between w-full min-w-[90px] focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 px-2 py-2 min-h-9`;
-
-  const contentStyles = `bg-white w-[--radix-select-trigger-width] border text-sm rounded-sm shadow-md z-50`;
-
-  return (
-    <Select.Root>
-      <Select.Trigger
-        tabIndex={1}
-        aria-label="ramp select"
-        className={triggerStyles}
-      >
-        <span
-          className="cursor-pointer w-full h-5 border rounded-md"
-          style={{
-            background: linearGradient({
-              colors: rampColors,
-              interpolate: "step",
-            }),
-          }}
-        ></span>
-        <span className="px-1">
-          <ChevronDownIcon />
-        </span>
-      </Select.Trigger>
-      <Select.Content position="popper" className={contentStyles}>
-        <Select.Viewport className="p-1">
-          <div className="flex flex-col gap-y-2">
-            <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
-              <RampChoices
-                label={translate("continuousRamp")}
-                colors={[...COLORBREWER_SEQUENTIAL, ...CARTO_COLOR_SEQUENTIAL]}
-                onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                size={size}
-                reverse={reversedRamp}
-              />
-              <RampChoices
-                label={translate("divergingRamp")}
-                colors={[...COLORBREWER_DIVERGING, ...CARTO_COLOR_DIVERGING]}
-                onSelect={(newRamp) => onRampChange(newRamp, reversedRamp)}
-                size={size}
-                reverse={reversedRamp}
-              />
-            </div>
-            <div className="w-full p-2">
-              <Button variant="quiet" size="full-width" onClick={onReverse}>
-                <UpdateIcon className="-rotate-90" />{" "}
-                {translate("reverseColors")}
-              </Button>
-            </div>
-          </div>
-        </Select.Viewport>
-      </Select.Content>
-    </Select.Root>
-  );
-};
-
-export function RampChoices({
-  label,
-  colors,
-  onSelect,
-  size,
-  reverse,
-}: {
-  label: string;
-  colors: CBColors[];
-  onSelect?: (name: string) => void;
-  size: keyof CBColors["colors"];
-  reverse: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-y-2 p-2">
-      <span className="text-xs font-semibold text-gray-600 select-none">
-        {label.toUpperCase()}
-      </span>
-      <div className="flex flex-col gap-y-2">
-        {colors.map((ramp) => {
-          return (
-            <RampChoice
-              key={ramp.name}
-              ramp={ramp}
-              size={size}
-              onSelect={onSelect}
-              reverse={reverse}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function RampChoice({
-  ramp,
-  size = 7,
-  reverse = false,
-  onSelect,
-}: {
-  ramp: CBColors;
-  reverse?: boolean;
-  onSelect?: (name: string) => void;
-  size?: keyof CBColors["colors"];
-}) {
-  return (
-    <label
-      key={ramp.name}
-      className="hover:cursor-pointer hover:ring-1 dark:ring-white ring-gray-200 focus:ring-purple-300"
-      onClick={() => onSelect && onSelect(ramp.name)}
-      tabIndex={1}
-    >
-      <RampPreview
-        name={ramp.name}
-        classes={size}
-        interpolate={"step"}
-        reverse={reverse}
-      />
-    </label>
-  );
-}
-
-const DEFAULT_CLASSES = 7;
-
-function RampPreview({
-  name,
-  interpolate,
-  classes,
-  reverse = false,
-}: {
-  name: string;
-  reverse?: boolean;
-  interpolate: "linear" | "step";
-  classes: number;
-}) {
-  const ramp = find(COLORBREWER_ALL, { name })!;
-  const colors =
-    ramp.colors[classes as keyof CBColors["colors"]]! ||
-    ramp.colors[DEFAULT_CLASSES];
-
-  return (
-    <div
-      title={name}
-      className={clsx("w-full h-5 rounded-md", { "rotate-180": reverse })}
-      style={{
-        background: linearGradient({
-          colors,
-          interpolate,
-        }),
-      }}
-    />
-  );
-}
