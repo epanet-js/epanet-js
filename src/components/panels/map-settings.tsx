@@ -112,17 +112,19 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
             <PanelItem name="Labels">
-              <Checkbox
-                aria-label={translate("showLabels")}
-                checked={!!nodesAnalysis.labeling}
-                onChange={() =>
-                  handleNodesLabelingChange(
-                    !!nodesAnalysis.labeling
-                      ? null
-                      : nodesAnalysis.symbology.property,
-                  )
-                }
-              />
+              <div className="px-2">
+                <Checkbox
+                  aria-label={translate("showLabels")}
+                  checked={!!nodesAnalysis.labeling}
+                  onChange={() =>
+                    handleNodesLabelingChange(
+                      !!nodesAnalysis.labeling
+                        ? null
+                        : nodesAnalysis.symbology.property,
+                    )
+                  }
+                />
+              </div>
             </PanelItem>
           )}
         </PanelSection>
@@ -152,17 +154,19 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {linksAnalysis.type !== "none" && (
             <PanelItem name="Labels">
-              <Checkbox
-                checked={!!linksAnalysis.labeling}
-                aria-label={translate("showLabels")}
-                onChange={() =>
-                  handleLinksLabelsChange(
-                    !!linksAnalysis.labeling
-                      ? null
-                      : linksAnalysis.symbology.property,
-                  )
-                }
-              />
+              <div className="px-2">
+                <Checkbox
+                  checked={!!linksAnalysis.labeling}
+                  aria-label={translate("showLabels")}
+                  onChange={() =>
+                    handleLinksLabelsChange(
+                      !!linksAnalysis.labeling
+                        ? null
+                        : linksAnalysis.symbology.property,
+                    )
+                  }
+                />
+              </div>
             </PanelItem>
           )}
         </PanelSection>

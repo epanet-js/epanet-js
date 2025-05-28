@@ -56,8 +56,9 @@ export const Selector = <T extends string>({
 
   const triggerStyles = useMemo(() => {
     return clsx(
-      "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:justify-between min-h-[38px] w-full min-w-[90px]",
-      { "border rounded-sm justify-between": effectiveStyleOptions.border },
+      "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between w-full min-w-[90px]",
+      "border rounded-sm border-transparent",
+      { "justify-between": effectiveStyleOptions.border },
       `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
       effectiveStyleOptions.textSize,
       "pl-min-2",
