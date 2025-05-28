@@ -1,14 +1,69 @@
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
 import clsx from "clsx";
+import React from "react";
 import { KeyboardEventHandler, useMemo, useState } from "react";
 
-const defaultStyleOptions = {
+const defaultStyleOptions: StyleOptions = {
   border: true,
   textSize: "text-sm",
   paddingX: 2,
   paddingY: 2,
 };
+
+type StyleOptions = {
+  border?: boolean;
+  textSize?: "text-xs" | "text-sm";
+  paddingX?: number;
+  paddingY?: number;
+};
+export const triggerStylesFor = (styleOptions: StyleOptions) => {
+  const effectiveStyleOptions = { ...defaultStyleOptions, ...styleOptions };
+  return clsx(
+    "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between w-full min-w-[90px]",
+    "border rounded-sm",
+    { "border-gray-200 justify-between": effectiveStyleOptions.border },
+    { "border-transparent": !effectiveStyleOptions.border },
+    `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
+    effectiveStyleOptions.textSize,
+    "pl-min-2",
+    "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+  );
+};
+
+export const SelectorLikeButton = React.forwardRef<
+  HTMLButtonElement, // Specify the type of the ref being forwarded
+  {
+    children: React.ReactNode;
+    ariaLabel?: string;
+    tabIndex?: number;
+    styleOptions?: StyleOptions;
+  }
+>(
+  (
+    { children, ariaLabel, tabIndex = 1, styleOptions = {}, ...props },
+    forwardedRef,
+  ) => {
+    const triggerStyles = useMemo(() => {
+      return triggerStylesFor(styleOptions);
+    }, [styleOptions]);
+
+    return (
+      <button
+        ref={forwardedRef} // Forward the ref here
+        aria-label={ariaLabel}
+        tabIndex={tabIndex}
+        className={triggerStyles}
+        {...props} // Spread all other props received from Popover.Trigger
+      >
+        {children}
+        <div className="px-1">
+          <ChevronDownIcon />
+        </div>
+      </button>
+    );
+  },
+);
 
 export const Selector = <T extends string>({
   options,
@@ -55,17 +110,8 @@ export const Selector = <T extends string>({
   };
 
   const triggerStyles = useMemo(() => {
-    return clsx(
-      "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between w-full min-w-[90px]",
-      "border rounded-sm",
-      { "border-gray-200 justify-between": effectiveStyleOptions.border },
-      { "border-transparent": !effectiveStyleOptions.border },
-      `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
-      effectiveStyleOptions.textSize,
-      "pl-min-2",
-      "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
-    );
-  }, [effectiveStyleOptions]);
+    return triggerStylesFor(styleOptions);
+  }, [styleOptions]);
 
   const contentStyles = useMemo(() => {
     return `bg-white w-full border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50`;

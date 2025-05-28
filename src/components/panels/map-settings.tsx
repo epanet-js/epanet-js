@@ -3,7 +3,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { translate } from "src/infra/i18n";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
-import { Selector } from "../form/selector";
+import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
 import { useAnalysisState } from "src/state/analysis";
@@ -11,7 +11,7 @@ import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeSymbologyEditor } from "../range-symbology-editor";
-import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
+import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/analysis/range-symbology";
 
 const analysisLabelFor = (type: AnalysisType) => {
@@ -117,7 +117,7 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
             <>
-              <PanelItem name="Intervals">
+              <PanelItem name="Range">
                 <RangeSymbologyEditorTrigger
                   mode={nodesAnalysis.symbology.mode}
                   numIntervals={nodesAnalysis.symbology.breaks.length + 1}
@@ -239,9 +239,9 @@ const RangeSymbologyEditorTrigger = ({
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <Button>
+        <SelectorLikeButton styleOptions={{ border: false }}>
           {translate(mode)}, {numIntervals}
-        </Button>
+        </SelectorLikeButton>
       </Popover.Trigger>
       <Popover.Portal>
         <StyledPopoverContent
