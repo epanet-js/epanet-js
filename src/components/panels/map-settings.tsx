@@ -170,21 +170,33 @@ export const MapSettingsPanel = () => {
             />
           </PanelItem>
           {linksAnalysis.type !== "none" && (
-            <PanelItem name="Labels">
-              <div className="px-2">
-                <Checkbox
-                  checked={!!linksAnalysis.labeling}
-                  aria-label={translate("showLabels")}
-                  onChange={() =>
-                    handleLinksLabelsChange(
-                      !!linksAnalysis.labeling
-                        ? null
-                        : linksAnalysis.symbology.property,
-                    )
-                  }
+            <>
+              <PanelItem name="Range">
+                <RangeSymbologyEditorTrigger
+                  mode={linksAnalysis.symbology.mode}
+                  numIntervals={linksAnalysis.symbology.breaks.length + 1}
+                  geometryType="link"
                 />
-              </div>
-            </PanelItem>
+              </PanelItem>
+              <PanelItem name="Ramp">
+                <ColorRampSelector geometryType="link" />
+              </PanelItem>
+              <PanelItem name="Labels">
+                <div className="p-2 flex items-center h-[38px]">
+                  <Checkbox
+                    checked={!!linksAnalysis.labeling}
+                    aria-label={translate("showLabels")}
+                    onChange={() =>
+                      handleLinksLabelsChange(
+                        !!linksAnalysis.labeling
+                          ? null
+                          : linksAnalysis.symbology.property,
+                      )
+                    }
+                  />
+                </div>
+              </PanelItem>
+            </>
           )}
         </PanelSection>
       </div>
