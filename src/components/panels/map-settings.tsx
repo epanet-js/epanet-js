@@ -204,7 +204,7 @@ const PanelSection = ({
       <div className="text-sm font-bold text-gray-900 dark:text-white pb-3">
         {title}
       </div>
-      <div className="flex flex-col gap-y-3">{children}</div>
+      <div className="flex flex-col gap-y-2">{children}</div>
     </div>
   );
 };
