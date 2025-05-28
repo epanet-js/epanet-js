@@ -8,6 +8,7 @@ import { AnalysisType } from "src/analysis/analysis-types";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
+import { ColorRampSelector } from "src/analysis/color-ramp-selector";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -111,21 +112,26 @@ export const MapSettingsPanel = () => {
             />
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
-            <PanelItem name="Labels">
-              <div className="px-2">
-                <Checkbox
-                  aria-label={translate("showLabels")}
-                  checked={!!nodesAnalysis.labeling}
-                  onChange={() =>
-                    handleNodesLabelingChange(
-                      !!nodesAnalysis.labeling
-                        ? null
-                        : nodesAnalysis.symbology.property,
-                    )
-                  }
-                />
-              </div>
-            </PanelItem>
+            <>
+              <PanelItem name="Ramp">
+                <ColorRampSelector geometryType="node" onReverse={() => {}} />
+              </PanelItem>
+              <PanelItem name="Labels">
+                <div className="p-2 flex items-center h-[38px]">
+                  <Checkbox
+                    aria-label={translate("showLabels")}
+                    checked={!!nodesAnalysis.labeling}
+                    onChange={() =>
+                      handleNodesLabelingChange(
+                        !!nodesAnalysis.labeling
+                          ? null
+                          : nodesAnalysis.symbology.property,
+                      )
+                    }
+                  />
+                </div>
+              </PanelItem>
+            </>
           )}
         </PanelSection>
         <PanelSection title="Links Symbology">
