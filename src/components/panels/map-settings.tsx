@@ -111,7 +111,7 @@ export const MapSettingsPanel = () => {
             />
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
-            <div className="text-sm flex items-center gap-x-2 ">
+            <PanelItem name="Labels">
               <Checkbox
                 aria-label={translate("showLabels")}
                 checked={!!nodesAnalysis.labeling}
@@ -123,13 +123,13 @@ export const MapSettingsPanel = () => {
                   )
                 }
               />
-              {translate("showLabels")}
-            </div>
+            </PanelItem>
           )}
         </PanelSection>
         <PanelSection title="Links Symbology">
           <PanelItem name="Color by">
             <Selector
+              styleOptions={{ border: false }}
               ariaLabel={translate("links")}
               options={(
                 [
@@ -151,7 +151,7 @@ export const MapSettingsPanel = () => {
             />
           </PanelItem>
           {linksAnalysis.type !== "none" && (
-            <div className="text-sm flex items-center gap-x-2 ">
+            <PanelItem name="Labels">
               <Checkbox
                 checked={!!linksAnalysis.labeling}
                 aria-label={translate("showLabels")}
@@ -163,8 +163,7 @@ export const MapSettingsPanel = () => {
                   )
                 }
               />
-              {translate("showLabels")}
-            </div>
+            </PanelItem>
           )}
         </PanelSection>
       </div>
@@ -184,7 +183,7 @@ const PanelSection = ({
       <div className="text-sm font-bold text-gray-900 dark:text-white pb-3">
         {title}
       </div>
-      <div className="flex flex-col gap-y-4">{children}</div>
+      <div className="flex flex-col gap-y-3">{children}</div>
     </div>
   );
 };
