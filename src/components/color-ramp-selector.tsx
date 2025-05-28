@@ -14,15 +14,21 @@ import { Button } from "src/components/elements";
 import find from "lodash/find";
 import clsx from "clsx";
 import { useAnalysisState } from "src/state/analysis";
-import { RampSize, RangeSymbology, changeRampName } from "./range-symbology";
+import {
+  RampSize,
+  RangeSymbology,
+  changeRampName,
+  reverseColors,
+} from "src/analysis/range-symbology";
 import { useCallback } from "react";
-import { LinksAnalysis, NodesAnalysis } from "./analysis-types";
+import { LinksAnalysis, NodesAnalysis } from "src/analysis/analysis-types";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
   size: RampSize;
   isReversed: boolean;
   setRampName: (newName: string, isReversed: boolean) => void;
+  reverseRampColors: () => void;
 };
 
 const useColorRampSettings = (
@@ -71,22 +77,26 @@ const useColorRampSettings = (
     [symbology, updateSettings],
   );
 
+  const reverseRampColors = useCallback(() => {
+    const newSymbology = reverseColors(symbology);
+    updateSettings(newSymbology);
+  }, [symbology, updateSettings]);
+
   return {
     rampColors,
     size,
     isReversed,
     setRampName,
+    reverseRampColors,
   };
 };
 
 export const ColorRampSelector = ({
   geometryType,
-  onReverse,
 }: {
   geometryType: "node" | "link";
-  onReverse: () => void;
 }) => {
-  const { rampColors, size, isReversed, setRampName } =
+  const { rampColors, size, isReversed, setRampName, reverseRampColors } =
     useColorRampSettings(geometryType);
 
   const triggerStyles = clsx(
@@ -139,7 +149,11 @@ export const ColorRampSelector = ({
               />
             </div>
             <div className="w-full p-2">
-              <Button variant="quiet" size="full-width" onClick={onReverse}>
+              <Button
+                variant="quiet"
+                size="full-width"
+                onClick={reverseRampColors}
+              >
                 <UpdateIcon className="-rotate-90" />{" "}
                 {translate("reverseColors")}
               </Button>

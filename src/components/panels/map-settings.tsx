@@ -8,7 +8,7 @@ import { AnalysisType } from "src/analysis/analysis-types";
 import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
-import { ColorRampSelector } from "src/analysis/color-ramp-selector";
+import { ColorRampSelector } from "src/components/color-ramp-selector";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -114,7 +114,7 @@ export const MapSettingsPanel = () => {
           {nodesAnalysis.type !== "none" && (
             <>
               <PanelItem name="Ramp">
-                <ColorRampSelector geometryType="node" onReverse={() => {}} />
+                <ColorRampSelector geometryType="node" />
               </PanelItem>
               <PanelItem name="Labels">
                 <div className="p-2 flex items-center h-[38px]">
