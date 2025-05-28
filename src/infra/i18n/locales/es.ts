@@ -342,6 +342,7 @@ export const translations: Translations = {
   naturalBreaksCkMeans: "Intervalos Naturales (ckmeans)",
   unitHeadloss: "Pérd. Carga Unitaria",
   showLabels: "Mostrar Etiquetas",
+  map: "Mapa",
 };
 
 export const units: UnitsLocale = {

@@ -13,6 +13,8 @@ import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
 import { AnalysisSettingsPanel } from "./analysis-settings";
+import { MapSettingsPanel } from "./map-settings";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 function Tab({
   onClick,
@@ -57,7 +59,11 @@ const ActiveTab = memo(function ActiveTab({
     case TabOption.Asset:
       return <FeatureEditor />;
     case TabOption.Analysis:
-      return <AnalysisSettingsPanel />;
+      return isFeatureOn("FLAG_MAP_TAB") ? (
+        <MapSettingsPanel />
+      ) : (
+        <AnalysisSettingsPanel />
+      );
   }
 });
 
@@ -87,7 +93,7 @@ const TabList = memo(function TabList({
       <Tab
         onClick={() => setTab(TabOption.Analysis)}
         active={activeTab === TabOption.Analysis}
-        label={translate("analysis")}
+        label={translate("map")}
       />
     </div>
   );

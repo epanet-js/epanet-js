@@ -332,6 +332,7 @@ export const translations = {
   naturalBreaksCkMeans: "Natural Breaks (ckmeans)",
   unitHeadloss: "Unit Headloss",
   showLabels: "Show Labels",
+  map: "Map",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
