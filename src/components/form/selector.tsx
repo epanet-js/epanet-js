@@ -3,6 +3,13 @@ import * as Select from "@radix-ui/react-select";
 import clsx from "clsx";
 import { KeyboardEventHandler, useMemo, useState } from "react";
 
+const defaultStyleOptions = {
+  border: true,
+  textSize: "text-sm",
+  paddingX: 2,
+  paddingY: 2,
+};
+
 export const Selector = <T extends string>({
   options,
   selected,
@@ -10,12 +17,7 @@ export const Selector = <T extends string>({
   ariaLabel,
   tabIndex = 1,
   disableFocusOnClose = false,
-  styleOptions = {
-    border: true,
-    textSize: "text-sm",
-    paddingX: 2,
-    paddingY: 2,
-  },
+  styleOptions = {},
 }: {
   options: {
     label: string;
@@ -35,6 +37,10 @@ export const Selector = <T extends string>({
   };
   disableFocusOnClose?: boolean;
 }) => {
+  const effectiveStyleOptions = useMemo(
+    () => ({ ...defaultStyleOptions, ...styleOptions }),
+    [styleOptions],
+  );
   const [isOpen, setOpen] = useState(false);
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -49,12 +55,19 @@ export const Selector = <T extends string>({
   };
 
   const triggerStyles = useMemo(() => {
-    return `flex items-center ${styleOptions.border ? "border rounded-sm" : ""} ${styleOptions.textSize} text-gray-700 dark:items-center justify-between w-full min-w-[90px] ${styleOptions.paddingX !== undefined ? `px-${styleOptions.paddingX}` : "pr-1 pl-2"} pl-min-2 py-${styleOptions.paddingY !== undefined ? styleOptions.paddingY : 2} focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10`;
-  }, [styleOptions]);
+    return clsx(
+      "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:justify-between min-h-[38px] w-full min-w-[90px]",
+      { "border rounded-sm justify-between": effectiveStyleOptions.border },
+      `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
+      effectiveStyleOptions.textSize,
+      "pl-min-2",
+      "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+    );
+  }, [effectiveStyleOptions]);
 
   const contentStyles = useMemo(() => {
-    return `bg-white w-full border ${styleOptions.textSize} rounded-md shadow-md z-50`;
-  }, [styleOptions]);
+    return `bg-white w-full border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50`;
+  }, [effectiveStyleOptions.textSize]);
 
   const handleValueChange = (newValue: T) => {
     onChange(newValue, selected);

@@ -96,6 +96,7 @@ export const MapSettingsPanel = () => {
         <PanelSection title="Nodes Symbology">
           <PanelItem name="Color by">
             <Selector
+              styleOptions={{ border: false }}
               ariaLabel={translate("nodes")}
               options={(
                 ["none", "elevation", "pressure"] as NodesAnalysis["type"][]
