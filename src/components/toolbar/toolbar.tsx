@@ -11,7 +11,6 @@ import {
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
 import ContextActions from "../context_actions";
-import { Visual } from "../visual";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
 import {
@@ -166,9 +165,6 @@ export const Toolbar = () => {
       <div className="flex-auto" />
       <ContextActions />
       <div className="flex-auto" />
-      <div className="flex items-center space-x-2">
-        <Visual />
-      </div>
     </div>
   );
 };

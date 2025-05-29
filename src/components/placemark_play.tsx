@@ -27,7 +27,6 @@ import {
 import { BottomPanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { Visual } from "./visual";
 import { CheckCircledIcon, CheckIcon, CrossCircledIcon, DividerVerticalIcon, MoveIcon, ShadowInnerIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "./elements";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
