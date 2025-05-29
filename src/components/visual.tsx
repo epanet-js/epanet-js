@@ -5,10 +5,12 @@ import { Root, Trigger } from "@radix-ui/react-popover";
 import { LayersPopover } from "./layers/popover";
 import { translate } from "src/infra/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Visual = () => {
   const userTracking = useUserTracking();
   const [isOpen, setOpen] = useState<boolean>(false);
+  if (isFeatureOn("FLAG_MAP_TAB")) return null;
 
   return (
     <div className="flex items-center">

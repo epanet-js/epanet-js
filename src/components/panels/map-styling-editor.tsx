@@ -13,6 +13,7 @@ import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeSymbologyEditor } from "../range-symbology-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/analysis/range-symbology";
+import { AddLayer, LayersEditor } from "../layers/layers-editor";
 
 const analysisLabelFor = (type: AnalysisType) => {
   if (type === "flow") {
@@ -199,6 +200,9 @@ export const MapStylingEditor = () => {
             </>
           )}
         </PanelSection>
+        <PanelSection title={translate("layers")} button={<AddLayer />}>
+          <LayersEditor />
+        </PanelSection>
       </div>
     </div>
   );
@@ -206,15 +210,18 @@ export const MapStylingEditor = () => {
 
 const PanelSection = ({
   title,
+  button,
   children,
 }: {
   title: string;
+  button?: React.ReactNode;
   children: React.ReactNode;
 }) => {
   return (
     <div className="px-3 py-5">
-      <div className="text-sm font-bold text-gray-900 dark:text-white pb-3">
+      <div className="flex items-start justify-between text-sm font-bold text-gray-900 dark:text-white pb-3">
         {title}
+        {button && button}
       </div>
       <div className="flex flex-col gap-y-2">{children}</div>
     </div>
