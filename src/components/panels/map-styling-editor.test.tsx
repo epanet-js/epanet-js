@@ -101,6 +101,32 @@ describe("Map Styling Editor", () => {
     ).toBeChecked();
   });
 
+  it("disables options that need a simulation", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("P1")
+      .aPipe("P2")
+      .aJunction("J1")
+      .aJunction("J2")
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+    });
+    renderComponent(store);
+
+    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    expect(screen.getByRole("option", { name: /flow/i })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("combobox", { name: /nodes color by/i }));
+    expect(screen.getByRole("option", { name: /pressure/i })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
   const renderComponent = (store: Store) => {
     return render(
       <JotaiProvider store={store}>
