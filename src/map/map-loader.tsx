@@ -2,6 +2,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { mapLoadingAtom } from "./state";
 import { useRef } from "react";
+import { translate } from "src/infra/i18n";
 
 export const MapLoading = () => {
   const mapLoading = useAtomValue(mapLoadingAtom);
@@ -23,7 +24,7 @@ export const MapLoading = () => {
             pointer-events-none`}
       >
         <ReloadIcon className="animate-spin" />
-        Loading...
+        {translate("loading")}
       </div>
     </div>
   );
