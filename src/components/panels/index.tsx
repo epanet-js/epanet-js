@@ -13,8 +13,8 @@ import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
 import { AnalysisSettingsPanel } from "./analysis-settings";
-import { MapSettingsPanel } from "./map-settings";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { MapStylingEditor } from "./map-styling-editor";
 
 function Tab({
   onClick,
@@ -60,7 +60,7 @@ const ActiveTab = memo(function ActiveTab({
       return <FeatureEditor />;
     case TabOption.Analysis:
       return isFeatureOn("FLAG_MAP_TAB") ? (
-        <MapSettingsPanel />
+        <MapStylingEditor />
       ) : (
         <AnalysisSettingsPanel />
       );

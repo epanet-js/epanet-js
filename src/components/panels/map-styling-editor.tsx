@@ -22,7 +22,7 @@ const analysisLabelFor = (type: AnalysisType) => {
   }
 };
 
-export const MapSettingsPanel = () => {
+export const MapStylingEditor = () => {
   const {
     linksAnalysis,
     nodesAnalysis,
@@ -102,7 +102,7 @@ export const MapSettingsPanel = () => {
           <PanelItem name={translate("colorBy")}>
             <Selector
               styleOptions={{ border: false }}
-              ariaLabel={translate("nodes")}
+              ariaLabel={`${translate("nodes")} ${translate("colorBy")}`}
               options={(
                 ["none", "elevation", "pressure"] as NodesAnalysis["type"][]
               ).map((type) => ({
@@ -130,7 +130,7 @@ export const MapSettingsPanel = () => {
               <PanelItem name={translate("labels")}>
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
-                    aria-label={translate("showLabels")}
+                    aria-label={`${translate("nodes")} ${translate("labels")}`}
                     checked={!!nodesAnalysis.labeling}
                     onChange={() =>
                       handleNodesLabelingChange(
