@@ -12,8 +12,6 @@ import clsx from "clsx";
 import FeatureEditor from "src/components/panels/feature_editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
-import { AnalysisSettingsPanel } from "./analysis-settings";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { MapStylingEditor } from "./map-styling-editor";
 
 function Tab({
@@ -59,11 +57,7 @@ const ActiveTab = memo(function ActiveTab({
     case TabOption.Asset:
       return <FeatureEditor />;
     case TabOption.Analysis:
-      return isFeatureOn("FLAG_MAP_TAB") ? (
-        <MapStylingEditor />
-      ) : (
-        <AnalysisSettingsPanel />
-      );
+      return <MapStylingEditor />;
   }
 });
 
