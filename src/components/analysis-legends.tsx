@@ -48,7 +48,7 @@ const Legend = ({
           className="block w-full p-2 flex flex-col justify-between items-start"
           onClick={() => {
             userTracking.capture({
-              name: "analysis.legend.clicked",
+              name: "legend.clicked",
               property,
             });
           }}
@@ -93,7 +93,7 @@ const Legend = ({
             className="block w-full p-2 flex flex-col justify-between items-start"
             onClick={() => {
               userTracking.capture({
-                name: "analysis.legend.clicked",
+                name: "legend.clicked",
                 property,
               });
             }}

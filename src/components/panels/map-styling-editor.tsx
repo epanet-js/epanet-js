@@ -40,7 +40,7 @@ export const MapStylingEditor = () => {
 
   const handleLinksChange = (type: LinksAnalysis["type"]) => {
     userTracking.capture({
-      name: "analysis.applied",
+      name: "map.colorBy.changed",
       type: "links",
       subtype: type,
     });
@@ -87,7 +87,7 @@ export const MapStylingEditor = () => {
 
   const handleNodesChange = (type: NodesAnalysis["type"]) => {
     userTracking.capture({
-      name: "analysis.applied",
+      name: "map.colorBy.changed",
       type: "nodes",
       subtype: type,
     });

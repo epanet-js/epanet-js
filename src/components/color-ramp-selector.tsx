@@ -22,6 +22,7 @@ import {
 } from "src/analysis/range-symbology";
 import { useCallback } from "react";
 import { LinksAnalysis, NodesAnalysis } from "src/analysis/analysis-types";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
@@ -41,6 +42,7 @@ const useColorRampSettings = (
     updateNodesAnalysis,
     updateLinksAnalysis,
   } = useAnalysisState();
+  const userTracking = useUserTracking();
 
   const settings = geometryType === "node" ? nodesAnalysis : linksAnalysis;
 
@@ -72,16 +74,26 @@ const useColorRampSettings = (
 
   const setRampName = useCallback(
     (newRampName: string, isReversed: boolean) => {
+      userTracking.capture({
+        name: "map.colorRamp.changed",
+        rampName: newRampName,
+        property: symbology.property,
+      });
       const newSymbology = changeRampName(symbology, newRampName, isReversed);
       updateSettings(newSymbology);
     },
-    [symbology, updateSettings],
+    [symbology, updateSettings, userTracking],
   );
 
   const reverseRampColors = useCallback(() => {
+    userTracking.capture({
+      name: "map.colorRamp.reversed",
+      rampName: symbology.rampName,
+      property: symbology.property,
+    });
     const newSymbology = reverseColors(symbology);
     updateSettings(newSymbology);
-  }, [symbology, updateSettings]);
+  }, [symbology, updateSettings, userTracking]);
 
   return {
     rampName: symbology.rampName,

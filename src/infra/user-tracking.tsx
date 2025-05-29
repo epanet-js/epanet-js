@@ -364,24 +364,29 @@ type UserEvent =
   | LayerOpacityChanged
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
-  | { name: "analysis.rangeMode.changed"; mode: string; property: string }
-  | { name: "analysis.classes.changed"; classesCount: number; property: string }
-  | { name: "analysis.break.updated"; breakValue: number; property: string }
-  | { name: "analysis.break.prepended"; property: string }
-  | { name: "analysis.break.appended"; property: string }
-  | { name: "analysis.break.deleted"; property: string }
-  | { name: "analysis.colorRamp.changed"; rampName: string; property: string }
-  | { name: "analysis.colorRamp.reversed"; rampName: string; property: string }
-  | { name: "analysis.intervalColor.changed"; property: string }
-  | { name: "analysis.breaks.regenerated"; property: string }
-  | { name: "analysis.legend.clicked"; property: string }
+  | { name: "map.colorBy.changed"; type: string; subtype: string }
+  | { name: "map.colorRamp.changed"; rampName: string; property: string }
+  | { name: "map.colorRamp.reversed"; rampName: string; property: string }
+  | { name: "colorRange.rangeMode.changed"; mode: string; property: string }
   | {
-      name: "analysis.rangeError.seen";
+      name: "colorRange.classes.changed";
+      classesCount: number;
+      property: string;
+    }
+  | { name: "colorRange.break.updated"; breakValue: number; property: string }
+  | { name: "colorRange.break.prepended"; property: string }
+  | { name: "colorRange.break.appended"; property: string }
+  | { name: "colorRange.break.deleted"; property: string }
+  | { name: "colorRange.intervalColor.changed"; property: string }
+  | { name: "colorRange.breaks.regenerated"; property: string }
+  | {
+      name: "colorRange.rangeError.seen";
       property: string;
       errorKey: string;
       mode: string;
       classesCount: number;
     }
+  | { name: "legend.clicked"; property: string }
   | { name: "layerLabelVisibility.changed"; visible: boolean; type: string }
   | { name: "layer.removed"; type: string }
   | { name: "layerVisibility.changed"; visible: boolean; type: string }

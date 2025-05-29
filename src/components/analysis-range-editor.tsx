@@ -145,7 +145,7 @@ export const AnalysisRangeEditor = ({
 
   const showError = (error: ErrorType, newSymbology: RangeSymbology) => {
     userTracking.capture({
-      name: "analysis.rangeError.seen",
+      name: "colorRange.rangeError.seen",
       errorKey: error,
       property: newSymbology.property,
       mode: newSymbology.mode,
@@ -161,7 +161,7 @@ export const AnalysisRangeEditor = ({
 
   const handleModeChange = (newMode: RangeMode) => {
     userTracking.capture({
-      name: "analysis.rangeMode.changed",
+      name: "colorRange.rangeMode.changed",
       mode: newMode,
       property: symbology.property,
     });
@@ -177,7 +177,7 @@ export const AnalysisRangeEditor = ({
 
   const handleRangeSizeChange = (numIntervals: number) => {
     userTracking.capture({
-      name: "analysis.classes.changed",
+      name: "colorRange.classes.changed",
       classesCount: numIntervals,
       property: symbology.property,
     });
@@ -194,7 +194,7 @@ export const AnalysisRangeEditor = ({
 
   const handleIntervalColorChange = (index: number, color: string) => {
     userTracking.capture({
-      name: "analysis.intervalColor.changed",
+      name: "colorRange.intervalColor.changed",
       property: symbology.property,
     });
 
@@ -208,7 +208,7 @@ export const AnalysisRangeEditor = ({
 
   const handleBreakUpdate = (index: number, value: number) => {
     userTracking.capture({
-      name: "analysis.break.updated",
+      name: "colorRange.break.updated",
       breakValue: value,
       property: symbology.property,
     });
@@ -227,7 +227,7 @@ export const AnalysisRangeEditor = ({
 
   const handleDeleteBreak = (index: number) => {
     userTracking.capture({
-      name: "analysis.break.deleted",
+      name: "colorRange.break.deleted",
       property: symbology.property,
     });
 
@@ -245,7 +245,7 @@ export const AnalysisRangeEditor = ({
 
   const handlePrependBreak = () => {
     userTracking.capture({
-      name: "analysis.break.prepended",
+      name: "colorRange.break.prepended",
       property: symbology.property,
     });
 
@@ -258,7 +258,7 @@ export const AnalysisRangeEditor = ({
 
   const handleAppendBreak = () => {
     userTracking.capture({
-      name: "analysis.break.appended",
+      name: "colorRange.break.appended",
       property: symbology.property,
     });
 
@@ -270,24 +270,12 @@ export const AnalysisRangeEditor = ({
   };
 
   const handleReverseColors = () => {
-    userTracking.capture({
-      name: "analysis.colorRamp.reversed",
-      rampName: symbology.rampName,
-      property: symbology.property,
-    });
-
     const newSymbology = reverseColors(symbology);
     setSymbology(newSymbology);
     if (!error) submitChange(newSymbology);
   };
 
   const handleRampChange = (newRampName: string, isReversed: boolean) => {
-    userTracking.capture({
-      name: "analysis.colorRamp.changed",
-      rampName: newRampName,
-      property: symbology.property,
-    });
-
     const newSymbology = changeRampName(symbology, newRampName, isReversed);
     setSymbology(newSymbology);
     if (!error) submitChange(newSymbology);
@@ -295,7 +283,7 @@ export const AnalysisRangeEditor = ({
 
   const handleRegenerate = () => {
     userTracking.capture({
-      name: "analysis.breaks.regenerated",
+      name: "colorRange.breaks.regenerated",
       property: symbology.property,
     });
     const result = applyMode(symbology, symbology.mode, sortedData);

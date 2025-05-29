@@ -127,7 +127,7 @@ export const RangeSymbologyEditor = ({
 
   const showError = (error: ErrorType, newSymbology: RangeSymbology) => {
     userTracking.capture({
-      name: "analysis.rangeError.seen",
+      name: "colorRange.rangeError.seen",
       errorKey: error,
       property: newSymbology.property,
       mode: newSymbology.mode,
@@ -143,7 +143,7 @@ export const RangeSymbologyEditor = ({
 
   const handleModeChange = (newMode: RangeMode) => {
     userTracking.capture({
-      name: "analysis.rangeMode.changed",
+      name: "colorRange.rangeMode.changed",
       mode: newMode,
       property: symbology.property,
     });
@@ -159,7 +159,7 @@ export const RangeSymbologyEditor = ({
 
   const handleRangeSizeChange = (numIntervals: number) => {
     userTracking.capture({
-      name: "analysis.classes.changed",
+      name: "colorRange.classes.changed",
       classesCount: numIntervals,
       property: symbology.property,
     });
@@ -176,7 +176,7 @@ export const RangeSymbologyEditor = ({
 
   const handleIntervalColorChange = (index: number, color: string) => {
     userTracking.capture({
-      name: "analysis.intervalColor.changed",
+      name: "colorRange.intervalColor.changed",
       property: symbology.property,
     });
 
@@ -190,7 +190,7 @@ export const RangeSymbologyEditor = ({
 
   const handleBreakUpdate = (index: number, value: number) => {
     userTracking.capture({
-      name: "analysis.break.updated",
+      name: "colorRange.break.updated",
       breakValue: value,
       property: symbology.property,
     });
@@ -209,7 +209,7 @@ export const RangeSymbologyEditor = ({
 
   const handleDeleteBreak = (index: number) => {
     userTracking.capture({
-      name: "analysis.break.deleted",
+      name: "colorRange.break.deleted",
       property: symbology.property,
     });
 
@@ -227,7 +227,7 @@ export const RangeSymbologyEditor = ({
 
   const handlePrependBreak = () => {
     userTracking.capture({
-      name: "analysis.break.prepended",
+      name: "colorRange.break.prepended",
       property: symbology.property,
     });
 
@@ -240,7 +240,7 @@ export const RangeSymbologyEditor = ({
 
   const handleAppendBreak = () => {
     userTracking.capture({
-      name: "analysis.break.appended",
+      name: "colorRange.break.appended",
       property: symbology.property,
     });
 
@@ -253,7 +253,7 @@ export const RangeSymbologyEditor = ({
 
   const handleRegenerate = () => {
     userTracking.capture({
-      name: "analysis.breaks.regenerated",
+      name: "colorRange.breaks.regenerated",
       property: symbology.property,
     });
     const result = applyMode(symbology, symbology.mode, sortedData);
