@@ -25,6 +25,7 @@ import { LinksAnalysis, NodesAnalysis } from "src/analysis/analysis-types";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
+  rampName: string;
   size: RampSize;
   isReversed: boolean;
   setRampName: (newName: string, isReversed: boolean) => void;
@@ -83,6 +84,7 @@ const useColorRampSettings = (
   }, [symbology, updateSettings]);
 
   return {
+    rampName: symbology.rampName,
     rampColors,
     size,
     isReversed,
@@ -96,8 +98,14 @@ export const ColorRampSelector = ({
 }: {
   geometryType: "node" | "link";
 }) => {
-  const { rampColors, size, isReversed, setRampName, reverseRampColors } =
-    useColorRampSettings(geometryType);
+  const {
+    rampName,
+    rampColors,
+    size,
+    isReversed,
+    setRampName,
+    reverseRampColors,
+  } = useColorRampSettings(geometryType);
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
@@ -115,6 +123,7 @@ export const ColorRampSelector = ({
         tabIndex={1}
         aria-label={`${translate(geometryType)} ${translate("ramp")}`}
         className={triggerStyles}
+        title={`${rampName}${isReversed ? " reversed" : ""}`}
       >
         <span
           className="cursor-pointer w-full h-5 border rounded-md"

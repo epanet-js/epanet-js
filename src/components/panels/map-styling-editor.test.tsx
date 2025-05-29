@@ -101,6 +101,27 @@ describe("Map Styling Editor", () => {
     ).toBeChecked();
   });
 
+  it("can reverse ramp colors", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("P1", { diameter: 10 })
+      .aPipe("P2", { diameter: 15 })
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+    });
+    renderComponent(store);
+
+    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    await user.click(screen.getByText("Diameter"));
+    await user.click(screen.getByRole("combobox", { name: /link ramp/i }));
+    await user.click(screen.getByTitle("OrRd"));
+    await user.click(screen.getByText(/reverse colors/i));
+    await user.keyboard("{Escape}");
+
+    expect(screen.getByTitle("OrRd reversed")).toBeInTheDocument();
+  });
+
   it("disables options that need a simulation", async () => {
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
