@@ -267,9 +267,10 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 1/i }));
 
-    const { breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
     expect(breaks).toEqual([2, 4]);
     expect(colors).toEqual([red, green, white]);
+    expect(mode).toEqual("manual");
   });
 
   it("can choose a ramp with more values", async () => {

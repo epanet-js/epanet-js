@@ -188,6 +188,7 @@ export const deleteBreak = (
     ...symbology,
     breaks: newBreaks,
     colors: newColors,
+    mode: "manual",
   };
 };
 
