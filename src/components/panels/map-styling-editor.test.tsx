@@ -258,6 +258,7 @@ describe("Map Styling Editor", () => {
     });
 
     it("blocks custom layers to free users", async () => {
+      stubFeatureOn("FLAG_UPGRADE");
       const basemap = aLayerConfig({
         type: "MAPBOX",
         isBasemap: true,
