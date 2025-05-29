@@ -52,10 +52,10 @@ import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 type Mode =
   | "custom"
@@ -297,7 +297,8 @@ function TileJSONLayer({
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
-          await get(values.url, zTileJSON);
+          if (!isFeatureOn("FLAG_SKIP_LAYER_VALIDATION"))
+            await get(values.url, zTileJSON);
         } catch (e) {
           if (e instanceof ZodError) {
             return {
@@ -453,8 +454,6 @@ export function AddLayer() {
   const { user } = useAuth();
 
   const canAddCustomLayers = useMemo(() => {
-    if (!isFeatureOn("FLAG_UPGRADE")) return true;
-
     return limits.canAddCustomLayers(user.plan);
   }, [user]);
 

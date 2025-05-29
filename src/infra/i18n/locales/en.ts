@@ -239,7 +239,7 @@ export const translations = {
   basemap: "Basemap",
   back: "Back",
   updateLayer: "Update Layer",
-  addLayer: "Add layer",
+  addLayer: "Add Layer",
   name: "Name",
   xyzURLContain: "XYZ URL should contain {z}, {x} and {Y}.",
   supports: "Supports",
