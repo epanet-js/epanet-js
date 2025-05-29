@@ -343,6 +343,13 @@ export const translations: Translations = {
   unitHeadloss: "Pérd. Carga Unitaria",
   showLabels: "Mostrar Etiquetas",
   map: "Mapa",
+  colorBy: "Color por",
+  range: "Rango",
+  ramp: "Rampa",
+  labels: "Etiquetas",
+  nodeSymbology: "Simbología de Nudos",
+  linkSymbology: "Simbología de Enlaces",
+  ckmeans: "Ckmeans",
 };
 
 export const units: UnitsLocale = {

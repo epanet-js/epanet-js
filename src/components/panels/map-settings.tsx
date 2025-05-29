@@ -98,8 +98,8 @@ export const MapSettingsPanel = () => {
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
       <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
-        <PanelSection title="Nodes Symbology">
-          <PanelItem name="Color by">
+        <PanelSection title={translate("nodeSymbology")}>
+          <PanelItem name={translate("colorBy")}>
             <Selector
               styleOptions={{ border: false }}
               ariaLabel={translate("nodes")}
@@ -117,17 +117,17 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {nodesAnalysis.type !== "none" && (
             <>
-              <PanelItem name="Range">
+              <PanelItem name={translate("range")}>
                 <RangeSymbologyEditorTrigger
                   mode={nodesAnalysis.symbology.mode}
                   numIntervals={nodesAnalysis.symbology.breaks.length + 1}
                   geometryType="node"
                 />
               </PanelItem>
-              <PanelItem name="Ramp">
+              <PanelItem name={translate("ramp")}>
                 <ColorRampSelector geometryType="node" />
               </PanelItem>
-              <PanelItem name="Labels">
+              <PanelItem name={translate("labels")}>
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
                     aria-label={translate("showLabels")}
@@ -145,8 +145,8 @@ export const MapSettingsPanel = () => {
             </>
           )}
         </PanelSection>
-        <PanelSection title="Links Symbology">
-          <PanelItem name="Color by">
+        <PanelSection title={translate("linkSymbology")}>
+          <PanelItem name={translate("colorBy")}>
             <Selector
               styleOptions={{ border: false }}
               ariaLabel={translate("links")}
@@ -171,17 +171,17 @@ export const MapSettingsPanel = () => {
           </PanelItem>
           {linksAnalysis.type !== "none" && (
             <>
-              <PanelItem name="Range">
+              <PanelItem name={translate("range")}>
                 <RangeSymbologyEditorTrigger
                   mode={linksAnalysis.symbology.mode}
                   numIntervals={linksAnalysis.symbology.breaks.length + 1}
                   geometryType="link"
                 />
               </PanelItem>
-              <PanelItem name="Ramp">
+              <PanelItem name={translate("ramp")}>
                 <ColorRampSelector geometryType="link" />
               </PanelItem>
-              <PanelItem name="Labels">
+              <PanelItem name={translate("labels")}>
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
                     checked={!!linksAnalysis.labeling}

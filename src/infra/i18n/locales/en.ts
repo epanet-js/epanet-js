@@ -333,6 +333,13 @@ export const translations = {
   unitHeadloss: "Unit Headloss",
   showLabels: "Show Labels",
   map: "Map",
+  colorBy: "Color by",
+  range: "Range",
+  ramp: "Ramp",
+  labels: "Labels",
+  nodeSymbology: "Node Symbology",
+  linkSymbology: "Link Symbology",
+  ckmeans: "Ckmeans",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
