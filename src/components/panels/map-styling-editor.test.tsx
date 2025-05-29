@@ -14,7 +14,6 @@ describe("Map Styling Editor", () => {
       .aJunction("J2", { elevation: 15 })
       .build();
     const store = setInitialState({
-      simulation: { status: "idle" },
       hydraulicModel,
     });
     renderComponent(store);
@@ -52,6 +51,53 @@ describe("Map Styling Editor", () => {
 
     expect(
       screen.getByRole("checkbox", { name: /nodes labels/i }),
+    ).toBeChecked();
+  });
+
+  it("can change the styles for links", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("P1", { diameter: 10 })
+      .aPipe("P2", { diameter: 15 })
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+    });
+    renderComponent(store);
+
+    expect(
+      screen.getByRole("combobox", { name: /links color by/i }),
+    ).toHaveTextContent("None");
+
+    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    await user.click(screen.getByText("Diameter"));
+
+    expect(
+      screen.getByRole("button", { name: /pretty breaks, 7/i }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /pretty breaks, 7/i }));
+
+    await user.click(screen.getByRole("combobox", { name: /mode/i }));
+    await user.click(screen.getByRole("option", { name: /equal intervals/i }));
+
+    await user.click(screen.getByRole("combobox", { name: /classes/i }));
+    await user.click(screen.getByRole("option", { name: "4" }));
+
+    expect(
+      screen.getByRole("button", { name: /equal intervals, 4/i }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("combobox", { name: /link ramp/i }));
+    await user.click(screen.getByTitle("OrRd"));
+    await user.keyboard("{Escape}");
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /links labels/i }),
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: /links labels/i }),
     ).toBeChecked();
   });
 

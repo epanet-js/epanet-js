@@ -149,7 +149,7 @@ export const MapStylingEditor = () => {
           <PanelItem name={translate("colorBy")}>
             <Selector
               styleOptions={{ border: false }}
-              ariaLabel={translate("links")}
+              ariaLabel={`${translate("links")} ${translate("colorBy")}`}
               options={(
                 [
                   "none",
@@ -185,7 +185,7 @@ export const MapStylingEditor = () => {
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
                     checked={!!linksAnalysis.labeling}
-                    aria-label={translate("showLabels")}
+                    aria-label={`${translate("links")} ${translate("labels")}`}
                     onChange={() =>
                       handleLinksLabelsChange(
                         !!linksAnalysis.labeling

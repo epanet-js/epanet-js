@@ -113,7 +113,7 @@ export const ColorRampSelector = ({
     <Select.Root>
       <Select.Trigger
         tabIndex={1}
-        aria-label={`${translate("node")} ${translate("ramp")}`}
+        aria-label={`${translate(geometryType)} ${translate("ramp")}`}
         className={triggerStyles}
       >
         <span
