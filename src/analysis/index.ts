@@ -2,5 +2,5 @@ export type {
   NodeSymbology,
   LinkSymbology,
   SymbologySpec,
-} from "./analysis-types";
-export { nullSymbologySpec } from "./analysis-types";
+} from "./symbology-types";
+export { nullSymbologySpec } from "./symbology-types";

@@ -24,7 +24,7 @@ import {
   nullRangeColorRule,
 } from "src/analysis/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
-import { LabelRule } from "src/analysis/analysis-types";
+import { LabelRule } from "src/analysis/symbology-types";
 
 export const setInitialState = ({
   store = createStore(),
