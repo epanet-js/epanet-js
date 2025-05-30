@@ -7,6 +7,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   SupportedProperty,
   nullSymbologySpec,
+  supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/symbology";
 import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
@@ -17,11 +18,11 @@ import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 
-const colorPropertyLabelFor = (type: SupportedProperty | "none") => {
-  if (type === "flow") {
+const colorPropertyLabelFor = (property: string) => {
+  if (property === "flow") {
     return translate("flowAbs");
   } else {
-    return translate(type);
+    return translate(property);
   }
 };
 
@@ -120,15 +121,16 @@ export const MapStylingEditor = () => {
               styleOptions={{ border: false }}
               ariaLabel={`${translate("nodes")} ${translate("colorBy")}`}
               options={(
-                ["none", "elevation", "pressure"] as (
-                  | SupportedProperty
+                ["none", ...supportedNodeProperties] as (
                   | "none"
+                  | SupportedProperty
                 )[]
               ).map((type) => ({
                 value: type,
                 label: colorPropertyLabelFor(type),
                 disabled:
-                  simulation.status === "idle" && ["pressure"].includes(type),
+                  simulation.status === "idle" &&
+                  ["pressure", "head"].includes(type),
               }))}
               selected={
                 nodeSymbology.colorRule
