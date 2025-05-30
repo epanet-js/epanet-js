@@ -1,6 +1,6 @@
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
-  aLinksAnalysis,
+  aLinkSymbology,
   aNodesAnalysis,
   aSymbology,
   setInitialState,
@@ -407,7 +407,7 @@ describe("analysis range editor", () => {
       .aPipe("p4", { simulation: { flow: 30 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinksAnalysis({
+    const linksAnalysis = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         mode: "equalIntervals",
@@ -441,7 +441,7 @@ describe("analysis range editor", () => {
       .aPipe("p6", { simulation: { flow: 20 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinksAnalysis({
+    const linksAnalysis = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         breaks: [20, 30],
@@ -457,7 +457,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    const firstState = getLinksAnalysisSymbology(store);
+    const firstState = getLinkSymbologySymbology(store);
     expect(firstState.breaks).toEqual([15, 20]);
 
     const field = screen.getByRole("textbox", {
@@ -469,7 +469,7 @@ describe("analysis range editor", () => {
     await user.type(field, "-14");
     await user.keyboard("{Enter}");
 
-    const secondState = getLinksAnalysisSymbology(store);
+    const secondState = getLinkSymbologySymbology(store);
     expect(secondState.breaks).toEqual([14, 20]);
     expect(secondState.colors).toEqual([red, green, blue]);
   });
@@ -507,7 +507,7 @@ describe("analysis range editor", () => {
       .aPipe("p2", { simulation: { flow: 15 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinksAnalysis({
+    const linksAnalysis = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         rampName: "Temps",
@@ -532,7 +532,7 @@ describe("analysis range editor", () => {
     return (store.get(nodesAnalysisAtom) as PropertyAnalysis).symbology;
   };
 
-  const getLinksAnalysisSymbology = (store: Store): RangeSymbology => {
+  const getLinkSymbologySymbology = (store: Store): RangeSymbology => {
     return (store.get(linksAnalysisAtom) as PropertyAnalysis).symbology;
   };
 

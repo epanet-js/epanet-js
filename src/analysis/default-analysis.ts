@@ -2,20 +2,20 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
-import { Labeling, LinksAnalysis, NodesAnalysis } from "./analysis-types";
+import { Labeling, LinkSymbology, NodesAnalysis } from "./analysis-types";
 import { nullLabeling } from "./labeling";
 
 type DefaultAnalysisBuilders = {
-  flow: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
-  diameter: (hydraulicModel: HydraulicModel) => () => LinksAnalysis;
+  flow: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
+  diameter: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
   unitHeadloss: (
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
-  ) => () => LinksAnalysis;
+  ) => () => LinkSymbology;
   velocity: (
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
-  ) => () => LinksAnalysis;
+  ) => () => LinkSymbology;
   pressure: (hydraulicModel: HydraulicModel) => () => NodesAnalysis;
   elevation: (HydraulicModel: HydraulicModel) => () => NodesAnalysis;
   none: () => () => { type: "none"; labeling: Labeling };
@@ -25,7 +25,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
   none: () => () => {
     return { type: "none", labeling: nullLabeling };
   },
-  diameter: (hydraulicModel: HydraulicModel) => (): LinksAnalysis => {
+  diameter: (hydraulicModel: HydraulicModel) => (): LinkSymbology => {
     const symbology = initializeSymbology({
       property: "diameter",
       unit: hydraulicModel.units.diameter,
@@ -37,8 +37,8 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
     return { type: "diameter", symbology, labeling: nullLabeling };
   },
 
-  flow: (hydraulicModel: HydraulicModel): (() => LinksAnalysis) => {
-    return (): LinksAnalysis => {
+  flow: (hydraulicModel: HydraulicModel): (() => LinkSymbology) => {
+    return (): LinkSymbology => {
       const property = "flow";
       const sortedData = getSortedValues(hydraulicModel.assets, "flow", {
         absValues: true,
@@ -56,7 +56,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
   },
   velocity:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
-    (): LinksAnalysis => {
+    (): LinkSymbology => {
       const symbology = initializeSymbology({
         property: "velocity",
         unit: hydraulicModel.units.velocity,
@@ -69,7 +69,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
     },
   unitHeadloss:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
-    (): LinksAnalysis => {
+    (): LinkSymbology => {
       const symbology = initializeSymbology({
         property: "unitHeadloss",
         unit: hydraulicModel.units.unitHeadloss,

@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
 import { translate } from "src/infra/i18n";
-import { LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { LinkSymbology, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -23,8 +23,8 @@ export const AnalysisSettingsPanel = () => {
     linksAnalysis,
     nodesAnalysis,
     switchNodesAnalysisTo,
-    switchLinksAnalysisTo,
-    updateLinksAnalysis,
+    switchLinkSymbologyTo,
+    updateLinkSymbology,
     updateNodesAnalysis,
   } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
@@ -34,14 +34,14 @@ export const AnalysisSettingsPanel = () => {
   } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
 
-  const handleLinksChange = (type: LinksAnalysis["type"]) => {
+  const handleLinksChange = (type: LinkSymbology["type"]) => {
     userTracking.capture({
       name: "analysis.applied",
       type: "links",
       subtype: type,
     });
 
-    switchLinksAnalysisTo(
+    switchLinkSymbologyTo(
       type,
       defaultAnalysis[type](hydraulicModel, quantities),
     );
@@ -61,7 +61,7 @@ export const AnalysisSettingsPanel = () => {
         type: "links",
       });
     }
-    updateLinksAnalysis({ ...linksAnalysis, labeling: label });
+    updateLinkSymbology({ ...linksAnalysis, labeling: label });
   };
 
   const handleNodesLabelingChange = (label: string | null) => {
@@ -140,7 +140,7 @@ export const AnalysisSettingsPanel = () => {
                 "flow",
                 "velocity",
                 "unitHeadloss",
-              ] as LinksAnalysis["type"][]
+              ] as LinkSymbology["type"][]
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),

@@ -9,7 +9,7 @@ import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
 import {
-  aLinksAnalysis,
+  aLinkSymbology,
   aNodesAnalysis,
   aSymbology,
 } from "src/__helpers__/state";
@@ -122,7 +122,7 @@ describe("build optimized source", () => {
   describe("when links analysis enabled", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
-      links: aLinksAnalysis({
+      links: aLinkSymbology({
         symbology: aSymbology({
           breaks: [10, 20, 30],
           property: "flow",
@@ -165,7 +165,7 @@ describe("build optimized source", () => {
     it("includes labels to pipes", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
-        links: aLinksAnalysis({
+        links: aLinkSymbology({
           labeling: "flow",
         }),
       };
@@ -222,7 +222,7 @@ describe("build optimized source", () => {
     it("applies the direction based on the flow", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
-        links: aLinksAnalysis({
+        links: aLinkSymbology({
           symbology: aSymbology({
             breaks: [10, 20, 30],
             property: "velocity",

@@ -31,7 +31,7 @@ export type NodesAnalysis =
       labeling: Labeling;
     };
 
-export type LinksAnalysis =
+export type LinkSymbology =
   | { type: "none"; labeling: Labeling }
   | {
       type: "flow" | "velocity" | "unitHeadloss" | "diameter";
@@ -41,7 +41,7 @@ export type LinksAnalysis =
 
 export type AnalysisState = {
   nodes: NodesAnalysis;
-  links: LinksAnalysis;
+  links: LinkSymbology;
 };
 
 export const nullAnalysis: AnalysisState = {

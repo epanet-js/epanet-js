@@ -1,16 +1,16 @@
 import { atom, useAtom } from "jotai";
-import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { AnalysisState, LinkSymbology, NodesAnalysis } from "src/analysis";
 
 export type { AnalysisState };
 
-export type AnalysesMap = Map<string, NodesAnalysis | LinksAnalysis>;
+export type AnalysesMap = Map<string, NodesAnalysis | LinkSymbology>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
 export const nodesAnalysisAtom = atom<NodesAnalysis>({
   type: "none",
   labeling: null,
 });
-export const linksAnalysisAtom = atom<LinksAnalysis>({
+export const linksAnalysisAtom = atom<LinkSymbology>({
   type: "none",
   labeling: null,
 });
@@ -43,12 +43,12 @@ export const useAnalysisState = () => {
     }
   };
 
-  const switchLinksAnalysisTo = (
-    type: LinksAnalysis["type"],
-    initializeFn: () => LinksAnalysis,
+  const switchLinkSymbologyTo = (
+    type: LinkSymbology["type"],
+    initializeFn: () => LinkSymbology,
   ) => {
     if (savedAnalyses.has(type)) {
-      const linksAnalysis = savedAnalyses.get(type) as LinksAnalysis;
+      const linksAnalysis = savedAnalyses.get(type) as LinkSymbology;
       setLinksActive(linksAnalysis);
     } else {
       const linksAnalysis = initializeFn();
@@ -66,10 +66,10 @@ export const useAnalysisState = () => {
     setSavedAnalyises(analysesMap);
   };
 
-  const updateLinksAnalysis = (newLinksAnalysis: LinksAnalysis) => {
-    setLinksActive(newLinksAnalysis);
+  const updateLinkSymbology = (newLinkSymbology: LinkSymbology) => {
+    setLinksActive(newLinkSymbology);
     const analysesMap = new Map([...savedAnalyses.entries()]);
-    analysesMap.set(newLinksAnalysis.type, newLinksAnalysis);
+    analysesMap.set(newLinkSymbology.type, newLinkSymbology);
     setSavedAnalyises(analysesMap);
   };
 
@@ -77,8 +77,8 @@ export const useAnalysisState = () => {
     linksAnalysis,
     nodesAnalysis,
     switchNodesAnalysisTo,
-    switchLinksAnalysisTo,
+    switchLinkSymbologyTo,
     updateNodesAnalysis,
-    updateLinksAnalysis,
+    updateLinkSymbology,
   };
 };

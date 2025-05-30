@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { translate } from "src/infra/i18n";
-import { LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { LinkSymbology, NodesAnalysis } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -28,8 +28,8 @@ export const MapStylingEditor = () => {
     linksAnalysis,
     nodesAnalysis,
     switchNodesAnalysisTo,
-    switchLinksAnalysisTo,
-    updateLinksAnalysis,
+    switchLinkSymbologyTo,
+    updateLinkSymbology,
     updateNodesAnalysis,
   } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
@@ -39,14 +39,14 @@ export const MapStylingEditor = () => {
   } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
 
-  const handleLinksChange = (type: LinksAnalysis["type"]) => {
+  const handleLinksChange = (type: LinkSymbology["type"]) => {
     userTracking.capture({
       name: "map.colorBy.changed",
       type: "links",
       subtype: type,
     });
 
-    switchLinksAnalysisTo(
+    switchLinkSymbologyTo(
       type,
       defaultAnalysis[type](hydraulicModel, quantities),
     );
@@ -66,7 +66,7 @@ export const MapStylingEditor = () => {
         type: "links",
       });
     }
-    updateLinksAnalysis({ ...linksAnalysis, labeling: label });
+    updateLinkSymbology({ ...linksAnalysis, labeling: label });
   };
 
   const handleNodesLabelingChange = (label: string | null) => {
@@ -158,7 +158,7 @@ export const MapStylingEditor = () => {
                   "flow",
                   "velocity",
                   "unitHeadloss",
-                ] as LinksAnalysis["type"][]
+                ] as LinkSymbology["type"][]
               ).map((type) => ({
                 value: type,
                 label: analysisLabelFor(type),

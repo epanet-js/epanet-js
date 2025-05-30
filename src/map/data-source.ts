@@ -1,4 +1,4 @@
-import { AnalysisState, LinksAnalysis, NodesAnalysis } from "src/analysis";
+import { AnalysisState, LinkSymbology, NodesAnalysis } from "src/analysis";
 import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
@@ -139,7 +139,7 @@ export const buildIconPointsSource = (
 const appendPipeAnalysisProps = (
   pipe: Pipe,
   feature: Feature,
-  linkAnalysis: LinksAnalysis,
+  linkAnalysis: LinkSymbology,
   quantities: Quantities,
 ) => {
   if (linkAnalysis.type === "none") return;

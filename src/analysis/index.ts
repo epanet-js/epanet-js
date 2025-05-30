@@ -1,6 +1,6 @@
 export type {
   NodesAnalysis,
-  LinksAnalysis,
+  LinkSymbology,
   AnalysisState,
 } from "./analysis-types";
 export { nullAnalysis } from "./analysis-types";

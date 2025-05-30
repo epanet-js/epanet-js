@@ -5,7 +5,7 @@ import { AnalysisSettingsPanel } from "./analysis-settings";
 import userEvent from "@testing-library/user-event";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
 import {
-  aLinksAnalysis,
+  aLinkSymbology,
   aNodesAnalysis,
   aSimulationSuccess,
   setInitialState,
@@ -100,7 +100,7 @@ describe("Analysis Settings Panel", () => {
 
   it("uses a previous links analysis when available", async () => {
     const simulation = aSimulationSuccess();
-    const previousFlowAnalysis = aLinksAnalysis({
+    const previousFlowAnalysis = aLinkSymbology({
       symbology: { property: "flow", rampName: "PREVIOUS" },
     });
     const store = setInitialState({ simulation });
@@ -183,7 +183,7 @@ describe("Analysis Settings Panel", () => {
 
   it("can show and hide labels for links", async () => {
     const simulation = aSimulationSuccess();
-    const previousAnalysis = aLinksAnalysis({
+    const previousAnalysis = aLinkSymbology({
       symbology: {
         property: "flow",
         rampName: "PREVIOUS",
