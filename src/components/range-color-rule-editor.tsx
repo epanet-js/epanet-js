@@ -31,7 +31,7 @@ import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSymbologySpec } from "src/state/analysis";
+import { useSymbologySpec } from "src/state/symbology";
 import { LinkSymbology, NodeSymbology } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";

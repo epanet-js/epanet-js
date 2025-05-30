@@ -4,7 +4,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/analysis/range-color-rule";
 import { useAtomValue } from "jotai";
-import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Legends = () => {

@@ -12,7 +12,7 @@ import {
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding, translate } from "src/infra/i18n";
-import { symbologyAtom } from "src/state/analysis";
+import { symbologyAtom } from "src/state/symbology";
 
 export const tipLike = `
     bg-white dark:bg-gray-900

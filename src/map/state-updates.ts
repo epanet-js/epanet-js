@@ -39,7 +39,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
-import { SymbologySpec, symbologyAtom } from "src/state/analysis";
+import { SymbologySpec, symbologyAtom } from "src/state/symbology";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullSymbologySpec } from "src/analysis";
 import { mapLoadingAtom } from "./state";

@@ -42,14 +42,14 @@ export const buildOptimizedAssetsSource = (
     };
 
     if (asset.type === "pipe")
-      appendPipeAnalysisProps(
+      appendPipeSymbologyProps(
         asset as Pipe,
         feature,
         symbology.links,
         quantities,
       );
     if (asset.type === "junction")
-      appendJunctionAnalysisProps(
+      appendJunctionSymbologyProps(
         asset as Junction,
         feature,
         symbology.nodes,
@@ -136,7 +136,7 @@ export const buildIconPointsSource = (
   return strippedFeatures;
 };
 
-const appendPipeAnalysisProps = (
+const appendPipeSymbologyProps = (
   pipe: Pipe,
   feature: Feature,
   linkSymbology: LinkSymbology,
@@ -168,7 +168,7 @@ const appendPipeAnalysisProps = (
   feature.properties!.rotation = isReverse ? -180 : 0;
 };
 
-const appendJunctionAnalysisProps = (
+const appendJunctionSymbologyProps = (
   junction: Junction,
   feature: Feature,
   nodeSymbology: NodeSymbology,

@@ -13,7 +13,7 @@ import { translate } from "src/infra/i18n";
 import { Button } from "src/components/elements";
 import find from "lodash/find";
 import clsx from "clsx";
-import { useSymbologySpec } from "src/state/analysis";
+import { useSymbologySpec } from "src/state/symbology";
 import {
   RampSize,
   RangeColorRule,

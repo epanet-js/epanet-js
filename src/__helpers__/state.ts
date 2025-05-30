@@ -23,7 +23,7 @@ import {
   RangeColorRule,
   nullRangeColorRule,
 } from "src/analysis/range-color-rule";
-import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
 import { LabelRule } from "src/analysis/symbology-types";
 
 export const setInitialState = ({

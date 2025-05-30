@@ -6,7 +6,7 @@ import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SupportedProperty } from "src/analysis/symbology-types";
-import { useSymbologySpec } from "src/state/analysis";
+import { useSymbologySpec } from "src/state/symbology";
 import { defaultSymbologyBuilders } from "src/analysis/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";

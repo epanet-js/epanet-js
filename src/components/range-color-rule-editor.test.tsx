@@ -14,8 +14,8 @@ import { PropertyAnalysis } from "src/analysis/symbology-types";
 import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
-  savedAnalysesAtom,
-} from "src/state/analysis";
+  savedSymbologiesAtom,
+} from "src/state/symbology";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
 
 describe("analysis range editor", () => {
@@ -495,8 +495,8 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("option", { name: /pretty breaks/i }));
 
     expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
-    const savedAnalyses = store.get(savedAnalysesAtom);
-    expect(savedAnalyses.get("elevation")).toMatchObject({
+    const savedSymbologies = store.get(savedSymbologiesAtom);
+    expect(savedSymbologies.get("elevation")).toMatchObject({
       colorRule: { mode: "prettyBreaks" },
     });
   });
@@ -522,8 +522,8 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("option", { name: /pretty breaks/i }));
 
     expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
-    const savedAnalyses = store.get(savedAnalysesAtom);
-    expect(savedAnalyses.get("flow")).toMatchObject({
+    const savedSymbologies = store.get(savedSymbologiesAtom);
+    expect(savedSymbologies.get("flow")).toMatchObject({
       colorRule: { mode: "prettyBreaks" },
     });
   });
