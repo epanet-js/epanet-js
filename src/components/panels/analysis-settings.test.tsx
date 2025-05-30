@@ -64,8 +64,8 @@ describe("Analysis Settings Panel", () => {
 
     const nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
     expect(nodeSymbology.type).toEqual("pressure");
-    expect(colorFor(nodeSymbology.symbology, 10)).not.toBeUndefined();
-    expect(nodeSymbology.symbology.property).toEqual("pressure");
+    expect(colorFor(nodeSymbology.colorRule, 10)).not.toBeUndefined();
+    expect(nodeSymbology.colorRule.property).toEqual("pressure");
   });
 
   it("displays link analysis options", async () => {
@@ -90,8 +90,8 @@ describe("Analysis Settings Panel", () => {
 
     const linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
     expect(linkSymbology.type).toEqual("flow");
-    expect(colorFor(linkSymbology.symbology, 10)).not.toBeUndefined();
-    expect(linkSymbology.symbology.property).toEqual("flow");
+    expect(colorFor(linkSymbology.colorRule, 10)).not.toBeUndefined();
+    expect(linkSymbology.colorRule.property).toEqual("flow");
 
     expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
       "Flow",
@@ -115,7 +115,7 @@ describe("Analysis Settings Panel", () => {
 
     const linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
     expect(linkSymbology.type).toEqual("flow");
-    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.colorRule.rampName).toEqual("PREVIOUS");
   });
 
   it("uses a previous nodes analysis when available", async () => {
@@ -138,7 +138,7 @@ describe("Analysis Settings Panel", () => {
 
     const nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
     expect(nodeSymbology.type).toEqual("pressure");
-    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.colorRule.rampName).toEqual("PREVIOUS");
   });
 
   it("can show and hide labels for nodes", async () => {
@@ -162,14 +162,14 @@ describe("Analysis Settings Panel", () => {
 
     let nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
     expect(nodeSymbology.type).toEqual("pressure");
-    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.colorRule.rampName).toEqual("PREVIOUS");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
     nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
-    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.colorRule.rampName).toEqual("PREVIOUS");
     expect(nodeSymbology.label).toEqual("pressure");
 
     await userEvent.click(
@@ -177,7 +177,7 @@ describe("Analysis Settings Panel", () => {
     );
 
     nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
-    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.colorRule.rampName).toEqual("PREVIOUS");
     expect(nodeSymbology.label).toEqual(null);
   });
 
@@ -202,14 +202,14 @@ describe("Analysis Settings Panel", () => {
 
     let linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
     expect(linkSymbology.type).toEqual("flow");
-    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.colorRule.rampName).toEqual("PREVIOUS");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
     linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
-    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.colorRule.rampName).toEqual("PREVIOUS");
     expect(linkSymbology.label).toEqual("flow");
 
     await userEvent.click(
@@ -217,7 +217,7 @@ describe("Analysis Settings Panel", () => {
     );
 
     linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
-    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.colorRule.rampName).toEqual("PREVIOUS");
     expect(linkSymbology.label).toEqual(null);
   });
 

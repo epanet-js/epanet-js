@@ -122,7 +122,7 @@ export const AnalysisSettingsPanel = () => {
                   handleNodesLabelRuleChange(
                     !!nodeSymbology.label
                       ? null
-                      : nodeSymbology.symbology.property,
+                      : nodeSymbology.colorRule.property,
                   )
                 }
               />
@@ -160,7 +160,7 @@ export const AnalysisSettingsPanel = () => {
                   handleLinksLabelsChange(
                     !!linkSymbology.label
                       ? null
-                      : linkSymbology.symbology.property,
+                      : linkSymbology.colorRule.property,
                   )
                 }
               />

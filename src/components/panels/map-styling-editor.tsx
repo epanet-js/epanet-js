@@ -120,8 +120,8 @@ export const MapStylingEditor = () => {
             <>
               <PanelItem name={translate("range")}>
                 <RangeColorRuleEditorTrigger
-                  mode={nodeSymbology.symbology.mode}
-                  numIntervals={nodeSymbology.symbology.breaks.length + 1}
+                  mode={nodeSymbology.colorRule.mode}
+                  numIntervals={nodeSymbology.colorRule.breaks.length + 1}
                   geometryType="node"
                 />
               </PanelItem>
@@ -137,7 +137,7 @@ export const MapStylingEditor = () => {
                       handleNodesLabelRuleChange(
                         !!nodeSymbology.label
                           ? null
-                          : nodeSymbology.symbology.property,
+                          : nodeSymbology.colorRule.property,
                       )
                     }
                   />
@@ -174,8 +174,8 @@ export const MapStylingEditor = () => {
             <>
               <PanelItem name={translate("range")}>
                 <RangeColorRuleEditorTrigger
-                  mode={linkSymbology.symbology.mode}
-                  numIntervals={linkSymbology.symbology.breaks.length + 1}
+                  mode={linkSymbology.colorRule.mode}
+                  numIntervals={linkSymbology.colorRule.breaks.length + 1}
                   geometryType="link"
                 />
               </PanelItem>
@@ -191,7 +191,7 @@ export const MapStylingEditor = () => {
                       handleLinksLabelsChange(
                         !!linkSymbology.label
                           ? null
-                          : linkSymbology.symbology.property,
+                          : linkSymbology.colorRule.property,
                       )
                     }
                   />

@@ -53,29 +53,29 @@ export const RangeColorRuleEditor = ({
 
   const userTracking = useUserTracking();
 
-  const activeAnalysis =
+  const assetSymbology =
     geometryType === "node" ? nodeSymbology : linkSymbology;
 
   const initialSymbology =
-    activeAnalysis.type === "none"
+    assetSymbology.type === "none"
       ? nullRangeColorRule
-      : activeAnalysis.symbology;
+      : assetSymbology.colorRule;
 
   const onChange = useCallback(
     (newSymbology: RangeColorRule) => {
       if (geometryType === "node") {
         updateNodeSymbology({
-          ...activeAnalysis,
-          symbology: newSymbology,
+          ...assetSymbology,
+          colorRule: newSymbology,
         } as NodeSymbology);
       } else {
         updateLinkSymbology({
-          ...activeAnalysis,
-          symbology: newSymbology,
+          ...assetSymbology,
+          colorRule: newSymbology,
         } as LinkSymbology);
       }
     },
-    [activeAnalysis, geometryType, updateNodeSymbology, updateLinkSymbology],
+    [assetSymbology, geometryType, updateNodeSymbology, updateLinkSymbology],
   );
 
   const sortedData = useMemo(() => {

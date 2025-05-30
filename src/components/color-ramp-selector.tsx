@@ -49,7 +49,7 @@ const useColorRampSettings = (
   if (settings.type === "none")
     throw new Error("Cannot use settings with none");
 
-  const symbology = settings.symbology;
+  const symbology = settings.colorRule;
   const numIntervals = symbology.breaks.length + 1;
   const rampColors = symbology.colors;
   const size = numIntervals as RampSize;
@@ -60,12 +60,12 @@ const useColorRampSettings = (
       if (geometryType === "node") {
         updateNodeSymbology({
           ...settings,
-          symbology: newSymbology,
+          colorRule: newSymbology,
         } as NodeSymbology);
       } else {
         updateLinkSymbology({
           ...settings,
-          symbology: newSymbology,
+          colorRule: newSymbology,
         } as LinkSymbology);
       }
     },

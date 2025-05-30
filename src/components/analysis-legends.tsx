@@ -14,10 +14,10 @@ export const AnalysisLegends = () => {
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {nodeSymbology.type !== "none" && (
-        <Legend symbology={nodeSymbology.symbology} />
+        <Legend symbology={nodeSymbology.colorRule} />
       )}
       {linkSymbology.type !== "none" && (
-        <Legend symbology={linkSymbology.symbology} />
+        <Legend symbology={linkSymbology.colorRule} />
       )}
     </div>
   );

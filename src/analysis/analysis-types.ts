@@ -19,7 +19,7 @@ export type LabelRule = string | null;
 
 export type PropertyAnalysis = {
   type: string;
-  symbology: RangeColorRule;
+  colorRule: RangeColorRule;
   label: LabelRule;
 };
 
@@ -27,7 +27,7 @@ export type NodeSymbology =
   | { type: "none"; label: LabelRule }
   | {
       type: "elevation" | "pressure";
-      symbology: RangeColorRule;
+      colorRule: RangeColorRule;
       label: LabelRule;
     };
 
@@ -35,7 +35,7 @@ export type LinkSymbology =
   | { type: "none"; label: LabelRule }
   | {
       type: "flow" | "velocity" | "unitHeadloss" | "diameter";
-      symbology: RangeColorRule;
+      colorRule: RangeColorRule;
       label: LabelRule;
     };
 

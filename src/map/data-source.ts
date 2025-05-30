@@ -139,19 +139,19 @@ export const buildIconPointsSource = (
 const appendPipeAnalysisProps = (
   pipe: Pipe,
   feature: Feature,
-  linkAnalysis: LinkSymbology,
+  linkSymbology: LinkSymbology,
   quantities: Quantities,
 ) => {
-  if (linkAnalysis.type === "none") return;
+  if (linkSymbology.type === "none") return;
 
-  const property = linkAnalysis.symbology.property;
+  const property = linkSymbology.colorRule.property;
 
   const value = pipe[property as keyof Pipe] as number | null;
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
-  if (!!linkAnalysis.label) {
-    const labelProperty = linkAnalysis.label;
+  if (!!linkSymbology.label) {
+    const labelProperty = linkSymbology.label;
     const unit = pipe.getUnit(labelProperty);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
@@ -159,7 +159,7 @@ const appendPipeAnalysisProps = (
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
-  feature.properties!.color = colorFor(linkAnalysis.symbology, numericValue);
+  feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
@@ -176,7 +176,7 @@ const appendJunctionAnalysisProps = (
 ) => {
   if (nodeSymbology.type === "none") return;
 
-  const property = nodeSymbology.symbology.property;
+  const property = nodeSymbology.colorRule.property;
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
 
@@ -189,7 +189,7 @@ const appendJunctionAnalysisProps = (
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
 
-  const fillColor = colorFor(nodeSymbology.symbology, numericValue);
+  const fillColor = colorFor(nodeSymbology.colorRule, numericValue);
   const strokeColor = strokeColorFor(fillColor);
 
   feature.properties!.color = fillColor;

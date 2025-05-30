@@ -2,7 +2,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
-import { LabelRule, LinkSymbology, NodeSymbology } from "./analysis-types";
+import { LabelRule, NodeSymbology, LinkSymbology } from "./analysis-types";
 import { nullLabelRule } from "./labeling";
 
 type DefaultAnalysisBuilders = {
@@ -26,7 +26,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
     return { type: "none", label: nullLabelRule };
   },
   diameter: (hydraulicModel: HydraulicModel) => (): LinkSymbology => {
-    const symbology = initializeSymbology({
+    const colorRule = initializeSymbology({
       property: "diameter",
       unit: hydraulicModel.units.diameter,
       rampName: "SunsetDark",
@@ -34,7 +34,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       numIntervals: 7,
       sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
     });
-    return { type: "diameter", symbology, label: nullLabelRule };
+    return { type: "diameter", colorRule, label: nullLabelRule };
   },
 
   flow: (hydraulicModel: HydraulicModel): (() => LinkSymbology) => {
@@ -43,7 +43,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       const sortedData = getSortedValues(hydraulicModel.assets, "flow", {
         absValues: true,
       });
-      const symbology = initializeSymbology({
+      const colorRule = initializeSymbology({
         property,
         unit: hydraulicModel.units.flow,
         rampName: "Teal",
@@ -51,13 +51,13 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         absValues: true,
         sortedData,
       });
-      return { type: "flow", symbology, label: nullLabelRule };
+      return { type: "flow", colorRule, label: nullLabelRule };
     };
   },
   velocity:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
     (): LinkSymbology => {
-      const symbology = initializeSymbology({
+      const colorRule = initializeSymbology({
         property: "velocity",
         unit: hydraulicModel.units.velocity,
         rampName: "RedOr",
@@ -65,12 +65,12 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
         fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
       });
-      return { type: "velocity", symbology, label: nullLabelRule };
+      return { type: "velocity", colorRule, label: nullLabelRule };
     },
   unitHeadloss:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
     (): LinkSymbology => {
-      const symbology = initializeSymbology({
+      const colorRule = initializeSymbology({
         property: "unitHeadloss",
         unit: hydraulicModel.units.unitHeadloss,
         rampName: "Emrld",
@@ -78,10 +78,10 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
         fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
       });
-      return { type: "unitHeadloss", symbology, label: nullLabelRule };
+      return { type: "unitHeadloss", colorRule, label: nullLabelRule };
     },
   pressure: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
-    const symbology = initializeSymbology({
+    const colorRule = initializeSymbology({
       property: "pressure",
       unit: hydraulicModel.units.pressure,
       rampName: "Temps",
@@ -89,10 +89,10 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
     });
-    return { type: "pressure", symbology, label: nullLabelRule };
+    return { type: "pressure", colorRule, label: nullLabelRule };
   },
   elevation: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
-    const symbology = initializeSymbology({
+    const colorRule = initializeSymbology({
       property: "elevation",
       unit: hydraulicModel.units.elevation,
       rampName: "Fall",
@@ -100,6 +100,6 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
     });
-    return { type: "elevation", symbology, label: nullLabelRule };
+    return { type: "elevation", colorRule, label: nullLabelRule };
   },
 };

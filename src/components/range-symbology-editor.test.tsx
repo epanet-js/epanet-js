@@ -46,7 +46,7 @@ describe("analysis range editor", () => {
     await user.type(field, "25");
     await user.keyboard("{Enter}");
 
-    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
+    const { mode, breaks, colors } = getNodeColorRule(store);
     expect(breaks).toEqual([25, 30]);
     expect(colors).toEqual([red, green, blue]);
     expect(mode).toEqual("manual");
@@ -85,7 +85,7 @@ describe("analysis range editor", () => {
       expectIntervalColor(1, "#123456");
     });
     expectBreakValue(0, "20");
-    const { breaks, colors, mode } = getNodeSymbologySymbology(store);
+    const { breaks, colors, mode } = getNodeColorRule(store);
     expect(breaks).toEqual([20, 30]);
     expect(colors).toEqual([red, "#123456", blue]);
     expect(mode).toEqual("equalQuantiles");
@@ -112,7 +112,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal intervals/i }));
 
-    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
+    const { mode, breaks, colors } = getNodeColorRule(store);
     expect(mode).toEqual("equalIntervals");
     expect(breaks).toEqual([20, 30]);
     expect(colors).toEqual([red, green, blue]);
@@ -140,7 +140,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
+    const { mode, breaks, colors } = getNodeColorRule(store);
     expect(mode).toEqual("equalQuantiles");
     expect(breaks).toEqual([15, 20]);
     expect(colors).toEqual([red, green, blue]);
@@ -170,7 +170,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /manual/i }));
 
-    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
+    const { mode, breaks, colors } = getNodeColorRule(store);
     expect(mode).toEqual("manual");
     expect(breaks).toEqual([50, 75]);
     expect(colors).toEqual([red, green, blue]);
@@ -191,14 +191,14 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    const firstState = getNodeSymbologySymbology(store);
+    const firstState = getNodeColorRule(store);
     expect(firstState.breaks).toEqual([0, 10, 20]);
     expect(firstState.colors).toEqual([defaultNewColor, red, green, blue]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    const secondState = getNodeSymbologySymbology(store);
+    const secondState = getNodeColorRule(store);
     expect(secondState.breaks).toEqual([-1, 0, 10, 20]);
     expect(secondState.colors).toEqual([
       defaultNewColor,
@@ -210,13 +210,13 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    const thirdState = getNodeSymbologySymbology(store);
+    const thirdState = getNodeColorRule(store);
     expect(thirdState.breaks).toEqual([0, 10, 20]);
     expect(thirdState.colors).toEqual([defaultNewColor, red, green, blue]);
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    const forthState = getNodeSymbologySymbology(store);
+    const forthState = getNodeColorRule(store);
     expect(forthState.breaks).toEqual([10, 20]);
     expect(forthState.colors).toEqual([red, green, blue]);
   });
@@ -235,14 +235,14 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const firstState = getNodeSymbologySymbology(store);
+    const firstState = getNodeColorRule(store);
     expect(firstState.breaks).toEqual([10, 20, 21]);
     expect(firstState.colors).toEqual([red, green, blue, defaultNewColor]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const secondState = getNodeSymbologySymbology(store);
+    const secondState = getNodeColorRule(store);
     expect(secondState.breaks).toEqual([10, 20, 21, 22]);
     expect(secondState.colors).toEqual([
       red,
@@ -267,7 +267,7 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 1/i }));
 
-    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
+    const { mode, breaks, colors } = getNodeColorRule(store);
     expect(breaks).toEqual([2, 4]);
     expect(colors).toEqual([red, green, white]);
     expect(mode).toEqual("manual");
@@ -298,7 +298,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /classes/i }));
     await user.click(screen.getByRole("option", { name: /4/ }));
 
-    const { breaks, colors } = getNodeSymbologySymbology(store);
+    const { breaks, colors } = getNodeColorRule(store);
     expect(breaks).toEqual([25, 50, 75]);
     expect(colors.length).toEqual(4);
   });
@@ -326,7 +326,7 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expectBreakValue(1, "100");
-    const firstState = getNodeSymbologySymbology(store);
+    const firstState = getNodeColorRule(store);
     expect(firstState.breaks[1]).toEqual(20);
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
@@ -339,7 +339,7 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
-    const secondState = getNodeSymbologySymbology(store);
+    const secondState = getNodeColorRule(store);
     expect(secondState.breaks[1]).toEqual(100);
     expect(secondState.breaks[2]).toEqual(110);
 
@@ -457,7 +457,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    const firstState = getLinkSymbologySymbology(store);
+    const firstState = getLinkColorRule(store);
     expect(firstState.breaks).toEqual([15, 20]);
 
     const field = screen.getByRole("textbox", {
@@ -469,7 +469,7 @@ describe("analysis range editor", () => {
     await user.type(field, "-14");
     await user.keyboard("{Enter}");
 
-    const secondState = getLinkSymbologySymbology(store);
+    const secondState = getLinkColorRule(store);
     expect(secondState.breaks).toEqual([14, 20]);
     expect(secondState.colors).toEqual([red, green, blue]);
   });
@@ -497,7 +497,7 @@ describe("analysis range editor", () => {
     expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
     const savedAnalyses = store.get(savedAnalysesAtom);
     expect(savedAnalyses.get("elevation")).toMatchObject({
-      symbology: { mode: "prettyBreaks" },
+      colorRule: { mode: "prettyBreaks" },
     });
   });
 
@@ -524,16 +524,16 @@ describe("analysis range editor", () => {
     expect(screen.queryByText(/not enough data/)).not.toBeInTheDocument();
     const savedAnalyses = store.get(savedAnalysesAtom);
     expect(savedAnalyses.get("flow")).toMatchObject({
-      symbology: { mode: "prettyBreaks" },
+      colorRule: { mode: "prettyBreaks" },
     });
   });
 
-  const getNodeSymbologySymbology = (store: Store): RangeColorRule => {
-    return (store.get(nodeSymbologyAtom) as PropertyAnalysis).symbology;
+  const getNodeColorRule = (store: Store): RangeColorRule => {
+    return (store.get(nodeSymbologyAtom) as PropertyAnalysis).colorRule;
   };
 
-  const getLinkSymbologySymbology = (store: Store): RangeColorRule => {
-    return (store.get(linkSymbologyAtom) as PropertyAnalysis).symbology;
+  const getLinkColorRule = (store: Store): RangeColorRule => {
+    return (store.get(linkSymbologyAtom) as PropertyAnalysis).colorRule;
   };
 
   const expectBreakValue = (index: number, value: string) => {
