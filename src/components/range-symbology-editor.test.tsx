@@ -12,8 +12,8 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { RangeSymbology, defaultNewColor } from "src/analysis/range-symbology";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
 import {
-  linksAnalysisAtom,
-  nodesAnalysisAtom,
+  linkSymbologyAtom,
+  nodeSymbologyAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
 import { RangeSymbologyEditor } from "./range-symbology-editor";
@@ -26,14 +26,14 @@ describe("analysis range editor", () => {
 
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         breaks: [20, 30],
         colors: [red, green, blue],
       },
     });
 
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -58,7 +58,7 @@ describe("analysis range editor", () => {
 
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [20, 30],
@@ -66,7 +66,7 @@ describe("analysis range editor", () => {
       },
     });
 
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -98,14 +98,14 @@ describe("analysis range editor", () => {
       .aJunction("j2", { simulation: { pressure: 15 } })
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         breaks: [20, 30],
         colors: [red, green, blue],
       },
     });
 
-    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+    const store = setInitialState({ hydraulicModel, nodeSymbology });
 
     renderComponent({ store });
 
@@ -126,14 +126,14 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 20 } })
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         property: "pressure",
         colors: [red, green, blue],
       },
     });
 
-    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+    const store = setInitialState({ hydraulicModel, nodeSymbology });
 
     renderComponent({ store });
 
@@ -154,7 +154,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 20 } })
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         property: "pressure",
         mode: "prettyBreaks",
@@ -163,7 +163,7 @@ describe("analysis range editor", () => {
       },
     });
 
-    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+    const store = setInitialState({ hydraulicModel, nodeSymbology });
 
     renderComponent({ store });
 
@@ -178,14 +178,14 @@ describe("analysis range editor", () => {
 
   it("can prepend breaks", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [10, 20],
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -223,13 +223,13 @@ describe("analysis range editor", () => {
 
   it("can append breaks", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         breaks: [10, 20],
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -255,13 +255,13 @@ describe("analysis range editor", () => {
 
   it("can delete a break", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         colors: [red, green, blue, white],
         breaks: [2, 3, 4],
       },
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -280,14 +280,14 @@ describe("analysis range editor", () => {
       .aJunction("j2", { simulation: { pressure: 15 } })
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         mode: "prettyBreaks",
         breaks: [20, 30],
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ hydraulicModel, nodesAnalysis });
+    const store = setInitialState({ hydraulicModel, nodeSymbology });
 
     renderComponent({ store });
 
@@ -305,14 +305,14 @@ describe("analysis range editor", () => {
 
   it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         breaks: [10, 20, 30],
         colors: [white, red, green, blue],
       },
     });
 
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -365,14 +365,14 @@ describe("analysis range editor", () => {
 
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [20, 30],
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -383,14 +383,14 @@ describe("analysis range editor", () => {
 
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         mode: "equalIntervals",
         breaks: [20, 30],
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ nodesAnalysis });
+    const store = setInitialState({ nodeSymbology });
 
     renderComponent({ store });
 
@@ -407,7 +407,7 @@ describe("analysis range editor", () => {
       .aPipe("p4", { simulation: { flow: 30 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinkSymbology({
+    const linkSymbology = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         mode: "equalIntervals",
@@ -415,7 +415,7 @@ describe("analysis range editor", () => {
         colors: [red, green, blue],
       }),
     });
-    const store = setInitialState({ hydraulicModel, linksAnalysis });
+    const store = setInitialState({ hydraulicModel, linkSymbology });
 
     renderComponent({ store, geometryType: "link" });
 
@@ -441,7 +441,7 @@ describe("analysis range editor", () => {
       .aPipe("p6", { simulation: { flow: 20 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinkSymbology({
+    const linkSymbology = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         breaks: [20, 30],
@@ -450,7 +450,7 @@ describe("analysis range editor", () => {
       }),
     });
 
-    const store = setInitialState({ linksAnalysis, hydraulicModel });
+    const store = setInitialState({ linkSymbology, hydraulicModel });
 
     renderComponent({ store, geometryType: "link" });
 
@@ -480,14 +480,14 @@ describe("analysis range editor", () => {
       .aJunction("j1", { elevation: 10 })
       .aJunction("j2", { elevation: 15 })
       .build();
-    const nodesAnalysis = aNodeSymbology({
+    const nodeSymbology = aNodeSymbology({
       symbology: {
         property: "elevation",
         rampName: "Temps",
       },
     });
 
-    const store = setInitialState({ nodesAnalysis, hydraulicModel });
+    const store = setInitialState({ nodeSymbology, hydraulicModel });
 
     renderComponent({ store });
 
@@ -507,14 +507,14 @@ describe("analysis range editor", () => {
       .aPipe("p2", { simulation: { flow: 15 } })
       .build();
     const user = userEvent.setup();
-    const linksAnalysis = aLinkSymbology({
+    const linkSymbology = aLinkSymbology({
       symbology: aSymbology({
         property: "flow",
         rampName: "Temps",
       }),
     });
 
-    const store = setInitialState({ linksAnalysis, hydraulicModel });
+    const store = setInitialState({ linkSymbology, hydraulicModel });
 
     renderComponent({ store, geometryType: "link" });
 
@@ -529,11 +529,11 @@ describe("analysis range editor", () => {
   });
 
   const getNodeSymbologySymbology = (store: Store): RangeSymbology => {
-    return (store.get(nodesAnalysisAtom) as PropertyAnalysis).symbology;
+    return (store.get(nodeSymbologyAtom) as PropertyAnalysis).symbology;
   };
 
   const getLinkSymbologySymbology = (store: Store): RangeSymbology => {
-    return (store.get(linksAnalysisAtom) as PropertyAnalysis).symbology;
+    return (store.get(linkSymbologyAtom) as PropertyAnalysis).symbology;
   };
 
   const expectBreakValue = (index: number, value: string) => {

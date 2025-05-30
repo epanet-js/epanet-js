@@ -20,8 +20,8 @@ const analysisLabelFor = (type: AnalysisType) => {
 
 export const AnalysisSettingsPanel = () => {
   const {
-    linksAnalysis,
-    nodesAnalysis,
+    linkSymbology,
+    nodeSymbology,
     switchNodeSymbologyTo,
     switchLinkSymbologyTo,
     updateLinkSymbology,
@@ -61,7 +61,7 @@ export const AnalysisSettingsPanel = () => {
         type: "links",
       });
     }
-    updateLinkSymbology({ ...linksAnalysis, labeling: label });
+    updateLinkSymbology({ ...linkSymbology, labeling: label });
   };
 
   const handleNodesLabelingChange = (label: string | null) => {
@@ -78,7 +78,7 @@ export const AnalysisSettingsPanel = () => {
         type: "nodes",
       });
     }
-    updateNodeSymbology({ ...nodesAnalysis, labeling: label });
+    updateNodeSymbology({ ...nodeSymbology, labeling: label });
   };
 
   const handleNodesChange = (type: NodeSymbology["type"]) => {
@@ -110,19 +110,19 @@ export const AnalysisSettingsPanel = () => {
               disabled:
                 simulation.status === "idle" && ["pressure"].includes(type),
             }))}
-            selected={nodesAnalysis.type}
+            selected={nodeSymbology.type}
             onChange={handleNodesChange}
           />
-          {nodesAnalysis.type !== "none" && (
+          {nodeSymbology.type !== "none" && (
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
                 aria-label={translate("showLabels")}
-                checked={!!nodesAnalysis.labeling}
+                checked={!!nodeSymbology.labeling}
                 onChange={() =>
                   handleNodesLabelingChange(
-                    !!nodesAnalysis.labeling
+                    !!nodeSymbology.labeling
                       ? null
-                      : nodesAnalysis.symbology.property,
+                      : nodeSymbology.symbology.property,
                   )
                 }
               />
@@ -148,19 +148,19 @@ export const AnalysisSettingsPanel = () => {
                 simulation.status === "idle" &&
                 ["flow", "velocity", "unitHeadloss"].includes(type),
             }))}
-            selected={linksAnalysis.type}
+            selected={linkSymbology.type}
             onChange={handleLinksChange}
           />
-          {linksAnalysis.type !== "none" && (
+          {linkSymbology.type !== "none" && (
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
-                checked={!!linksAnalysis.labeling}
+                checked={!!linkSymbology.labeling}
                 aria-label={translate("showLabels")}
                 onChange={() =>
                   handleLinksLabelsChange(
-                    !!linksAnalysis.labeling
+                    !!linkSymbology.labeling
                       ? null
-                      : linksAnalysis.symbology.property,
+                      : linkSymbology.symbology.property,
                   )
                 }
               />

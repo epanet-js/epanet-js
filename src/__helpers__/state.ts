@@ -23,7 +23,7 @@ import {
   RangeSymbology,
   nullRangeSymbology,
 } from "src/analysis/range-symbology";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
 import { Labeling } from "src/analysis/analysis-types";
 
 export const setInitialState = ({
@@ -34,8 +34,8 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
-  nodesAnalysis = { type: "none", labeling: null },
-  linksAnalysis = { type: "none", labeling: null },
+  nodeSymbology = { type: "none", labeling: null },
+  linkSymbology = { type: "none", labeling: null },
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -44,8 +44,8 @@ export const setInitialState = ({
   selection?: Sel;
   fileInfo?: FileInfo | null;
   layerConfigs?: LayerConfigMap;
-  nodesAnalysis?: NodeSymbology;
-  linksAnalysis?: LinkSymbology;
+  nodeSymbology?: NodeSymbology;
+  linkSymbology?: LinkSymbology;
 } = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
@@ -56,8 +56,8 @@ export const setInitialState = ({
   store.set(simulationAtom, simulation);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
-  store.set(nodesAnalysisAtom, nodesAnalysis);
-  store.set(linksAnalysisAtom, linksAnalysis);
+  store.set(nodeSymbologyAtom, nodeSymbology);
+  store.set(linkSymbologyAtom, linkSymbology);
 
   return store;
 };

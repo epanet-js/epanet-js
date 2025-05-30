@@ -4,20 +4,20 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeSymbology } from "src/analysis/range-symbology";
 import { useAtomValue } from "jotai";
-import { linksAnalysisAtom, nodesAnalysisAtom } from "src/state/analysis";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
 
 export const AnalysisLegends = () => {
-  const nodesAnalysis = useAtomValue(nodesAnalysisAtom);
-  const linksAnalysis = useAtomValue(linksAnalysisAtom);
+  const nodeSymbology = useAtomValue(nodeSymbologyAtom);
+  const linkSymbology = useAtomValue(linkSymbologyAtom);
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
-      {nodesAnalysis.type !== "none" && (
-        <Legend symbology={nodesAnalysis.symbology} />
+      {nodeSymbology.type !== "none" && (
+        <Legend symbology={nodeSymbology.symbology} />
       )}
-      {linksAnalysis.type !== "none" && (
-        <Legend symbology={linksAnalysis.symbology} />
+      {linkSymbology.type !== "none" && (
+        <Legend symbology={linkSymbology.symbology} />
       )}
     </div>
   );

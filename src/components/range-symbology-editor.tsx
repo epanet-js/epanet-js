@@ -45,8 +45,8 @@ export const RangeSymbologyEditor = ({
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
   const {
-    linksAnalysis,
-    nodesAnalysis,
+    linkSymbology,
+    nodeSymbology,
     updateNodeSymbology,
     updateLinkSymbology,
   } = useAnalysisState();
@@ -54,7 +54,7 @@ export const RangeSymbologyEditor = ({
   const userTracking = useUserTracking();
 
   const activeAnalysis =
-    geometryType === "node" ? nodesAnalysis : linksAnalysis;
+    geometryType === "node" ? nodeSymbology : linkSymbology;
 
   const initialSymbology =
     activeAnalysis.type === "none"

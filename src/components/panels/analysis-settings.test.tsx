@@ -13,8 +13,8 @@ import {
 import { colorFor } from "src/analysis/range-symbology";
 import {
   AnalysesMap,
-  linksAnalysisAtom,
-  nodesAnalysisAtom,
+  linkSymbologyAtom,
+  nodeSymbologyAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
 
@@ -62,10 +62,10 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
     await userEvent.click(screen.getByText("Pressure"));
 
-    const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
-    expect(nodesAnalysis.type).toEqual("pressure");
-    expect(colorFor(nodesAnalysis.symbology, 10)).not.toBeUndefined();
-    expect(nodesAnalysis.symbology.property).toEqual("pressure");
+    const nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
+    expect(nodeSymbology.type).toEqual("pressure");
+    expect(colorFor(nodeSymbology.symbology, 10)).not.toBeUndefined();
+    expect(nodeSymbology.symbology.property).toEqual("pressure");
   });
 
   it("displays link analysis options", async () => {
@@ -88,10 +88,10 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
     await userEvent.click(screen.getByText(/flow/i));
 
-    const linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
-    expect(linksAnalysis.type).toEqual("flow");
-    expect(colorFor(linksAnalysis.symbology, 10)).not.toBeUndefined();
-    expect(linksAnalysis.symbology.property).toEqual("flow");
+    const linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
+    expect(linkSymbology.type).toEqual("flow");
+    expect(colorFor(linkSymbology.symbology, 10)).not.toBeUndefined();
+    expect(linkSymbology.symbology.property).toEqual("flow");
 
     expect(screen.getByRole("combobox", { name: /links/i })).toHaveTextContent(
       "Flow",
@@ -113,9 +113,9 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
     await userEvent.click(screen.getByText(/flow/i));
 
-    const linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
-    expect(linksAnalysis.type).toEqual("flow");
-    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    const linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
+    expect(linkSymbology.type).toEqual("flow");
+    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
   });
 
   it("uses a previous nodes analysis when available", async () => {
@@ -136,9 +136,9 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
     await userEvent.click(screen.getByText(/pressure/i));
 
-    const nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
-    expect(nodesAnalysis.type).toEqual("pressure");
-    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    const nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
+    expect(nodeSymbology.type).toEqual("pressure");
+    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
   });
 
   it("can show and hide labels for nodes", async () => {
@@ -160,25 +160,25 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /nodes/i }));
     await userEvent.click(screen.getByText(/pressure/i));
 
-    let nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
-    expect(nodesAnalysis.type).toEqual("pressure");
-    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    let nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
+    expect(nodeSymbology.type).toEqual("pressure");
+    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
-    nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
-    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
-    expect(nodesAnalysis.labeling).toEqual("pressure");
+    nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
+    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.labeling).toEqual("pressure");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
-    nodesAnalysis = store.get(nodesAnalysisAtom) as PropertyAnalysis;
-    expect(nodesAnalysis.symbology.rampName).toEqual("PREVIOUS");
-    expect(nodesAnalysis.labeling).toEqual(null);
+    nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
+    expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(nodeSymbology.labeling).toEqual(null);
   });
 
   it("can show and hide labels for links", async () => {
@@ -200,25 +200,25 @@ describe("Analysis Settings Panel", () => {
     await userEvent.click(screen.getByRole("combobox", { name: /links/i }));
     await userEvent.click(screen.getByText(/flow/i));
 
-    let linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
-    expect(linksAnalysis.type).toEqual("flow");
-    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
+    let linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
+    expect(linkSymbology.type).toEqual("flow");
+    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
-    linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
-    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
-    expect(linksAnalysis.labeling).toEqual("flow");
+    linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
+    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.labeling).toEqual("flow");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
     );
 
-    linksAnalysis = store.get(linksAnalysisAtom) as PropertyAnalysis;
-    expect(linksAnalysis.symbology.rampName).toEqual("PREVIOUS");
-    expect(linksAnalysis.labeling).toEqual(null);
+    linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
+    expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
+    expect(linkSymbology.labeling).toEqual(null);
   });
 
   const renderComponent = (store: Store) => {

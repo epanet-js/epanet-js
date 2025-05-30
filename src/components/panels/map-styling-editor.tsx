@@ -25,8 +25,8 @@ const analysisLabelFor = (type: AnalysisType) => {
 
 export const MapStylingEditor = () => {
   const {
-    linksAnalysis,
-    nodesAnalysis,
+    linkSymbology,
+    nodeSymbology,
     switchNodeSymbologyTo,
     switchLinkSymbologyTo,
     updateLinkSymbology,
@@ -66,7 +66,7 @@ export const MapStylingEditor = () => {
         type: "links",
       });
     }
-    updateLinkSymbology({ ...linksAnalysis, labeling: label });
+    updateLinkSymbology({ ...linkSymbology, labeling: label });
   };
 
   const handleNodesLabelingChange = (label: string | null) => {
@@ -83,7 +83,7 @@ export const MapStylingEditor = () => {
         type: "nodes",
       });
     }
-    updateNodeSymbology({ ...nodesAnalysis, labeling: label });
+    updateNodeSymbology({ ...nodeSymbology, labeling: label });
   };
 
   const handleNodesChange = (type: NodeSymbology["type"]) => {
@@ -112,16 +112,16 @@ export const MapStylingEditor = () => {
                 disabled:
                   simulation.status === "idle" && ["pressure"].includes(type),
               }))}
-              selected={nodesAnalysis.type}
+              selected={nodeSymbology.type}
               onChange={handleNodesChange}
             />
           </PanelItem>
-          {nodesAnalysis.type !== "none" && (
+          {nodeSymbology.type !== "none" && (
             <>
               <PanelItem name={translate("range")}>
                 <RangeSymbologyEditorTrigger
-                  mode={nodesAnalysis.symbology.mode}
-                  numIntervals={nodesAnalysis.symbology.breaks.length + 1}
+                  mode={nodeSymbology.symbology.mode}
+                  numIntervals={nodeSymbology.symbology.breaks.length + 1}
                   geometryType="node"
                 />
               </PanelItem>
@@ -132,12 +132,12 @@ export const MapStylingEditor = () => {
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
                     aria-label={`${translate("nodes")} ${translate("labels")}`}
-                    checked={!!nodesAnalysis.labeling}
+                    checked={!!nodeSymbology.labeling}
                     onChange={() =>
                       handleNodesLabelingChange(
-                        !!nodesAnalysis.labeling
+                        !!nodeSymbology.labeling
                           ? null
-                          : nodesAnalysis.symbology.property,
+                          : nodeSymbology.symbology.property,
                       )
                     }
                   />
@@ -166,16 +166,16 @@ export const MapStylingEditor = () => {
                   simulation.status === "idle" &&
                   ["flow", "velocity", "unitHeadloss"].includes(type),
               }))}
-              selected={linksAnalysis.type}
+              selected={linkSymbology.type}
               onChange={handleLinksChange}
             />
           </PanelItem>
-          {linksAnalysis.type !== "none" && (
+          {linkSymbology.type !== "none" && (
             <>
               <PanelItem name={translate("range")}>
                 <RangeSymbologyEditorTrigger
-                  mode={linksAnalysis.symbology.mode}
-                  numIntervals={linksAnalysis.symbology.breaks.length + 1}
+                  mode={linkSymbology.symbology.mode}
+                  numIntervals={linkSymbology.symbology.breaks.length + 1}
                   geometryType="link"
                 />
               </PanelItem>
@@ -185,13 +185,13 @@ export const MapStylingEditor = () => {
               <PanelItem name={translate("labels")}>
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
-                    checked={!!linksAnalysis.labeling}
+                    checked={!!linkSymbology.labeling}
                     aria-label={`${translate("links")} ${translate("labels")}`}
                     onChange={() =>
                       handleLinksLabelsChange(
-                        !!linksAnalysis.labeling
+                        !!linkSymbology.labeling
                           ? null
-                          : linksAnalysis.symbology.property,
+                          : linkSymbology.symbology.property,
                       )
                     }
                   />

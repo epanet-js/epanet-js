@@ -37,14 +37,14 @@ const useColorRampSettings = (
   geometryType: "node" | "link",
 ): ColorRampSettingsHook => {
   const {
-    linksAnalysis,
-    nodesAnalysis,
+    linkSymbology,
+    nodeSymbology,
     updateNodeSymbology,
     updateLinkSymbology,
   } = useAnalysisState();
   const userTracking = useUserTracking();
 
-  const settings = geometryType === "node" ? nodesAnalysis : linksAnalysis;
+  const settings = geometryType === "node" ? nodeSymbology : linkSymbology;
 
   if (settings.type === "none")
     throw new Error("Cannot use settings with none");

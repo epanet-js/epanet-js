@@ -171,16 +171,16 @@ const appendPipeAnalysisProps = (
 const appendJunctionAnalysisProps = (
   junction: Junction,
   feature: Feature,
-  nodesAnalysis: NodeSymbology,
+  nodeSymbology: NodeSymbology,
   quantities: Quantities,
 ) => {
-  if (nodesAnalysis.type === "none") return;
+  if (nodeSymbology.type === "none") return;
 
-  const property = nodesAnalysis.symbology.property;
+  const property = nodeSymbology.symbology.property;
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
 
-  if (!!nodesAnalysis.labeling) {
+  if (!!nodeSymbology.labeling) {
     const unit = junction.getUnit(property as JunctionQuantity);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(property as QuantityProperty),
@@ -189,7 +189,7 @@ const appendJunctionAnalysisProps = (
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
 
-  const fillColor = colorFor(nodesAnalysis.symbology, numericValue);
+  const fillColor = colorFor(nodeSymbology.symbology, numericValue);
   const strokeColor = strokeColorFor(fillColor);
 
   feature.properties!.color = fillColor;

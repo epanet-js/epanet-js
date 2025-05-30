@@ -6,39 +6,39 @@ export type { AnalysisState };
 export type AnalysesMap = Map<string, NodeSymbology | LinkSymbology>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
-export const nodesAnalysisAtom = atom<NodeSymbology>({
+export const nodeSymbologyAtom = atom<NodeSymbology>({
   type: "none",
   labeling: null,
 });
-export const linksAnalysisAtom = atom<LinkSymbology>({
+export const linkSymbologyAtom = atom<LinkSymbology>({
   type: "none",
   labeling: null,
 });
 
 export const analysisAtom = atom((get) => {
-  const nodes = get(nodesAnalysisAtom);
-  const links = get(linksAnalysisAtom);
+  const nodes = get(nodeSymbologyAtom);
+  const links = get(linkSymbologyAtom);
 
   return { nodes, links };
 });
 
 export const useAnalysisState = () => {
   const [savedAnalyses, setSavedAnalyises] = useAtom(savedAnalysesAtom);
-  const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtom);
-  const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtom);
+  const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
+  const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);
 
   const switchNodeSymbologyTo = (
     type: NodeSymbology["type"],
     initializeFn: () => NodeSymbology,
   ) => {
     if (savedAnalyses.has(type)) {
-      const nodesAnalysis = savedAnalyses.get(type) as NodeSymbology;
-      setNodesActive(nodesAnalysis);
+      const nodeSymbology = savedAnalyses.get(type) as NodeSymbology;
+      setNodesActive(nodeSymbology);
     } else {
-      const nodesAnalysis = initializeFn();
-      setNodesActive(nodesAnalysis);
+      const nodeSymbology = initializeFn();
+      setNodesActive(nodeSymbology);
       const analysesMap = new Map([...savedAnalyses.entries()]);
-      analysesMap.set(nodesAnalysis.type, nodesAnalysis);
+      analysesMap.set(nodeSymbology.type, nodeSymbology);
       setSavedAnalyises(analysesMap);
     }
   };
@@ -48,13 +48,13 @@ export const useAnalysisState = () => {
     initializeFn: () => LinkSymbology,
   ) => {
     if (savedAnalyses.has(type)) {
-      const linksAnalysis = savedAnalyses.get(type) as LinkSymbology;
-      setLinksActive(linksAnalysis);
+      const linkSymbology = savedAnalyses.get(type) as LinkSymbology;
+      setLinksActive(linkSymbology);
     } else {
-      const linksAnalysis = initializeFn();
-      setLinksActive(linksAnalysis);
+      const linkSymbology = initializeFn();
+      setLinksActive(linkSymbology);
       const analysesMap = new Map([...savedAnalyses.entries()]);
-      analysesMap.set(linksAnalysis.type, linksAnalysis);
+      analysesMap.set(linkSymbology.type, linkSymbology);
       setSavedAnalyises(analysesMap);
     }
   };
@@ -74,8 +74,8 @@ export const useAnalysisState = () => {
   };
 
   return {
-    linksAnalysis,
-    nodesAnalysis,
+    linkSymbology,
+    nodeSymbology,
     switchNodeSymbologyTo,
     switchLinkSymbologyTo,
     updateNodeSymbology,
