@@ -43,7 +43,7 @@ export type AssetQuantitiesSpec = {
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
-  analysis: {
+  ranges: {
     velocityFallbackEndpoints: [number, number];
     unitHeadlossFallbackEndpoints: [number, number];
   };
@@ -94,7 +94,7 @@ const metricSpec: AssetQuantitiesSpec = {
     },
     valve: { diameter: 300 },
   },
-  analysis: {
+  ranges: {
     velocityFallbackEndpoints: [0, 4],
     unitHeadlossFallbackEndpoints: [0, 5],
   },
@@ -146,7 +146,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     },
     valve: { diameter: 12 },
   },
-  analysis: {
+  ranges: {
     velocityFallbackEndpoints: [0, 10],
     unitHeadlossFallbackEndpoints: [3, 12],
   },
@@ -299,8 +299,8 @@ export class Quantities {
     return this.spec.units;
   }
 
-  get analysis() {
-    return this.spec.analysis;
+  get ranges() {
+    return this.spec.ranges;
   }
 
   getDecimals(name: keyof DecimalsSpec): number | undefined {

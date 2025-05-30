@@ -63,7 +63,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         rampName: "RedOr",
         mode: "prettyBreaks",
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
-        fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
+        fallbackEndpoints: quantities.ranges.velocityFallbackEndpoints,
       });
       return { type: "velocity", colorRule, labelRule: nullLabelRule };
     },
@@ -76,7 +76,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         rampName: "Emrld",
         mode: "prettyBreaks",
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
-        fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
+        fallbackEndpoints: quantities.ranges.unitHeadlossFallbackEndpoints,
       });
       return { type: "unitHeadloss", colorRule, labelRule: nullLabelRule };
     },
