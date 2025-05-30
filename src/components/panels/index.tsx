@@ -56,7 +56,7 @@ const ActiveTab = memo(function ActiveTab({
   switch (activeTab) {
     case TabOption.Asset:
       return <FeatureEditor />;
-    case TabOption.Analysis:
+    case TabOption.Map:
       return <MapStylingEditor />;
   }
 });
@@ -85,8 +85,8 @@ const TabList = memo(function TabList({
         label={translate("asset")}
       />
       <Tab
-        onClick={() => setTab(TabOption.Analysis)}
-        active={activeTab === TabOption.Analysis}
+        onClick={() => setTab(TabOption.Map)}
+        active={activeTab === TabOption.Map}
         label={translate("map")}
       />
     </div>

@@ -66,7 +66,7 @@ describe("build optimized source", () => {
     expect(pu2.properties!.status).toEqual("off");
   });
 
-  describe("when nodes analysis enabled", () => {
+  describe("node symbology", () => {
     it("includes props for styling to junctions", () => {
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -119,7 +119,7 @@ describe("build optimized source", () => {
     });
   });
 
-  describe("when links analysis enabled", () => {
+  describe("link symbology", () => {
     const symbology: SymbologySpec = {
       ...nullSymbologySpec,
       links: aLinkSymbology({

@@ -315,7 +315,7 @@ const updateImportSource = withInstrumentation(
     momentLog: MomentLog,
     assets: AssetsMap,
     idMap: IDMap,
-    analysisState: SymbologySpec,
+    symbology: SymbologySpec,
     quantities: Quantities,
   ) => {
     const importSnapshot = momentLog.getSnapshot();
@@ -333,7 +333,7 @@ const updateImportSource = withInstrumentation(
     const features = buildOptimizedAssetsSource(
       importedAssets,
       idMap,
-      analysisState,
+      symbology,
       quantities,
     );
     await map.setSource("imported-features", features);
@@ -352,7 +352,7 @@ const updateEditionsSource = withInstrumentation(
     momentLog: MomentLog,
     assets: AssetsMap,
     idMap: IDMap,
-    analysisState: SymbologySpec,
+    symbology: SymbologySpec,
     quantities: Quantities,
   ): Promise<Set<AssetId>> => {
     const editionMoments = momentLog.getDeltas();
@@ -363,7 +363,7 @@ const updateEditionsSource = withInstrumentation(
     const features = buildOptimizedAssetsSource(
       editedAssets,
       idMap,
-      analysisState,
+      symbology,
       quantities,
     );
     await map.setSource("features", features);

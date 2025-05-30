@@ -398,7 +398,7 @@ export const syncingMachineAtom = atomWithMachine(() => syncingMachine);
 
 export enum TabOption {
   Asset = "Asset",
-  Analysis = "Analysis",
+  Map = "Map",
 }
 
 export const tabAtom = atom<TabOption>(TabOption.Asset);
