@@ -2,7 +2,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeSymbology } from "./range-symbology";
 import { getSortedValues } from "./analysis-data";
-import { Labeling, LinkSymbology, NodesAnalysis } from "./analysis-types";
+import { Labeling, LinkSymbology, NodeSymbology } from "./analysis-types";
 import { nullLabeling } from "./labeling";
 
 type DefaultAnalysisBuilders = {
@@ -16,8 +16,8 @@ type DefaultAnalysisBuilders = {
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
   ) => () => LinkSymbology;
-  pressure: (hydraulicModel: HydraulicModel) => () => NodesAnalysis;
-  elevation: (HydraulicModel: HydraulicModel) => () => NodesAnalysis;
+  pressure: (hydraulicModel: HydraulicModel) => () => NodeSymbology;
+  elevation: (HydraulicModel: HydraulicModel) => () => NodeSymbology;
   none: () => () => { type: "none"; labeling: Labeling };
 };
 
@@ -80,7 +80,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       });
       return { type: "unitHeadloss", symbology, labeling: nullLabeling };
     },
-  pressure: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
+  pressure: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const symbology = initializeSymbology({
       property: "pressure",
       unit: hydraulicModel.units.pressure,
@@ -91,7 +91,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
     });
     return { type: "pressure", symbology, labeling: nullLabeling };
   },
-  elevation: (hydraulicModel: HydraulicModel) => (): NodesAnalysis => {
+  elevation: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const symbology = initializeSymbology({
       property: "elevation",
       unit: hydraulicModel.units.elevation,

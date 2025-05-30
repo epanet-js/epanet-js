@@ -23,7 +23,7 @@ export type PropertyAnalysis = {
   labeling: Labeling;
 };
 
-export type NodesAnalysis =
+export type NodeSymbology =
   | { type: "none"; labeling: Labeling }
   | {
       type: "elevation" | "pressure";
@@ -40,7 +40,7 @@ export type LinkSymbology =
     };
 
 export type AnalysisState = {
-  nodes: NodesAnalysis;
+  nodes: NodeSymbology;
   links: LinkSymbology;
 };
 

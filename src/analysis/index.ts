@@ -1,5 +1,5 @@
 export type {
-  NodesAnalysis,
+  NodeSymbology,
   LinkSymbology,
   AnalysisState,
 } from "./analysis-types";

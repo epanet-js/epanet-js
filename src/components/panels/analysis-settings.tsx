@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { PanelDetails } from "../panel_details";
 import { translate } from "src/infra/i18n";
-import { LinkSymbology, NodesAnalysis } from "src/analysis";
+import { LinkSymbology, NodeSymbology } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -22,10 +22,10 @@ export const AnalysisSettingsPanel = () => {
   const {
     linksAnalysis,
     nodesAnalysis,
-    switchNodesAnalysisTo,
+    switchNodeSymbologyTo,
     switchLinkSymbologyTo,
     updateLinkSymbology,
-    updateNodesAnalysis,
+    updateNodeSymbology,
   } = useAnalysisState();
   const simulation = useAtomValue(simulationAtom);
   const {
@@ -78,17 +78,17 @@ export const AnalysisSettingsPanel = () => {
         type: "nodes",
       });
     }
-    updateNodesAnalysis({ ...nodesAnalysis, labeling: label });
+    updateNodeSymbology({ ...nodesAnalysis, labeling: label });
   };
 
-  const handleNodesChange = (type: NodesAnalysis["type"]) => {
+  const handleNodesChange = (type: NodeSymbology["type"]) => {
     userTracking.capture({
       name: "analysis.applied",
       type: "nodes",
       subtype: type,
     });
 
-    switchNodesAnalysisTo(type, defaultAnalysis[type](hydraulicModel));
+    switchNodeSymbologyTo(type, defaultAnalysis[type](hydraulicModel));
   };
 
   return (
@@ -103,7 +103,7 @@ export const AnalysisSettingsPanel = () => {
           <Selector
             ariaLabel={translate("nodes")}
             options={(
-              ["none", "elevation", "pressure"] as NodesAnalysis["type"][]
+              ["none", "elevation", "pressure"] as NodeSymbology["type"][]
             ).map((type) => ({
               value: type,
               label: analysisLabelFor(type),

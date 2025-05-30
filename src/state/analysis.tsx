@@ -1,12 +1,12 @@
 import { atom, useAtom } from "jotai";
-import { AnalysisState, LinkSymbology, NodesAnalysis } from "src/analysis";
+import { AnalysisState, LinkSymbology, NodeSymbology } from "src/analysis";
 
 export type { AnalysisState };
 
-export type AnalysesMap = Map<string, NodesAnalysis | LinkSymbology>;
+export type AnalysesMap = Map<string, NodeSymbology | LinkSymbology>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
-export const nodesAnalysisAtom = atom<NodesAnalysis>({
+export const nodesAnalysisAtom = atom<NodeSymbology>({
   type: "none",
   labeling: null,
 });
@@ -27,12 +27,12 @@ export const useAnalysisState = () => {
   const [nodesAnalysis, setNodesActive] = useAtom(nodesAnalysisAtom);
   const [linksAnalysis, setLinksActive] = useAtom(linksAnalysisAtom);
 
-  const switchNodesAnalysisTo = (
-    type: NodesAnalysis["type"],
-    initializeFn: () => NodesAnalysis,
+  const switchNodeSymbologyTo = (
+    type: NodeSymbology["type"],
+    initializeFn: () => NodeSymbology,
   ) => {
     if (savedAnalyses.has(type)) {
-      const nodesAnalysis = savedAnalyses.get(type) as NodesAnalysis;
+      const nodesAnalysis = savedAnalyses.get(type) as NodeSymbology;
       setNodesActive(nodesAnalysis);
     } else {
       const nodesAnalysis = initializeFn();
@@ -59,10 +59,10 @@ export const useAnalysisState = () => {
     }
   };
 
-  const updateNodesAnalysis = (newNodesAnalysis: NodesAnalysis) => {
-    setNodesActive(newNodesAnalysis);
+  const updateNodeSymbology = (newNodeSymbology: NodeSymbology) => {
+    setNodesActive(newNodeSymbology);
     const analysesMap = new Map([...savedAnalyses.entries()]);
-    analysesMap.set(newNodesAnalysis.type, newNodesAnalysis);
+    analysesMap.set(newNodeSymbology.type, newNodeSymbology);
     setSavedAnalyises(analysesMap);
   };
 
@@ -76,9 +76,9 @@ export const useAnalysisState = () => {
   return {
     linksAnalysis,
     nodesAnalysis,
-    switchNodesAnalysisTo,
+    switchNodeSymbologyTo,
     switchLinkSymbologyTo,
-    updateNodesAnalysis,
+    updateNodeSymbology,
     updateLinkSymbology,
   };
 };

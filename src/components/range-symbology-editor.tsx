@@ -32,7 +32,7 @@ import * as d3 from "d3-array";
 import { getSortedValues } from "src/analysis/analysis-data";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAnalysisState } from "src/state/analysis";
-import { LinkSymbology, NodesAnalysis } from "src/analysis";
+import { LinkSymbology, NodeSymbology } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -47,7 +47,7 @@ export const RangeSymbologyEditor = ({
   const {
     linksAnalysis,
     nodesAnalysis,
-    updateNodesAnalysis,
+    updateNodeSymbology,
     updateLinkSymbology,
   } = useAnalysisState();
 
@@ -64,10 +64,10 @@ export const RangeSymbologyEditor = ({
   const onChange = useCallback(
     (newSymbology: RangeSymbology) => {
       if (geometryType === "node") {
-        updateNodesAnalysis({
+        updateNodeSymbology({
           ...activeAnalysis,
           symbology: newSymbology,
-        } as NodesAnalysis);
+        } as NodeSymbology);
       } else {
         updateLinkSymbology({
           ...activeAnalysis,
@@ -75,7 +75,7 @@ export const RangeSymbologyEditor = ({
         } as LinkSymbology);
       }
     },
-    [activeAnalysis, geometryType, updateNodesAnalysis, updateLinkSymbology],
+    [activeAnalysis, geometryType, updateNodeSymbology, updateLinkSymbology],
   );
 
   const sortedData = useMemo(() => {

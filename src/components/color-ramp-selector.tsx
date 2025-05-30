@@ -21,7 +21,7 @@ import {
   reverseColors,
 } from "src/analysis/range-symbology";
 import { useCallback } from "react";
-import { LinkSymbology, NodesAnalysis } from "src/analysis/analysis-types";
+import { LinkSymbology, NodeSymbology } from "src/analysis/analysis-types";
 import { useUserTracking } from "src/infra/user-tracking";
 
 type ColorRampSettingsHook = {
@@ -39,7 +39,7 @@ const useColorRampSettings = (
   const {
     linksAnalysis,
     nodesAnalysis,
-    updateNodesAnalysis,
+    updateNodeSymbology,
     updateLinkSymbology,
   } = useAnalysisState();
   const userTracking = useUserTracking();
@@ -58,10 +58,10 @@ const useColorRampSettings = (
   const updateSettings = useCallback(
     (newSymbology: RangeSymbology) => {
       if (geometryType === "node") {
-        updateNodesAnalysis({
+        updateNodeSymbology({
           ...settings,
           symbology: newSymbology,
-        } as NodesAnalysis);
+        } as NodeSymbology);
       } else {
         updateLinkSymbology({
           ...settings,
@@ -69,7 +69,7 @@ const useColorRampSettings = (
         } as LinkSymbology);
       }
     },
-    [geometryType, settings, updateLinkSymbology, updateNodesAnalysis],
+    [geometryType, settings, updateLinkSymbology, updateNodeSymbology],
   );
 
   const setRampName = useCallback(

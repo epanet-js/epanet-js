@@ -10,7 +10,7 @@ import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Point } from "geojson";
 import {
   aLinkSymbology,
-  aNodesAnalysis,
+  aNodeSymbology,
   aSymbology,
 } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-symbology";
@@ -70,7 +70,7 @@ describe("build optimized source", () => {
     it("includes props for styling to junctions", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
-        nodes: aNodesAnalysis({
+        nodes: aNodeSymbology({
           symbology: aSymbology({
             breaks: [10, 20, 30],
             property: "pressure",
@@ -99,7 +99,7 @@ describe("build optimized source", () => {
     it("includes labels when specified", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
-        nodes: aNodesAnalysis({
+        nodes: aNodeSymbology({
           labeling: "pressure",
         }),
       };

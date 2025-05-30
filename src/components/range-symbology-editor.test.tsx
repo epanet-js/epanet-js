@@ -1,7 +1,7 @@
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
   aLinkSymbology,
-  aNodesAnalysis,
+  aNodeSymbology,
   aSymbology,
   setInitialState,
 } from "src/__helpers__/state";
@@ -26,7 +26,7 @@ describe("analysis range editor", () => {
 
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -46,7 +46,7 @@ describe("analysis range editor", () => {
     await user.type(field, "25");
     await user.keyboard("{Enter}");
 
-    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
     expect(breaks).toEqual([25, 30]);
     expect(colors).toEqual([red, green, blue]);
     expect(mode).toEqual("manual");
@@ -58,7 +58,7 @@ describe("analysis range editor", () => {
 
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [20, 30],
@@ -85,7 +85,7 @@ describe("analysis range editor", () => {
       expectIntervalColor(1, "#123456");
     });
     expectBreakValue(0, "20");
-    const { breaks, colors, mode } = getNodesAnalysisSymbology(store);
+    const { breaks, colors, mode } = getNodeSymbologySymbology(store);
     expect(breaks).toEqual([20, 30]);
     expect(colors).toEqual([red, "#123456", blue]);
     expect(mode).toEqual("equalQuantiles");
@@ -98,7 +98,7 @@ describe("analysis range editor", () => {
       .aJunction("j2", { simulation: { pressure: 15 } })
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -112,7 +112,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal intervals/i }));
 
-    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
     expect(mode).toEqual("equalIntervals");
     expect(breaks).toEqual([20, 30]);
     expect(colors).toEqual([red, green, blue]);
@@ -126,7 +126,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 20 } })
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         property: "pressure",
         colors: [red, green, blue],
@@ -140,7 +140,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /equal quantiles/i }));
 
-    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
     expect(mode).toEqual("equalQuantiles");
     expect(breaks).toEqual([15, 20]);
     expect(colors).toEqual([red, green, blue]);
@@ -154,7 +154,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 20 } })
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         property: "pressure",
         mode: "prettyBreaks",
@@ -170,7 +170,7 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /Mode/i }));
     await user.click(screen.getByRole("option", { name: /manual/i }));
 
-    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
     expect(mode).toEqual("manual");
     expect(breaks).toEqual([50, 75]);
     expect(colors).toEqual([red, green, blue]);
@@ -178,7 +178,7 @@ describe("analysis range editor", () => {
 
   it("can prepend breaks", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [10, 20],
@@ -191,14 +191,14 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    const firstState = getNodesAnalysisSymbology(store);
+    const firstState = getNodeSymbologySymbology(store);
     expect(firstState.breaks).toEqual([0, 10, 20]);
     expect(firstState.colors).toEqual([defaultNewColor, red, green, blue]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[0]);
 
-    const secondState = getNodesAnalysisSymbology(store);
+    const secondState = getNodeSymbologySymbology(store);
     expect(secondState.breaks).toEqual([-1, 0, 10, 20]);
     expect(secondState.colors).toEqual([
       defaultNewColor,
@@ -210,20 +210,20 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    const thirdState = getNodesAnalysisSymbology(store);
+    const thirdState = getNodeSymbologySymbology(store);
     expect(thirdState.breaks).toEqual([0, 10, 20]);
     expect(thirdState.colors).toEqual([defaultNewColor, red, green, blue]);
 
     await user.click(screen.getByRole("button", { name: /delete 0/i }));
 
-    const forthState = getNodesAnalysisSymbology(store);
+    const forthState = getNodeSymbologySymbology(store);
     expect(forthState.breaks).toEqual([10, 20]);
     expect(forthState.colors).toEqual([red, green, blue]);
   });
 
   it("can append breaks", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         breaks: [10, 20],
         colors: [red, green, blue],
@@ -235,14 +235,14 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const firstState = getNodesAnalysisSymbology(store);
+    const firstState = getNodeSymbologySymbology(store);
     expect(firstState.breaks).toEqual([10, 20, 21]);
     expect(firstState.colors).toEqual([red, green, blue, defaultNewColor]);
     expect(firstState.mode).toEqual("manual");
 
     await user.click(screen.getAllByRole("button", { name: /add break/i })[1]);
 
-    const secondState = getNodesAnalysisSymbology(store);
+    const secondState = getNodeSymbologySymbology(store);
     expect(secondState.breaks).toEqual([10, 20, 21, 22]);
     expect(secondState.colors).toEqual([
       red,
@@ -255,7 +255,7 @@ describe("analysis range editor", () => {
 
   it("can delete a break", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         colors: [red, green, blue, white],
         breaks: [2, 3, 4],
@@ -267,7 +267,7 @@ describe("analysis range editor", () => {
 
     await user.click(screen.getByRole("button", { name: /delete 1/i }));
 
-    const { mode, breaks, colors } = getNodesAnalysisSymbology(store);
+    const { mode, breaks, colors } = getNodeSymbologySymbology(store);
     expect(breaks).toEqual([2, 4]);
     expect(colors).toEqual([red, green, white]);
     expect(mode).toEqual("manual");
@@ -280,7 +280,7 @@ describe("analysis range editor", () => {
       .aJunction("j2", { simulation: { pressure: 15 } })
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         mode: "prettyBreaks",
         breaks: [20, 30],
@@ -298,14 +298,14 @@ describe("analysis range editor", () => {
     await user.click(screen.getByRole("combobox", { name: /classes/i }));
     await user.click(screen.getByRole("option", { name: /4/ }));
 
-    const { breaks, colors } = getNodesAnalysisSymbology(store);
+    const { breaks, colors } = getNodeSymbologySymbology(store);
     expect(breaks).toEqual([25, 50, 75]);
     expect(colors.length).toEqual(4);
   });
 
   it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         breaks: [10, 20, 30],
         colors: [white, red, green, blue],
@@ -326,7 +326,7 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expectBreakValue(1, "100");
-    const firstState = getNodesAnalysisSymbology(store);
+    const firstState = getNodeSymbologySymbology(store);
     expect(firstState.breaks[1]).toEqual(20);
     expect(screen.getByText(/ascending order/i)).toBeInTheDocument();
 
@@ -339,7 +339,7 @@ describe("analysis range editor", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.queryByText(/ascending order/i)).not.toBeInTheDocument();
-    const secondState = getNodesAnalysisSymbology(store);
+    const secondState = getNodeSymbologySymbology(store);
     expect(secondState.breaks[1]).toEqual(100);
     expect(secondState.breaks[2]).toEqual(110);
 
@@ -365,7 +365,7 @@ describe("analysis range editor", () => {
 
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         mode: "equalQuantiles",
         breaks: [20, 30],
@@ -383,7 +383,7 @@ describe("analysis range editor", () => {
 
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         mode: "equalIntervals",
         breaks: [20, 30],
@@ -480,7 +480,7 @@ describe("analysis range editor", () => {
       .aJunction("j1", { elevation: 10 })
       .aJunction("j2", { elevation: 15 })
       .build();
-    const nodesAnalysis = aNodesAnalysis({
+    const nodesAnalysis = aNodeSymbology({
       symbology: {
         property: "elevation",
         rampName: "Temps",
@@ -528,7 +528,7 @@ describe("analysis range editor", () => {
     });
   });
 
-  const getNodesAnalysisSymbology = (store: Store): RangeSymbology => {
+  const getNodeSymbologySymbology = (store: Store): RangeSymbology => {
     return (store.get(nodesAnalysisAtom) as PropertyAnalysis).symbology;
   };
 

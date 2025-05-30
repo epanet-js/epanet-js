@@ -18,7 +18,7 @@ import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
-import { LinkSymbology, NodesAnalysis } from "src/analysis";
+import { LinkSymbology, NodeSymbology } from "src/analysis";
 import {
   RangeSymbology,
   nullRangeSymbology,
@@ -44,7 +44,7 @@ export const setInitialState = ({
   selection?: Sel;
   fileInfo?: FileInfo | null;
   layerConfigs?: LayerConfigMap;
-  nodesAnalysis?: NodesAnalysis;
+  nodesAnalysis?: NodeSymbology;
   linksAnalysis?: LinkSymbology;
 } = {}): Store => {
   store.set(dataAtom, {
@@ -117,16 +117,16 @@ export const aSingleSelection = ({
   };
 };
 
-export const aNodesAnalysis = ({
+export const aNodeSymbology = ({
   symbology: partialSymbology = {},
   labeling = null,
 }: {
   symbology?: Partial<RangeSymbology>;
   labeling?: Labeling;
-}): NodesAnalysis => {
+}): NodeSymbology => {
   const symbology = aSymbology(partialSymbology);
   return {
-    type: symbology.property as NodesAnalysis["type"],
+    type: symbology.property as NodeSymbology["type"],
     symbology,
     labeling,
   };

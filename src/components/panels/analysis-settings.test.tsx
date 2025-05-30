@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
 import {
   aLinkSymbology,
-  aNodesAnalysis,
+  aNodeSymbology,
   aSimulationSuccess,
   setInitialState,
 } from "src/__helpers__/state";
@@ -120,7 +120,7 @@ describe("Analysis Settings Panel", () => {
 
   it("uses a previous nodes analysis when available", async () => {
     const simulation = aSimulationSuccess();
-    const previousAnalysis = aNodesAnalysis({
+    const previousAnalysis = aNodeSymbology({
       symbology: {
         property: "pressure",
         rampName: "PREVIOUS",
@@ -143,7 +143,7 @@ describe("Analysis Settings Panel", () => {
 
   it("can show and hide labels for nodes", async () => {
     const simulation = aSimulationSuccess();
-    const previousAnalysis = aNodesAnalysis({
+    const previousAnalysis = aNodeSymbology({
       symbology: {
         property: "pressure",
         rampName: "PREVIOUS",
