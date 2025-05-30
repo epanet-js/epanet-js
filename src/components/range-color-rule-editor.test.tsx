@@ -16,7 +16,7 @@ import {
   nodeSymbologyAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
-import { RangeColorRuleEditor } from "./range-symbology-editor";
+import { RangeColorRuleEditor } from "./range-color-rule-editor";
 
 describe("analysis range editor", () => {
   const red = "#ff0000";
