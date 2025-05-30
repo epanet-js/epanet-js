@@ -8,7 +8,7 @@ import {
   SupportedProperty,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
-import { useSymbologySpec } from "src/state/symbology";
+import { useSymbologyState } from "src/state/symbology";
 import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
@@ -33,7 +33,7 @@ export const MapStylingEditor = () => {
     switchLinkSymbologyTo,
     updateLinkSymbology,
     updateNodeSymbology,
-  } = useSymbologySpec();
+  } = useSymbologyState();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,

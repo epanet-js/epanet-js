@@ -20,7 +20,7 @@ export const symbologyAtom = atom((get) => {
   return { node, link };
 });
 
-export const useSymbologySpec = () => {
+export const useSymbologyState = () => {
   const [savedSymbologies, setSavedAnalyises] = useAtom(savedSymbologiesAtom);
   const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);

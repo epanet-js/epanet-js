@@ -30,7 +30,7 @@ import { dataAtom } from "src/state/jotai";
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSymbologySpec } from "src/state/symbology";
+import { useSymbologyState } from "src/state/symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 
@@ -49,7 +49,7 @@ export const RangeColorRuleEditor = ({
     nodeSymbology,
     updateNodeSymbology,
     updateLinkSymbology,
-  } = useSymbologySpec();
+  } = useSymbologyState();
 
   const userTracking = useUserTracking();
 
