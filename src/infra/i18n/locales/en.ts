@@ -217,7 +217,9 @@ export const translations = {
   register: "Register",
   openSource: "Open Source",
   nodes: "Nodes",
+  node: "Node",
   links: "Links",
+  link: "Link",
   layers: "Layers",
   checkoutProjectionTool:
     "You can project your INP to the WGS84 system making use of the EPANET Projection Converter utility.",
