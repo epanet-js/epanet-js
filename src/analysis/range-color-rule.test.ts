@@ -1,4 +1,4 @@
-import { aSymbology } from "src/__helpers__/state";
+import { aRangeColorRule } from "src/__helpers__/state";
 import { colorFor } from "./range-color-rule";
 
 describe("Range color mapping", () => {
@@ -7,7 +7,7 @@ describe("Range color mapping", () => {
   const blue = "#0000ff";
 
   it("assigns a color to each range", () => {
-    const colorRule = aSymbology({
+    const colorRule = aRangeColorRule({
       colors: [red, green, blue],
       breaks: [10, 20],
     });
@@ -21,7 +21,7 @@ describe("Range color mapping", () => {
   });
 
   it("when specified assigns to absolute values", () => {
-    const colorRule = aSymbology({
+    const colorRule = aRangeColorRule({
       colors: [red, green, blue],
       breaks: [10, 20],
       absValues: true,

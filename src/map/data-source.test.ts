@@ -11,7 +11,7 @@ import { Point } from "geojson";
 import {
   aLinkSymbology,
   aNodeSymbology,
-  aSymbology,
+  aRangeColorRule,
 } from "src/__helpers__/state";
 import { getColors } from "src/analysis/range-color-rule";
 
@@ -71,7 +71,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         nodes: aNodeSymbology({
-          symbology: aSymbology({
+          symbology: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "pressure",
             unit: "m",
@@ -123,7 +123,7 @@ describe("build optimized source", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
       links: aLinkSymbology({
-        symbology: aSymbology({
+        symbology: aRangeColorRule({
           breaks: [10, 20, 30],
           property: "flow",
           colors: getColors("Temps", 4),
@@ -223,7 +223,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: aLinkSymbology({
-          symbology: aSymbology({
+          symbology: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "velocity",
             colors: getColors("Temps", 4),

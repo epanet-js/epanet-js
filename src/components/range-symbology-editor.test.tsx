@@ -2,7 +2,7 @@ import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
   aLinkSymbology,
   aNodeSymbology,
-  aSymbology,
+  aRangeColorRule,
   setInitialState,
 } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
@@ -408,7 +408,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aSymbology({
+      symbology: aRangeColorRule({
         property: "flow",
         mode: "equalIntervals",
         breaks: [20, 30],
@@ -442,7 +442,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aSymbology({
+      symbology: aRangeColorRule({
         property: "flow",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -508,7 +508,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aSymbology({
+      symbology: aRangeColorRule({
         property: "flow",
         rampName: "Temps",
       }),

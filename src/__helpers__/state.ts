@@ -124,7 +124,7 @@ export const aNodeSymbology = ({
   symbology?: Partial<RangeColorRule>;
   label?: LabelRule;
 }): NodeSymbology => {
-  const colorRule = aSymbology(partialSymbology);
+  const colorRule = aRangeColorRule(partialSymbology);
   return {
     type: colorRule.property as NodeSymbology["type"],
     colorRule,
@@ -139,7 +139,7 @@ export const aLinkSymbology = ({
   symbology?: Partial<RangeColorRule>;
   label?: LabelRule;
 }): LinkSymbology => {
-  const colorRule = aSymbology({ property: "flow", ...partialSymbology });
+  const colorRule = aRangeColorRule({ property: "flow", ...partialSymbology });
   return {
     type: colorRule.property as LinkSymbology["type"],
     colorRule,
@@ -148,7 +148,7 @@ export const aLinkSymbology = ({
 };
 
 const anyColor = "#f12345";
-export const aSymbology = (
+export const aRangeColorRule = (
   symbology: Partial<RangeColorRule>,
 ): RangeColorRule => {
   const defaults: RangeColorRule = {
