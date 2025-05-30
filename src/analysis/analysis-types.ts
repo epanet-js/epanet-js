@@ -20,23 +20,23 @@ export type LabelRule = string | null;
 export type PropertyAnalysis = {
   type: string;
   colorRule: RangeColorRule;
-  label: LabelRule;
+  labelRule: LabelRule;
 };
 
 export type NodeSymbology =
-  | { type: "none"; label: LabelRule }
+  | { type: "none"; labelRule: LabelRule }
   | {
       type: "elevation" | "pressure";
       colorRule: RangeColorRule;
-      label: LabelRule;
+      labelRule: LabelRule;
     };
 
 export type LinkSymbology =
-  | { type: "none"; label: LabelRule }
+  | { type: "none"; labelRule: LabelRule }
   | {
       type: "flow" | "velocity" | "unitHeadloss" | "diameter";
       colorRule: RangeColorRule;
-      label: LabelRule;
+      labelRule: LabelRule;
     };
 
 export type AnalysisState = {
@@ -45,6 +45,6 @@ export type AnalysisState = {
 };
 
 export const nullAnalysis: AnalysisState = {
-  links: { type: "none", label: null },
-  nodes: { type: "none", label: null },
+  links: { type: "none", labelRule: null },
+  nodes: { type: "none", labelRule: null },
 };

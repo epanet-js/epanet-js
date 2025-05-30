@@ -34,8 +34,8 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
-  nodeSymbology = { type: "none", label: null },
-  linkSymbology = { type: "none", label: null },
+  nodeSymbology = { type: "none", labelRule: null },
+  linkSymbology = { type: "none", labelRule: null },
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -128,7 +128,7 @@ export const aNodeSymbology = ({
   return {
     type: colorRule.property as NodeSymbology["type"],
     colorRule,
-    label,
+    labelRule: label,
   };
 };
 
@@ -143,7 +143,7 @@ export const aLinkSymbology = ({
   return {
     type: colorRule.property as LinkSymbology["type"],
     colorRule,
-    label,
+    labelRule: label,
   };
 };
 
