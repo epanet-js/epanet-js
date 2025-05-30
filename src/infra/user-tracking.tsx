@@ -89,12 +89,6 @@ type AssetDeselected = {
   type: Asset["type"];
 };
 
-type AnalysisApplied = {
-  name: "analysis.applied";
-  type: "links" | "nodes";
-  subtype: string;
-};
-
 type SatelliteViewToggled = {
   name: "satelliteView.toggled";
   source: "button" | "shortcut";
@@ -317,7 +311,6 @@ type UserEvent =
   | AssetPropertyEdited
   | AssetStatusEdited
   | AssetDefinitionTypeEdited
-  | AnalysisApplied
   | SatelliteViewToggled
   | AssetsDeleted
   | AssetDeleted
