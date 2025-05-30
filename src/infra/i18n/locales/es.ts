@@ -143,8 +143,8 @@ export const translations: Translations = {
     "Ejecución de un modelo y visualización de resultados",
   onboardingRunSimulation:
     "Presiona el botón Simular para ejecutar una simulación hidráulica.",
-  onboardingAnalysis:
-    "Cambia a la pestaña de Análisis para visualizar los resultados hidráulicos.",
+  onboardingMap:
+    "Cambia a la pestaña de Mapa para visualizar los resultados hidráulicos.",
   onboardingOtherFeatures: "Otras funciones útiles",
   onboardingUndoRedo: "Deshacer o rehacer con ${1} y ${2}.",
   onboardingFiles: "Manejo de archivos",

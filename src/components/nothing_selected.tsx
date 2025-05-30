@@ -70,7 +70,7 @@ export const NothingSelected = memo(function NothingSelected() {
         <div className="pt-1">
           <AspectRatioIcon />
         </div>
-        <div>{translate("onboardingAnalysis")}</div>
+        <div>{translate("onboardingMap")}</div>
       </div>
       <div className="pt-4 space-y-3">
         <div className="text-sm font-semibold pb-2">

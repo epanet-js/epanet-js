@@ -137,8 +137,8 @@ export const translations = {
   onboardingRunningModel: "Running a model and viewing results",
   onboardingRunSimulation:
     "Press Simulate button to run a hydraulic simulation.",
-  onboardingAnalysis:
-    "Switch to the Analysis tab to add visualizations of hydraulic results.",
+  onboardingMap:
+    "Switch to the Map tab to add visualizations of hydraulic results.",
   onboardingOtherFeatures: "Other helpful features",
   onboardingUndoRedo: "Undo or redo with ${1} and ${2}.",
   onboardingFiles: "Working with files",
