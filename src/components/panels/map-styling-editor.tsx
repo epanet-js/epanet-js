@@ -7,7 +7,7 @@ import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SupportedProperty } from "src/analysis/analysis-types";
 import { useSymbologySpec } from "src/state/analysis";
-import { defaultAnalysis } from "src/analysis/default-analysis";
+import { defaultSymbologyBuilders } from "src/analysis/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "../range-color-rule-editor";
@@ -48,7 +48,7 @@ export const MapStylingEditor = () => {
 
     switchLinkSymbologyTo(
       type,
-      defaultAnalysis[type](hydraulicModel, quantities),
+      defaultSymbologyBuilders[type](hydraulicModel, quantities),
     );
   };
 
@@ -93,7 +93,7 @@ export const MapStylingEditor = () => {
       subtype: type,
     });
 
-    switchNodeSymbologyTo(type, defaultAnalysis[type](hydraulicModel));
+    switchNodeSymbologyTo(type, defaultSymbologyBuilders[type](hydraulicModel));
   };
 
   return (

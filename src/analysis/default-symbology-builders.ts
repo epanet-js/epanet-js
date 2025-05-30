@@ -5,7 +5,7 @@ import { getSortedValues } from "./analysis-data";
 import { LabelRule, NodeSymbology, LinkSymbology } from "./analysis-types";
 import { nullLabelRule } from "./labeling";
 
-type DefaultAnalysisBuilders = {
+type DefaultSymbologyBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
   diameter: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
   unitHeadloss: (
@@ -21,7 +21,7 @@ type DefaultAnalysisBuilders = {
   none: () => () => { type: "none"; labelRule: LabelRule };
 };
 
-export const defaultAnalysis: DefaultAnalysisBuilders = {
+export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   none: () => () => {
     return { type: "none", labelRule: nullLabelRule };
   },
