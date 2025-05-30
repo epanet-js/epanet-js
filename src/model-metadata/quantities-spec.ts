@@ -36,6 +36,9 @@ type DefaultsSpec = {
   pump: Partial<Record<PumpQuantity, number>>;
   valve: Partial<Record<ValveQuantity, number>>;
 };
+
+const defaultDecimals = 3;
+
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
@@ -70,13 +73,7 @@ const metricSpec: AssetQuantitiesSpec = {
     speed: null,
     tcvSetting: null,
   },
-  decimals: {
-    flow: 3,
-    pressure: 3,
-    velocity: 3,
-    headloss: 3,
-    unitHeadloss: 3,
-  },
+  decimals: {},
   defaults: {
     pipe: {
       diameter: 300,
@@ -122,12 +119,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     tcvSetting: null,
   },
   decimals: {
-    flow: 3,
-    pressure: 3,
-    velocity: 3,
     elevation: 1,
-    headloss: 3,
-    unitHeadloss: 3,
   },
   defaults: {
     pipe: {
@@ -304,7 +296,10 @@ export class Quantities {
   }
 
   getDecimals(name: keyof DecimalsSpec): number | undefined {
-    return this.spec.decimals[name];
+    const decimals = this.spec.decimals[name];
+    if (decimals === undefined) return defaultDecimals;
+
+    return decimals;
   }
 
   getUnit(name: keyof UnitsSpec): Unit {
