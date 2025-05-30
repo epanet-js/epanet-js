@@ -124,7 +124,9 @@ export class HydraulicModelBuilder {
   aJunction(
     id: string,
     data: Partial<
-      JunctionBuildData & { simulation: Partial<{ pressure: number }> }
+      JunctionBuildData & {
+        simulation: Partial<{ pressure: number; head: number }>;
+      }
     > = {},
   ) {
     const { simulation, ...properties } = data;
@@ -135,6 +137,7 @@ export class HydraulicModelBuilder {
     if (simulation) {
       junction.setSimulation({
         pressure: 2,
+        head: 4,
         ...simulation,
       });
     }

@@ -58,7 +58,8 @@ const appendJunctionResults = (
 ) => {
   const id = model.getNodeId(index);
   const pressure = model.getNodeValue(index, NodeProperty.Pressure);
-  results.set(id, { type: "junction", pressure });
+  const head = model.getNodeValue(index, NodeProperty.Head);
+  results.set(id, { type: "junction", pressure, head });
 };
 
 const appendPipeResults = (

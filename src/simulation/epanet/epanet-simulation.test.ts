@@ -4,7 +4,7 @@ import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
 import { runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
-import { ValveSimulation } from "../results-reader";
+import { JunctionSimulation, ValveSimulation } from "../results-reader";
 import { pumpStatusFor, valveStatusFor } from "./extract-simulation-results";
 
 vi.mock("src/lib/worker", () => ({
@@ -90,6 +90,22 @@ describe("epanet simulation", () => {
       expect(results.getJunction("j1")!.pressure).toBeCloseTo(10);
       expect(results.getPipe("p1")!.flow).toBeCloseTo(1);
       expect(results.getPipe("p1")!.velocity).toBeCloseTo(0.014);
+    });
+
+    it("can read junction values", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1", { head: 10 })
+        .aJunction("j1", { demand: 1, elevation: 2 })
+        .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp);
+
+      expect(status).toEqual("success");
+      const junction = results.getJunction("j1") as JunctionSimulation;
+      expect(junction.pressure).toBeCloseTo(8);
+      expect(junction.head).toBeCloseTo(10);
     });
 
     it("can read valve values", async () => {

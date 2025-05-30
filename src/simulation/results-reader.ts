@@ -26,6 +26,7 @@ export type PumpSimulation = {
 export type JunctionSimulation = {
   type: "junction";
   pressure: number;
+  head: number;
 };
 
 export interface ResultsReader {

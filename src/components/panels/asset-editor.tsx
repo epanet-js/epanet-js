@@ -49,6 +49,7 @@ import {
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
 import { NumericField } from "../form/numeric-field";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -668,6 +669,15 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("pressure")}
                 readOnly={true}
               />
+              {isFeatureOn("FLAG_HEAD") && (
+                <QuantityRow
+                  name="head"
+                  value={junction.head}
+                  unit={quantitiesMetadata.getUnit("head")}
+                  decimals={quantitiesMetadata.getDecimals("head")}
+                  readOnly={true}
+                />
+              )}
             </tbody>
           </table>
         </div>
