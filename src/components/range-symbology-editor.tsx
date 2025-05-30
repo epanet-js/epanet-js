@@ -15,11 +15,11 @@ import {
   deleteBreak,
   maxIntervals,
   minIntervals,
-  nullRangeSymbology,
+  nullRangeColorRule,
   prependBreak,
   rangeModesInOrder,
   updateBreakValue,
-  RangeSymbology,
+  RangeColorRule,
   validateAscindingBreaks,
 } from "src/analysis/range-symbology";
 import { translate } from "src/infra/i18n";
@@ -36,7 +36,7 @@ import { LinkSymbology, NodeSymbology } from "src/analysis";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
-export const RangeSymbologyEditor = ({
+export const RangeColorRuleEditor = ({
   geometryType = "node",
 }: {
   geometryType?: "node" | "link";
@@ -58,11 +58,11 @@ export const RangeSymbologyEditor = ({
 
   const initialSymbology =
     activeAnalysis.type === "none"
-      ? nullRangeSymbology
+      ? nullRangeColorRule
       : activeAnalysis.symbology;
 
   const onChange = useCallback(
-    (newSymbology: RangeSymbology) => {
+    (newSymbology: RangeColorRule) => {
       if (geometryType === "node") {
         updateNodeSymbology({
           ...activeAnalysis,
@@ -84,7 +84,7 @@ export const RangeSymbologyEditor = ({
     });
   }, [assets, initialSymbology.property, initialSymbology.absValues]);
 
-  const [symbology, setSymbology] = useState<RangeSymbology>(initialSymbology);
+  const [symbology, setSymbology] = useState<RangeColorRule>(initialSymbology);
 
   const debugData = useMemo(() => {
     if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
@@ -121,11 +121,11 @@ export const RangeSymbologyEditor = ({
 
   const [error, setError] = useState<ErrorType | null>(null);
 
-  const submitChange = (newSymbology: RangeSymbology) => {
+  const submitChange = (newSymbology: RangeColorRule) => {
     onChange(newSymbology);
   };
 
-  const showError = (error: ErrorType, newSymbology: RangeSymbology) => {
+  const showError = (error: ErrorType, newSymbology: RangeColorRule) => {
     userTracking.capture({
       name: "colorRange.rangeError.seen",
       errorKey: error,

@@ -20,8 +20,8 @@ import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinkSymbology, NodeSymbology } from "src/analysis";
 import {
-  RangeSymbology,
-  nullRangeSymbology,
+  RangeColorRule,
+  nullRangeColorRule,
 } from "src/analysis/range-symbology";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
 import { LabelRule } from "src/analysis/analysis-types";
@@ -121,7 +121,7 @@ export const aNodeSymbology = ({
   symbology: partialSymbology = {},
   label = null,
 }: {
-  symbology?: Partial<RangeSymbology>;
+  symbology?: Partial<RangeColorRule>;
   label?: LabelRule;
 }): NodeSymbology => {
   const symbology = aSymbology(partialSymbology);
@@ -136,7 +136,7 @@ export const aLinkSymbology = ({
   symbology: partialSymbology = {},
   label = null,
 }: {
-  symbology?: Partial<RangeSymbology>;
+  symbology?: Partial<RangeColorRule>;
   label?: LabelRule;
 }): LinkSymbology => {
   const symbology = aSymbology({ property: "flow", ...partialSymbology });
@@ -149,10 +149,10 @@ export const aLinkSymbology = ({
 
 const anyColor = "#f12345";
 export const aSymbology = (
-  symbology: Partial<RangeSymbology>,
-): RangeSymbology => {
-  const defaults: RangeSymbology = {
-    ...nullRangeSymbology,
+  symbology: Partial<RangeColorRule>,
+): RangeColorRule => {
+  const defaults: RangeColorRule = {
+    ...nullRangeColorRule,
     property: "pressure",
     unit: "m",
     interpolate: "step",

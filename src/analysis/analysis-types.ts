@@ -1,4 +1,4 @@
-import { RangeSymbology } from "./range-symbology";
+import { RangeColorRule } from "./range-symbology";
 
 const nodeAnalysisTypes = ["elevation", "pressure"] as const;
 const linkAnalysisTypes = [
@@ -19,7 +19,7 @@ export type LabelRule = string | null;
 
 export type PropertyAnalysis = {
   type: string;
-  symbology: RangeSymbology;
+  symbology: RangeColorRule;
   label: LabelRule;
 };
 
@@ -27,7 +27,7 @@ export type NodeSymbology =
   | { type: "none"; label: LabelRule }
   | {
       type: "elevation" | "pressure";
-      symbology: RangeSymbology;
+      symbology: RangeColorRule;
       label: LabelRule;
     };
 
@@ -35,7 +35,7 @@ export type LinkSymbology =
   | { type: "none"; label: LabelRule }
   | {
       type: "flow" | "velocity" | "unitHeadloss" | "diameter";
-      symbology: RangeSymbology;
+      symbology: RangeColorRule;
       label: LabelRule;
     };
 

@@ -16,7 +16,7 @@ import clsx from "clsx";
 import { useAnalysisState } from "src/state/analysis";
 import {
   RampSize,
-  RangeSymbology,
+  RangeColorRule,
   changeRampName,
   reverseColors,
 } from "src/analysis/range-symbology";
@@ -56,7 +56,7 @@ const useColorRampSettings = (
   const isReversed = Boolean(symbology.reversedRamp);
 
   const updateSettings = useCallback(
-    (newSymbology: RangeSymbology) => {
+    (newSymbology: RangeColorRule) => {
       if (geometryType === "node") {
         updateNodeSymbology({
           ...settings,

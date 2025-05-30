@@ -9,14 +9,14 @@ import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { RangeSymbology, defaultNewColor } from "src/analysis/range-symbology";
+import { RangeColorRule, defaultNewColor } from "src/analysis/range-symbology";
 import { PropertyAnalysis } from "src/analysis/analysis-types";
 import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
   savedAnalysesAtom,
 } from "src/state/analysis";
-import { RangeSymbologyEditor } from "./range-symbology-editor";
+import { RangeColorRuleEditor } from "./range-symbology-editor";
 
 describe("analysis range editor", () => {
   const red = "#ff0000";
@@ -528,11 +528,11 @@ describe("analysis range editor", () => {
     });
   });
 
-  const getNodeSymbologySymbology = (store: Store): RangeSymbology => {
+  const getNodeSymbologySymbology = (store: Store): RangeColorRule => {
     return (store.get(nodeSymbologyAtom) as PropertyAnalysis).symbology;
   };
 
-  const getLinkSymbologySymbology = (store: Store): RangeSymbology => {
+  const getLinkSymbologySymbology = (store: Store): RangeColorRule => {
     return (store.get(linkSymbologyAtom) as PropertyAnalysis).symbology;
   };
 
@@ -563,7 +563,7 @@ describe("analysis range editor", () => {
   }) => {
     render(
       <CommandContainer store={store}>
-        <RangeSymbologyEditor geometryType={geometryType} />
+        <RangeColorRuleEditor geometryType={geometryType} />
       </CommandContainer>,
     );
   };

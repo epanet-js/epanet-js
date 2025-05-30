@@ -10,7 +10,7 @@ import { useAnalysisState } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
-import { RangeSymbologyEditor } from "../range-symbology-editor";
+import { RangeColorRuleEditor } from "../range-symbology-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/analysis/range-symbology";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
@@ -119,7 +119,7 @@ export const MapStylingEditor = () => {
           {nodeSymbology.type !== "none" && (
             <>
               <PanelItem name={translate("range")}>
-                <RangeSymbologyEditorTrigger
+                <RangeColorRuleEditorTrigger
                   mode={nodeSymbology.symbology.mode}
                   numIntervals={nodeSymbology.symbology.breaks.length + 1}
                   geometryType="node"
@@ -173,7 +173,7 @@ export const MapStylingEditor = () => {
           {linkSymbology.type !== "none" && (
             <>
               <PanelItem name={translate("range")}>
-                <RangeSymbologyEditorTrigger
+                <RangeColorRuleEditorTrigger
                   mode={linkSymbology.symbology.mode}
                   numIntervals={linkSymbology.symbology.breaks.length + 1}
                   geometryType="link"
@@ -246,7 +246,7 @@ const PanelItem = ({
   );
 };
 
-const RangeSymbologyEditorTrigger = ({
+const RangeColorRuleEditorTrigger = ({
   geometryType,
   mode,
   numIntervals,
@@ -271,7 +271,7 @@ const RangeSymbologyEditorTrigger = ({
           sideOffset={94}
         >
           <StyledPopoverArrow />
-          <RangeSymbologyEditor geometryType={geometryType} />
+          <RangeColorRuleEditor geometryType={geometryType} />
         </StyledPopoverContent>
       </Popover.Portal>
     </Popover.Root>

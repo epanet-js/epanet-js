@@ -15,7 +15,7 @@ export const rangeModesInOrder = [
 ] as const;
 export type RangeMode = (typeof rangeModesInOrder)[number];
 
-export type RangeSymbology = {
+export type RangeColorRule = {
   type: "range";
   defaultColor: string;
   defaultOpacity: number;
@@ -59,7 +59,7 @@ export const initializeSymbology = ({
   fallbackEndpoints?: RangeEndpoints;
   absValues?: boolean;
   reverseRamp?: boolean;
-}): RangeSymbology => {
+}): RangeColorRule => {
   const colors = getColors(rampName, numIntervals, reverseRamp);
   const isValid = checkValidData(mode, sortedData, numIntervals);
 
@@ -94,7 +94,7 @@ export const initializeSymbology = ({
   };
 };
 
-export const prependBreak = (symbology: RangeSymbology): RangeSymbology => {
+export const prependBreak = (symbology: RangeColorRule): RangeColorRule => {
   const { breaks, colors } = symbology;
 
   const newValue = breaks[0] > 0 ? 0 : Math.floor(breaks[0] - 1);
@@ -110,7 +110,7 @@ export const prependBreak = (symbology: RangeSymbology): RangeSymbology => {
   };
 };
 
-export const appendBreak = (symbology: RangeSymbology): RangeSymbology => {
+export const appendBreak = (symbology: RangeColorRule): RangeColorRule => {
   const { breaks, colors } = symbology;
 
   const lastBreak = breaks[breaks.length - 1];
@@ -125,7 +125,7 @@ export const appendBreak = (symbology: RangeSymbology): RangeSymbology => {
   };
 };
 
-export const reverseColors = (symbology: RangeSymbology) => {
+export const reverseColors = (symbology: RangeColorRule) => {
   const newColors = [...symbology.colors].reverse();
 
   return {
@@ -136,7 +136,7 @@ export const reverseColors = (symbology: RangeSymbology) => {
 };
 
 export const changeIntervalColor = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   index: number,
   color: string,
 ) => {
@@ -158,10 +158,10 @@ export const validateAscindingBreaks = (candidates: number[]) => {
 };
 
 export const updateBreakValue = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   index: number,
   value: number,
-): RangeSymbology => {
+): RangeColorRule => {
   const newBreaks = symbology.breaks.map((oldValue, i) => {
     if (i !== index) return oldValue;
 
@@ -176,9 +176,9 @@ export const updateBreakValue = (
 };
 
 export const deleteBreak = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   index: number,
-): RangeSymbology => {
+): RangeColorRule => {
   const { breaks, colors } = symbology;
   const newBreaks = breaks.filter((_, i) => i !== index);
   const newColors =
@@ -193,7 +193,7 @@ export const deleteBreak = (
 };
 
 export const changeRampName = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   newRampName: string,
   isReversed: boolean,
 ) => {
@@ -208,10 +208,10 @@ export const changeRampName = (
 };
 
 export const changeRangeSize = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   sortedValues: number[],
   numIntervals: number,
-): { symbology: RangeSymbology; error?: boolean } => {
+): { symbology: RangeColorRule; error?: boolean } => {
   const { mode, fallbackEndpoints, rampName } = symbology;
   const valid = checkValidData(mode, sortedValues, numIntervals);
 
@@ -236,10 +236,10 @@ export const changeRangeSize = (
 };
 
 export const applyMode = (
-  symbology: RangeSymbology,
+  symbology: RangeColorRule,
   mode: RangeMode,
   sortedValues: number[],
-): { symbology: RangeSymbology; error?: boolean } => {
+): { symbology: RangeColorRule; error?: boolean } => {
   const numIntervals = symbology.colors.length as RampSize;
   const valid = checkValidData(mode, sortedValues, numIntervals);
   const newBreaks = valid
@@ -329,7 +329,7 @@ const calculateRange = (
   }
 };
 
-export const nullRangeSymbology: RangeSymbology = {
+export const nullRangeColorRule: RangeColorRule = {
   type: "range",
   property: "",
   unit: null,
@@ -353,7 +353,7 @@ export const getColors = (
   return reverse ? [...colors].reverse() : colors;
 };
 
-export const colorFor = (symbology: RangeSymbology, value: number) => {
+export const colorFor = (symbology: RangeColorRule, value: number) => {
   const { absValues, colors, breaks } = symbology;
   const effectiveValue = absValues ? Math.abs(value) : value;
 
