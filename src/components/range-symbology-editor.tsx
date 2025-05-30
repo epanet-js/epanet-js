@@ -21,7 +21,7 @@ import {
   updateBreakValue,
   RangeColorRule,
   validateAscindingBreaks,
-} from "src/analysis/range-symbology";
+} from "src/analysis/range-color-rule";
 import { translate } from "src/infra/i18n";
 import toast from "react-hot-toast";
 import { useCallback, useMemo, useState } from "react";
@@ -148,12 +148,12 @@ export const RangeColorRuleEditor = ({
       property: symbology.property,
     });
     const result = applyMode(symbology, newMode, sortedData);
-    setSymbology(result.symbology);
+    setSymbology(result.colorRule);
     if (result.error) {
-      showError("notEnoughData", result.symbology);
+      showError("notEnoughData", result.colorRule);
     } else {
       clearError();
-      submitChange(result.symbology);
+      submitChange(result.colorRule);
     }
   };
 
@@ -165,12 +165,12 @@ export const RangeColorRuleEditor = ({
     });
 
     const result = changeRangeSize(symbology, sortedData, numIntervals);
-    setSymbology(result.symbology);
+    setSymbology(result.colorRule);
     if (result.error) {
-      showError("notEnoughData", result.symbology);
+      showError("notEnoughData", result.colorRule);
     } else {
       clearError();
-      submitChange(result.symbology);
+      submitChange(result.colorRule);
     }
   };
 
@@ -257,12 +257,12 @@ export const RangeColorRuleEditor = ({
       property: symbology.property,
     });
     const result = applyMode(symbology, symbology.mode, sortedData);
-    setSymbology(result.symbology);
+    setSymbology(result.colorRule);
     if (result.error) {
-      showError("notEnoughData", result.symbology);
+      showError("notEnoughData", result.colorRule);
     } else {
       clearError();
-      submitChange(result.symbology);
+      submitChange(result.colorRule);
     }
   };
 

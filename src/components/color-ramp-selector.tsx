@@ -19,7 +19,7 @@ import {
   RangeColorRule,
   changeRampName,
   reverseColors,
-} from "src/analysis/range-symbology";
+} from "src/analysis/range-color-rule";
 import { useCallback } from "react";
 import { LinkSymbology, NodeSymbology } from "src/analysis/analysis-types";
 import { useUserTracking } from "src/infra/user-tracking";

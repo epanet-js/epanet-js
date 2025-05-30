@@ -13,7 +13,7 @@ import {
   aNodeSymbology,
   aSymbology,
 } from "src/__helpers__/state";
-import { getColors } from "src/analysis/range-symbology";
+import { getColors } from "src/analysis/range-color-rule";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);

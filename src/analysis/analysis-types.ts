@@ -1,4 +1,4 @@
-import { RangeColorRule } from "./range-symbology";
+import { RangeColorRule } from "./range-color-rule";
 
 const nodeAnalysisTypes = ["elevation", "pressure"] as const;
 const linkAnalysisTypes = [

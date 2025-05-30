@@ -22,7 +22,7 @@ import { LinkSymbology, NodeSymbology } from "src/analysis";
 import {
   RangeColorRule,
   nullRangeColorRule,
-} from "src/analysis/range-symbology";
+} from "src/analysis/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
 import { LabelRule } from "src/analysis/analysis-types";
 

@@ -12,7 +12,7 @@ import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "../range-symbology-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
-import { RangeMode } from "src/analysis/range-symbology";
+import { RangeMode } from "src/analysis/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 
 const analysisLabelFor = (type: AnalysisType) => {

@@ -8,7 +8,7 @@ import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
-import { colorFor } from "src/analysis/range-symbology";
+import { colorFor } from "src/analysis/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { translateUnit } from "src/infra/i18n";
