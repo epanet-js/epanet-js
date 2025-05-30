@@ -71,7 +71,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         nodes: aNodeSymbology({
-          symbology: aRangeColorRule({
+          colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "pressure",
             unit: "m",
@@ -100,7 +100,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         nodes: aNodeSymbology({
-          label: "pressure",
+          labelRule: "pressure",
         }),
       };
       const { assets } = HydraulicModelBuilder.with()
@@ -123,7 +123,7 @@ describe("build optimized source", () => {
     const analysis: AnalysisState = {
       ...nullAnalysis,
       links: aLinkSymbology({
-        symbology: aRangeColorRule({
+        colorRule: aRangeColorRule({
           breaks: [10, 20, 30],
           property: "flow",
           colors: getColors("Temps", 4),
@@ -166,7 +166,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: aLinkSymbology({
-          label: "flow",
+          labelRule: "flow",
         }),
       };
 
@@ -223,7 +223,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: aLinkSymbology({
-          symbology: aRangeColorRule({
+          colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "velocity",
             colors: getColors("Temps", 4),

@@ -118,32 +118,32 @@ export const aSingleSelection = ({
 };
 
 export const aNodeSymbology = ({
-  symbology: partialSymbology = {},
-  label = null,
+  colorRule: partialColorRule = {},
+  labelRule = null,
 }: {
-  symbology?: Partial<RangeColorRule>;
-  label?: LabelRule;
+  colorRule?: Partial<RangeColorRule>;
+  labelRule?: LabelRule;
 }): NodeSymbology => {
-  const colorRule = aRangeColorRule(partialSymbology);
+  const colorRule = aRangeColorRule(partialColorRule);
   return {
     type: colorRule.property as NodeSymbology["type"],
     colorRule,
-    labelRule: label,
+    labelRule,
   };
 };
 
 export const aLinkSymbology = ({
-  symbology: partialSymbology = {},
-  label = null,
+  colorRule: partialColorRule = {},
+  labelRule = null,
 }: {
-  symbology?: Partial<RangeColorRule>;
-  label?: LabelRule;
+  colorRule?: Partial<RangeColorRule>;
+  labelRule?: LabelRule;
 }): LinkSymbology => {
-  const colorRule = aRangeColorRule({ property: "flow", ...partialSymbology });
+  const colorRule = aRangeColorRule({ property: "flow", ...partialColorRule });
   return {
     type: colorRule.property as LinkSymbology["type"],
     colorRule,
-    labelRule: label,
+    labelRule,
   };
 };
 

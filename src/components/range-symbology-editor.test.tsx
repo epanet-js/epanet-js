@@ -27,7 +27,7 @@ describe("analysis range editor", () => {
   it("can change the range breaks manually", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         breaks: [20, 30],
         colors: [red, green, blue],
       },
@@ -59,7 +59,7 @@ describe("analysis range editor", () => {
   it("can change the colors manually", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         mode: "equalQuantiles",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -99,7 +99,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         breaks: [20, 30],
         colors: [red, green, blue],
       },
@@ -127,7 +127,7 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         property: "pressure",
         colors: [red, green, blue],
       },
@@ -155,7 +155,7 @@ describe("analysis range editor", () => {
       .aJunction("j4", { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         property: "pressure",
         mode: "prettyBreaks",
         breaks: [20, 40],
@@ -179,7 +179,7 @@ describe("analysis range editor", () => {
   it("can prepend breaks", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         mode: "equalQuantiles",
         breaks: [10, 20],
         colors: [red, green, blue],
@@ -224,7 +224,7 @@ describe("analysis range editor", () => {
   it("can append breaks", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         breaks: [10, 20],
         colors: [red, green, blue],
       },
@@ -256,7 +256,7 @@ describe("analysis range editor", () => {
   it("can delete a break", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         colors: [red, green, blue, white],
         breaks: [2, 3, 4],
       },
@@ -281,7 +281,7 @@ describe("analysis range editor", () => {
       .aJunction("j3", { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         mode: "prettyBreaks",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -306,7 +306,7 @@ describe("analysis range editor", () => {
   it("shows an error when range not in order", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         breaks: [10, 20, 30],
         colors: [white, red, green, blue],
       },
@@ -366,7 +366,7 @@ describe("analysis range editor", () => {
   it("shows error when applying equal intervals with no data", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         mode: "equalQuantiles",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -384,7 +384,7 @@ describe("analysis range editor", () => {
   it("shows error when applying quantile intervals with no data", async () => {
     const user = userEvent.setup();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         mode: "equalIntervals",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -408,7 +408,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aRangeColorRule({
+      colorRule: aRangeColorRule({
         property: "flow",
         mode: "equalIntervals",
         breaks: [20, 30],
@@ -442,7 +442,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aRangeColorRule({
+      colorRule: aRangeColorRule({
         property: "flow",
         breaks: [20, 30],
         colors: [red, green, blue],
@@ -481,7 +481,7 @@ describe("analysis range editor", () => {
       .aJunction("j2", { elevation: 15 })
       .build();
     const nodeSymbology = aNodeSymbology({
-      symbology: {
+      colorRule: {
         property: "elevation",
         rampName: "Temps",
       },
@@ -508,7 +508,7 @@ describe("analysis range editor", () => {
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
-      symbology: aRangeColorRule({
+      colorRule: aRangeColorRule({
         property: "flow",
         rampName: "Temps",
       }),
