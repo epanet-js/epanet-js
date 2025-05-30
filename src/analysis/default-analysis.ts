@@ -18,12 +18,12 @@ type DefaultAnalysisBuilders = {
   ) => () => LinkSymbology;
   pressure: (hydraulicModel: HydraulicModel) => () => NodeSymbology;
   elevation: (HydraulicModel: HydraulicModel) => () => NodeSymbology;
-  none: () => () => { type: "none"; labeling: LabelRule };
+  none: () => () => { type: "none"; label: LabelRule };
 };
 
 export const defaultAnalysis: DefaultAnalysisBuilders = {
   none: () => () => {
-    return { type: "none", labeling: nullLabelRule };
+    return { type: "none", label: nullLabelRule };
   },
   diameter: (hydraulicModel: HydraulicModel) => (): LinkSymbology => {
     const symbology = initializeSymbology({
@@ -34,7 +34,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       numIntervals: 7,
       sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
     });
-    return { type: "diameter", symbology, labeling: nullLabelRule };
+    return { type: "diameter", symbology, label: nullLabelRule };
   },
 
   flow: (hydraulicModel: HydraulicModel): (() => LinkSymbology) => {
@@ -51,7 +51,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         absValues: true,
         sortedData,
       });
-      return { type: "flow", symbology, labeling: nullLabelRule };
+      return { type: "flow", symbology, label: nullLabelRule };
     };
   },
   velocity:
@@ -65,7 +65,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
         fallbackEndpoints: quantities.analysis.velocityFallbackEndpoints,
       });
-      return { type: "velocity", symbology, labeling: nullLabelRule };
+      return { type: "velocity", symbology, label: nullLabelRule };
     },
   unitHeadloss:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
@@ -78,7 +78,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
         fallbackEndpoints: quantities.analysis.unitHeadlossFallbackEndpoints,
       });
-      return { type: "unitHeadloss", symbology, labeling: nullLabelRule };
+      return { type: "unitHeadloss", symbology, label: nullLabelRule };
     },
   pressure: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const symbology = initializeSymbology({
@@ -89,7 +89,7 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
     });
-    return { type: "pressure", symbology, labeling: nullLabelRule };
+    return { type: "pressure", symbology, label: nullLabelRule };
   },
   elevation: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const symbology = initializeSymbology({
@@ -100,6 +100,6 @@ export const defaultAnalysis: DefaultAnalysisBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
     });
-    return { type: "elevation", symbology, labeling: nullLabelRule };
+    return { type: "elevation", symbology, label: nullLabelRule };
   },
 };

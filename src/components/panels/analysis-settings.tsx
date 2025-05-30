@@ -61,7 +61,7 @@ export const AnalysisSettingsPanel = () => {
         type: "links",
       });
     }
-    updateLinkSymbology({ ...linkSymbology, labeling: label });
+    updateLinkSymbology({ ...linkSymbology, label: label });
   };
 
   const handleNodesLabelRuleChange = (label: string | null) => {
@@ -78,7 +78,7 @@ export const AnalysisSettingsPanel = () => {
         type: "nodes",
       });
     }
-    updateNodeSymbology({ ...nodeSymbology, labeling: label });
+    updateNodeSymbology({ ...nodeSymbology, label: label });
   };
 
   const handleNodesChange = (type: NodeSymbology["type"]) => {
@@ -117,10 +117,10 @@ export const AnalysisSettingsPanel = () => {
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
                 aria-label={translate("showLabels")}
-                checked={!!nodeSymbology.labeling}
+                checked={!!nodeSymbology.label}
                 onChange={() =>
                   handleNodesLabelRuleChange(
-                    !!nodeSymbology.labeling
+                    !!nodeSymbology.label
                       ? null
                       : nodeSymbology.symbology.property,
                   )
@@ -154,11 +154,11 @@ export const AnalysisSettingsPanel = () => {
           {linkSymbology.type !== "none" && (
             <div className="py-4 text-sm flex items-center gap-x-2 ">
               <Checkbox
-                checked={!!linkSymbology.labeling}
+                checked={!!linkSymbology.label}
                 aria-label={translate("showLabels")}
                 onChange={() =>
                   handleLinksLabelsChange(
-                    !!linkSymbology.labeling
+                    !!linkSymbology.label
                       ? null
                       : linkSymbology.symbology.property,
                   )

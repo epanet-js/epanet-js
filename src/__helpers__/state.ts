@@ -34,8 +34,8 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
-  nodeSymbology = { type: "none", labeling: null },
-  linkSymbology = { type: "none", labeling: null },
+  nodeSymbology = { type: "none", label: null },
+  linkSymbology = { type: "none", label: null },
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -119,31 +119,31 @@ export const aSingleSelection = ({
 
 export const aNodeSymbology = ({
   symbology: partialSymbology = {},
-  labeling = null,
+  label = null,
 }: {
   symbology?: Partial<RangeSymbology>;
-  labeling?: LabelRule;
+  label?: LabelRule;
 }): NodeSymbology => {
   const symbology = aSymbology(partialSymbology);
   return {
     type: symbology.property as NodeSymbology["type"],
     symbology,
-    labeling,
+    label,
   };
 };
 
 export const aLinkSymbology = ({
   symbology: partialSymbology = {},
-  labeling = null,
+  label = null,
 }: {
   symbology?: Partial<RangeSymbology>;
-  labeling?: LabelRule;
+  label?: LabelRule;
 }): LinkSymbology => {
   const symbology = aSymbology({ property: "flow", ...partialSymbology });
   return {
     type: symbology.property as LinkSymbology["type"],
     symbology,
-    labeling,
+    label,
   };
 };
 

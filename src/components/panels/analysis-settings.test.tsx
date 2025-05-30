@@ -148,7 +148,7 @@ describe("Analysis Settings Panel", () => {
         property: "pressure",
         rampName: "PREVIOUS",
       },
-      labeling: null,
+      label: null,
     });
     const store = setInitialState({ simulation });
     const analysesMap: AnalysesMap = new Map();
@@ -170,7 +170,7 @@ describe("Analysis Settings Panel", () => {
 
     nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
     expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
-    expect(nodeSymbology.labeling).toEqual("pressure");
+    expect(nodeSymbology.label).toEqual("pressure");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
@@ -178,7 +178,7 @@ describe("Analysis Settings Panel", () => {
 
     nodeSymbology = store.get(nodeSymbologyAtom) as PropertyAnalysis;
     expect(nodeSymbology.symbology.rampName).toEqual("PREVIOUS");
-    expect(nodeSymbology.labeling).toEqual(null);
+    expect(nodeSymbology.label).toEqual(null);
   });
 
   it("can show and hide labels for links", async () => {
@@ -188,7 +188,7 @@ describe("Analysis Settings Panel", () => {
         property: "flow",
         rampName: "PREVIOUS",
       },
-      labeling: null,
+      label: null,
     });
     const store = setInitialState({ simulation });
     const analysesMap: AnalysesMap = new Map();
@@ -210,7 +210,7 @@ describe("Analysis Settings Panel", () => {
 
     linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
     expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
-    expect(linkSymbology.labeling).toEqual("flow");
+    expect(linkSymbology.label).toEqual("flow");
 
     await userEvent.click(
       screen.getAllByRole("checkbox", { name: /show labels/i })[0],
@@ -218,7 +218,7 @@ describe("Analysis Settings Panel", () => {
 
     linkSymbology = store.get(linkSymbologyAtom) as PropertyAnalysis;
     expect(linkSymbology.symbology.rampName).toEqual("PREVIOUS");
-    expect(linkSymbology.labeling).toEqual(null);
+    expect(linkSymbology.label).toEqual(null);
   });
 
   const renderComponent = (store: Store) => {

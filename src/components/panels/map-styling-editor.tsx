@@ -66,7 +66,7 @@ export const MapStylingEditor = () => {
         type: "links",
       });
     }
-    updateLinkSymbology({ ...linkSymbology, labeling: label });
+    updateLinkSymbology({ ...linkSymbology, label: label });
   };
 
   const handleNodesLabelRuleChange = (label: string | null) => {
@@ -83,7 +83,7 @@ export const MapStylingEditor = () => {
         type: "nodes",
       });
     }
-    updateNodeSymbology({ ...nodeSymbology, labeling: label });
+    updateNodeSymbology({ ...nodeSymbology, label: label });
   };
 
   const handleNodesChange = (type: NodeSymbology["type"]) => {
@@ -132,10 +132,10 @@ export const MapStylingEditor = () => {
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
                     aria-label={`${translate("nodes")} ${translate("labels")}`}
-                    checked={!!nodeSymbology.labeling}
+                    checked={!!nodeSymbology.label}
                     onChange={() =>
                       handleNodesLabelRuleChange(
-                        !!nodeSymbology.labeling
+                        !!nodeSymbology.label
                           ? null
                           : nodeSymbology.symbology.property,
                       )
@@ -185,11 +185,11 @@ export const MapStylingEditor = () => {
               <PanelItem name={translate("labels")}>
                 <div className="p-2 flex items-center h-[38px]">
                   <Checkbox
-                    checked={!!linkSymbology.labeling}
+                    checked={!!linkSymbology.label}
                     aria-label={`${translate("links")} ${translate("labels")}`}
                     onChange={() =>
                       handleLinksLabelsChange(
-                        !!linkSymbology.labeling
+                        !!linkSymbology.label
                           ? null
                           : linkSymbology.symbology.property,
                       )

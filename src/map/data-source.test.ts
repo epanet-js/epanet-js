@@ -100,7 +100,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         nodes: aNodeSymbology({
-          labeling: "pressure",
+          label: "pressure",
         }),
       };
       const { assets } = HydraulicModelBuilder.with()
@@ -166,7 +166,7 @@ describe("build optimized source", () => {
       const analysis: AnalysisState = {
         ...nullAnalysis,
         links: aLinkSymbology({
-          labeling: "flow",
+          label: "flow",
         }),
       };
 

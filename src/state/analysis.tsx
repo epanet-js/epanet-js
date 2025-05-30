@@ -8,11 +8,11 @@ export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
 
 export const nodeSymbologyAtom = atom<NodeSymbology>({
   type: "none",
-  labeling: null,
+  label: null,
 });
 export const linkSymbologyAtom = atom<LinkSymbology>({
   type: "none",
-  labeling: null,
+  label: null,
 });
 
 export const analysisAtom = atom((get) => {

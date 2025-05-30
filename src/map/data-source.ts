@@ -150,8 +150,8 @@ const appendPipeAnalysisProps = (
   const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
-  if (!!linkAnalysis.labeling) {
-    const labelProperty = linkAnalysis.labeling;
+  if (!!linkAnalysis.label) {
+    const labelProperty = linkAnalysis.label;
     const unit = pipe.getUnit(labelProperty);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
@@ -180,7 +180,7 @@ const appendJunctionAnalysisProps = (
   const value = junction[property as keyof Junction] as number | null;
   const numericValue = value !== null ? value : 0;
 
-  if (!!nodeSymbology.labeling) {
+  if (!!nodeSymbology.label) {
     const unit = junction.getUnit(property as JunctionQuantity);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(property as QuantityProperty),
