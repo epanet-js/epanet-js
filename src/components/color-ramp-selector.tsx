@@ -48,7 +48,7 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
   const assetSymbology =
     geometryType === "node" ? nodeSymbology : linkSymbology;
 
-  if (assetSymbology.type === "none")
+  if (!assetSymbology.colorRule)
     throw new Error("Cannot use settings with none");
 
   const colorRule = assetSymbology.colorRule;

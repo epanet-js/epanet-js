@@ -295,12 +295,12 @@ const updateLayerStyles = withInstrumentation(
 
 const toggleAnalysisLayers = withInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
-    if (symbology.link.type === "none") {
+    if (!symbology.link.colorRule) {
       map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
     } else {
       map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
     }
-    if (symbology.node.type === "none") {
+    if (!symbology.node.colorRule) {
       map.hideLayers(["imported-junction-results", "junction-results"]);
     } else {
       map.showLayers(["imported-junction-results", "junction-results"]);

@@ -532,13 +532,13 @@ describe("color range editor", () => {
 
   const getNodeColorRule = (store: Store): RangeColorRule => {
     const symbology = store.get(nodeSymbologyAtom);
-    if (symbology.type === "none") throw new Error("Empty node symbology");
+    if (!symbology.colorRule) throw new Error("Empty node symbology");
     return symbology.colorRule;
   };
 
   const getLinkColorRule = (store: Store): RangeColorRule => {
     const symbology = store.get(linkSymbologyAtom);
-    if (symbology.type === "none") throw new Error("Empty link symbology");
+    if (!symbology.colorRule) throw new Error("Empty link symbology");
     return symbology.colorRule;
   };
 

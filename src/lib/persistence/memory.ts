@@ -48,6 +48,7 @@ import {
   nodeSymbologyAtom,
   savedSymbologiesAtom,
 } from "src/state/symbology";
+import { nullSymbologySpec } from "src/map/symbology";
 
 export class MemPersistence implements IPersistence {
   idMap: IDMap;
@@ -91,8 +92,8 @@ export class MemPersistence implements IPersistence {
       });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(simulationAtom, { status: "idle" });
-      this.store.set(nodeSymbologyAtom, { type: "none", labelRule: null });
-      this.store.set(linkSymbologyAtom, { type: "none", labelRule: null });
+      this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
+      this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());
     };
   }

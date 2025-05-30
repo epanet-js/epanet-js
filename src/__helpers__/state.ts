@@ -24,7 +24,10 @@ import {
   nullRangeColorRule,
 } from "src/map/symbology/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
-import { LabelRule } from "src/map/symbology/symbology-types";
+import {
+  LabelRule,
+  nullSymbologySpec,
+} from "src/map/symbology/symbology-types";
 
 export const setInitialState = ({
   store = createStore(),
@@ -34,8 +37,8 @@ export const setInitialState = ({
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
-  nodeSymbology = { type: "none", labelRule: null },
-  linkSymbology = { type: "none", labelRule: null },
+  nodeSymbology = nullSymbologySpec.node,
+  linkSymbology = nullSymbologySpec.link,
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -126,7 +129,6 @@ export const aNodeSymbology = ({
 }): NodeSymbology => {
   const colorRule = aRangeColorRule(partialColorRule);
   return {
-    type: colorRule.property as NodeSymbology["type"],
     colorRule,
     labelRule,
   };
@@ -141,7 +143,6 @@ export const aLinkSymbology = ({
 }): LinkSymbology => {
   const colorRule = aRangeColorRule({ property: "flow", ...partialColorRule });
   return {
-    type: colorRule.property as LinkSymbology["type"],
     colorRule,
     labelRule,
   };

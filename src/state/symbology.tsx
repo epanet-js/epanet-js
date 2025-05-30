@@ -1,20 +1,17 @@
 import { atom, useAtom } from "jotai";
 import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
-import { SupportedProperty } from "src/map/symbology/symbology-types";
+import {
+  SupportedProperty,
+  nullSymbologySpec,
+} from "src/map/symbology/symbology-types";
 
 export type { SymbologySpec };
 
 type SymbologiesMap = Map<SupportedProperty, NodeSymbology | LinkSymbology>;
 export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());
 
-export const nodeSymbologyAtom = atom<NodeSymbology>({
-  type: "none",
-  labelRule: null,
-});
-export const linkSymbologyAtom = atom<LinkSymbology>({
-  type: "none",
-  labelRule: null,
-});
+export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
+export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
 
 export const symbologyAtom = atom((get) => {
   const node = get(nodeSymbologyAtom);
@@ -29,44 +26,64 @@ export const useSymbologySpec = () => {
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);
 
   const switchNodeSymbologyTo = (
-    type: NodeSymbology["type"],
+    property: SupportedProperty | null,
     initializeFn: () => NodeSymbology,
   ) => {
-    if (type !== "none" && savedSymbologies.has(type)) {
-      const nodeSymbology = savedSymbologies.get(type) as NodeSymbology;
-      setNodesActive(nodeSymbology);
+    if (property === null) {
+      setNodesActive(nullSymbologySpec.node);
+      return;
+    }
+
+    let nodeSymbology;
+    if (savedSymbologies.has(property)) {
+      nodeSymbology = savedSymbologies.get(property);
     } else {
-      const nodeSymbology = initializeFn();
+      nodeSymbology = initializeFn();
       updateNodeSymbology(nodeSymbology);
     }
+    setNodesActive(nodeSymbology as NodeSymbology);
   };
 
   const switchLinkSymbologyTo = (
-    type: LinkSymbology["type"],
+    property: SupportedProperty | null,
     initializeFn: () => LinkSymbology,
   ) => {
-    if (type !== "none" && savedSymbologies.has(type)) {
-      const linkSymbology = savedSymbologies.get(type) as LinkSymbology;
-      setLinksActive(linkSymbology);
+    if (property === null) {
+      setLinksActive(nullSymbologySpec.link);
+      return;
+    }
+
+    let linkSymbology;
+    if (savedSymbologies.has(property)) {
+      linkSymbology = savedSymbologies.get(property);
     } else {
-      const linkSymbology = initializeFn();
+      linkSymbology = initializeFn();
       updateLinkSymbology(linkSymbology);
     }
+    setLinksActive(linkSymbology as LinkSymbology);
   };
 
   const updateNodeSymbology = (newNodeSymbology: NodeSymbology) => {
     setNodesActive(newNodeSymbology);
-    if (newNodeSymbology.type === "none") return;
+    if (!newNodeSymbology.colorRule) return;
+
     const symbologiesMap = new Map([...savedSymbologies.entries()]);
-    symbologiesMap.set(newNodeSymbology.type, newNodeSymbology);
+    symbologiesMap.set(
+      newNodeSymbology.colorRule.property as SupportedProperty,
+      newNodeSymbology,
+    );
     setSavedAnalyises(symbologiesMap);
   };
 
   const updateLinkSymbology = (newLinkSymbology: LinkSymbology) => {
     setLinksActive(newLinkSymbology);
-    if (newLinkSymbology.type === "none") return;
+    if (!newLinkSymbology.colorRule) return;
+
     const symbologiesMap = new Map([...savedSymbologies.entries()]);
-    symbologiesMap.set(newLinkSymbology.type, newLinkSymbology);
+    symbologiesMap.set(
+      newLinkSymbology.colorRule.property as SupportedProperty,
+      newLinkSymbology,
+    );
     setSavedAnalyises(symbologiesMap);
   };
 

@@ -1,11 +1,13 @@
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { translate } from "src/infra/i18n";
-import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { SupportedProperty } from "src/map/symbology/symbology-types";
+import {
+  SupportedProperty,
+  nullSymbologySpec,
+} from "src/map/symbology/symbology-types";
 import { useSymbologySpec } from "src/state/symbology";
 import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
@@ -39,16 +41,21 @@ export const MapStylingEditor = () => {
   } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
 
-  const handleLinksChange = (type: LinkSymbology["type"]) => {
+  const handleLinksChange = (property: SupportedProperty | "none") => {
     userTracking.capture({
       name: "map.colorBy.changed",
       type: "links",
-      subtype: type,
+      subtype: property,
     });
 
+    if (property === "none") {
+      switchLinkSymbologyTo(null, () => nullSymbologySpec.link);
+      return;
+    }
+
     switchLinkSymbologyTo(
-      type,
-      defaultSymbologyBuilders[type](hydraulicModel, quantities),
+      property,
+      defaultSymbologyBuilders[property](hydraulicModel, quantities),
     );
   };
 
@@ -86,14 +93,22 @@ export const MapStylingEditor = () => {
     updateNodeSymbology({ ...nodeSymbology, labelRule: label });
   };
 
-  const handleNodesChange = (type: NodeSymbology["type"]) => {
+  const handleNodesChange = (property: SupportedProperty | "none") => {
     userTracking.capture({
       name: "map.colorBy.changed",
       type: "nodes",
-      subtype: type,
+      subtype: property,
     });
 
-    switchNodeSymbologyTo(type, defaultSymbologyBuilders[type](hydraulicModel));
+    if (property === "none") {
+      switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
+      return;
+    }
+
+    switchNodeSymbologyTo(
+      property,
+      defaultSymbologyBuilders[property](hydraulicModel, quantities),
+    );
   };
 
   return (
@@ -105,18 +120,25 @@ export const MapStylingEditor = () => {
               styleOptions={{ border: false }}
               ariaLabel={`${translate("nodes")} ${translate("colorBy")}`}
               options={(
-                ["none", "elevation", "pressure"] as NodeSymbology["type"][]
+                ["none", "elevation", "pressure"] as (
+                  | SupportedProperty
+                  | "none"
+                )[]
               ).map((type) => ({
                 value: type,
                 label: colorPropertyLabelFor(type),
                 disabled:
                   simulation.status === "idle" && ["pressure"].includes(type),
               }))}
-              selected={nodeSymbology.type}
+              selected={
+                nodeSymbology.colorRule
+                  ? (nodeSymbology.colorRule.property as SupportedProperty)
+                  : "none"
+              }
               onChange={handleNodesChange}
             />
           </PanelItem>
-          {nodeSymbology.type !== "none" && (
+          {nodeSymbology.colorRule !== null && (
             <>
               <PanelItem name={translate("range")}>
                 <RangeColorRuleEditorTrigger
@@ -137,7 +159,7 @@ export const MapStylingEditor = () => {
                       handleNodesLabelRuleChange(
                         !!nodeSymbology.labelRule
                           ? null
-                          : nodeSymbology.colorRule.property,
+                          : nodeSymbology.colorRule!.property,
                       )
                     }
                   />
@@ -152,13 +174,10 @@ export const MapStylingEditor = () => {
               styleOptions={{ border: false }}
               ariaLabel={`${translate("links")} ${translate("colorBy")}`}
               options={(
-                [
-                  "none",
-                  "diameter",
-                  "flow",
-                  "velocity",
-                  "unitHeadloss",
-                ] as LinkSymbology["type"][]
+                ["none", "diameter", "flow", "velocity", "unitHeadloss"] as (
+                  | SupportedProperty
+                  | "none"
+                )[]
               ).map((type) => ({
                 value: type,
                 label: colorPropertyLabelFor(type),
@@ -166,11 +185,15 @@ export const MapStylingEditor = () => {
                   simulation.status === "idle" &&
                   ["flow", "velocity", "unitHeadloss"].includes(type),
               }))}
-              selected={linkSymbology.type}
+              selected={
+                linkSymbology.colorRule
+                  ? (linkSymbology.colorRule.property as SupportedProperty)
+                  : "none"
+              }
               onChange={handleLinksChange}
             />
           </PanelItem>
-          {linkSymbology.type !== "none" && (
+          {linkSymbology.colorRule !== null && (
             <>
               <PanelItem name={translate("range")}>
                 <RangeColorRuleEditorTrigger
@@ -191,7 +214,7 @@ export const MapStylingEditor = () => {
                       handleLinksLabelsChange(
                         !!linkSymbology.labelRule
                           ? null
-                          : linkSymbology.colorRule.property,
+                          : linkSymbology.colorRule!.property,
                       )
                     }
                   />

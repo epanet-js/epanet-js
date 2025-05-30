@@ -55,8 +55,9 @@ export const RangeColorRuleEditor = ({
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
 
-  const initialColorRule =
-    symbology.type === "none" ? nullRangeColorRule : symbology.colorRule;
+  const initialColorRule = symbology.colorRule
+    ? symbology.colorRule
+    : nullRangeColorRule;
 
   const onChange = useCallback(
     (newColorRule: RangeColorRule) => {

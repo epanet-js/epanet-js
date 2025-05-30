@@ -142,7 +142,7 @@ const appendPipeSymbologyProps = (
   linkSymbology: LinkSymbology,
   quantities: Quantities,
 ) => {
-  if (linkSymbology.type === "none") return;
+  if (!linkSymbology.colorRule) return;
 
   const property = linkSymbology.colorRule.property;
 
@@ -174,7 +174,7 @@ const appendJunctionSymbologyProps = (
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
 ) => {
-  if (nodeSymbology.type === "none") return;
+  if (!nodeSymbology.colorRule) return;
 
   const property = nodeSymbology.colorRule.property;
   const value = junction[property as keyof Junction] as number | null;

@@ -1,7 +1,7 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
-import { LabelRule, NodeSymbology, LinkSymbology } from "./symbology-types";
+import { NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 
@@ -18,12 +18,12 @@ type DefaultSymbologyBuilders = {
   ) => () => LinkSymbology;
   pressure: (hydraulicModel: HydraulicModel) => () => NodeSymbology;
   elevation: (HydraulicModel: HydraulicModel) => () => NodeSymbology;
-  none: () => () => { type: "none"; labelRule: LabelRule };
+  none: () => () => { colorRule: null; labelRule: null };
 };
 
 export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   none: () => () => {
-    return { type: "none", labelRule: nullLabelRule };
+    return { colorRule: null, labelRule: null };
   },
   diameter: (hydraulicModel: HydraulicModel) => (): LinkSymbology => {
     const colorRule = initializeColorRule({
@@ -34,7 +34,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       numIntervals: 7,
       sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
     });
-    return { type: "diameter", colorRule, labelRule: nullLabelRule };
+    return { colorRule, labelRule: nullLabelRule };
   },
 
   flow: (hydraulicModel: HydraulicModel): (() => LinkSymbology) => {
@@ -51,7 +51,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         absValues: true,
         sortedData,
       });
-      return { type: "flow", colorRule, labelRule: nullLabelRule };
+      return { colorRule, labelRule: nullLabelRule };
     };
   },
   velocity:
@@ -65,7 +65,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "velocity"),
         fallbackEndpoints: quantities.ranges.velocityFallbackEndpoints,
       });
-      return { type: "velocity", colorRule, labelRule: nullLabelRule };
+      return { colorRule, labelRule: nullLabelRule };
     },
   unitHeadloss:
     (hydraulicModel: HydraulicModel, quantities: Quantities) =>
@@ -78,7 +78,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         sortedData: getSortedValues(hydraulicModel.assets, "unitHeadloss"),
         fallbackEndpoints: quantities.ranges.unitHeadlossFallbackEndpoints,
       });
-      return { type: "unitHeadloss", colorRule, labelRule: nullLabelRule };
+      return { colorRule, labelRule: nullLabelRule };
     },
   pressure: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const colorRule = initializeColorRule({
@@ -89,7 +89,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
     });
-    return { type: "pressure", colorRule, labelRule: nullLabelRule };
+    return { colorRule, labelRule: nullLabelRule };
   },
   elevation: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
     const colorRule = initializeColorRule({
@@ -100,6 +100,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
     });
-    return { type: "elevation", colorRule, labelRule: nullLabelRule };
+    return { colorRule, labelRule: nullLabelRule };
   },
 };

@@ -12,21 +12,15 @@ export type SupportedProperty = (typeof supportedProperties)[number];
 
 export type LabelRule = string | null;
 
-export type NodeSymbology =
-  | { type: "none"; labelRule: LabelRule }
-  | {
-      type: "elevation" | "pressure";
-      colorRule: RangeColorRule;
-      labelRule: LabelRule;
-    };
+export type NodeSymbology = {
+  colorRule: RangeColorRule | null;
+  labelRule: LabelRule | null;
+};
 
-export type LinkSymbology =
-  | { type: "none"; labelRule: LabelRule }
-  | {
-      type: "flow" | "velocity" | "unitHeadloss" | "diameter";
-      colorRule: RangeColorRule;
-      labelRule: LabelRule;
-    };
+export type LinkSymbology = {
+  colorRule: RangeColorRule | null;
+  labelRule: LabelRule | null;
+};
 
 export type SymbologySpec = {
   node: NodeSymbology;
@@ -34,6 +28,6 @@ export type SymbologySpec = {
 };
 
 export const nullSymbologySpec: SymbologySpec = {
-  link: { type: "none", labelRule: null },
-  node: { type: "none", labelRule: null },
+  link: { colorRule: null, labelRule: null },
+  node: { colorRule: null, labelRule: null },
 };

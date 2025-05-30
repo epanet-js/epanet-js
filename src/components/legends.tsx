@@ -13,10 +13,10 @@ export const Legends = () => {
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
-      {nodeSymbology.type !== "none" && (
+      {!!nodeSymbology.colorRule && (
         <Legend symbology={nodeSymbology.colorRule} />
       )}
-      {linkSymbology.type !== "none" && (
+      {!!linkSymbology.colorRule && (
         <Legend symbology={linkSymbology.colorRule} />
       )}
     </div>
