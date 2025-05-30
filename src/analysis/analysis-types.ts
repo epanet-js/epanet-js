@@ -1,19 +1,14 @@
 import { RangeColorRule } from "./range-color-rule";
 
-const nodeAnalysisTypes = ["elevation", "pressure"] as const;
-const linkAnalysisTypes = [
+export const supportedProperties = [
+  "elevation",
+  "pressure",
   "flow",
   "velocity",
   "unitHeadloss",
   "diameter",
 ] as const;
-
-const analysisTypes = [
-  "none",
-  ...nodeAnalysisTypes,
-  ...linkAnalysisTypes,
-] as const;
-export type AnalysisType = (typeof analysisTypes)[number];
+export type SupportedProperty = (typeof supportedProperties)[number];
 
 export type LabelRule = string | null;
 

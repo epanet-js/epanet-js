@@ -5,7 +5,7 @@ import { LinkSymbology, NodeSymbology } from "src/analysis";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { AnalysisType } from "src/analysis/analysis-types";
+import { SupportedProperty } from "src/analysis/analysis-types";
 import { useSymbologySpec } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
@@ -15,7 +15,7 @@ import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/analysis/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 
-const analysisLabelFor = (type: AnalysisType) => {
+const colorPropertyLabelFor = (type: SupportedProperty | "none") => {
   if (type === "flow") {
     return translate("flowAbs");
   } else {
@@ -108,7 +108,7 @@ export const MapStylingEditor = () => {
                 ["none", "elevation", "pressure"] as NodeSymbology["type"][]
               ).map((type) => ({
                 value: type,
-                label: analysisLabelFor(type),
+                label: colorPropertyLabelFor(type),
                 disabled:
                   simulation.status === "idle" && ["pressure"].includes(type),
               }))}
@@ -161,7 +161,7 @@ export const MapStylingEditor = () => {
                 ] as LinkSymbology["type"][]
               ).map((type) => ({
                 value: type,
-                label: analysisLabelFor(type),
+                label: colorPropertyLabelFor(type),
                 disabled:
                   simulation.status === "idle" &&
                   ["flow", "velocity", "unitHeadloss"].includes(type),
