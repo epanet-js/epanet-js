@@ -39,7 +39,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
-import { SymbologySpec, analysisAtom } from "src/state/analysis";
+import { SymbologySpec, symbologyAtom } from "src/state/analysis";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullSymbologySpec } from "src/analysis";
 import { mapLoadingAtom } from "./state";
@@ -105,7 +105,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
-  const symbology = get(analysisAtom);
+  const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 

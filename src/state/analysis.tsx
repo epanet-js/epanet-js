@@ -15,7 +15,7 @@ export const linkSymbologyAtom = atom<LinkSymbology>({
   labelRule: null,
 });
 
-export const analysisAtom = atom((get) => {
+export const symbologyAtom = atom((get) => {
   const nodes = get(nodeSymbologyAtom);
   const links = get(linkSymbologyAtom);
 
