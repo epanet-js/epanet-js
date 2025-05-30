@@ -39,9 +39,9 @@ import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
-import { AnalysisState, analysisAtom } from "src/state/analysis";
+import { SymbologySpec, analysisAtom } from "src/state/analysis";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { nullAnalysis } from "src/analysis";
+import { nullSymbologySpec } from "src/analysis";
 import { mapLoadingAtom } from "./state";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -67,7 +67,7 @@ type MapState = {
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
-  analysis: AnalysisState;
+  symbology: SymbologySpec;
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
@@ -83,7 +83,7 @@ const nullMapState: MapState = {
   },
   selection: { type: "none" },
   ephemeralState: { type: "none" },
-  analysis: nullAnalysis,
+  symbology: nullSymbologySpec,
   simulation: { status: "idle" },
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
@@ -105,7 +105,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
-  const analysis = get(analysisAtom);
+  const symbology = get(analysisAtom);
   const simulation = get(simulationAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
@@ -117,7 +117,7 @@ const mapStateAtom = atom<MapState>((get) => {
     stylesConfig,
     selection,
     ephemeralState,
-    analysis,
+    symbology,
     simulation,
     selectedAssetIds,
     movedAssetIds,
@@ -134,7 +134,7 @@ const detectChanges = (
   hasNewSelection: boolean;
   hasNewEphemeralState: boolean;
   hasNewSimulation: boolean;
-  hasNewAnalysis: boolean;
+  hasNewSymbology: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -143,7 +143,7 @@ const detectChanges = (
     hasNewSelection: state.selection !== prev.selection,
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
-    hasNewAnalysis: state.analysis !== prev.analysis,
+    hasNewSymbology: state.symbology !== prev.symbology,
   };
 };
 
@@ -179,7 +179,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewEditions,
           hasNewSelection,
           hasNewEphemeralState,
-          hasNewAnalysis,
+          hasNewSymbology,
           hasNewSimulation,
         } = changes;
 
@@ -188,14 +188,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           await updateLayerStyles(map, mapState.stylesConfig);
         }
 
-        if (hasNewAnalysis || hasNewStyles) {
-          toggleAnalysisLayers(map, mapState.analysis);
+        if (hasNewSymbology || hasNewStyles) {
+          toggleAnalysisLayers(map, mapState.symbology);
         }
 
         if (
           hasNewImport ||
           hasNewStyles ||
-          hasNewAnalysis ||
+          hasNewSymbology ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
           await updateImportSource(
@@ -203,7 +203,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             momentLog,
             assets,
             idMap,
-            mapState.analysis,
+            mapState.symbology,
             quantities,
           );
         }
@@ -211,7 +211,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (
           hasNewEditions ||
           hasNewStyles ||
-          hasNewAnalysis ||
+          hasNewSymbology ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
           const editedAssetIds = await updateEditionsSource(
@@ -219,7 +219,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             momentLog,
             assets,
             idMap,
-            mapState.analysis,
+            mapState.symbology,
             quantities,
           );
           const newHiddenFeatures = updateImportedSourceVisibility(
@@ -235,7 +235,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (
           hasNewEditions ||
           hasNewStyles ||
-          hasNewAnalysis ||
+          hasNewSymbology ||
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
@@ -294,13 +294,13 @@ const updateLayerStyles = withInstrumentation(
 );
 
 const toggleAnalysisLayers = withInstrumentation(
-  (map: MapEngine, analysis: AnalysisState) => {
-    if (analysis.links.type === "none") {
+  (map: MapEngine, symbology: SymbologySpec) => {
+    if (symbology.links.type === "none") {
       map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
     } else {
       map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
     }
-    if (analysis.nodes.type === "none") {
+    if (symbology.nodes.type === "none") {
       map.hideLayers(["imported-junction-results", "junction-results"]);
     } else {
       map.showLayers(["imported-junction-results", "junction-results"]);
@@ -315,7 +315,7 @@ const updateImportSource = withInstrumentation(
     momentLog: MomentLog,
     assets: AssetsMap,
     idMap: IDMap,
-    analysisState: AnalysisState,
+    analysisState: SymbologySpec,
     quantities: Quantities,
   ) => {
     const importSnapshot = momentLog.getSnapshot();
@@ -352,7 +352,7 @@ const updateEditionsSource = withInstrumentation(
     momentLog: MomentLog,
     assets: AssetsMap,
     idMap: IDMap,
-    analysisState: AnalysisState,
+    analysisState: SymbologySpec,
     quantities: Quantities,
   ): Promise<Set<AssetId>> => {
     const editionMoments = momentLog.getDeltas();

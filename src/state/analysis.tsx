@@ -1,7 +1,7 @@
 import { atom, useAtom } from "jotai";
-import { AnalysisState, LinkSymbology, NodeSymbology } from "src/analysis";
+import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/analysis";
 
-export type { AnalysisState };
+export type { SymbologySpec };
 
 export type AnalysesMap = Map<string, NodeSymbology | LinkSymbology>;
 export const savedAnalysesAtom = atom<AnalysesMap>(new Map());
@@ -22,7 +22,7 @@ export const analysisAtom = atom((get) => {
   return { nodes, links };
 });
 
-export const useAnalysisState = () => {
+export const useSymbologySpec = () => {
   const [savedAnalyses, setSavedAnalyises] = useAtom(savedAnalysesAtom);
   const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);

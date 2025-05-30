@@ -1,4 +1,4 @@
-import { AnalysisState, LinkSymbology, NodeSymbology } from "src/analysis";
+import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/analysis";
 import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
@@ -23,7 +23,7 @@ export type DataSource = "imported-features" | "features" | "icons";
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
   idMap: IDMap,
-  analysis: AnalysisState,
+  symbology: SymbologySpec,
   quantities: Quantities,
 ): Feature[] => {
   const strippedFeatures = [];
@@ -45,14 +45,14 @@ export const buildOptimizedAssetsSource = (
       appendPipeAnalysisProps(
         asset as Pipe,
         feature,
-        analysis.links,
+        symbology.links,
         quantities,
       );
     if (asset.type === "junction")
       appendJunctionAnalysisProps(
         asset as Junction,
         feature,
-        analysis.nodes,
+        symbology.nodes,
         quantities,
       );
     if (asset.type === "pump") {

@@ -6,7 +6,7 @@ import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { AnalysisType } from "src/analysis/analysis-types";
-import { useAnalysisState } from "src/state/analysis";
+import { useSymbologySpec } from "src/state/analysis";
 import { defaultAnalysis } from "src/analysis/default-analysis";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
@@ -31,7 +31,7 @@ export const MapStylingEditor = () => {
     switchLinkSymbologyTo,
     updateLinkSymbology,
     updateNodeSymbology,
-  } = useAnalysisState();
+  } = useSymbologySpec();
   const simulation = useAtomValue(simulationAtom);
   const {
     hydraulicModel,

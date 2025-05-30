@@ -39,12 +39,12 @@ export type LinkSymbology =
       labelRule: LabelRule;
     };
 
-export type AnalysisState = {
+export type SymbologySpec = {
   nodes: NodeSymbology;
   links: LinkSymbology;
 };
 
-export const nullAnalysis: AnalysisState = {
+export const nullSymbologySpec: SymbologySpec = {
   links: { type: "none", labelRule: null },
   nodes: { type: "none", labelRule: null },
 };

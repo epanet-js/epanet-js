@@ -72,7 +72,7 @@ export function Hints() {
   const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
   const dialogState = useAtomValue(dialogAtom);
-  const analysis = useAtomValue(analysisAtom);
+  const symbology = useAtomValue(analysisAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
 
@@ -110,8 +110,8 @@ export function Hints() {
           } else {
             if (
               simulation.status === "success" &&
-              analysis.links.type === "none" &&
-              analysis.nodes.type === "none"
+              symbology.links.type === "none" &&
+              symbology.nodes.type === "none"
             ) {
               return (
                 <Hint

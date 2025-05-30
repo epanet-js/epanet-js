@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { AnalysisState, nullAnalysis } from "src/analysis";
+import { SymbologySpec, nullSymbologySpec } from "src/analysis";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import {
   buildIconPointsSource,
@@ -18,7 +18,7 @@ import { getColors } from "src/analysis/range-color-rule";
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
   it("preserves core properties", () => {
-    const analysis = nullAnalysis;
+    const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
       .aPipe("ID", {
         diameter: 300,
@@ -30,7 +30,7 @@ describe("build optimized source", () => {
     const features = buildOptimizedAssetsSource(
       assets,
       initIDMap(assets),
-      analysis,
+      symbology,
       defaultQuantities,
     );
 
@@ -47,7 +47,7 @@ describe("build optimized source", () => {
   });
 
   it("uses pump status when available", () => {
-    const analysis = nullAnalysis;
+    const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
       .aPump("pu1", { initialStatus: "off", simulation: { status: "on" } })
       .aPump("pu2", { initialStatus: "off" })
@@ -56,7 +56,7 @@ describe("build optimized source", () => {
     const features = buildOptimizedAssetsSource(
       assets,
       initIDMap(assets),
-      analysis,
+      symbology,
       defaultQuantities,
     );
 
@@ -68,8 +68,8 @@ describe("build optimized source", () => {
 
   describe("when nodes analysis enabled", () => {
     it("includes props for styling to junctions", () => {
-      const analysis: AnalysisState = {
-        ...nullAnalysis,
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
         nodes: aNodeSymbology({
           colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
@@ -86,7 +86,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -97,8 +97,8 @@ describe("build optimized source", () => {
     });
 
     it("includes labels when specified", () => {
-      const analysis: AnalysisState = {
-        ...nullAnalysis,
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
         nodes: aNodeSymbology({
           labelRule: "pressure",
         }),
@@ -110,7 +110,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -120,8 +120,8 @@ describe("build optimized source", () => {
   });
 
   describe("when links analysis enabled", () => {
-    const analysis: AnalysisState = {
-      ...nullAnalysis,
+    const symbology: SymbologySpec = {
+      ...nullSymbologySpec,
       links: aLinkSymbology({
         colorRule: aRangeColorRule({
           breaks: [10, 20, 30],
@@ -146,7 +146,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -163,8 +163,8 @@ describe("build optimized source", () => {
     });
 
     it("includes labels to pipes", () => {
-      const analysis: AnalysisState = {
-        ...nullAnalysis,
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
         links: aLinkSymbology({
           labelRule: "flow",
         }),
@@ -182,7 +182,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -205,7 +205,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -220,8 +220,8 @@ describe("build optimized source", () => {
     });
 
     it("applies the direction based on the flow", () => {
-      const analysis: AnalysisState = {
-        ...nullAnalysis,
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
         links: aLinkSymbology({
           colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
@@ -240,7 +240,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -261,7 +261,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 
@@ -285,7 +285,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         initIDMap(assets),
-        analysis,
+        symbology,
         defaultQuantities,
       );
 

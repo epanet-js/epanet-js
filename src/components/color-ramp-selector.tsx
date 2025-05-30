@@ -13,7 +13,7 @@ import { translate } from "src/infra/i18n";
 import { Button } from "src/components/elements";
 import find from "lodash/find";
 import clsx from "clsx";
-import { useAnalysisState } from "src/state/analysis";
+import { useSymbologySpec } from "src/state/analysis";
 import {
   RampSize,
   RangeColorRule,
@@ -39,7 +39,7 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
     nodeSymbology,
     updateNodeSymbology,
     updateLinkSymbology,
-  } = useAnalysisState();
+  } = useSymbologySpec();
   const userTracking = useUserTracking();
 
   const assetSymbology =

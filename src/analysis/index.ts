@@ -1,6 +1,6 @@
 export type {
   NodeSymbology,
   LinkSymbology,
-  AnalysisState,
+  SymbologySpec,
 } from "./analysis-types";
-export { nullAnalysis } from "./analysis-types";
+export { nullSymbologySpec } from "./analysis-types";
