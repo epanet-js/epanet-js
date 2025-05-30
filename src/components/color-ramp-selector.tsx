@@ -33,9 +33,7 @@ type ColorRampSettingsHook = {
   reverseRampColors: () => void;
 };
 
-const useColorRampSettings = (
-  geometryType: "node" | "link",
-): ColorRampSettingsHook => {
+const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
   const {
     linkSymbology,
     nodeSymbology,
@@ -44,32 +42,33 @@ const useColorRampSettings = (
   } = useAnalysisState();
   const userTracking = useUserTracking();
 
-  const settings = geometryType === "node" ? nodeSymbology : linkSymbology;
+  const assetSymbology =
+    geometryType === "node" ? nodeSymbology : linkSymbology;
 
-  if (settings.type === "none")
+  if (assetSymbology.type === "none")
     throw new Error("Cannot use settings with none");
 
-  const symbology = settings.colorRule;
-  const numIntervals = symbology.breaks.length + 1;
-  const rampColors = symbology.colors;
+  const colorRule = assetSymbology.colorRule;
+  const numIntervals = colorRule.breaks.length + 1;
+  const rampColors = colorRule.colors;
   const size = numIntervals as RampSize;
-  const isReversed = Boolean(symbology.reversedRamp);
+  const isReversed = Boolean(colorRule.reversedRamp);
 
   const updateSettings = useCallback(
-    (newSymbology: RangeColorRule) => {
+    (newColorRule: RangeColorRule) => {
       if (geometryType === "node") {
         updateNodeSymbology({
-          ...settings,
-          colorRule: newSymbology,
+          ...assetSymbology,
+          colorRule: newColorRule,
         } as NodeSymbology);
       } else {
         updateLinkSymbology({
-          ...settings,
-          colorRule: newSymbology,
+          ...assetSymbology,
+          colorRule: newColorRule,
         } as LinkSymbology);
       }
     },
-    [geometryType, settings, updateLinkSymbology, updateNodeSymbology],
+    [geometryType, assetSymbology, updateLinkSymbology, updateNodeSymbology],
   );
 
   const setRampName = useCallback(
@@ -77,26 +76,26 @@ const useColorRampSettings = (
       userTracking.capture({
         name: "map.colorRamp.changed",
         rampName: newRampName,
-        property: symbology.property,
+        property: colorRule.property,
       });
-      const newSymbology = changeRampName(symbology, newRampName, isReversed);
-      updateSettings(newSymbology);
+      const newColorRule = changeRampName(colorRule, newRampName, isReversed);
+      updateSettings(newColorRule);
     },
-    [symbology, updateSettings, userTracking],
+    [colorRule, updateSettings, userTracking],
   );
 
   const reverseRampColors = useCallback(() => {
     userTracking.capture({
       name: "map.colorRamp.reversed",
-      rampName: symbology.rampName,
-      property: symbology.property,
+      rampName: colorRule.rampName,
+      property: colorRule.property,
     });
-    const newSymbology = reverseColors(symbology);
-    updateSettings(newSymbology);
-  }, [symbology, updateSettings, userTracking]);
+    const newColorRule = reverseColors(colorRule);
+    updateSettings(newColorRule);
+  }, [colorRule, updateSettings, userTracking]);
 
   return {
-    rampName: symbology.rampName,
+    rampName: colorRule.rampName,
     rampColors,
     size,
     isReversed,
@@ -117,7 +116,7 @@ export const ColorRampSelector = ({
     isReversed,
     setRampName,
     reverseRampColors,
-  } = useColorRampSettings(geometryType);
+  } = useColorRule(geometryType);
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
