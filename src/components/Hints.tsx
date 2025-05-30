@@ -115,7 +115,7 @@ export function Hints() {
             ) {
               return (
                 <Hint
-                  hintId={"ADD_ANALYSIS"}
+                  hintId={"VISIT_MAP_TAB"}
                   text={translate("onboardingMap")}
                 />
               );
