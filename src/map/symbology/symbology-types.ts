@@ -35,11 +35,11 @@ export type LinkSymbology =
     };
 
 export type SymbologySpec = {
-  nodes: NodeSymbology;
-  links: LinkSymbology;
+  node: NodeSymbology;
+  link: LinkSymbology;
 };
 
 export const nullSymbologySpec: SymbologySpec = {
-  links: { type: "none", labelRule: null },
-  nodes: { type: "none", labelRule: null },
+  link: { type: "none", labelRule: null },
+  node: { type: "none", labelRule: null },
 };

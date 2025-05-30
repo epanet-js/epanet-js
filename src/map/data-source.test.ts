@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { SymbologySpec, nullSymbologySpec } from "src/analysis";
+import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import {
   buildIconPointsSource,
@@ -13,7 +13,7 @@ import {
   aNodeSymbology,
   aRangeColorRule,
 } from "src/__helpers__/state";
-import { getColors } from "src/analysis/range-color-rule";
+import { getColors } from "src/map/symbology/range-color-rule";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
@@ -70,7 +70,7 @@ describe("build optimized source", () => {
     it("includes props for styling to junctions", () => {
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
-        nodes: aNodeSymbology({
+        node: aNodeSymbology({
           colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "pressure",
@@ -99,7 +99,7 @@ describe("build optimized source", () => {
     it("includes labels when specified", () => {
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
-        nodes: aNodeSymbology({
+        node: aNodeSymbology({
           labelRule: "pressure",
         }),
       };
@@ -122,7 +122,7 @@ describe("build optimized source", () => {
   describe("link symbology", () => {
     const symbology: SymbologySpec = {
       ...nullSymbologySpec,
-      links: aLinkSymbology({
+      link: aLinkSymbology({
         colorRule: aRangeColorRule({
           breaks: [10, 20, 30],
           property: "flow",
@@ -165,7 +165,7 @@ describe("build optimized source", () => {
     it("includes labels to pipes", () => {
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
-        links: aLinkSymbology({
+        link: aLinkSymbology({
           labelRule: "flow",
         }),
       };
@@ -222,7 +222,7 @@ describe("build optimized source", () => {
     it("applies the direction based on the flow", () => {
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
-        links: aLinkSymbology({
+        link: aLinkSymbology({
           colorRule: aRangeColorRule({
             breaks: [10, 20, 30],
             property: "velocity",

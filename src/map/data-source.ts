@@ -1,4 +1,4 @@
-import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/analysis";
+import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
@@ -8,7 +8,7 @@ import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
-import { colorFor } from "src/analysis/range-color-rule";
+import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { translateUnit } from "src/infra/i18n";
@@ -45,14 +45,14 @@ export const buildOptimizedAssetsSource = (
       appendPipeSymbologyProps(
         asset as Pipe,
         feature,
-        symbology.links,
+        symbology.link,
         quantities,
       );
     if (asset.type === "junction")
       appendJunctionSymbologyProps(
         asset as Junction,
         feature,
-        symbology.nodes,
+        symbology.node,
         quantities,
       );
     if (asset.type === "pump") {

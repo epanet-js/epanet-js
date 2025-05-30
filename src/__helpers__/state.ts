@@ -18,13 +18,13 @@ import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
-import { LinkSymbology, NodeSymbology } from "src/analysis";
+import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import {
   RangeColorRule,
   nullRangeColorRule,
-} from "src/analysis/range-color-rule";
+} from "src/map/symbology/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
-import { LabelRule } from "src/analysis/symbology-types";
+import { LabelRule } from "src/map/symbology/symbology-types";
 
 export const setInitialState = ({
   store = createStore(),

@@ -1,6 +1,6 @@
 import { atom, useAtom } from "jotai";
-import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/analysis";
-import { SupportedProperty } from "src/analysis/symbology-types";
+import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
+import { SupportedProperty } from "src/map/symbology/symbology-types";
 
 export type { SymbologySpec };
 
@@ -17,10 +17,10 @@ export const linkSymbologyAtom = atom<LinkSymbology>({
 });
 
 export const symbologyAtom = atom((get) => {
-  const nodes = get(nodeSymbologyAtom);
-  const links = get(linkSymbologyAtom);
+  const node = get(nodeSymbologyAtom);
+  const link = get(linkSymbologyAtom);
 
-  return { nodes, links };
+  return { node, link };
 });
 
 export const useSymbologySpec = () => {

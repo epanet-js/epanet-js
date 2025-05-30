@@ -110,8 +110,8 @@ export function Hints() {
           } else {
             if (
               simulation.status === "success" &&
-              symbology.links.type === "none" &&
-              symbology.nodes.type === "none"
+              symbology.link.type === "none" &&
+              symbology.node.type === "none"
             ) {
               return (
                 <Hint

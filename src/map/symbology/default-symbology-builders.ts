@@ -1,9 +1,9 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
-import { getSortedValues } from "./analysis-data";
 import { LabelRule, NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
+import { getSortedValues } from "src/hydraulic-model/assets-map";
 
 type DefaultSymbologyBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinkSymbology;

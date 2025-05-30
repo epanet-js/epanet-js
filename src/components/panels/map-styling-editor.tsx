@@ -1,18 +1,18 @@
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { translate } from "src/infra/i18n";
-import { LinkSymbology, NodeSymbology } from "src/analysis";
+import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { SupportedProperty } from "src/analysis/symbology-types";
+import { SupportedProperty } from "src/map/symbology/symbology-types";
 import { useSymbologySpec } from "src/state/symbology";
-import { defaultSymbologyBuilders } from "src/analysis/default-symbology-builders";
+import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
-import { RangeMode } from "src/analysis/range-color-rule";
+import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 
 const colorPropertyLabelFor = (type: SupportedProperty | "none") => {

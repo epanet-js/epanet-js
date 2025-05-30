@@ -41,7 +41,7 @@ import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { SymbologySpec, symbologyAtom } from "src/state/symbology";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { nullSymbologySpec } from "src/analysis";
+import { nullSymbologySpec } from "src/map/symbology";
 import { mapLoadingAtom } from "./state";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -295,12 +295,12 @@ const updateLayerStyles = withInstrumentation(
 
 const toggleAnalysisLayers = withInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
-    if (symbology.links.type === "none") {
+    if (symbology.link.type === "none") {
       map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
     } else {
       map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
     }
-    if (symbology.nodes.type === "none") {
+    if (symbology.node.type === "none") {
       map.hideLayers(["imported-junction-results", "junction-results"]);
     } else {
       map.showLayers(["imported-junction-results", "junction-results"]);

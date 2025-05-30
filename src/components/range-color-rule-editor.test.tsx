@@ -9,8 +9,11 @@ import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { RangeColorRule, defaultNewColor } from "src/analysis/range-color-rule";
-import { PropertyAnalysis } from "src/analysis/symbology-types";
+import {
+  RangeColorRule,
+  defaultNewColor,
+} from "src/map/symbology/range-color-rule";
+import { PropertyAnalysis } from "src/map/symbology/symbology-types";
 import {
   linkSymbologyAtom,
   nodeSymbologyAtom,

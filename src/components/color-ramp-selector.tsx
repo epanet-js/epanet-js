@@ -19,9 +19,12 @@ import {
   RangeColorRule,
   changeRampName,
   reverseColors,
-} from "src/analysis/range-color-rule";
+} from "src/map/symbology/range-color-rule";
 import { useCallback } from "react";
-import { LinkSymbology, NodeSymbology } from "src/analysis/symbology-types";
+import {
+  LinkSymbology,
+  NodeSymbology,
+} from "src/map/symbology/symbology-types";
 import { useUserTracking } from "src/infra/user-tracking";
 
 type ColorRampSettingsHook = {
