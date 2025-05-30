@@ -7,7 +7,7 @@ import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
 import { isFeatureOn } from "src/infra/feature-flags";
 
-export const AnalysisLegends = () => {
+export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const linkSymbology = useAtomValue(linkSymbologyAtom);
 

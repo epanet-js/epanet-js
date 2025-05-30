@@ -45,7 +45,7 @@ import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
 import { match } from "ts-pattern";
-import {AnalysisLegends} from './analysis-legends';
+import {Legends} from './legends';
 import {Toolbar} from './toolbar/toolbar';
 import {translate} from 'src/infra/i18n';
 import {Footer} from './footer';
@@ -215,7 +215,7 @@ function DraggableMap({
       <div className="flex-auto relative">
         <MapCanvas setMap={setMap} />
       </div>
-      <AnalysisLegends />
+      <Legends />
     </div>
   );
 }
