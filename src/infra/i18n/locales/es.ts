@@ -83,7 +83,6 @@ export const translations: Translations = {
   velocities: "Velocidades",
   asset: "Activo",
   assets: "Activos",
-  analysis: "Análisis",
   none: "Ninguno",
   type: "Tipo",
   delete: "Borrar",
