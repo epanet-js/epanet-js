@@ -53,38 +53,35 @@ export const RangeColorRuleEditor = ({
 
   const userTracking = useUserTracking();
 
-  const assetSymbology =
-    geometryType === "node" ? nodeSymbology : linkSymbology;
+  const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
 
-  const initialSymbology =
-    assetSymbology.type === "none"
-      ? nullRangeColorRule
-      : assetSymbology.colorRule;
+  const initialColorRule =
+    symbology.type === "none" ? nullRangeColorRule : symbology.colorRule;
 
   const onChange = useCallback(
-    (newSymbology: RangeColorRule) => {
+    (newColorRule: RangeColorRule) => {
       if (geometryType === "node") {
         updateNodeSymbology({
-          ...assetSymbology,
-          colorRule: newSymbology,
+          ...symbology,
+          colorRule: newColorRule,
         } as NodeSymbology);
       } else {
         updateLinkSymbology({
-          ...assetSymbology,
-          colorRule: newSymbology,
+          ...symbology,
+          colorRule: newColorRule,
         } as LinkSymbology);
       }
     },
-    [assetSymbology, geometryType, updateNodeSymbology, updateLinkSymbology],
+    [symbology, geometryType, updateNodeSymbology, updateLinkSymbology],
   );
 
   const sortedData = useMemo(() => {
-    return getSortedValues(assets, initialSymbology.property, {
-      absValues: Boolean(initialSymbology.absValues),
+    return getSortedValues(assets, initialColorRule.property, {
+      absValues: Boolean(initialColorRule.absValues),
     });
-  }, [assets, initialSymbology.property, initialSymbology.absValues]);
+  }, [assets, initialColorRule.property, initialColorRule.absValues]);
 
-  const [symbology, setSymbology] = useState<RangeColorRule>(initialSymbology);
+  const [colorRule, setColorRule] = useState<RangeColorRule>(initialColorRule);
 
   const debugData = useMemo(() => {
     if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
@@ -114,24 +111,24 @@ export const RangeColorRuleEditor = ({
 
     return createHistogram(sortedData, [
       -Infinity,
-      ...symbology.breaks,
+      ...colorRule.breaks,
       +Infinity,
     ]);
-  }, [symbology.breaks, sortedData]);
+  }, [colorRule.breaks, sortedData]);
 
   const [error, setError] = useState<ErrorType | null>(null);
 
-  const submitChange = (newSymbology: RangeColorRule) => {
-    onChange(newSymbology);
+  const submitChange = (newColorRule: RangeColorRule) => {
+    onChange(newColorRule);
   };
 
-  const showError = (error: ErrorType, newSymbology: RangeColorRule) => {
+  const showError = (error: ErrorType, newColorRule: RangeColorRule) => {
     userTracking.capture({
       name: "colorRange.rangeError.seen",
       errorKey: error,
-      property: newSymbology.property,
-      mode: newSymbology.mode,
-      classesCount: newSymbology.colors.length,
+      property: newColorRule.property,
+      mode: newColorRule.mode,
+      classesCount: newColorRule.colors.length,
     });
     setError(error);
     toast.error(translate("unableToUpdate"), { id: "symbology" });
@@ -145,10 +142,10 @@ export const RangeColorRuleEditor = ({
     userTracking.capture({
       name: "colorRange.rangeMode.changed",
       mode: newMode,
-      property: symbology.property,
+      property: colorRule.property,
     });
-    const result = applyMode(symbology, newMode, sortedData);
-    setSymbology(result.colorRule);
+    const result = applyMode(colorRule, newMode, sortedData);
+    setColorRule(result.colorRule);
     if (result.error) {
       showError("notEnoughData", result.colorRule);
     } else {
@@ -161,11 +158,11 @@ export const RangeColorRuleEditor = ({
     userTracking.capture({
       name: "colorRange.classes.changed",
       classesCount: numIntervals,
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const result = changeRangeSize(symbology, sortedData, numIntervals);
-    setSymbology(result.colorRule);
+    const result = changeRangeSize(colorRule, sortedData, numIntervals);
+    setColorRule(result.colorRule);
     if (result.error) {
       showError("notEnoughData", result.colorRule);
     } else {
@@ -177,14 +174,14 @@ export const RangeColorRuleEditor = ({
   const handleIntervalColorChange = (index: number, color: string) => {
     userTracking.capture({
       name: "colorRange.intervalColor.changed",
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const newSymbology = changeIntervalColor(symbology, index, color);
-    setSymbology(newSymbology);
+    const newColorRule = changeIntervalColor(colorRule, index, color);
+    setColorRule(newColorRule);
 
     if (!error) {
-      submitChange(newSymbology);
+      submitChange(newColorRule);
     }
   };
 
@@ -192,72 +189,72 @@ export const RangeColorRuleEditor = ({
     userTracking.capture({
       name: "colorRange.break.updated",
       breakValue: value,
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const newSymbology = updateBreakValue(symbology, index, value);
-    setSymbology(newSymbology);
+    const newColorRule = updateBreakValue(colorRule, index, value);
+    setColorRule(newColorRule);
 
-    const isValid = validateAscindingBreaks(newSymbology.breaks);
+    const isValid = validateAscindingBreaks(newColorRule.breaks);
     if (!isValid) {
-      showError("rampShouldBeAscending", newSymbology);
+      showError("rampShouldBeAscending", newColorRule);
     } else {
       clearError();
-      submitChange(newSymbology);
+      submitChange(newColorRule);
     }
   };
 
   const handleDeleteBreak = (index: number) => {
     userTracking.capture({
       name: "colorRange.break.deleted",
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const newSymbology = deleteBreak(symbology, index);
-    setSymbology(newSymbology);
+    const newColorRule = deleteBreak(colorRule, index);
+    setColorRule(newColorRule);
 
-    const isValid = validateAscindingBreaks(newSymbology.breaks);
+    const isValid = validateAscindingBreaks(newColorRule.breaks);
     if (!isValid) {
-      showError("rampShouldBeAscending", newSymbology);
+      showError("rampShouldBeAscending", newColorRule);
     } else {
       clearError();
-      submitChange(newSymbology);
+      submitChange(newColorRule);
     }
   };
 
   const handlePrependBreak = () => {
     userTracking.capture({
       name: "colorRange.break.prepended",
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const newSymbology = prependBreak(symbology);
-    setSymbology(newSymbology);
+    const newColorRule = prependBreak(colorRule);
+    setColorRule(newColorRule);
     if (!error) {
-      submitChange(newSymbology);
+      submitChange(newColorRule);
     }
   };
 
   const handleAppendBreak = () => {
     userTracking.capture({
       name: "colorRange.break.appended",
-      property: symbology.property,
+      property: colorRule.property,
     });
 
-    const newSymbology = appendBreak(symbology);
-    setSymbology(newSymbology);
+    const newColorRule = appendBreak(colorRule);
+    setColorRule(newColorRule);
     if (!error) {
-      submitChange(newSymbology);
+      submitChange(newColorRule);
     }
   };
 
   const handleRegenerate = () => {
     userTracking.capture({
       name: "colorRange.breaks.regenerated",
-      property: symbology.property,
+      property: colorRule.property,
     });
-    const result = applyMode(symbology, symbology.mode, sortedData);
-    setSymbology(result.colorRule);
+    const result = applyMode(colorRule, colorRule.mode, sortedData);
+    setColorRule(result.colorRule);
     if (result.error) {
       showError("notEnoughData", result.colorRule);
     } else {
@@ -266,7 +263,7 @@ export const RangeColorRuleEditor = ({
     }
   };
 
-  const numIntervals = symbology.breaks.length + 1;
+  const numIntervals = colorRule.breaks.length + 1;
 
   return (
     <div className="space-y-4">
@@ -274,7 +271,7 @@ export const RangeColorRuleEditor = ({
         <div className="flex flex-col gap-y-2 w-full">
           <span className="text-sm text-gray-500">{translate("mode")}</span>
           <ModeSelector
-            rangeMode={symbology.mode}
+            rangeMode={colorRule.mode}
             onModeChange={handleModeChange}
           />
         </div>
@@ -299,9 +296,9 @@ export const RangeColorRuleEditor = ({
             <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
               <IntervalsEditor
                 numIntervals={numIntervals}
-                breaks={symbology.breaks}
-                colors={symbology.colors}
-                absValues={Boolean(symbology.absValues)}
+                breaks={colorRule.breaks}
+                colors={colorRule.colors}
+                absValues={Boolean(colorRule.absValues)}
                 onAppend={handleAppendBreak}
                 onPrepend={handlePrependBreak}
                 onDelete={handleDeleteBreak}

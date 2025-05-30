@@ -21,7 +21,7 @@ import {
 } from "src/state/symbology";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
 
-describe("analysis range editor", () => {
+describe("color range editor", () => {
   const red = "#ff0000";
   const green = "#00ff00";
   const blue = "#0000ff";
