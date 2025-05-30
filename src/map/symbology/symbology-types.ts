@@ -12,12 +12,6 @@ export type SupportedProperty = (typeof supportedProperties)[number];
 
 export type LabelRule = string | null;
 
-export type PropertyAnalysis = {
-  type: string;
-  colorRule: RangeColorRule;
-  labelRule: LabelRule;
-};
-
 export type NodeSymbology =
   | { type: "none"; labelRule: LabelRule }
   | {

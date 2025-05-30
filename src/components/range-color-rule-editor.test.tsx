@@ -13,7 +13,6 @@ import {
   RangeColorRule,
   defaultNewColor,
 } from "src/map/symbology/range-color-rule";
-import { PropertyAnalysis } from "src/map/symbology/symbology-types";
 import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
@@ -532,11 +531,15 @@ describe("color range editor", () => {
   });
 
   const getNodeColorRule = (store: Store): RangeColorRule => {
-    return (store.get(nodeSymbologyAtom) as PropertyAnalysis).colorRule;
+    const symbology = store.get(nodeSymbologyAtom);
+    if (symbology.type === "none") throw new Error("Empty node symbology");
+    return symbology.colorRule;
   };
 
   const getLinkColorRule = (store: Store): RangeColorRule => {
-    return (store.get(linkSymbologyAtom) as PropertyAnalysis).colorRule;
+    const symbology = store.get(linkSymbologyAtom);
+    if (symbology.type === "none") throw new Error("Empty link symbology");
+    return symbology.colorRule;
   };
 
   const expectBreakValue = (index: number, value: string) => {
