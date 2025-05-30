@@ -69,7 +69,7 @@ export const MapStylingEditor = () => {
     updateLinkSymbology({ ...linkSymbology, labeling: label });
   };
 
-  const handleNodesLabelingChange = (label: string | null) => {
+  const handleNodesLabelRuleChange = (label: string | null) => {
     if (label !== null) {
       userTracking.capture({
         name: "map.labels.shown",
@@ -134,7 +134,7 @@ export const MapStylingEditor = () => {
                     aria-label={`${translate("nodes")} ${translate("labels")}`}
                     checked={!!nodeSymbology.labeling}
                     onChange={() =>
-                      handleNodesLabelingChange(
+                      handleNodesLabelRuleChange(
                         !!nodeSymbology.labeling
                           ? null
                           : nodeSymbology.symbology.property,

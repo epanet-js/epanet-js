@@ -1,3 +1,3 @@
-export type Labeling = string | null;
+export type LabelRule = string | null;
 
-export const nullLabeling: Labeling = null;
+export const nullLabelRule: LabelRule = null;

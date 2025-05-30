@@ -24,7 +24,7 @@ import {
   nullRangeSymbology,
 } from "src/analysis/range-symbology";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/analysis";
-import { Labeling } from "src/analysis/analysis-types";
+import { LabelRule } from "src/analysis/analysis-types";
 
 export const setInitialState = ({
   store = createStore(),
@@ -122,7 +122,7 @@ export const aNodeSymbology = ({
   labeling = null,
 }: {
   symbology?: Partial<RangeSymbology>;
-  labeling?: Labeling;
+  labeling?: LabelRule;
 }): NodeSymbology => {
   const symbology = aSymbology(partialSymbology);
   return {
@@ -137,7 +137,7 @@ export const aLinkSymbology = ({
   labeling = null,
 }: {
   symbology?: Partial<RangeSymbology>;
-  labeling?: Labeling;
+  labeling?: LabelRule;
 }): LinkSymbology => {
   const symbology = aSymbology({ property: "flow", ...partialSymbology });
   return {

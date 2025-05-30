@@ -15,28 +15,28 @@ const analysisTypes = [
 ] as const;
 export type AnalysisType = (typeof analysisTypes)[number];
 
-export type Labeling = string | null;
+export type LabelRule = string | null;
 
 export type PropertyAnalysis = {
   type: string;
   symbology: RangeSymbology;
-  labeling: Labeling;
+  labeling: LabelRule;
 };
 
 export type NodeSymbology =
-  | { type: "none"; labeling: Labeling }
+  | { type: "none"; labeling: LabelRule }
   | {
       type: "elevation" | "pressure";
       symbology: RangeSymbology;
-      labeling: Labeling;
+      labeling: LabelRule;
     };
 
 export type LinkSymbology =
-  | { type: "none"; labeling: Labeling }
+  | { type: "none"; labeling: LabelRule }
   | {
       type: "flow" | "velocity" | "unitHeadloss" | "diameter";
       symbology: RangeSymbology;
-      labeling: Labeling;
+      labeling: LabelRule;
     };
 
 export type AnalysisState = {

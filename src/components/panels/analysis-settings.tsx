@@ -64,7 +64,7 @@ export const AnalysisSettingsPanel = () => {
     updateLinkSymbology({ ...linkSymbology, labeling: label });
   };
 
-  const handleNodesLabelingChange = (label: string | null) => {
+  const handleNodesLabelRuleChange = (label: string | null) => {
     if (label !== null) {
       userTracking.capture({
         name: "map.labels.shown",
@@ -119,7 +119,7 @@ export const AnalysisSettingsPanel = () => {
                 aria-label={translate("showLabels")}
                 checked={!!nodeSymbology.labeling}
                 onChange={() =>
-                  handleNodesLabelingChange(
+                  handleNodesLabelRuleChange(
                     !!nodeSymbology.labeling
                       ? null
                       : nodeSymbology.symbology.property,
