@@ -1,9 +1,10 @@
-import { isFeatureOn } from "src/infra/feature-flags";
 import { RangeColorRule } from "./range-color-rule";
 
-export const supportedNodeProperties = isFeatureOn("FLAG_HEAD")
-  ? (["elevation", "pressure", "head"] as const)
-  : (["elevation", "pressure"] as const);
+export const supportedNodeProperties = [
+  "elevation",
+  "pressure",
+  "head",
+] as const;
 export const supportedProperties = [
   ...supportedNodeProperties,
   "flow",
