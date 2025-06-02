@@ -26,6 +26,7 @@ import {
   momentLogAtom,
   nullData,
   simulationAtom,
+  initialSimulationState,
 } from "src/state/jotai";
 import {
   getFreshAt,
@@ -91,7 +92,7 @@ export class MemPersistence implements IPersistence {
         modelMetadata,
       });
       this.store.set(momentLogAtom, momentLog);
-      this.store.set(simulationAtom, { status: "idle" });
+      this.store.set(simulationAtom, initialSimulationState);
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());

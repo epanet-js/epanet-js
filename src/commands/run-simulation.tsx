@@ -27,7 +27,7 @@ export const useRunSimulation = () => {
   const setData = useSetAtom(dataAtom);
 
   const runSimulation = useCallback(async () => {
-    setSimulationState({ status: "running" });
+    setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = buildInp(hydraulicModel, defaultSimulationSettings);
     const start = performance.now();
     setDialogState({ type: "loading" });
@@ -43,6 +43,7 @@ export const useRunSimulation = () => {
       status,
       report,
       modelVersion: hydraulicModel.version,
+      settings: defaultSimulationSettings,
     });
     const end = performance.now();
     const duration = end - start;

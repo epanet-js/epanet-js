@@ -10,6 +10,7 @@ import {
   assetsAtom,
   dataAtom,
   ephemeralStateAtom,
+  initialSimulationState,
   layerConfigAtom,
   memoryMetaAtom,
   momentLogAtom,
@@ -84,7 +85,7 @@ const nullMapState: MapState = {
   selection: { type: "none" },
   ephemeralState: { type: "none" },
   symbology: nullSymbologySpec,
-  simulation: { status: "idle" },
+  simulation: initialSimulationState,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
 } as const;

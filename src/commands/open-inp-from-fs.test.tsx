@@ -141,6 +141,7 @@ describe("openInpFromFs", () => {
       status: "failure",
       report: "ERROR",
       modelVersion: "10",
+      settings: defaultSimulationSettings,
     };
     const previousSelection: Sel = {
       type: "single",

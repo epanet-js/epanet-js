@@ -9,6 +9,7 @@ import {
   Store,
   dataAtom,
   fileInfoAtom,
+  initialSimulationState,
   layerConfigAtom,
   momentLogAtom,
   nullData,
@@ -28,12 +29,13 @@ import {
   LabelRule,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
+import { defaultSimulationSettings } from "src/simulation/settings";
 
 export const setInitialState = ({
   store = createStore(),
   hydraulicModel = HydraulicModelBuilder.with().build(),
   momentLog = new MomentLog(),
-  simulation = { status: "idle" },
+  simulation = initialSimulationState,
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
@@ -100,14 +102,24 @@ export const aSimulationSuccess = ({
   report = "CONTENT",
   modelVersion = "1",
 } = {}): SimulationFinished => {
-  return { status: "success", report, modelVersion };
+  return {
+    status: "success",
+    report,
+    modelVersion,
+    settings: defaultSimulationSettings,
+  };
 };
 
 export const aSimulationFailure = ({
   report = "CONTENT",
   modelVersion = "1",
 } = {}): SimulationFinished => {
-  return { status: "failure", report, modelVersion };
+  return {
+    status: "failure",
+    report,
+    modelVersion,
+    settings: defaultSimulationSettings,
+  };
 };
 
 export const aSingleSelection = ({
