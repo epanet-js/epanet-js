@@ -7,6 +7,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   SupportedProperty,
   nullSymbologySpec,
+  supportedLinkProperties,
   supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/symbology";
@@ -27,209 +28,167 @@ const colorPropertyLabelFor = (property: string) => {
 };
 
 export const MapStylingEditor = () => {
-  const {
-    linkSymbology,
-    nodeSymbology,
-    switchNodeSymbologyTo,
-    switchLinkSymbologyTo,
-    updateLinkSymbology,
-    updateNodeSymbology,
-  } = useSymbologyState();
-  const simulation = useAtomValue(simulationAtom);
-  const {
-    hydraulicModel,
-    modelMetadata: { quantities },
-  } = useAtomValue(dataAtom);
-  const userTracking = useUserTracking();
-
-  const handleLinksChange = (property: SupportedProperty | "none") => {
-    userTracking.capture({
-      name: "map.colorBy.changed",
-      type: "links",
-      subtype: property,
-    });
-
-    if (property === "none") {
-      switchLinkSymbologyTo(null, () => nullSymbologySpec.link);
-      return;
-    }
-
-    switchLinkSymbologyTo(
-      property,
-      defaultSymbologyBuilders[property](hydraulicModel, quantities),
-    );
-  };
-
-  const handleLinksLabelsChange = (label: string | null) => {
-    if (label !== null) {
-      userTracking.capture({
-        name: "map.labels.shown",
-        type: "links",
-        subtype: label,
-      });
-    }
-    if (label === null) {
-      userTracking.capture({
-        name: "map.labels.hidden",
-        type: "links",
-      });
-    }
-    updateLinkSymbology({ ...linkSymbology, labelRule: label });
-  };
-
-  const handleNodesLabelRuleChange = (label: string | null) => {
-    if (label !== null) {
-      userTracking.capture({
-        name: "map.labels.shown",
-        type: "nodes",
-        subtype: label,
-      });
-    }
-    if (label === null) {
-      userTracking.capture({
-        name: "map.labels.hidden",
-        type: "nodes",
-      });
-    }
-    updateNodeSymbology({ ...nodeSymbology, labelRule: label });
-  };
-
-  const handleNodesChange = (property: SupportedProperty | "none") => {
-    userTracking.capture({
-      name: "map.colorBy.changed",
-      type: "nodes",
-      subtype: property,
-    });
-
-    if (property === "none") {
-      switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
-      return;
-    }
-
-    switchNodeSymbologyTo(
-      property,
-      defaultSymbologyBuilders[property](hydraulicModel, quantities),
-    );
-  };
-
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
       <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
-        <PanelSection title={translate("nodeSymbology")}>
-          <PanelItem name={translate("colorBy")}>
-            <Selector
-              styleOptions={{ border: false }}
-              ariaLabel={`${translate("nodes")} ${translate("colorBy")}`}
-              options={(
-                ["none", ...supportedNodeProperties] as (
-                  | "none"
-                  | SupportedProperty
-                )[]
-              ).map((type) => ({
-                value: type,
-                label: colorPropertyLabelFor(type),
-                disabled:
-                  simulation.status === "idle" &&
-                  ["pressure", "head"].includes(type),
-              }))}
-              selected={
-                nodeSymbology.colorRule
-                  ? (nodeSymbology.colorRule.property as SupportedProperty)
-                  : "none"
-              }
-              onChange={handleNodesChange}
-            />
-          </PanelItem>
-          {nodeSymbology.colorRule !== null && (
-            <>
-              <PanelItem name={translate("range")}>
-                <RangeColorRuleEditorTrigger
-                  mode={nodeSymbology.colorRule.mode}
-                  numIntervals={nodeSymbology.colorRule.breaks.length + 1}
-                  geometryType="node"
-                />
-              </PanelItem>
-              <PanelItem name={translate("ramp")}>
-                <ColorRampSelector geometryType="node" />
-              </PanelItem>
-              <PanelItem name={translate("labels")}>
-                <div className="p-2 flex items-center h-[38px]">
-                  <Checkbox
-                    aria-label={`${translate("nodes")} ${translate("labels")}`}
-                    checked={!!nodeSymbology.labelRule}
-                    onChange={() =>
-                      handleNodesLabelRuleChange(
-                        !!nodeSymbology.labelRule
-                          ? null
-                          : nodeSymbology.colorRule!.property,
-                      )
-                    }
-                  />
-                </div>
-              </PanelItem>
-            </>
-          )}
-        </PanelSection>
-        <PanelSection title={translate("linkSymbology")}>
-          <PanelItem name={translate("colorBy")}>
-            <Selector
-              styleOptions={{ border: false }}
-              ariaLabel={`${translate("links")} ${translate("colorBy")}`}
-              options={(
-                ["none", "diameter", "flow", "velocity", "unitHeadloss"] as (
-                  | SupportedProperty
-                  | "none"
-                )[]
-              ).map((type) => ({
-                value: type,
-                label: colorPropertyLabelFor(type),
-                disabled:
-                  simulation.status === "idle" &&
-                  ["flow", "velocity", "unitHeadloss"].includes(type),
-              }))}
-              selected={
-                linkSymbology.colorRule
-                  ? (linkSymbology.colorRule.property as SupportedProperty)
-                  : "none"
-              }
-              onChange={handleLinksChange}
-            />
-          </PanelItem>
-          {linkSymbology.colorRule !== null && (
-            <>
-              <PanelItem name={translate("range")}>
-                <RangeColorRuleEditorTrigger
-                  mode={linkSymbology.colorRule.mode}
-                  numIntervals={linkSymbology.colorRule.breaks.length + 1}
-                  geometryType="link"
-                />
-              </PanelItem>
-              <PanelItem name={translate("ramp")}>
-                <ColorRampSelector geometryType="link" />
-              </PanelItem>
-              <PanelItem name={translate("labels")}>
-                <div className="p-2 flex items-center h-[38px]">
-                  <Checkbox
-                    checked={!!linkSymbology.labelRule}
-                    aria-label={`${translate("links")} ${translate("labels")}`}
-                    onChange={() =>
-                      handleLinksLabelsChange(
-                        !!linkSymbology.labelRule
-                          ? null
-                          : linkSymbology.colorRule!.property,
-                      )
-                    }
-                  />
-                </div>
-              </PanelItem>
-            </>
-          )}
-        </PanelSection>
+        <SymbologyEditor
+          geometryType="node"
+          properties={supportedNodeProperties}
+        />
+        <SymbologyEditor
+          geometryType="link"
+          properties={supportedLinkProperties}
+        />
         <PanelSection title={translate("layers")} button={<AddLayer />}>
           <LayersEditor />
         </PanelSection>
       </div>
     </div>
+  );
+};
+
+const simulationProperties = [
+  "flow",
+  "velocity",
+  "unitHeadloss",
+  "pressure",
+  "head",
+];
+
+type SelectOption = SupportedProperty | "none";
+
+const SymbologyEditor = ({
+  geometryType,
+  properties,
+}: {
+  geometryType: "node" | "link";
+  properties: readonly SupportedProperty[];
+}) => {
+  const simulation = useAtomValue(simulationAtom);
+
+  const {
+    linkSymbology,
+    nodeSymbology,
+    updateNodeSymbology,
+    updateLinkSymbology,
+    switchNodeSymbologyTo,
+    switchLinkSymbologyTo,
+  } = useSymbologyState();
+  const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
+  const {
+    hydraulicModel,
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
+
+  const userTracking = useUserTracking();
+
+  const handleColorByChange = (property: SelectOption) => {
+    userTracking.capture({
+      name: "map.colorBy.changed",
+      type: geometryType,
+      subtype: property,
+    });
+
+    if (geometryType === "node") {
+      if (property === "none") {
+        switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
+        return;
+      }
+
+      switchNodeSymbologyTo(
+        property,
+        defaultSymbologyBuilders[property](hydraulicModel, quantities),
+      );
+    } else {
+      if (property === "none") {
+        switchLinkSymbologyTo(null, () => nullSymbologySpec.link);
+        return;
+      }
+
+      switchLinkSymbologyTo(
+        property,
+        defaultSymbologyBuilders[property](hydraulicModel, quantities),
+      );
+    }
+  };
+
+  const handleLabelRuleChange = (label: string | null) => {
+    if (label !== null) {
+      userTracking.capture({
+        name: "map.labels.shown",
+        type: geometryType,
+        subtype: label,
+      });
+    }
+    if (label === null) {
+      userTracking.capture({
+        name: "map.labels.hidden",
+        type: geometryType,
+      });
+    }
+    if (geometryType === "node") {
+      updateNodeSymbology({ ...symbology, labelRule: label });
+    } else {
+      updateLinkSymbology({ ...symbology, labelRule: label });
+    }
+  };
+
+  const title =
+    geometryType === "node"
+      ? translate("nodeSymbology")
+      : translate("linkSymbology");
+
+  return (
+    <PanelSection title={title}>
+      <PanelItem name={translate("colorBy")}>
+        <Selector
+          styleOptions={{ border: false }}
+          ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
+          options={(["none", ...properties] as SelectOption[]).map((type) => ({
+            value: type,
+            label: colorPropertyLabelFor(type),
+            disabled:
+              simulation.status === "idle" &&
+              simulationProperties.includes(type),
+          }))}
+          selected={
+            (symbology.colorRule
+              ? symbology.colorRule.property
+              : "none") as SelectOption
+          }
+          onChange={handleColorByChange}
+        />
+      </PanelItem>
+      {symbology.colorRule !== null && (
+        <>
+          <PanelItem name={translate("range")}>
+            <RangeColorRuleEditorTrigger
+              mode={symbology.colorRule.mode}
+              numIntervals={symbology.colorRule.breaks.length + 1}
+              geometryType={geometryType}
+            />
+          </PanelItem>
+          <PanelItem name={translate("ramp")}>
+            <ColorRampSelector geometryType={geometryType} />
+          </PanelItem>
+          <PanelItem name={translate("labels")}>
+            <div className="p-2 flex items-center h-[38px]">
+              <Checkbox
+                checked={!!symbology.labelRule}
+                aria-label={`${translate(geometryType)} ${translate("labels")}`}
+                onChange={() =>
+                  handleLabelRuleChange(
+                    !!symbology.labelRule
+                      ? null
+                      : symbology.colorRule!.property,
+                  )
+                }
+              />
+            </div>
+          </PanelItem>
+        </>
+      )}
+    </PanelSection>
   );
 };
 

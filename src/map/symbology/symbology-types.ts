@@ -5,12 +5,15 @@ export const supportedNodeProperties = [
   "pressure",
   "head",
 ] as const;
-export const supportedProperties = [
-  ...supportedNodeProperties,
+export const supportedLinkProperties = [
   "flow",
   "velocity",
   "unitHeadloss",
   "diameter",
+] as const;
+export const supportedProperties = [
+  ...supportedNodeProperties,
+  ...supportedLinkProperties,
 ] as const;
 export type SupportedProperty = (typeof supportedProperties)[number];
 

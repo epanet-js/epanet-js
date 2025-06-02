@@ -25,10 +25,10 @@ describe("Map Styling Editor", () => {
     renderComponent(store);
 
     expect(
-      screen.getByRole("combobox", { name: /nodes color by/i }),
+      screen.getByRole("combobox", { name: /node color by/i }),
     ).toHaveTextContent("None");
 
-    await user.click(screen.getByRole("combobox", { name: /nodes color by/i }));
+    await user.click(screen.getByRole("combobox", { name: /node color by/i }));
     await user.click(screen.getByText("Elevation"));
 
     expect(
@@ -52,11 +52,11 @@ describe("Map Styling Editor", () => {
     await user.keyboard("{Escape}");
 
     await userEvent.click(
-      screen.getByRole("checkbox", { name: /nodes labels/i }),
+      screen.getByRole("checkbox", { name: /node labels/i }),
     );
 
     expect(
-      screen.getByRole("checkbox", { name: /nodes labels/i }),
+      screen.getByRole("checkbox", { name: /node labels/i }),
     ).toBeChecked();
   });
 
@@ -72,10 +72,10 @@ describe("Map Styling Editor", () => {
     renderComponent(store);
 
     expect(
-      screen.getByRole("combobox", { name: /links color by/i }),
+      screen.getByRole("combobox", { name: /link color by/i }),
     ).toHaveTextContent("None");
 
-    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    await user.click(screen.getByRole("combobox", { name: /link color by/i }));
     await user.click(screen.getByText("Diameter"));
 
     expect(
@@ -99,11 +99,11 @@ describe("Map Styling Editor", () => {
     await user.keyboard("{Escape}");
 
     await userEvent.click(
-      screen.getByRole("checkbox", { name: /links labels/i }),
+      screen.getByRole("checkbox", { name: /link labels/i }),
     );
 
     expect(
-      screen.getByRole("checkbox", { name: /links labels/i }),
+      screen.getByRole("checkbox", { name: /link labels/i }),
     ).toBeChecked();
   });
 
@@ -118,7 +118,7 @@ describe("Map Styling Editor", () => {
     });
     renderComponent(store);
 
-    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    await user.click(screen.getByRole("combobox", { name: /link color by/i }));
     await user.click(screen.getByText("Diameter"));
     await user.click(screen.getByRole("combobox", { name: /link ramp/i }));
     await user.click(screen.getByTitle("OrRd"));
@@ -141,13 +141,13 @@ describe("Map Styling Editor", () => {
     });
     renderComponent(store);
 
-    await user.click(screen.getByRole("combobox", { name: /links color by/i }));
+    await user.click(screen.getByRole("combobox", { name: /link color by/i }));
     expect(screen.getByRole("option", { name: /flow/i })).toHaveAttribute(
       "aria-disabled",
       "true",
     );
     await user.keyboard("{Escape}");
-    await user.click(screen.getByRole("combobox", { name: /nodes color by/i }));
+    await user.click(screen.getByRole("combobox", { name: /node color by/i }));
     expect(screen.getByRole("option", { name: /pressure/i })).toHaveAttribute(
       "aria-disabled",
       "true",
