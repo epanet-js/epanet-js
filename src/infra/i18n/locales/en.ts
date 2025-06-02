@@ -338,6 +338,9 @@ export const translations = {
   nodeSymbology: "Node Symbology",
   linkSymbology: "Link Symbology",
   ckmeans: "Ckmeans",
+  simulationSettings: "Simulation Settings",
+  demandMultiplier: "Demand Multiplier",
+  saveAndRun: "Save & Run",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

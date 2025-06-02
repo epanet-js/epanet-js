@@ -348,6 +348,9 @@ export const translations: Translations = {
   nodeSymbology: "Simbología de Nudos",
   linkSymbology: "Simbología de Enlaces",
   ckmeans: "Ckmeans",
+  simulationSettings: "Ajustes de Simulación",
+  demandMultiplier: "Multiplicador de Demanda",
+  saveAndRun: "Guardar y Ejecutar",
 };
 
 export const units: UnitsLocale = {

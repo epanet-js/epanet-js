@@ -70,6 +70,7 @@ export type DialogState =
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
+  | { type: "simulationSettings" }
   | null;
 
 export const dialogFromUrl = (): DialogState => {

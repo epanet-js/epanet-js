@@ -14,6 +14,7 @@ import {
 import * as dialogState from "src/state/dialog_state";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
+import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -158,6 +159,11 @@ export const Dialogs = memo(function Dialogs() {
   const onClose = useCallback(() => {
     setDialogState(null);
   }, [setDialogState]);
+  const previousDialog = useRef<dialogState.DialogState>(null);
+
+  if (dialog && dialog.type === "simulationSettings") {
+    return <SimulationSettingsDialog />;
+  }
 
   const content = match(dialog)
     .with(null, () => null)
@@ -194,8 +200,6 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
-
-  const previousDialog = useRef<dialogState.DialogState>(null);
 
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {

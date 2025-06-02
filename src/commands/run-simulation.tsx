@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
@@ -16,19 +16,18 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
-import { defaultSimulationSettings } from "src/simulation/settings";
 
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
-  const setSimulationState = useSetAtom(simulationAtom);
+  const [simulation, setSimulationState] = useAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
 
   const runSimulation = useCallback(async () => {
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+    const inp = buildInp(hydraulicModel, simulation.settings);
     const start = performance.now();
     setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);
@@ -43,7 +42,7 @@ export const useRunSimulation = () => {
       status,
       report,
       modelVersion: hydraulicModel.version,
-      settings: defaultSimulationSettings,
+      settings: simulation.settings,
     });
     const end = performance.now();
     const duration = end - start;
@@ -52,7 +51,7 @@ export const useRunSimulation = () => {
       status,
       duration,
     });
-  }, [hydraulicModel, setSimulationState, setData, setDialogState]);
+  }, [hydraulicModel, simulation, setSimulationState, setData, setDialogState]);
 
   return runSimulation;
 };
