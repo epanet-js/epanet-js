@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
+import { defaultSimulationSettings } from "src/simulation/settings";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -39,7 +40,7 @@ export const useSaveInp = ({
           const fileInfo = get(fileInfoAtom);
 
           const data = get(dataAtom);
-          const inp = buildInp(data.hydraulicModel, {
+          const inp = buildInp(data.hydraulicModel, defaultSimulationSettings, {
             geolocation: true,
             madeBy: true,
             labelIds: true,

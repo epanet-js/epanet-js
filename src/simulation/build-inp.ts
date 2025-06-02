@@ -11,17 +11,12 @@ import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
+import { SimulationSettings } from "./settings";
 
 type SimulationPipeStatus = "Open" | "Closed";
 type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV";
-
-type BuildOptions = {
-  geolocation?: boolean;
-  madeBy?: boolean;
-  labelIds?: boolean;
-};
 
 export type EpanetUnitSystem =
   | "LPS"
@@ -127,9 +122,16 @@ type InpSections = {
   vertices: string[];
 };
 
+type BuildOptions = {
+  geolocation?: boolean;
+  madeBy?: boolean;
+  labelIds?: boolean;
+};
+
 export const buildInp = withInstrumentation(
   (
     hydraulicModel: HydraulicModel,
+    settings: SimulationSettings,
     {
       geolocation = false,
       madeBy = false,
@@ -161,6 +163,7 @@ export const buildInp = withInstrumentation(
         `Accuracy\t${defaultAccuracy}`,
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
+        `Demand Multiplier\t${settings.demandMultiplier}`,
       ],
       backdrop: ["[BACKDROP]", "Units\tDEGREES"],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],

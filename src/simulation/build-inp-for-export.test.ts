@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
+import { defaultSimulationSettings } from "./settings";
 
 describe("build inp export ", () => {
   const exportOptions = { labelIds: true, geolocation: true };
@@ -17,7 +18,11 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[RESERVOIRS]");
     expect(rowsFrom(inp)).toContain("RES_1\t10");
@@ -38,7 +43,11 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
     expect(rowsFrom(inp)).toContain("J_1\t10");
@@ -73,7 +82,11 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[PIPES]");
     expect(rowsFrom(inp)).toContain("P_1\tJ_1\tJ_2\t10\t100\t1\t0\tOpen");
@@ -83,7 +96,11 @@ describe("build inp export ", () => {
   it("includes simulation settings", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[TIMES]");
     expect(rowsFrom(inp)).toContain("Duration\t0");
@@ -105,7 +122,11 @@ describe("build inp export ", () => {
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[BACKDROP]");
     expect(rowsFrom(inp)).toContain("Units\tDEGREES");
@@ -116,7 +137,11 @@ describe("build inp export ", () => {
       .setHeadlossFormula("D-W")
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("Headloss\tD-W");
   });
@@ -124,7 +149,11 @@ describe("build inp export ", () => {
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("Units\tGPM");
   });
@@ -146,11 +175,15 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const without = buildInp(hydraulicModel);
+    const without = buildInp(hydraulicModel, defaultSimulationSettings);
     expect(rowsFrom(without)).not.toContain("[COORDINATES]");
     expect(rowsFrom(without)).not.toContain("[VERTICES]");
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[COORDINATES]");
     expect(rowsFrom(inp)).toContain("J_1\t10\t1");
@@ -184,7 +217,11 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(rowsFrom(inp)).toContain("[PIPES]");
     expect(rowsFrom(inp)).toContain(
@@ -221,7 +258,11 @@ describe("build inp export ", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, exportOptions);
+    const inp = buildInp(
+      hydraulicModel,
+      defaultSimulationSettings,
+      exportOptions,
+    );
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("SAME_LABEL\tJ_1\tJ_2");

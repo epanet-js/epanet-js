@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
+import { defaultSimulationSettings } from "./settings";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
@@ -13,7 +14,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[RESERVOIRS]");
     expect(inp).toContain("r1\t10");
@@ -32,7 +33,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[JUNCTIONS]");
     expect(inp).toContain("j1\t10");
@@ -65,7 +66,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
@@ -97,7 +98,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[VALVES]");
     expect(inp).toContain("valve1\tnode1\tnode2\t20\tTCV\t10\t0.1");
@@ -122,7 +123,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1\tSPEED 0.8");
@@ -147,7 +148,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100\tSPEED 0.7");
@@ -187,7 +188,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 10\tSPEED 0.7");
@@ -202,7 +203,7 @@ describe("build inp", () => {
   it("includes simulation settings", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, { demandMultiplier: 10 });
 
     expect(inp).toContain("[TIMES]");
     expect(inp).toContain("Duration\t0");
@@ -217,6 +218,7 @@ describe("build inp", () => {
     expect(inp).toContain("Units\tLPS");
     expect(inp).toContain("Quality\tNONE");
     expect(inp).toContain("Headloss\tH-W");
+    expect(inp).toContain("Demand Multiplier\t10");
 
     expect(inp.split("\n").at(-1)).toEqual("[END]");
   });
@@ -224,7 +226,9 @@ describe("build inp", () => {
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(hydraulicModel, { geolocation: true });
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+      geolocation: true,
+    });
 
     expect(inp).toContain("[BACKDROP]");
     expect(inp).toContain("Units\tDEGREES");
@@ -235,7 +239,7 @@ describe("build inp", () => {
       .setHeadlossFormula("D-W")
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("Headloss\tD-W");
   });
@@ -243,7 +247,7 @@ describe("build inp", () => {
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
 
     expect(inp).toContain("Units\tGPM");
   });
@@ -275,11 +279,13 @@ describe("build inp", () => {
       })
       .build();
 
-    const without = buildInp(hydraulicModel);
+    const without = buildInp(hydraulicModel, defaultSimulationSettings);
     expect(without).not.toContain("[COORDINATES]");
     expect(without).not.toContain("[VERTICES]");
 
-    const inp = buildInp(hydraulicModel, { geolocation: true });
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+      geolocation: true,
+    });
 
     expect(inp).toContain("[COORDINATES]");
     expect(inp).toContain("j1\t10\t1");
@@ -298,7 +304,9 @@ describe("build inp", () => {
       .aJunction("junction1", { coordinates: [10, 1] })
       .build();
 
-    const inp = buildInp(hydraulicModel, { madeBy: true });
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+      madeBy: true,
+    });
 
     expect(inp).toContain(";MADE BY EPANET-JS");
     expect(inp).toContain("junction1");

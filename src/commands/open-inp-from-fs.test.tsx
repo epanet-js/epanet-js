@@ -26,6 +26,7 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { defaultSimulationSettings } from "src/simulation/settings";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -378,7 +379,10 @@ const anInpMadeByTheApp = ({ junctionId = "J1" }: { junctionId: string }) => {
   const hydraulicModel = HydraulicModelBuilder.with()
     .aJunction(junctionId, { coordinates: [10, 10] })
     .build();
-  const inp = buildInp(hydraulicModel, { madeBy: true, geolocation: true });
+  const inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+    madeBy: true,
+    geolocation: true,
+  });
   return inp;
 };
 

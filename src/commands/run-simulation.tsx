@@ -16,6 +16,7 @@ import { DialogHeader } from "src/components/dialog";
 import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
+import { defaultSimulationSettings } from "src/simulation/settings";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -27,7 +28,7 @@ export const useRunSimulation = () => {
 
   const runSimulation = useCallback(async () => {
     setSimulationState({ status: "running" });
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
     const start = performance.now();
     setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);
