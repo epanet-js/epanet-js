@@ -5,7 +5,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -83,10 +82,7 @@ const LegendContainer = ({
 }) => {
   return (
     <div
-      className={`space-y-1 text-xs
-      bg-white dark:bg-gray-900
-      dark:text-white
-      border border-gray-300 dark:border-black w-32 rounded-sm ${!isFeatureOn("FLAG_MAP_TAB") ? "cursor-pointer hover:bg-gray-100" : ""} `}
+      className="space-y-1 text-xs bg-white dark:bg-gray-900 dark:text-white border border-gray-300 dark:border-black w-32 rounded-sm"
       onClick={onClick}
     >
       {children}
