@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
 import { IdGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
+import { Demands, nullDemands } from "./demands";
 
 export type HydraulicModel = {
   version: string;
@@ -13,6 +14,7 @@ export type HydraulicModel = {
   assetBuilder: AssetBuilder;
   topology: Topology;
   units: UnitsSpec;
+  demands: Demands;
   headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
 };
@@ -23,10 +25,12 @@ export const initializeHydraulicModel = ({
   units,
   defaults,
   headlossFormula = "H-W",
+  demands = nullDemands,
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
   headlossFormula?: HeadlossFormula;
+  demands?: Demands;
 }) => {
   const labelManager = new LabelManager();
   return {
@@ -39,6 +43,7 @@ export const initializeHydraulicModel = ({
       labelManager,
     ),
     topology: new Topology(),
+    demands,
     units,
     labelManager,
     headlossFormula,

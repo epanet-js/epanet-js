@@ -31,6 +31,7 @@ import {
   presets,
 } from "src/model-metadata/quantities-spec";
 import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
+import { Demands, nullDemands } from "src/hydraulic-model/demands";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -91,6 +92,7 @@ export class HydraulicModelBuilder {
   private units: UnitsSpec;
   private headlossFormula: HeadlossFormula;
   private labelManager: LabelManager;
+  private demands: Demands;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -112,6 +114,7 @@ export class HydraulicModelBuilder {
       this.labelManager,
     );
     this.topology = new Topology();
+    this.demands = nullDemands;
     this.headlossFormula = "H-W";
   }
 
@@ -286,6 +289,7 @@ export class HydraulicModelBuilder {
       labelManager: this.labelManager,
       topology: this.topology,
       units: this.units,
+      demands: this.demands,
       headlossFormula: this.headlossFormula,
     };
   }
