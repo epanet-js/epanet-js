@@ -381,6 +381,12 @@ export const StyledPopoverArrow = () => (
   </Popover.Arrow>
 );
 
+export const StyledPopoverClose = () => (
+  <Popover.Close asChild>
+    <Cross1Icon />
+  </Popover.Close>
+);
+
 export const StyledTooltipArrow = () => (
   <Tooltip.Arrow offset={5} width={11} height={5} className={arrowLike} asChild>
     {ArrowSVG}

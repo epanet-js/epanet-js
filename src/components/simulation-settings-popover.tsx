@@ -10,7 +10,7 @@ import { FieldList, VerticalField } from "./form/fields";
 import { NumericField } from "./form/numeric-field";
 import { translate } from "src/infra/i18n";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { GearIcon } from "@radix-ui/react-icons";
+import { Cross1Icon, GearIcon } from "@radix-ui/react-icons";
 
 const SimulationSettings = ({ onClose }: { onClose: () => void }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
@@ -36,9 +36,20 @@ const SimulationSettings = ({ onClose }: { onClose: () => void }) => {
       {({ values, setFieldValue }) => (
         <Form>
           <div className="flex-col space-y-4">
-            <p className="text-sm font-bold text-gray-800">
-              {translate("simulationSettings")}
-            </p>
+            <div className="flex items-center justify-between w-full">
+              <p className="text-sm font-bold text-gray-800">
+                {translate("simulationSettings")}
+              </p>
+              <div>
+                <Button
+                  variant="quiet"
+                  className="-mr-2 text-gray-500"
+                  onClick={onClose}
+                >
+                  <Cross1Icon />
+                </Button>
+              </div>
+            </div>
             <FieldList>
               <VerticalField name={translate("demandMultiplier")}>
                 <NumericField
@@ -71,7 +82,11 @@ export const SimulationSettingsTrigger = () => {
   const [isOpen, setOpen] = useState(false);
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={(val) => setOpen(val)}>
+    <Popover.Root
+      modal={true}
+      open={isOpen}
+      onOpenChange={(val) => setOpen(val)}
+    >
       <Popover.Trigger asChild>
         <Button variant="quiet">
           <GearIcon />
