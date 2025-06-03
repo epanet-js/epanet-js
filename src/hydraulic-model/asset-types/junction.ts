@@ -15,6 +15,7 @@ export type JunctionQuantity = (typeof junctionQuantities)[number];
 export type JunctionSimulation = {
   pressure: number;
   head: number;
+  demand: number;
 };
 
 export class Junction extends Node<JunctionProperties> {
@@ -34,6 +35,12 @@ export class Junction extends Node<JunctionProperties> {
     if (!this.simulation) return null;
 
     return this.simulation.head;
+  }
+
+  get actualDemand() {
+    if (!this.simulation) return null;
+
+    return this.simulation.demand;
   }
 
   setSimulation(simulation: JunctionSimulation | null) {

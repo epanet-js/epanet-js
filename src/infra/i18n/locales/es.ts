@@ -23,6 +23,7 @@ export const translations: Translations = {
   length: "Longitud",
   demand: "Consumo",
   baseDemand: "Consumo Base",
+  actualDemand: "Consumo Actual",
   elevation: "Elevación",
   roughness: "Rugosidad",
   minorLoss: "Coef. de Pérdidas",

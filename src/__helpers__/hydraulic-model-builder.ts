@@ -128,7 +128,7 @@ export class HydraulicModelBuilder {
     id: string,
     data: Partial<
       JunctionBuildData & {
-        simulation: Partial<{ pressure: number; head: number }>;
+        simulation: Partial<{ pressure: number; head: number; demand: number }>;
       }
     > = {},
   ) {
@@ -141,6 +141,7 @@ export class HydraulicModelBuilder {
       junction.setSimulation({
         pressure: 2,
         head: 4,
+        demand: 10,
         ...simulation,
       });
     }

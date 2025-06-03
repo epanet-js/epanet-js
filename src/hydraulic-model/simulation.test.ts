@@ -26,6 +26,7 @@ describe("attach simulation", () => {
     getJunction: () => ({
       pressure: 10,
       head: 8,
+      demand: 15,
     }),
   };
   it("sets the simulation for the assets", () => {
@@ -45,6 +46,7 @@ describe("attach simulation", () => {
     const junction = hydraulicModel.assets.get("j1") as Junction;
     expect(junction.pressure).toEqual(10);
     expect(junction.head).toEqual(8);
+    expect(junction.actualDemand).toEqual(15);
 
     const pump = hydraulicModel.assets.get("pu1") as Pump;
     expect(pump.head).toEqual(50);

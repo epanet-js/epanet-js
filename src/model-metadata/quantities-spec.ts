@@ -19,6 +19,7 @@ export type QuantityProperty =
   | "velocity"
   | "elevation"
   | "baseDemand"
+  | "actualDemand"
   | "pressure"
   | "headloss"
   | "unitHeadloss"
@@ -52,6 +53,12 @@ export type AssetQuantitiesSpec = {
   };
 };
 
+const allFlowUnits = (unit: Unit) => ({
+  flow: unit,
+  baseDemand: unit,
+  actualDemand: unit,
+});
+
 const metricSpec: AssetQuantitiesSpec = {
   id: "metric-spec",
   name: "",
@@ -61,10 +68,8 @@ const metricSpec: AssetQuantitiesSpec = {
     length: "m",
     roughness: null,
     minorLoss: null,
-    flow: "l/s",
     velocity: "m/s",
     elevation: "m",
-    baseDemand: "l/s",
     pressure: "mwc",
     head: "m",
     headloss: "m",
@@ -72,6 +77,7 @@ const metricSpec: AssetQuantitiesSpec = {
     power: "kW",
     speed: null,
     tcvSetting: null,
+    ...allFlowUnits("l/s"),
   },
   decimals: {},
   defaults: {
@@ -106,10 +112,8 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     length: "ft",
     roughness: null,
     minorLoss: null,
-    flow: "gal/min",
     velocity: "ft/s",
     elevation: "ft",
-    baseDemand: "gal/min",
     pressure: "psi",
     head: "ft",
     headloss: "ft",
@@ -117,6 +121,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     power: "hp",
     speed: null,
     tcvSetting: null,
+    ...allFlowUnits("gal/min"),
   },
   decimals: {
     elevation: 1,
@@ -151,8 +156,7 @@ const GPMSpec: AssetQuantitiesSpec = {
   description: translate("usCustomaryFlowsExpressed", translateUnit("gal/min")),
   units: {
     ...usCustomarySpec.units,
-    flow: "gal/min",
-    baseDemand: "gal/min",
+    ...allFlowUnits("gal/min"),
   },
 };
 const CFSSpec: AssetQuantitiesSpec = {
@@ -162,8 +166,7 @@ const CFSSpec: AssetQuantitiesSpec = {
   description: translate("usCustomaryFlowsExpressed", translateUnit("ft^3/s")),
   units: {
     ...usCustomarySpec.units,
-    flow: "ft^3/s",
-    baseDemand: "ft^3/s",
+    ...allFlowUnits("ft^3/s"),
   },
 };
 const MGDSpec: AssetQuantitiesSpec = {
@@ -173,8 +176,7 @@ const MGDSpec: AssetQuantitiesSpec = {
   description: translate("usCustomaryFlowsExpressed", translateUnit("Mgal/d")),
   units: {
     ...usCustomarySpec.units,
-    flow: "Mgal/d",
-    baseDemand: "Mgal/d",
+    ...allFlowUnits("Mgal/d"),
   },
 };
 
@@ -185,8 +187,7 @@ const IMGDSpec: AssetQuantitiesSpec = {
   description: translate("usCustomaryFlowsExpressed", translateUnit("IMgal/d")),
   units: {
     ...usCustomarySpec.units,
-    flow: "IMgal/d",
-    baseDemand: "IMgal/d",
+    ...allFlowUnits("IMgal/d"),
   },
 };
 
@@ -197,8 +198,7 @@ const AFDSpec: AssetQuantitiesSpec = {
   description: translate("usCustomaryFlowsExpressed", translateUnit("acft/d")),
   units: {
     ...usCustomarySpec.units,
-    flow: "acft/d",
-    baseDemand: "acft/d",
+    ...allFlowUnits("acft/d"),
   },
 };
 
@@ -209,8 +209,7 @@ const LPSSpec: AssetQuantitiesSpec = {
   description: translate("siFlowsExpressed", translateUnit("l/s")),
   units: {
     ...metricSpec.units,
-    flow: "l/s",
-    baseDemand: "l/s",
+    ...allFlowUnits("l/s"),
   },
 };
 const LPMSpec: AssetQuantitiesSpec = {
@@ -220,8 +219,7 @@ const LPMSpec: AssetQuantitiesSpec = {
   description: translate("siFlowsExpressed", translateUnit("l/min")),
   units: {
     ...metricSpec.units,
-    flow: "l/min",
-    baseDemand: "l/min",
+    ...allFlowUnits("l/min"),
   },
 };
 const MLDSpec: AssetQuantitiesSpec = {
@@ -231,8 +229,7 @@ const MLDSpec: AssetQuantitiesSpec = {
   description: translate("siFlowsExpressed", translateUnit("Ml/d")),
   units: {
     ...metricSpec.units,
-    flow: "Ml/d",
-    baseDemand: "Ml/d",
+    ...allFlowUnits("Ml/d"),
   },
 };
 const CMHSpec: AssetQuantitiesSpec = {
@@ -242,8 +239,7 @@ const CMHSpec: AssetQuantitiesSpec = {
   description: translate("siFlowsExpressed", translateUnit("m^3/h")),
   units: {
     ...metricSpec.units,
-    flow: "m^3/h",
-    baseDemand: "m^3/h",
+    ...allFlowUnits("m^3/h"),
   },
 };
 const CMDSpec: AssetQuantitiesSpec = {
@@ -253,8 +249,7 @@ const CMDSpec: AssetQuantitiesSpec = {
   description: translate("siFlowsExpressed", translateUnit("m^3/d")),
   units: {
     ...metricSpec.units,
-    flow: "m^3/d",
-    baseDemand: "m^3/d",
+    ...allFlowUnits("m^3/d"),
   },
 };
 

@@ -11,6 +11,7 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature_editor";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -419,12 +420,13 @@ describe("AssetEditor", () => {
     });
 
     it("can show simulation results", () => {
+      stubFeatureOn("FLAG_MULTIPLIER");
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(junctionId, {
           elevation: 10,
           baseDemand: 100,
-          simulation: { pressure: 20, head: 10 },
+          simulation: { pressure: 20, head: 10, demand: 20 },
         })
         .build();
       const store = setInitialState({
@@ -436,6 +438,7 @@ describe("AssetEditor", () => {
 
       expectPropertyDisplayed("pressure (m)", "20");
       expectPropertyDisplayed("head (m)", "10");
+      expectPropertyDisplayed("actual demand (l/s)", "20");
     });
   });
 

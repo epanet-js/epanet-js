@@ -21,6 +21,7 @@ export const translations = {
   length: "Length",
   demand: "Demand",
   baseDemand: "Base Demand",
+  actualDemand: "Actual Demand",
   elevation: "Elevation",
   roughness: "Roughness",
   minorLoss: "Loss Coeff.",
