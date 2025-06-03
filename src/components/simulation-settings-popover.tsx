@@ -52,7 +52,12 @@ const SimulationSettings = ({ onClose }: { onClose: () => void }) => {
                 />
               </VerticalField>
             </FieldList>
-            <Button type="submit" variant="primary" size="full-width">
+            <Button
+              tabIndex={1}
+              type="submit"
+              variant="primary"
+              size="full-width"
+            >
               {translate("save")}
             </Button>
           </div>
