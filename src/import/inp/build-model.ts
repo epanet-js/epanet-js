@@ -27,6 +27,7 @@ export const buildModel = (
     units: quantities.units,
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
+    demands: { multiplier: inpData.options.demandMultiplier },
   });
 
   for (const junctionData of inpData.junctions) {

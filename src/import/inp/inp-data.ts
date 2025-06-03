@@ -69,7 +69,11 @@ export type InpData = {
   patterns: ItemData<number[]>;
   status: ItemData<string>;
   curves: ItemData<{ x: number; y: number }[]>;
-  options: { units: EpanetUnitSystem; headlossFormula: HeadlossFormula };
+  options: {
+    units: EpanetUnitSystem;
+    headlossFormula: HeadlossFormula;
+    demandMultiplier: number;
+  };
   nodeIds: NodeIds;
 };
 
@@ -123,7 +127,7 @@ export const nullInpData = (): InpData => {
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),
-    options: { units: "GPM", headlossFormula: "H-W" },
+    options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     nodeIds: new NodeIds(),
   };
 };
