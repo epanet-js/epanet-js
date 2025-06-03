@@ -17,7 +17,7 @@ describe("AssetEditor", () => {
     it("can show its properties", () => {
       const pipeId = "P1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
+        .headlossFormula("D-W")
         .aJunction("j1", { label: "J1" })
         .aJunction("j2", { label: "J2" })
         .aPipe(pipeId, {
@@ -220,7 +220,7 @@ describe("AssetEditor", () => {
     it("can show its properties", () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
+        .headlossFormula("D-W")
         .aJunction("j1", { label: "J1" })
         .aJunction("j2", { label: "J2" })
         .aPump(pumpId, {
@@ -247,7 +247,7 @@ describe("AssetEditor", () => {
     it("shows properties for flow-vs-head definition", () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
+        .headlossFormula("D-W")
         .aJunction("j1", { label: "J1" })
         .aJunction("j2", { label: "J2" })
         .aPump(pumpId, {
@@ -277,7 +277,7 @@ describe("AssetEditor", () => {
     it("shows properties for power defintion", () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
+        .headlossFormula("D-W")
         .aJunction("j1", { label: "J1" })
         .aJunction("j2", { label: "J2" })
         .aPump(pumpId, {
@@ -303,7 +303,7 @@ describe("AssetEditor", () => {
     it("can change pump definition", async () => {
       const pumpId = "PU1";
       const hydraulicModel = HydraulicModelBuilder.with()
-        .setHeadlossFormula("D-W")
+        .headlossFormula("D-W")
         .aJunction("j1", { label: "J1" })
         .aJunction("j2", { label: "J2" })
         .aPump(pumpId, {

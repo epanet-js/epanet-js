@@ -133,7 +133,7 @@ describe("build inp export ", () => {
 
   it("includes haadloss formula", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .setHeadlossFormula("D-W")
+      .headlossFormula("D-W")
       .build();
 
     const inp = buildInp(

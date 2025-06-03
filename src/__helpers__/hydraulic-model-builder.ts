@@ -90,7 +90,7 @@ export class HydraulicModelBuilder {
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
   private units: UnitsSpec;
-  private headlossFormula: HeadlossFormula;
+  private headlossFormulaValue: HeadlossFormula;
   private labelManager: LabelManager;
   private demands: Demands;
 
@@ -115,7 +115,7 @@ export class HydraulicModelBuilder {
     );
     this.topology = new Topology();
     this.demands = nullDemands;
-    this.headlossFormula = "H-W";
+    this.headlossFormulaValue = "H-W";
   }
 
   aNode(id: string, coordinates: Position = [0, 0]) {
@@ -276,8 +276,8 @@ export class HydraulicModelBuilder {
     return this.aPipe(id, { startNodeId, endNodeId, ...properties });
   }
 
-  setHeadlossFormula(headlossFormula: HeadlossFormula) {
-    this.headlossFormula = headlossFormula;
+  headlossFormula(headlossFormula: HeadlossFormula) {
+    this.headlossFormulaValue = headlossFormula;
     return this;
   }
 
@@ -295,7 +295,7 @@ export class HydraulicModelBuilder {
       topology: this.topology,
       units: this.units,
       demands: this.demands,
-      headlossFormula: this.headlossFormula,
+      headlossFormula: this.headlossFormulaValue,
     };
   }
 
