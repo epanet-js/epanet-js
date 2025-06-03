@@ -18,6 +18,7 @@ import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
+import { FieldList, InlineField } from "../form/fields";
 
 const colorPropertyLabelFor = (property: string) => {
   if (property === "flow") {
@@ -140,7 +141,7 @@ const SymbologyEditor = ({
 
   return (
     <PanelSection title={title}>
-      <PanelItem name={translate("colorBy")}>
+      <InlineField name={translate("colorBy")}>
         <Selector
           styleOptions={{ border: false }}
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
@@ -158,20 +159,20 @@ const SymbologyEditor = ({
           }
           onChange={handleColorByChange}
         />
-      </PanelItem>
+      </InlineField>
       {symbology.colorRule !== null && (
         <>
-          <PanelItem name={translate("range")}>
+          <InlineField name={translate("range")}>
             <RangeColorRuleEditorTrigger
               mode={symbology.colorRule.mode}
               numIntervals={symbology.colorRule.breaks.length + 1}
               geometryType={geometryType}
             />
-          </PanelItem>
-          <PanelItem name={translate("ramp")}>
+          </InlineField>
+          <InlineField name={translate("ramp")}>
             <ColorRampSelector geometryType={geometryType} />
-          </PanelItem>
-          <PanelItem name={translate("labels")}>
+          </InlineField>
+          <InlineField name={translate("labels")}>
             <div className="p-2 flex items-center h-[38px]">
               <Checkbox
                 checked={!!symbology.labelRule}
@@ -185,7 +186,7 @@ const SymbologyEditor = ({
                 }
               />
             </div>
-          </PanelItem>
+          </InlineField>
         </>
       )}
     </PanelSection>
@@ -207,25 +208,7 @@ const PanelSection = ({
         {title}
         {button && button}
       </div>
-      <div className="flex flex-col gap-y-2">{children}</div>
-    </div>
-  );
-};
-
-const PanelItem = ({
-  name,
-  children,
-}: {
-  name: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="flex items-center space-x-4">
-      <label className="max-w-[67px] w-full text-sm text-gray-500">
-        {name}
-      </label>
-
-      <div className="flex-1">{children}</div>
+      <FieldList>{children}</FieldList>
     </div>
   );
 };
