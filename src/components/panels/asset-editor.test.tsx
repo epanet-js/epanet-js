@@ -400,7 +400,7 @@ describe("AssetEditor", () => {
         .aJunction(junctionId, {
           label: "MY_JUNCTION",
           elevation: 10,
-          demand: 100,
+          baseDemand: 100,
         })
         .build();
       const store = setInitialState({
@@ -414,7 +414,7 @@ describe("AssetEditor", () => {
 
       expectPropertyDisplayed("label", "MY_JUNCTION");
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("demand (l/s)", "100");
+      expectPropertyDisplayed("base demand (l/s)", "100");
       expectPropertyDisplayed("pressure (m)", "Not Available");
     });
 
@@ -423,7 +423,7 @@ describe("AssetEditor", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(junctionId, {
           elevation: 10,
-          demand: 100,
+          baseDemand: 100,
           simulation: { pressure: 20, head: 10 },
         })
         .build();

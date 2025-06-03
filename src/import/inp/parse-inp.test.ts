@@ -26,7 +26,7 @@ describe("Parse inp", () => {
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.demand).toEqual(demand);
+    expect(junction.baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
@@ -62,7 +62,7 @@ describe("Parse inp", () => {
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.demand).toEqual(demand);
+    expect(junction.baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
     const otherJunction = getByLabel(
@@ -70,7 +70,7 @@ describe("Parse inp", () => {
       otherJunctionId,
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
-    expect(otherJunction.demand).toEqual(otherDemand);
+    expect(otherJunction.baseDemand).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
   });
 

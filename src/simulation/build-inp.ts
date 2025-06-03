@@ -247,7 +247,7 @@ const appendJunction = (
   const junctionId = idMap.nodeId(junction);
 
   sections.junctions.push([junctionId, junction.elevation].join("\t"));
-  sections.demands.push([junctionId, junction.demand].join("\t"));
+  sections.demands.push([junctionId, junction.baseDemand].join("\t"));
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, junction);
   }

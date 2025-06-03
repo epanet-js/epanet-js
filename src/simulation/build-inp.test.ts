@@ -24,11 +24,11 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("j1", {
         elevation: 10,
-        demand: 1,
+        baseDemand: 1,
       })
       .aJunction("j2", {
         elevation: 20,
-        demand: 2,
+        baseDemand: 2,
       })
       .build();
 

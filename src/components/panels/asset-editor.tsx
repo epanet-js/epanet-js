@@ -655,10 +655,10 @@ const JunctionEditor = ({
                 onChange={onPropertyChange}
               />
               <QuantityRow
-                name="demand"
-                value={junction.demand}
-                unit={quantitiesMetadata.getUnit("demand")}
-                decimals={quantitiesMetadata.getDecimals("demand")}
+                name="baseDemand"
+                value={junction.baseDemand}
+                unit={quantitiesMetadata.getUnit("baseDemand")}
+                decimals={quantitiesMetadata.getDecimals("baseDemand")}
                 onChange={onPropertyChange}
               />
               <QuantityRow

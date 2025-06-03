@@ -24,7 +24,7 @@ describe("parse junctions", () => {
     const junction = getByLabel(hydraulicModel.assets, "j1") as Junction;
     expect(junction.id).not.toBeUndefined();
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.demand).toEqual(demand);
+    expect(junction.baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
@@ -46,7 +46,7 @@ describe("parse junctions", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    expect(junction.demand).toEqual(demand);
+    expect(junction.baseDemand).toEqual(demand);
   });
 
   it("can apply a custom default pattern", () => {
@@ -70,7 +70,7 @@ describe("parse junctions", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    expect(junction.demand).toBeCloseTo(1.4);
+    expect(junction.baseDemand).toBeCloseTo(1.4);
   });
 
   it("assign the initial demand of the pattern", () => {
@@ -94,7 +94,7 @@ describe("parse junctions", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    expect(junction.demand).toEqual(0.2);
+    expect(junction.baseDemand).toEqual(0.2);
   });
 
   it("ignores demand defined in junction when in demands", () => {
@@ -122,7 +122,7 @@ describe("parse junctions", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    expect(junction.demand).toEqual(-4);
+    expect(junction.baseDemand).toEqual(-4);
   });
 
   it("defaults to default pattern when not specified", () => {
@@ -149,7 +149,7 @@ describe("parse junctions", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
-    expect(junction.demand).toEqual(8);
+    expect(junction.baseDemand).toEqual(8);
   });
 
   it("tolerates references with different case", () => {
@@ -177,7 +177,7 @@ describe("parse junctions", () => {
 
     const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
     expect(junction.label).toEqual("j1");
-    expect(junction.demand).toEqual(8);
+    expect(junction.baseDemand).toEqual(8);
   });
 
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {

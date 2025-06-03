@@ -51,14 +51,16 @@ describe("Asset property stats", () => {
 
   it("can compute multiple properties", () => {
     const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { elevation: 10, demand: 20 })
+      .aJunction("J1", { elevation: 10, baseDemand: 20 })
       .aReservoir("R1", { elevation: 30 })
       .build();
     const selection = [...assets.values()];
 
     const statsMap = computePropertyStats(selection, defaultQuantities);
 
-    expect((statsMap.get("demand") as QuantityStats).values.get(20)).toEqual(1);
+    expect(
+      (statsMap.get("baseDemand") as QuantityStats).values.get(20),
+    ).toEqual(1);
     expect([...statsMap.get("elevation")!.values.keys()]).toEqual([10, 30]);
   });
 

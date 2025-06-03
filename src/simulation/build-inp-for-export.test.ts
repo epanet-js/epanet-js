@@ -33,12 +33,12 @@ describe("build inp export ", () => {
       .aJunction("j1", {
         label: "J_1",
         elevation: 10,
-        demand: 1,
+        baseDemand: 1,
       })
       .aJunction("j2", {
         label: "J_2",
         elevation: 20,
-        demand: 2,
+        baseDemand: 2,
       })
       .build();
 

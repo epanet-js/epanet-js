@@ -20,17 +20,17 @@ describe("Junction", () => {
     const junction = buildJunction();
 
     expect(junction.elevation).toEqual(0);
-    expect(junction.demand).toEqual(0);
+    expect(junction.baseDemand).toEqual(0);
     expect(junction.id).not.toBeUndefined();
   });
 
   it("can assign values", () => {
     const junction = buildJunction({
-      demand: 10,
+      baseDemand: 10,
       elevation: 100,
     });
 
-    expect(junction.demand).toEqual(10);
+    expect(junction.baseDemand).toEqual(10);
     expect(junction.elevation).toEqual(100);
   });
 });

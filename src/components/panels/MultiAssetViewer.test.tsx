@@ -16,7 +16,7 @@ describe("Multi asset viewer", () => {
         status: "open",
         length: 10,
       })
-      .aJunction("J1", { demand: 20 })
+      .aJunction("J1", { baseDemand: 20 })
       .build();
     const store = setInitialState({
       hydraulicModel,
@@ -28,7 +28,7 @@ describe("Multi asset viewer", () => {
     expect(screen.getByText(/Selection \(2 assets\)/)).toBeInTheDocument();
     expectPropertyDisplayed("Status", "Open");
     expectPropertyDisplayed("Length (m)", "10");
-    expectPropertyDisplayed("Demand (l/s)", "20");
+    expectPropertyDisplayed("Base Demand (l/s)", "20");
   });
 
   it("shows stats when multiple values for the same property", async () => {

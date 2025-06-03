@@ -89,7 +89,7 @@ const addJunction = (
   const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
   if (!coordinates) return;
 
-  const demand = calculateJunctionDemand(
+  const baseDemand = calculateJunctionDemand(
     junctionData,
     inpData.demands,
     inpData.patterns,
@@ -99,7 +99,7 @@ const addJunction = (
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
-    demand,
+    baseDemand,
   });
   hydraulicModel.assets.set(junction.id, junction);
   nodeIds.set(junctionData.id, junction.id);

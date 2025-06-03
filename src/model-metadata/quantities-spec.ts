@@ -18,7 +18,7 @@ export type QuantityProperty =
   | "flow"
   | "velocity"
   | "elevation"
-  | "demand"
+  | "baseDemand"
   | "pressure"
   | "headloss"
   | "unitHeadloss"
@@ -64,7 +64,7 @@ const metricSpec: AssetQuantitiesSpec = {
     flow: "l/s",
     velocity: "m/s",
     elevation: "m",
-    demand: "l/s",
+    baseDemand: "l/s",
     pressure: "mwc",
     head: "m",
     headloss: "m",
@@ -109,7 +109,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     flow: "gal/min",
     velocity: "ft/s",
     elevation: "ft",
-    demand: "gal/min",
+    baseDemand: "gal/min",
     pressure: "psi",
     head: "ft",
     headloss: "ft",
@@ -152,7 +152,7 @@ const GPMSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "gal/min",
-    demand: "gal/min",
+    baseDemand: "gal/min",
   },
 };
 const CFSSpec: AssetQuantitiesSpec = {
@@ -163,7 +163,7 @@ const CFSSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "ft^3/s",
-    demand: "ft^3/s",
+    baseDemand: "ft^3/s",
   },
 };
 const MGDSpec: AssetQuantitiesSpec = {
@@ -174,7 +174,7 @@ const MGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "Mgal/d",
-    demand: "Mgal/d",
+    baseDemand: "Mgal/d",
   },
 };
 
@@ -186,7 +186,7 @@ const IMGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "IMgal/d",
-    demand: "IMgal/d",
+    baseDemand: "IMgal/d",
   },
 };
 
@@ -198,7 +198,7 @@ const AFDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     flow: "acft/d",
-    demand: "acft/d",
+    baseDemand: "acft/d",
   },
 };
 
@@ -210,7 +210,7 @@ const LPSSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "l/s",
-    demand: "l/s",
+    baseDemand: "l/s",
   },
 };
 const LPMSpec: AssetQuantitiesSpec = {
@@ -221,7 +221,7 @@ const LPMSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "l/min",
-    demand: "l/min",
+    baseDemand: "l/min",
   },
 };
 const MLDSpec: AssetQuantitiesSpec = {
@@ -232,7 +232,7 @@ const MLDSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "Ml/d",
-    demand: "Ml/d",
+    baseDemand: "Ml/d",
   },
 };
 const CMHSpec: AssetQuantitiesSpec = {
@@ -243,7 +243,7 @@ const CMHSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "m^3/h",
-    demand: "m^3/h",
+    baseDemand: "m^3/h",
   },
 };
 const CMDSpec: AssetQuantitiesSpec = {
@@ -254,7 +254,7 @@ const CMDSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     flow: "m^3/d",
-    demand: "m^3/d",
+    baseDemand: "m^3/d",
   },
 };
 

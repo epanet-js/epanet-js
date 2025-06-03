@@ -31,7 +31,7 @@ describe("Run simulation", () => {
   it("persists state the simulation when passes", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir("r1")
-      .aJunction("j1", { demand: 1 })
+      .aJunction("j1", { baseDemand: 1 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
     const store = setInitialState({ hydraulicModel });
@@ -191,7 +191,7 @@ describe("Run simulation", () => {
   const aSimulableModel = () => {
     return HydraulicModelBuilder.with()
       .aReservoir("r1")
-      .aJunction("j1", { demand: 1 })
+      .aJunction("j1", { baseDemand: 1 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
   };
@@ -199,7 +199,7 @@ describe("Run simulation", () => {
   const aSimulableModelWithWarnings = () => {
     return HydraulicModelBuilder.with()
       .aReservoir("r1", { head: 0 })
-      .aJunction("j1", { demand: 10 })
+      .aJunction("j1", { baseDemand: 10 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
   };

@@ -48,7 +48,7 @@ describe("epanet simulation", () => {
   it("report says when simulation has warnings", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir("r1", { head: 0 })
-      .aJunction("j1", { demand: 10 })
+      .aJunction("j1", { baseDemand: 10 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
     const inp = buildInp(hydraulicModel);
@@ -79,7 +79,7 @@ describe("epanet simulation", () => {
     it("can read simulation values", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
-        .aJunction("j1", { demand: 1 })
+        .aJunction("j1", { baseDemand: 1 })
         .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -95,7 +95,7 @@ describe("epanet simulation", () => {
     it("can read junction values", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1", { head: 10 })
-        .aJunction("j1", { demand: 1, elevation: 2 })
+        .aJunction("j1", { baseDemand: 1, elevation: 2 })
         .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -111,7 +111,7 @@ describe("epanet simulation", () => {
     it("can read valve values", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
-        .aJunction("j1", { demand: 1 })
+        .aJunction("j1", { baseDemand: 1 })
         .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -129,7 +129,7 @@ describe("epanet simulation", () => {
     it("can read closed status", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
-        .aJunction("j1", { demand: 1 })
+        .aJunction("j1", { baseDemand: 1 })
         .aValve("v1", {
           startNodeId: "r1",
           endNodeId: "j1",
@@ -148,7 +148,7 @@ describe("epanet simulation", () => {
     it("provides null values when failed", async () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir("r1")
-        .aJunction("j1", { demand: 1 })
+        .aJunction("j1", { baseDemand: 1 })
         .aJunction("j2")
         .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
         .build();

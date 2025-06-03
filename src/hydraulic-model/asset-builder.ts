@@ -10,7 +10,7 @@ export type JunctionBuildData = {
   label?: string;
   coordinates?: Position;
   elevation?: number;
-  demand?: number;
+  baseDemand?: number;
 };
 
 export type PipeBuildData = {
@@ -211,7 +211,7 @@ export class AssetBuilder {
     label,
     coordinates = [0, 0],
     elevation,
-    demand,
+    baseDemand,
   }: JunctionBuildData = {}) {
     return new Junction(
       id,
@@ -223,7 +223,7 @@ export class AssetBuilder {
             ? label
             : this.labelGenerator.generateFor("junction", id),
         elevation: this.getJunctionValue("elevation", elevation),
-        demand: this.getJunctionValue("demand", demand),
+        baseDemand: this.getJunctionValue("baseDemand", baseDemand),
       },
       this.units,
     );

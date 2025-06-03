@@ -2,10 +2,14 @@ import { Node, NodeProperties } from "./node";
 
 export type JunctionProperties = {
   type: "junction";
-  demand: number;
+  baseDemand: number;
 } & NodeProperties;
 
-export const junctionQuantities = ["demand", "elevation", "pressure"] as const;
+export const junctionQuantities = [
+  "baseDemand",
+  "elevation",
+  "pressure",
+] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
 
 export type JunctionSimulation = {
@@ -16,8 +20,8 @@ export type JunctionSimulation = {
 export class Junction extends Node<JunctionProperties> {
   private simulation: JunctionSimulation | null = null;
 
-  get demand() {
-    return this.properties.demand;
+  get baseDemand() {
+    return this.properties.baseDemand;
   }
 
   get pressure() {
