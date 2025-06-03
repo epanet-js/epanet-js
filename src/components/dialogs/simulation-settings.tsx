@@ -13,7 +13,7 @@ import { DialogHeader } from "../dialog";
 import { translate } from "src/infra/i18n";
 import { Form, Formik } from "formik";
 import { NumericField } from "../form/numeric-field";
-import { dataAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import SimpleDialogActions from "./simple_dialog_actions";
 
@@ -31,6 +31,7 @@ export const SimulationSettingsDialog = () => {
   const { closeDialog } = useDialogState();
 
   const [{ hydraulicModel }, setData] = useAtom(dataAtom);
+  const setSimulation = useSetAtom(simulationAtom);
 
   const handleSumbit = useCallback(
     ({ demandMultiplier }: { demandMultiplier: number }) => {
@@ -39,9 +40,10 @@ export const SimulationSettingsDialog = () => {
         demands: { multiplier: demandMultiplier },
       };
       setData((prev) => ({ ...prev, hydraulicModel: newHydraulicModel }));
+      setSimulation((prev) => ({ ...prev, modelVersion: "" }));
       closeDialog();
     },
-    [hydraulicModel, setData, closeDialog],
+    [hydraulicModel, setData, setSimulation, closeDialog],
   );
 
   return (
