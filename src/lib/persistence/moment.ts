@@ -1,3 +1,4 @@
+import { Demands } from "src/hydraulic-model/demands";
 import type {
   IFolder,
   IFolderInput,
@@ -27,6 +28,7 @@ export interface MomentInput {
   note?: string;
   track?: string | [string, Properties];
   putFeatures: IWrappedFeatureInput[];
+  putDemands?: Demands;
   deleteFeatures: IWrappedFeature["id"][];
   putFolders: IFolderInput[];
   deleteFolders: IFolder["id"][];

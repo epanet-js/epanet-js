@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { Suspense, useCallback } from "react";
 import { dialogAtom } from "src/state/dialog_state";
 import {
@@ -13,9 +13,11 @@ import { DialogHeader } from "../dialog";
 import { translate } from "src/infra/i18n";
 import { Form, Formik } from "formik";
 import { NumericField } from "../form/numeric-field";
-import { dataAtom, simulationAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import SimpleDialogActions from "./simple_dialog_actions";
+import { usePersistence } from "src/lib/persistence/context";
+import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
 
 const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -30,20 +32,19 @@ const useDialogState = () => {
 export const SimulationSettingsDialog = () => {
   const { closeDialog } = useDialogState();
 
-  const [{ hydraulicModel }, setData] = useAtom(dataAtom);
-  const setSimulation = useSetAtom(simulationAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
 
   const handleSumbit = useCallback(
     ({ demandMultiplier }: { demandMultiplier: number }) => {
-      const newHydraulicModel = {
-        ...hydraulicModel,
-        demands: { multiplier: demandMultiplier },
-      };
-      setData((prev) => ({ ...prev, hydraulicModel: newHydraulicModel }));
-      setSimulation((prev) => ({ ...prev, modelVersion: "" }));
+      const moment = changeDemands(hydraulicModel, {
+        demandMultiplier,
+      });
+      transact(moment);
       closeDialog();
     },
-    [hydraulicModel, setData, setSimulation, closeDialog],
+    [hydraulicModel, transact, closeDialog],
   );
 
   return (

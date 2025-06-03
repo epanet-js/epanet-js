@@ -108,6 +108,7 @@ export class MemPersistence implements IPersistence {
         note: moment.note,
         deleteFeatures: moment.deleteAssets || [],
         putFeatures: moment.putAssets || [],
+        putDemands: moment.putDemands,
       };
       const newStateId = nanoid();
 
@@ -179,13 +180,25 @@ export class MemPersistence implements IPersistence {
    */
   private apply(stateId: string, forwardMoment: MomentInput) {
     const ctx = this.store.get(dataAtom);
-    const reverseMoment = UMoment.merge(
-      fMoment(forwardMoment.note || `Reverse`),
-      this.deleteFeaturesInner(forwardMoment.deleteFeatures, ctx),
-      this.deleteFoldersInner(forwardMoment.deleteFolders, ctx),
-      this.putFeaturesInner(forwardMoment.putFeatures, ctx),
-      this.putFoldersInner(forwardMoment.putFolders, ctx),
-    );
+    let reverseMoment;
+    if (forwardMoment.putDemands) {
+      reverseMoment = {
+        note: "Reverse demands",
+        putDemands: ctx.hydraulicModel.demands,
+        putFeatures: [],
+        deleteFeatures: [],
+        putFolders: [],
+        deleteFolders: [],
+      };
+    } else {
+      reverseMoment = UMoment.merge(
+        fMoment(forwardMoment.note || `Reverse`),
+        this.deleteFeaturesInner(forwardMoment.deleteFeatures, ctx),
+        this.deleteFoldersInner(forwardMoment.deleteFolders, ctx),
+        this.putFeaturesInner(forwardMoment.putFeatures, ctx),
+        this.putFoldersInner(forwardMoment.putFolders, ctx),
+      );
+    }
 
     const updatedAssets = new AssetsMap(
       Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
@@ -198,6 +211,9 @@ export class MemPersistence implements IPersistence {
         ...ctx.hydraulicModel,
         version: stateId,
         assets: updatedAssets,
+        demands: forwardMoment.putDemands
+          ? forwardMoment.putDemands
+          : ctx.hydraulicModel.demands,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
