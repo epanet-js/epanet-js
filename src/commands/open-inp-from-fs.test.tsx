@@ -26,7 +26,6 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { defaultSimulationSettings } from "src/simulation/settings";
 
 const aMoment = (name: string) => {
   return fMoment(name);
@@ -141,7 +140,6 @@ describe("openInpFromFs", () => {
       status: "failure",
       report: "ERROR",
       modelVersion: "10",
-      settings: defaultSimulationSettings,
     };
     const previousSelection: Sel = {
       type: "single",

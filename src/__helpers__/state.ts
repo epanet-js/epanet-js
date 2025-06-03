@@ -29,7 +29,6 @@ import {
   LabelRule,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
-import { defaultSimulationSettings } from "src/simulation/settings";
 
 export const setInitialState = ({
   store = createStore(),
@@ -106,7 +105,6 @@ export const aSimulationSuccess = ({
     status: "success",
     report,
     modelVersion,
-    settings: defaultSimulationSettings,
   };
 };
 
@@ -118,7 +116,6 @@ export const aSimulationFailure = ({
     status: "failure",
     report,
     modelVersion,
-    settings: defaultSimulationSettings,
   };
 };
 

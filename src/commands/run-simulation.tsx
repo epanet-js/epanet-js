@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
@@ -20,7 +20,7 @@ import { useShowReport } from "./show-report";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
-  const [simulation, setSimulationState] = useAtom(simulationAtom);
+  const setSimulationState = useSetAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
@@ -42,7 +42,6 @@ export const useRunSimulation = () => {
       status,
       report,
       modelVersion: hydraulicModel.version,
-      settings: simulation.settings,
     });
     const end = performance.now();
     const duration = end - start;
@@ -51,7 +50,7 @@ export const useRunSimulation = () => {
       status,
       duration,
     });
-  }, [hydraulicModel, simulation, setSimulationState, setData, setDialogState]);
+  }, [hydraulicModel, setSimulationState, setData, setDialogState]);
 
   return runSimulation;
 };

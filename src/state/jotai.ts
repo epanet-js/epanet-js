@@ -26,10 +26,6 @@ import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
-import {
-  SimulationSettings,
-  defaultSimulationSettings,
-} from "src/simulation/settings";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -63,16 +59,14 @@ export type PreviewProperty = PersistenceMetadataMemory["label"];
 // ----------------------------------------------------------------------------
 //
 
-export type SimulationIdle = { status: "idle"; settings: SimulationSettings };
+export type SimulationIdle = { status: "idle" };
 export type SimulationFinished = {
   status: "success" | "failure" | "warning";
-  settings: SimulationSettings;
   report: string;
   modelVersion: string;
 };
 export type SimulationRunning = {
   status: "running";
-  settings: SimulationSettings;
 };
 
 export type SimulationState =
@@ -82,7 +76,6 @@ export type SimulationState =
 
 export const initialSimulationState: SimulationIdle = {
   status: "idle",
-  settings: defaultSimulationSettings,
 };
 
 export const simulationAtom = atom<SimulationState>(initialSimulationState);
