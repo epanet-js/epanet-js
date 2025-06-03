@@ -40,6 +40,12 @@ export const NumericField = ({
       handleCommitLastChange();
       return;
     }
+    if (e.key === "Enter" && hasError) {
+      e.preventDefault();
+      resetInput();
+      return;
+    }
+
     if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {
       e.preventDefault();
     }

@@ -67,6 +67,8 @@ export const SimulationSettingsDialog = () => {
               <NumericField
                 label={translate("demandMultiplier")}
                 displayValue={localizeDecimal(values.demandMultiplier)}
+                positiveOnly={true}
+                isNullable={false}
                 onChangeValue={(newValue) =>
                   setFieldValue("demandMultiplier", newValue)
                 }
@@ -83,7 +85,13 @@ export const SimulationSettingsDialog = () => {
   );
 };
 
-const DialogContainer = ({ children }: { children: React.ReactNode }) => {
+const DialogContainer = ({
+  closeOnEscape = true,
+  children,
+}: {
+  closeOnEscape?: boolean;
+  children: React.ReactNode;
+}) => {
   const { closeDialog } = useDialogState();
 
   return (

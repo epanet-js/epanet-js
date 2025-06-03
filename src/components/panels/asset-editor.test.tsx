@@ -789,10 +789,9 @@ describe("AssetEditor", () => {
         (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
       ).toEqual(10);
 
-      expect(field).toHaveValue("0");
-      expect(field).toHaveFocus();
+      expect(field).toHaveValue("10");
+      expect(field).not.toHaveFocus();
 
-      await user.keyboard("{Escape}");
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
