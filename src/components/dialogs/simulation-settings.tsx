@@ -18,6 +18,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import SimpleDialogActions from "./simple_dialog_actions";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
+import { FieldList, InlineField } from "../form/fields";
 
 const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -59,21 +60,19 @@ export const SimulationSettingsDialog = () => {
       >
         {({ values, setFieldValue }) => (
           <Form>
-            <label className="block pt-2 space-y-2">
-              <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-                {translate("demandMultiplier")}
-              </div>
-
-              <NumericField
-                label={translate("demandMultiplier")}
-                displayValue={localizeDecimal(values.demandMultiplier)}
-                positiveOnly={true}
-                isNullable={false}
-                onChangeValue={(newValue) =>
-                  setFieldValue("demandMultiplier", newValue)
-                }
-              />
-            </label>
+            <FieldList>
+              <InlineField name={translate("demandMultiplier")}>
+                <NumericField
+                  label={translate("demandMultiplier")}
+                  displayValue={localizeDecimal(values.demandMultiplier)}
+                  positiveOnly={true}
+                  isNullable={false}
+                  onChangeValue={(newValue) =>
+                    setFieldValue("demandMultiplier", newValue)
+                  }
+                />
+              </InlineField>
+            </FieldList>
             <SimpleDialogActions
               onClose={closeDialog}
               action={translate("save")}
@@ -85,13 +84,7 @@ export const SimulationSettingsDialog = () => {
   );
 };
 
-const DialogContainer = ({
-  closeOnEscape = true,
-  children,
-}: {
-  closeOnEscape?: boolean;
-  children: React.ReactNode;
-}) => {
+const DialogContainer = ({ children }: { children: React.ReactNode }) => {
   const { closeDialog } = useDialogState();
 
   return (

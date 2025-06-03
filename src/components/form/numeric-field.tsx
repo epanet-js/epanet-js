@@ -8,6 +8,12 @@ import {
 import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
 import clsx from "clsx";
 
+type StyleOptions = {
+  padding?: "md" | "sm";
+  border?: "sm" | "none";
+  variant?: "default" | "warning";
+};
+
 export const NumericField = ({
   label,
   displayValue,
@@ -127,12 +133,6 @@ export const NumericField = ({
       className={styledInput(styleOptions)}
     />
   );
-};
-
-type StyleOptions = {
-  padding?: "md" | "sm";
-  border?: "sm" | "none";
-  variant?: "default" | "warning";
 };
 
 function styledInput({
