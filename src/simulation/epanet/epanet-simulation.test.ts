@@ -6,7 +6,6 @@ import { runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
 import { JunctionSimulation, ValveSimulation } from "../results-reader";
 import { pumpStatusFor, valveStatusFor } from "./extract-simulation-results";
-import { defaultSimulationSettings } from "../settings";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -25,7 +24,7 @@ describe("epanet simulation", () => {
       .aJunction("j1")
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
-    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+    const inp = buildInp(hydraulicModel);
 
     const { status, report } = await runSimulation(inp);
 
@@ -39,7 +38,7 @@ describe("epanet simulation", () => {
       .aReservoir("r2")
       .aPipe("p1", { startNodeId: "r1", endNodeId: "r2" })
       .build();
-    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+    const inp = buildInp(hydraulicModel);
     const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
@@ -52,7 +51,7 @@ describe("epanet simulation", () => {
       .aJunction("j1", { demand: 10 })
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .build();
-    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+    const inp = buildInp(hydraulicModel);
 
     const { status, report } = await runSimulation(inp, { FLAG_WARNING: true });
 
@@ -67,7 +66,7 @@ describe("epanet simulation", () => {
       .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
       .aJunction("j2")
       .build();
-    const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+    const inp = buildInp(hydraulicModel);
     const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
@@ -83,7 +82,7 @@ describe("epanet simulation", () => {
         .aJunction("j1", { demand: 1 })
         .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
-      const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+      const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
@@ -99,7 +98,7 @@ describe("epanet simulation", () => {
         .aJunction("j1", { demand: 1, elevation: 2 })
         .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
-      const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+      const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
@@ -115,7 +114,7 @@ describe("epanet simulation", () => {
         .aJunction("j1", { demand: 1 })
         .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
-      const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+      const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
@@ -137,7 +136,7 @@ describe("epanet simulation", () => {
           initialStatus: "closed",
         })
         .build();
-      const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+      const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
@@ -153,7 +152,7 @@ describe("epanet simulation", () => {
         .aJunction("j2")
         .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
         .build();
-      const inp = buildInp(hydraulicModel, defaultSimulationSettings);
+      const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 

@@ -27,7 +27,7 @@ export const useRunSimulation = () => {
 
   const runSimulation = useCallback(async () => {
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInp(hydraulicModel, simulation.settings);
+    const inp = buildInp(hydraulicModel);
     const start = performance.now();
     setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);

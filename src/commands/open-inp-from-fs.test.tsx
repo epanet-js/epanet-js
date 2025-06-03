@@ -380,7 +380,7 @@ const anInpMadeByTheApp = ({ junctionId = "J1" }: { junctionId: string }) => {
   const hydraulicModel = HydraulicModelBuilder.with()
     .aJunction(junctionId, { coordinates: [10, 10] })
     .build();
-  const inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+  const inp = buildInp(hydraulicModel, {
     madeBy: true,
     geolocation: true,
   });

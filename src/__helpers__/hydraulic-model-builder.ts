@@ -281,6 +281,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  demandMultiplier(multiplier: number) {
+    this.demands = { multiplier };
+    return this;
+  }
+
   build(): HydraulicModel {
     return {
       version: nanoid(),

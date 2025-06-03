@@ -12,9 +12,8 @@ import { GearIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { translate } from "src/infra/i18n";
 import { Form, Formik } from "formik";
-import { SimulationSettings } from "src/simulation/settings";
 import { NumericField } from "../form/numeric-field";
-import { simulationAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import SimpleDialogActions from "./simple_dialog_actions";
 
@@ -31,14 +30,18 @@ const useDialogState = () => {
 export const SimulationSettingsDialog = () => {
   const { closeDialog } = useDialogState();
 
-  const [{ settings }, setSimulation] = useAtom(simulationAtom);
+  const [{ hydraulicModel }, setData] = useAtom(dataAtom);
 
   const handleSumbit = useCallback(
-    (newSettings: SimulationSettings) => {
-      setSimulation((prev) => ({ ...prev, settings: newSettings }));
+    ({ demandMultiplier }: { demandMultiplier: number }) => {
+      const newHydraulicModel = {
+        ...hydraulicModel,
+        demands: { multiplier: demandMultiplier },
+      };
+      setData((prev) => ({ ...prev, hydraulicModel: newHydraulicModel }));
       closeDialog();
     },
-    [closeDialog],
+    [hydraulicModel, setData, closeDialog],
   );
 
   return (
@@ -47,7 +50,10 @@ export const SimulationSettingsDialog = () => {
         title={translate("simulationSettings")}
         titleIcon={GearIcon}
       />
-      <Formik onSubmit={handleSumbit} initialValues={settings}>
+      <Formik
+        onSubmit={handleSumbit}
+        initialValues={{ demandMultiplier: hydraulicModel.demands.multiplier }}
+      >
         {({ values, setFieldValue }) => (
           <Form>
             <label className="block pt-2 space-y-2">

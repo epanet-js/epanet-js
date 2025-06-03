@@ -3,7 +3,6 @@ import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { defaultSimulationSettings } from "src/simulation/settings";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
@@ -395,7 +394,7 @@ describe("Parse inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("junction1", { coordinates: [10, 1] })
       .build();
-    let inp = buildInp(hydraulicModel, defaultSimulationSettings, {
+    let inp = buildInp(hydraulicModel, {
       madeBy: true,
     });
 
