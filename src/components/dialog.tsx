@@ -1,21 +1,89 @@
-import type {
-  ForwardRefExoticComponent,
-  ReactNode,
-  RefAttributes,
+import {
+  Suspense,
+  useCallback,
+  type ForwardRefExoticComponent,
+  type ReactNode,
+  type RefAttributes,
 } from "react";
 import type { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { useFormikContext } from "formik";
 import clsx from "clsx";
-import { Button } from "src/components/elements";
+import {
+  Button,
+  DefaultErrorBoundary,
+  Loading,
+  StyledDialogContent,
+  StyledDialogOverlay,
+} from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
 
-import * as D from "@radix-ui/react-dialog";
+import * as Dialog from "@radix-ui/react-dialog";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog_state";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
   | ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
+
+export const useDialogState = () => {
+  const setDialogState = useSetAtom(dialogAtom);
+
+  const closeDialog = useCallback(() => {
+    setDialogState(null);
+  }, [setDialogState]);
+
+  return { closeDialog };
+};
+
+export const DialogContainer = ({
+  size = "sm",
+  children,
+}: {
+  size?: "sm" | "xs";
+  children: React.ReactNode;
+}) => {
+  const { closeDialog } = useDialogState();
+
+  return (
+    <Dialog.Root
+      open={!!children}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          closeDialog();
+        }
+      }}
+    >
+      {/** Weird as hell shit here. Without this trigger, radix will
+      return focus to the body element, which will not receive events. */}
+      <Dialog.Trigger className="hidden">
+        <div className="hidden"></div>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <StyledDialogOverlay />
+        <Suspense fallback={<Loading />}>
+          {/**radix complains if no title, so at least having an empty one helps**/}
+          <Dialog.Title></Dialog.Title>
+          {/**radix complains if no description, so at least having an empty one helps**/}
+          <Dialog.Description></Dialog.Description>
+          <StyledDialogContent
+            widthClasses=""
+            onEscapeKeyDown={(e) => {
+              closeDialog();
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            size={size}
+          >
+            <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
+          </StyledDialogContent>
+        </Suspense>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+};
 
 export function DialogHeader({
   title,
@@ -49,14 +117,14 @@ export function DialogHeader({
 
 export const DialogCloseX = () => {
   return (
-    <D.Close
+    <Dialog.Close
       aria-label="Close"
       className="text-gray-500 shrink-0
                   focus:bg-gray-200 dark:focus:bg-black
                   hover:text-black dark:hover:text-white"
     >
       <Cross1Icon />
-    </D.Close>
+    </Dialog.Close>
   );
 };
 

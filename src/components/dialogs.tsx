@@ -228,6 +228,7 @@ export const Dialogs = memo(function Dialogs() {
     previousDialog.current = dialog;
   }
 
+  //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT
   return (
     <D.Root
       open={!!content}
