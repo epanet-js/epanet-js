@@ -8,6 +8,7 @@ import {
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { translate } from "src/infra/i18n";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 
 export const Footer = () => {
@@ -19,7 +20,7 @@ export const Footer = () => {
       `${translate("autoElevations")}: ${translate("on")}`,
       `${translate("units")}: ${modelMetadata.quantities.specName}`,
       `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
-      `${translate("demandMultiplier")}: ${hydraulicModel.demands.multiplier}`,
+      `${translate("demandMultiplier")}: ${localizeDecimal(hydraulicModel.demands.multiplier)}`,
     ],
     [hydraulicModel, modelMetadata],
   );
