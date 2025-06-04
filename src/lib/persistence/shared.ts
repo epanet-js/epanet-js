@@ -45,29 +45,6 @@ export function momentForDeleteFeatures(
   return moment;
 }
 
-/**
- * Given the current folder map, this tries to find the folders
- * you’re about to delete, and if they can be found, adds an
- * undelete operation as the undo to a Moment object.
- *
- * @param folders The folders to delete by ID
- * @param param1 internal
- * @returns a moment
- */
-export function momentForDeleteFolders(
-  folders: readonly IFolder["id"][],
-  { folderMap }: Data,
-): Moment {
-  const moment = fMoment("Update folders");
-  for (const id of folders) {
-    const folder = folderMap.get(id);
-    if (folder) {
-      moment.putFolders.push(folder);
-    }
-  }
-  return moment;
-}
-
 function getLastAtInMap(map: Map<unknown, IFolder | IWrappedFeature>): string {
   let lastAt = "a0";
   for (const val of map.values()) {

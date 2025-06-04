@@ -42,10 +42,6 @@ export type MetaPair = [
 export interface IPersistence {
   idMap: IDMap;
 
-  putPresence(presence: unknown): Promise<void>;
-
-  useLastPresence(): null;
-
   useHistoryControl(): (direction: "undo" | "redo") => void;
 
   useTransact(): (moment: ModelMoment) => void;
@@ -54,9 +50,4 @@ export interface IPersistence {
     modelMetadata: ModelMetadata,
     name: string,
   ) => void;
-
-  /**
-   * Delete existing features.
-   */
-  useMetadata(): MetaPair;
 }

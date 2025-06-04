@@ -1,10 +1,5 @@
 import { Demands } from "src/hydraulic-model/demands";
-import type {
-  IFolder,
-  IFolderInput,
-  IWrappedFeature,
-  IWrappedFeatureInput,
-} from "src/types";
+import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
  * An entry in history, an 'undo' or a 'redo'.
@@ -16,8 +11,6 @@ export interface Moment {
   note?: string;
   putFeatures: IWrappedFeature[];
   deleteFeatures: IWrappedFeature["id"][];
-  putFolders: IFolder[];
-  deleteFolders: IFolder["id"][];
 }
 
 // This was previously posthog properties,
@@ -30,8 +23,6 @@ export interface MomentInput {
   putFeatures: IWrappedFeatureInput[];
   putDemands?: Demands;
   deleteFeatures: IWrappedFeature["id"][];
-  putFolders: IFolderInput[];
-  deleteFolders: IFolder["id"][];
   skipMomentLog?: boolean;
 }
 
@@ -43,14 +34,10 @@ export function fMoment(note?: string): Moment {
     note,
     putFeatures: [],
     deleteFeatures: [],
-    putFolders: [],
-    deleteFolders: [],
   };
 }
 
 export const EMPTY_MOMENT: Moment = {
-  putFolders: [],
-  deleteFolders: [],
   putFeatures: [],
   deleteFeatures: [],
 };
@@ -68,15 +55,11 @@ class CUMoment {
       note: first.note,
       putFeatures: first.putFeatures.slice(),
       deleteFeatures: first.deleteFeatures.slice(),
-      putFolders: first.putFolders.slice(),
-      deleteFolders: first.deleteFolders.slice(),
     };
 
     for (const moment of moments.slice(1)) {
       dst.putFeatures = dst.putFeatures.concat(moment.putFeatures);
       dst.deleteFeatures = dst.deleteFeatures.concat(moment.deleteFeatures);
-      dst.deleteFolders = dst.deleteFolders.concat(moment.deleteFolders);
-      dst.putFolders = dst.putFolders.concat(moment.putFolders);
     }
 
     return dst;
@@ -88,10 +71,7 @@ class CUMoment {
    */
   isEmpty(moment: Moment) {
     return (
-      moment.putFolders.length === 0 &&
-      moment.deleteFolders.length === 0 &&
-      moment.putFeatures.length === 0 &&
-      moment.deleteFeatures.length === 0
+      moment.putFeatures.length === 0 && moment.deleteFeatures.length === 0
     );
   }
 }

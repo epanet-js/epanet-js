@@ -1,4 +1,3 @@
-import Link from "next/link";
 import React, { memo } from "react";
 import { FileInfo } from "src/components/file_info";
 import {
@@ -8,8 +7,6 @@ import {
   RocketIcon,
   SunIcon,
 } from "@radix-ui/react-icons";
-import { MemoryInfo } from "src/components/map_info/memory_info";
-import { usePersistence } from "src/lib/persistence/context";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
 import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
@@ -36,26 +33,6 @@ import { dialogAtom } from "src/state/dialog";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
-}
-
-function WrappedFeatureCollectionInfo() {
-  const p = usePersistence();
-  const [meta] = p.useMetadata();
-  return (
-    <>
-      <Link
-        href="/"
-        className="py-1 pl-1 pr-2
-          dark:hover:bg-gray-700
-          focus-visible:ring-1 focus-visible:ring-purple-300
-          text-purple-500 hover:text-purple-700 dark:hover:text-purple-300"
-        title="Home"
-      >
-        <SiteIcon className="w-8 h-8" />
-      </Link>
-      <MemoryInfo metadata={meta} />
-    </>
-  );
 }
 
 export const BrandLogo = ({ textSize = "md", iconSize = "8", gapX = "0" }) => {
@@ -158,7 +135,6 @@ export const MenuBar = memo(function MenuBar() {
   return (
     <div className="flex justify-between h-12 pr-3 text-black dark:text-white">
       <div className="flex items-center">
-        <WrappedFeatureCollectionInfo />
         <FileInfo />
       </div>
       <div className="flex items-center gap-x-2">

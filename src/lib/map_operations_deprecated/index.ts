@@ -9,8 +9,6 @@ export {
   canInnerRing,
   CanInnerRingResult,
 } from "./add_inner_ring";
-export { divideFeature } from "./divide_feature";
-// export { deleteFeature } from "./delete_feature";
 export { spliceNewVertex } from "./splice_new_vertex";
 export { splitLine } from "./split_line";
 export { addPolygonCoordinate } from "./add_polygon_coordinate";

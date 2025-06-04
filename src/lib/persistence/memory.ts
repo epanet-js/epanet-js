@@ -1,15 +1,6 @@
-import type {
-  IFolder,
-  IFolderInput,
-  IWrappedFeature,
-  IWrappedFeatureInput,
-} from "src/types";
+import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 import once from "lodash/once";
-import type {
-  IPersistence,
-  MetaPair,
-  MetaUpdatesInput,
-} from "src/lib/persistence/ipersistence";
+import type { IPersistence } from "src/lib/persistence/ipersistence";
 import {
   fMoment,
   UMoment,
@@ -20,19 +11,13 @@ import { generateKeyBetween } from "fractional-indexing";
 import {
   Data,
   dataAtom,
-  memoryMetaAtom,
   Store,
   momentLogAtom,
   nullData,
   simulationAtom,
   initialSimulationState,
 } from "src/state/jotai";
-import {
-  getFreshAt,
-  momentForDeleteFeatures,
-  momentForDeleteFolders,
-  trackMoment,
-} from "./shared";
+import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
 import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
@@ -56,8 +41,6 @@ export class MemPersistence implements IPersistence {
     this.idMap = idMap;
     this.store = store;
   }
-  putPresence = async () => {};
-
   useTransactImport() {
     return (
       hydraulicModel: HydraulicModel,
@@ -118,29 +101,6 @@ export class MemPersistence implements IPersistence {
     };
   }
 
-  useLastPresence() {
-    return null;
-  }
-
-  useMetadata(): MetaPair {
-    const meta = this.store.get(memoryMetaAtom);
-    return [
-      {
-        type: "memory",
-        ...meta,
-      },
-      (updates: MetaUpdatesInput) => {
-        this.store.set(memoryMetaAtom, (meta) => {
-          return {
-            ...meta,
-            ...updates,
-          };
-        });
-        return Promise.resolve();
-      },
-    ];
-  }
-
   useHistoryControl() {
     return (direction: "undo" | "redo") => {
       const isUndo = direction === "undo";
@@ -168,16 +128,12 @@ export class MemPersistence implements IPersistence {
         putDemands: ctx.hydraulicModel.demands,
         putFeatures: [],
         deleteFeatures: [],
-        putFolders: [],
-        deleteFolders: [],
       };
     } else {
       reverseMoment = UMoment.merge(
         fMoment(forwardMoment.note || `Reverse`),
-        this.deleteFeaturesInner(forwardMoment.deleteFeatures, ctx),
-        this.deleteFoldersInner(forwardMoment.deleteFolders, ctx),
-        this.putFeaturesInner(forwardMoment.putFeatures, ctx),
-        this.putFoldersInner(forwardMoment.putFolders, ctx),
+        this.deleteAssetsInner(forwardMoment.deleteFeatures, ctx),
+        this.putAssetsInner(forwardMoment.putFeatures, ctx),
       );
     }
 
@@ -216,7 +172,7 @@ export class MemPersistence implements IPersistence {
    * @param ctx MUTATED
    * @returns new moment
    */
-  private deleteFeaturesInner(
+  private deleteAssetsInner(
     features: readonly IWrappedFeature["id"][],
     ctx: Data,
   ) {
@@ -234,40 +190,7 @@ export class MemPersistence implements IPersistence {
     return moment;
   }
 
-  private deleteFoldersInner(folders: readonly IFolder["id"][], ctx: Data) {
-    const moment = momentForDeleteFolders(folders, ctx);
-    for (const id of folders) {
-      ctx.folderMap.delete(id);
-    }
-    return moment;
-  }
-
-  private putFoldersInner(folders: IFolderInput[], ctx: Data) {
-    const moment = fMoment("Put folders");
-
-    let lastAt: string | null = null;
-
-    for (const inputFolder of folders) {
-      const oldVersion = ctx.folderMap.get(inputFolder.id);
-      if (inputFolder.at === undefined) {
-        if (!lastAt) lastAt = getFreshAt(ctx);
-        const at = generateKeyBetween(lastAt, null);
-        lastAt = at;
-        inputFolder.at = at;
-      }
-
-      if (oldVersion) {
-        moment.putFolders.push(oldVersion);
-      } else {
-        moment.deleteFolders.push(inputFolder.id);
-      }
-      ctx.folderMap.set(inputFolder.id, inputFolder as IFolder);
-    }
-
-    return moment;
-  }
-
-  private putFeaturesInner(features: IWrappedFeatureInput[], ctx: Data) {
+  private putAssetsInner(features: IWrappedFeatureInput[], ctx: Data) {
     const reverseMoment = fMoment("Put features");
     const ats = once(() =>
       Array.from(
