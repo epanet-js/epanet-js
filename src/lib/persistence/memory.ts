@@ -58,7 +58,7 @@ export class MemPersistence implements IPersistence {
       const forwardMoment = {
         ...EMPTY_MOMENT,
         note: moment.note,
-        deleteFeatures: [],
+        deleteAssets: [],
         putAssets: moment.putAssets,
       };
       moment.putAssets.forEach((asset) => {
@@ -87,7 +87,7 @@ export class MemPersistence implements IPersistence {
       const forwardMoment = {
         ...EMPTY_MOMENT,
         note: moment.note,
-        deleteFeatures: moment.deleteAssets || [],
+        deleteAssets: moment.deleteAssets || [],
         putAssets: moment.putAssets || [],
         putDemands: moment.putDemands,
       };
@@ -127,12 +127,12 @@ export class MemPersistence implements IPersistence {
         note: "Reverse demands",
         putDemands: ctx.hydraulicModel.demands,
         putAssets: [],
-        deleteFeatures: [],
+        deleteAssets: [],
       };
     } else {
       reverseMoment = UMoment.merge(
         fMoment(forwardMoment.note || `Reverse`),
-        this.deleteAssetsInner(forwardMoment.deleteFeatures, ctx),
+        this.deleteAssetsInner(forwardMoment.deleteAssets, ctx),
         this.putAssetsInner(forwardMoment.putAssets, ctx),
       );
     }
@@ -214,7 +214,7 @@ export class MemPersistence implements IPersistence {
       if (oldVersion) {
         reverseMoment.putAssets.push(oldVersion);
       } else {
-        reverseMoment.deleteFeatures.push(inputFeature.id);
+        reverseMoment.deleteAssets.push(inputFeature.id);
         // If we're inserting a new feature but its
         // at value is already in the set, find it a
         // new value at the start

@@ -10,7 +10,7 @@ import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 export interface Moment {
   note?: string;
   putAssets: IWrappedFeature[];
-  deleteFeatures: IWrappedFeature["id"][];
+  deleteAssets: IWrappedFeature["id"][];
 }
 
 // This was previously posthog properties,
@@ -22,7 +22,7 @@ export interface MomentInput {
   track?: string | [string, Properties];
   putAssets: IWrappedFeatureInput[];
   putDemands?: Demands;
-  deleteFeatures: IWrappedFeature["id"][];
+  deleteAssets: IWrappedFeature["id"][];
   skipMomentLog?: boolean;
 }
 
@@ -33,13 +33,13 @@ export function fMoment(note?: string): Moment {
   return {
     note,
     putAssets: [],
-    deleteFeatures: [],
+    deleteAssets: [],
   };
 }
 
 export const EMPTY_MOMENT: Moment = {
   putAssets: [],
-  deleteFeatures: [],
+  deleteAssets: [],
 };
 
 export const OPPOSITE = {
@@ -54,12 +54,12 @@ class CUMoment {
     const dst: Moment = {
       note: first.note,
       putAssets: first.putAssets.slice(),
-      deleteFeatures: first.deleteFeatures.slice(),
+      deleteAssets: first.deleteAssets.slice(),
     };
 
     for (const moment of moments.slice(1)) {
       dst.putAssets = dst.putAssets.concat(moment.putAssets);
-      dst.deleteFeatures = dst.deleteFeatures.concat(moment.deleteFeatures);
+      dst.deleteAssets = dst.deleteAssets.concat(moment.deleteAssets);
     }
 
     return dst;
@@ -70,7 +70,7 @@ class CUMoment {
    * Make sure to update this whenever moments get new arrays!
    */
   isEmpty(moment: Moment) {
-    return moment.putAssets.length === 0 && moment.deleteFeatures.length === 0;
+    return moment.putAssets.length === 0 && moment.deleteAssets.length === 0;
   }
 }
 

@@ -48,7 +48,7 @@ import { mapLoadingAtom } from "./state";
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
-    moment.deleteFeatures.forEach((assetId) => {
+    moment.deleteAssets.forEach((assetId) => {
       assetIds.add(assetId);
     });
     moment.putAssets.forEach((asset) => assetIds.add(asset.id));
