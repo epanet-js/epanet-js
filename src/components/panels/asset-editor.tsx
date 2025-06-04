@@ -1,5 +1,4 @@
 import type { IWrappedFeature } from "src/types";
-import { FeatureEditorId } from "./feature_editor/feature_editor_id";
 import React, { useCallback, useMemo, useRef } from "react";
 import { RawEditor } from "./feature_editor/raw_editor";
 import {
@@ -67,12 +66,7 @@ export function AssetEditor({
         />
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-900 border-t border-gray-200 dark:border-gray-900 overflow-auto placemark-scrollbar">
-        {isDebugOn && (
-          <>
-            <FeatureEditorId wrappedFeature={selectedFeature} />
-            <RawEditor feature={selectedFeature} />
-          </>
-        )}
+        {isDebugOn && <RawEditor feature={selectedFeature} />}
       </div>
     </>
   );

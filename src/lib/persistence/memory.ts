@@ -15,7 +15,6 @@ import {
   UMoment,
   EMPTY_MOMENT,
   MomentInput,
-  Moment,
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import {
@@ -33,7 +32,6 @@ import {
   momentForDeleteFeatures,
   momentForDeleteFolders,
   trackMoment,
-  trackMomentDeprecated,
 } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id_mapper";
 import { sortAts } from "src/lib/parse_stored";
@@ -117,23 +115,6 @@ export class MemPersistence implements IPersistence {
       momentLog.append(forwardMoment, reverseMoment, newStateId);
 
       this.store.set(momentLogAtom, momentLog);
-    };
-  }
-
-  useTransactDeprecated() {
-    return (partialMoment: Partial<MomentInput>) => {
-      const momentLog = this.store.get(momentLogAtom).copy();
-      trackMomentDeprecated(partialMoment);
-      const forwardMoment: MomentInput = {
-        ...EMPTY_MOMENT,
-        ...partialMoment,
-      };
-      const newStateId = nanoid();
-
-      const reverseMoment = this.apply(newStateId, forwardMoment);
-      momentLog.append(forwardMoment as Moment, reverseMoment);
-      this.store.set(momentLogAtom, momentLog);
-      return Promise.resolve();
     };
   }
 

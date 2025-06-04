@@ -1,5 +1,4 @@
 import type { ISymbology } from "src/types";
-import type { MomentInput } from "./moment";
 import { IDMap } from "src/lib/id_mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
@@ -55,16 +54,6 @@ export interface IPersistence {
     modelMetadata: ModelMetadata,
     name: string,
   ) => void;
-
-  /**
-   * The main method for making changes to the map: give this
-   * a partial moment which can delete or add features and folders,
-   * and it'll implement it. Unless you specify that the change
-   * is quiet, the change is pushed onto the undo history.
-   */
-  useTransactDeprecated(): (
-    moment: Partial<MomentInput> & TransactOptions,
-  ) => Promise<void>;
 
   /**
    * Delete existing features.

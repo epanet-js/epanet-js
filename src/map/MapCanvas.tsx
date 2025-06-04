@@ -38,7 +38,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
-import { LastSearchResult } from "src/components/last_search_result";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
@@ -363,7 +362,6 @@ export const MapCanvas = memo(function MapCanvas({
         ></div>
       </CM.Trigger>
       <MapContextMenu contextInfo={contextInfo} />
-      <LastSearchResult />
       <Hints />
       <MapLoading />
       <SatelliteToggle />
