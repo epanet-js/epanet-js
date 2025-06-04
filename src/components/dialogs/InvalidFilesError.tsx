@@ -3,7 +3,7 @@ import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
-import SimpleDialogActions from "./simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { Form, Formik } from "formik";
 

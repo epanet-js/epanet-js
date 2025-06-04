@@ -15,7 +15,7 @@ import { Form, Formik } from "formik";
 import { NumericField } from "../form/numeric-field";
 import { dataAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import SimpleDialogActions from "./simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
 import { FieldList, InlineField } from "../form/fields";

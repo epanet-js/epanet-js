@@ -13,7 +13,7 @@ import {
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
-import SimpleDialogActions from "src/components/dialogs/simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import { Form, Formik } from "formik";
 import { useShowReport } from "./show-report";
 

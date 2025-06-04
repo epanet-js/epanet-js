@@ -1,7 +1,7 @@
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { Form, Formik } from "formik";
-import SimpleDialogActions from "./simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export const AlertInpOutputDialog = ({

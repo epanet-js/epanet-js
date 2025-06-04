@@ -9,7 +9,7 @@ import { translate } from "src/infra/i18n";
 import { OpenInpDialogState, dialogAtom } from "src/state/dialog_state";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
-import { AckDialogAction } from "./simple_dialog_actions";
+import { AckDialogAction } from "src/components/dialog";
 import { Loading } from "../elements";
 import { parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";

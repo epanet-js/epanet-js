@@ -1,7 +1,7 @@
 import { FileIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { Form, Formik } from "formik";
-import SimpleDialogActions from "./simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import {
   Presets,
   Quantities,

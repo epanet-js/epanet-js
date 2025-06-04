@@ -2,7 +2,7 @@ import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { Button } from "../elements";
-import { DialogButtons } from "./simple_dialog_actions";
+import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 

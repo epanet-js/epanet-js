@@ -1,6 +1,6 @@
 import { DialogHeader } from "../dialog";
 import { translate } from "src/infra/i18n";
-import SimpleDialogActions from "./simple_dialog_actions";
+import { SimpleDialogActions } from "src/components/dialog";
 import {
   BellIcon,
   CrossCircledIcon,
