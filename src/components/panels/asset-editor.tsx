@@ -48,7 +48,6 @@ import {
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
 import { NumericField } from "../form/numeric-field";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export function AssetEditor({
   selectedFeature,
@@ -670,15 +669,13 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("head")}
                 readOnly={true}
               />
-              {isFeatureOn("FLAG_MULTIPLIER") && (
-                <QuantityRow
-                  name="actualDemand"
-                  value={junction.actualDemand}
-                  unit={quantitiesMetadata.getUnit("actualDemand")}
-                  decimals={quantitiesMetadata.getDecimals("actualDemand")}
-                  readOnly={true}
-                />
-              )}
+              <QuantityRow
+                name="actualDemand"
+                value={junction.actualDemand}
+                unit={quantitiesMetadata.getUnit("actualDemand")}
+                decimals={quantitiesMetadata.getDecimals("actualDemand")}
+                readOnly={true}
+              />
             </tbody>
           </table>
         </div>

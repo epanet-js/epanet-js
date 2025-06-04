@@ -7,7 +7,6 @@ import {
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 
@@ -15,21 +14,13 @@ export const Footer = () => {
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
 
   const items: string[] = useMemo(
-    () =>
-      isFeatureOn("FLAG_MULTIPLIER")
-        ? [
-            `${translate("autoLengths")}: ${translate("on")}`,
-            `${translate("autoElevations")}: ${translate("on")}`,
-            `${translate("units")}: ${modelMetadata.quantities.specName}`,
-            `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
-            `${translate("demandMultiplier")}: ${hydraulicModel.demands.multiplier}`,
-          ]
-        : [
-            `${translate("autoLengths")}: ${translate("on")}`,
-            `${translate("autoElevations")}: ${translate("on")}`,
-            `${translate("units")}: ${modelMetadata.quantities.specName}`,
-            `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
-          ],
+    () => [
+      `${translate("autoLengths")}: ${translate("on")}`,
+      `${translate("autoElevations")}: ${translate("on")}`,
+      `${translate("units")}: ${modelMetadata.quantities.specName}`,
+      `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
+      `${translate("demandMultiplier")}: ${hydraulicModel.demands.multiplier}`,
+    ],
     [hydraulicModel, modelMetadata],
   );
 

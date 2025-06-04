@@ -31,7 +31,6 @@ import {
 import { useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
-import { isFeatureOn } from "src/infra/feature-flags";
 import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
@@ -157,16 +156,14 @@ export const Toolbar = () => {
       >
         <LightningBoltIcon className="text-yellow-600" />
       </MenuAction>
-      {isFeatureOn("FLAG_MULTIPLIER") && (
-        <MenuAction
-          label={translate("simulationSettings")}
-          role="button"
-          onClick={() => showSimulationSettings({ source: "toolbar" })}
-          readOnlyHotkey={showSimulationSettingsShortcut}
-        >
-          <GearIcon />
-        </MenuAction>
-      )}
+      <MenuAction
+        label={translate("simulationSettings")}
+        role="button"
+        onClick={() => showSimulationSettings({ source: "toolbar" })}
+        readOnlyHotkey={showSimulationSettingsShortcut}
+      >
+        <GearIcon />
+      </MenuAction>
       <MenuAction
         label={translate("viewReport")}
         role="button"

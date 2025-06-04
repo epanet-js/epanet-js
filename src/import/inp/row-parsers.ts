@@ -7,7 +7,6 @@ import { InpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -269,7 +268,7 @@ export const parseOption: RowParser = ({
     return;
   }
 
-  if (name === "DEMAND MULTIPLIER" && isFeatureOn("FLAG_MULTIPLIER")) {
+  if (name === "DEMAND MULTIPLIER") {
     inpData.options.demandMultiplier = value as number;
     return;
   }
