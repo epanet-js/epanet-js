@@ -20,7 +20,7 @@ const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
   onClose: () => void;
 }>(
-  () => import("src/components/dialogs/OpenInp").then((r) => r.OpenInpDialog),
+  () => import("src/components/dialogs/open-inp").then((r) => r.OpenInpDialog),
   {
     loading: () => <Loading />,
   },
@@ -29,8 +29,7 @@ const OpenInpDialog = dynamic<{
 const UpgradeDialog = dynamic<{
   onClose: () => void;
 }>(
-  () =>
-    import("src/components/dialogs/UpgradeDialog").then((r) => r.UpgradeDialog),
+  () => import("src/components/dialogs/upgrade").then((r) => r.UpgradeDialog),
   {
     loading: () => <Loading />,
   },
@@ -41,7 +40,7 @@ const InvalidFilesErrorDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/InvalidFilesError").then(
+    import("src/components/dialogs/invalid-files-error").then(
       (r) => r.InvalidFilesErrorDialog,
     ),
   {
@@ -123,7 +122,7 @@ const UnsavedChangesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/UnsavedChangesDialog").then(
+    import("src/components/dialogs/unsaved-changes").then(
       (r) => r.UnsavedChangesDialog,
     ),
   {
@@ -136,7 +135,7 @@ const AlertInpOutputDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/AlertInpOutput").then(
+    import("src/components/dialogs/alert-inp-output").then(
       (r) => r.AlertInpOutputDialog,
     ),
   {
