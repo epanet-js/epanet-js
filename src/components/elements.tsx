@@ -227,7 +227,7 @@ const styledDialogContent = ({
   clsx(
     {
       "w-[320px]": size === "xs",
-      "w-full sm:max-w-lg": size === "sm",
+      "w-full sm:max-w-lg": size === "sm" && !widthClasses,
     },
     `fixed inline-block
       max-h-[80vh]
