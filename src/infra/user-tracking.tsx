@@ -394,6 +394,7 @@ type UserEvent =
       name: "upgradeButton.clicked";
       source: "menu" | "customLayers";
     }
+  | { name: "simulationSettings.opened"; source: string }
   | {
       name: "baseMap.changed";
       oldBasemap: string;

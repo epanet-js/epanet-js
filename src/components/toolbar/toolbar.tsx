@@ -12,8 +12,8 @@ import {
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
 import ContextActions from "../context_actions";
-import { useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, simulationAtom } from "src/state/jotai";
+import { useAtomValue } from "jotai";
+import { simulationAtom } from "src/state/jotai";
 import {
   openInpFromFsShortcut,
   useOpenInpFromFs,
@@ -32,6 +32,7 @@ import { useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { useShowSimulationSettings } from "src/commands/show-simulation-settings";
 
 export const Toolbar = () => {
   const openInpFromFs = useOpenInpFromFs();
@@ -39,12 +40,12 @@ export const Toolbar = () => {
   const createNewProject = useNewProject();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
+  const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
 
   const { undo, redo } = useHistoryControl();
 
   const simulation = useAtomValue(simulationAtom);
-  const setDialogState = useSetAtom(dialogAtom);
 
   return (
     <div
@@ -157,9 +158,7 @@ export const Toolbar = () => {
         <MenuAction
           label={translate("simulationSettings")}
           role="button"
-          onClick={() => {
-            setDialogState({ type: "simulationSettings" });
-          }}
+          onClick={() => showSimulationSettings({ source: "toolbar" })}
           readOnlyHotkey={"alt+s"}
         >
           <GearIcon />
