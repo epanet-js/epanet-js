@@ -6,18 +6,27 @@ export const FieldList = ({ children }: { children: React.ReactNode }) => {
 
 export const InlineField = ({
   name,
+  layout = "fixed-label",
   children,
 }: {
   name: string;
+  layout?: "fixed-label" | "half-split";
   children: React.ReactNode;
 }) => {
+  const labelClasses = clsx("text-sm text-gray-500", {
+    "max-w-[67px] w-full flex-shrink-0": layout === "fixed-label",
+    "w-1/2": layout === "half-split",
+  });
+  const inputWrapperClasses = clsx({
+    "flex-1": layout === "fixed-label",
+    "w-1/2": layout === "half-split",
+  });
+
   return (
     <div className="flex items-center space-x-4">
-      <label className={clsx(`max-w-[67px] w-full`, "text-sm text-gray-500")}>
-        {name}
-      </label>
+      <label className={labelClasses}>{name}</label>
 
-      <div className="flex-1">{children}</div>
+      <div className={inputWrapperClasses}>{children}</div>
     </div>
   );
 };

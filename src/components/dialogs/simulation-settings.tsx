@@ -61,7 +61,10 @@ export const SimulationSettingsDialog = () => {
         {({ values, setFieldValue }) => (
           <Form>
             <FieldList>
-              <InlineField name={translate("demandMultiplier")}>
+              <InlineField
+                layout="half-split"
+                name={translate("demandMultiplier")}
+              >
                 <NumericField
                   label={translate("demandMultiplier")}
                   displayValue={localizeDecimal(values.demandMultiplier)}
