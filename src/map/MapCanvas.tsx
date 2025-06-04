@@ -43,7 +43,7 @@ import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
 import { searchNearbyRenderedFeatures } from "./search";
 import { SatelliteToggle } from "./SatelliteToggle";
-import { Hints } from "src/components/Hints";
+import { Hints } from "src/components/hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";

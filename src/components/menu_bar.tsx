@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { FileInfo } from "src/components/file_info";
+import { FileInfo } from "src/components/file-info";
 import {
   GitHubLogoIcon,
   KeyboardIcon,
