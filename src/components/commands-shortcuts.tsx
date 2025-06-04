@@ -43,6 +43,10 @@ import {
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
+import {
+  showSimulationSettingsShortcut,
+  useShowSimulationSettings,
+} from "src/commands/show-simulation-settings";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -59,6 +63,7 @@ export const CommandShortcuts = () => {
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const selectAll = useSelectAll();
   const toggleSatellite = useToggleSatellite();
+  const showSimulationSettings = useShowSimulationSettings();
   const simulation = useAtomValue(simulationAtom);
 
   useHotkeys(
@@ -240,6 +245,16 @@ export const CommandShortcuts = () => {
     },
     [toggleSatellite],
     `Toggle satellite`,
+  );
+
+  useHotkeys(
+    showSimulationSettingsShortcut,
+    (e) => {
+      e.preventDefault();
+      showSimulationSettings({ source: "shortcut" });
+    },
+    [showSimulationSettings],
+    `Show simulaton settings`,
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

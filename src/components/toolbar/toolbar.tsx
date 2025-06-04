@@ -32,7 +32,10 @@ import { useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { useShowSimulationSettings } from "src/commands/show-simulation-settings";
+import {
+  showSimulationSettingsShortcut,
+  useShowSimulationSettings,
+} from "src/commands/show-simulation-settings";
 
 export const Toolbar = () => {
   const openInpFromFs = useOpenInpFromFs();
@@ -159,7 +162,7 @@ export const Toolbar = () => {
           label={translate("simulationSettings")}
           role="button"
           onClick={() => showSimulationSettings({ source: "toolbar" })}
-          readOnlyHotkey={"alt+s"}
+          readOnlyHotkey={showSimulationSettingsShortcut}
         >
           <GearIcon />
         </MenuAction>

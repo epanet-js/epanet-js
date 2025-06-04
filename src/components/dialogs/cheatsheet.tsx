@@ -3,13 +3,16 @@ import { Keycap } from "src/components/elements";
 import React, { Fragment } from "react";
 import { localizeKeybinding, translate } from "src/infra/i18n";
 import { KeyboardIcon } from "@radix-ui/react-icons";
+import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
 const BINDINGS = {
   B: translate("toggleSatellite"),
-  "Alt+N": translate("newProject"),
+  "Shift+Enter": translate("simulate"),
+  [showSimulationSettingsShortcut]: translate("simulationSettings"),
   "Alt+R": translate("viewReport"),
+  "Alt+N": translate("newProject"),
   "Command+O": translate("openProject"),
   "Command+S": translate("save"),
   "Command+Shift+S": translate("save"),
@@ -18,7 +21,6 @@ const BINDINGS = {
   "2": translate("junction"),
   "3": translate("pipe"),
   "4": translate("reservoir"),
-  "Shift+Enter": translate("simulate"),
   Esc: `${translate("exit")} / ${translate("clearSelection")}`,
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),
