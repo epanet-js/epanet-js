@@ -19,6 +19,7 @@ import SimpleDialogActions from "./simple_dialog_actions";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
 import { FieldList, InlineField } from "../form/fields";
+import { useUserTracking } from "src/infra/user-tracking";
 
 const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -36,16 +37,24 @@ export const SimulationSettingsDialog = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const userTracking = useUserTracking();
 
   const handleSumbit = useCallback(
     ({ demandMultiplier }: { demandMultiplier: number }) => {
+      userTracking.capture({
+        name: "simulationSetting.changed",
+        settingName: "demandMultiplier",
+        newValue: demandMultiplier,
+        oldValue: hydraulicModel.demands.multiplier,
+      });
+
       const moment = changeDemands(hydraulicModel, {
         demandMultiplier,
       });
       transact(moment);
       closeDialog();
     },
-    [hydraulicModel, transact, closeDialog],
+    [hydraulicModel, transact, closeDialog, userTracking],
   );
 
   return (

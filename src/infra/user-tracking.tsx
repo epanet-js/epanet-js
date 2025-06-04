@@ -396,6 +396,12 @@ type UserEvent =
     }
   | { name: "simulationSettings.opened"; source: string }
   | {
+      name: "simulationSetting.changed";
+      settingName: string;
+      newValue: number;
+      oldValue: number;
+    }
+  | {
       name: "baseMap.changed";
       oldBasemap: string;
       newBasemap: string;
