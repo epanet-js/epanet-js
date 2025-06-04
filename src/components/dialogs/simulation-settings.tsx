@@ -49,7 +49,7 @@ export const SimulationSettingsDialog = () => {
   );
 
   return (
-    <DialogContainer>
+    <DialogContainer size="xs">
       <DialogHeader
         title={translate("simulationSettings")}
         titleIcon={GearIcon}
@@ -84,7 +84,13 @@ export const SimulationSettingsDialog = () => {
   );
 };
 
-const DialogContainer = ({ children }: { children: React.ReactNode }) => {
+const DialogContainer = ({
+  size = "sm",
+  children,
+}: {
+  size?: "sm" | "xs";
+  children: React.ReactNode;
+}) => {
   const { closeDialog } = useDialogState();
 
   return (
@@ -109,13 +115,14 @@ const DialogContainer = ({ children }: { children: React.ReactNode }) => {
           {/**radix complains if no description, so at least having an empty one helps**/}
           <Dialog.Description></Dialog.Description>
           <StyledDialogContent
+            widthClasses=""
             onEscapeKeyDown={(e) => {
               closeDialog();
               e.preventDefault();
               e.stopPropagation();
             }}
             onOpenAutoFocus={(e) => e.preventDefault()}
-            size={"sm"}
+            size={size}
           >
             <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
           </StyledDialogContent>

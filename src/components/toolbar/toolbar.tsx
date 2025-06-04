@@ -6,13 +6,14 @@ import {
   FileIcon,
   FilePlusIcon,
   FileTextIcon,
+  GearIcon,
   LightningBoltIcon,
   ResetIcon,
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
 import ContextActions from "../context_actions";
-import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   openInpFromFsShortcut,
   useOpenInpFromFs,
@@ -31,7 +32,6 @@ import { useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useHistoryControl } from "src/commands/history-control";
 import { isFeatureOn } from "src/infra/feature-flags";
-import { SimulationSettingsTrigger } from "../simulation-settings-popover";
 
 export const Toolbar = () => {
   const openInpFromFs = useOpenInpFromFs();
@@ -44,6 +44,7 @@ export const Toolbar = () => {
   const { undo, redo } = useHistoryControl();
 
   const simulation = useAtomValue(simulationAtom);
+  const setDialogState = useSetAtom(dialogAtom);
 
   return (
     <div
@@ -153,7 +154,16 @@ export const Toolbar = () => {
         <LightningBoltIcon className="text-yellow-600" />
       </MenuAction>
       {isFeatureOn("FLAG_MULTIPLIER") && (
-        <SimulationSettingsTrigger></SimulationSettingsTrigger>
+        <MenuAction
+          label={translate("simulationSettings")}
+          role="button"
+          onClick={() => {
+            setDialogState({ type: "simulationSettings" });
+          }}
+          readOnlyHotkey={"alt+s"}
+        >
+          <GearIcon />
+        </MenuAction>
       )}
       <MenuAction
         label={translate("viewReport")}

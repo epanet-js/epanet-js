@@ -218,7 +218,7 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
 const styledDialogContent = ({
-  size = "sm",
+  size,
   widthClasses = "w-full sm:max-w-lg",
 }: {
   size?: B3Size;
@@ -226,8 +226,8 @@ const styledDialogContent = ({
 }) =>
   clsx(
     {
-      "p-4": size === "sm",
-      "p-0": size === "xs",
+      "w-[320px]": size === "xs",
+      "w-full sm:max-w-lg": size === "sm",
     },
     `fixed inline-block
       max-h-[80vh]
@@ -236,7 +236,7 @@ const styledDialogContent = ({
       bg-white dark:bg-gray-900
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
-      sm:rounded sm:align-middle ${widthClasses}
+      sm:rounded sm:align-middle p-4 ${widthClasses}
       left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
       overflow-y-auto placemark-scrollbar
       z-40
