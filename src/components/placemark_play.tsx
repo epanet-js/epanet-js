@@ -1,36 +1,29 @@
 //TODO: CHECK LINTER ERRORS
-/* eslint-disable */
 "use client";
-import type { MapEngine } from 'src/map'
+import type { MapEngine } from "src/map";
 import { MapCanvas } from "src/map/MapCanvas";
-import { Divider, MenuBarPlay } from "src/components/menu_bar";
+import { MenuBarPlay } from "src/components/menu_bar";
 import Drop from "src/components/drop";
-import Modes from "src/components/modes";
 import { Dialogs } from "src/components/dialogs";
 import { CSS } from "@dnd-kit/utilities";
-import ContextActions from "src/components/context_actions";
 import React, {
   Suspense,
   useContext,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import {
-  BottomResizer,
   Resizer,
   useBigScreen,
   useWindowResizeSplits,
 } from "src/components/resizer";
-import { BottomPanel, SidePanel } from "src/components/panels";
+import { SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { CheckCircledIcon, CheckIcon, CrossCircledIcon, DividerVerticalIcon, MoveIcon, ShadowInnerIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { Button } from "./elements";
-import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dataAtom, dialogAtom, splitsAtom } from "src/state/jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
+import { dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,
@@ -41,22 +34,17 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
-import { useSearchParams } from "next/navigation";
-import toast from "react-hot-toast";
-import { DEFAULT_IMPORT_OPTIONS, detectType } from "src/lib/convert";
-import { match } from "ts-pattern";
-import {Legends} from './legends';
-import {Toolbar} from './toolbar/toolbar';
-import {translate} from 'src/infra/i18n';
-import {Footer} from './footer';
-import {useHydrateAtoms} from 'jotai/utils';
-import {isFeatureOn} from 'src/infra/feature-flags';
-import {settingsFromStorage} from 'src/state/user-settings';
-import {TabCloseGuard} from './tab-close-guard';
-import {CommandShortcuts} from './commands-shortcuts';
-import {useUserTracking} from 'src/infra/user-tracking';
-import {useAuth} from 'src/auth';
-import {dialogFromUrl} from 'src/state/dialog';
+import { Legends } from "./legends";
+import { Toolbar } from "./toolbar/toolbar";
+import { Footer } from "./footer";
+import { useHydrateAtoms } from "jotai/utils";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { settingsFromStorage } from "src/state/user-settings";
+import { TabCloseGuard } from "./tab-close-guard";
+import { CommandShortcuts } from "./commands-shortcuts";
+import { useUserTracking } from "src/infra/user-tracking";
+import { useAuth } from "src/auth";
+import { dialogFromUrl } from "src/state/dialog";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -70,25 +58,24 @@ const persistentTransformAtom = atom<Transform>({
   y: 5,
 });
 
-
 export function PlacemarkPlay() {
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const splits = useAtomValue(splitsAtom);
   const isBigScreen = useBigScreen();
-  const userTracking = useUserTracking()
-  const { user, isSignedIn } = useAuth()
+  const userTracking = useUserTracking();
+  const { user, isSignedIn } = useAuth();
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
-      userTracking.identify(user)
+      userTracking.identify(user);
     }
 
     if (!isSignedIn && userTracking.isIdentified()) {
-      userTracking.capture({ name: "logOut.completed" })
-      userTracking.reset()
+      userTracking.capture({ name: "logOut.completed" });
+      userTracking.reset();
     }
-  }, [isSignedIn, user, userTracking])
+  }, [isSignedIn, user, userTracking]);
 
   let layout: ResolvedLayout = "HORIZONTAL";
 
@@ -117,27 +104,28 @@ export function PlacemarkPlay() {
     persistentTransformAtom,
   );
 
-
   useHydrateAtoms([
-    [dialogAtom,
-    isFeatureOn('FLAG_UPGRADE') &&  dialogFromUrl()
-      ? dialogFromUrl()
-      : settingsFromStorage().showWelcomeOnStart
-        ? { type: "welcome" }
-        : null,
-  ]])
+    [
+      dialogAtom,
+      isFeatureOn("FLAG_UPGRADE") && dialogFromUrl()
+        ? dialogFromUrl()
+        : settingsFromStorage().showWelcomeOnStart
+          ? { type: "welcome" }
+          : null,
+    ],
+  ]);
 
   return (
     <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
       <MapContext.Provider value={map}>
-          <div className="h-24">
-            <MenuBarPlay />
-            <Toolbar />
-          </div>
+        <div className="h-24">
+          <MenuBarPlay />
+          <Toolbar />
+        </div>
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-              "flex flex-grow pb-10 relative border-t border-gray-200 dark:border-gray-900"
+            "flex flex-grow pb-10 relative border-t border-gray-200 dark:border-gray-900",
           )}
         >
           <DndContext
@@ -179,12 +167,12 @@ function DraggableMap({
   layout,
   persistentTransform,
 }: {
-  setMap: (arg0:  MapEngine | null) => void;
+  setMap: (arg0: MapEngine | null) => void;
   layout: ResolvedLayout;
   persistentTransform: Transform;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
 
