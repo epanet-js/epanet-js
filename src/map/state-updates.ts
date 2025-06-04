@@ -51,7 +51,7 @@ const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
     moment.deleteFeatures.forEach((assetId) => {
       assetIds.add(assetId);
     });
-    moment.putFeatures.forEach((asset) => assetIds.add(asset.id));
+    moment.putAssets.forEach((asset) => assetIds.add(asset.id));
   });
   return assetIds;
 };
@@ -327,7 +327,7 @@ const updateImportSource = withInstrumentation(
 
     const importedAssets = new AssetsMap();
     const { moment } = importSnapshot;
-    for (const asset of moment.putFeatures as Asset[]) {
+    for (const asset of moment.putAssets as Asset[]) {
       importedAssets.set(asset.id, asset);
     }
 

@@ -59,7 +59,7 @@ export class MemPersistence implements IPersistence {
         ...EMPTY_MOMENT,
         note: moment.note,
         deleteFeatures: [],
-        putFeatures: moment.putAssets,
+        putAssets: moment.putAssets,
       };
       moment.putAssets.forEach((asset) => {
         UIDMap.pushUUID(this.idMap, asset.id);
@@ -88,7 +88,7 @@ export class MemPersistence implements IPersistence {
         ...EMPTY_MOMENT,
         note: moment.note,
         deleteFeatures: moment.deleteAssets || [],
-        putFeatures: moment.putAssets || [],
+        putAssets: moment.putAssets || [],
         putDemands: moment.putDemands,
       };
       const newStateId = nanoid();
@@ -126,14 +126,14 @@ export class MemPersistence implements IPersistence {
       reverseMoment = {
         note: "Reverse demands",
         putDemands: ctx.hydraulicModel.demands,
-        putFeatures: [],
+        putAssets: [],
         deleteFeatures: [],
       };
     } else {
       reverseMoment = UMoment.merge(
         fMoment(forwardMoment.note || `Reverse`),
         this.deleteAssetsInner(forwardMoment.deleteFeatures, ctx),
-        this.putAssetsInner(forwardMoment.putFeatures, ctx),
+        this.putAssetsInner(forwardMoment.putAssets, ctx),
       );
     }
 
@@ -212,7 +212,7 @@ export class MemPersistence implements IPersistence {
       }
 
       if (oldVersion) {
-        reverseMoment.putFeatures.push(oldVersion);
+        reverseMoment.putAssets.push(oldVersion);
       } else {
         reverseMoment.deleteFeatures.push(inputFeature.id);
         // If we're inserting a new feature but its

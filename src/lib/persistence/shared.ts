@@ -39,7 +39,7 @@ export function momentForDeleteFeatures(
   for (const id of features) {
     const feature = hydraulicModel.assets.get(id);
     if (feature) {
-      moment.putFeatures.push(feature);
+      moment.putAssets.push(feature);
     }
   }
   return moment;
