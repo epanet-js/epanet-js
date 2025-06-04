@@ -56,7 +56,7 @@ import {TabCloseGuard} from './tab-close-guard';
 import {CommandShortcuts} from './commands-shortcuts';
 import {useUserTracking} from 'src/infra/user-tracking';
 import {useAuth} from 'src/auth';
-import {dialogFromUrl} from 'src/state/dialog_state';
+import {dialogFromUrl} from 'src/state/dialog';
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 

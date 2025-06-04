@@ -8,7 +8,7 @@ import { useImportInp } from "src/commands/import-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAtomValue } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 /**
  * From an event, get files, with handles for re-saving.

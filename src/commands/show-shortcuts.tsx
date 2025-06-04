@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 export const showSortcutsShortcut = "?";
 

@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 export const showSimulationSettingsShortcut = "alt+e";
 

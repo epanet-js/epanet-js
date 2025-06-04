@@ -242,7 +242,7 @@ export const followPresenceAtom = atom<IPresence | null>(null);
 /**
  * Modal state
  */
-export { dialogAtom as dialogAtom } from "src/state/dialog_state";
+export { dialogAtom as dialogAtom } from "src/state/dialog";
 /**
  * Current layer state
  * TODO: move to server

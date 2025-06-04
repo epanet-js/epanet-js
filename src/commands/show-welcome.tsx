@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { DialogCloseX } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { BrandLogo } from "src/components/menu_bar";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 import { useNewProject } from "./create-new-project";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { userSettingsAtom } from "src/state/user-settings";

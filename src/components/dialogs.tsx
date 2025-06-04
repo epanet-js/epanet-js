@@ -11,7 +11,7 @@ import {
   DefaultErrorBoundary,
   WelcomeDialogContent,
 } from "./elements";
-import * as dialogState from "src/state/dialog_state";
+import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";

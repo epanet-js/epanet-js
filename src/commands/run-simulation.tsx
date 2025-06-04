@@ -5,7 +5,7 @@ import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
 import { Loading } from "src/components/elements";
-import { SimulationSummaryState } from "src/state/dialog_state";
+import { SimulationSummaryState } from "src/state/dialog";
 import { translate } from "src/infra/i18n";
 import {
   CheckCircledIcon,

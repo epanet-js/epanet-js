@@ -5,7 +5,7 @@ import { DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
 import { replaceIdWithLabels } from "src/simulation/report";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 
 export const showReportShorcut = "alt+r";

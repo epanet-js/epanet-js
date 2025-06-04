@@ -6,7 +6,7 @@ import { FeatureCollection } from "src/types";
 import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { translate } from "src/infra/i18n";
-import { OpenInpDialogState, dialogAtom } from "src/state/dialog_state";
+import { OpenInpDialogState, dialogAtom } from "src/state/dialog";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 import { AckDialogAction } from "src/components/dialog";

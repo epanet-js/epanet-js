@@ -3,7 +3,7 @@ import Mousetrap from "mousetrap";
 import { useEffect } from "react";
 import { isDebugOn } from "src/infra/debug-mode";
 import { getIsMac } from "src/lib/utils";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 type DependencyList = ReadonlyArray<unknown>;
 

@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 import { hasUnsavedChangesAtom } from "src/state/jotai";
 
 export const useUnsavedChangesCheck = () => {

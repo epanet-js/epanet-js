@@ -21,7 +21,7 @@ import { translate } from "src/infra/i18n";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>

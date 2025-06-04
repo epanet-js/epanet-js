@@ -32,7 +32,7 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { canUpgrade } from "src/user-plan";
 import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog_state";
+import { dialogAtom } from "src/state/dialog";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
