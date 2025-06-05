@@ -72,6 +72,9 @@ const createCheckoutSession = async (
     mode: "subscription",
     payment_method_types: ["card"],
     customer_email: email,
+    automatic_tax: {
+      enabled: true,
+    },
     line_items: [
       {
         price: priceId,
