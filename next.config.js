@@ -30,8 +30,8 @@ const nextConfig = {
 const { withSentryConfig } = require("@sentry/nextjs");
 
 module.exports = withSentryConfig(nextConfig, {
-  org: "matrado-pr",
-  project: "epanet-app",
+  org: "iterating",
+  project: "epanet-js",
   environment: process.env.NODE_ENV,
   release: commitSha,
   authToken: process.env.SENTRY_AUTH_TOKEN,
