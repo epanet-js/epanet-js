@@ -1,39 +1,72 @@
-# EpanetApp
+# epanet-js
 
-EpanetApp is a web application that makes [Epanet](https://www.epa.gov/water-research/epanet) accessable from the browser.
+epanet-js is a web application that makes [Epanet](https://www.epa.gov/water-research/epanet) accessible from the browser.
+
+The project is a NextJS application. Although most of the logic occurs on the browser, it uses cloud functions to protect secrets and authenticate users.
 
 ## Getting started
 
 1. Clone the repository, change to this directory, and install dependencies:
 
-```
+```sh
 git clone
 pnpm install
 ```
 
-2. Obtain a [Mapbox public access token](https://account.mapbox.com/)
-   ([docs](https://docs.mapbox.com/help/getting-started/access-tokens/))
+2. Copy the contents from `.env.example` to `.env` and edit with the values from your accounts.
 
-3. Build the package with the tokens from the previous step:
+3. Start dev server
 
 ```sh
-NEXT_PUBLIC_MAPBOX_TOKEN="<your Mapbox public access token>" \
-pnpm build
+pnpm dev
 
 ```
 
-4. Start the server:
+4. Visit [http://localhost:3000](http://localhost:3000).
+_Notice: if you see a ChunkLoadError, try refreshing the page._
+
+
+5. Run tests:
 
 ```sh
-pnpm start
+pnpm test
 ```
 
-5. Visit [http://localhost:3000](http://localhost:3000)
+Or in watch mode:
 
-If you're planning to run this often or publicly, take care to secure your
-tokens better by adding [URL restrictions to the Mapbox token](https://docs.mapbox.com/help/getting-started/access-tokens/#url-restrictions) and setting allowed Referrer Hostnames to the Geocode Earth one,
-and consider copying and revising the `.env.sample` file.
+```sh
+pnpm test:watch
+```
 
+6. Check types:
+
+```sh
+pnpm check-types
+```
+
+Or in watch mode:
+
+```sh
+pnpm check-types:watch
+```
+
+7. Run linter:
+
+```sh
+pnpm lint
+```
+
+## Deploy
+
+You will need to configure the environment variables for the deployment. You can find the list of variables in `.env.example`.
+
+To deploy you will need to run the `next build`.
+
+In Vercel you can use this command:
+
+```sh
+pnpm lint && NODE_ENV=test pnpm test && NODE_ENV=production next build
+```
 
 ## License
 
