@@ -6,23 +6,23 @@ import { logger } from "src/infra/server-logger";
 type Plan = "personal" | "pro";
 type PaymentType = "monthly" | "yearly";
 
-const testPrices: Record<Plan, Record<PaymentType, string | null>> = {
+const pricingKeys: Record<Plan, Record<PaymentType, string | null>> = {
   pro: {
-    monthly: "price_1R8yfr4IVhHFIm8SlJFTS7dt",
-    yearly: "price_1R8yhW4IVhHFIm8SP4X2X0YG",
+    monthly: "epanet-js_pro_monthly",
+    yearly: "epanet-js_pro_yearly",
   },
   personal: {
-    yearly: "price_1R8yia4IVhHFIm8SYMJXeVqW",
+    yearly: "epanet-js_personal_yearly",
     monthly: null,
   },
 };
 
-const priceIdFor = (plan: Plan, paymentType: PaymentType) => {
-  const priceId = testPrices[plan][paymentType];
-  if (!priceId)
+const pricingKeyFor = (plan: Plan, paymentType: PaymentType) => {
+  const pricingKey = pricingKeys[plan][paymentType];
+  if (!pricingKey)
     throw new Error(`Price not configured for ${plan}:${paymentType}`);
 
-  return priceId;
+  return pricingKey;
 };
 
 export async function POST(request: NextRequest) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Error", { status: 500 });
   }
 
-  const priceId = priceIdFor(plan, paymentType);
+  const priceKey = pricingKeyFor(plan, paymentType);
 
   const successUrl = new URL(
     `/api/stripe-callback?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&paymentType=${paymentType}`,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   const session = await createCheckoutSession(
     email,
-    priceId,
+    priceKey,
     successUrl,
     cancelUrl,
   );
@@ -63,11 +63,21 @@ export async function POST(request: NextRequest) {
 
 const createCheckoutSession = async (
   email: string,
-  priceId: string,
+  lookupKey: string,
   successUrl: URL,
   cancelUrl: URL,
 ): Promise<{ id: string }> => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const prices = await stripe.prices.list({
+    lookup_keys: [lookupKey],
+    expand: ["data.product"], // Optional: Expand to get product details
+  });
+  if (!prices.data || prices.data.length === 0) {
+    throw new Error(`Price with lookup key '${lookupKey}' not found.`);
+  }
+
+  const price = prices.data[0];
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
@@ -77,7 +87,7 @@ const createCheckoutSession = async (
     },
     line_items: [
       {
-        price: priceId,
+        price: price.id,
         quantity: 1,
       },
     ],
