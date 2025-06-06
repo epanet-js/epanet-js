@@ -6,6 +6,8 @@ import { logger } from "src/infra/server-logger";
 type Plan = "personal" | "pro";
 type PaymentType = "monthly" | "yearly";
 
+const testEmail = process.env.PAYMENT_TEST_EMAIL || null;
+
 const pricingKeys: Record<Plan, Record<PaymentType, string | null>> = {
   pro: {
     monthly: "epanet-js_pro_monthly",
@@ -16,6 +18,8 @@ const pricingKeys: Record<Plan, Record<PaymentType, string | null>> = {
     monthly: null,
   },
 };
+
+const testPricingKey = "epanet-js_test";
 
 const pricingKeyFor = (plan: Plan, paymentType: PaymentType) => {
   const pricingKey = pricingKeys[plan][paymentType];
@@ -43,7 +47,10 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Error", { status: 500 });
   }
 
-  const priceKey = pricingKeyFor(plan, paymentType);
+  const priceKey =
+    testEmail && email === testEmail
+      ? testPricingKey
+      : pricingKeyFor(plan, paymentType);
 
   const successUrl = new URL(
     `/api/stripe-callback?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&paymentType=${paymentType}`,
