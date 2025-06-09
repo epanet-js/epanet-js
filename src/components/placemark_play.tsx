@@ -45,6 +45,7 @@ import { CommandShortcuts } from "./commands-shortcuts";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/auth";
 import { dialogFromUrl } from "src/state/dialog";
+import { OfflineGuard } from "./offline-guard";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -158,6 +159,7 @@ export function PlacemarkPlay() {
         <Footer />
       </MapContext.Provider>
       <TabCloseGuard />
+      <OfflineGuard />
     </main>
   );
 }

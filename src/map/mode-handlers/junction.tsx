@@ -55,11 +55,12 @@ export function useJunctionHandlers({
             unit: units.elevation,
           });
         } catch (error) {
-          notify.error({
+          notify.warning({
             Icon: LinkBreak1Icon,
-            title: "No Internet Connection",
+            title: "Failed to Fetch Elevation",
             description:
               "Elevation data cannot be retrieved, so 0 will be assigned for this node.",
+            id: "elevation-fetch-error",
           });
           elevation = fallbackElevation;
           return;

@@ -31,6 +31,41 @@ export default function Notifications({
 }
 
 export const notify = {
+  warning: ({
+    title,
+    description,
+    Icon,
+    id,
+    duration = 5000,
+  }: {
+    title: string;
+    description?: string;
+    Icon?: React.ElementType;
+    id?: string;
+    duration?: number;
+  }) => {
+    return toast.custom(
+      () => (
+        <div className="w-[400px] flex items-start p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-md">
+          {Icon && (
+            <Icon className="h-8 w-8 text-orange-500 mr-3" aria-hidden="true" />
+          )}
+
+          <div className="flex flex-col">
+            <span className="text-base font-semibold text-orange-700">
+              {title}
+            </span>
+            {description && (
+              <span className="text-sm text-orange-600 mt-1">
+                {description}
+              </span>
+            )}
+          </div>
+        </div>
+      ),
+      { id, duration },
+    );
+  },
   error: ({
     title,
     description,
@@ -57,6 +92,39 @@ export const notify = {
             </span>
             {description && (
               <span className="text-sm text-red-600 mt-1">{description}</span>
+            )}
+          </div>
+        </div>
+      ),
+      { id, duration },
+    );
+  },
+  success: ({
+    title,
+    description,
+    Icon,
+    id,
+    duration = 5000,
+  }: {
+    title: string;
+    description?: string;
+    Icon?: React.ElementType;
+    id?: string;
+    duration?: number;
+  }) => {
+    return toast.custom(
+      () => (
+        <div className="w-[400px] flex items-start p-4 bg-green-50 border border-green-200 rounded-lg shadow-md">
+          {Icon && (
+            <Icon className="h-8 w-8 text-green-500 mr-3" aria-hidden="true" />
+          )}
+
+          <div className="flex flex-col">
+            <span className="text-base font-semibold text-green-700">
+              {title}
+            </span>
+            {description && (
+              <span className="text-sm text-green-600 mt-1">{description}</span>
             )}
           </div>
         </div>
