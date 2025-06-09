@@ -44,6 +44,7 @@ export type MapHandlers = {
   onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => void;
   onMove: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
   onZoom: (e: mapboxgl.MapBoxZoomEvent) => void;
+  onError: (e: mapboxgl.ErrorEvent) => void;
 };
 
 export class MapEngine {
@@ -111,6 +112,7 @@ export class MapEngine {
     map.on("zoom", (e: mapboxgl.MapBoxZoomEvent) =>
       this.handlers.current.onZoom(e),
     );
+    map.on("error", (e) => this.handlers.current.onError(e));
 
     map.on("style.load", async () => {
       if (!this.icons.length) {

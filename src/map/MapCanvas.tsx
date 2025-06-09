@@ -48,6 +48,9 @@ import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 import { MapLoading } from "./map-loader";
+import { notify } from "src/components/notifications";
+import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -263,6 +266,19 @@ export const MapCanvas = memo(function MapCanvas({
     onZoom: (e: mapboxgl.MapBoxZoomEvent) => {
       const zoom = e.target.getZoom();
       setZoom(zoom);
+    },
+    onError: (e: mapboxgl.ErrorEvent) => {
+      if (
+        isFeatureOn("FLAG_OFFLINE_ERROR") &&
+        e.error.message.includes("Failed to fetch")
+      ) {
+        notify.error({
+          Icon: LinkBreak1Icon,
+          title: "No Intenet Connection",
+          description: "The map experience may be compromised.",
+          id: "map-fetch-error",
+        });
+      }
     },
   };
 

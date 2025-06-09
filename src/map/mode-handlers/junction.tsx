@@ -24,23 +24,8 @@ import {
   prefetchElevationsTile,
   fallbackElevation,
 } from "../elevations/elevations";
-import toast from "react-hot-toast";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
-
-const NoInternetAlert = () => (
-  <div className="flex items-start p-4 bg-red-50 border border-red-200 rounded-lg shadow-md">
-    <LinkBreak1Icon className="h-8 w-8 text-red-500 mr-3" aria-hidden="true" />
-
-    <div className="flex flex-col">
-      <span className="text-base font-semibold text-red-700">
-        No internet connection
-      </span>
-      <span className="text-sm text-red-600 mt-1">
-        Elevation data cannot be retrieved, so 0 will be assigned for this node.
-      </span>
-    </div>
-  </div>
-);
+import { notify } from "src/components/notifications";
 
 export function useJunctionHandlers({
   mode,
@@ -70,7 +55,12 @@ export function useJunctionHandlers({
             unit: units.elevation,
           });
         } catch (error) {
-          toast.custom(() => <NoInternetAlert />, { duration: 5000 });
+          notify.error({
+            Icon: LinkBreak1Icon,
+            title: "No Internet Connection",
+            description:
+              "Elevation data cannot be retrieved, so 0 will be assigned for this node.",
+          });
           elevation = fallbackElevation;
           return;
         }
