@@ -196,7 +196,9 @@ export const translations: Translations = {
   alwaysShowAtStart: "Mostrar siempre al inicio",
   termsAndConditions: "Términos y Condiciones",
   privacyPolicy: "Política de Privacidad",
-  downloadFailed: "No se ha podido descargar. Por favor, inténtalo de nuevo.",
+  downloadFailed: "Descarga Fallida",
+  checkConnectionAndTry:
+    "Por favor, comprueba tu conexión a internet e inténtalo de nuevo.",
   geocodingNotSupported: "Proyección no soportada",
   geocodingNotSupportedDetail:
     "Tu INP incluye coordenadas o vértices que utilizan un sistema de proyección que aún no es compatible. Asegúrate de que todos los activos estén geocodificados utilizando el estándar WGS84.",

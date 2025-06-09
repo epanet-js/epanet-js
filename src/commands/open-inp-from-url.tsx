@@ -2,11 +2,12 @@ import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog";
 import { useImportInp } from "./import-inp";
-import toast from "react-hot-toast";
 import { captureError } from "src/infra/error-tracking";
 import { translate } from "src/infra/i18n";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
+import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { notify } from "src/components/notifications";
 
 export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -15,7 +16,12 @@ export const useOpenInpFromUrl = () => {
   const importInp = useImportInp();
 
   const handleDownloadError = useCallback(() => {
-    toast.error(translate("downloadFailed"));
+    notify({
+      Icon: LinkBreak1Icon,
+      variant: "error",
+      title: translate("downloadFailed"),
+      description: translate("checkConnectionAndTry"),
+    });
     userTracking.capture({
       name: "downloadError.seen",
     });

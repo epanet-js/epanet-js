@@ -188,7 +188,8 @@ export const translations = {
   alwaysShowAtStart: "Always show at start up",
   termsAndConditions: "Terms and Conditions",
   privacyPolicy: "Privacy Policy",
-  downloadFailed: "Download failed. Try again, please!",
+  downloadFailed: "Download Failed",
+  checkConnectionAndTry: "Please check your internet connection and try again.",
   geocodingNotSupported: "Geocoding not supported",
   geocodingNotSupportedDetail:
     "Your INP includes coordinates or vertices that use a projection system that is not supported yet. Please ensure all assets are geocoded using the WGS84 standard.",
