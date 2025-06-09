@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useImportInp, inpExtension } from "./import-inp";
 import { useCallback } from "react";
@@ -12,8 +12,11 @@ export const useOpenInpFromFs = () => {
   const importInp = useImportInp();
   const userTracking = useUserTracking();
 
-  const { data: fsAccess } = useQuery("browser-fs-access", async () => {
-    return import("browser-fs-access");
+  const { data: fsAccess } = useQuery({
+    queryKey: ["browser-fs-access"],
+    queryFn: async () => {
+      return import("browser-fs-access");
+    },
   });
 
   const openInpFromFs = useCallback(

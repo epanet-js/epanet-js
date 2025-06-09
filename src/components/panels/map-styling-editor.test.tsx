@@ -10,7 +10,7 @@ import { LayerConfigMap } from "src/types";
 import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
 import { Dialogs } from "../dialogs";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 describe("Map Styling Editor", () => {
   it("can change the styles for nodes", async () => {

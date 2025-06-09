@@ -43,7 +43,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
-import { useQuery as reactUseQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
@@ -928,11 +928,12 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
-  const { isError } = reactUseQuery(
-    layerConfig.url,
-    async () => layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
-    { suspense: false, retry: false },
-  );
+  const { isError } = useQuery({
+    queryKey: [layerConfig.url],
+    queryFn: async () =>
+      layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
+    retry: false,
+  });
 
   const editPopover = (
     <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>

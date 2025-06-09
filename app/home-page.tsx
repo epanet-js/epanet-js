@@ -1,7 +1,6 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "react-query";
-//import Play from "src/pages/index-deprecated";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "src/styles/globals.css";
 import * as T from "@radix-ui/react-tooltip";
 

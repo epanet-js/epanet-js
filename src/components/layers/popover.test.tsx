@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UIDMap } from "src/lib/id_mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { Provider as JotaiProvider } from "jotai";
