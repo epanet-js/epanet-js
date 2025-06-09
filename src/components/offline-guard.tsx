@@ -1,11 +1,12 @@
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
-import { notify } from "./notifications";
+import { hideNotification, notify } from "./notifications";
 
 export const OfflineGuard = () => {
   useEffect(() => {
     const handleOffline = () => {
-      notify.error({
+      notify({
+        variant: "error",
         Icon: LinkBreak1Icon,
         title: "No Internet Connection",
         description: "The map experience may be compromised.",
@@ -14,7 +15,7 @@ export const OfflineGuard = () => {
     };
 
     const handleOnline = () => {
-      notify.remove("offline-error");
+      hideNotification("offline-error");
     };
 
     window.addEventListener("online", handleOnline);

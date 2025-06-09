@@ -56,7 +56,8 @@ export function useJunctionHandlers({
           });
         } catch (error) {
           if ((error as Error).message.includes("Failed to fetch")) {
-            notify.error({
+            notify({
+              variant: "error",
               Icon: LinkBreak1Icon,
               title: "No Internet Connection",
               description:
@@ -65,16 +66,15 @@ export function useJunctionHandlers({
             });
           }
           if ((error as Error).message.includes("Tile not found")) {
-            notify.warning({
+            notify({
+              variant: "error",
               Icon: LinkBreak1Icon,
               title: "Elevation Not Avaiable",
               description:
                 "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
-              id: "tile-not-found",
             });
           }
           elevation = fallbackElevation;
-          return;
         }
       } else {
         elevation = await fetchElevationForPointDeprecated(e.lngLat, {

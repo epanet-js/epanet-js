@@ -48,9 +48,9 @@ import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 import { MapLoading } from "./map-loader";
-import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { notify } from "src/components/notifications";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -272,7 +272,8 @@ export const MapCanvas = memo(function MapCanvas({
         isFeatureOn("FLAG_OFFLINE_ERROR") &&
         e.error.message.includes("Failed to fetch")
       ) {
-        notify.error({
+        notify({
+          variant: "error",
           Icon: LinkBreak1Icon,
           title: "No Internet Connection",
           description: "The map experience may be compromised.",
