@@ -24,7 +24,6 @@ import {
 } from "src/global-config";
 import Image from "next/image";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { WelcomeOpened, useUserTracking } from "src/infra/user-tracking";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 
@@ -175,23 +174,21 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
                     {translate("helpCenter")}
                   </Button>
                 </a>
-                {isFeatureOn("FLAG_REPO") && (
-                  <a
-                    href={sourceCodeUrl}
-                    target="_blank"
-                    onClick={() => {
-                      userTracking.capture({
-                        name: "repo.visited",
-                        source: "welcome",
-                      });
-                    }}
-                  >
-                    <Button variant="quiet">
-                      <GitHubLogoIcon />
-                      {translate("openSource")}
-                    </Button>
-                  </a>
-                )}
+                <a
+                  href={sourceCodeUrl}
+                  target="_blank"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "repo.visited",
+                      source: "welcome",
+                    });
+                  }}
+                >
+                  <Button variant="quiet">
+                    <GitHubLogoIcon />
+                    {translate("openSource")}
+                  </Button>
+                </a>
               </div>
             </div>
           </div>

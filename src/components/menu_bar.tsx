@@ -64,20 +64,18 @@ export const MenuBarPlay = memo(function MenuBar() {
         <FileInfo />
       </div>
       <div className="flex items-center gap-x-1">
-        {isFeatureOn("FLAG_REPO") && (
-          <a
-            href={sourceCodeUrl}
-            target="_blank"
-            onClick={() => {
-              userTracking.capture({ name: "repo.visited", source: "menu" });
-            }}
-          >
-            <Button variant="quiet">
-              <GitHubLogoIcon />
-              {translate("openSource")}
-            </Button>
-          </a>
-        )}
+        <a
+          href={sourceCodeUrl}
+          target="_blank"
+          onClick={() => {
+            userTracking.capture({ name: "repo.visited", source: "menu" });
+          }}
+        >
+          <Button variant="quiet">
+            <GitHubLogoIcon />
+            {translate("openSource")}
+          </Button>
+        </a>
         {isDebugOn && <DebugDropdown />}
 
         <HelpDot />
