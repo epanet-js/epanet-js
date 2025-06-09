@@ -317,6 +317,8 @@ export const translations = {
   notEnoughData: "Not enough data.",
   updated: "Updated",
   unableToUpdate: "Cannot Update",
+  invalidRange: "Invalid Range",
+  fixRangeToApply: "Please adjust the range to apply changes.",
   flowAbs: "Flow (Abs.)",
   regenerate: "Regenerate",
   mode: "Mode",

@@ -1,4 +1,9 @@
-import { PlusIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
+import {
+  CrossCircledIcon,
+  PlusIcon,
+  TrashIcon,
+  UpdateIcon,
+} from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
@@ -23,7 +28,6 @@ import {
   validateAscindingBreaks,
 } from "src/map/symbology/range-color-rule";
 import { translate } from "src/infra/i18n";
-import toast from "react-hot-toast";
 import { useCallback, useMemo, useState } from "react";
 import { dataAtom } from "src/state/jotai";
 
@@ -33,6 +37,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
+import { notify } from "./notifications";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -132,7 +137,13 @@ export const RangeColorRuleEditor = ({
       classesCount: newColorRule.colors.length,
     });
     setError(error);
-    toast.error(translate("unableToUpdate"), { id: "symbology" });
+    notify({
+      variant: "error",
+      Icon: CrossCircledIcon,
+      title: translate("invalidRange"),
+      description: translate("fixRangeToApply"),
+      id: "symbology",
+    });
   };
 
   const clearError = () => {

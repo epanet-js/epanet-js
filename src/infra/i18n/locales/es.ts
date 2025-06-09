@@ -328,6 +328,8 @@ export const translations: Translations = {
   notEnoughData: "No hay suficientes datos.",
   updated: "Actualizado",
   unableToUpdate: "No ha sido posible actualizar",
+  invalidRange: "Rango Inválido",
+  fixRangeToApply: "Ajusta el rango para aplicar los cambios.",
   flowAbs: "Flujo (Abs.)",
   regenerate: "Regenerar",
   mode: "Modo",
