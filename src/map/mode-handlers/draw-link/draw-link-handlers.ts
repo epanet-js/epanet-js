@@ -9,7 +9,7 @@ import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./draw-link-state";
 import {
-  fetchElevationForPoint,
+  fetchElevationForPointDeprecated,
   prefetchElevationsTileDeprecated,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
@@ -121,7 +121,7 @@ export function useDrawLinkHandlers({
           : getMapCoord(e);
         const pointElevation = snappingNode
           ? snappingNode.elevation
-          : await fetchElevationForPoint(e.lngLat, {
+          : await fetchElevationForPointDeprecated(e.lngLat, {
               unit: units.elevation,
             });
 
@@ -218,7 +218,7 @@ export function useDrawLinkHandlers({
       const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
         label: "",
         coordinates: link.lastVertex,
-        elevation: await fetchElevationForPoint(
+        elevation: await fetchElevationForPointDeprecated(
           coordinatesToLngLat(link.lastVertex),
           {
             unit: units.elevation,

@@ -11,7 +11,7 @@ import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import {
-  fetchElevationForPoint,
+  fetchElevationForPointDeprecated,
   prefetchElevationsTileDeprecated,
 } from "../elevations";
 import throttle from "lodash/throttle";
@@ -39,7 +39,7 @@ export function useDrawReservoirHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const elevation = await fetchElevationForPoint(e.lngLat, {
+      const elevation = await fetchElevationForPointDeprecated(e.lngLat, {
         unit: units.elevation,
       });
       const reservoir = assetBuilder.buildReservoir({

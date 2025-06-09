@@ -107,7 +107,7 @@ describe("elevations", () => {
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
-    await prefetchElevationsTile(queryClient, fixtureCoordinates);
+    await prefetchElevationsTile(fixtureCoordinates);
 
     const elevation = await fetchElevationForPoint(fixtureCoordinates, {
       unit: "m",
@@ -120,30 +120,7 @@ describe("elevations", () => {
       expect.stringContaining("/14/7992/5108@2x"),
     );
   });
-
-  it("provides fallback value when tile not found", async () => {
-    stubHttpError();
-    const anyCoordinates = { lng: 10, lat: 20 };
-
-    const elevation = await fetchElevationForPoint(anyCoordinates, {
-      unit: "m",
-      setUpCanvas: testCanvasFn,
-    });
-
-    expect(elevation).toEqual(0);
-  });
 });
-
-const stubHttpError = () => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(() =>
-      Promise.resolve({
-        ok: false,
-      }),
-    ),
-  );
-};
 
 const stubFetchFixture = () => {
   const fixture = readFixtureAsBuffer();

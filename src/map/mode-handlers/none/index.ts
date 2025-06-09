@@ -11,7 +11,7 @@ import { moveNode } from "src/hydraulic-model/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import {
-  fetchElevationForPoint,
+  fetchElevationForPointDeprecated,
   prefetchElevationsTileDeprecated,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
@@ -81,7 +81,7 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: node.id,
         newCoordinates: node.coordinates,
-        newElevation: await fetchElevationForPoint(e.lngLat, {
+        newElevation: await fetchElevationForPointDeprecated(e.lngLat, {
           unit: node.getUnit("elevation"),
         }),
       });
@@ -122,7 +122,7 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: await fetchElevationForPoint(e.lngLat, {
+        newElevation: await fetchElevationForPointDeprecated(e.lngLat, {
           unit: node.getUnit("elevation"),
         }),
       });

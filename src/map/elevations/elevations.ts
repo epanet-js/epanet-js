@@ -3,10 +3,19 @@ import { withInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
 import { Unit, convertTo } from "src/quantity";
 
+const staleTime = 5 * 60 * 1000;
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime,
+      retry: false,
+    },
+  },
+});
+export const queryClientDeprecated = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime,
       retry: 3,
     },
   },
@@ -15,7 +24,7 @@ export const queryClient = new QueryClient({
 export const tileSize = 512;
 export const tileZoom = 14;
 
-const fallbackElevation = 0;
+export const fallbackElevation = 0;
 
 export type LngLat = { lat: number; lng: number };
 
@@ -46,10 +55,30 @@ export async function fetchElevationForPoint(
   return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
-export async function prefetchElevationsTile(
-  queryClient: QueryClient,
-  { lng, lat }: LngLat,
-) {
+export async function fetchElevationForPointDeprecated(
+  { lat, lng }: LngLat,
+  {
+    unit,
+    setUpCanvas = defaultCanvasSetupFn,
+  }: { unit: Unit; setUpCanvas?: CanvasSetupFn },
+): Promise<number> {
+  const { queryKey, url } = buildTileDescriptor(lng, lat);
+
+  const tileBlob = await queryClientDeprecated.fetchQuery({
+    queryKey,
+    queryFn: () => fetchTileFromUrlDeprecated(url),
+  });
+
+  if (!tileBlob) {
+    return fallbackElevation;
+  }
+
+  const { ctx, img } = await setUpCanvas(tileBlob);
+  const elevationInMeters = getElevationPixel(ctx, img, { lng, lat });
+  return convertTo({ value: elevationInMeters, unit: "m" }, unit);
+}
+
+export async function prefetchElevationsTile({ lng, lat }: LngLat) {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
   await queryClient.prefetchQuery({
@@ -61,9 +90,9 @@ export async function prefetchElevationsTile(
 export async function prefetchElevationsTileDeprecated({ lng, lat }: LngLat) {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
-  await queryClient.prefetchQuery({
+  await queryClientDeprecated.prefetchQuery({
     queryKey,
-    queryFn: () => fetchTileFromUrl(url),
+    queryFn: () => fetchTileFromUrlDeprecated(url),
   });
 }
 
@@ -75,6 +104,22 @@ const buildTileDescriptor = (lng: number, lat: number) => {
 };
 
 const fetchTileFromUrl = withInstrumentation(
+  async (tileUrl: string): Promise<Blob> => {
+    const response = await fetch(tileUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch");
+    }
+    return response.blob();
+  },
+  {
+    name: "FETCH_ELEVATION:FETCH_TILE",
+    maxDurationMs: 500,
+    maxCalls: 5,
+    callsIntervalMs: 1000,
+  },
+);
+
+const fetchTileFromUrlDeprecated = withInstrumentation(
   async (tileUrl: string): Promise<Blob | null> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {

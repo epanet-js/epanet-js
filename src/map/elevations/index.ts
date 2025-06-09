@@ -1,4 +1,4 @@
 export {
-  fetchElevationForPoint,
+  fetchElevationForPointDeprecated,
   prefetchElevationsTileDeprecated,
 } from "./elevations";

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CanvasSetupFn,
-  fetchElevationForPoint,
+  fetchElevationForPointDeprecated,
   prefetchElevationsTileDeprecated,
-  queryClient,
+  queryClientDeprecated,
   tileSize,
 } from "./elevations";
 import fs from "fs";
@@ -22,17 +22,20 @@ const testCanvasFn = setUpCanvasFn as unknown as CanvasSetupFn;
 describe("elevations deprecated", () => {
   afterEach(() => {
     vi.resetAllMocks();
-    queryClient.clear();
+    queryClientDeprecated.clear();
   });
 
   it("provides the elevation at given coordinates", async () => {
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
-    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
-      setUpCanvas: testCanvasFn,
-      unit: "m",
-    });
+    const elevation = await fetchElevationForPointDeprecated(
+      fixtureCoordinates,
+      {
+        setUpCanvas: testCanvasFn,
+        unit: "m",
+      },
+    );
 
     expect(elevation).toEqual(55.6);
   });
@@ -41,10 +44,13 @@ describe("elevations deprecated", () => {
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
-    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
-      setUpCanvas: testCanvasFn,
-      unit: "ft",
-    });
+    const elevation = await fetchElevationForPointDeprecated(
+      fixtureCoordinates,
+      {
+        setUpCanvas: testCanvasFn,
+        unit: "ft",
+      },
+    );
 
     expect(elevation).toBeCloseTo(182.41);
   });
@@ -53,7 +59,7 @@ describe("elevations deprecated", () => {
     stubFetchFixture();
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
-    const elevation = await fetchElevationForPoint(closeCoordinates, {
+    const elevation = await fetchElevationForPointDeprecated(closeCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
@@ -66,12 +72,12 @@ describe("elevations deprecated", () => {
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
     const closeCoordinates = { lng: -4.380429, lat: 55.9156107 };
 
-    await fetchElevationForPoint(fixtureCoordinates, {
+    await fetchElevationForPointDeprecated(fixtureCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
-    await fetchElevationForPoint(closeCoordinates, {
+    await fetchElevationForPointDeprecated(closeCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
@@ -87,12 +93,12 @@ describe("elevations deprecated", () => {
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
     const farAwayCoordinates = { lng: +4.380429, lat: -55.9156107 };
 
-    await fetchElevationForPoint(fixtureCoordinates, {
+    await fetchElevationForPointDeprecated(fixtureCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
 
-    await fetchElevationForPoint(farAwayCoordinates, {
+    await fetchElevationForPointDeprecated(farAwayCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
@@ -109,10 +115,13 @@ describe("elevations deprecated", () => {
 
     await prefetchElevationsTileDeprecated(fixtureCoordinates);
 
-    const elevation = await fetchElevationForPoint(fixtureCoordinates, {
-      unit: "m",
-      setUpCanvas: testCanvasFn,
-    });
+    const elevation = await fetchElevationForPointDeprecated(
+      fixtureCoordinates,
+      {
+        unit: "m",
+        setUpCanvas: testCanvasFn,
+      },
+    );
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(elevation).toEqual(55.6);
@@ -125,7 +134,7 @@ describe("elevations deprecated", () => {
     stubHttpError();
     const anyCoordinates = { lng: 10, lat: 20 };
 
-    const elevation = await fetchElevationForPoint(anyCoordinates, {
+    const elevation = await fetchElevationForPointDeprecated(anyCoordinates, {
       unit: "m",
       setUpCanvas: testCanvasFn,
     });
