@@ -55,13 +55,24 @@ export function useJunctionHandlers({
             unit: units.elevation,
           });
         } catch (error) {
-          notify.warning({
-            Icon: LinkBreak1Icon,
-            title: "Failed to Fetch Elevation",
-            description:
-              "Elevation data cannot be retrieved, so 0 will be assigned for this node.",
-            id: "elevation-fetch-error",
-          });
+          if ((error as Error).message.includes("Failed to fetch")) {
+            notify.error({
+              Icon: LinkBreak1Icon,
+              title: "No Internet Connection",
+              description:
+                "Elevation data cannot be retrieved, so 0 will be assigned.",
+              id: "elevation-fetch-error",
+            });
+          }
+          if ((error as Error).message.includes("Tile not found")) {
+            notify.warning({
+              Icon: LinkBreak1Icon,
+              title: "Elevation Not Avaiable",
+              description:
+                "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
+              id: "tile-not-found",
+            });
+          }
           elevation = fallbackElevation;
           return;
         }

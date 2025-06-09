@@ -1,4 +1,4 @@
-import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
+import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { notify } from "./notifications";
 
@@ -14,12 +14,7 @@ export const OfflineGuard = () => {
     };
 
     const handleOnline = () => {
-      notify.success({
-        Icon: Link1Icon,
-        title: "Internet Connection Restored",
-        description: "The map experience is fully restored.",
-        id: "offline-error",
-      });
+      notify.remove("offline-error");
     };
 
     window.addEventListener("online", handleOnline);

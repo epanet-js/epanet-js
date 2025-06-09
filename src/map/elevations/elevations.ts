@@ -107,6 +107,9 @@ const fetchTileFromUrl = withInstrumentation(
   async (tileUrl: string): Promise<Blob> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error("Tile not found");
+      }
       throw new Error("Failed to fetch");
     }
     return response.blob();

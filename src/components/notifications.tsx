@@ -31,6 +31,9 @@ export default function Notifications({
 }
 
 export const notify = {
+  remove: (id: string) => {
+    toast.remove(id);
+  },
   warning: ({
     title,
     description,
@@ -46,7 +49,7 @@ export const notify = {
   }) => {
     return toast.custom(
       () => (
-        <div className="w-[400px] flex items-start p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-md">
+        <div className="w-[420px] flex items-start p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-md">
           {Icon && (
             <Icon className="h-8 w-8 text-orange-500 mr-3" aria-hidden="true" />
           )}
@@ -81,7 +84,7 @@ export const notify = {
   }) => {
     return toast.custom(
       () => (
-        <div className="w-[400px] flex items-start p-4 bg-red-50 border border-red-200 rounded-lg shadow-md">
+        <div className="w-[420px] flex items-start p-4 bg-red-50 border border-red-200 rounded-lg shadow-md">
           {Icon && (
             <Icon className="h-8 w-8 text-red-500 mr-3" aria-hidden="true" />
           )}
@@ -114,7 +117,7 @@ export const notify = {
   }) => {
     return toast.custom(
       () => (
-        <div className="w-[400px] flex items-start p-4 bg-green-50 border border-green-200 rounded-lg shadow-md">
+        <div className="w-[420px] flex items-start p-4 bg-green-50 border border-green-200 rounded-lg shadow-md">
           {Icon && (
             <Icon className="h-8 w-8 text-green-500 mr-3" aria-hidden="true" />
           )}

@@ -274,7 +274,7 @@ export const MapCanvas = memo(function MapCanvas({
       ) {
         notify.error({
           Icon: LinkBreak1Icon,
-          title: "No Intenet Connection",
+          title: "No Internet Connection",
           description: "The map experience may be compromised.",
           id: "offline-error",
         });
