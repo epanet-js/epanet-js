@@ -46,7 +46,19 @@ export async function fetchElevationForPoint(
   return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
-export async function prefetchElevationsTile({ lng, lat }: LngLat) {
+export async function prefetchElevationsTile(
+  queryClient: QueryClient,
+  { lng, lat }: LngLat,
+) {
+  const { queryKey, url } = buildTileDescriptor(lng, lat);
+
+  await queryClient.prefetchQuery({
+    queryKey,
+    queryFn: () => fetchTileFromUrl(url),
+  });
+}
+
+export async function prefetchElevationsTileDeprecated({ lng, lat }: LngLat) {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
   await queryClient.prefetchQuery({

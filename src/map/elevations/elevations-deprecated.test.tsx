@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CanvasSetupFn,
   fetchElevationForPoint,
-  prefetchElevationsTile,
+  prefetchElevationsTileDeprecated,
   queryClient,
   tileSize,
 } from "./elevations";
@@ -19,7 +19,7 @@ const setUpCanvasFn = async (blob: Blob) => {
 
 const testCanvasFn = setUpCanvasFn as unknown as CanvasSetupFn;
 
-describe("elevations", () => {
+describe("elevations deprecated", () => {
   afterEach(() => {
     vi.resetAllMocks();
     queryClient.clear();
@@ -107,7 +107,7 @@ describe("elevations", () => {
     stubFetchFixture();
     const fixtureCoordinates = { lng: -4.3808842, lat: 55.9153471 };
 
-    await prefetchElevationsTile(queryClient, fixtureCoordinates);
+    await prefetchElevationsTileDeprecated(fixtureCoordinates);
 
     const elevation = await fetchElevationForPoint(fixtureCoordinates, {
       unit: "m",

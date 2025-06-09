@@ -12,7 +12,7 @@ import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import {
   fetchElevationForPoint,
-  prefetchElevationsTile,
+  prefetchElevationsTileDeprecated,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
@@ -93,7 +93,7 @@ export function useNoneHandlers({
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
-      prefetchElevationsTile(e.lngLat).catch(captureError);
+      prefetchElevationsTileDeprecated(e.lngLat).catch(captureError);
 
       const [assetId] = getSelectionIds();
       const asset = hydraulicModel.assets.get(assetId);

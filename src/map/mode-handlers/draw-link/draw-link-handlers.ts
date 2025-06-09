@@ -10,7 +10,7 @@ import { useSnapping } from "./snapping";
 import { useDrawingState } from "./draw-link-state";
 import {
   fetchElevationForPoint,
-  prefetchElevationsTile,
+  prefetchElevationsTileDeprecated,
 } from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
@@ -185,7 +185,7 @@ export function useDrawLinkHandlers({
         return;
       }
 
-      prefetchElevationsTile(e.lngLat).catch(captureError);
+      prefetchElevationsTileDeprecated(e.lngLat).catch(captureError);
 
       const snappingNode = isSnapping() ? getSnappingNode(e) : null;
 

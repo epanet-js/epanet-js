@@ -10,7 +10,10 @@ import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
-import { fetchElevationForPoint, prefetchElevationsTile } from "../elevations";
+import {
+  fetchElevationForPoint,
+  prefetchElevationsTileDeprecated,
+} from "../elevations";
 import throttle from "lodash/throttle";
 import { captureError } from "src/infra/error-tracking";
 import { addReservoir } from "src/hydraulic-model/model-operations";
@@ -54,7 +57,7 @@ export function useDrawReservoirHandlers({
       }
     },
     move: throttle((e) => {
-      prefetchElevationsTile(e.lngLat).catch((e) => captureError(e));
+      prefetchElevationsTileDeprecated(e.lngLat).catch((e) => captureError(e));
     }, 200),
     down: noop,
     up() {
