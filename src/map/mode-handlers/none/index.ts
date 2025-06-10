@@ -10,15 +10,11 @@ import { getNode } from "src/hydraulic-model";
 import { moveNode } from "src/hydraulic-model/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
-import {
-  fetchElevationForPointDeprecated,
-  prefetchElevationsTileDeprecated,
-} from "src/map/elevations";
-import { captureError } from "src/infra/error-tracking";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id_mapper";
 import { Asset } from "src/hydraulic-model";
+import { useElevations } from "src/map/elevations/use-elevations";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -40,6 +36,9 @@ export function useNoneHandlers({
   const { isShiftHeld } = useKeyboardState();
   const { startMove, updateMove, resetMove, isMoving } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
+  const { fetchElevation, prefetchTile } = useElevations(
+    hydraulicModel.units.elevation,
+  );
   const transact = rep.useTransact();
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
@@ -81,9 +80,7 @@ export function useNoneHandlers({
       const { putAssets } = moveNode(hydraulicModel, {
         nodeId: node.id,
         newCoordinates: node.coordinates,
-        newElevation: await fetchElevationForPointDeprecated(e.lngLat, {
-          unit: node.getUnit("elevation"),
-        }),
+        newElevation: await fetchElevation(e.lngLat),
       });
       putAssets && startMove(putAssets);
       setCursor("move");
@@ -93,7 +90,7 @@ export function useNoneHandlers({
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
-      prefetchElevationsTileDeprecated(e.lngLat).catch(captureError);
+      void prefetchTile(e.lngLat);
 
       const [assetId] = getSelectionIds();
       const asset = hydraulicModel.assets.get(assetId);
@@ -122,9 +119,7 @@ export function useNoneHandlers({
       const moment = moveNode(hydraulicModel, {
         nodeId: assetId,
         newCoordinates,
-        newElevation: await fetchElevationForPointDeprecated(e.lngLat, {
-          unit: node.getUnit("elevation"),
-        }),
+        newElevation: await fetchElevation(e.lngLat),
       });
       transact(moment);
       resetMove();
