@@ -17,30 +17,19 @@ export const useOfflineStatus = () => {
     intervalRef.current = null;
   }, []);
 
-  const startConnectivityCheck = useCallback(() => {
-    if (intervalRef.current) return;
+  const setOnline = useCallback(() => {
+    if (!isOfflineRef.current) return;
 
-    intervalRef.current = setInterval(async () => {
-      try {
-        const response = await fetch(pingUrl, {
-          method: "HEAD",
-        });
-        if (response.ok) {
-          isOfflineRef.current = false;
-          hideNotification(offlineToastId);
-          notify({
-            variant: "success",
-            title: "Connection restored!",
-            Icon: Link1Icon,
-            duration: 3000,
-            id: onlineToastId,
-          });
-          cancelConnectivityCheck();
-          return;
-        }
-      } catch (e) {}
-    }, 5000);
-  }, [cancelConnectivityCheck]);
+    isOfflineRef.current = false;
+    hideNotification(offlineToastId);
+    notify({
+      variant: "success",
+      title: "Connection restored!",
+      Icon: Link1Icon,
+      duration: 3000,
+      id: onlineToastId,
+    });
+  }, []);
 
   const setOffline = useCallback(() => {
     if (isOfflineRef.current) return;
@@ -56,18 +45,38 @@ export const useOfflineStatus = () => {
       dismissable: false,
       id: offlineToastId,
     });
-    startConnectivityCheck();
-  }, [startConnectivityCheck]);
+  }, []);
 
-  return { setOffline };
+  const startConnectivityCheck = useCallback(() => {
+    if (!isFeatureOn("FLAG_OFFLINE_ERROR")) return;
+    if (intervalRef.current) return;
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const response = await fetch(pingUrl, {
+          method: "HEAD",
+        });
+        if (response.ok) {
+          setOnline();
+          return;
+        } else {
+          setOffline();
+        }
+      } catch (e) {
+        setOffline();
+      }
+    }, 5000);
+  }, [setOnline, setOffline]);
+
+  return { startConnectivityCheck, cancelConnectivityCheck, setOffline };
 };
 
 export const OfflineGuard = () => {
-  const { setOffline } = useOfflineStatus();
+  const { startConnectivityCheck, cancelConnectivityCheck, setOffline } =
+    useOfflineStatus();
 
   useEffect(() => {
     const handleOffline = () => {
-      if (!isFeatureOn("FLAG_OFFLINE_ERROR")) return;
       setOffline();
     };
 
@@ -77,6 +86,14 @@ export const OfflineGuard = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [setOffline]);
+
+  useEffect(() => {
+    startConnectivityCheck();
+
+    return () => {
+      cancelConnectivityCheck();
+    };
+  }, [startConnectivityCheck, cancelConnectivityCheck]);
 
   return null;
 };
