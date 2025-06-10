@@ -26,8 +26,10 @@ export const useOfflineStatus = () => {
       variant: "success",
       title: "Connection restored!",
       Icon: Link1Icon,
+      dismissable: false,
       duration: 3000,
       id: onlineToastId,
+      position: "bottom-right",
     });
   }, []);
 
@@ -44,6 +46,7 @@ export const useOfflineStatus = () => {
       duration: Infinity,
       dismissable: false,
       id: offlineToastId,
+      position: "bottom-right",
     });
   }, []);
 

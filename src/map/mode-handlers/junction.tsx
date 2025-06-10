@@ -62,6 +62,7 @@ export function useJunctionHandlers({
               title: "Failed to Fetch Elevation",
               description:
                 "Elevation data cannot be retrieved, so 0 will be assigned.",
+              id: "elevations-failed-to-fetch",
             });
           }
           if ((error as Error).message.includes("Tile not found")) {
@@ -71,6 +72,7 @@ export function useJunctionHandlers({
               title: "Elevation Not Avaiable",
               description:
                 "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
+              id: "elevations-not-found",
             });
           }
           elevation = fallbackElevation;

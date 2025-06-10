@@ -43,6 +43,7 @@ export const notify = ({
   duration = 5000,
   position = "top-center",
   dismissable = true,
+  size = "auto",
 }: {
   variant: "success" | "warning" | "error";
   title: string;
@@ -52,12 +53,18 @@ export const notify = ({
   duration?: number;
   position?: "top-center" | "bottom-right";
   dismissable?: boolean;
+  size?: "auto" | "sm" | "md";
 }) => {
   return toast.custom(
     (t) => (
       <div
         className={clsx(
-          "w-[420px] flex items-start p-4 border rounded-lg shadow-md",
+          {
+            "w-[420px]": size === "md",
+            "w-[300px]": size === "sm",
+            "w-auto": size === "auto",
+          },
+          "flex items-start p-4 border rounded-lg shadow-md",
           {
             "bg-green-50 border-green-200": variant === "success",
             "bg-orange-50 border-orange-200": variant === "warning",
@@ -102,10 +109,10 @@ export const notify = ({
         {dismissable && (
           <button
             onClick={() => toast.remove(t.id)}
-            className="ml-4 p-1 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            className="ml-4 p-1 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
           >
             <span className="sr-only">Dismiss</span>
-            <Cross1Icon className="h-4 w-4" />
+            <Cross1Icon className="h-3 w-3" />
           </button>
         )}
       </div>

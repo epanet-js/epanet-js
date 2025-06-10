@@ -21,6 +21,7 @@ export const useOpenInpFromUrl = () => {
       variant: "error",
       title: translate("downloadFailed"),
       description: translate("checkConnectionAndTry"),
+      size: "md",
     });
     userTracking.capture({
       name: "downloadError.seen",

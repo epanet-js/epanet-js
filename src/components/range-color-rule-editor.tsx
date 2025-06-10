@@ -143,6 +143,7 @@ export const RangeColorRuleEditor = ({
       title: translate("invalidRange"),
       description: translate("fixRangeToApply"),
       id: "symbology",
+      size: "md",
     });
   };
 
