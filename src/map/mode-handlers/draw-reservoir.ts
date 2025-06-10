@@ -10,14 +10,10 @@ import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
-import {
-  fetchElevationForPointDeprecated,
-  prefetchElevationsTileDeprecated,
-} from "../elevations";
 import throttle from "lodash/throttle";
-import { captureError } from "src/infra/error-tracking";
 import { addReservoir } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useElevations } from "../elevations/use-elevations";
 
 export function useDrawReservoirHandlers({
   mode,
@@ -31,6 +27,7 @@ export function useDrawReservoirHandlers({
   const transact = rep.useTransact();
   const multi = mode.modeOptions?.multi;
   const { assetBuilder, units } = hydraulicModel;
+  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
 
   return {
     click: async (e) => {
@@ -39,9 +36,7 @@ export function useDrawReservoirHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      const elevation = await fetchElevationForPointDeprecated(e.lngLat, {
-        unit: units.elevation,
-      });
+      const elevation = await fetchElevation(e.lngLat);
       const reservoir = assetBuilder.buildReservoir({
         elevation,
         coordinates: clickPosition,
@@ -57,7 +52,7 @@ export function useDrawReservoirHandlers({
       }
     },
     move: throttle((e) => {
-      prefetchElevationsTileDeprecated(e.lngLat).catch((e) => captureError(e));
+      void prefetchTile(e.lngLat);
     }, 200),
     down: noop,
     up() {
