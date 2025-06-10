@@ -11,21 +11,9 @@ import { useSetAtom } from "jotai";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "./utils";
 import { addJunction } from "src/hydraulic-model/model-operations";
-import {
-  fetchElevationForPointDeprecated,
-  prefetchElevationsTileDeprecated,
-} from "../elevations";
 import throttle from "lodash/throttle";
-import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { isFeatureOn } from "src/infra/feature-flags";
-import {
-  fetchElevationForPoint,
-  prefetchElevationsTile,
-  fallbackElevation,
-} from "../elevations/elevations";
-import { LinkBreak1Icon } from "@radix-ui/react-icons";
-import { notify } from "src/components/notifications";
+import { useElevations } from "../elevations/use-elevations";
 
 export function useJunctionHandlers({
   mode,
@@ -39,6 +27,7 @@ export function useJunctionHandlers({
   const userTracking = useUserTracking();
   const multi = mode.modeOptions?.multi;
   const { assetBuilder, units } = hydraulicModel;
+  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
 
   return {
     click: async (e) => {
@@ -47,41 +36,7 @@ export function useJunctionHandlers({
       }
 
       const clickPosition = getMapCoord(e);
-      let elevation;
-
-      if (isFeatureOn("FLAG_OFFLINE_ERROR")) {
-        try {
-          elevation = await fetchElevationForPoint(e.lngLat, {
-            unit: units.elevation,
-          });
-        } catch (error) {
-          if ((error as Error).message.includes("Failed to fetch")) {
-            notify({
-              variant: "warning",
-              Icon: LinkBreak1Icon,
-              title: "Failed to Fetch Elevation",
-              description:
-                "Elevation data cannot be retrieved, so 0 will be assigned.",
-              id: "elevations-failed-to-fetch",
-            });
-          }
-          if ((error as Error).message.includes("Tile not found")) {
-            notify({
-              variant: "warning",
-              Icon: LinkBreak1Icon,
-              title: "Elevation Not Avaiable",
-              description:
-                "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
-              id: "elevations-not-found",
-            });
-          }
-          elevation = fallbackElevation;
-        }
-      } else {
-        elevation = await fetchElevationForPointDeprecated(e.lngLat, {
-          unit: units.elevation,
-        });
-      }
+      const elevation = await fetchElevation(e.lngLat);
       const junction = assetBuilder.buildJunction({
         elevation,
         coordinates: clickPosition,
@@ -97,11 +52,7 @@ export function useJunctionHandlers({
       }
     },
     move: throttle((e) => {
-      isFeatureOn("FLAG_OFFLINE_ERROR")
-        ? void prefetchElevationsTile(e.lngLat)
-        : void prefetchElevationsTileDeprecated(e.lngLat).catch((e) =>
-            captureError(e),
-          );
+      prefetchTile(e.lngLat);
     }, 200),
     down: noop,
     up() {
