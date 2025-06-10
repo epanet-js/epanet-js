@@ -8,16 +8,14 @@ import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
 import { useDrawingState } from "./draw-link-state";
-import {
-  fetchElevationForPointDeprecated,
-  prefetchElevationsTileDeprecated,
-} from "src/map/elevations";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { addLink } from "src/hydraulic-model/model-operations";
+import { useElevations } from "src/map/elevations/use-elevations";
+import { LngLat } from "mapbox-gl";
 
 export function useDrawLinkHandlers({
   rep,
@@ -107,6 +105,7 @@ export function useDrawLinkHandlers({
     const [lng, lat] = coordinates;
     return { lng, lat };
   };
+  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
 
   const isClickInProgress = useRef<boolean>(false);
 
@@ -121,9 +120,7 @@ export function useDrawLinkHandlers({
           : getMapCoord(e);
         const pointElevation = snappingNode
           ? snappingNode.elevation
-          : await fetchElevationForPointDeprecated(e.lngLat, {
-              unit: units.elevation,
-            });
+          : await fetchElevation(e.lngLat);
 
         if (drawing.isNull) {
           const startNode = snappingNode
@@ -185,7 +182,7 @@ export function useDrawLinkHandlers({
         return;
       }
 
-      prefetchElevationsTileDeprecated(e.lngLat).catch(captureError);
+      void prefetchTile(e.lngLat);
 
       const snappingNode = isSnapping() ? getSnappingNode(e) : null;
 
@@ -218,11 +215,8 @@ export function useDrawLinkHandlers({
       const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
         label: "",
         coordinates: link.lastVertex,
-        elevation: await fetchElevationForPointDeprecated(
-          coordinatesToLngLat(link.lastVertex),
-          {
-            unit: units.elevation,
-          },
+        elevation: await fetchElevation(
+          coordinatesToLngLat(link.lastVertex) as LngLat,
         ),
       });
 
