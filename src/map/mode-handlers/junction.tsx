@@ -57,17 +57,16 @@ export function useJunctionHandlers({
         } catch (error) {
           if ((error as Error).message.includes("Failed to fetch")) {
             notify({
-              variant: "error",
+              variant: "warning",
               Icon: LinkBreak1Icon,
-              title: "No Internet Connection",
+              title: "Failed to Fetch Elevation",
               description:
                 "Elevation data cannot be retrieved, so 0 will be assigned.",
-              id: "elevation-fetch-error",
             });
           }
           if ((error as Error).message.includes("Tile not found")) {
             notify({
-              variant: "error",
+              variant: "warning",
               Icon: LinkBreak1Icon,
               title: "Elevation Not Avaiable",
               description:

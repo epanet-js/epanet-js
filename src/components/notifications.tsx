@@ -1,3 +1,4 @@
+import { Cross1Icon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -40,6 +41,8 @@ export const notify = ({
   Icon,
   id,
   duration = 5000,
+  position = "top-center",
+  dismissable = true,
 }: {
   variant: "success" | "warning" | "error";
   title: string;
@@ -47,9 +50,11 @@ export const notify = ({
   Icon?: React.ElementType;
   id?: string;
   duration?: number;
+  position?: "top-center" | "bottom-right";
+  dismissable?: boolean;
 }) => {
   return toast.custom(
-    () => (
+    (t) => (
       <div
         className={clsx(
           "w-[420px] flex items-start p-4 border rounded-lg shadow-md",
@@ -58,11 +63,12 @@ export const notify = ({
             "bg-orange-50 border-orange-200": variant === "warning",
             "bg-red-50 border-red-200": variant === "error",
           },
+          t.visible ? "animate-enter" : "animate-leave",
         )}
       >
         {Icon && (
           <Icon
-            className={clsx("h-8 w-8 mr-3", {
+            className={clsx("h-6 w-6 mr-3", {
               "text-green-500": variant === "success",
               "text-red-500": variant === "error",
               "text-orange-500": variant === "warning",
@@ -71,7 +77,7 @@ export const notify = ({
           />
         )}
 
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-grow">
           <span
             className={clsx("text-base font-semibold", {
               "text-green-700": variant === "success",
@@ -93,8 +99,17 @@ export const notify = ({
             </span>
           )}
         </div>
+        {dismissable && (
+          <button
+            onClick={() => toast.remove(t.id)}
+            className="ml-4 p-1 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+          >
+            <span className="sr-only">Dismiss</span>
+            <Cross1Icon className="h-4 w-4" />
+          </button>
+        )}
       </div>
     ),
-    { id, duration },
+    { id, duration, position },
   );
 };
