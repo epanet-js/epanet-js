@@ -1,6 +1,7 @@
 import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
@@ -66,6 +67,7 @@ export const OfflineGuard = () => {
 
   useEffect(() => {
     const handleOffline = () => {
+      if (!isFeatureOn("FLAG_OFFLINE_ERROR")) return;
       setOffline();
     };
 
