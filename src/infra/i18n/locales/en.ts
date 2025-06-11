@@ -159,8 +159,9 @@ export const translations = {
   createNew: "Create New",
   dropInp: "Drop an .INP file here to open the model.",
   inpMissing: "Invalid file type. Use an .INP file.",
-  onlyOneInp:
-    "Only one INP file is allowed at a time. The first one will be used.",
+  onlyOneInp: "Multiple INPs",
+  onlyOneInpExplain:
+    "Only one INP file is allowed at a time.\nThe first one will be used.",
   headlossFormula: "Headloss Formula",
   headlossShort: "Headloss",
   headloss: "Headloss",

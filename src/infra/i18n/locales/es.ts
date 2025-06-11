@@ -166,7 +166,9 @@ export const translations: Translations = {
   createNew: "Crear Nuevo",
   dropInp: "Arrastra y suelta un archivo .INP aquí para abrir el modelo.",
   inpMissing: "Tipo de archivo no soportado. Usa un archivo .INP.",
-  onlyOneInp: "Solo se soporta un archivo INP a la vez. Se usará el primero.",
+  onlyOneInp: "Múltiples INPs",
+  onlyOneInpExplain:
+    "Solo se soporta un archivo INP a la vez.\nSe usará el primero.",
   headlossFormula: "Fórmula de pérdida de carga",
   headlossShort: "Pérd. Carga",
   headloss: "Pérdida de Carga",

@@ -2,7 +2,6 @@ import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
-import toast from "react-hot-toast";
 import { FileWithHandle } from "browser-fs-access";
 import { translate } from "src/infra/i18n";
 import { ParserIssues, parseInp } from "src/import/inp";
@@ -16,6 +15,8 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { notify } from "src/components/notifications";
 
 export const inpExtension = ".inp";
 
@@ -42,7 +43,13 @@ export const useImportInp = () => {
       }
 
       if (inps.length > 1) {
-        toast(translate("onlyOneInp"), { icon: "⚠️" });
+        notify({
+          variant: "warning",
+          size: "md",
+          title: translate("onlyOneInp"),
+          description: translate("onlyOneInpExplain"),
+          Icon: ExclamationTriangleIcon,
+        });
       }
 
       const file = inps[0];
