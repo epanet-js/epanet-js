@@ -5,11 +5,10 @@ import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
+import { pingUrl } from "src/global-config";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
-
-const pingUrl = "https://www.cloudflare.com/cdn-cgi/trace";
 
 export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
