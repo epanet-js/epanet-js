@@ -1,7 +1,6 @@
 import { ILayerConfig } from "src/types";
 import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
-import { toast } from "react-hot-toast";
 import once from "lodash/once";
 import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
@@ -13,6 +12,7 @@ const warnOffline = once(() => {
     Icon: LinkBreak1Icon,
     title: translate("mapOfflineMode"),
     description: translate("mapOfflineModeExplain"),
+    size: "md",
   });
 });
 
@@ -109,9 +109,13 @@ export async function addTileJSONStyle(
 
     style.layers.push(newLayer);
   } catch (e) {
-    toast.error(
-      "A TileJSON layer failed to load: the server it depends on may be down",
-    );
+    notify({
+      variant: "error",
+      Icon: LinkBreak1Icon,
+      title: translate("failedToLoad"),
+      description: translate("failedToLoadTileJSON"),
+      size: "md",
+    });
   }
   return style;
 }

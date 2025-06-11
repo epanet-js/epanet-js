@@ -368,6 +368,8 @@ export const translations: Translations = {
   connectionRestored: "¡Conexión Restaurada!",
   mapOfflineMode: "Mapa en Modo Offline",
   mapOfflineModeExplain: "El mapa está utilizando una fondo blanco.",
+  failedToLoad: "Error en la Carga",
+  failedToLoadTileJSON: "No se ha podido conectar con el servidor de TileJSON.",
 };
 
 export const units: UnitsLocale = {

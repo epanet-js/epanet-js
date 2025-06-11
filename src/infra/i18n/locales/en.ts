@@ -357,6 +357,9 @@ export const translations = {
   connectionRestored: "Connection Restored!",
   mapOfflineMode: "Map Offline Mode",
   mapOfflineModeExplain: "The application is now using a blank background.",
+  failedToLoad: "Failed To Load",
+  failedToLoadTileJSON:
+    "A TileJSON layer failed to load. The tile server may be down",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

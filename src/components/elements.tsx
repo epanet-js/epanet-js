@@ -17,7 +17,6 @@ import {
   SymbolIcon,
   Cross1Icon,
   QuestionMarkCircledIcon,
-  ClipboardCopyIcon,
   EyeNoneIcon,
   EyeOpenIcon,
   TextIcon,
@@ -25,32 +24,8 @@ import {
 } from "@radix-ui/react-icons";
 import { SUPPORT_EMAIL } from "src/lib/constants";
 import Placemark from "./icons/placemark";
-import { toast } from "react-hot-toast";
 import { Portal } from "@radix-ui/react-portal";
 import { translate } from "src/infra/i18n";
-
-export function CopiableURL({ url }: { url: string }) {
-  return (
-    <div className="flex gap-x-2 items-stretch">
-      <Input readOnly value={url} />
-      <Button
-        variant="quiet"
-        onClick={() => {
-          navigator.clipboard
-            .writeText(url)
-            .then(() => {
-              toast("Copied");
-            })
-            .catch(() => {
-              toast.error("Could not copy");
-            });
-        }}
-      >
-        <ClipboardCopyIcon />
-      </Button>
-    </div>
-  );
-}
 
 export function Hint({ children }: { children: React.ReactNode }) {
   return (
