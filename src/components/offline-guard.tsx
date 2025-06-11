@@ -3,14 +3,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
-import { atom, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
+import { offlineAtom } from "src/state/offline";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
 
 const pingUrl = "https://www.cloudflare.com/cdn-cgi/trace";
-
-const offlineAtom = atom<boolean>(false);
 
 export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,7 +38,7 @@ export const useOfflineStatus = () => {
       position: "bottom-right",
       size: "sm",
     });
-  }, []);
+  }, [setOfflineAtom]);
 
   const setOffline = useCallback(() => {
     if (isOfflineRef.current) return;
@@ -58,7 +57,7 @@ export const useOfflineStatus = () => {
       position: "bottom-right",
       size: "sm",
     });
-  }, []);
+  }, [setOfflineAtom]);
 
   const startConnectivityCheck = useCallback(() => {
     if (!isFeatureOn("FLAG_OFFLINE_ERROR")) return;

@@ -44,6 +44,7 @@ import { SymbologySpec, symbologyAtom } from "src/state/symbology";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapLoadingAtom } from "./state";
+import { offlineAtom } from "src/state/offline";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -72,6 +73,7 @@ type MapState = {
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
+  isOffline: boolean;
 };
 
 const nullMapState: MapState = {
@@ -88,6 +90,7 @@ const nullMapState: MapState = {
   simulation: initialSimulationState,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
+  isOffline: false,
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -111,6 +114,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
   const movedAssetIds = getMovedAssets(ephemeralState);
+  const isOffline = get(offlineAtom);
 
   return {
     momentLogId: momentLog.id,
@@ -122,6 +126,7 @@ const mapStateAtom = atom<MapState>((get) => {
     simulation,
     selectedAssetIds,
     movedAssetIds,
+    isOffline,
   };
 });
 
@@ -140,7 +145,9 @@ const detectChanges = (
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
     hasNewEditions: state.momentLogPointer !== prev.momentLogPointer,
-    hasNewStyles: state.stylesConfig !== prev.stylesConfig,
+    hasNewStyles:
+      state.stylesConfig !== prev.stylesConfig ||
+      (!state.isOffline && prev.isOffline),
     hasNewSelection: state.selection !== prev.selection,
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
