@@ -80,7 +80,7 @@ export const notify = ({
             "w-[300px]": size === "sm",
             "w-auto": size === "auto",
           },
-          "flex items-start p-4 border rounded-lg shadow-md",
+          "flex items-start p-3 border rounded-lg shadow-md",
           {
             "bg-green-50 border-green-200": variant === "success",
             "bg-orange-50 border-orange-200": variant === "warning",
@@ -91,7 +91,7 @@ export const notify = ({
       >
         {Icon && (
           <Icon
-            className={clsx("h-6 w-6 mr-3 flex-shrink-0", {
+            className={clsx("h-5 w-5 mr-3 flex-shrink-0", {
               "text-green-500": variant === "success",
               "text-red-500": variant === "error",
               "text-orange-500": variant === "warning",
@@ -100,9 +100,9 @@ export const notify = ({
           />
         )}
 
-        <div className="flex flex-col flex-grow">
+        <div className="flex flex-col flex-grow space-y-1">
           <span
-            className={clsx("text-base font-semibold", {
+            className={clsx("text-sm font-semibold", {
               "text-green-700": variant === "success",
               "text-orange-700": variant === "warning",
               "text-red-700": variant === "error",
@@ -112,7 +112,7 @@ export const notify = ({
           </span>
           {description && (
             <span
-              className={clsx("text-sm mt-1", {
+              className={clsx("text-sm", {
                 "text-green-600": variant === "success",
                 "text-orange-600": variant === "warning",
                 "text-red-600": variant === "error",
