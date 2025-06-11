@@ -5,14 +5,16 @@ import { useUserTracking } from "src/infra/user-tracking";
 import LAYERS from "src/lib/default_layers";
 import { mapboxStaticURL } from "src/lib/mapbox_static_url";
 import { layerConfigAtom } from "src/state/jotai";
+import { offlineAtom } from "src/state/offline";
 
 export const SatelliteToggle = () => {
   const toggleSatellite = useToggleSatellite();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const userTracking = useUserTracking();
+  const isOffline = useAtomValue(offlineAtom);
 
   const buttonBackgroundImage = useMemo(() => {
-    if (layerConfigs.size !== 1) return null;
+    if (isOffline || layerConfigs.size !== 1) return null;
 
     const currentBaseMap = [...layerConfigs.values()][0];
     if (currentBaseMap.name === "Monochrome") {
@@ -23,7 +25,7 @@ export const SatelliteToggle = () => {
     }
 
     return null;
-  }, [layerConfigs]);
+  }, [layerConfigs, isOffline]);
 
   if (!buttonBackgroundImage) return null;
 
