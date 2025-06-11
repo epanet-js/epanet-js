@@ -3,13 +3,18 @@ import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
+import { atom, useSetAtom } from "jotai";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
+
 const pingUrl = "https://www.cloudflare.com/cdn-cgi/trace";
+
+const offlineAtom = atom<boolean>(false);
 
 export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const setOfflineAtom = useSetAtom(offlineAtom);
   const isOfflineRef = useRef<boolean>(false);
 
   const cancelConnectivityCheck = useCallback(() => {
@@ -22,6 +27,7 @@ export const useOfflineStatus = () => {
     if (!isOfflineRef.current) return;
 
     isOfflineRef.current = false;
+    setOfflineAtom(false);
     hideNotification(offlineToastId);
     notify({
       variant: "success",
@@ -39,6 +45,7 @@ export const useOfflineStatus = () => {
     if (isOfflineRef.current) return;
 
     isOfflineRef.current = true;
+    setOfflineAtom(true);
     hideNotification(onlineToastId);
     notify({
       variant: "warning",
