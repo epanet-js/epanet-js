@@ -61,7 +61,7 @@ export const useElevations = (unit: Unit) => {
       }
       return elevation;
     },
-    [isOffline],
+    [isOffline, unit],
   );
 
   return { fetchElevation, prefetchTile };
