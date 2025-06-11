@@ -1,14 +1,10 @@
 import { Unit } from "src/quantity";
 import { LngLat } from "mapbox-gl";
-import { isFeatureOn } from "src/infra/feature-flags";
 import {
   fallbackElevation,
   fetchElevationForPoint,
-  fetchElevationForPointDeprecated,
   prefetchElevationsTile,
-  prefetchElevationsTileDeprecated,
 } from "./elevations";
-import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
 import { ValueNoneIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
@@ -22,42 +18,32 @@ export const useElevations = (unit: Unit) => {
     (lngLat: LngLat) => {
       if (isOffline) return;
 
-      isFeatureOn("FLAG_OFFLINE_ERROR")
-        ? void prefetchElevationsTile(lngLat)
-        : void prefetchElevationsTileDeprecated(lngLat).catch((e) =>
-            captureError(e),
-          );
+      void prefetchElevationsTile(lngLat);
     },
     [isOffline],
   );
 
   const fetchElevation = useCallback(
     async (lngLat: LngLat) => {
+      if (isOffline) {
+        notifyOfflineElevation();
+        return fallbackElevation;
+      }
+
       let elevation;
 
-      if (isFeatureOn("FLAG_OFFLINE_ERROR")) {
-        if (isOffline) {
-          notifyOfflineElevation();
-          return fallbackElevation;
-        }
-
-        try {
-          elevation = await fetchElevationForPoint(lngLat, {
-            unit,
-          });
-        } catch (error) {
-          if ((error as Error).message.includes("Failed to fetch")) {
-            notifyOfflineElevation();
-          }
-          if ((error as Error).message.includes("Tile not found")) {
-            notifyTileNotAvailable();
-          }
-          elevation = fallbackElevation;
-        }
-      } else {
-        elevation = await fetchElevationForPointDeprecated(lngLat, {
+      try {
+        elevation = await fetchElevationForPoint(lngLat, {
           unit,
         });
+      } catch (error) {
+        if ((error as Error).message.includes("Failed to fetch")) {
+          notifyOfflineElevation();
+        }
+        if ((error as Error).message.includes("Tile not found")) {
+          notifyTileNotAvailable();
+        }
+        elevation = fallbackElevation;
       }
       return elevation;
     },

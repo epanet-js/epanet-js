@@ -1,7 +1,6 @@
 import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
@@ -59,7 +58,6 @@ export const useOfflineStatus = () => {
   }, [setOfflineAtom]);
 
   const startConnectivityCheck = useCallback(() => {
-    if (!isFeatureOn("FLAG_OFFLINE_ERROR")) return;
     if (intervalRef.current) return;
 
     intervalRef.current = setInterval(async () => {
