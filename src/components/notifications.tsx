@@ -34,6 +34,22 @@ export default function Notifications({
 
 export const hideNotification = (id: string) => toast.remove(id);
 
+export const notifyPromiseState = (
+  promise: Promise<void>,
+  {
+    loading,
+    success,
+    error,
+    duration = 2000,
+  }: { loading: string; success: string; error: string; duration?: number },
+) => {
+  return toast.promise(
+    promise,
+    { loading, success, error },
+    { success: { duration }, error: { duration } },
+  );
+};
+
 export const notify = ({
   variant,
   title,

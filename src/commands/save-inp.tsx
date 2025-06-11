@@ -3,10 +3,10 @@ import { ExportOptions } from "src/lib/convert";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import toast from "react-hot-toast";
 import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
+import { notifyPromiseState } from "src/components/notifications";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -71,15 +71,11 @@ export const useSaveInp = ({
 
         try {
           const savePromise = asyncSave();
-          await toast.promise(
-            savePromise,
-            {
-              loading: translate("saving"),
-              success: translate("saved"),
-              error: translate("saveCanceled"),
-            },
-            { style: { minWidth: "120px" }, success: { duration: 2000 } },
-          );
+          await notifyPromiseState(savePromise, {
+            loading: translate("saving"),
+            success: translate("saved"),
+            error: translate("saveCanceled"),
+          });
           return true;
         } catch (error) {
           return false;
