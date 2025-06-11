@@ -12,6 +12,7 @@ const warnOffline = () =>
     title: translate("mapOfflineMode"),
     description: translate("mapOfflineModeExplain"),
     size: "md",
+    id: "map-offline-mode",
   });
 
 export async function addMapboxStyle(
