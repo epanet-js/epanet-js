@@ -357,6 +357,15 @@ export const translations: Translations = {
   simulationSettings: "Ajustes de Simulación",
   demandMultiplier: "Multiplicador de Demanda",
   saveAndRun: "Guardar y Ejecutar",
+  failedToFetchElevation: "No se pudo obtener la elevación",
+  failedToFetchElevationExplain:
+    "No se pueden recuperar los datos de elevación, por lo que se asignará 0.",
+  elevationNotAvailable: "Elevación No Disponible",
+  elevationNotAvailableExplain:
+    "No fue posible recuperar la elevación para este punto. Se usará 0 en su lugar.",
+  noInternet: "Sin Conexión a Internet",
+  noInternetExplain: "Algunas funcionalidades pueden verse comprometidas.",
+  connectionRestored: "¡Conexión Restaurada!",
 };
 
 export const units: UnitsLocale = {

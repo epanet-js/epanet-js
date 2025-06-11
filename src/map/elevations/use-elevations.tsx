@@ -10,7 +10,8 @@ import {
 } from "./elevations";
 import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
-import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { ValueNoneIcon } from "@radix-ui/react-icons";
+import { translate } from "src/infra/i18n";
 
 export const useElevations = (unit: Unit) => {
   const prefetchTile = (lngLat: LngLat) => {
@@ -33,20 +34,18 @@ export const useElevations = (unit: Unit) => {
         if ((error as Error).message.includes("Failed to fetch")) {
           notify({
             variant: "warning",
-            Icon: LinkBreak1Icon,
-            title: "Failed to Fetch Elevation",
-            description:
-              "Elevation data cannot be retrieved, so 0 will be assigned.",
+            Icon: ValueNoneIcon,
+            title: translate("failedToFetchElevation"),
+            description: translate("failedToFetchElevationExplain"),
             id: "elevations-failed-to-fetch",
           });
         }
         if ((error as Error).message.includes("Tile not found")) {
           notify({
             variant: "warning",
-            Icon: LinkBreak1Icon,
-            title: "Elevation Not Avaiable",
-            description:
-              "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
+            Icon: ValueNoneIcon,
+            title: translate("elevationNotAvailable"),
+            description: translate("elevationNotAvailableExplain"),
             id: "elevations-not-found",
           });
         }

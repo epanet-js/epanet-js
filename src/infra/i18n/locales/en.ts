@@ -346,6 +346,15 @@ export const translations = {
   simulationSettings: "Simulation Settings",
   demandMultiplier: "Demand Multiplier",
   saveAndRun: "Save & Run",
+  failedToFetchElevation: "Failed to Fetch Elevation",
+  failedToFetchElevationExplain:
+    "Elevation data cannot be retrieved, so 0 will be assigned.",
+  elevationNotAvailable: "Elevation Not Avaiable",
+  elevationNotAvailableExplain:
+    "It wasn't possible to retrieve the elevation for this point. Using 0 instead.",
+  noInternet: "No Internet Connection",
+  noInternetExplain: "Some features may not be available.",
+  connectionRestored: "Connection Restored!",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

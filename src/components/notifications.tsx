@@ -75,7 +75,7 @@ export const notify = ({
       >
         {Icon && (
           <Icon
-            className={clsx("h-6 w-6 mr-3", {
+            className={clsx("h-6 w-6 mr-3 flex-shrink-0", {
               "text-green-500": variant === "success",
               "text-red-500": variant === "error",
               "text-orange-500": variant === "warning",

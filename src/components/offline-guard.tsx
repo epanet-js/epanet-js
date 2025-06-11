@@ -2,6 +2,7 @@ import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { translate } from "src/infra/i18n";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
@@ -24,12 +25,13 @@ export const useOfflineStatus = () => {
     hideNotification(offlineToastId);
     notify({
       variant: "success",
-      title: "Connection restored!",
+      title: translate("connectionRestored"),
       Icon: Link1Icon,
       dismissable: false,
       duration: 3000,
       id: onlineToastId,
       position: "bottom-right",
+      size: "sm",
     });
   }, []);
 
@@ -41,12 +43,13 @@ export const useOfflineStatus = () => {
     notify({
       variant: "warning",
       Icon: LinkBreak1Icon,
-      title: "No Internet Connection",
-      description: "Some features may not be available.",
+      title: translate("noInternet"),
+      description: translate("noInternetExplain"),
       duration: Infinity,
       dismissable: false,
       id: offlineToastId,
       position: "bottom-right",
+      size: "sm",
     });
   }, []);
 
