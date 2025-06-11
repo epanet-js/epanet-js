@@ -366,6 +366,8 @@ export const translations: Translations = {
   noInternet: "Sin Conexión a Internet",
   noInternetExplain: "Algunas funcionalidades pueden verse comprometidas.",
   connectionRestored: "¡Conexión Restaurada!",
+  mapOfflineMode: "Mapa en Modo Offline",
+  mapOfflineModeExplain: "El mapa está utilizando una fondo blanco.",
 };
 
 export const units: UnitsLocale = {

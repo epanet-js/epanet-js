@@ -3,9 +3,17 @@ import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { toast } from "react-hot-toast";
 import once from "lodash/once";
+import { notify } from "src/components/notifications";
+import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { translate } from "src/infra/i18n";
 
 const warnOffline = once(() => {
-  toast.error("Offline: falling back to blank background");
+  notify({
+    variant: "warning",
+    Icon: LinkBreak1Icon,
+    title: translate("mapOfflineMode"),
+    description: translate("mapOfflineModeExplain"),
+  });
 });
 
 export async function addMapboxStyle(

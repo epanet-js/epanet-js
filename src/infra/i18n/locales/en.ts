@@ -355,6 +355,8 @@ export const translations = {
   noInternet: "No Internet Connection",
   noInternetExplain: "Some features may not be available.",
   connectionRestored: "Connection Restored!",
+  mapOfflineMode: "Map Offline Mode",
+  mapOfflineModeExplain: "The application is now using a blank background.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
