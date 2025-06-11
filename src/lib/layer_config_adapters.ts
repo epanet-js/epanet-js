@@ -1,12 +1,11 @@
 import { ILayerConfig } from "src/types";
 import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
-import once from "lodash/once";
 import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
 
-const warnOffline = once(() => {
+const warnOffline = () =>
   notify({
     variant: "warning",
     Icon: LinkBreak1Icon,
@@ -14,7 +13,6 @@ const warnOffline = once(() => {
     description: translate("mapOfflineModeExplain"),
     size: "md",
   });
-});
 
 export async function addMapboxStyle(
   base: mapboxgl.Style,
