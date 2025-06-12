@@ -1,5 +1,5 @@
 import { Cross1Icon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { useBreakpoint } from "src/hooks/use_responsive";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import {
