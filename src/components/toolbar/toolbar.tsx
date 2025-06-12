@@ -52,6 +52,7 @@ export const Toolbar = () => {
   const simulation = useAtomValue(simulationAtom);
 
   const isSmOrLarger = useBreakpoint("sm");
+  const isMdOrLarger = useBreakpoint("md");
 
   return (
     <div
@@ -188,7 +189,7 @@ export const Toolbar = () => {
         <FileTextIcon />
       </MenuAction>
       <Divider />
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
         <>
           <ContextActions />
           <div className="flex-auto" />
