@@ -188,9 +188,12 @@ export const Toolbar = () => {
         <FileTextIcon />
       </MenuAction>
       <Divider />
-      <div className="flex-auto" />
-      <ContextActions />
-      <div className="flex-auto" />
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+        <>
+          <ContextActions />
+          <div className="flex-auto" />
+        </>
+      )}
     </div>
   );
 };
