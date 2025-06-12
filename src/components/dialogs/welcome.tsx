@@ -24,6 +24,8 @@ import {
 } from "@radix-ui/react-icons";
 import { DialogCloseX } from "../dialog";
 import { BrandLogo } from "../menu_bar";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 type DemoModel = {
   name: string;
@@ -61,6 +63,8 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
     void openInpFromUrl(demoModel.url);
   };
 
+  const isMdOrLarger = useBreakpoint("md");
+
   return (
     <div className="w-full flex flex-col h-full p-5 justify-between">
       <div className="flex flex-col flex-grow">
@@ -74,7 +78,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
           </p>
           <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
           <hr className="mb-4" />
-          <div className="flex-grow grid grid-cols-4 gap-4 pb-3">
+          <div className="flex-grow flex flex-col gap-2 md:grid md:grid-cols-4 md:gap-3 lg:gap-4  pb-3">
             <div className="col-span-3">
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 {translate("gettingStarted")}
@@ -118,21 +122,23 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 {translate("welcomeBuildAndDevelop")}
               </p>
-              <div className="flex flex-col items-start gap-y-2 pb-3">
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    userTracking.capture({
-                      name: "newModel.started",
-                      source: "welcome",
-                    });
+              <div className="flex items-start flex-col gap-2 pb-3">
+                {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "newModel.started",
+                        source: "welcome",
+                      });
 
-                    void createNew();
-                  }}
-                >
-                  <FileIcon />
-                  {translate("createNew")}
-                </Button>
+                      void createNew();
+                    }}
+                  >
+                    <FileIcon />
+                    {translate("createNew")}
+                  </Button>
+                )}
                 <Button
                   variant="quiet"
                   onClick={() => {
@@ -175,7 +181,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-2">
             <div className="text-xs flex items-center gap-x-2">
               <Checkbox
                 checked={userSettings.showWelcomeOnStart}
