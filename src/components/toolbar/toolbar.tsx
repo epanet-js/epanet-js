@@ -35,6 +35,8 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Toolbar = () => {
   const openInpFromFs = useOpenInpFromFs();
@@ -48,6 +50,8 @@ export const Toolbar = () => {
   const { undo, redo } = useHistoryControl();
 
   const simulation = useAtomValue(simulationAtom);
+
+  const isSmOrLarger = useBreakpoint("sm");
 
   return (
     <div
@@ -109,38 +113,46 @@ export const Toolbar = () => {
         <CopyIcon />
       </MenuAction>
       <Divider />
-      <MenuAction
-        label={translate("undo")}
-        role="button"
-        onClick={() => {
-          userTracking.capture({
-            name: "operation.undone",
-            source: "toolbar",
-          });
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+        <>
+          <MenuAction
+            label={translate("undo")}
+            role="button"
+            onClick={() => {
+              userTracking.capture({
+                name: "operation.undone",
+                source: "toolbar",
+              });
 
-          void undo();
-        }}
-        readOnlyHotkey={"ctrl+z"}
-      >
-        <ResetIcon />
-      </MenuAction>
-      <MenuAction
-        label={translate("redo")}
-        role="button"
-        onClick={() => {
-          userTracking.capture({
-            name: "operation.redone",
-            source: "toolbar",
-          });
-          void redo();
-        }}
-        readOnlyHotkey={"ctrl+y"}
-      >
-        <ResetIcon className="scale-x-[-1]" />
-      </MenuAction>
-      <Divider />
-      <Modes replaceGeometryForId={null} />
-      <Divider />
+              void undo();
+            }}
+            readOnlyHotkey={"ctrl+z"}
+          >
+            <ResetIcon />
+          </MenuAction>
+          <MenuAction
+            label={translate("redo")}
+            role="button"
+            onClick={() => {
+              userTracking.capture({
+                name: "operation.redone",
+                source: "toolbar",
+              });
+              void redo();
+            }}
+            readOnlyHotkey={"ctrl+y"}
+          >
+            <ResetIcon className="scale-x-[-1]" />
+          </MenuAction>
+          <Divider />
+        </>
+      )}
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+        <>
+          <Modes replaceGeometryForId={null} />
+          <Divider />
+        </>
+      )}
       <MenuAction
         label={translate("simulate")}
         role="button"
