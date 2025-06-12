@@ -113,9 +113,12 @@ const SimulationReportDialog = dynamic<{
 
 const WelcomeDialog = dynamic<{
   onClose: () => void;
-}>(() => import("src/commands/show-welcome").then((r) => r.WelcomeDialog), {
-  loading: () => <Loading />,
-});
+}>(
+  () => import("src/components/dialogs/welcome").then((r) => r.WelcomeDialog),
+  {
+    loading: () => <Loading />,
+  },
+);
 
 const UnsavedChangesDialog = dynamic<{
   onContinue: () => void;
