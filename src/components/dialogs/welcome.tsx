@@ -78,7 +78,7 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
           </p>
           <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
           <hr className="mb-4" />
-          <div className="flex-grow flex flex-col gap-2 md:grid md:grid-cols-4 md:gap-3 lg:gap-4  pb-3">
+          <div className="flex-grow flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4  pb-3">
             <div className="col-span-3">
               <p className="text-gray-500 text-lg font-semibold pb-2">
                 {translate("gettingStarted")}
@@ -181,22 +181,24 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between pb-2">
-            <div className="text-xs flex items-center gap-x-2">
-              <Checkbox
-                checked={userSettings.showWelcomeOnStart}
-                onChange={() => {
-                  userSettings.showWelcomeOnStart
-                    ? userTracking.capture({ name: "welcome.hidden" })
-                    : userTracking.capture({ name: "welcome.enabled" });
-                  setUserSettings((prev) => ({
-                    ...prev,
-                    showWelcomeOnStart: !prev.showWelcomeOnStart,
-                  }));
-                }}
-              />
-              {translate("alwaysShowAtStart")}
-            </div>
+          <div className="flex items-center justify-around md:justify-between pb-2">
+            {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+              <div className="text-xs flex items-center gap-x-2">
+                <Checkbox
+                  checked={userSettings.showWelcomeOnStart}
+                  onChange={() => {
+                    userSettings.showWelcomeOnStart
+                      ? userTracking.capture({ name: "welcome.hidden" })
+                      : userTracking.capture({ name: "welcome.enabled" });
+                    setUserSettings((prev) => ({
+                      ...prev,
+                      showWelcomeOnStart: !prev.showWelcomeOnStart,
+                    }));
+                  }}
+                />
+                {translate("alwaysShowAtStart")}
+              </div>
+            )}
             <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
               <a href={termsAndConditionsUrl} target="_blank">
                 {translate("termsAndConditions")}
