@@ -51,7 +51,6 @@ export const Toolbar = () => {
 
   const simulation = useAtomValue(simulationAtom);
 
-  const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
 
   return (
@@ -83,38 +82,42 @@ export const Toolbar = () => {
       >
         <FilePlusIcon />
       </MenuAction>
-      <MenuAction
-        label={translate("save")}
-        role="button"
-        onClick={() => {
-          userTracking.capture({
-            name: "model.saved",
-            source: "toolbar",
-          });
-          void saveInp();
-        }}
-        readOnlyHotkey={saveShortcut}
-      >
-        <DownloadIcon />
-      </MenuAction>
-      <MenuAction
-        label={translate("saveAs")}
-        role="button"
-        onClick={() => {
-          userTracking.capture({
-            name: "model.saved",
-            source: "toolbar",
-            isSaveAs: true,
-          });
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+        <>
+          <MenuAction
+            label={translate("save")}
+            role="button"
+            onClick={() => {
+              userTracking.capture({
+                name: "model.saved",
+                source: "toolbar",
+              });
+              void saveInp();
+            }}
+            readOnlyHotkey={saveShortcut}
+          >
+            <DownloadIcon />
+          </MenuAction>
+          <MenuAction
+            label={translate("saveAs")}
+            role="button"
+            onClick={() => {
+              userTracking.capture({
+                name: "model.saved",
+                source: "toolbar",
+                isSaveAs: true,
+              });
 
-          void saveInp({ isSaveAs: true });
-        }}
-        readOnlyHotkey={saveAsShortcut}
-      >
-        <CopyIcon />
-      </MenuAction>
+              void saveInp({ isSaveAs: true });
+            }}
+            readOnlyHotkey={saveAsShortcut}
+          >
+            <CopyIcon />
+          </MenuAction>
+        </>
+      )}
       <Divider />
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
         <>
           <MenuAction
             label={translate("undo")}
@@ -148,7 +151,7 @@ export const Toolbar = () => {
           <Divider />
         </>
       )}
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
         <>
           <Modes replaceGeometryForId={null} />
           <Divider />

@@ -30,6 +30,7 @@ import { canUpgrade } from "src/user-plan";
 import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -54,6 +55,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const userTracking = useUserTracking();
   const { user } = useAuth();
   const setDialogState = useSetAtom(dialogAtom);
+  const isSmOrLarger = useBreakpoint("sm");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -61,7 +63,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         <div className="py-1 pl-2 pr-2 inline-flex">
           <BrandLogo />
         </div>
-        <FileInfo />
+        {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && <FileInfo />}
       </div>
       <div className="flex items-center gap-x-1">
         <a
