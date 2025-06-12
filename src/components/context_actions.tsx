@@ -40,7 +40,7 @@ export default function ContextActions() {
 
   return (
     <div className="flex items-center">
-      <div className="h-12 self-stretch flex items-center text-xs pr-2 text-gray-700 dark:text-white">
+      <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
         {translate("selection")} (
         {pluralize("asset", selectedWrappedFeatures.length)})
       </div>
