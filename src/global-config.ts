@@ -12,4 +12,4 @@ export const studentAccountActiviationHelpUrl =
   "https://help.epanetjs.com/Free-educational-licenses-for-epanet-js-1cee18c9f0f68090aa35cd3336577ac3";
 
 export const supportEmail = "support@epanetjs.com";
-export const pingUrl = process.env.NEXT_PUBLIC_PING_URL || "/api/ping";
+export const pingUrl = process.env.NEXT_PUBLIC_PING_URL || "/ping.txt";
