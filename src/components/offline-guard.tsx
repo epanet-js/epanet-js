@@ -8,6 +8,7 @@ import { pingUrl } from "src/global-config";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
+const intervalMs = 10 * 1000;
 
 export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,7 +75,7 @@ export const useOfflineStatus = () => {
       } catch (e) {
         setOffline();
       }
-    }, 5000);
+    }, intervalMs);
   }, [setOnline, setOffline]);
 
   return { startConnectivityCheck, cancelConnectivityCheck, setOffline };
