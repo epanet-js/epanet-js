@@ -108,19 +108,20 @@ export function PlacemarkPlay() {
   const [persistentTransform, setPersistentTransform] = useAtom(
     persistentTransformAtom,
   );
+  const isSmOrLarger = useBreakpoint("sm");
+  const isMdOrLarger = useBreakpoint("md");
 
   useHydrateAtoms([
     [
       dialogAtom,
       isFeatureOn("FLAG_UPGRADE") && dialogFromUrl()
         ? dialogFromUrl()
-        : settingsFromStorage().showWelcomeOnStart
+        : settingsFromStorage().showWelcomeOnStart ||
+            (isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger)
           ? { type: "welcome" }
           : null,
     ],
   ]);
-
-  const isSmOrLarger = useBreakpoint("sm");
 
   return (
     <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
