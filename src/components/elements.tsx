@@ -213,7 +213,7 @@ export const styledDialogContent = ({
       "w-[320px]": size === "xs",
       "w-full sm:max-w-lg": size === "sm" && !widthClasses,
       "w-full md:max-w-screen-md lg:max-w-screen-lg p-8": size === "md",
-      "inset-0 h-screen w-screen p-6 sm:p-8": size === "fullscreen",
+      "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
