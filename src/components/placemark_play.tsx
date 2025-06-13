@@ -46,6 +46,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/auth";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -85,7 +86,10 @@ export function PlacemarkPlay() {
       layout = "VERTICAL";
       break;
     case "AUTO":
-      layout = isBigScreen ? "HORIZONTAL" : "VERTICAL";
+      layout =
+        isFeatureOn("FLAG_RESPONSIVE") || isBigScreen
+          ? "HORIZONTAL"
+          : "VERTICAL";
       break;
     case "FLOATING": {
       layout = "FLOATING";
@@ -116,6 +120,8 @@ export function PlacemarkPlay() {
     ],
   ]);
 
+  const isSmOrLarger = useBreakpoint("sm");
+
   return (
     <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
       <MapContext.Provider value={map}>
@@ -126,7 +132,8 @@ export function PlacemarkPlay() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col",
-            "flex flex-grow pb-10 relative border-t border-gray-200 dark:border-gray-900",
+            "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
+            !isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger ? "pb-10" : "",
           )}
         >
           <DndContext
