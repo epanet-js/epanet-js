@@ -234,6 +234,7 @@ const DemoNetworkCard = ({
   thumbnailUrl: string;
   onClick: () => void;
 }) => {
+  const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
   return (
     <div
@@ -243,8 +244,8 @@ const DemoNetworkCard = ({
       <Image
         src={thumbnailUrl}
         alt={title}
-        width={isSmOrLarger ? 247 : 140}
-        height={isSmOrLarger ? 200 : 114}
+        width={isMdOrLarger ? 247 : isSmOrLarger ? 180 : 140}
+        height={isMdOrLarger ? 200 : isSmOrLarger ? 146 : 114}
         quality={90}
         className="rounded-t-md object-cover"
       />
