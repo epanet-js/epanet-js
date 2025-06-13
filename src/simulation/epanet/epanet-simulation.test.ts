@@ -70,7 +70,7 @@ describe("epanet simulation", () => {
     const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
-    expect(report.match(/Error 233/gi)!.length).toEqual(1);
+    expect(report.match(/Error 234/gi)!.length).toEqual(1);
     expect(report).toContain("j2");
     expect(report).toContain("Error 200");
   });

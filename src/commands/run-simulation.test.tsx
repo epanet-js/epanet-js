@@ -39,10 +39,12 @@ describe("Run simulation", () => {
 
     await triggerRun();
 
-    const simulation = store.get(simulationAtom) as SimulationFinished;
-    expect(simulation.status).toEqual("success");
-    expect(simulation.report).not.toContain(/error/i);
-    expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+    await waitFor(() => {
+      const simulation = store.get(simulationAtom) as SimulationFinished;
+      expect(simulation.status).toEqual("success");
+      expect(simulation.report).not.toContain(/error/i);
+      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+    });
 
     const {
       hydraulicModel: { assets: updatedAssets },
@@ -58,10 +60,12 @@ describe("Run simulation", () => {
 
     await triggerRun();
 
-    const simulation = store.get(simulationAtom) as SimulationFinished;
-    expect(simulation.status).toEqual("failure");
-    expect(simulation.report).toContain("not enough");
-    expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+    await waitFor(() => {
+      const simulation = store.get(simulationAtom) as SimulationFinished;
+      expect(simulation.status).toEqual("failure");
+      expect(simulation.report).toContain("not enough");
+      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+    });
   });
 
   it("can show the report after a failure", async () => {
