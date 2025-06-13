@@ -75,7 +75,9 @@ export const WelcomeDialog = () => {
         <div className="flex flex-col flex-grow">
           <div className="w-full flex flex-row justify-between items-center pb-4">
             <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
-            <DialogCloseX />
+            {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+              <DialogCloseX />
+            )}
           </div>
           <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
             <p className="text-gray-500 text-lg font-semibold pb-2">
@@ -111,7 +113,7 @@ export const WelcomeDialog = () => {
                 <p className="text-sm pb-3">
                   {translate("welcomeExploreWithSamples")}:
                 </p>
-                <div className="flex items-center gap-x-5  pb-3">
+                <div className="flex flex-col md:flex-row md:items-center gap-5  pb-3">
                   {demoModels.map((demoModel, i) => (
                     <DemoNetworkCard
                       key={i}
@@ -232,16 +234,17 @@ const DemoNetworkCard = ({
   thumbnailUrl: string;
   onClick: () => void;
 }) => {
+  const isSmOrLarger = useBreakpoint("sm");
   return (
     <div
-      className="flex flex-col w-[250px] h-[290px] items-center gap-x-2 bg-white shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex md:flex-col w-full md:w-[250px] md:h-[290px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
       <Image
         src={thumbnailUrl}
         alt={title}
-        width={247}
-        height={200}
+        width={isSmOrLarger ? 247 : 140}
+        height={isSmOrLarger ? 200 : 114}
         quality={90}
         className="rounded-t-md object-cover"
       />
