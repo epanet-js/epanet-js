@@ -17,6 +17,7 @@ export const Footer = () => {
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
   const isLgOrLarger = useBreakpoint("lg");
   const isMdOrLarger = useBreakpoint("md");
+  const isSmOrLarger = useBreakpoint("sm");
 
   const items: string[] = useMemo(
     () =>
@@ -39,6 +40,8 @@ export const Footer = () => {
             ],
     [hydraulicModel, modelMetadata, isLgOrLarger, isMdOrLarger],
   );
+
+  if (isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
