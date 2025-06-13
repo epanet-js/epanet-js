@@ -41,7 +41,7 @@ export const DialogContainer = ({
   size = "sm",
   children,
 }: {
-  size?: "sm" | "xs";
+  size?: "sm" | "xs" | "md" | "lg" | "fullscreen";
   children: React.ReactNode;
 }) => {
   const { closeDialog } = useDialogState();

@@ -9,7 +9,6 @@ import {
   StyledDialogContent,
   Loading,
   DefaultErrorBoundary,
-  WelcomeDialogContent,
 } from "./elements";
 import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
@@ -111,9 +110,7 @@ const SimulationReportDialog = dynamic<{
   },
 );
 
-const WelcomeDialog = dynamic<{
-  onClose: () => void;
-}>(
+const WelcomeDialog = dynamic(
   () => import("src/components/dialogs/welcome").then((r) => r.WelcomeDialog),
   {
     loading: () => <Loading />,
@@ -163,8 +160,39 @@ export const Dialogs = memo(function Dialogs() {
   }, [setDialogState]);
   const previousDialog = useRef<dialogState.DialogState>(null);
 
+  if (previousDialog.current !== dialog && !!dialog) {
+    if (previousDialog.current?.type !== dialog.type) {
+      if (dialog.type === "welcome") {
+        userTracking.capture({ name: "welcome.seen" });
+      }
+      if (dialog.type === "unsavedChanges") {
+        userTracking.capture({ name: "unsavedChanges.seen" });
+      }
+      if (dialog.type === "inpMissingCoordinates") {
+        userTracking.capture({ name: "missingCoordinates.seen" });
+      }
+      if (dialog.type === "inpGeocodingNotSupported") {
+        userTracking.capture({ name: "geocodingNotSupported.seen" });
+      }
+      if (dialog.type === "inpIssues") {
+        userTracking.capture({ name: "inpIssues.seen" });
+      }
+      if (dialog.type === "simulationSummary") {
+        userTracking.capture({
+          name: "simulationSummary.seen",
+          status: dialog.status,
+          duration: dialog.duration,
+        });
+      }
+    }
+    previousDialog.current = dialog;
+  }
+
   if (dialog && dialog.type === "simulationSettings") {
     return <SimulationSettingsDialog />;
+  }
+  if (dialog && dialog.type === "welcome") {
+    return <WelcomeDialog />;
   }
 
   const content = match(dialog)
@@ -199,37 +227,8 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
     ))
-    .with({ type: "welcome" }, () => <WelcomeDialog onClose={onClose} />)
     .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
-
-  if (previousDialog.current !== dialog && !!dialog) {
-    if (previousDialog.current?.type !== dialog.type) {
-      if (dialog.type === "welcome") {
-        userTracking.capture({ name: "welcome.seen" });
-      }
-      if (dialog.type === "unsavedChanges") {
-        userTracking.capture({ name: "unsavedChanges.seen" });
-      }
-      if (dialog.type === "inpMissingCoordinates") {
-        userTracking.capture({ name: "missingCoordinates.seen" });
-      }
-      if (dialog.type === "inpGeocodingNotSupported") {
-        userTracking.capture({ name: "geocodingNotSupported.seen" });
-      }
-      if (dialog.type === "inpIssues") {
-        userTracking.capture({ name: "inpIssues.seen" });
-      }
-      if (dialog.type === "simulationSummary") {
-        userTracking.capture({
-          name: "simulationSummary.seen",
-          status: dialog.status,
-          duration: dialog.duration,
-        });
-      }
-    }
-    previousDialog.current = dialog;
-  }
 
   //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT
   return (
@@ -253,12 +252,7 @@ export const Dialogs = memo(function Dialogs() {
           <D.Title></D.Title>
           {/**radix complains if no description, so at least having an empty one helps**/}
           <D.Description></D.Description>
-          {dialog && dialog.type === "welcome" && (
-            <WelcomeDialogContent>
-              <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
-            </WelcomeDialogContent>
-          )}
-          {(!dialog || dialog.type !== "welcome") && (
+          {dialog && (
             <StyledDialogContent
               onEscapeKeyDown={(e) => {
                 onClose();

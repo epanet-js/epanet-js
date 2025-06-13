@@ -192,30 +192,33 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 );
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
-const styledDialogContent = ({
+export const styledDialogContent = ({
   size,
   widthClasses = "w-full sm:max-w-lg",
 }: {
-  size?: B3Size;
+  size?: B3Size | "fullscreen";
   widthClasses?: string;
 }) =>
   clsx(
-    {
-      "w-[320px]": size === "xs",
-      "w-full sm:max-w-lg": size === "sm" && !widthClasses,
-    },
-    `fixed inline-block
-      max-h-[80vh]
+    `
+      fixed inline-block
       text-left
-      align-bottom
       bg-white dark:bg-gray-900
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
-      sm:rounded sm:align-middle p-4 ${widthClasses}
-      left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
-      overflow-y-auto placemark-scrollbar
       z-40
-      `,
+      overflow-y-auto placemark-scrollbar
+    `,
+    {
+      "w-[320px]": size === "xs",
+      "w-full sm:max-w-lg": size === "sm" && !widthClasses,
+      "w-full md:max-w-screen-md lg:max-w-screen-lg p-8": size === "md",
+      "inset-0 h-screen w-screen p-6 sm:p-8": size === "fullscreen",
+    },
+    size === "fullscreen"
+      ? ""
+      : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 sm:rounded sm:align-middle p-4",
+    size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
 
 const customWelcomeDialogContent = () => {

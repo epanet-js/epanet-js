@@ -22,7 +22,7 @@ import {
   GitHubLogoIcon,
   QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
-import { DialogCloseX } from "../dialog";
+import { DialogCloseX, DialogContainer } from "../dialog";
 import { BrandLogo } from "../menu_bar";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
@@ -48,7 +48,7 @@ const demoModels: DemoModel[] = [
   },
 ];
 
-export const WelcomeDialog = ({}: { onClose: () => void }) => {
+export const WelcomeDialog = () => {
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
@@ -66,152 +66,158 @@ export const WelcomeDialog = ({}: { onClose: () => void }) => {
   const isMdOrLarger = useBreakpoint("md");
 
   return (
-    <div className="w-full flex flex-col h-full p-5 justify-between">
-      <div className="flex flex-col flex-grow">
-        <div className="w-full flex flex-row justify-between items-center pb-4">
-          <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
-          <DialogCloseX />
-        </div>
-        <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
-          <p className="text-gray-500 text-lg font-semibold pb-2">
-            {translate("welcomeToEpanetJs")}
-          </p>
-          <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
-          <hr className="mb-4" />
-          <div className="flex-grow flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4  pb-3">
-            <div className="col-span-3">
-              <p className="text-gray-500 text-lg font-semibold pb-2">
-                {translate("gettingStarted")}
-              </p>
-              <p className="text-sm pb-3">
-                {translate("welcomeNewHere", translate("quickStartTutorial"))}
-              </p>
-              <p className="text-sm pb-6">
-                <a
-                  href={quickStartTutorialUrl}
-                  target="_blank"
-                  onClick={() => {
-                    userTracking.capture({
-                      name: "quickStart.visited",
-                      source: "welcome",
-                    });
-                  }}
-                >
-                  <Button variant="primary">
-                    <ArrowRightIcon />
-                    {translate("quickStartTutorial")}
-                  </Button>
-                </a>
-              </p>
-              <p className="text-sm pb-3">
-                {translate("welcomeExploreWithSamples")}:
-              </p>
-              <div className="flex items-center gap-x-5  pb-3">
-                {demoModels.map((demoModel, i) => (
-                  <DemoNetworkCard
-                    key={i}
-                    title={demoModel.name}
-                    description={demoModel.description}
-                    thumbnailUrl={demoModel.thumbnailUrl}
-                    onClick={() => handleOpenDemoModel(demoModel)}
-                  />
-                ))}
+    <DialogContainer
+      size={
+        isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger ? "fullscreen" : "md"
+      }
+    >
+      <div className="w-full flex flex-col h-full justify-between">
+        <div className="flex flex-col flex-grow">
+          <div className="w-full flex flex-row justify-between items-center pb-4">
+            <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
+            <DialogCloseX />
+          </div>
+          <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
+            <p className="text-gray-500 text-lg font-semibold pb-2">
+              {translate("welcomeToEpanetJs")}
+            </p>
+            <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
+            <hr className="mb-4" />
+            <div className="flex-grow flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4  pb-3">
+              <div className="col-span-3">
+                <p className="text-gray-500 text-lg font-semibold pb-2">
+                  {translate("gettingStarted")}
+                </p>
+                <p className="text-sm pb-3">
+                  {translate("welcomeNewHere", translate("quickStartTutorial"))}
+                </p>
+                <p className="text-sm pb-6">
+                  <a
+                    href={quickStartTutorialUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "quickStart.visited",
+                        source: "welcome",
+                      });
+                    }}
+                  >
+                    <Button variant="primary">
+                      <ArrowRightIcon />
+                      {translate("quickStartTutorial")}
+                    </Button>
+                  </a>
+                </p>
+                <p className="text-sm pb-3">
+                  {translate("welcomeExploreWithSamples")}:
+                </p>
+                <div className="flex items-center gap-x-5  pb-3">
+                  {demoModels.map((demoModel, i) => (
+                    <DemoNetworkCard
+                      key={i}
+                      title={demoModel.name}
+                      description={demoModel.description}
+                      thumbnailUrl={demoModel.thumbnailUrl}
+                      onClick={() => handleOpenDemoModel(demoModel)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="col-span-1">
-              <p className="text-gray-500 text-lg font-semibold pb-2">
-                {translate("welcomeBuildAndDevelop")}
-              </p>
-              <div className="flex items-start flex-col gap-2 pb-3">
-                {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+              <div className="col-span-1">
+                <p className="text-gray-500 text-lg font-semibold pb-2">
+                  {translate("welcomeBuildAndDevelop")}
+                </p>
+                <div className="flex items-start flex-col gap-2 pb-3">
+                  {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "newModel.started",
+                          source: "welcome",
+                        });
+
+                        void createNew();
+                      }}
+                    >
+                      <FileIcon />
+                      {translate("createNew")}
+                    </Button>
+                  )}
                   <Button
                     variant="quiet"
                     onClick={() => {
-                      userTracking.capture({
-                        name: "newModel.started",
-                        source: "welcome",
-                      });
-
-                      void createNew();
+                      void openInpFromFs({ source: "welcome" });
                     }}
                   >
-                    <FileIcon />
-                    {translate("createNew")}
+                    <FilePlusIcon />
+                    {translate("openProject")}
                   </Button>
-                )}
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    void openInpFromFs({ source: "welcome" });
-                  }}
-                >
-                  <FilePlusIcon />
-                  {translate("openProject")}
-                </Button>
-                <a
-                  href={helpCenterUrl}
-                  target="_blank"
-                  onClick={() => {
-                    userTracking.capture({
-                      name: "helpCenter.visited",
-                      source: "welcome",
-                    });
-                  }}
-                >
-                  <Button variant="quiet">
-                    <QuestionMarkCircledIcon />
-                    {translate("helpCenter")}
-                  </Button>
-                </a>
-                <a
-                  href={sourceCodeUrl}
-                  target="_blank"
-                  onClick={() => {
-                    userTracking.capture({
-                      name: "repo.visited",
-                      source: "welcome",
-                    });
-                  }}
-                >
-                  <Button variant="quiet">
-                    <GitHubLogoIcon />
-                    {translate("openSource")}
-                  </Button>
-                </a>
+                  <a
+                    href={helpCenterUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "helpCenter.visited",
+                        source: "welcome",
+                      });
+                    }}
+                  >
+                    <Button variant="quiet">
+                      <QuestionMarkCircledIcon />
+                      {translate("helpCenter")}
+                    </Button>
+                  </a>
+                  <a
+                    href={sourceCodeUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "repo.visited",
+                        source: "welcome",
+                      });
+                    }}
+                  >
+                    <Button variant="quiet">
+                      <GitHubLogoIcon />
+                      {translate("openSource")}
+                    </Button>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center justify-around md:justify-between pb-2">
-            {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
-              <div className="text-xs flex items-center gap-x-2">
-                <Checkbox
-                  checked={userSettings.showWelcomeOnStart}
-                  onChange={() => {
-                    userSettings.showWelcomeOnStart
-                      ? userTracking.capture({ name: "welcome.hidden" })
-                      : userTracking.capture({ name: "welcome.enabled" });
-                    setUserSettings((prev) => ({
-                      ...prev,
-                      showWelcomeOnStart: !prev.showWelcomeOnStart,
-                    }));
-                  }}
-                />
-                {translate("alwaysShowAtStart")}
+            <div className="flex items-center justify-around md:justify-between pb-2">
+              {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+                <div className="text-xs flex items-center gap-x-2">
+                  <Checkbox
+                    checked={userSettings.showWelcomeOnStart}
+                    onChange={() => {
+                      userSettings.showWelcomeOnStart
+                        ? userTracking.capture({ name: "welcome.hidden" })
+                        : userTracking.capture({ name: "welcome.enabled" });
+                      setUserSettings((prev) => ({
+                        ...prev,
+                        showWelcomeOnStart: !prev.showWelcomeOnStart,
+                      }));
+                    }}
+                  />
+                  {translate("alwaysShowAtStart")}
+                </div>
+              )}
+              <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
+                <a href={termsAndConditionsUrl} target="_blank">
+                  {translate("termsAndConditions")}
+                </a>
+                <span>|</span>
+                <a href={privacyPolicyUrl} target="_blank">
+                  {translate("privacyPolicy")}
+                </a>
               </div>
-            )}
-            <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
-              <a href={termsAndConditionsUrl} target="_blank">
-                {translate("termsAndConditions")}
-              </a>
-              <span>|</span>
-              <a href={privacyPolicyUrl} target="_blank">
-                {translate("privacyPolicy")}
-              </a>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </DialogContainer>
   );
 };
 
