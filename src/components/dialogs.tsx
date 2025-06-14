@@ -14,6 +14,7 @@ import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
+import { LoadingDialog } from "./dialog";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -113,7 +114,7 @@ const SimulationReportDialog = dynamic<{
 const WelcomeDialog = dynamic(
   () => import("src/components/dialogs/welcome").then((r) => r.WelcomeDialog),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -194,6 +195,9 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog && dialog.type === "welcome") {
     return <WelcomeDialog />;
   }
+  if (dialog && dialog.type === "loading") {
+    return <LoadingDialog />;
+  }
 
   const content = match(dialog)
     .with(null, () => null)
@@ -227,7 +231,6 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
     ))
-    .with({ type: "loading" }, () => <Loading />)
     .exhaustive();
 
   //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT

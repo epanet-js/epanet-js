@@ -37,6 +37,14 @@ export const useDialogState = () => {
   return { closeDialog };
 };
 
+export const LoadingDialog = () => {
+  return (
+    <DialogContainer>
+      <Loading />
+    </DialogContainer>
+  );
+};
+
 export const DialogContainer = ({
   size = "sm",
   children,
