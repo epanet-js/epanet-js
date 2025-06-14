@@ -236,7 +236,7 @@ const DemoNetworkCard = ({
 }) => {
   return (
     <div
-      className="flex flex-col w-full w-[250px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col w-[250px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
       <div className="flex-shrink-0">
@@ -245,8 +245,6 @@ const DemoNetworkCard = ({
           alt={title}
           width={247}
           height={200}
-          //width={isMdOrLarger ? 247 : 180}
-          //height={isMdOrLarger ? 200 : 146}
           quality={90}
           className="rounded-md object-cover"
         />
