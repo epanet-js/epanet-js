@@ -113,7 +113,7 @@ export const WelcomeDialog = () => {
                 <p className="text-sm pb-3">
                   {translate("welcomeExploreWithSamples")}:
                 </p>
-                <div className="flex flex-col md:flex-row md:items-center gap-5  pb-3">
+                <div className="flex flex-col sm:flex-row md:items-center gap-5  pb-3">
                   {demoModels.map((demoModel, i) => (
                     <DemoNetworkCard
                       key={i}
@@ -234,21 +234,23 @@ const DemoNetworkCard = ({
   thumbnailUrl: string;
   onClick: () => void;
 }) => {
-  const isMdOrLarger = useBreakpoint("md");
-  const isSmOrLarger = useBreakpoint("sm");
   return (
     <div
-      className="flex md:flex-col w-full md:w-[250px] md:h-[290px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col w-full w-[250px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={onClick}
     >
-      <Image
-        src={thumbnailUrl}
-        alt={title}
-        width={isMdOrLarger ? 247 : isSmOrLarger ? 180 : 140}
-        height={isMdOrLarger ? 200 : isSmOrLarger ? 146 : 114}
-        quality={90}
-        className="rounded-t-md object-cover"
-      />
+      <div className="flex-shrink-0">
+        <Image
+          src={thumbnailUrl}
+          alt={title}
+          width={247}
+          height={200}
+          //width={isMdOrLarger ? 247 : 180}
+          //height={isMdOrLarger ? 200 : 146}
+          quality={90}
+          className="rounded-md object-cover"
+        />
+      </div>
       <div className="flex flex-col p-3">
         <span className="text-gray-600 font-bold text-sm">{title}</span>
         <span className="text-xs">{description}</span>
