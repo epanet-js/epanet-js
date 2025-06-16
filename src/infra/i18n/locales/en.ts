@@ -361,6 +361,19 @@ export const translations = {
   failedToLoad: "Failed To Load",
   failedToLoadTileJSON:
     "A TileJSON layer failed to load. The tile server may be down",
+  headsUpSmallScreen: "Heads Up! Not Optimized for Small Screens",
+  smallScreenExplain:
+    "It looks like you're trying to access our app from a smaller device! This application is currently a preview experience for this screen size. You might encounter some edition features will not be available.",
+  hereYourOptions: "Here are your options",
+  continueAnyway: "Continue Anyway",
+  continueAnywayExplain:
+    "If you'd like to proceed, be aware that the experience may not be ideal and some features will be absent.",
+  watchQuickDemo: "Watch a Quick Demo",
+  watchQuickDemoExplain:
+    "See a brief demonstration of the app's full features and how it works on a desktop.",
+  visitLandingPage: "Visit Our Landing Page",
+  visitLandingPageExplain:
+    "Learn more about our app and its complete capabilities.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

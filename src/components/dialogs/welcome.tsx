@@ -264,34 +264,26 @@ const DemoNetworkCard = ({
 
 const SmallDeviceWarning = () => {
   return (
-    <Message
-      variant="warning"
-      title="Heads Up! Not Optimized for Small Screens"
-    >
-      <p>
-        It looks like you're trying to access our app from a smaller device!
-        This application is currently a preview experience for this screen size.
-        You might encounter some edition features will not be available.{" "}
-      </p>
+    <Message variant="warning" title={translate("headsUpSmallScreen")}>
+      <p>{translate("smallScreenExplain")}</p>
       <hr className="my-4" />
-      <p className="pb-2">Here are your options:</p>
+      <p className="pb-2">{translate("hereYourOptions")}:</p>
       <div className="ml-2 space-y-2">
         <ul>
-          <strong>Continue Anyway</strong>: If you'd like to proceed, be aware
-          that the experience may not be ideal and some features will be absent.
+          <strong>{translate("continueAnyway")}</strong>:{" "}
+          {translate("continueAnywayExplain")}
         </ul>
         <ul>
           <a className="underline" href={quickStartTutorialUrl}>
-            <strong>Watch a Quick Demo</strong>
+            <strong>{translate("watchQuickDemo")}</strong>
           </a>
-          : See a brief demonstration of the app's full features and how it
-          works on a desktop.
+          : {translate("watchQuickDemoExplain")}
         </ul>
         <ul>
           <a className="underline" href={landingPageUrl}>
-            <strong>Visit Our Landing Page</strong>
+            <strong>{translate("visitLandingPage")}</strong>
           </a>
-          : Learn more about our app and its complete capabilities.
+          : {translate("visitLandingPageExplain")}
         </ul>
       </div>
     </Message>

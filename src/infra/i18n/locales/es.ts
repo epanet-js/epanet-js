@@ -372,6 +372,19 @@ export const translations: Translations = {
   mapOfflineModeExplain: "El mapa está utilizando una fondo blanco.",
   failedToLoad: "Error en la Carga",
   failedToLoadTileJSON: "No se ha podido conectar con el servidor de TileJSON.",
+  headsUpSmallScreen: "¡Atención! No está optimizado para pantallas pequeñas",
+  smallScreenExplain:
+    "Parece que estás intentando acceder a nuestra app desde un dispositivo pequeño. Esta aplicación es actualmente una experiencia de vista previa para este tamaño de pantalla. Puede que algunas funciones de edición no estén disponibles.",
+  hereYourOptions: "Aquí tienes tus opciones",
+  continueAnyway: "Continuar de todos modos",
+  continueAnywayExplain:
+    "Si decides seguir, ten en cuenta que la experiencia puede no ser la ideal y algunas funciones no estarán disponibles.",
+  watchQuickDemo: "Ver una demo rápida",
+  watchQuickDemoExplain:
+    "Mira una breve demostración de todas las funciones de la app y cómo funciona en un escritorio.",
+  visitLandingPage: "Visitar nuestra página principal",
+  visitLandingPageExplain:
+    "Conoce más sobre nuestra app y todo lo que puede hacer.",
 };
 
 export const units: UnitsLocale = {
