@@ -351,7 +351,7 @@ export const MapCanvas = memo(function MapCanvas({
       <CM.Trigger asChild onContextMenu={onContextMenu}>
         <div
           className={clsx(
-            "top-0 bottom-0 left-0 right-0 mapboxgl-map",
+            "w-full h-full max-h-100dvh mapboxgl-map",
             cursorStyle,
           )}
           ref={mapDivRef}
