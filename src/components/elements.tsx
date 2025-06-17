@@ -194,7 +194,7 @@ export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
 export const styledDialogContent = ({
   size,
-  widthClasses = "w-full sm:max-w-lg",
+  widthClasses,
 }: {
   size?: B3Size | "fullscreen";
   widthClasses?: string;
@@ -211,13 +211,13 @@ export const styledDialogContent = ({
     `,
     {
       "w-[320px]": size === "xs",
-      "w-full sm:max-w-lg": size === "sm" && !widthClasses,
+      "w-full max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
       "w-full md:max-w-screen-md lg:max-w-screen-lg p-8": size === "md",
       "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
-      : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 sm:rounded sm:align-middle p-4",
+      : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
 
