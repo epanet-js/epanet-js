@@ -372,19 +372,19 @@ export const translations: Translations = {
   mapOfflineModeExplain: "El mapa está utilizando una fondo blanco.",
   failedToLoad: "Error en la Carga",
   failedToLoadTileJSON: "No se ha podido conectar con el servidor de TileJSON.",
-  headsUpSmallScreen: "¡Atención! No está optimizado para pantallas pequeñas",
+  headsUpSmallScreen: "¡Atención! No optimizado para pantallas pequeñas",
   smallScreenExplain:
-    "Parece que estás intentando acceder a nuestra app desde un dispositivo pequeño. Esta aplicación es actualmente una experiencia de vista previa para este tamaño de pantalla. Puede que algunas funciones de edición no estén disponibles.",
+    "Parece que estás intentando acceder a la aplicación desde un dispositivo más pequeño. Esta aplicación está actualmente en modo de vista previa para este tamaño de pantalla, y es posible que algunas funciones de edición no estén disponibles.",
   hereYourOptions: "Aquí tienes tus opciones",
   continueAnyway: "Continuar de todos modos",
   continueAnywayExplain:
-    "Si decides seguir, ten en cuenta que la experiencia puede no ser la ideal y algunas funciones no estarán disponibles.",
-  watchQuickDemo: "Ver una demo rápida",
+    "Puedes continuar, pero la experiencia podría no ser ideal y algunas funciones podrían faltar.",
+  watchQuickDemo: "Ver una demostración rápida",
   watchQuickDemoExplain:
-    "Mira una breve demostración de todas las funciones de la app y cómo funciona en un escritorio.",
-  visitLandingPage: "Visitar nuestra página principal",
+    "Ve una breve demostración que muestra la experiencia completa de la aplicación en el escritorio.",
+  visitLandingPage: "Visita nuestra página de inicio",
   visitLandingPageExplain:
-    "Conoce más sobre nuestra app y todo lo que puede hacer.",
+    "Obtén más información sobre la aplicación y lo que puede hacer.",
 };
 
 export const units: UnitsLocale = {
