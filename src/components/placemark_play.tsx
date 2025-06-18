@@ -23,7 +23,7 @@ import { SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom, useAtomValue } from "jotai";
-import { dialogAtom, splitsAtom } from "src/state/jotai";
+import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,
@@ -120,6 +120,13 @@ export function PlacemarkPlay() {
             (isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger)
           ? { type: "welcome" }
           : null,
+    ],
+    [
+      splitsAtom,
+      {
+        ...defaultSplits,
+        rightOpen: !isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger,
+      },
     ],
   ]);
 

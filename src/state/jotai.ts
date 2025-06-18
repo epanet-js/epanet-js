@@ -187,14 +187,15 @@ export interface Splits {
 
 export type PanelLayout = "AUTO" | "FLOATING" | "VERTICAL";
 
-export const splitsAtom = atom<Splits>({
+export const defaultSplits: Splits = {
   layout: "AUTO",
   bottom: 500,
   rightOpen: true,
   right: 320,
   leftOpen: true,
   left: 200,
-});
+};
+export const splitsAtom = atom<Splits>(defaultSplits);
 
 export const showPanelBottomAtom = atom<boolean>(true);
 
