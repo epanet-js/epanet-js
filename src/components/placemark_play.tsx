@@ -124,7 +124,7 @@ export function PlacemarkPlay() {
   ]);
 
   return (
-    <main className="h-screen flex flex-col bg-white dark:bg-gray-800">
+    <main className="h-dvh flex flex-col bg-white dark:bg-gray-800">
       <MapContext.Provider value={map}>
         <div className="h-24">
           <MenuBarPlay />
