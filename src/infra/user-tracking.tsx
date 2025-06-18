@@ -23,11 +23,15 @@ const options = {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST as string,
 };
 
+const isPosthogConfigured = !!apiKey;
+
 export const UserTrackingProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
+  if (!isPosthogConfigured) return children as JSX.Element;
+
   return (
     <PostHogProvider apiKey={apiKey} options={options}>
       {children}
