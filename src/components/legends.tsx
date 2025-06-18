@@ -5,6 +5,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
+import { CaretDownIcon } from "@radix-ui/react-icons";
+import { Button } from "./elements";
+import { useState } from "react";
+import { isFeatureOn } from "src/infra/feature-flags";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -30,10 +35,16 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
     ? `${translate(property)} (${translateUnit(unit)})`
     : translate(property);
 
+  const isSmOrLarger = useBreakpoint("sm");
+
+  const [isExpanded, setExpanded] = useState(
+    !isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger,
+  );
+
   return (
     <LegendContainer>
       <div
-        className="block w-full p-2 flex flex-col justify-between items-start"
+        className="block w-full p-2 flex flex-col justify-between items-start gap-2"
         onClick={() => {
           userTracking.capture({
             name: "legend.clicked",
@@ -41,33 +52,50 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
           });
         }}
       >
-        <div className="pb-2 text-xs text-wrap select-none">{title}</div>
-        <div
-          className="relative w-4 h-32 rounded dark:border dark:border-white "
-          style={{
-            background: linearGradient({
-              colors: colors,
-              interpolate: interpolate,
-              vertical: true,
-            }),
-          }}
-        >
-          {Array.from({ length: breaks.length }).map((_, i) => {
-            const topPct = ((i + 1) / (breaks.length + 1)) * 100;
-            return (
-              <div
-                key={breaks[i] + "_" + i}
-                className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
-                style={{
-                  top: `${topPct}%`,
-                  transform: "translateY(-50%)",
-                }}
-              >
-                {localizeDecimal(breaks[i])}
-              </div>
-            );
-          })}
+        <div className="flex w-full items-center justify-between">
+          <div className="text-xs text-wrap select-none">{title}</div>
+          {isFeatureOn("FLAG_RESPONSIVE") && (
+            <Button
+              variant="quiet"
+              className="p-1"
+              onClick={() => setExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <CaretDownIcon className="rotate-180" />
+              ) : (
+                <CaretDownIcon />
+              )}
+            </Button>
+          )}
         </div>
+        {isExpanded && (
+          <div
+            className="relative w-4 h-32 rounded dark:border dark:border-white "
+            style={{
+              background: linearGradient({
+                colors: colors,
+                interpolate: interpolate,
+                vertical: true,
+              }),
+            }}
+          >
+            {Array.from({ length: breaks.length }).map((_, i) => {
+              const topPct = ((i + 1) / (breaks.length + 1)) * 100;
+              return (
+                <div
+                  key={breaks[i] + "_" + i}
+                  className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
+                  style={{
+                    top: `${topPct}%`,
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  {localizeDecimal(breaks[i])}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </LegendContainer>
   );
