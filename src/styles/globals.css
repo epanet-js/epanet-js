@@ -21,8 +21,10 @@
   cursor: inherit !important;
 }
 
-.mapboxgl-ctrl-bottom-right {
-  min-height: 160px !important;
+@media (min-width: 640px) {
+  .mapboxgl-ctrl-bottom-right {
+    min-height: 160px !important;
+  }
 }
 
 body {
