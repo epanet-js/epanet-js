@@ -5,11 +5,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
-import { CaretDownIcon } from "@radix-ui/react-icons";
-import { Button } from "./elements";
 import { useState } from "react";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { TriangleDownIcon, TriangleRightIcon } from "@radix-ui/react-icons";
+import clsx from "clsx";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -44,8 +44,14 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
   return (
     <LegendContainer>
       <div
-        className="block w-full p-2 flex flex-col justify-between items-start gap-2"
+        className={clsx(
+          "block w-full p-2 flex flex-col justify-between items-start gap-2",
+          {
+            "cursor-pointer hover:bg-gray-100": isFeatureOn("FLAG_RESPONSIVE"),
+          },
+        )}
         onClick={() => {
+          if (isFeatureOn("FLAG_RESPONSIVE")) setExpanded(!isExpanded);
           userTracking.capture({
             name: "legend.clicked",
             property,
@@ -55,17 +61,9 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
         <div className="flex w-full items-center justify-between">
           <div className="text-xs text-wrap select-none">{title}</div>
           {isFeatureOn("FLAG_RESPONSIVE") && (
-            <Button
-              variant="quiet"
-              className="p-1"
-              onClick={() => setExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <CaretDownIcon className="rotate-180" />
-              ) : (
-                <CaretDownIcon />
-              )}
-            </Button>
+            <span className="flex-shrink-0">
+              {isExpanded ? <TriangleDownIcon /> : <TriangleRightIcon />}
+            </span>
           )}
         </div>
         {isExpanded && (
