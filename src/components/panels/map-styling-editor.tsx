@@ -19,6 +19,8 @@ import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { FieldList, InlineField } from "../form/fields";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 const colorPropertyLabelFor = (property: string) => {
   if (property === "flow") {
@@ -139,6 +141,8 @@ const SymbologyEditor = ({
       ? translate("nodeSymbology")
       : translate("linkSymbology");
 
+  const isSmOrLarger = useBreakpoint("sm");
+
   return (
     <PanelSection title={title}>
       <InlineField name={translate("colorBy")}>
@@ -162,16 +166,20 @@ const SymbologyEditor = ({
       </InlineField>
       {symbology.colorRule !== null && (
         <>
-          <InlineField name={translate("range")}>
-            <RangeColorRuleEditorTrigger
-              mode={symbology.colorRule.mode}
-              numIntervals={symbology.colorRule.breaks.length + 1}
-              geometryType={geometryType}
-            />
-          </InlineField>
-          <InlineField name={translate("ramp")}>
-            <ColorRampSelector geometryType={geometryType} />
-          </InlineField>
+          {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+            <>
+              <InlineField name={translate("range")}>
+                <RangeColorRuleEditorTrigger
+                  mode={symbology.colorRule.mode}
+                  numIntervals={symbology.colorRule.breaks.length + 1}
+                  geometryType={geometryType}
+                />
+              </InlineField>
+              <InlineField name={translate("ramp")}>
+                <ColorRampSelector geometryType={geometryType} />
+              </InlineField>
+            </>
+          )}
           <InlineField name={translate("labels")}>
             <div className="p-2 flex items-center h-[38px]">
               <Checkbox
