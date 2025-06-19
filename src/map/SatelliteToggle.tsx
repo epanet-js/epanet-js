@@ -31,7 +31,7 @@ export const SatelliteToggle = () => {
 
   return (
     <div
-      className="absolute bottom-[48px] left-3 w-24 h-24 sm:w-32 sm:h-32 mb-2 bg-white rounded border border-white border-2 shadow-md cursor-pointer"
+      className="absolute bottom-[48px] left-3 w-16 h-16 sm:w-24 sm:h-24 mb-2 bg-white rounded border border-white border-2 shadow-md cursor-pointer"
       style={{
         backgroundSize: "cover",
         backgroundImage: `url(${buttonBackgroundImage})`,
