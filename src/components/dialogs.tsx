@@ -101,13 +101,13 @@ const RunSimulationDialog = dynamic<{
   },
 );
 
-const SimulationReportDialog = dynamic<{
-  onClose: () => void;
-}>(
+const SimulationReportDialog = dynamic(
   () =>
-    import("src/commands/show-report").then((r) => r.SimulationReportDialog),
+    import("src/components/dialogs/simulation-report").then(
+      (r) => r.SimulationReportDialog,
+    ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -161,6 +161,8 @@ export const Dialogs = memo(function Dialogs() {
   }, [setDialogState]);
   const previousDialog = useRef<dialogState.DialogState>(null);
 
+  if (dialog === null) return null;
+
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {
       if (dialog.type === "welcome") {
@@ -189,6 +191,9 @@ export const Dialogs = memo(function Dialogs() {
     previousDialog.current = dialog;
   }
 
+  if (dialog.type === "simulationReport") {
+    return <SimulationReportDialog />;
+  }
   if (dialog && dialog.type === "simulationSettings") {
     return <SimulationSettingsDialog />;
   }
@@ -200,7 +205,6 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   const content = match(dialog)
-    .with(null, () => null)
     .with({ type: "unsavedChanges" }, ({ onContinue }) => (
       <UnsavedChangesDialog onContinue={onContinue} onClose={onClose} />
     ))
@@ -219,9 +223,6 @@ export const Dialogs = memo(function Dialogs() {
       <RunSimulationDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "upgrade" }, () => <UpgradeDialog onClose={onClose} />)
-    .with({ type: "simulationReport" }, () => (
-      <SimulationReportDialog onClose={onClose} />
-    ))
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
     ))
@@ -265,11 +266,9 @@ export const Dialogs = memo(function Dialogs() {
               onOpenAutoFocus={(e) => e.preventDefault()}
               size={"sm"}
               widthClasses={
-                dialog && dialog.type === "simulationReport"
-                  ? "max-w-[80vw]"
-                  : dialog && dialog.type === "upgrade"
-                    ? "w-full max-w-[924px] p-6"
-                    : undefined
+                dialog.type === "upgrade"
+                  ? "w-full max-w-[924px] p-6"
+                  : undefined
               }
             >
               <DefaultErrorBoundary>{content}</DefaultErrorBoundary>

@@ -47,9 +47,11 @@ export const LoadingDialog = () => {
 
 export const DialogContainer = ({
   size = "sm",
+  fillMode = "full",
   children,
 }: {
   size?: "sm" | "xs" | "md" | "lg" | "fullscreen";
+  fillMode?: "full" | "auto";
   children: React.ReactNode;
 }) => {
   const { closeDialog } = useDialogState();
@@ -84,6 +86,7 @@ export const DialogContainer = ({
             }}
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={size}
+            fillMode={fillMode}
           >
             <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
           </StyledDialogContent>

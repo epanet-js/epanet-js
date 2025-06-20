@@ -195,8 +195,10 @@ export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 export const styledDialogContent = ({
   size,
   widthClasses,
+  fillMode = "full",
 }: {
   size?: B3Size | "fullscreen";
+  fillMode?: "full" | "auto";
   widthClasses?: string;
 }) =>
   clsx(
@@ -209,10 +211,14 @@ export const styledDialogContent = ({
       z-40
       overflow-y-auto placemark-scrollbar
     `,
+    { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
       "w-[320px]": size === "xs",
-      "w-full max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
-      "w-full md:max-w-screen-md lg:max-w-screen-lg p-8": size === "md",
+      "max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
+      "max-w-full md:max-w-screen-md lg:max-w-screen-lg p-6 sm:p-8":
+        size === "md",
+      "max-w-full lg:max-w-screen-lg lg:max-w-screen-lg p-6 sm:p-8":
+        size === "lg",
       "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
     },
     size === "fullscreen"
