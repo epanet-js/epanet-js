@@ -29,7 +29,7 @@ describe("Map Styling Editor", () => {
     ).toHaveTextContent("None");
 
     await user.click(screen.getByRole("combobox", { name: /node color by/i }));
-    await user.click(screen.getByText("Elevation"));
+    await user.click(screen.getByText("Elevation (m)"));
 
     expect(
       screen.getByRole("button", { name: /pretty breaks, 5/i }),
@@ -76,7 +76,7 @@ describe("Map Styling Editor", () => {
     ).toHaveTextContent("None");
 
     await user.click(screen.getByRole("combobox", { name: /link color by/i }));
-    await user.click(screen.getByText("Diameter"));
+    await user.click(screen.getByText("Diameter (mm)"));
 
     expect(
       screen.getByRole("button", { name: /pretty breaks, 7/i }),
@@ -119,7 +119,7 @@ describe("Map Styling Editor", () => {
     renderComponent(store);
 
     await user.click(screen.getByRole("combobox", { name: /link color by/i }));
-    await user.click(screen.getByText("Diameter"));
+    await user.click(screen.getByText("Diameter (mm)"));
     await user.click(screen.getByRole("combobox", { name: /link ramp/i }));
     await user.click(screen.getByTitle("OrRd"));
     await user.click(screen.getByText(/reverse colors/i));

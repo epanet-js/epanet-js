@@ -1,5 +1,5 @@
 import { Store } from "src/state/jotai";
-import { screen, render } from "@testing-library/react";
+import { screen, render, waitFor } from "@testing-library/react";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useShowReport } from "./show-report";
@@ -14,7 +14,9 @@ describe("show report", () => {
 
     await triggerCommand();
 
-    expect(screen.getByText(/report/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/report/i)).toBeInTheDocument(),
+    );
   });
 
   it("tracks a user event", async () => {
