@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
-import { translate } from "src/infra/i18n";
+import { translate, translateUnit } from "src/infra/i18n";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -150,13 +150,16 @@ const SymbologyEditor = ({
         <Selector
           styleOptions={{ border: false }}
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-          options={(["none", ...properties] as SelectOption[]).map((type) => ({
-            value: type,
-            label: colorPropertyLabelFor(type),
-            disabled:
-              simulation.status === "idle" &&
-              simulationProperties.includes(type),
-          }))}
+          options={(["none", ...properties] as SelectOption[]).map((type) => {
+            const unit = type !== "none" ? quantities.getUnit(type) : null;
+            return {
+              value: type,
+              label: `${colorPropertyLabelFor(type)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+              disabled:
+                simulation.status === "idle" &&
+                simulationProperties.includes(type),
+            };
+          })}
           selected={
             (symbology.colorRule
               ? symbology.colorRule.property
