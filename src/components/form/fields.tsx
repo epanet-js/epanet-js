@@ -7,10 +7,12 @@ export const FieldList = ({ children }: { children: React.ReactNode }) => {
 export const InlineField = ({
   name,
   layout = "fixed-label",
+  align = "center",
   children,
 }: {
   name: string;
   layout?: "fixed-label" | "half-split";
+  align?: "start" | "center";
   children: React.ReactNode;
 }) => {
   const labelClasses = clsx("text-sm text-gray-500", {
@@ -23,7 +25,12 @@ export const InlineField = ({
   });
 
   return (
-    <div className="flex items-center space-x-4">
+    <div
+      className={clsx("flex space-x-4", {
+        "items-start": align === "start",
+        "items-center": align === "center",
+      })}
+    >
       <label className={labelClasses}>{name}</label>
 
       <div className={inputWrapperClasses}>{children}</div>

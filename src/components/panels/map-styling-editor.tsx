@@ -21,6 +21,7 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { FieldList, InlineField } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { isFeatureOn } from "src/infra/feature-flags";
+import { LegendRamp } from "../legends";
 
 const colorPropertyLabelFor = (property: string) => {
   if (property === "flow") {
@@ -179,6 +180,13 @@ const SymbologyEditor = ({
                 <ColorRampSelector geometryType={geometryType} />
               </InlineField>
             </>
+          )}
+          {isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger && (
+            <InlineField name="Legend" align="start">
+              <div className="w-full p-2 -mt-2">
+                <LegendRamp colorRule={symbology.colorRule} />
+              </div>
+            </InlineField>
           )}
           <InlineField name={translate("labels")}>
             <div className="p-2 flex items-center h-[38px]">

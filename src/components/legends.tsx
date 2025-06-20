@@ -15,6 +15,9 @@ export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const linkSymbology = useAtomValue(linkSymbologyAtom);
 
+  const isSmOrLarger = useBreakpoint("sm");
+  if (isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger) return null;
+
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {!!nodeSymbology.colorRule && (
@@ -29,7 +32,7 @@ export const Legends = () => {
 
 const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
   const userTracking = useUserTracking();
-  const { breaks, colors, interpolate, property, unit } = symbology;
+  const { property, unit } = symbology;
 
   const title = unit
     ? `${translate(property)} (${translateUnit(unit)})`
@@ -66,34 +69,7 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
             </span>
           )}
         </div>
-        {isExpanded && (
-          <div
-            className="relative w-4 h-32 rounded dark:border dark:border-white "
-            style={{
-              background: linearGradient({
-                colors: colors,
-                interpolate: interpolate,
-                vertical: true,
-              }),
-            }}
-          >
-            {Array.from({ length: breaks.length }).map((_, i) => {
-              const topPct = ((i + 1) / (breaks.length + 1)) * 100;
-              return (
-                <div
-                  key={breaks[i] + "_" + i}
-                  className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
-                  style={{
-                    top: `${topPct}%`,
-                    transform: "translateY(-50%)",
-                  }}
-                >
-                  {localizeDecimal(breaks[i])}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {isExpanded && <LegendRamp colorRule={symbology} />}
       </div>
     </LegendContainer>
   );
@@ -112,6 +88,38 @@ const LegendContainer = ({
       onClick={onClick}
     >
       {children}
+    </div>
+  );
+};
+
+export const LegendRamp = ({ colorRule }: { colorRule: RangeColorRule }) => {
+  const { colors, breaks, interpolate } = colorRule;
+  return (
+    <div
+      className="relative w-4 h-32 rounded dark:border dark:border-white "
+      style={{
+        background: linearGradient({
+          colors: colors,
+          interpolate: interpolate,
+          vertical: true,
+        }),
+      }}
+    >
+      {Array.from({ length: breaks.length }).map((_, i) => {
+        const topPct = ((i + 1) / (breaks.length + 1)) * 100;
+        return (
+          <div
+            key={breaks[i] + "_" + i}
+            className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
+            style={{
+              top: `${topPct}%`,
+              transform: "translateY(-50%)",
+            }}
+          >
+            {localizeDecimal(breaks[i])}
+          </div>
+        );
+      })}
     </div>
   );
 };
