@@ -134,7 +134,7 @@ function useResizeBottom() {
 
   const { moveProps } = useMove({
     onMoveStart() {
-      rawSplit.current = splits.bottom;
+      //rawSplit.current = splits.bottom;
     },
     onMove(e) {
       if (rawSplit.current === null) return;

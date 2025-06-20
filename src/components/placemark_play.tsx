@@ -14,15 +14,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Resizer,
-  useBigScreen,
-  useWindowResizeSplits,
-} from "src/components/resizer";
-import { SidePanel } from "src/components/panels";
+import { Resizer, useWindowResizeSplits } from "src/components/resizer";
+import { BottomPanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom } from "jotai";
 import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
@@ -63,8 +59,6 @@ const persistentTransformAtom = atom<Transform>({
 export function PlacemarkPlay() {
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
-  const splits = useAtomValue(splitsAtom);
-  const isBigScreen = useBigScreen();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
 
@@ -79,23 +73,10 @@ export function PlacemarkPlay() {
     }
   }, [isSignedIn, user, userTracking]);
 
-  let layout: ResolvedLayout = "HORIZONTAL";
+  const isSmOrLarger = useBreakpoint("sm");
+  const isMdOrLarger = useBreakpoint("md");
 
-  switch (splits.layout) {
-    case "VERTICAL":
-      layout = "VERTICAL";
-      break;
-    case "AUTO":
-      layout =
-        isFeatureOn("FLAG_RESPONSIVE") || isBigScreen
-          ? "HORIZONTAL"
-          : "VERTICAL";
-      break;
-    case "FLOATING": {
-      layout = "FLOATING";
-      break;
-    }
-  }
+  const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
   const sensor = useSensors(
     useSensor(PointerSensor, {
@@ -108,8 +89,6 @@ export function PlacemarkPlay() {
   const [persistentTransform, setPersistentTransform] = useAtom(
     persistentTransformAtom,
   );
-  const isSmOrLarger = useBreakpoint("sm");
-  const isMdOrLarger = useBreakpoint("md");
 
   useHydrateAtoms([
     [
@@ -139,7 +118,7 @@ export function PlacemarkPlay() {
         </div>
         <div
           className={clsx(
-            layout === "VERTICAL" && "flex-col",
+            layout === "VERTICAL" && "flex-col h-full",
             "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
             !isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger ? "pb-10" : "",
           )}
@@ -162,8 +141,13 @@ export function PlacemarkPlay() {
               layout={layout}
             />
           </DndContext>
-          <SidePanel />
-          <Resizer side="right" />
+          {layout === "HORIZONTAL" && (
+            <>
+              <SidePanel />
+              <Resizer side="right" />
+            </>
+          )}
+          {layout === "VERTICAL" && <BottomPanel />}
         </div>
         <Drop />
         <Dialogs />

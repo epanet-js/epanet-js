@@ -178,7 +178,7 @@ export const MAX_SPLIT = 640;
 
 export interface Splits {
   layout: PanelLayout;
-  bottom: number;
+  bottom: number | string;
   rightOpen: boolean;
   right: number;
   leftOpen: boolean;
@@ -189,7 +189,7 @@ export type PanelLayout = "AUTO" | "FLOATING" | "VERTICAL";
 
 export const defaultSplits: Splits = {
   layout: "AUTO",
-  bottom: 500,
+  bottom: "50%",
   rightOpen: true,
   right: 320,
   leftOpen: true,
