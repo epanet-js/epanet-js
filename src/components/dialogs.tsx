@@ -90,17 +90,6 @@ const CreateNewDialog = dynamic<{
   loading: () => <Loading />,
 });
 
-const RunSimulationDialog = dynamic<{
-  modal: dialogState.SimulationSummaryState;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/commands/run-simulation").then((r) => r.RunSimulationDialog),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const SimulationReportDialog = dynamic(
   () =>
     import("src/components/dialogs/simulation-report").then(
@@ -113,6 +102,19 @@ const SimulationReportDialog = dynamic(
 
 const WelcomeDialog = dynamic(
   () => import("src/components/dialogs/welcome").then((r) => r.WelcomeDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
+const SimulationSummaryDialog = dynamic<{
+  modal: dialogState.SimulationSummaryState;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/simulation-summary").then(
+      (r) => r.SimulationSummaryDialog,
+    ),
   {
     loading: () => <LoadingDialog />,
   },
@@ -194,13 +196,16 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "simulationReport") {
     return <SimulationReportDialog />;
   }
-  if (dialog && dialog.type === "simulationSettings") {
+  if (dialog.type === "simulationSettings") {
     return <SimulationSettingsDialog />;
   }
-  if (dialog && dialog.type === "welcome") {
+  if (dialog.type === "simulationSummary") {
+    return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
+  }
+  if (dialog.type === "welcome") {
     return <WelcomeDialog />;
   }
-  if (dialog && dialog.type === "loading") {
+  if (dialog.type === "loading") {
     return <LoadingDialog />;
   }
 
@@ -219,9 +224,6 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
-    .with({ type: "simulationSummary" }, (modal) => (
-      <RunSimulationDialog modal={modal} onClose={onClose} />
-    ))
     .with({ type: "upgrade" }, () => <UpgradeDialog onClose={onClose} />)
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
