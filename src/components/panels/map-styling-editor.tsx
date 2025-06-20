@@ -183,7 +183,7 @@ const SymbologyEditor = ({
           )}
           {isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger && (
             <InlineField name="Legend" align="start">
-              <div className="w-full p-2 -mt-2">
+              <div className="w-full px-2">
                 <LegendRamp colorRule={symbology.colorRule} />
               </div>
             </InlineField>
