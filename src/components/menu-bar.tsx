@@ -223,6 +223,7 @@ export const SideMenu = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
+  const showWelcome = useShowWelcome();
   const { user } = useAuth();
 
   const toggleMenu = () => {
@@ -252,7 +253,7 @@ export const SideMenu = () => {
             </Button>
           </div>{" "}
           <nav>
-            <ul className="flex-col items-start gap-4 text-gray-200">
+            <ul className="flex flex-col items-start gap-2  text-gray-200">
               <li>
                 <a
                   href={sourceCodeUrl}
@@ -265,7 +266,7 @@ export const SideMenu = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    <GitHubLogoIcon />
+                    <GitHubLogoIcon className="mr-2" />
                     {translate("openSource")}
                   </Button>
                 </a>
@@ -275,9 +276,32 @@ export const SideMenu = () => {
                   <DebugDropdown />
                 </li>
               )}
+              <li>
+                <Button
+                  variant="quiet"
+                  onClick={() => showWelcome({ source: "menu" })}
+                >
+                  <SunIcon className="mr-2" />
+                  {translate("welcomePage")}
+                </Button>
+              </li>
 
               <li>
-                <HelpDot />
+                <a
+                  href={helpCenterUrl}
+                  target="_blank"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "helpCenter.visited",
+                      source: "menu",
+                    });
+                  }}
+                >
+                  <Button variant="quiet">
+                    <QuestionMarkCircledIcon className="mr-2" />{" "}
+                    {translate("helpCenter")}
+                  </Button>
+                </a>
               </li>
             </ul>
             <hr className="my-4 border-gray-200" />
