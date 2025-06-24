@@ -73,6 +73,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const userTracking = useUserTracking();
   const { user } = useAuth();
   const setDialogState = useSetAtom(dialogAtom);
+  const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
@@ -84,22 +85,25 @@ export const MenuBarPlay = memo(function MenuBar() {
         {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && <FileInfo />}
       </div>
       <div className="flex items-center gap-x-1">
-        <a
-          href={sourceCodeUrl}
-          target="_blank"
-          onClick={() => {
-            userTracking.capture({ name: "repo.visited", source: "menu" });
-          }}
-        >
-          <Button variant="quiet">
-            <GitHubLogoIcon />
-            {translate("openSource")}
-          </Button>
-        </a>
-        {isDebugOn && <DebugDropdown />}
-
-        <HelpDot />
-        <Divider />
+        {isMdOrLarger && (
+          <>
+            <a
+              href={sourceCodeUrl}
+              target="_blank"
+              onClick={() => {
+                userTracking.capture({ name: "repo.visited", source: "menu" });
+              }}
+            >
+              <Button variant="quiet">
+                <GitHubLogoIcon />
+                {translate("openSource")}
+              </Button>
+            </a>
+            {isDebugOn && <DebugDropdown />}
+            <HelpDot />
+            <Divider />
+          </>
+        )}
         <SignedIn>
           <div className="relative flex items-center px-2 gap-x-2">
             {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user.plan) && (
@@ -117,22 +121,28 @@ export const MenuBarPlay = memo(function MenuBar() {
                 {translate("upgrade")}
               </Button>
             )}
-            <PlanBadge plan={user.plan} />
-            <UserButton />
+            {isMdOrLarger && (
+              <>
+                <PlanBadge plan={user.plan} />
+                <UserButton />
+              </>
+            )}
           </div>
         </SignedIn>
         <SignedOut>
           {!isFeatureOn("FLAG_GUEST") && <RedirectToSignIn />}
           {isFeatureOn("FLAG_GUEST") && (
             <div className="flex items-center gap-x-1">
-              <SignInButton
-                onClick={() => {
-                  userTracking.capture({
-                    name: "signIn.started",
-                    source: "menu",
-                  });
-                }}
-              />
+              {isMdOrLarger && (
+                <SignInButton
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "signIn.started",
+                      source: "menu",
+                    });
+                  }}
+                />
+              )}
               <SignUpButton
                 onClick={() => {
                   userTracking.capture({
@@ -232,7 +242,7 @@ export const SideMenu = () => {
 
   return (
     <div className="relative">
-      <div className="flex justify-end p-4 md:hidden">
+      <div className="flex justify-end md:hidden">
         <Button variant="quiet" onClick={toggleMenu}>
           <HamburgerMenuIcon />
         </Button>
@@ -307,9 +317,6 @@ export const SideMenu = () => {
             <hr className="my-4 border-gray-200" />
             <SignedIn>
               <ul className="flex-col items-start gap-4">
-                <li>
-                  <PlanBadge plan={user.plan} />
-                </li>
                 <li>
                   <UserButton />
                 </li>
