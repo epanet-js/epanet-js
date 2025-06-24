@@ -55,11 +55,9 @@ export class MapEngine {
   constructor({
     element,
     handlers,
-    options = { hideControls: false },
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
-    options?: { hideControls?: boolean };
   }) {
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
@@ -86,19 +84,17 @@ export class MapEngine {
       }),
       "bottom-right",
     );
-    if (!options.hideControls) {
-      map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
-      map.addControl(
-        new mapboxgl.GeolocateControl({
-          showUserLocation: false,
-          showAccuracyCircle: false,
-          positionOptions: {
-            enableHighAccuracy: true,
-          },
-        }),
-        "bottom-right",
-      );
-    }
+    map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
+    map.addControl(
+      new mapboxgl.GeolocateControl({
+        showUserLocation: false,
+        showAccuracyCircle: false,
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+      }),
+      "bottom-right",
+    );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
     map.on("click", (e) => this.handlers.current.onClick(e));
     map.on("mousedown", (e) => this.handlers.current.onMapMouseDown(e));

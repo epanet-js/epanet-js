@@ -3,27 +3,31 @@
 @tailwind utilities;
 
 
-.mapboxgl-ctrl-attrib {
-  font-size: 12px !important;
-  line-height: 2;
-  letter-spacing: 0px;
-}
-
-.mapboxgl-ctrl-attrib a {
-  font-size: 12px !important;
-}
-
-.mapboxgl-ctrl-attrib button {
-  display: none;
-}
-
-.mapboxgl-canvas {
-  cursor: inherit !important;
+.mapboxgl-ctrl-bottom-right {
+  display: none !important;
 }
 
 @media (min-width: 640px) {
   .mapboxgl-ctrl-bottom-right {
     min-height: 160px !important;
+    display: block !important;
+  }
+  .mapboxgl-ctrl-attrib {
+    font-size: 12px !important;
+    line-height: 2;
+    letter-spacing: 0px;
+  }
+
+  .mapboxgl-ctrl-attrib a {
+    font-size: 12px !important;
+  }
+
+  .mapboxgl-ctrl-attrib button {
+    display: none;
+  }
+
+  .mapboxgl-canvas {
+    cursor: inherit !important;
   }
 }
 

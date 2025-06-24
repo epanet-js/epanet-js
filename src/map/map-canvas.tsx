@@ -48,8 +48,6 @@ import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 import { MapLoading } from "./map-loader";
-import { isFeatureOn } from "src/infra/feature-flags";
-import { useBreakpoint } from "src/hooks/use-breakpoint";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -137,19 +135,14 @@ export const MapCanvas = memo(function MapCanvas({
   const map = useContext(MapContext);
 
   const idMap = rep.idMap;
-  const isSmOrLarger = useBreakpoint("sm");
 
   useEffect(() => {
     if (mapRef.current) return;
     if (!mapDivRef.current || !mapHandlers) return;
 
-    const options = {
-      hideControls: isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger,
-    };
     mapRef.current = new MapEngine({
       element: mapDivRef.current,
       handlers: mapHandlers as MutableRefObject<MapHandlers>,
-      options,
     });
     setMap(mapRef.current);
 
@@ -160,7 +153,7 @@ export const MapCanvas = memo(function MapCanvas({
       }
       mapRef.current = null;
     };
-  }, [mapRef, mapDivRef, setMap, isSmOrLarger]);
+  }, [mapRef, mapDivRef, setMap]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
