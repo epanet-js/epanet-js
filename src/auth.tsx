@@ -11,7 +11,7 @@ import {
   useUser as useClerkUser,
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
-import { Button } from "./components/elements";
+import { B3Size, Button } from "./components/elements";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
@@ -93,7 +93,9 @@ export const SignInButton = ({
 export const SignUpButton = ({
   onClick,
   autoFocus = false,
+  size = "sm",
 }: {
+  size?: B3Size | "full-width";
   onClick?: () => void;
   autoFocus?: boolean;
 }) => {
@@ -101,7 +103,12 @@ export const SignUpButton = ({
 
   return (
     <ClerkSignUpButton>
-      <Button variant="primary" onClick={onClick} autoFocus={autoFocus}>
+      <Button
+        variant="primary"
+        size={size}
+        onClick={onClick}
+        autoFocus={autoFocus}
+      >
         <PersonIcon /> {translate("register")}
       </Button>
     </ClerkSignUpButton>

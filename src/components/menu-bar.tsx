@@ -1,7 +1,9 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useState } from "react";
 import { FileInfo } from "src/components/file-info";
 import {
+  Cross1Icon,
   GitHubLogoIcon,
+  HamburgerMenuIcon,
   KeyboardIcon,
   QuestionMarkCircledIcon,
   RocketIcon,
@@ -31,18 +33,34 @@ import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import clsx from "clsx";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
 }
 
-export const BrandLogo = ({ textSize = "md", iconSize = "8", gapX = "0" }) => {
+export const BrandLogo = ({
+  variant = "light",
+  textSize = "md",
+  iconSize = "8",
+  gapX = "0",
+}: {
+  variant?: "light" | "dark";
+  textSize?: string;
+  iconSize?: string;
+  gapX?: string;
+}) => {
   return (
     <span
-      className={`
-          text-gray-500
+      className={clsx(
+        `
           text-${textSize}
-          inline-flex gap-x-${gapX} items-center`}
+          inline-flex gap-x-${gapX} items-center`,
+        {
+          "text-gray-500": variant === "light",
+          "text-gray-200": variant === "dark",
+        },
+      )}
       title="Home"
     >
       <SiteIcon className={`w-${iconSize} h-${iconSize}`} />
@@ -126,6 +144,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             </div>
           )}
         </SignedOut>
+        {isFeatureOn("FLAG_RESPONSIVE") && <SideMenu />}
       </div>
     </div>
   );
@@ -197,4 +216,130 @@ export function HelpDot() {
 
 export const Divider = () => {
   return <div className="border-r-2 border-gray-100 h-8 mr-1"></div>;
+};
+
+export const SideMenu = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const userTracking = useUserTracking();
+  const setDialogState = useSetAtom(dialogAtom);
+  const { user } = useAuth();
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative">
+      <div className="flex justify-end p-4 md:hidden">
+        <Button variant="quiet" onClick={toggleMenu}>
+          <HamburgerMenuIcon />
+        </Button>
+      </div>
+
+      <div
+        ref={menuRef}
+        tabIndex={isOpen ? 0 : -1}
+        className={`fixed inset-y-0 right-0 w-full bg-white transform ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } transition-transform duration-300 ease-in-out md:hidden z-40`}
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between pb-6">
+            <BrandLogo />
+            <Button variant="quiet" onClick={toggleMenu}>
+              <Cross1Icon />
+            </Button>
+          </div>{" "}
+          <nav>
+            <ul className="flex-col items-start gap-4 text-gray-200">
+              <li>
+                <a
+                  href={sourceCodeUrl}
+                  target="_blank"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "repo.visited",
+                      source: "menu",
+                    });
+                  }}
+                >
+                  <Button variant="quiet">
+                    <GitHubLogoIcon />
+                    {translate("openSource")}
+                  </Button>
+                </a>
+              </li>
+              {isDebugOn && (
+                <li>
+                  <DebugDropdown />
+                </li>
+              )}
+
+              <li>
+                <HelpDot />
+              </li>
+            </ul>
+            <hr className="my-4 border-gray-200" />
+            <SignedIn>
+              <ul className="flex-col items-start gap-4">
+                <li>
+                  <PlanBadge plan={user.plan} />
+                </li>
+                <li>
+                  <UserButton />
+                </li>
+                {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user.plan) && (
+                  <li className="py-4">
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "upgradeButton.clicked",
+                          source: "menu",
+                        });
+                        setDialogState({ type: "upgrade" });
+                      }}
+                    >
+                      <RocketIcon />
+                      {translate("upgrade")}
+                    </Button>
+                  </li>
+                )}
+              </ul>
+            </SignedIn>
+            <SignedOut>
+              {!isFeatureOn("FLAG_GUEST") && <RedirectToSignIn />}
+              {isFeatureOn("FLAG_GUEST") && (
+                <ul className="flex-col items-start gap-4">
+                  <li>
+                    <SignInButton
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "signIn.started",
+                          source: "menu",
+                        });
+                      }}
+                    />
+                  </li>
+                  <li className="py-4">
+                    <SignUpButton
+                      size="full-width"
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "signUp.started",
+                          source: "menu",
+                        });
+                      }}
+                    />
+                  </li>
+                </ul>
+              )}
+            </SignedOut>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
 };
