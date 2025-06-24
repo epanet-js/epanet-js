@@ -24,7 +24,7 @@ import {
   QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
-import { BrandLogo } from "../menu_bar";
+import { BrandLogo } from "../menu-bar";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";

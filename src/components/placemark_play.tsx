@@ -2,7 +2,7 @@
 "use client";
 import type { MapEngine } from "src/map";
 import { MapCanvas } from "src/map/map-canvas";
-import { MenuBarPlay } from "src/components/menu_bar";
+import { MenuBarPlay } from "src/components/menu-bar";
 import Drop from "src/components/drop";
 import { Dialogs } from "src/components/dialogs";
 import { CSS } from "@dnd-kit/utilities";
