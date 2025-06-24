@@ -31,7 +31,7 @@ const UpgradeDialog = dynamic<{
 }>(
   () => import("src/components/dialogs/upgrade").then((r) => r.UpgradeDialog),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -209,6 +209,10 @@ export const Dialogs = memo(function Dialogs() {
     return <LoadingDialog />;
   }
 
+  if (dialog.type === "upgrade") {
+    return <UpgradeDialog onClose={onClose} />;
+  }
+
   const content = match(dialog)
     .with({ type: "unsavedChanges" }, ({ onContinue }) => (
       <UnsavedChangesDialog onContinue={onContinue} onClose={onClose} />
@@ -224,7 +228,6 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
-    .with({ type: "upgrade" }, () => <UpgradeDialog onClose={onClose} />)
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
     ))
@@ -267,11 +270,6 @@ export const Dialogs = memo(function Dialogs() {
               }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               size={"sm"}
-              widthClasses={
-                dialog.type === "upgrade"
-                  ? "w-full max-w-[924px] p-6"
-                  : undefined
-              }
             >
               <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
             </StyledDialogContent>

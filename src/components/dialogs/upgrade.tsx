@@ -1,4 +1,4 @@
-import { DialogHeader } from "src/components/dialog";
+import { DialogContainer, DialogHeader } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import {
   CheckIcon,
@@ -69,7 +69,7 @@ export const UpgradeDialog = () => {
   };
 
   return (
-    <>
+    <DialogContainer size="lg">
       <DialogHeader
         title={translate("upgradeYourAccount")}
         titleIcon={RocketIcon}
@@ -107,7 +107,7 @@ export const UpgradeDialog = () => {
         </div>
       </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-auto">
         <FreePlan paymentType={paymentType} />
         {usage === "commercial" && (
           <>
@@ -122,7 +122,7 @@ export const UpgradeDialog = () => {
           </>
         )}
       </div>
-    </>
+    </DialogContainer>
   );
 };
 
