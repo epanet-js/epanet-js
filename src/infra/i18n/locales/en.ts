@@ -110,6 +110,7 @@ export const translations = {
     "Do you want to save the changes made to the current project?",
   discardChanges: "Discard Changes",
   shortcuts: "Shortcuts",
+  onboardingViewAndEdit: "View and edit properties",
   onboardingSelectDrawing: "Select a drawing tool from the menu${1}",
   onboardingDrawReservoir: "Click anywhere to place a reservoir.",
   onboardingDrawJunctions: "Click to place junctions.",

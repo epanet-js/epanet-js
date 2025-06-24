@@ -113,6 +113,7 @@ export const translations: Translations = {
     "¿Quieres guardar los cambios realizados en el proyecto actual?",
   discardChanges: "Descartar Cambios",
   shortcuts: "Atajos de Teclado",
+  onboardingViewAndEdit: "Ver y editar propiedades",
   onboardingSelectDrawing: "Selecciona una herramienta de dibujo del menú${1}",
   onboardingDrawReservoir:
     "Haz clic en cualquier lugar para colocar un embalse.",
