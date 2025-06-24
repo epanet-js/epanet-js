@@ -195,7 +195,7 @@ export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 export const styledDialogContent = ({
   size,
   widthClasses,
-  fillMode = "full",
+  fillMode = "auto",
 }: {
   size?: B3Size | "fullscreen";
   fillMode?: "full" | "auto";
@@ -213,7 +213,7 @@ export const styledDialogContent = ({
     `,
     { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
-      "w-[320px]": size === "xs",
+      "max-w-[320px]": size === "xs",
       "max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
       "max-w-full md:max-w-screen-md lg:max-w-screen-lg p-6 sm:p-8":
         size === "md",
