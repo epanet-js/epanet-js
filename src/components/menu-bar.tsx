@@ -269,6 +269,7 @@ export const SideMenu = () => {
                   href={sourceCodeUrl}
                   target="_blank"
                   onClick={() => {
+                    setIsOpen(false);
                     userTracking.capture({
                       name: "repo.visited",
                       source: "menu",
@@ -289,7 +290,10 @@ export const SideMenu = () => {
               <li>
                 <Button
                   variant="quiet"
-                  onClick={() => showWelcome({ source: "menu" })}
+                  onClick={() => {
+                    setIsOpen(false);
+                    showWelcome({ source: "menu" });
+                  }}
                 >
                   <SunIcon className="mr-2" />
                   {translate("welcomePage")}
@@ -301,6 +305,7 @@ export const SideMenu = () => {
                   href={helpCenterUrl}
                   target="_blank"
                   onClick={() => {
+                    setIsOpen(false);
                     userTracking.capture({
                       name: "helpCenter.visited",
                       source: "menu",
@@ -330,6 +335,7 @@ export const SideMenu = () => {
                           name: "upgradeButton.clicked",
                           source: "menu",
                         });
+                        setIsOpen(false);
                         setDialogState({ type: "upgrade" });
                       }}
                     >
