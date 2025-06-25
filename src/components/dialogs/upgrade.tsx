@@ -74,8 +74,8 @@ export const UpgradeDialog = () => {
         title={translate("upgradeYourAccount")}
         titleIcon={RocketIcon}
       />
-      <label className="block pt-4 space-x-4 pb-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <label className="block py-4 gap-4 flex flex-col flex-wrap md:flex-row items-start md:items-center justify-between">
+        <div className="flex items-center gap-2">
           <div className="text-sm text-gray-700 dark:text-gray-300">
             {translate("for")}:
           </div>
@@ -91,7 +91,7 @@ export const UpgradeDialog = () => {
           )}
         </div>
         <div
-          className={`flex items-center space-x-2 text-gray-700 ${usage === "non-commercial" ? "opacity-25" : ""}`}
+          className={`flex items-center gap-2 text-gray-700 ${usage === "non-commercial" ? "opacity-25" : ""}`}
         >
           <div className="text-sm ">{translate("monthly")}</div>
           <StyledSwitch
@@ -499,7 +499,7 @@ const FeaturesList = ({
 
 const NonCommercialHint = () => {
   return (
-    <div className="relative flex items-center ml-8 text-gray-400 font-handwritten text-xl whitespace-nowrap">
+    <div className="hidden sm:flex relative items-center ml-4 lg:ml-6 text-gray-400 font-handwritten text-xl whitespace-nowrap">
       <svg
         width="48"
         height="218"
