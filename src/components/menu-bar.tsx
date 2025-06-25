@@ -107,6 +107,7 @@ export const MenuBarPlay = memo(function MenuBar() {
               </Button>
             </a>
             {isDebugOn && <DebugDropdown />}
+            <FileMenu />
             <HelpDot />
             <Divider />
           </>
