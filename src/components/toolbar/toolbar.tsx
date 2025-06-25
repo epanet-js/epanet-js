@@ -80,7 +80,7 @@ export const Toolbar = () => {
       >
         <FilePlusIcon />
       </MenuAction>
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+      {
         <>
           <MenuAction
             label={translate("save")}
@@ -103,7 +103,7 @@ export const Toolbar = () => {
             <CopyIcon />
           </MenuAction>
         </>
-      )}
+      }
       <Divider />
       {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
         <>
