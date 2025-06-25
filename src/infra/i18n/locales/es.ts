@@ -269,7 +269,7 @@ export const translations: Translations = {
   "plan.personal": "Personal",
   for: "Para",
   commercialUse: "Uso Comercial",
-  nonCommercialUse: "Uso no Comercial",
+  nonCommercialUse: "Uso No Comercial",
   monthly: "Mensual",
   yearlyWithDiscount: "Anual - ahorra hasta un ${1}%",
   studentOrPersonal: "¿Para estudiante o uso personal? ¡Por aquí!",
