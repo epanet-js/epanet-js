@@ -374,6 +374,7 @@ export const translations = {
     "View a short demonstration showing the full app experience on desktop.",
   visitLandingPage: "Visit Our Landing Page",
   visitLandingPageExplain: "Learn more about the app and what it can do.",
+  file: "File",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

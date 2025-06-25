@@ -1,7 +1,11 @@
 import React, { memo, useRef, useState } from "react";
 import { FileInfo } from "src/components/file-info";
 import {
+  CopyIcon,
   Cross1Icon,
+  DownloadIcon,
+  FileIcon,
+  FilePlusIcon,
   GitHubLogoIcon,
   HamburgerMenuIcon,
   KeyboardIcon,
@@ -34,6 +38,9 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
+import { useNewProject } from "src/commands/create-new-project";
+import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
+import { useSaveInp } from "src/commands/save-inp";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -160,19 +167,53 @@ export const MenuBarPlay = memo(function MenuBar() {
   );
 });
 
-export const MenuBar = memo(function MenuBar() {
+export const FileMenu = () => {
+  const createNewProject = useNewProject();
+  const openInpFromFs = useOpenInpFromFs();
+  const saveInp = useSaveInp();
+
   return (
-    <div className="flex justify-between h-12 pr-3 text-black dark:text-white">
-      <div className="flex items-center">
-        <FileInfo />
-      </div>
-      <div className="flex items-center gap-x-2">
-        {isDebugOn && <DebugDropdown />}
-        <HelpDot />
-      </div>
-    </div>
+    <DD.Root>
+      <DD.Trigger asChild>
+        <Button variant="quiet">{translate("file")}</Button>
+      </DD.Trigger>
+      <DDContent side="bottom" align="end">
+        <StyledItem
+          onSelect={() => {
+            void createNewProject({ source: "menu-bar" });
+          }}
+        >
+          <FileIcon />
+          {translate("newProject")}
+        </StyledItem>
+        <StyledItem
+          onSelect={() => {
+            void openInpFromFs({ source: "toolbar" });
+          }}
+        >
+          <FilePlusIcon />
+          {translate("openProject")}
+        </StyledItem>
+        <StyledItem
+          onSelect={() => {
+            void saveInp({ source: "menu-bar" });
+          }}
+        >
+          <DownloadIcon />
+          {translate("save")}
+        </StyledItem>
+        <StyledItem
+          onSelect={() => {
+            void saveInp({ source: "menu-bar", isSaveAs: true });
+          }}
+        >
+          <CopyIcon />
+          {translate("saveAs")}
+        </StyledItem>
+      </DDContent>
+    </DD.Root>
   );
-});
+};
 
 export function HelpDot() {
   const showWelcome = useShowWelcome();
@@ -234,7 +275,11 @@ export const SideMenu = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
+  const createNewProject = useNewProject();
+  const openInpFromFs = useOpenInpFromFs();
+  const saveInp = useSaveInp();
   const { user } = useAuth();
+  const isMdOrLarger = useBreakpoint("md");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -263,6 +308,59 @@ export const SideMenu = () => {
             </Button>
           </div>{" "}
           <nav>
+            <ul className="flex flex-col items-start gap-2  text-gray-200">
+              {isMdOrLarger && (
+                <li>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      setIsOpen(false);
+                      void createNewProject({ source: "side-menu" });
+                    }}
+                  >
+                    <FileIcon className="mr-2" />
+                    {translate("newProject")}
+                  </Button>
+                </li>
+              )}
+              <li>
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    setIsOpen(false);
+                    void openInpFromFs({ source: "menu" });
+                  }}
+                >
+                  <FilePlusIcon className="mr-2" />
+                  {translate("openProject")}
+                </Button>
+              </li>
+              <li>
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    setIsOpen(false);
+                    void saveInp({ source: "side-menu" });
+                  }}
+                >
+                  <DownloadIcon className="mr-2" />
+                  {translate("save")}
+                </Button>
+              </li>
+              <li>
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    setIsOpen(false);
+                    void saveInp({ source: "side-menu", isSaveAs: true });
+                  }}
+                >
+                  <CopyIcon className="mr-2" />
+                  {translate("saveAs")}
+                </Button>
+              </li>
+            </ul>
+            <hr className="my-4 border-gray-200" />
             <ul className="flex flex-col items-start gap-2  text-gray-200">
               <li>
                 <a

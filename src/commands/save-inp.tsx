@@ -7,6 +7,7 @@ import { translate } from "src/infra/i18n";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
+import { useUserTracking } from "src/infra/user-tracking";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -25,14 +26,20 @@ export const useSaveInp = ({
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
+  const userTracking = useUserTracking();
 
   const saveInp = useAtomCallback(
     useCallback(
       async function saveNative(
         get,
         set,
-        { isSaveAs = false }: { isSaveAs?: boolean } = {},
+        { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) {
+        userTracking.capture({
+          name: "model.saved",
+          source,
+          isSaveAs,
+        });
         const exportOptions: ExportOptions = { type: "inp", folderId: "" };
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
@@ -81,19 +88,19 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess],
+      [getFsAccess, userTracking],
     ),
   );
 
   const saveAlerting = useCallback(
-    ({ isSaveAs = false }: { isSaveAs?: boolean } = {}) => {
+    ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
       if (fileInfo && !fileInfo.isMadeByApp) {
         setDialogState({
           type: "alertInpOutput",
-          onContinue: () => saveInp({ isSaveAs }),
+          onContinue: () => saveInp({ source, isSaveAs }),
         });
       } else {
-        return saveInp({ isSaveAs });
+        return saveInp({ source, isSaveAs });
       }
     },
     [fileInfo, setDialogState, saveInp],

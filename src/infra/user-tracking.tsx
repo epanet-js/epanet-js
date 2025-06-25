@@ -154,7 +154,7 @@ type ReportOpened = {
 
 export type OpenInpStarted = {
   name: "openInp.started";
-  source: "shortcut" | "welcome" | "onboarding" | "toolbar";
+  source: string;
 };
 
 export type ImportInpCompleted = {
@@ -187,7 +187,7 @@ type DownloadErrorSeen = {
 
 type NewModelStarted = {
   name: "newModel.started";
-  source: "shortcut" | "toolbar" | "welcome";
+  source: string;
 };
 
 type NewModelCompleted = {
@@ -198,7 +198,7 @@ type NewModelCompleted = {
 
 type ModelSaved = {
   name: "model.saved";
-  source: "shortcut" | "toolbar" | "onboarding" | "unsavedDialog";
+  source: string;
   isSaveAs?: boolean;
 };
 

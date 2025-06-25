@@ -118,7 +118,10 @@ describe("create new project", () => {
     const createNew = useNewProject();
 
     return (
-      <button aria-label="createNew" onClick={createNew}>
+      <button
+        aria-label="createNew"
+        onClick={() => createNew({ source: "test" })}
+      >
         Create new
       </button>
     );

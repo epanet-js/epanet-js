@@ -158,12 +158,7 @@ export const NothingSelected = memo(function NothingSelected() {
           <Button
             type="button"
             onClick={() => {
-              userTracking.capture({
-                name: "model.saved",
-                source: "onboarding",
-              });
-
-              void saveInp();
+              void saveInp({ source: "onboarding" });
             }}
           >
             <DownloadIcon />

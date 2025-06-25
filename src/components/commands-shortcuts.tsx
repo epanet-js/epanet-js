@@ -109,11 +109,7 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      userTracking.capture({
-        name: "newModel.started",
-        source: "shortcut",
-      });
-      void createNew();
+      void createNew({ source: "shortcut" });
     },
     [createNewShortcut, createNew],
     "Open inp",
@@ -124,11 +120,7 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      userTracking.capture({
-        name: "model.saved",
-        source: "shortcut",
-      });
-      void saveInp();
+      void saveInp({ source: "shortcut" });
     },
     [saveShortcut, saveInp],
     "Save",
@@ -139,12 +131,7 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      userTracking.capture({
-        name: "model.saved",
-        source: "shortcut",
-        isSaveAs: true,
-      });
-      void saveInp({ isSaveAs: true });
+      void saveInp({ source: "shortcut", isSaveAs: true });
     },
     [saveAsShortcut, saveInp],
     "Save",

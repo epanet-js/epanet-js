@@ -4,7 +4,6 @@ import { translate } from "src/infra/i18n";
 import { Button } from "../elements";
 import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
-import { useUserTracking } from "src/infra/user-tracking";
 
 export const UnsavedChangesDialog = ({
   onContinue,
@@ -14,14 +13,9 @@ export const UnsavedChangesDialog = ({
   onClose: () => void;
 }) => {
   const saveInp = useSaveInp();
-  const userTracking = useUserTracking();
 
   const handleSaveAndContinue = async () => {
-    userTracking.capture({
-      name: "model.saved",
-      source: "unsavedDialog",
-    });
-    const isSaved = await saveInp();
+    const isSaved = await saveInp({ source: "unsavedDialog" });
     if (isSaved) {
       onClose();
       onContinue();

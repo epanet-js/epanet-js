@@ -136,10 +136,16 @@ describe("save inp", () => {
 
     return (
       <>
-        <button aria-label="saveInp" onClick={() => saveInp()}>
+        <button
+          aria-label="saveInp"
+          onClick={() => saveInp({ source: "test" })}
+        >
           Save inp
         </button>
-        <button aria-label="saveAs" onClick={() => saveInp({ isSaveAs: true })}>
+        <button
+          aria-label="saveAs"
+          onClick={() => saveInp({ source: "test", isSaveAs: true })}
+        >
           Save as
         </button>
       </>

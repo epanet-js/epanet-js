@@ -386,6 +386,7 @@ export const translations: Translations = {
   visitLandingPage: "Visita nuestra página de inicio",
   visitLandingPageExplain:
     "Obtén más información sobre la aplicación y lo que puede hacer.",
+  file: "Archivo",
 };
 
 export const units: UnitsLocale = {

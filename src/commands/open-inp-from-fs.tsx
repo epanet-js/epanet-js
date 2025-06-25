@@ -20,7 +20,7 @@ export const useOpenInpFromFs = () => {
   });
 
   const openInpFromFs = useCallback(
-    async ({ source }: { source: OpenInpStarted["source"] }) => {
+    async ({ source }: { source: string }) => {
       userTracking.capture({
         name: "openInp.started",
         source,

@@ -139,12 +139,7 @@ export const WelcomeDialog = () => {
                     <Button
                       variant="quiet"
                       onClick={() => {
-                        userTracking.capture({
-                          name: "newModel.started",
-                          source: "welcome",
-                        });
-
-                        void createNew();
+                        void createNew({ source: "welcome" });
                       }}
                     >
                       <FileIcon />

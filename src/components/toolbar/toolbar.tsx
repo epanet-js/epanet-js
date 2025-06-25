@@ -64,11 +64,7 @@ export const Toolbar = () => {
           role="button"
           readOnlyHotkey={"alt+n"}
           onClick={() => {
-            userTracking.capture({
-              name: "newModel.started",
-              source: "toolbar",
-            });
-            void createNewProject();
+            void createNewProject({ source: "toolbar" });
           }}
         >
           <FileIcon />
@@ -90,11 +86,7 @@ export const Toolbar = () => {
             label={translate("save")}
             role="button"
             onClick={() => {
-              userTracking.capture({
-                name: "model.saved",
-                source: "toolbar",
-              });
-              void saveInp();
+              void saveInp({ source: "toolbar" });
             }}
             readOnlyHotkey={saveShortcut}
           >
@@ -104,13 +96,7 @@ export const Toolbar = () => {
             label={translate("saveAs")}
             role="button"
             onClick={() => {
-              userTracking.capture({
-                name: "model.saved",
-                source: "toolbar",
-                isSaveAs: true,
-              });
-
-              void saveInp({ isSaveAs: true });
+              void saveInp({ source: "toolbar", isSaveAs: true });
             }}
             readOnlyHotkey={saveAsShortcut}
           >
