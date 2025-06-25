@@ -95,7 +95,7 @@ const InfoPopover = ({
       </Popover.Trigger>
       <Popover.Portal>
         <StyledPopoverContent size="auto">
-          <div className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-2 text-sm text-gray-500 p-2 min-w-[180px]">
+          <div className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-4 text-sm text-gray-500 p-2">
             <span>{translate("autoLengths")}</span>
             <span className="text-gray-700">{translate("on")}</span>
 
