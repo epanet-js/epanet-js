@@ -22,7 +22,7 @@ export const Footer = () => {
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
+    <nav className="fixed bottom-0 left-0 w-full bg-gray-50 border-t border-gray-300 shadow-md ">
       <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
         {!isXlOrLarger && (
           <div className="px-2">
