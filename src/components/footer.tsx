@@ -4,62 +4,126 @@ import {
   CountdownTimerIcon,
   CrossCircledIcon,
   ExclamationTriangleIcon,
+  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { translate } from "src/infra/i18n";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { dataAtom, simulationAtom } from "src/state/jotai";
+import * as Popover from "@radix-ui/react-popover";
+import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 
 export const Footer = () => {
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
+  const isXlOrLarger = useBreakpoint("xl");
   const isLgOrLarger = useBreakpoint("lg");
-  const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-
-  const items: string[] = useMemo(
-    () =>
-      !isFeatureOn("FLAG_RESPONSIVE") || isLgOrLarger
-        ? [
-            `${translate("autoLengths")}: ${translate("on")}`,
-            `${translate("autoElevations")}: ${translate("on")}`,
-            `${translate("units")}: ${modelMetadata.quantities.specName}`,
-            `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
-            `${translate("demandMultiplier")}: ${localizeDecimal(hydraulicModel.demands.multiplier)}`,
-          ]
-        : isMdOrLarger
-          ? [
-              `${translate("units")}: ${modelMetadata.quantities.specName}`,
-              `${translate("headlossShort")}: ${hydraulicModel.headlossFormula}`,
-              `${translate("demandMultiplier")}: ${localizeDecimal(hydraulicModel.demands.multiplier)}`,
-            ]
-          : [
-              `${translate("demandMultiplier")}: ${localizeDecimal(hydraulicModel.demands.multiplier)}`,
-            ],
-    [hydraulicModel, modelMetadata, isLgOrLarger, isMdOrLarger],
-  );
-
-  if (isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-md ">
       <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
+        {!isXlOrLarger && (
+          <div className="px-2">
+            <InfoPopover
+              unitsSpecName={modelMetadata.quantities.specName}
+              demandMultiplier={hydraulicModel.demands.multiplier}
+              headlossFormula={hydraulicModel.headlossFormula}
+            />
+          </div>
+        )}
         <div className="border-r-2 border-gray-100 h-10"></div>
-        {items.map((item, i) => (
+        {isXlOrLarger && (
           <>
-            <span key={i} className="px-4 py-2">
-              {item}
+            <span className="px-4 py-2">
+              {translate("autoLengths")}: {translate("on")}
+            </span>
+            <div className="border-r-2 border-gray-100 h-10"></div>
+            <span className="px-4 py-2">
+              {translate("autoElevations")}: {translate("on")}
             </span>
             <div className="border-r-2 border-gray-100 h-10"></div>
           </>
-        ))}
+        )}
+        {isLgOrLarger && (
+          <>
+            <span className="px-4 py-2">
+              {translate("units")}: {modelMetadata.quantities.specName}
+            </span>
+            <div className="border-r-2 border-gray-100 h-10"></div>
+            <span className="px-4 py-2">
+              {translate("headlossShort")}: {hydraulicModel.headlossFormula}
+            </span>
+            <div className="border-r-2 border-gray-100 h-10"></div>
+          </>
+        )}
+        {isSmOrLarger && (
+          <>
+            <span className="px-4 py-2">
+              {translate("demandMultiplier")}:{" "}
+              {localizeDecimal(hydraulicModel.demands.multiplier)}
+            </span>
+            <div className="border-r-2 border-gray-100 h-10"></div>
+          </>
+        )}
         <span className="px-1">
           <SimulationStatusText />
         </span>
       </div>
     </nav>
+  );
+};
+
+const InfoPopover = ({
+  unitsSpecName,
+  headlossFormula,
+  demandMultiplier,
+}: {
+  unitsSpecName: string;
+  headlossFormula: string;
+  demandMultiplier: number;
+}) => {
+  const isLgOrLarger = useBreakpoint("lg");
+  const isSmOrLarger = useBreakpoint("sm");
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <Button variant="quiet">
+          <InfoCircledIcon className="w-4 h-4 text-gray-500" />
+        </Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <StyledPopoverContent size="auto">
+          <div className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-2 text-sm text-gray-500 p-2 min-w-[180px]">
+            <span>{translate("autoLengths")}</span>
+            <span className="text-gray-700">{translate("on")}</span>
+
+            <span>{translate("autoElevations")}</span>
+            <span className="text-gray-700">{translate("on")}</span>
+
+            {!isLgOrLarger && (
+              <>
+                <span>{translate("units")}</span>
+                <span className="text-gray-700">{unitsSpecName}</span>
+                <span>{translate("headlossShort")}</span>
+                <span className="text-gray-700">{headlossFormula}</span>
+              </>
+            )}
+
+            {!isSmOrLarger && (
+              <>
+                <span>{translate("demandMultiplier")}</span>
+                <span className="text-gray-700">
+                  {localizeDecimal(demandMultiplier)}
+                </span>
+              </>
+            )}
+          </div>
+          <StyledPopoverArrow />
+        </StyledPopoverContent>
+      </Popover.Portal>
+    </Popover.Root>
   );
 };
 

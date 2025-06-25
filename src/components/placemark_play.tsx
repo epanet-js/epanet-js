@@ -120,7 +120,7 @@ export function PlacemarkPlay() {
           className={clsx(
             layout === "VERTICAL" && "flex-col h-full",
             "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
-            !isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger ? "pb-10" : "",
+            "pb-10",
           )}
         >
           <DndContext

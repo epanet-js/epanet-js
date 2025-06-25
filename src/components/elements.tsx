@@ -388,7 +388,7 @@ export const StyledPopoverContent = classed(Popover.Content)(
     size = "sm",
     flush = "no",
   }: {
-    size?: B3Size | "no-width";
+    size?: B3Size | "no-width" | "auto";
     flush?: "yes" | "no";
   }) =>
     clsx(
