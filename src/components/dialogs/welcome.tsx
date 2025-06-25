@@ -1,8 +1,6 @@
-import Image from "next/image";
 import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
-import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { translate } from "src/infra/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
@@ -28,6 +26,7 @@ import { BrandLogo } from "../menu-bar";
 import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
+import { DemoNetworkCard } from "../demo-network-card";
 
 type DemoModel = {
   name: string;
@@ -54,16 +53,7 @@ export const WelcomeDialog = () => {
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
-  const { openInpFromUrl } = useOpenInpFromUrl();
   const userTracking = useUserTracking();
-
-  const handleOpenDemoModel = (demoModel: DemoModel) => {
-    userTracking.capture({
-      name: "exampleModel.clicked",
-      modelName: demoModel.name,
-    });
-    void openInpFromUrl(demoModel.url);
-  };
 
   const isMdOrLarger = useBreakpoint("md");
 
@@ -118,15 +108,9 @@ export const WelcomeDialog = () => {
                 <p className="text-sm pb-3">
                   {translate("welcomeExploreWithSamples")}:
                 </p>
-                <div className="flex flex-col sm:flex-row md:items-center gap-5  pb-3">
+                <div className="flex flex-col sm:flex-row gap-6 pb-3">
                   {demoModels.map((demoModel, i) => (
-                    <DemoNetworkCard
-                      key={i}
-                      title={demoModel.name}
-                      description={demoModel.description}
-                      thumbnailUrl={demoModel.thumbnailUrl}
-                      onClick={() => handleOpenDemoModel(demoModel)}
-                    />
+                    <DemoNetworkCard key={i} demoNetwork={demoModel} />
                   ))}
                 </div>
               </div>
@@ -220,40 +204,6 @@ export const WelcomeDialog = () => {
         </div>
       </div>
     </DialogContainer>
-  );
-};
-
-const DemoNetworkCard = ({
-  title,
-  description,
-  thumbnailUrl,
-  onClick,
-}: {
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  onClick: () => void;
-}) => {
-  return (
-    <div
-      className="flex flex-col w-[250px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
-      onClick={onClick}
-    >
-      <div className="flex-shrink-0">
-        <Image
-          src={thumbnailUrl}
-          alt={title}
-          width={247}
-          height={200}
-          quality={90}
-          className="rounded-md object-cover"
-        />
-      </div>
-      <div className="flex flex-col p-3">
-        <span className="text-gray-600 font-bold text-sm">{title}</span>
-        <span className="text-xs">{description}</span>
-      </div>
-    </div>
   );
 };
 
