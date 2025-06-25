@@ -80,13 +80,17 @@ export const MenuBarPlay = memo(function MenuBar() {
   const userTracking = useUserTracking();
   const { user } = useAuth();
   const setDialogState = useSetAtom(dialogAtom);
+  const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
       <div className="flex items-center">
-        <div className="py-1 pl-2 pr-2 inline-flex">
+        <div
+          className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
+          onClick={() => showWelcome({ source: "menu" })}
+        >
           <BrandLogo />
         </div>
         {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && <FileInfo />}

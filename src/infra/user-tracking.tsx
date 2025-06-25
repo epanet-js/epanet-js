@@ -121,7 +121,8 @@ export type WelcomeOpened = {
     | "inpIssues"
     | "geocodeError"
     | "missingCoordinatesError"
-    | "invalidFilesError";
+    | "invalidFilesError"
+    | "toolbar";
 };
 
 type ProjectionConverterVisited = {
