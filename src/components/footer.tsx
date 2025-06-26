@@ -3,8 +3,8 @@ import {
   CircleIcon,
   CountdownTimerIcon,
   CrossCircledIcon,
+  DoubleArrowLeftIcon,
   ExclamationTriangleIcon,
-  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
@@ -26,7 +26,7 @@ export const Footer = () => {
       <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
         {!isXlOrLarger && (
           <div className="px-2">
-            <InfoPopover
+            <CollapsedPopover
               unitsSpecName={modelMetadata.quantities.specName}
               demandMultiplier={hydraulicModel.demands.multiplier}
               headlossFormula={hydraulicModel.headlossFormula}
@@ -75,7 +75,7 @@ export const Footer = () => {
   );
 };
 
-const InfoPopover = ({
+const CollapsedPopover = ({
   unitsSpecName,
   headlossFormula,
   demandMultiplier,
@@ -90,7 +90,7 @@ const InfoPopover = ({
     <Popover.Root>
       <Popover.Trigger asChild>
         <Button variant="quiet">
-          <InfoCircledIcon className="w-4 h-4 text-gray-500" />
+          <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
         </Button>
       </Popover.Trigger>
       <Popover.Portal>
