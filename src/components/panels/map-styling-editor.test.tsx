@@ -1,3 +1,4 @@
+import "src/__helpers__/media-queries";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -11,8 +12,13 @@ import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
 import { Dialogs } from "../dialogs";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { stubWindowSize } from "src/__helpers__/media-queries";
 
 describe("Map Styling Editor", () => {
+  beforeEach(() => {
+    stubWindowSize("sm");
+  });
+
   it("can change the styles for nodes", async () => {
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
