@@ -2,7 +2,7 @@ import type { ReactNode, PropsWithoutRef } from "react";
 import { useState } from "react";
 import type { FormikHelpers, FormikProps } from "formik";
 import { Formik } from "formik";
-import { InlineError } from "src/components/inline_error";
+import { InlineError } from "src/components/inline-error";
 import type { z } from "zod";
 import { SimpleDialogActions } from "src/components/dialog";
 

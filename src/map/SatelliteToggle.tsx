@@ -2,8 +2,8 @@ import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
 import { useUserTracking } from "src/infra/user-tracking";
-import LAYERS from "src/lib/default_layers";
-import { mapboxStaticURL } from "src/lib/mapbox_static_url";
+import LAYERS from "src/lib/default-layers";
+import { mapboxStaticURL } from "src/lib/mapbox-static-url";
 import { layerConfigAtom } from "src/state/jotai";
 import { offlineAtom } from "src/state/offline";
 

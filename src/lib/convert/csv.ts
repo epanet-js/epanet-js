@@ -1,4 +1,4 @@
-import readAsText from "src/lib/read_as_text";
+import readAsText from "src/lib/read-as-text";
 import type { FeatureCollection, Feature } from "src/types";
 import type {
   ExportOptions,
@@ -30,7 +30,7 @@ export class CCSV implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardCsv() {
         const { csvToGeoJSON } = await import(
-          "src/lib/convert/local/csv_to_geojson"
+          "src/lib/convert/local/csv-to-geojson"
         );
         const geojson = await csvToGeoJSON(text, options.csvOptions, progress);
         return okResult(geojson);
@@ -40,7 +40,7 @@ export class CCSV implements FileType {
   back({ geojson }: { geojson: FeatureCollection }, options: ExportOptions) {
     return EitherAsync<ConvertError, ExportResult>(async function backCsv() {
       const { geojsonToCSV } = await import(
-        "src/lib/convert/local/geojson_to_csv"
+        "src/lib/convert/local/geojson-to-csv"
       );
       return {
         blob: stringToBlob(geojsonToCSV(geojson, options)),
@@ -52,7 +52,7 @@ export class CCSV implements FileType {
     return EitherAsync<ConvertError, string>(
       async function featureToStringCsv() {
         const { geojsonToCSV } = await import(
-          "src/lib/convert/local/geojson_to_csv"
+          "src/lib/convert/local/geojson-to-csv"
         );
         return geojsonToCSV(
           {

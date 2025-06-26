@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { sortAts } from "src/lib/parse_stored";
+import { sortAts } from "src/lib/parse-stored";
 import { useCallback } from "react";
 import { ILayerConfig } from "src/types";
 import { layerConfigAtom } from "src/state/jotai";

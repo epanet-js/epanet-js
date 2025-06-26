@@ -1,14 +1,14 @@
-import { ZipDB } from "src/lib/get_zip_db";
+import { ZipDB } from "src/lib/get-zip-db";
 import { JsonObject, JsonValue } from "type-fest";
 import { z } from "zod";
 import type { Unzipped } from "fflate";
 import { ImportOptions } from "..";
-import { env } from "src/lib/env_client";
+import { env } from "src/lib/env-client";
 import { GeocodeEarthResult } from "src/lib/geocode";
 import { Feature } from "src/types";
 import { wktToGeoJSON } from "betterknown";
 import { parseOrError } from "src/lib/errors";
-import { rough } from "src/lib/roughly_geojson";
+import { rough } from "src/lib/roughly-geojson";
 import { Maybe } from "purify-ts/Maybe";
 import { polylineToGeoJSON } from "@placemarkio/polyline";
 import { Either } from "purify-ts/Either";

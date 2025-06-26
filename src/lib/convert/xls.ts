@@ -13,7 +13,7 @@ export class CXLS implements FileType {
     return EitherAsync<ConvertError, ConvertResult>(
       async function forwardXls() {
         const { xlsxToGeoJSON } = await import(
-          "src/lib/convert/local/xlsx_to_geojson"
+          "src/lib/convert/local/xlsx-to-geojson"
         );
         const geojson = await xlsxToGeoJSON(file, options.csvOptions);
         return okResult(geojson);

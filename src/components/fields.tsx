@@ -1,6 +1,6 @@
 import { FILE_TYPES } from "src/lib/convert";
 import { Field, ErrorMessage } from "formik";
-import { InlineError } from "./inline_error";
+import { InlineError } from "./inline-error";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { styledSelect } from "./elements";
 

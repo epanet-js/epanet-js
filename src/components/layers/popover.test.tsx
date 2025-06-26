@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { UIDMap } from "src/lib/id_mapper";
+import { UIDMap } from "src/lib/id-mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";

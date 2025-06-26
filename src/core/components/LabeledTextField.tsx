@@ -1,7 +1,7 @@
 import type { PropsWithoutRef } from "react";
 import React, { forwardRef } from "react";
 import { useField, useFormikContext, ErrorMessage } from "formik";
-import { InlineError } from "src/components/inline_error";
+import { InlineError } from "src/components/inline-error";
 import type { B3Size } from "src/components/elements";
 import { Input, StyledLabelSpan } from "src/components/elements";
 

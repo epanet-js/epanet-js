@@ -1,5 +1,5 @@
 import { translate } from "src/infra/i18n";
-import MenuAction from "../menu_action";
+import MenuAction from "../menu-action";
 import {
   CopyIcon,
   DownloadIcon,
@@ -11,7 +11,7 @@ import {
   ResetIcon,
 } from "@radix-ui/react-icons";
 import Modes from "../modes";
-import ContextActions from "../context_actions";
+import ContextActions from "../context-actions";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
 import {

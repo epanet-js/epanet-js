@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
-import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { IDMap, UIDMap } from "src/lib/id-mapper";
 import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,

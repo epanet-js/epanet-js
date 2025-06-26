@@ -1,7 +1,7 @@
 import type { FileType, ImportOptions } from ".";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import type { ConvertError } from "src/lib/errors";
-import readAsText from "src/lib/read_as_text";
+import readAsText from "src/lib/read-as-text";
 import { ConvertResult, okResult, toDom } from "./utils";
 
 export class COSM implements FileType {

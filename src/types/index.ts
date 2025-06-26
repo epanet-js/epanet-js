@@ -9,13 +9,13 @@ import type {
   Geometry,
   FeatureCollection as IFeatureCollection,
 } from "geojson";
-import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
+import type { FlatbushLike } from "src/lib/generate-flatbush-instance";
 import type { ModeWithOptions } from "src/state/mode";
 import type { Dispatch, SetStateAction } from "react";
 import type { IPersistence } from "src/lib/persistence/ipersistence";
 import type { Sel } from "src/state/jotai";
 import { JsonValue, SetOptional } from "type-fest";
-import { IDMap } from "src/lib/id_mapper";
+import { IDMap } from "src/lib/id-mapper";
 import { getFoldersInTree } from "src/lib/folder";
 import { colors } from "src/lib/constants";
 import clamp from "lodash/clamp";

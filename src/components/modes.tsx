@@ -5,7 +5,7 @@ import {
   VercelLogoIcon,
 } from "@radix-ui/react-icons";
 import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
-import MenuAction from "src/components/menu_action";
+import MenuAction from "src/components/menu-action";
 import { memo } from "react";
 import { useAtomValue } from "jotai";
 import { IWrappedFeature } from "src/types";

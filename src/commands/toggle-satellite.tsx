@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
-import LAYERS from "src/lib/default_layers";
+import LAYERS from "src/lib/default-layers";
 import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";

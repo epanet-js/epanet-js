@@ -24,10 +24,10 @@ import {
 } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import loadAndAugmentStyle from "src/lib/load_and_augment_style";
+import loadAndAugmentStyle from "src/lib/load-and-augment-style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
 import { PolygonLayer } from "@deck.gl/layers";
 import {
@@ -35,7 +35,7 @@ import {
   LASSO_DARK_YELLOW,
   LASSO_YELLOW,
 } from "src/lib/constants";
-import { makeRectangle } from "src/lib/pmap/merge_ephemeral_state";
+import { makeRectangle } from "src/lib/pmap/merge-ephemeral-state";
 import { captureError } from "src/infra/error-tracking";
 import { withInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";

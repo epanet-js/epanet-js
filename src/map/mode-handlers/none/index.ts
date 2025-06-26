@@ -12,7 +12,7 @@ import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { decodeId } from "src/lib/id";
-import { UIDMap } from "src/lib/id_mapper";
+import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
 

@@ -9,7 +9,7 @@ import { GEOJSON_TYPES } from "src/lib/constants";
 import { ConvertError, parseOrError, PlacemarkError } from "src/lib/errors";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { Left } from "purify-ts/Either";
-import { CoordinateString } from "./coordinate_string";
+import { CoordinateString } from "./coordinate-string";
 import isPlainObject from "lodash/isPlainObject";
 import { JsonObject, JsonValue } from "type-fest";
 import { ProxyMarked } from "comlink";

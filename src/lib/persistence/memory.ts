@@ -18,8 +18,8 @@ import {
   initialSimulationState,
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
-import { IDMap, UIDMap } from "src/lib/id_mapper";
-import { sortAts } from "src/lib/parse_stored";
+import { IDMap, UIDMap } from "src/lib/id-mapper";
+import { sortAts } from "src/lib/parse-stored";
 import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";

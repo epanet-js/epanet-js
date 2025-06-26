@@ -9,7 +9,7 @@ import {
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
 
-import FeatureEditor from "src/components/panels/feature_editor";
+import FeatureEditor from "src/components/panels/feature-editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { translate } from "src/infra/i18n";
 import { MapStylingEditor } from "./map-styling-editor";

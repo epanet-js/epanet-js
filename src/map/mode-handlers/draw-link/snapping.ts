@@ -1,5 +1,5 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
-import { IDMap, UIDMap } from "src/lib/id_mapper";
+import { IDMap, UIDMap } from "src/lib/id-mapper";
 import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";

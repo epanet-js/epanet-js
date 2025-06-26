@@ -1,9 +1,9 @@
 import * as CM from "@radix-ui/react-context-menu";
 import React, { memo } from "react";
 import type { IWrappedFeature } from "src/types";
-import { GeometryActions } from "src/components/context_actions/geometry_actions";
+import { GeometryActions } from "src/components/context-actions/geometry-actions";
 import { CMContent } from "src/components/elements";
-import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
+import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 
 export interface ContextInfo {
   features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;

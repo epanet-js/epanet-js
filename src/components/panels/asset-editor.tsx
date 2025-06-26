@@ -1,6 +1,6 @@
 import type { IWrappedFeature } from "src/types";
 import React, { useCallback, useMemo, useRef } from "react";
-import { RawEditor } from "./feature_editor/raw_editor";
+import { RawEditor } from "./feature-editor/raw-editor";
 import {
   Asset,
   AssetStatus,
@@ -9,12 +9,12 @@ import {
   Pipe,
   Pump,
 } from "src/hydraulic-model";
-import { PanelDetails } from "src/components/panel_details";
+import { PanelDetails } from "src/components/panel-details";
 import { translate, translateUnit } from "src/infra/i18n";
 import {
   PropertyRow,
   PropertyRowReadonly,
-} from "./feature_editor/property_row";
+} from "./feature-editor/property-row";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 

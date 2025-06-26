@@ -1,6 +1,6 @@
 import { expect, describe, it, test } from "vitest";
 
-import { Action } from "src/components/context_actions/action_item";
+import { Action } from "src/components/context-actions/action-item";
 import {
   bboxToQItem,
   coordFeature,

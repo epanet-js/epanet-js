@@ -8,10 +8,10 @@ import { Suspense, useRef } from "react";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { Provider, createStore } from "jotai";
-import { UIDMap } from "src/lib/id_mapper";
+import { UIDMap } from "src/lib/id-mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
-import LAYERS from "src/lib/default_layers";
+import LAYERS from "src/lib/default-layers";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
 
@@ -31,7 +31,7 @@ export default function HomePage({}) {
   );
 }
 const PlacemarkPlay = dynamic(
-  () => import("src/components/placemark_play").then((m) => m.PlacemarkPlay),
+  () => import("src/components/placemark-play").then((m) => m.PlacemarkPlay),
   {
     ssr: false,
   },

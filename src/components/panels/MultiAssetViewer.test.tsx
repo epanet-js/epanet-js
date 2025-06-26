@@ -2,11 +2,11 @@ import { Provider as JotaiProvider, createStore } from "jotai";
 import { render, screen, within } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AssetId, HydraulicModel } from "src/hydraulic-model";
-import { UIDMap } from "src/lib/id_mapper";
+import { UIDMap } from "src/lib/id-mapper";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { Store, dataAtom, nullData } from "src/state/jotai";
-import FeatureEditor from "./feature_editor";
+import FeatureEditor from "./feature-editor";
 import userEvent from "@testing-library/user-event";
 
 describe("Multi asset viewer", () => {

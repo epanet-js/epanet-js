@@ -1,5 +1,5 @@
 import type { ISymbology } from "src/types";
-import { IDMap } from "src/lib/id_mapper";
+import { IDMap } from "src/lib/id-mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";

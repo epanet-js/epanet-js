@@ -1,5 +1,5 @@
 import type { HandlerContext, DragTarget } from "src/types";
-import type { FlatbushLike } from "src/lib/generate_flatbush_instance";
+import type { FlatbushLike } from "src/lib/generate-flatbush-instance";
 import React, {
   useRef,
   useEffect,
@@ -27,12 +27,12 @@ import {
 } from "src/state/jotai";
 import { MapContext } from "src/map";
 import { MapEngine, MapHandlers } from "./map-engine";
-import { EmptyIndex } from "src/lib/generate_flatbush_instance";
+import { EmptyIndex } from "src/lib/generate-flatbush-instance";
 import * as CM from "@radix-ui/react-context-menu";
-import { env } from "src/lib/env_client";
+import { env } from "src/lib/env-client";
 import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
 import { useModeHandlers } from "./mode-handlers";
-import { wrappedFeaturesFromMapFeatures } from "src/lib/map_component_utils";
+import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";

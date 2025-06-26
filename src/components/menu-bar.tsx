@@ -15,7 +15,7 @@ import {
 } from "@radix-ui/react-icons";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
-import { DebugDropdown } from "./menu_bar/menu_bar_dropdown";
+import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
 import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
