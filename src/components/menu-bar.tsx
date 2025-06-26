@@ -93,7 +93,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         >
           <BrandLogo />
         </div>
-        {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && <FileInfo />}
+        {isSmOrLarger && <FileInfo />}
       </div>
       <div className="flex items-center gap-x-1">
         {isMdOrLarger && (
@@ -166,7 +166,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             </div>
           )}
         </SignedOut>
-        {isFeatureOn("FLAG_RESPONSIVE") && <SideMenu />}
+        <SideMenu />
       </div>
     </div>
   );

@@ -36,7 +36,6 @@ import {
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const Toolbar = () => {
   const openInpFromFs = useOpenInpFromFs();
@@ -58,7 +57,7 @@ export const Toolbar = () => {
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+      {isMdOrLarger && (
         <MenuAction
           label={translate("newProject")}
           role="button"
@@ -105,7 +104,7 @@ export const Toolbar = () => {
         </>
       }
       <Divider />
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+      {isMdOrLarger && (
         <>
           <MenuAction
             label={translate("undo")}
@@ -139,7 +138,7 @@ export const Toolbar = () => {
           <Divider />
         </>
       )}
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+      {isMdOrLarger && (
         <>
           <Modes replaceGeometryForId={null} />
           <Divider />
@@ -180,7 +179,7 @@ export const Toolbar = () => {
         <FileTextIcon />
       </MenuAction>
       <Divider />
-      {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+      {isMdOrLarger && (
         <>
           <ContextActions />
           <div className="flex-auto" />

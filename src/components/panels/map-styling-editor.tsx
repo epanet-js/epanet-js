@@ -20,7 +20,6 @@ import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { FieldList, InlineField } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { LegendRamp } from "../legends";
 
 const colorPropertyLabelFor = (property: string) => {
@@ -170,7 +169,7 @@ const SymbologyEditor = ({
       </InlineField>
       {symbology.colorRule !== null && (
         <>
-          {(!isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger) && (
+          {isSmOrLarger && (
             <>
               <InlineField name={translate("range")}>
                 <RangeColorRuleEditorTrigger
@@ -184,7 +183,7 @@ const SymbologyEditor = ({
               </InlineField>
             </>
           )}
-          {isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger && (
+          {!isSmOrLarger && (
             <InlineField name="Legend" align="start">
               <div className="w-full px-2">
                 <LegendRamp colorRule={symbology.colorRule} />

@@ -48,7 +48,6 @@ import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 import { MapLoading } from "./map-loader";
-import { isFeatureOn } from "src/infra/feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -374,9 +373,7 @@ const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
       <div
         className={clsx(
           "absolute mx-auto mb-2 flex items-center justify-center w-full",
-          isFeatureOn("FLAG_RESPONSIVE")
-            ? "top-[60px] sm:top-1/2"
-            : "bottom-[48px]",
+          "top-[60px] sm:top-1/2",
         )}
       >
         <div className="bg-gray-800 text-white rounded shadow-md py-1 px-2 m-2">

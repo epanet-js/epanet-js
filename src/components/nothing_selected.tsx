@@ -18,7 +18,6 @@ import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { isFeatureOn } from "src/infra/feature-flags";
 
 export const NothingSelected = memo(function NothingSelected() {
   const openInpFromFs = useOpenInpFromFs();
@@ -29,24 +28,20 @@ export const NothingSelected = memo(function NothingSelected() {
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
-      {isFeatureOn("FLAG_RESPONSIVE") && (
-        <>
-          <div className="text-sm font-semibold pb-2">
-            {translate("onboardingViewAndEdit")}
-          </div>
-          <div
-            className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-            style={{
-              gridTemplateColumns: "min-content 1fr",
-            }}
-          >
-            <div className="pt-1">
-              <CursorArrowIcon />
-            </div>
-            <div>{translate("onboardingSelectAsset")}</div>
-          </div>
-        </>
-      )}
+      <div className="text-sm font-semibold pb-2">
+        {translate("onboardingViewAndEdit")}
+      </div>
+      <div
+        className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
+        style={{
+          gridTemplateColumns: "min-content 1fr",
+        }}
+      >
+        <div className="pt-1">
+          <CursorArrowIcon />
+        </div>
+        <div>{translate("onboardingSelectAsset")}</div>
+      </div>
       {isSmOrLarger && (
         <>
           <div className="text-sm font-semibold pb-2">
@@ -70,12 +65,6 @@ export const NothingSelected = memo(function NothingSelected() {
               <StretchHorizontallyIcon />
             </div>
             <div>{translate("onboardingDrawPipe")}</div>
-            <div className="pt-1">
-              <CursorArrowIcon />
-            </div>
-            {!isFeatureOn("FLAG_RESPONSIVE") && (
-              <div>{translate("onboardingSelectAsset")}</div>
-            )}
           </div>
         </>
       )}

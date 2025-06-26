@@ -6,7 +6,6 @@ import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
 import { useState } from "react";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { TriangleDownIcon, TriangleRightIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
@@ -16,7 +15,7 @@ export const Legends = () => {
   const linkSymbology = useAtomValue(linkSymbologyAtom);
 
   const isSmOrLarger = useBreakpoint("sm");
-  if (isFeatureOn("FLAG_RESPONSIVE") && !isSmOrLarger) return null;
+  if (!isSmOrLarger) return null;
 
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
@@ -40,21 +39,17 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
 
   const isSmOrLarger = useBreakpoint("sm");
 
-  const [isExpanded, setExpanded] = useState(
-    !isFeatureOn("FLAG_RESPONSIVE") || isSmOrLarger,
-  );
+  const [isExpanded, setExpanded] = useState(isSmOrLarger);
 
   return (
     <LegendContainer>
       <div
         className={clsx(
           "block w-full p-2 flex flex-col justify-between items-start gap-2",
-          {
-            "cursor-pointer hover:bg-gray-100": isFeatureOn("FLAG_RESPONSIVE"),
-          },
+          "cursor-pointer hover:bg-gray-100",
         )}
         onClick={() => {
-          if (isFeatureOn("FLAG_RESPONSIVE")) setExpanded(!isExpanded);
+          setExpanded(!isExpanded);
           userTracking.capture({
             name: "legend.clicked",
             property,
@@ -63,11 +58,9 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
       >
         <div className="flex w-full items-center justify-between">
           <div className="text-xs text-wrap select-none">{title}</div>
-          {isFeatureOn("FLAG_RESPONSIVE") && (
-            <span className="flex-shrink-0">
-              {isExpanded ? <TriangleDownIcon /> : <TriangleRightIcon />}
-            </span>
-          )}
+          <span className="flex-shrink-0">
+            {isExpanded ? <TriangleDownIcon /> : <TriangleRightIcon />}
+          </span>
         </div>
         {isExpanded && <LegendRamp colorRule={symbology} />}
       </div>

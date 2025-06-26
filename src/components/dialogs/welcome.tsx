@@ -23,7 +23,6 @@ import {
 } from "@radix-ui/react-icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
 import { BrandLogo } from "../menu-bar";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
@@ -58,27 +57,19 @@ export const WelcomeDialog = () => {
   const isMdOrLarger = useBreakpoint("md");
 
   return (
-    <DialogContainer
-      size={
-        isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger ? "fullscreen" : "md"
-      }
-    >
+    <DialogContainer size={!isMdOrLarger ? "fullscreen" : "md"}>
       <div className="w-full flex flex-col h-full justify-between">
         <div className="flex flex-col flex-grow">
           <div className="w-full flex flex-row justify-between items-center pb-4">
             <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
-            {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
-              <DialogCloseX />
-            )}
+            {isMdOrLarger && <DialogCloseX />}
           </div>
           <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
             <p className="text-gray-500 text-lg font-semibold pb-2">
               {translate("welcomeToEpanetJs")}
             </p>
             <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
-            {isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger && (
-              <SmallDeviceWarning />
-            )}
+            {!isMdOrLarger && <SmallDeviceWarning />}
             <hr className="mb-4" />
             <div className="flex-grow flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4  pb-3">
               <div className="col-span-3">
@@ -119,7 +110,7 @@ export const WelcomeDialog = () => {
                   {translate("welcomeBuildAndDevelop")}
                 </p>
                 <div className="flex items-start flex-col gap-2 pb-3">
-                  {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+                  {isMdOrLarger && (
                     <Button
                       variant="quiet"
                       onClick={() => {
@@ -173,7 +164,7 @@ export const WelcomeDialog = () => {
               </div>
             </div>
             <div className="flex items-center justify-around md:justify-between pb-2">
-              {(!isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger) && (
+              {isMdOrLarger && (
                 <div className="text-xs flex items-center gap-x-2">
                   <Checkbox
                     checked={userSettings.showWelcomeOnStart}

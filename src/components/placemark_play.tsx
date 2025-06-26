@@ -95,8 +95,7 @@ export function PlacemarkPlay() {
       dialogAtom,
       isFeatureOn("FLAG_UPGRADE") && dialogFromUrl()
         ? dialogFromUrl()
-        : settingsFromStorage().showWelcomeOnStart ||
-            (isFeatureOn("FLAG_RESPONSIVE") && !isMdOrLarger)
+        : settingsFromStorage().showWelcomeOnStart || !isMdOrLarger
           ? { type: "welcome" }
           : null,
     ],
@@ -104,7 +103,7 @@ export function PlacemarkPlay() {
       splitsAtom,
       {
         ...defaultSplits,
-        rightOpen: !isFeatureOn("FLAG_RESPONSIVE") || isMdOrLarger,
+        rightOpen: isMdOrLarger,
       },
     ],
   ]);
