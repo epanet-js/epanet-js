@@ -396,6 +396,36 @@ describe("Map Styling Editor", () => {
         expect(screen.queryByText(/add layer/i)).not.toBeInTheDocument();
       });
     });
+
+    describe("with xs screens", () => {
+      beforeEach(() => {
+        stubWindowSize("xs");
+      });
+      it("displays a legend", async () => {
+        const user = userEvent.setup();
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aPipe("P1", { diameter: 10 })
+          .aPipe("P2", { diameter: 15 })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+        });
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /link color by/i }),
+        ).toHaveTextContent("None");
+
+        await user.click(
+          screen.getByRole("combobox", { name: /link color by/i }),
+        );
+        await user.click(screen.getByText("Diameter (mm)"));
+        expect(
+          screen.queryByRole("button", { name: /pretty breaks, 7/i }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/legend/i)).toBeInTheDocument();
+      });
+    });
   });
 
   const renderComponent = (store: Store, user = aGuestUser()) => {
