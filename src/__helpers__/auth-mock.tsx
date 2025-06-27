@@ -6,6 +6,7 @@ const AuthMockContext = createContext({
   user: nullUser,
   isSignedIn: false,
   signOut: () => {},
+  isLoaded: true,
 });
 
 export const aUser = (attributes: Partial<User> = {}): User => {
@@ -25,22 +26,24 @@ export const AuthMockProvider = ({
   children,
   user = aUser(),
   isSignedIn = true,
+  isLoaded = true,
   signOut = vi.fn(),
 }: {
   children: React.ReactNode;
   user?: User;
   isSignedIn?: boolean;
   signOut?: () => void;
+  isLoaded?: boolean;
 }) => {
   return (
-    <AuthMockContext.Provider value={{ user, isSignedIn, signOut }}>
+    <AuthMockContext.Provider value={{ isLoaded, user, isSignedIn, signOut }}>
       {children}
     </AuthMockContext.Provider>
   );
 };
 
 export const useAuthMock: UseAuthHook = () => {
-  const { isSignedIn, user, signOut } = useContext(AuthMockContext);
+  const { isSignedIn, user, signOut, isLoaded } = useContext(AuthMockContext);
 
-  return { isSignedIn, user, userId: user.id, signOut };
+  return { isSignedIn, user, userId: user.id, signOut, isLoaded };
 };

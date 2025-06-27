@@ -53,8 +53,11 @@ export const UpgradeDialog = () => {
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
   const userTracking = useUserTracking();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
+    if (!isAuthLoaded || !isSignedIn) return;
+
     const checkoutParams = getCheckoutUrlParams();
     if (!checkoutParams.enabled) return;
 
@@ -70,7 +73,7 @@ export const UpgradeDialog = () => {
         Icon: CrossCircledIcon,
       });
     }
-  }, []);
+  }, [isAuthLoaded, isSignedIn]);
 
   const usageOptions = useMemo(
     () => [

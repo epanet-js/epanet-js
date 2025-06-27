@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const useAuthWithClerk: UseAuthHook = () => {
-  const { isSignedIn, userId, signOut } = useClerkAuth();
+  const { isSignedIn, userId, signOut, isLoaded } = useClerkAuth();
   const { user: clerkUser } = useClerkUser();
 
   const user: User = clerkUser
@@ -56,11 +56,12 @@ const useAuthWithClerk: UseAuthHook = () => {
       }
     : nullUser;
 
-  return { isSignedIn, userId, user, signOut };
+  return { isSignedIn, isLoaded, userId, user, signOut };
 };
 
 const useAuthNull: UseAuthHook = () => {
   return {
+    isLoaded: true,
     isSignedIn: false,
     userId: undefined,
     user: nullUser,

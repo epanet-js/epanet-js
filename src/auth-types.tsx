@@ -17,6 +17,7 @@ export const nullUser: User = {
 };
 
 export type UseAuthHook = () => {
+  isLoaded: boolean;
   isSignedIn?: boolean;
   userId: string | null | undefined;
   user: User;
