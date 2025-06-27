@@ -32,6 +32,10 @@ export const useDialogState = () => {
 
   const closeDialog = useCallback(() => {
     setDialogState(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("dialog");
+
+    window.history.replaceState({}, "", url);
   }, [setDialogState]);
 
   return { closeDialog };

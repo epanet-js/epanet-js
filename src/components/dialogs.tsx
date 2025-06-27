@@ -161,6 +161,7 @@ export const Dialogs = memo(function Dialogs() {
   const onClose = useCallback(() => {
     setDialogState(null);
   }, [setDialogState]);
+
   const previousDialog = useRef<dialogState.DialogState>(null);
 
   if (dialog === null) return null;
