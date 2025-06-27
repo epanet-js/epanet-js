@@ -34,7 +34,6 @@ import { Legends } from "./legends";
 import { Toolbar } from "./toolbar/toolbar";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { settingsFromStorage } from "src/state/user-settings";
 import { TabCloseGuard } from "./tab-close-guard";
 import { CommandShortcuts } from "./commands-shortcuts";
@@ -94,7 +93,7 @@ export function PlacemarkPlay() {
   useHydrateAtoms([
     [
       dialogAtom,
-      isFeatureOn("FLAG_UPGRADE") && dialogFromUrl()
+      dialogFromUrl()
         ? dialogFromUrl()
         : settingsFromStorage().showWelcomeOnStart || !isMdOrLarger
           ? { type: "welcome" }

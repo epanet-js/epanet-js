@@ -17,12 +17,12 @@ const checkoutLoadingAtom = atom<boolean>(false);
 export const useCheckout = () => {
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
 
-  const startCheckoutImpl = (plan: Plan, paymentType: PaymentType) => {
+  const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
     clearCheckoutParams();
 
     setLoading(true);
     try {
-      void startCheckout(plan, paymentType);
+      await startCheckout(plan, paymentType);
     } catch (error) {
       setLoading(false);
       captureError(error as Error);

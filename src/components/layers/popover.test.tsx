@@ -12,15 +12,10 @@ import { LayersPopover } from "./popover";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
 import { User } from "src/auth-types";
 
 describe.skip("layers popover", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_UPGRADE");
-  });
-
   it("shows selected basemap", () => {
     const basemap = aLayerConfig({
       type: "MAPBOX",

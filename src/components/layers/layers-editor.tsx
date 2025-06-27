@@ -454,7 +454,6 @@ export function AddLayer() {
   const { user } = useAuth();
 
   const canAddCustomLayers = useMemo(() => {
-    if (!isFeatureOn("FLAG_UPGRADE")) return true;
     return limits.canAddCustomLayers(user.plan);
   }, [user]);
 

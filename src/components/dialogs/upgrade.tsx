@@ -35,6 +35,7 @@ import {
   useCheckout,
 } from "src/hooks/use-checkout";
 import { canUpgrade } from "src/user-plan";
+import { signUpUrl } from "src/global-config";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -66,7 +67,7 @@ export const UpgradeDialog = () => {
 
   if (checkoutParams.enabled) {
     if (isSignedIn) {
-      startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+      void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
       return null;
     } else {
       return (
@@ -315,7 +316,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
 const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
-  const { signOut } = useAuth();
+  const { isSignedIn, signOut } = useAuth();
   const userTracking = useUserTracking();
 
   return (
@@ -340,7 +341,11 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             onClick={() => {
               userTracking.capture({ name: "studentLogin.clicked" });
               checkUnsavedChanges(() => {
-                signOut({ redirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL });
+                if (isSignedIn) {
+                  signOut({ redirectUrl: signUpUrl });
+                } else {
+                  window.location.href = signUpUrl;
+                }
               });
             }}
           >

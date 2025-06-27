@@ -20,7 +20,6 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { translate } from "src/infra/i18n";
 import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
 import {
-  RedirectToSignIn,
   SignInButton,
   SignUpButton,
   SignedIn,
@@ -31,7 +30,6 @@ import {
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { canUpgrade } from "src/user-plan";
 import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
@@ -118,7 +116,7 @@ export const MenuBarPlay = memo(function MenuBar() {
         )}
         <SignedIn>
           <div className="relative flex items-center px-2 gap-x-2">
-            {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user.plan) && (
+            {canUpgrade(user.plan) && (
               <Button
                 variant="primary"
                 onClick={() => {
@@ -142,29 +140,26 @@ export const MenuBarPlay = memo(function MenuBar() {
           </div>
         </SignedIn>
         <SignedOut>
-          {!isFeatureOn("FLAG_GUEST") && <RedirectToSignIn />}
-          {isFeatureOn("FLAG_GUEST") && (
-            <div className="flex items-center gap-x-1">
-              {isMdOrLarger && (
-                <SignInButton
-                  onClick={() => {
-                    userTracking.capture({
-                      name: "signIn.started",
-                      source: "menu",
-                    });
-                  }}
-                />
-              )}
-              <SignUpButton
+          <div className="flex items-center gap-x-1">
+            {isMdOrLarger && (
+              <SignInButton
                 onClick={() => {
                   userTracking.capture({
-                    name: "signUp.started",
+                    name: "signIn.started",
                     source: "menu",
                   });
                 }}
               />
-            </div>
-          )}
+            )}
+            <SignUpButton
+              onClick={() => {
+                userTracking.capture({
+                  name: "signUp.started",
+                  source: "menu",
+                });
+              }}
+            />
+          </div>
         </SignedOut>
         <SideMenu />
       </div>
@@ -428,7 +423,7 @@ export const SideMenu = () => {
                 <li>
                   <UserButton />
                 </li>
-                {isFeatureOn("FLAG_UPGRADE") && canUpgrade(user.plan) && (
+                {canUpgrade(user.plan) && (
                   <li className="py-4">
                     <Button
                       variant="primary"
@@ -450,32 +445,29 @@ export const SideMenu = () => {
               </ul>
             </SignedIn>
             <SignedOut>
-              {!isFeatureOn("FLAG_GUEST") && <RedirectToSignIn />}
-              {isFeatureOn("FLAG_GUEST") && (
-                <ul className="flex-col items-start gap-4">
-                  <li>
-                    <SignInButton
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "signIn.started",
-                          source: "menu",
-                        });
-                      }}
-                    />
-                  </li>
-                  <li className="py-4">
-                    <SignUpButton
-                      size="full-width"
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "signUp.started",
-                          source: "menu",
-                        });
-                      }}
-                    />
-                  </li>
-                </ul>
-              )}
+              <ul className="flex-col items-start gap-4">
+                <li>
+                  <SignInButton
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "signIn.started",
+                        source: "menu",
+                      });
+                    }}
+                  />
+                </li>
+                <li className="py-4">
+                  <SignUpButton
+                    size="full-width"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "signUp.started",
+                        source: "menu",
+                      });
+                    }}
+                  />
+                </li>
+              </ul>
             </SignedOut>
           </nav>
         </div>

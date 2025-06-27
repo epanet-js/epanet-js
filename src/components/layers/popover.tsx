@@ -52,7 +52,6 @@ import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { translate } from "src/infra/i18n";
-import { isFeatureOn } from "src/infra/feature-flags";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
@@ -453,8 +452,6 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
 
   const canAddCustomLayers = useMemo(() => {
-    if (!isFeatureOn("FLAG_UPGRADE")) return true;
-
     return limits.canAddCustomLayers(user.plan);
   }, [user]);
 

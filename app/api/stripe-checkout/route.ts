@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     `/api/stripe-callback?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&paymentType=${paymentType}`,
     request.url,
   );
-  const cancelUrl = new URL("/?dialog=upgrade&FLAG_UPGRADE=true", request.url);
+  const cancelUrl = new URL("/?dialog=upgrade", request.url);
 
   const session = await createCheckoutSession(
     email,

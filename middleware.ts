@@ -1,29 +1,9 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const signInUrl = process.env.SIGN_IN_URL as string;
-
 export default clerkMiddleware(
-  async (auth, request) => {
+  (auth, request) => {
     if (request.nextUrl.pathname.startsWith("/api")) return NextResponse.next();
-
-    if (request.headers.get("Authorization")?.startsWith("Basic ")) {
-      const headers = new Headers(request.headers);
-      headers.set("WWW-Authenticate", "Bearer");
-      return NextResponse.json(
-        { error: "Invalid auth" },
-        { status: 401, headers },
-      );
-    }
-
-    const authData = await auth();
-
-    const isGuestFeatureOn =
-      request.nextUrl.searchParams.get("FLAG_GUEST") === "true";
-
-    if (!authData.userId && !isGuestFeatureOn) {
-      return NextResponse.redirect(signInUrl);
-    }
 
     const response = NextResponse.next();
     response.headers.set(
