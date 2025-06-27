@@ -44,10 +44,10 @@ export const upgradeUser = async (
   return clerk.users.updateUserMetadata(user.id, {
     publicMetadata: {
       userPlan: plan,
+      paymentType,
     },
     privateMetadata: {
       customerId,
-      paymentType,
     },
   });
 };
