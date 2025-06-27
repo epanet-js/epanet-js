@@ -7,23 +7,14 @@ import { translate } from "src/infra/i18n";
 import {
   CheckIcon,
   Cross1Icon,
-  CrossCircledIcon,
   InfoCircledIcon,
   RocketIcon,
 } from "@radix-ui/react-icons";
-import {
-  CheckoutButton,
-  PaymentType,
-  buildCheckoutUrl,
-  clearCheckoutParams,
-  getCheckoutUrlParams,
-  startCheckout,
-} from "../checkout-button";
+import { CheckoutButton } from "../checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../elements";
 import {
   ForwardRefExoticComponent,
   RefAttributes,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -34,8 +25,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { studentAccountActiviationHelpUrl } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { RedirectToSignIn, useAuth } from "src/auth";
-import { notify } from "../notifications";
-import { captureError } from "src/infra/error-tracking";
+import {
+  PaymentType,
+  buildCheckoutUrl,
+  getCheckoutUrlParams,
+  useCheckout,
+} from "src/hooks/use-checkout";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -54,34 +49,37 @@ const prices = {
 };
 
 export const UpgradeDialog = () => {
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
+
+  const checkoutParams = getCheckoutUrlParams();
+
+  if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
+
+  if (checkoutParams.enabled) {
+    if (isSignedIn) {
+      startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+      return null;
+    } else {
+      return (
+        <RedirectToSignIn
+          signInForceRedirectUrl={buildCheckoutUrl(
+            checkoutParams.plan,
+            checkoutParams.paymentType,
+          )}
+        />
+      );
+    }
+  }
+
+  return <PlansDialog />;
+};
+
+const PlansDialog = () => {
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
   const userTracking = useUserTracking();
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const [isLoadingCheckout, setLoadingCheckout] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!isAuthLoaded || !isSignedIn) return;
-
-    const checkoutParams = getCheckoutUrlParams();
-    if (!checkoutParams.enabled) return;
-    setLoadingCheckout(true);
-
-    clearCheckoutParams();
-    try {
-      void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
-    } catch (error) {
-      setLoadingCheckout(false);
-      captureError(error as Error);
-      notify({
-        variant: "error",
-        title: translate("somethingWentWrong"),
-        description: translate("tryAgainOrSupport"),
-        Icon: CrossCircledIcon,
-      });
-    }
-  }, [isAuthLoaded, isSignedIn]);
 
   const usageOptions = useMemo(
     () => [
@@ -106,20 +104,6 @@ export const UpgradeDialog = () => {
       ? setPaymentType("monthly")
       : setPaymentType("yearly");
   };
-
-  const checkoutParams = getCheckoutUrlParams();
-  if (checkoutParams.enabled && isAuthLoaded && !isSignedIn) {
-    return (
-      <RedirectToSignIn
-        signInForceRedirectUrl={buildCheckoutUrl(
-          checkoutParams.plan,
-          checkoutParams.paymentType,
-        )}
-      />
-    );
-  }
-  if (isLoadingCheckout) return <LoadingDialog />;
-
   return (
     <DialogContainer size="lg">
       <DialogHeader
