@@ -43,6 +43,7 @@ import { useAuth } from "src/auth";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { NotificationFromUrl } from "./notification-from-url";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -158,6 +159,7 @@ export function PlacemarkPlay() {
       </MapContext.Provider>
       <TabCloseGuard />
       <OfflineGuard />
+      <NotificationFromUrl />
     </main>
   );
 }

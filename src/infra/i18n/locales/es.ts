@@ -393,6 +393,9 @@ export const translations: Translations = {
   planChangesFromSupport: "Los cambios de plan requieren soporte",
   planChangesFromSupportExplain:
     "Por favor, contacta a nuestro equipo de soporte para modificar tu suscripción.",
+  upgradeSuccessful: "¡Actualización exitosa!",
+  upgradeSuccessfulExplain:
+    "Gracias por actualizar: tus nuevas funcionalidades ya están disponibles.",
 };
 
 export const units: UnitsLocale = {
