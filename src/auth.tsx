@@ -17,6 +17,8 @@ import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
 import { translate } from "./infra/i18n";
 import { nullUser, User, UseAuthHook } from "./auth-types";
+
+export { ClerkSignInButton, ClerkSignUpButton };
 import { Plan } from "./user-plan";
 
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -71,21 +73,28 @@ export const useAuth = isAuthEnabled ? useAuthWithClerk : useAuthNull;
 export const SignInButton = ({
   onClick,
   autoFocus = false,
+  children,
+  forceRedirectUrl,
 }: {
   onClick?: () => void;
   autoFocus?: boolean;
+  children?: React.ReactNode;
+  forceRedirectUrl?: string;
 }) => {
   if (!isAuthEnabled) return null;
+
   return (
-    <ClerkSignInButton>
-      <Button
-        variant="quiet"
-        className="text-purple-500 font-semibold"
-        autoFocus={autoFocus}
-        onClick={onClick}
-      >
-        {translate("login")}
-      </Button>
+    <ClerkSignInButton forceRedirectUrl={forceRedirectUrl}>
+      {!children && (
+        <Button
+          variant="quiet"
+          className="text-purple-500 font-semibold"
+          autoFocus={autoFocus}
+          onClick={onClick}
+        >
+          {translate("login")}
+        </Button>
+      )}
     </ClerkSignInButton>
   );
 };

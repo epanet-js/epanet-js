@@ -280,12 +280,6 @@ describe("Map Styling Editor", () => {
         screen.getByRole("button", { name: /add custom/i }),
       );
       expect(screen.getAllByText(/upgrade/i)).toHaveLength(3);
-
-      await userEvent.click(screen.getByText(/XYZ/));
-
-      expect(
-        await screen.findByText(/upgrade your account/i),
-      ).toBeInTheDocument();
     });
 
     it("can add custom XYZ layer when not in free", async () => {

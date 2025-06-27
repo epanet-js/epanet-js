@@ -6,11 +6,18 @@ import {
   InfoCircledIcon,
   RocketIcon,
 } from "@radix-ui/react-icons";
-import { CheckoutButton, PaymentType } from "../checkout-button";
+import {
+  CheckoutButton,
+  PaymentType,
+  clearCheckoutParams,
+  getCheckoutUrlParams,
+  startCheckout,
+} from "../checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../elements";
 import {
   ForwardRefExoticComponent,
   RefAttributes,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -43,6 +50,14 @@ export const UpgradeDialog = () => {
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
   const userTracking = useUserTracking();
+
+  useEffect(() => {
+    const checkoutParams = getCheckoutUrlParams();
+    if (!checkoutParams.enabled) return;
+
+    clearCheckoutParams();
+    void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+  }, []);
 
   const usageOptions = useMemo(
     () => [

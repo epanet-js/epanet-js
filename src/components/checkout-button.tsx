@@ -4,8 +4,56 @@ import { captureError } from "src/infra/error-tracking";
 import { Button } from "./elements";
 import { Plan } from "src/user-plan";
 import { useUserTracking } from "src/infra/user-tracking";
+import { SignInButton, useAuth } from "@clerk/nextjs";
+
+const stripeSDK = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
+);
 
 export type PaymentType = "monthly" | "yearly";
+
+export const getCheckoutUrlParams = () => {
+  const query = window.location.search;
+  const params = new URLSearchParams(query);
+  return {
+    enabled: params.get("startCheckout") === "true",
+    plan: params.get("plan") as Plan,
+    paymentType: params.get("paymentType") as PaymentType,
+  };
+};
+
+export const clearCheckoutParams = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("startCheckout");
+
+  window.history.replaceState({}, "", url);
+};
+
+const buildCheckoutUrl = (plan: Plan, paymentType: PaymentType) => {
+  const pathname = window.location.pathname;
+  const query = window.location.search;
+  const params = new URLSearchParams(query);
+  params.set("dialog", "upgrade");
+  params.set("startCheckout", "true");
+  params.set("plan", plan);
+  params.set("paymentType", paymentType);
+  const afterSignInUrl = `${pathname}?${params.toString()}`;
+  return afterSignInUrl;
+};
+
+export const startCheckout = async (plan: Plan, paymentType: PaymentType) => {
+  const stripe = await stripeSDK;
+  const response = await fetch("/api/stripe-checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ plan, paymentType }),
+  });
+  const { sessionId } = await response.json();
+
+  await stripe?.redirectToCheckout({ sessionId });
+};
 
 export const CheckoutButton = ({
   variant = "primary",
@@ -20,10 +68,8 @@ export const CheckoutButton = ({
 }) => {
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
-  const stripeSDK = loadStripe(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
-  );
   const userTracking = useUserTracking();
+  const { isSignedIn } = useAuth();
 
   const handleCheckout = async () => {
     setLoading(true);
@@ -34,17 +80,7 @@ export const CheckoutButton = ({
     });
 
     try {
-      const stripe = await stripeSDK;
-      const response = await fetch("/api/stripe-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ plan, paymentType }),
-      });
-      const { sessionId } = await response.json();
-
-      await stripe?.redirectToCheckout({ sessionId });
+      await startCheckout(plan, paymentType);
     } catch (error) {
       captureError(error as Error);
       setError(true);
@@ -55,6 +91,26 @@ export const CheckoutButton = ({
 
   if (isError) {
     return <>Error!</>;
+  }
+
+  if (!isSignedIn) {
+    return (
+      <SignInButton forceRedirectUrl={buildCheckoutUrl(plan, paymentType)}>
+        <Button
+          onClick={() => {
+            userTracking.capture({
+              name: "checkout.started",
+              plan,
+              paymentType,
+            });
+          }}
+          variant={variant}
+          size="full-width"
+        >
+          {children}
+        </Button>
+      </SignInButton>
+    );
   }
 
   return (
