@@ -1,4 +1,8 @@
-import { DialogContainer, DialogHeader } from "src/components/dialog";
+import {
+  DialogContainer,
+  DialogHeader,
+  LoadingDialog,
+} from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import {
   CheckIcon,
@@ -10,6 +14,7 @@ import {
 import {
   CheckoutButton,
   PaymentType,
+  buildCheckoutUrl,
   clearCheckoutParams,
   getCheckoutUrlParams,
   startCheckout,
@@ -28,7 +33,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
 import { studentAccountActiviationHelpUrl } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-import { useAuth } from "src/auth";
+import { RedirectToSignIn, useAuth } from "src/auth";
 import { notify } from "../notifications";
 import { captureError } from "src/infra/error-tracking";
 
@@ -54,12 +59,14 @@ export const UpgradeDialog = () => {
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
   const userTracking = useUserTracking();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const [isLoadingCheckout, setLoadingCheckout] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) return;
 
     const checkoutParams = getCheckoutUrlParams();
     if (!checkoutParams.enabled) return;
+    setLoadingCheckout(true);
 
     clearCheckoutParams();
     try {
@@ -98,6 +105,19 @@ export const UpgradeDialog = () => {
       ? setPaymentType("monthly")
       : setPaymentType("yearly");
   };
+
+  const checkoutParams = getCheckoutUrlParams();
+  if (checkoutParams.enabled && isAuthLoaded && !isSignedIn) {
+    return (
+      <RedirectToSignIn
+        signInForceRedirectUrl={buildCheckoutUrl(
+          checkoutParams.plan,
+          checkoutParams.paymentType,
+        )}
+      />
+    );
+  }
+  if (isLoadingCheckout) return <LoadingDialog />;
 
   return (
     <DialogContainer size="lg">

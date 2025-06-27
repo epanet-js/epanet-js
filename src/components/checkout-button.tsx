@@ -32,7 +32,7 @@ export const clearCheckoutParams = () => {
   window.history.replaceState({}, "", url);
 };
 
-const buildCheckoutUrl = (plan: Plan, paymentType: PaymentType) => {
+export const buildCheckoutUrl = (plan: Plan, paymentType: PaymentType) => {
   const pathname = window.location.pathname;
   const query = window.location.search;
   const params = new URLSearchParams(query);
