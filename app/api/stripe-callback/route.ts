@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
   await upgradeUser(user, customerId, plan, paymentType);
   await notifyUpgrade(getEmail(user), plan, paymentType);
 
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(
+    new URL("/?notification=checkoutSuccess", request.url),
+  );
 }
 
 const obtainCutomerId = async (sessionId: string): Promise<string | null> => {
