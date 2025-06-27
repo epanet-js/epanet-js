@@ -3,6 +3,7 @@ import { translate } from "src/infra/i18n";
 import {
   CheckIcon,
   Cross1Icon,
+  CrossCircledIcon,
   InfoCircledIcon,
   RocketIcon,
 } from "@radix-ui/react-icons";
@@ -28,6 +29,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { studentAccountActiviationHelpUrl } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/auth";
+import { notify } from "../notifications";
+import { captureError } from "src/infra/error-tracking";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -56,7 +59,17 @@ export const UpgradeDialog = () => {
     if (!checkoutParams.enabled) return;
 
     clearCheckoutParams();
-    void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+    try {
+      void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+    } catch (error) {
+      captureError(error as Error);
+      notify({
+        variant: "error",
+        title: translate("somethingWentWrong"),
+        description: translate("tryAgainOrSupport"),
+        Icon: CrossCircledIcon,
+      });
+    }
   }, []);
 
   const usageOptions = useMemo(

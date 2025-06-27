@@ -375,6 +375,9 @@ export const translations = {
   visitLandingPage: "Visit Our Landing Page",
   visitLandingPageExplain: "Learn more about the app and what it can do.",
   file: "File",
+  somethingWentWrong: "Something Went Wrong",
+  tryAgainOrSupport:
+    "Please try again, and if the error persists, contact support.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

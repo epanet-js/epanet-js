@@ -5,6 +5,9 @@ import { Button } from "./elements";
 import { Plan } from "src/user-plan";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SignInButton, useAuth } from "@clerk/nextjs";
+import { notify } from "./notifications";
+import { translate } from "src/infra/i18n";
+import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 const stripeSDK = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
@@ -67,7 +70,6 @@ export const CheckoutButton = ({
   children: ReactNode;
 }) => {
   const [isLoading, setLoading] = useState(false);
-  const [isError, setError] = useState(false);
   const userTracking = useUserTracking();
   const { isSignedIn } = useAuth();
 
@@ -83,15 +85,15 @@ export const CheckoutButton = ({
       await startCheckout(plan, paymentType);
     } catch (error) {
       captureError(error as Error);
-      setError(true);
+      notify({
+        variant: "error",
+        title: translate("somethingWentWrong"),
+        description: translate("tryAgainOrSupport"),
+        Icon: CrossCircledIcon,
+      });
       setLoading(false);
-      setTimeout(() => setError(false), 2000);
     }
   };
-
-  if (isError) {
-    return <>Error!</>;
-  }
 
   if (!isSignedIn) {
     return (

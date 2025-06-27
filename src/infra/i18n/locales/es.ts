@@ -387,6 +387,9 @@ export const translations: Translations = {
   visitLandingPageExplain:
     "Obtén más información sobre la aplicación y lo que puede hacer.",
   file: "Archivo",
+  somethingWentWrong: "Algo ha ido mal",
+  tryAgainOrSupport:
+    "Por favor, inténtalo de nuevo y, si el error persiste, contacta con soporte.",
 };
 
 export const units: UnitsLocale = {
