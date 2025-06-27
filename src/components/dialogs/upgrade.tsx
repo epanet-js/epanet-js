@@ -72,6 +72,7 @@ export const UpgradeDialog = () => {
     try {
       void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
     } catch (error) {
+      setLoadingCheckout(false);
       captureError(error as Error);
       notify({
         variant: "error",
