@@ -378,6 +378,9 @@ export const translations = {
   somethingWentWrong: "Something Went Wrong",
   tryAgainOrSupport:
     "Please try again, and if the error persists, contact support.",
+  planChangesFromSupport: "Plan changes require support",
+  planChangesFromSupportExplain:
+    "Please contact our support team to modify your subscription.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {

@@ -390,6 +390,9 @@ export const translations: Translations = {
   somethingWentWrong: "Algo ha ido mal",
   tryAgainOrSupport:
     "Por favor, inténtalo de nuevo y, si el error persiste, contacta con soporte.",
+  planChangesFromSupport: "Los cambios de plan requieren soporte",
+  planChangesFromSupportExplain:
+    "Por favor, contacta a nuestro equipo de soporte para modificar tu suscripción.",
 };
 
 export const units: UnitsLocale = {
