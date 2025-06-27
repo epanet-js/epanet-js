@@ -1,12 +1,15 @@
 import {
+  AckDialogAction,
   DialogContainer,
   DialogHeader,
   LoadingDialog,
+  useDialogState,
 } from "src/components/dialog";
 import { translate } from "src/infra/i18n";
 import {
   CheckIcon,
   Cross1Icon,
+  ExclamationTriangleIcon,
   InfoCircledIcon,
   RocketIcon,
 } from "@radix-ui/react-icons";
@@ -31,6 +34,7 @@ import {
   getCheckoutUrlParams,
   useCheckout,
 } from "src/hooks/use-checkout";
+import { canUpgrade } from "src/user-plan";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -49,12 +53,16 @@ const prices = {
 };
 
 export const UpgradeDialog = () => {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn, user } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
 
   const checkoutParams = getCheckoutUrlParams();
 
   if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
+
+  if (!canUpgrade(user.plan)) {
+    return <ChangesFromSupportDialog />;
+  }
 
   if (checkoutParams.enabled) {
     if (isSignedIn) {
@@ -73,6 +81,23 @@ export const UpgradeDialog = () => {
   }
 
   return <PlansDialog />;
+};
+
+const ChangesFromSupportDialog = () => {
+  const { closeDialog } = useDialogState();
+  return (
+    <DialogContainer size="sm">
+      <DialogHeader
+        variant="warning"
+        title={translate("planChangesFromSupport")}
+        titleIcon={ExclamationTriangleIcon}
+      />
+      <p className="text text-sm">
+        {translate("planChangesFromSupportExplain")}
+      </p>
+      <AckDialogAction label={translate("understood")} onAck={closeDialog} />
+    </DialogContainer>
+  );
 };
 
 const PlansDialog = () => {

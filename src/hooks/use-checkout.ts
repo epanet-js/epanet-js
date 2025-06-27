@@ -1,14 +1,10 @@
-import { useAuth } from "src/auth";
-import {
-  CrossCircledIcon,
-  ExclamationTriangleIcon,
-} from "@radix-ui/react-icons";
+import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { loadStripe } from "@stripe/stripe-js";
 import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { translate } from "src/infra/i18n";
-import { Plan, canUpgrade } from "src/user-plan";
+import { Plan } from "src/user-plan";
 
 const stripeSDK = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
@@ -19,20 +15,10 @@ export type PaymentType = "monthly" | "yearly";
 const checkoutLoadingAtom = atom<boolean>(false);
 
 export const useCheckout = () => {
-  const { user } = useAuth();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
 
   const startCheckoutImpl = (plan: Plan, paymentType: PaymentType) => {
     clearCheckoutParams();
-    if (!canUpgrade(user.plan)) {
-      notify({
-        variant: "warning",
-        title: translate("planChangesFromSupport"),
-        description: translate("planChangesFromSupportExplain"),
-        Icon: ExclamationTriangleIcon,
-      });
-      return;
-    }
 
     setLoading(true);
     try {
