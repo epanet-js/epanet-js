@@ -1,7 +1,7 @@
 # epanet-js
 
 
-epanet-js is a web application that makes [EPANET](https://www.epa.gov/water-research/epanet) accessible from the browser.
+[epanet-js](https://app.epanetjs.com) is a web application that makes [EPANET](https://www.epa.gov/water-research/epanet) accessible from the browser.
 
 The project is a NextJS application. Although most of the logic occurs on the browser, it uses cloud functions to protect secrets and authenticate users.
 
