@@ -10,14 +10,7 @@ export const useSelection = (selection: Sel) => {
   const setTab = useSetAtom(tabAtom);
   const userTracking = useUserTracking();
 
-  const toggleSingleSelection = (id: AssetId, type: Asset["type"]) => {
-    userTracking.capture({
-      name:
-        isSelected(id) && getSelectionIds().length === 1
-          ? "asset.deselected"
-          : "asset.selected",
-      type,
-    });
+  const toggleSingleSelection = (id: AssetId, _type: Asset["type"]) => {
     setSelection(USelection.toggleSingleSelectionId(selection, id));
     setTab(TabOption.Asset);
   };
@@ -49,11 +42,6 @@ export const useSelection = (selection: Sel) => {
   };
 
   const clearSelection = () => {
-    if (getSelectionIds().length > 0) {
-      userTracking.capture({
-        name: "selection.cleared",
-      });
-    }
     setSelection(USelection.none());
   };
 
