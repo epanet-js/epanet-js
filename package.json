@@ -254,6 +254,7 @@
     "showDetails": true
   },
   "engines": {
+    "node": "20.x || 21.x",
     "pnpm": ">=9.0.0"
   }
 }
