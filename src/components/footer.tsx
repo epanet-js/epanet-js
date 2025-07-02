@@ -7,13 +7,13 @@ import {
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
-import { useMemo } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { translate } from "src/infra/i18n";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { dataAtom, simulationAtom } from "src/state/jotai";
+import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
+import { HydraulicModel } from "src/hydraulic-model";
 
 export const Footer = () => {
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
@@ -127,68 +127,76 @@ const CollapsedPopover = ({
   );
 };
 
+const buildSimulationStatusStyles = (
+  simulation: SimulationState,
+  hydraulicModel: HydraulicModel,
+) => {
+  switch (simulation.status) {
+    case "idle":
+      return {
+        Icon: CircleIcon,
+        colorClass: "text-gray-500",
+        text: translate("simulationReadyToRun"),
+      };
+    case "running":
+      return {
+        Icon: CircleIcon,
+        colorClass: "text-gray-500",
+        text: translate("simulationRunning"),
+      };
+    case "success":
+      if (hydraulicModel.version !== simulation.modelVersion) {
+        return {
+          Icon: CountdownTimerIcon,
+          colorClass: "text-orange-500",
+          text: translate("simulationOutdated"),
+        };
+      }
+
+      return {
+        Icon: CheckCircledIcon,
+        colorClass: "text-green-500",
+        text: translate("simulationSuccess"),
+      };
+    case "failure":
+      if (hydraulicModel.version !== simulation.modelVersion) {
+        return {
+          Icon: CountdownTimerIcon,
+          colorClass: "text-orange-500",
+          text: translate("simulationOutdated"),
+        };
+      }
+
+      return {
+        Icon: CrossCircledIcon,
+        colorClass: "text-red-500",
+        text: translate("simulationFailure"),
+      };
+    case "warning":
+      if (hydraulicModel.version !== simulation.modelVersion) {
+        return {
+          Icon: CountdownTimerIcon,
+          colorClass: "text-orange-500",
+          text: translate("simulationOutdated"),
+        };
+      }
+
+      return {
+        Icon: ExclamationTriangleIcon,
+        colorClass: "text-yellow-600",
+        text: translate("simulationWarning"),
+      };
+  }
+};
+
 export const SimulationStatusText = () => {
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
 
-  const { Icon, colorClass, text } = useMemo(() => {
-    switch (simulation.status) {
-      case "idle":
-        return {
-          Icon: CircleIcon,
-          colorClass: "text-gray-500",
-          text: translate("simulationReadyToRun"),
-        };
-      case "running":
-        return {
-          Icon: CircleIcon,
-          colorClass: "text-gray-500",
-          text: translate("simulationRunning"),
-        };
-      case "success":
-        if (hydraulicModel.version !== simulation.modelVersion) {
-          return {
-            Icon: CountdownTimerIcon,
-            colorClass: "text-orange-500",
-            text: translate("simulationOutdated"),
-          };
-        }
-
-        return {
-          Icon: CheckCircledIcon,
-          colorClass: "text-green-500",
-          text: translate("simulationSuccess"),
-        };
-      case "failure":
-        if (hydraulicModel.version !== simulation.modelVersion) {
-          return {
-            Icon: CountdownTimerIcon,
-            colorClass: "text-orange-500",
-            text: translate("simulationOutdated"),
-          };
-        }
-
-        return {
-          Icon: CrossCircledIcon,
-          colorClass: "text-red-500",
-          text: translate("simulationFailure"),
-        };
-      case "warning":
-        if (hydraulicModel.version !== simulation.modelVersion) {
-          return {
-            Icon: CountdownTimerIcon,
-            colorClass: "text-orange-500",
-            text: translate("simulationOutdated"),
-          };
-        }
-
-        return {
-          Icon: ExclamationTriangleIcon,
-          colorClass: "text-yellow-600",
-          text: translate("simulationWarning"),
-        };
-    }
-  }, [simulation, hydraulicModel.version]);
+  const { Icon, colorClass, text } = buildSimulationStatusStyles(
+    simulation,
+    hydraulicModel,
+  );
 
   return (
     <div
