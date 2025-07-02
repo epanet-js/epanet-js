@@ -32,6 +32,8 @@ const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
 type ClickEvent = mapboxgl.MapMouseEvent & mapboxgl.EventData;
 type MoveEvent = mapboxgl.MapboxEvent & mapboxgl.EventData;
 
+const styleUpdateTimeoutMs = 10000;
+
 export type MapHandlers = {
   onClick: (e: ClickEvent) => void;
   onDoubleClick: (e: ClickEvent) => void;
@@ -129,13 +131,12 @@ export class MapEngine {
 
   setStyle(style: Style): Promise<void> {
     return new Promise((resolve) => {
-      const idleTimeoutMs = 2000;
       const timeout = setTimeout(() => {
         captureWarning(
-          `Timeout: Mapbox styledata event took more than ${idleTimeoutMs}`,
+          `Timeout: Mapbox styledata event took more than ${styleUpdateTimeoutMs}`,
         );
         resolve();
-      }, idleTimeoutMs);
+      }, styleUpdateTimeoutMs);
 
       this.map.once("styledata", () => {
         clearTimeout(timeout);
