@@ -35,7 +35,7 @@ export const useOpenInpFromFs = () => {
         });
         void importInp([file]);
       } catch (error) {
-        captureError(error as Error);
+        handleFileOpenError(error as Error);
       }
     },
     [fsAccess, importInp, userTracking],
@@ -47,4 +47,10 @@ export const useOpenInpFromFs = () => {
     },
     [openInpFromFs, checkUnsavedChanges],
   );
+};
+
+const handleFileOpenError = (error: Error) => {
+  if (error.name === "AbortError") return;
+
+  captureError(error);
 };
