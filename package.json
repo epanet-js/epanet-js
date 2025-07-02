@@ -1,5 +1,5 @@
 {
-  "name": "@matrado/epanet-app",
+  "name": "@epanet-js/epanet-js",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -162,7 +162,7 @@
     "prosemirror-state": "^1.4.3",
     "prosemirror-transform": "^1.9.0",
     "prosemirror-view": "^1.33.6",
-    "purify-ts": "^2.0.3",
+    "purify-ts": "^2.1.2",
     "randomcolor": "^0.6.2",
     "raw-body": "^2.5.2",
     "rbush": "^3.0.1",
