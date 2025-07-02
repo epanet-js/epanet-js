@@ -3,6 +3,7 @@ import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
+import { Valve } from "src/hydraulic-model/asset-types";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
@@ -433,5 +434,27 @@ describe("Parse inp", () => {
     expect(stats.counts.get("[COORDINATES]")).toEqual(2);
     expect(stats.counts.get("[JUNCTIONS]")).toEqual(1);
     expect(stats.counts.get("[PIPES]")).toEqual(1);
+  });
+
+  it("skips links without coordinates", () => {
+    const valveId = "v1";
+    const diameter = 10;
+    const setting = 0.2;
+    const type = "FCV";
+    const minorLoss = 0.5;
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    [VALVES]
+    ${valveId}\tj1\tj2\t${diameter}\t${type}\t${setting}\t${minorLoss}
+
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
+    expect(valve).toBeUndefined();
   });
 });
