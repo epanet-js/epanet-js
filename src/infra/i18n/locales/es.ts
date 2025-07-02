@@ -396,6 +396,11 @@ export const translations: Translations = {
   upgradeSuccessful: "¡Actualización exitosa!",
   upgradeSuccessfulExplain:
     "Gracias por actualizar: tus nuevas funcionalidades ya están disponibles.",
+  cannotRenderMap: "No se puede mostrar el mapa en tu navegador",
+  cannotRenderMapExplain:
+    "El mapa requiere WebGL, que no pudo inicializarse en tu navegador. Este problema a veces ocurre después de suspender o poner tu computadora en modo de suspensión. Por favor, intenta cerrar tu navegador y volver a abrir la página en una nueva ventana del navegador.",
+  cannotRenderMapAction:
+    "Si el problema continúa después de actualizar tu navegador y los controladores gráficos, por favor contacta a ${1} para asistencia.",
 };
 
 export const units: UnitsLocale = {

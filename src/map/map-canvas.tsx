@@ -48,6 +48,7 @@ import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { translate } from "src/infra/i18n";
 import { MapLoading } from "./map-loader";
+import { supportEmail } from "src/global-config";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -121,6 +122,7 @@ export const MapCanvas = memo(function MapCanvas({
   const selection = data.selection;
   const mode = useAtomValue(modeAtom);
   const [cursor, setCursor] = useAtom(cursorStyleAtom);
+  const [initError, setInitError] = useState<boolean>(false);
 
   // Refs
   const mapRef: React.MutableRefObject<MapEngine | null> =
@@ -140,11 +142,19 @@ export const MapCanvas = memo(function MapCanvas({
     if (mapRef.current) return;
     if (!mapDivRef.current || !mapHandlers) return;
 
-    mapRef.current = new MapEngine({
-      element: mapDivRef.current,
-      handlers: mapHandlers as MutableRefObject<MapHandlers>,
-    });
-    setMap(mapRef.current);
+    try {
+      mapRef.current = new MapEngine({
+        element: mapDivRef.current,
+        handlers: mapHandlers as MutableRefObject<MapHandlers>,
+      });
+      setMap(mapRef.current);
+    } catch (error) {
+      if (error && (error as Error).message.match(/webgl/i)) {
+        setInitError(true);
+        return;
+      }
+      throw error;
+    }
 
     return () => {
       setMap(null);
@@ -346,6 +356,8 @@ export const MapCanvas = memo(function MapCanvas({
     return "auto";
   }, [cursor, mode]);
 
+  if (initError) return <MapError />;
+
   return (
     <CM.Root modal={false} onOpenChange={onOpenChange}>
       <CM.Trigger asChild onContextMenu={onContextMenu}>
@@ -363,6 +375,22 @@ export const MapCanvas = memo(function MapCanvas({
     </CM.Root>
   );
 });
+
+const MapError = () => {
+  return (
+    <div className="flex flex-col items-center justify-center w-full h-full">
+      <div className="flex flex-col items-start max-w-screen-sm p-6">
+        <h3 className="text-md font-semibold text-gray-700 mb-4">
+          {translate("cannotRenderMap")}
+        </h3>
+        <p className="text-sm mb-2">{translate("cannotRenderMapExplain")}</p>
+        <p className="text-sm ">
+          {translate("cannotRenderMapAction", supportEmail)}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
   const isSatelliteModeOn = useAtomValue(satelliteModeOnAtom);

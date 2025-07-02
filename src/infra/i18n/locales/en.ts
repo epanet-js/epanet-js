@@ -384,6 +384,11 @@ export const translations = {
   upgradeSuccessful: "Upgrade Successful!",
   upgradeSuccessfulExplain:
     "Thanks for upgrading — your new features are now unlocked.",
+  cannotRenderMap: "Cannot render map on your browser",
+  cannotRenderMapExplain:
+    "The map requires WebGL, which could not be initialized in your browser. This issue can sometimes occur after suspending or putting your computer to sleep. Please try closing your browser and reopening the page in a new browser window.",
+  cannotRenderMapAction:
+    "If the problem continues after updating your browser and graphics drivers, please contact ${1} for assistance.",
 };
 
 export const units: Record<Exclude<Unit, null>, string> = {
