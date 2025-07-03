@@ -2,7 +2,7 @@ import reservoirPng from "src/map/icons/reservoir.png";
 import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
 import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
-import { withInstrumentation } from "src/infra/with-instrumentation";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
   buildFcvSvg,
   buildGpvSvg,
@@ -249,7 +249,7 @@ export const getIconsSprite = () => {
   return sprite.current;
 };
 
-export const prepareIconsSprite = withInstrumentation(
+export const prepareIconsSprite = withDebugInstrumentation(
   async (): Promise<IconImage[]> => {
     const iconImages = await Promise.all(
       iconUrls.map((iconUrl) => fetchImage(iconUrl)),

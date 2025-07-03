@@ -9,7 +9,7 @@ type Settings = {
   callsIntervalMs?: number;
 };
 
-export const withInstrumentation =
+export const withDebugInstrumentation =
   <T extends (...args: any[]) => any>(
     fn: T,
     settings: Settings,
@@ -23,12 +23,12 @@ export const withInstrumentation =
     if (result instanceof Promise) {
       //eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result.then((value) => {
-        checkDuration(settings, start);
+        if (isDebugOn) checkDuration(settings, start);
         //eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return value;
       }) as ReturnType<T>;
     } else {
-      checkDuration(settings, start);
+      if (isDebugOn) checkDuration(settings, start);
       //eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result;
     }
@@ -43,10 +43,8 @@ const checkDuration = (settings: Settings, start: number) => {
       `${settings.name} over threshold ${thresholdMs.toFixed(2)} ms: Execution time: ${duration.toFixed(2)} ms`,
     );
   }
-  if (isDebugOn) {
-    //eslint-disable-next-line
-    console.log(`${settings.name} execution time: ${duration.toFixed(2)} ms`);
-  }
+  //eslint-disable-next-line
+  console.log(`${settings.name} execution time: ${duration.toFixed(2)} ms`);
 };
 
 const checkCallsFrequency = (settings: Settings) => {

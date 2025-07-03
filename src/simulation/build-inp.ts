@@ -10,7 +10,7 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
-import { withInstrumentation } from "src/infra/with-instrumentation";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 type SimulationPipeStatus = "Open" | "Closed";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -127,7 +127,7 @@ type BuildOptions = {
   labelIds?: boolean;
 };
 
-export const buildInp = withInstrumentation(
+export const buildInp = withDebugInstrumentation(
   (
     hydraulicModel: HydraulicModel,
     {

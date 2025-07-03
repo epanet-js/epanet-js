@@ -37,7 +37,7 @@ import {
 } from "src/lib/constants";
 import { makeRectangle } from "src/lib/pmap/merge-ephemeral-state";
 import { captureError } from "src/infra/error-tracking";
-import { withInstrumentation } from "src/infra/with-instrumentation";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { SymbologySpec, symbologyAtom } from "src/state/symbology";
@@ -285,7 +285,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   doUpdates();
 };
 
-const resetMapState = withInstrumentation(
+const resetMapState = withDebugInstrumentation(
   (map: MapEngine) => {
     map.removeSource("features");
     map.removeSource("imported-features");
@@ -293,7 +293,7 @@ const resetMapState = withInstrumentation(
   { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
 );
 
-const updateLayerStyles = withInstrumentation(
+const updateLayerStyles = withDebugInstrumentation(
   async (map: MapEngine, styles: StylesConfig) => {
     const style = await loadAndAugmentStyle(styles);
     await map.setStyle(style);
@@ -301,7 +301,7 @@ const updateLayerStyles = withInstrumentation(
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
 );
 
-const toggleAnalysisLayers = withInstrumentation(
+const toggleAnalysisLayers = withDebugInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
     if (!symbology.link.colorRule) {
       map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
@@ -317,7 +317,7 @@ const toggleAnalysisLayers = withInstrumentation(
   { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
 );
 
-const updateImportSource = withInstrumentation(
+const updateImportSource = withDebugInstrumentation(
   async (
     map: MapEngine,
     momentLog: MomentLog,
@@ -354,7 +354,7 @@ const updateImportSource = withInstrumentation(
   },
 );
 
-const updateEditionsSource = withInstrumentation(
+const updateEditionsSource = withDebugInstrumentation(
   async (
     map: MapEngine,
     momentLog: MomentLog,
@@ -384,7 +384,7 @@ const updateEditionsSource = withInstrumentation(
   },
 );
 
-const updateIconsSource = withInstrumentation(
+const updateIconsSource = withDebugInstrumentation(
   async (
     map: MapEngine,
     assets: AssetsMap,
@@ -401,7 +401,7 @@ const updateIconsSource = withInstrumentation(
   },
 );
 
-const updateImportedSourceVisibility = withInstrumentation(
+const updateImportedSourceVisibility = withDebugInstrumentation(
   (
     map: MapEngine,
     lastHiddenFeatures: Set<RawId>,
@@ -422,7 +422,7 @@ const updateImportedSourceVisibility = withInstrumentation(
   { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
 );
 
-const updateEditionsVisibility = withInstrumentation(
+const updateEditionsVisibility = withDebugInstrumentation(
   (
     map: MapEngine,
     previousMovedAssetIds: Set<AssetId>,
@@ -456,7 +456,7 @@ const updateEditionsVisibility = withInstrumentation(
   },
 );
 
-const buildEphemeralStateOvelay = withInstrumentation(
+const buildEphemeralStateOvelay = withDebugInstrumentation(
   (map: MapEngine, ephemeralState: EphemeralEditingState): DeckLayer[] => {
     let ephemeralLayers: DeckLayer[] = [];
     if (ephemeralState.type === "drawLink") {
@@ -489,7 +489,7 @@ const buildEphemeralStateOvelay = withInstrumentation(
   { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
 );
 
-const updateSelection = withInstrumentation(
+const updateSelection = withDebugInstrumentation(
   (map: MapEngine, selection: Sel, previousSelection: Sel, idMap: IDMap) => {
     const prevSet = new Set(USelection.toIds(previousSelection));
     const newSet = new Set(USelection.toIds(selection));

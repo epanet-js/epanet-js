@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/query-core";
-import { withInstrumentation } from "src/infra/with-instrumentation";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureWarning } from "src/infra/error-tracking";
 import { Unit, convertTo } from "src/quantity";
 
@@ -103,7 +103,7 @@ const buildTileDescriptor = (lng: number, lat: number) => {
   return { url: tileUrl, queryKey: ["terrain-tile", id] };
 };
 
-const fetchTileFromUrl = withInstrumentation(
+const fetchTileFromUrl = withDebugInstrumentation(
   async (tileUrl: string): Promise<Blob> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {
@@ -122,7 +122,7 @@ const fetchTileFromUrl = withInstrumentation(
   },
 );
 
-const fetchTileFromUrlDeprecated = withInstrumentation(
+const fetchTileFromUrlDeprecated = withDebugInstrumentation(
   async (tileUrl: string): Promise<Blob | null> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {
