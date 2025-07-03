@@ -24,8 +24,8 @@ export const addLink: ModelOperation<InputData> = (
     endNodeCopy,
   );
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
-  removeRedundantVertices(linkCopy);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
+  removeRedundantVertices(linkCopy);
 
   return {
     note: `Add ${link.type}`,
@@ -56,16 +56,29 @@ const addMissingLabels = (
 
 const removeRedundantVertices = (link: LinkAsset) => {
   const vertices = link.coordinates;
-  let previous: Position | null = null;
-
-  const result = [];
-  for (const coordinates of vertices) {
-    if (previous && isAlmostTheSamePoint(previous, coordinates)) {
-      continue;
-    }
-    result.push(coordinates);
-    previous = coordinates;
+  if (vertices.length <= 2) {
+    return;
   }
+  const start = vertices[0];
+  const end = vertices[vertices.length - 1];
+
+  const result = [start];
+
+  for (let i = 1; i < vertices.length - 1; i++) {
+    const prev = result[result.length - 1];
+    const current = vertices[i];
+    if (!isAlmostTheSamePoint(prev, current)) {
+      result.push(current);
+    }
+  }
+
+  const lastInResult = result[result.length - 1];
+  if (isAlmostTheSamePoint(lastInResult, end) && result.length >= 2) {
+    result[result.length - 1] = end;
+  } else {
+    result.push(end);
+  }
+
   link.setCoordinates(result);
 };
 

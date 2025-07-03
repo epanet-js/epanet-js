@@ -105,6 +105,12 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
   }
 
   setCoordinates(newCoordinates: Position[]) {
+    if (newCoordinates.length < 2) {
+      throw new Error(
+        `Invalid number of points for link (${newCoordinates.length})`,
+      );
+    }
+
     this.geometry.coordinates = newCoordinates;
 
     const lengthInMeters =

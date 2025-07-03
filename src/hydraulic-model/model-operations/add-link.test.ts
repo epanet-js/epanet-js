@@ -31,6 +31,11 @@ describe("addLink", () => {
     expect(putAssets![0].id).toEqual("pump");
     const pumpToCreate = putAssets![0] as Pump;
     expect(pumpToCreate.connections).toEqual(["A", "B"]);
+    expect(pumpToCreate.coordinates).toEqual([
+      [10, 10],
+      [20, 20],
+      [30, 30],
+    ]);
   });
 
   it("removes redundant vertices", () => {
@@ -68,6 +73,35 @@ describe("addLink", () => {
     ]);
   });
 
+  it("ensures at least it has two points", () => {
+    const epsilon = 1e-10;
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const startNode = buildJunction({ coordinates: [0, 1], id: "A" });
+    const endNode = buildJunction({ coordinates: [0, 1 + epsilon], id: "B" });
+
+    const link = buildPump({
+      coordinates: [
+        [0, 1],
+        [0, 1 + 2 * epsilon],
+        [0, 1 + 3 * epsilon],
+      ],
+      id: "pump",
+    });
+
+    const { putAssets } = addLink(hydraulicModel, {
+      startNode,
+      endNode,
+      link,
+    });
+
+    const pumpToCreate = putAssets![0] as Pump;
+    expect(pumpToCreate.id).toEqual("pump");
+    expect(pumpToCreate.coordinates).toEqual([
+      [0, 1],
+      [0, 1 + epsilon],
+    ]);
+  });
+
   it("ensures connectivity with the link endpoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const startNode = buildJunction({ coordinates: [10, 10] });
@@ -93,6 +127,7 @@ describe("addLink", () => {
     expect(pumpToCreate.coordinates).toEqual([
       [10, 10],
       [15, 15],
+      [19 + 1e-10, 20],
       [20, 20],
     ]);
   });

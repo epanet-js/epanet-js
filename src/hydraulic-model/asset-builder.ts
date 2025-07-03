@@ -105,7 +105,7 @@ export class AssetBuilder {
     label,
     coordinates = [
       [0, 0],
-      [0, 0],
+      [1, 1],
     ],
     connections = nullConnections,
     status = "open",
