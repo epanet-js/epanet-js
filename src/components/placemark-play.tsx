@@ -43,6 +43,7 @@ import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
+import { setUserContext } from "src/infra/error-tracking";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -65,11 +66,17 @@ export function PlacemarkPlay() {
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
       userTracking.identify(user);
+      setUserContext({
+        id: user.id as string,
+        email: user.email,
+        plan: user.plan,
+      });
     }
 
     if (!isSignedIn && userTracking.isIdentified()) {
       userTracking.capture({ name: "logOut.completed" });
       userTracking.reset();
+      setUserContext(null);
     }
   }, [isSignedIn, user, userTracking]);
 

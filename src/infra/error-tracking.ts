@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { Plan } from "src/user-plan";
 
 const isDebugMode = (): boolean => process.env.NODE_ENV === "development";
 
@@ -18,6 +19,17 @@ export const captureWarning = (message: string) => {
 
 export const addToErrorLog = (breadcrumbs: Sentry.Breadcrumb) => {
   Sentry.addBreadcrumb(breadcrumbs);
+};
+
+type UserData = {
+  id: string;
+  email: string;
+  plan: Plan;
+};
+
+export const setUserContext = (user: UserData | null) => {
+  Sentry.setUser(user);
+  Sentry.setTag("plan", user ? user.plan : null);
 };
 
 export const ErrorBoundary = Sentry.ErrorBoundary;
