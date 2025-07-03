@@ -112,29 +112,30 @@ export class MapEngine {
       this.handlers.current.onZoom(e),
     );
 
-    map.on("style.load", async () => {
-      if (!this.icons.length) {
-        this.icons = await prepareIconsSprite();
-      }
-
-      for (const { id, image, isSdf } of this.icons) {
-        if (map.hasImage(id)) return;
-
-        map.addImage(id, image, { sdf: isSdf });
-      }
-    });
-
     this.map = map;
   }
 
   setStyle(style: Style): Promise<void> {
     return new Promise((resolve) => {
-      this.map.once("styledata", () => {
+      this.map.once("style.load", () => {
+        void this.addIcons();
         resolve();
       });
 
       this.map.setStyle(style);
     });
+  }
+
+  async addIcons() {
+    if (!this.icons.length) {
+      this.icons = await prepareIconsSprite();
+    }
+
+    for (const { id, image, isSdf } of this.icons) {
+      if (this.map.hasImage(id)) return;
+
+      this.map.addImage(id, image, { sdf: isSdf });
+    }
   }
 
   setSource(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
