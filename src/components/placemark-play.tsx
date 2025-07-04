@@ -66,6 +66,7 @@ export function PlacemarkPlay() {
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
       userTracking.identify(user);
+      userTracking.reloadFeatureFlags();
       setUserContext({
         id: user.id as string,
         email: user.email,

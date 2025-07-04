@@ -28,19 +28,19 @@ const isPosthogConfigured = !!apiKey;
 
 const PostHogLoadWrapper = ({ children }: { children: React.ReactNode }) => {
   const posthog = usePostHog();
-  const [flagsLoaded, setFlagsLoaded] = useState(false);
+  const [flagsVersion, setFlagsVersion] = useState(0);
 
   useEffect(() => {
     if (posthog) {
       setPostHogInstance(posthog);
 
       posthog.onFeatureFlags(() => {
-        setFlagsLoaded(true);
+        setFlagsVersion((prev) => prev + 1);
       });
     }
   }, [posthog]);
 
-  return <div key={flagsLoaded ? "loaded" : "loading"}>{children}</div>;
+  return <div key={`flags-${flagsVersion}`}>{children}</div>;
 };
 
 export const UserTrackingProvider = ({
@@ -491,5 +491,11 @@ export const useUserTracking = () => {
     isDebugOn && debugPostHog.reset();
   }, [posthog]);
 
-  return { identify, capture, isIdentified, reset };
+  const reloadFeatureFlags = useCallback(() => {
+    if (posthog?.reloadFeatureFlags) {
+      posthog.reloadFeatureFlags();
+    }
+  }, [posthog]);
+
+  return { identify, capture, isIdentified, reset, reloadFeatureFlags };
 };
