@@ -2,9 +2,10 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { mapLoadingAtom } from "./state";
 import { useRef } from "react";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const MapLoading = () => {
+  const translate = useTranslate();
   const mapLoading = useAtomValue(mapLoadingAtom);
   const ref = useRef();
 

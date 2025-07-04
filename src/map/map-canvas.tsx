@@ -46,7 +46,7 @@ import { SatelliteToggle } from "./SatelliteToggle";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -377,6 +377,7 @@ export const MapCanvas = memo(function MapCanvas({
 });
 
 const MapError = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <div className="flex flex-col items-start max-w-screen-sm p-6">
@@ -393,6 +394,7 @@ const MapError = () => {
 };
 
 const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
+  const translate = useTranslate();
   const isSatelliteModeOn = useAtomValue(satelliteModeOnAtom);
   const { isSignedIn } = useAuth();
 
