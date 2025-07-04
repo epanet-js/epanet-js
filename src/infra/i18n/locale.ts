@@ -1,17 +1,17 @@
 import * as en from "./locales/en";
 import * as es from "./locales/es";
-import * as pt from "./locales/pt";
+import * as ptBR from "./locales/pt-BR";
 
 export const locales = {
   en: en,
   es: es,
-  pt: pt,
+  "pt-BR": ptBR,
 };
 
 export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
-  pt: { decimals: ",", groups: "." },
+  "pt-BR": { decimals: ",", groups: "." },
 };
 
 export type Locale = keyof typeof locales;
@@ -24,7 +24,7 @@ export const languageConfig: Array<{
 }> = [
   { code: "en", name: "English" },
   { code: "es", name: "Español" },
-  { code: "pt", name: "Português", experimental: true },
+  { code: "pt-BR", name: "Português (BR)", experimental: true },
 ];
 
 // Stable languages that can be auto-detected from browser
