@@ -2,7 +2,7 @@ import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
-import { convertTo } from "src/quantity";
+import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
@@ -25,6 +25,7 @@ export const buildOptimizedAssetsSource = (
   idMap: IDMap,
   symbology: SymbologySpec,
   quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
 ): Feature[] => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "status"];
@@ -47,6 +48,7 @@ export const buildOptimizedAssetsSource = (
         feature,
         symbology.link,
         quantities,
+        translateUnit,
       );
     if (asset.type === "junction")
       appendJunctionSymbologyProps(
@@ -141,6 +143,7 @@ const appendPipeSymbologyProps = (
   feature: Feature,
   linkSymbology: LinkSymbology,
   quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
 ) => {
   if (!linkSymbology.colorRule) return;
 

@@ -1,6 +1,7 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useRef } from "react";
 import { Layer as DeckLayer } from "@deck.gl/core";
+import { Unit } from "src/quantity";
 import { Moment } from "src/lib/persistence/moment";
 import {
   EphemeralEditingState,
@@ -46,6 +47,7 @@ import { nullSymbologySpec } from "src/map/symbology";
 import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -170,6 +172,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -215,6 +218,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             idMap,
             mapState.symbology,
             quantities,
+            translateUnit,
           );
         }
 
@@ -231,6 +235,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             idMap,
             mapState.symbology,
             quantities,
+            translateUnit,
           );
           const newHiddenFeatures = updateImportedSourceVisibility(
             map,
@@ -291,6 +296,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     quantities,
     setMapLoading,
     translate,
+    translateUnit,
   ]);
 
   doUpdates();
@@ -340,6 +346,7 @@ const updateImportSource = withDebugInstrumentation(
     idMap: IDMap,
     symbology: SymbologySpec,
     quantities: Quantities,
+    translateUnit: (unit: Unit) => string,
   ) => {
     const importSnapshot = momentLog.getSnapshot();
     if (!importSnapshot) {
@@ -358,6 +365,7 @@ const updateImportSource = withDebugInstrumentation(
       idMap,
       symbology,
       quantities,
+      translateUnit,
     );
     await map.setSource("imported-features", features);
   },
@@ -377,6 +385,7 @@ const updateEditionsSource = withDebugInstrumentation(
     idMap: IDMap,
     symbology: SymbologySpec,
     quantities: Quantities,
+    translateUnit: (unit: Unit) => string,
   ): Promise<Set<AssetId>> => {
     const editionMoments = momentLog.getDeltas();
 
@@ -388,6 +397,7 @@ const updateEditionsSource = withDebugInstrumentation(
       idMap,
       symbology,
       quantities,
+      translateUnit,
     );
     await map.setSource("features", features);
 

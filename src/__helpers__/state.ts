@@ -29,6 +29,8 @@ import {
   LabelRule,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
+import { Locale } from "src/infra/i18n/locale";
+import { localeAtom } from "src/state/locale";
 
 export const setInitialState = ({
   store = createStore(),
@@ -40,6 +42,7 @@ export const setInitialState = ({
   layerConfigs = new Map(),
   nodeSymbology = nullSymbologySpec.node,
   linkSymbology = nullSymbologySpec.link,
+  locale = "en",
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -50,6 +53,7 @@ export const setInitialState = ({
   layerConfigs?: LayerConfigMap;
   nodeSymbology?: NodeSymbology;
   linkSymbology?: LinkSymbology;
+  locale?: Locale;
 } = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
@@ -62,6 +66,7 @@ export const setInitialState = ({
   store.set(layerConfigAtom, layerConfigs);
   store.set(nodeSymbologyAtom, nodeSymbology);
   store.set(linkSymbologyAtom, linkSymbology);
+  store.set(localeAtom, locale);
 
   return store;
 };

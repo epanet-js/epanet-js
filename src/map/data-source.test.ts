@@ -17,6 +17,7 @@ import { getColors } from "src/map/symbology/range-color-rule";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
+  const fakeTranslateUnit = vi.fn();
   it("preserves core properties", () => {
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
@@ -32,6 +33,7 @@ describe("build optimized source", () => {
       initIDMap(assets),
       symbology,
       defaultQuantities,
+      fakeTranslateUnit,
     );
 
     expect(features).toHaveLength(2);
@@ -58,6 +60,7 @@ describe("build optimized source", () => {
       initIDMap(assets),
       symbology,
       defaultQuantities,
+      fakeTranslateUnit,
     );
 
     expect(features).toHaveLength(2);
@@ -88,6 +91,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [junction] = features;
@@ -112,6 +116,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [junction] = features;
@@ -148,6 +153,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [pipe] = features;
@@ -184,6 +190,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        () => "l/s",
       );
 
       const [pipe] = features;
@@ -207,6 +214,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [pipe, reversed] = features;
@@ -242,6 +250,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [pipe] = features;
@@ -263,6 +272,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [p1, p2] = features;
@@ -287,6 +297,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
+        fakeTranslateUnit,
       );
 
       const [p1] = features;
