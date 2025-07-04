@@ -16,7 +16,6 @@ export const symbols = {
 
 export type Locale = keyof typeof locales;
 
-// Language configuration with display names and experimental status
 export const languageConfig: Array<{
   code: Locale;
   name: string;
@@ -27,12 +26,10 @@ export const languageConfig: Array<{
   { code: "pt-BR", name: "Português (BR)", experimental: true },
 ];
 
-// Stable languages that can be auto-detected from browser
 export const stableLanguages: Locale[] = languageConfig
   .filter((lang) => !lang.experimental)
   .map((lang) => lang.code);
 
-// All supported languages (including experimental)
 export const allSupportedLanguages: Locale[] = languageConfig.map(
   (lang) => lang.code,
 );

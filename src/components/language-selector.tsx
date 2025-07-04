@@ -8,6 +8,7 @@ import { Button, DDContent, StyledItem } from "./elements";
 import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const LanguageSelector = ({
   align = "end",
@@ -20,6 +21,11 @@ export const LanguageSelector = ({
 }) => {
   const [locale, setLocale] = useAtom(localeAtom);
   const userTracking = useUserTracking();
+  const isFlagBREnabled = useFeatureFlag("FLAG_BR");
+
+  const availableLanguages = isFlagBREnabled
+    ? languageConfig
+    : languageConfig.filter((lang) => lang.code !== "pt-BR");
 
   const handleLanguageChange = (newLocale: Locale) => {
     userTracking.capture({
@@ -48,7 +54,7 @@ export const LanguageSelector = ({
         )}
       </DD.Trigger>
       <DDContent side="bottom" align={align} className="min-w-32">
-        {languageConfig.map((language) => (
+        {availableLanguages.map((language) => (
           <Tooltip.Provider key={language.code}>
             <Tooltip.Root delayDuration={500}>
               <Tooltip.Trigger asChild>
