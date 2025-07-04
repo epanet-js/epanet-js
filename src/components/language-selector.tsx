@@ -42,7 +42,7 @@ export const LanguageSelector = ({
         }
       }}
     >
-      <DD.Trigger asChild={!asChild}>
+      <DD.Trigger asChild>
         {asChild ? (
           <span className={padding ? "" : "!p-0"}>{translate("language")}</span>
         ) : (
