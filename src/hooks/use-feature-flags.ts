@@ -1,7 +1,22 @@
 import { usePostHog } from "posthog-js/react";
-import { checkFeatureFlag } from "src/infra/feature-flags";
 
 export const useFeatureFlag = (name: string): boolean => {
   const posthog = usePostHog();
-  return checkFeatureFlag(name, posthog);
+
+  if (posthog?.isFeatureEnabled) {
+    const posthogFlag = posthog.isFeatureEnabled(name);
+    if (posthogFlag !== undefined) {
+      return posthogFlag;
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const flag = params.get(name);
+    if (flag) {
+      return flag === "true";
+    }
+  }
+
+  return false;
 };

@@ -6,7 +6,6 @@ import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
-import { setPostHogInstance } from "./feature-flags";
 
 type Metadata = {
   [key: string]: boolean | string | number | string[];
@@ -32,8 +31,6 @@ const PostHogLoadWrapper = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (posthog) {
-      setPostHogInstance(posthog);
-
       posthog.onFeatureFlags(() => {
         setFlagsVersion((prev) => prev + 1);
       });

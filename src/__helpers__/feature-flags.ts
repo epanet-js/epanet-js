@@ -1,19 +1,23 @@
 import { Mock, vi } from "vitest";
 
-import * as featureFlags from "src/infra/feature-flags";
+import * as useFeatureFlags from "src/hooks/use-feature-flags";
 
-vi.mock("src/infra/feature-flags", () => ({
-  isFeatureOn: vi.fn(),
+vi.mock("src/hooks/use-feature-flags", () => ({
+  useFeatureFlag: vi.fn(),
 }));
 
 export const stubFeatureOn = (name: string) => {
-  (featureFlags.isFeatureOn as Mock).mockImplementation((flag: string) => {
+  const mockImpl = (flag: string) => {
     if (flag === name) return true;
-  });
+    return false;
+  };
+  (useFeatureFlags.useFeatureFlag as Mock).mockImplementation(mockImpl);
 };
 
 export const stubFeatureOff = (name: string) => {
-  (featureFlags.isFeatureOn as Mock).mockImplementation((flag: string) => {
+  const mockImpl = (flag: string) => {
     if (flag === name) return false;
-  });
+    return false;
+  };
+  (useFeatureFlags.useFeatureFlag as Mock).mockImplementation(mockImpl);
 };
