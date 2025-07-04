@@ -55,7 +55,7 @@ import { translate } from "src/infra/i18n";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
-import { isFeatureOn } from "src/infra/feature-flags";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type Mode =
   | "custom"
@@ -280,6 +280,7 @@ function TileJSONLayer({
   const layerConfigs = useAtomValue(layerConfigAtom);
   const items = [...layerConfigs.values()];
   const userTracking = useUserTracking();
+  const shouldSkipValidation = useFeatureFlag("FLAG_SKIP_LAYER_VALIDATION");
 
   const initialValues =
     layer ||
@@ -297,8 +298,7 @@ function TileJSONLayer({
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
-          if (!isFeatureOn("FLAG_SKIP_LAYER_VALIDATION"))
-            await get(values.url, zTileJSON);
+          if (!shouldSkipValidation) await get(values.url, zTileJSON);
         } catch (e) {
           if (e instanceof ZodError) {
             return {

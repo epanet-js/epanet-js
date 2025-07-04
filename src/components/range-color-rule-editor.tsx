@@ -9,7 +9,7 @@ import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
 import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
-import { isFeatureOn } from "src/infra/feature-flags";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   RangeMode,
@@ -89,9 +89,10 @@ export const RangeColorRuleEditor = ({
 
   const [colorRule, setColorRule] = useState<RangeColorRule>(initialColorRule);
 
+  const isDebugHistogramEnabled = useFeatureFlag("FLAG_DEBUG_HISTOGRAM");
+
   const debugData = useMemo(() => {
-    if (!isFeatureOn("FLAG_DEBUG_HISTOGRAM"))
-      return { histogram: [], min: 0, max: 0 };
+    if (!isDebugHistogramEnabled) return { histogram: [], min: 0, max: 0 };
 
     function createHistogram(values: number[], breaks: number[]) {
       const histogram = new Array(breaks.length - 1).fill(0);
@@ -120,7 +121,7 @@ export const RangeColorRuleEditor = ({
       ...colorRule.breaks,
       +Infinity,
     ]);
-  }, [colorRule.breaks, sortedData]);
+  }, [colorRule.breaks, sortedData, isDebugHistogramEnabled]);
 
   const [error, setError] = useState<ErrorType | null>(null);
 
@@ -326,7 +327,7 @@ export const RangeColorRuleEditor = ({
                 {translate(error)}
               </p>
             )}
-            {isFeatureOn("FLAG_DEBUG_HISTOGRAM") && (
+            {isDebugHistogramEnabled && (
               <>
                 <p>Histogram: {JSON.stringify(debugData.histogram)}</p>
                 <p>Min: {debugData.min}</p>

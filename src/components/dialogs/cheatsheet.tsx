@@ -4,6 +4,8 @@ import React, { Fragment } from "react";
 import { localizeKeybinding, translate } from "src/infra/i18n";
 import { KeyboardIcon } from "@radix-ui/react-icons";
 import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
+import { getIsMac } from "src/infra/i18n/mac";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -28,6 +30,7 @@ const BINDINGS = {
 };
 
 export function CheatsheetDialog() {
+  const isMac = useFeatureFlag("FLAG_MAC");
   return (
     <>
       <DialogHeader
@@ -43,7 +46,7 @@ export function CheatsheetDialog() {
         {Object.entries(BINDINGS).map(([key, description]) => (
           <Fragment key={key}>
             <div className="">
-              <Keycap>{localizeKeybinding(key)}</Keycap>
+              <Keycap>{localizeKeybinding(key, isMac || getIsMac())}</Keycap>
             </div>
             <div>{description}</div>
           </Fragment>

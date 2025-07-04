@@ -1,5 +1,4 @@
 import once from "lodash/once";
-import { isFeatureOn } from "../feature-flags";
 
 export const cmdSymbol = "⌘";
 export const macShiftSymbol = "⇧";
@@ -23,8 +22,7 @@ export function localizeKeybinding(
     .replace(`${cmdSymbol}${macShiftSymbol}`, `${macShiftSymbol}${cmdSymbol}`);
 }
 
-const getIsMac = once((): boolean => {
-  if (isFeatureOn("FLAG_MAC")) return true;
+export const getIsMac = once((): boolean => {
   try {
     return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
   } catch (e) {

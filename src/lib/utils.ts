@@ -1,6 +1,5 @@
 import without from "lodash/without";
 import isEqual from "lodash/isEqual";
-import once from "lodash/once";
 import type { Either } from "purify-ts/Either";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { Promisable } from "type-fest";
@@ -67,14 +66,6 @@ export function allowNativePaste(e: Pick<ClipboardEvent, "target">) {
   if (RECEIVERS.has(tagName)) return true;
   return false;
 }
-
-export const getIsMac = once((): boolean => {
-  try {
-    return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
-  } catch (e) {
-    return false;
-  }
-});
 
 type ClipboardInput = Promisable<string>;
 
