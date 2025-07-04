@@ -41,7 +41,6 @@ import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useSaveInp } from "src/commands/save-inp";
 import { LanguageSelector } from "./language-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -84,7 +83,6 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-  const showLanguageSelector = useFeatureFlag("FLAG_LANGUAGE");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -115,7 +113,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             {isDebugOn && <DebugDropdown />}
             <FileMenu />
             <HelpDot />
-            {showLanguageSelector && <LanguageSelector />}
+            <LanguageSelector />
             <Divider />
           </>
         )}
@@ -285,7 +283,6 @@ export const SideMenu = () => {
   const saveInp = useSaveInp();
   const { user } = useAuth();
   const isMdOrLarger = useBreakpoint("md");
-  const showLanguageSelector = useFeatureFlag("FLAG_LANGUAGE");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -367,19 +364,15 @@ export const SideMenu = () => {
               </li>
             </ul>
             <hr className="my-4 border-gray-200" />
-            {showLanguageSelector && (
-              <>
-                <ul className="flex flex-col items-start gap-2 text-gray-200">
-                  <li>
-                    <Button variant="quiet">
-                      <GlobeIcon className="mr-2" />
-                      <LanguageSelector align="start" padding={false} asChild />
-                    </Button>
-                  </li>
-                </ul>
-                <hr className="my-4 border-gray-200" />
-              </>
-            )}
+            <ul className="flex flex-col items-start gap-2 text-gray-200">
+              <li>
+                <Button variant="quiet">
+                  <GlobeIcon className="mr-2" />
+                  <LanguageSelector align="start" padding={false} asChild />
+                </Button>
+              </li>
+            </ul>
+            <hr className="my-4 border-gray-200" />
             <ul className="flex flex-col items-start gap-2  text-gray-200">
               <li>
                 <a

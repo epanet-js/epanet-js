@@ -34,16 +34,6 @@ export const allSupportedLanguages: Locale[] = languageConfig.map(
   (lang) => lang.code,
 );
 
-export const getLocaleDeprecated = (): Locale => {
-  if (typeof window === "undefined") return "en";
-
-  const language = navigator.language;
-  const code = stableLanguages.find(
-    (code) => language === code || language.startsWith(`${code}-`),
-  );
-  return code || "en";
-};
-
 export const getLocale = (): Locale => {
   if (typeof window === "undefined") return "en";
 
