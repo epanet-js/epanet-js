@@ -20,14 +20,8 @@ import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
 import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
-import {
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useAuth,
-} from "src/auth";
+import { SignedIn, SignedOut, UserButton, useAuth } from "src/auth";
+import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";

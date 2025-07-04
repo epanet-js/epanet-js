@@ -11,17 +11,13 @@ import {
   useUser as useClerkUser,
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
-import { B3Size, Button } from "./components/elements";
-import { PersonIcon } from "@radix-ui/react-icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale } from "./infra/i18n/locale";
-import { translate } from "./infra/i18n";
 import { nullUser, User, UseAuthHook } from "./auth-types";
-
 export { ClerkSignInButton, ClerkSignUpButton };
 import { Plan } from "./user-plan";
 
-const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+export const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleError = useCallback((error: Error) => {
@@ -70,60 +66,6 @@ const useAuthNull: UseAuthHook = () => {
 };
 
 export const useAuth = isAuthEnabled ? useAuthWithClerk : useAuthNull;
-
-export const SignInButton = ({
-  onClick,
-  autoFocus = false,
-  children,
-  forceRedirectUrl,
-}: {
-  onClick?: () => void;
-  autoFocus?: boolean;
-  children?: React.ReactNode;
-  forceRedirectUrl?: string;
-}) => {
-  if (!isAuthEnabled) return null;
-
-  return (
-    <ClerkSignInButton forceRedirectUrl={forceRedirectUrl}>
-      {!children && (
-        <Button
-          variant="quiet"
-          className="text-purple-500 font-semibold"
-          autoFocus={autoFocus}
-          onClick={onClick}
-        >
-          {translate("login")}
-        </Button>
-      )}
-    </ClerkSignInButton>
-  );
-};
-
-export const SignUpButton = ({
-  onClick,
-  autoFocus = false,
-  size = "sm",
-}: {
-  size?: B3Size | "full-width";
-  onClick?: () => void;
-  autoFocus?: boolean;
-}) => {
-  if (!isAuthEnabled) return null;
-
-  return (
-    <ClerkSignUpButton>
-      <Button
-        variant="primary"
-        size={size}
-        onClick={onClick}
-        autoFocus={autoFocus}
-      >
-        <PersonIcon /> {translate("register")}
-      </Button>
-    </ClerkSignUpButton>
-  );
-};
 
 export const SignedIn = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthEnabled) return null;
