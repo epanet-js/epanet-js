@@ -6,6 +6,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, DDContent, StyledItem } from "./elements";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
+import { useUserTracking } from "src/infra/user-tracking";
 
 const languageOptions = [
   { label: "English", value: "en" as Locale },
@@ -20,14 +21,25 @@ export const LanguageSelector = ({
   padding?: boolean;
 }) => {
   const [locale, setLocale] = useAtom(localeAtom);
+  const userTracking = useUserTracking();
 
   const handleLanguageChange = (newLocale: Locale) => {
+    userTracking.capture({
+      name: "language.changed",
+      language: newLocale,
+    });
     setLocale(newLocale);
     window.location.reload();
   };
 
   return (
-    <DD.Root>
+    <DD.Root
+      onOpenChange={(open) => {
+        if (open) {
+          userTracking.capture({ name: "languageList.opened" });
+        }
+      }}
+    >
       <DD.Trigger asChild>
         <Button variant="quiet" className={padding ? "" : "!p-0"}>
           {translate("language")}

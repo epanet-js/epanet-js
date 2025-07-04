@@ -309,6 +309,15 @@ type LayerOpacityChanged = {
   type: string;
 };
 
+type LanguageListOpened = {
+  name: "languageList.opened";
+};
+
+type LanguageChanged = {
+  name: "language.changed";
+  language: string;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -360,6 +369,8 @@ type UserEvent =
   | PageReloaded
   | LayersPopoverOpened
   | LayerOpacityChanged
+  | LanguageListOpened
+  | LanguageChanged
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
