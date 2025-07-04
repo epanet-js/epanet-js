@@ -13,6 +13,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { PumpIcon } from "src/custom-icons/pump-icon";
 import { ValveIcon } from "src/custom-icons/valve-icon";
+import { useTranslate } from "src/hooks/use-translate";
 
 const MODE_OPTIONS = [
   {
@@ -55,6 +56,7 @@ export default memo(function Modes({
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
@@ -69,7 +71,7 @@ export default memo(function Modes({
             key={i}
             selected={currentMode === mode}
             readOnlyHotkey={hotkey}
-            label={modeInfo.label}
+            label={translate(modeInfo.name)}
             onClick={() => {
               userTracking.capture({
                 name: "drawingMode.enabled",

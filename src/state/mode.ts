@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import { translate } from "src/infra/i18n";
 import { IWrappedFeature } from "src/types";
 
 /**
@@ -54,15 +53,14 @@ export const MODE_INFO: Record<
   Mode,
   {
     name: string;
-    label: string;
   }
 > = {
-  [Mode.NONE]: { name: "select", label: translate("select") },
-  [Mode.DRAW_JUNCTION]: { name: "junction", label: translate("junction") },
-  [Mode.DRAW_PIPE]: { name: "pipe", label: translate("pipe") },
-  [Mode.DRAW_RESERVOIR]: { name: "reservoir", label: translate("reservoir") },
-  [Mode.DRAW_PUMP]: { name: "pump", label: translate("pump") },
-  [Mode.DRAW_VALVE]: { name: "valve", label: translate("valve") },
+  [Mode.NONE]: { name: "select" },
+  [Mode.DRAW_JUNCTION]: { name: "junction" },
+  [Mode.DRAW_PIPE]: { name: "pipe" },
+  [Mode.DRAW_RESERVOIR]: { name: "reservoir" },
+  [Mode.DRAW_PUMP]: { name: "pump" },
+  [Mode.DRAW_VALVE]: { name: "valve" },
 };
 
 export type ModeWithOptions = {
