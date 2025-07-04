@@ -13,6 +13,7 @@ export const translations: Translations = {
   keyboardShortcuts: "Atajos de Teclado",
   help: "Ayuda",
   helpCenter: "Centro de Ayuda",
+  language: "Idioma",
   exit: "Terminar",
   clearSelection: "Borrar Selección",
   selectAll: "Seleccionar Todo",

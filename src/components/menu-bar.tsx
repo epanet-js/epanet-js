@@ -7,6 +7,7 @@ import {
   FileIcon,
   FilePlusIcon,
   GitHubLogoIcon,
+  GlobeIcon,
   HamburgerMenuIcon,
   KeyboardIcon,
   QuestionMarkCircledIcon,
@@ -39,6 +40,8 @@ import clsx from "clsx";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useSaveInp } from "src/commands/save-inp";
+import { LanguageSelector } from "./language-selector";
+import { isFeatureOn } from "src/infra/feature-flags";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -111,6 +114,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             {isDebugOn && <DebugDropdown />}
             <FileMenu />
             <HelpDot />
+            {isFeatureOn("FLAG_LANGUAGE") && <LanguageSelector />}
             <Divider />
           </>
         )}
@@ -361,6 +365,19 @@ export const SideMenu = () => {
               </li>
             </ul>
             <hr className="my-4 border-gray-200" />
+            {isFeatureOn("FLAG_LANGUAGE") && (
+              <>
+                <ul className="flex flex-col items-start gap-2 text-gray-200">
+                  <li>
+                    <Button variant="quiet">
+                      <GlobeIcon className="mr-2" />
+                      <LanguageSelector align="start" padding={false} />
+                    </Button>
+                  </li>
+                </ul>
+                <hr className="my-4 border-gray-200" />
+              </>
+            )}
             <ul className="flex flex-col items-start gap-2  text-gray-200">
               <li>
                 <a

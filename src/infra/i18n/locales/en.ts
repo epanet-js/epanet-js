@@ -11,6 +11,7 @@ export const translations = {
   keyboardShortcuts: "Keyboard Shortcuts",
   help: "Help",
   helpCenter: "Help Center",
+  language: "Language",
   exit: "Exit",
   clearSelection: "Clear Selection",
   selectAll: "Select all",
