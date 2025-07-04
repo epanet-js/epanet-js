@@ -3,7 +3,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/user-plan";
 
 const stripeSDK = loadStripe(
@@ -15,6 +15,7 @@ export type PaymentType = "monthly" | "yearly";
 const checkoutLoadingAtom = atom<boolean>(false);
 
 export const useCheckout = () => {
+  const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
 
   const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
