@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { ParserIssues, parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { FeatureCollection } from "geojson";
@@ -21,6 +21,7 @@ import { notify } from "src/components/notifications";
 export const inpExtension = ".inp";
 
 export const useImportInp = () => {
+  const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
@@ -105,7 +106,14 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [map?.map, transactImport, setFileInfo, setDialogState, userTracking],
+    [
+      map?.map,
+      transactImport,
+      setFileInfo,
+      setDialogState,
+      userTracking,
+      translate,
+    ],
   );
 
   return importInp;

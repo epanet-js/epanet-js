@@ -3,7 +3,7 @@ import { ExportOptions } from "src/lib/convert";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
@@ -24,6 +24,7 @@ export const saveAsShortcut = "ctrl+shift+s";
 export const useSaveInp = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
+  const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
@@ -88,7 +89,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking],
+      [getFsAccess, userTracking, translate],
     ),
   );
 

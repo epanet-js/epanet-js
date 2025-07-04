@@ -3,13 +3,14 @@ import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog";
 import { useImportInp } from "./import-inp";
 import { captureError } from "src/infra/error-tracking";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
 
 export const useOpenInpFromUrl = () => {
+  const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
@@ -27,7 +28,7 @@ export const useOpenInpFromUrl = () => {
       name: "downloadError.seen",
     });
     setDialogState({ type: "welcome" });
-  }, [setDialogState, userTracking]);
+  }, [setDialogState, userTracking, translate]);
 
   const openInpFromUrl = useCallback(
     async (url: string) => {
