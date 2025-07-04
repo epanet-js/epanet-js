@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { localeAtom } from "src/state/locale";
 import { Locale, languageConfig } from "src/infra/i18n/locale";
 import * as DD from "@radix-ui/react-dropdown-menu";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, DDContent, StyledItem } from "./elements";
 import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
@@ -48,22 +49,38 @@ export const LanguageSelector = ({
       </DD.Trigger>
       <DDContent side="bottom" align={align} className="min-w-32">
         {languageConfig.map((language) => (
-          <StyledItem
-            key={language.code}
-            onSelect={() => handleLanguageChange(language.code)}
-          >
-            <div className="flex items-center justify-between w-full gap-2">
-              <div className="flex items-center gap-2">
-                <span>{language.name}</span>
-                {language.experimental && (
-                  <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
-                )}
-              </div>
-              {locale === language.code && (
-                <CheckIcon className="w-4 h-4 text-purple-700" />
+          <Tooltip.Provider key={language.code}>
+            <Tooltip.Root delayDuration={500}>
+              <Tooltip.Trigger asChild>
+                <StyledItem
+                  onSelect={() => handleLanguageChange(language.code)}
+                >
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2">
+                      <span>{language.name}</span>
+                      {language.experimental && (
+                        <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
+                      )}
+                    </div>
+                    {locale === language.code && (
+                      <CheckIcon className="w-4 h-4 text-purple-700" />
+                    )}
+                  </div>
+                </StyledItem>
+              </Tooltip.Trigger>
+              {language.experimental && (
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg max-w-48 z-50"
+                    sideOffset={5}
+                  >
+                    {translate("experimentalLanguage")}
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
               )}
-            </div>
-          </StyledItem>
+            </Tooltip.Root>
+          </Tooltip.Provider>
         ))}
       </DDContent>
     </DD.Root>

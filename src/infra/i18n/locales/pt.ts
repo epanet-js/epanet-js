@@ -15,6 +15,8 @@ export const translations: Translations = {
   help: "Ajuda",
   helpCenter: "Centro de Ajuda",
   language: "Idioma",
+  experimentalLanguage:
+    "Este idioma está em beta. Por favor experimente e contacte o suporte se notar alguma imprecisão.",
   exit: "Sair",
   clearSelection: "Limpar Seleção",
   selectAll: "Selecionar Tudo",
