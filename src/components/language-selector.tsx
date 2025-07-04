@@ -1,17 +1,12 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { localeAtom } from "src/state/locale";
-import { Locale } from "src/infra/i18n/locale";
+import { Locale, languageConfig } from "src/infra/i18n/locale";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, DDContent, StyledItem } from "./elements";
-import { CheckIcon } from "@radix-ui/react-icons";
+import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { translate } from "src/infra/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
-
-const languageOptions = [
-  { label: "English", value: "en" as Locale },
-  { label: "Español", value: "es" as Locale },
-];
 
 export const LanguageSelector = ({
   align = "end",
@@ -51,15 +46,20 @@ export const LanguageSelector = ({
           </Button>
         )}
       </DD.Trigger>
-      <DDContent side="bottom" align={align}>
-        {languageOptions.map((option) => (
+      <DDContent side="bottom" align={align} className="min-w-32">
+        {languageConfig.map((language) => (
           <StyledItem
-            key={option.value}
-            onSelect={() => handleLanguageChange(option.value)}
+            key={language.code}
+            onSelect={() => handleLanguageChange(language.code)}
           >
             <div className="flex items-center justify-between w-full gap-2">
-              <span>{option.label}</span>
-              {locale === option.value && (
+              <div className="flex items-center gap-2">
+                <span>{language.name}</span>
+                {language.experimental && (
+                  <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
+                )}
+              </div>
+              {locale === language.code && (
                 <CheckIcon className="w-4 h-4 text-purple-700" />
               )}
             </div>

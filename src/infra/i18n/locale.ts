@@ -1,25 +1,47 @@
 import * as en from "./locales/en";
 import * as es from "./locales/es";
+import * as pt from "./locales/pt";
 
 export const locales = {
   en: en,
   es: es,
+  pt: pt,
 };
 
 export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
+  pt: { decimals: ",", groups: "." },
 };
 
 export type Locale = keyof typeof locales;
 
-const codes = Object.keys(locales) as Locale[];
+// Language configuration with display names and experimental status
+export const languageConfig: Array<{
+  code: Locale;
+  name: string;
+  experimental?: boolean;
+}> = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Español" },
+  { code: "pt", name: "Português", experimental: true },
+];
+
+// Stable languages that can be auto-detected from browser
+export const stableLanguages: Locale[] = languageConfig
+  .filter((lang) => !lang.experimental)
+  .map((lang) => lang.code);
+
+// All supported languages (including experimental)
+export const allSupportedLanguages: Locale[] = languageConfig.map(
+  (lang) => lang.code,
+);
 
 export const getLocaleDeprecated = (): Locale => {
   if (typeof window === "undefined") return "en";
 
   const language = navigator.language;
-  const code = codes.find(
+  const code = stableLanguages.find(
     (code) => language === code || language.startsWith(`${code}-`),
   );
   return code || "en";
@@ -32,14 +54,14 @@ export const getLocale = (): Locale => {
     const savedValue = localStorage.getItem("locale");
     if (savedValue) {
       const savedLocale = JSON.parse(savedValue) as Locale;
-      if (codes.includes(savedLocale)) {
+      if (allSupportedLanguages.includes(savedLocale)) {
         return savedLocale;
       }
     }
   } catch {}
 
   const language = navigator.language;
-  const code = codes.find(
+  const code = stableLanguages.find(
     (code) => language === code || language.startsWith(`${code}-`),
   );
   return code || "en";
