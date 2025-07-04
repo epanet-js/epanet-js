@@ -55,16 +55,18 @@ export const LanguageSelector = ({
                 <StyledItem
                   onSelect={() => handleLanguageChange(language.code)}
                 >
-                  <div className="flex items-center justify-between w-full gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center w-full gap-2">
+                    <div className="flex items-center gap-2 flex-1">
                       <span>{language.name}</span>
                       {language.experimental && (
                         <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
                       )}
                     </div>
-                    {locale === language.code && (
-                      <CheckIcon className="w-4 h-4 text-purple-700" />
-                    )}
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      {locale === language.code && (
+                        <CheckIcon className="w-4 h-4 text-purple-700" />
+                      )}
+                    </div>
                   </div>
                 </StyledItem>
               </Tooltip.Trigger>
