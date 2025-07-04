@@ -27,7 +27,7 @@ import {
   RangeColorRule,
   validateAscindingBreaks,
 } from "src/map/symbology/range-color-rule";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
 import { dataAtom } from "src/state/jotai";
 
@@ -46,6 +46,7 @@ export const RangeColorRuleEditor = ({
 }: {
   geometryType?: "node" | "link";
 }) => {
+  const translate = useTranslate();
   const {
     hydraulicModel: { assets },
   } = useAtomValue(dataAtom);
@@ -372,6 +373,7 @@ const IntervalsEditor = ({
   onAppend: () => void;
   onDelete: (index: number) => void;
 }) => {
+  const translate = useTranslate();
   const canAddMore = numIntervals < maxIntervals;
   const canDelete = numIntervals > minIntervals;
 
@@ -468,6 +470,7 @@ const ClassesSelector = ({
   numIntervals: number;
   onChange: (numIntervals: number) => void;
 }) => {
+  const translate = useTranslate();
   const options = useMemo(() => {
     return d3.range(3, maxIntervals + 1).map((count) => ({
       label: String(count),
@@ -502,12 +505,13 @@ const ModeSelector = ({
   rangeMode: RangeMode;
   onModeChange: (newMode: RangeMode) => void;
 }) => {
+  const translate = useTranslate();
   const modeOptions = useMemo(() => {
     return rangeModesInOrder.map((mode) => ({
       label: translate(modeLabels[mode]),
       value: mode,
     }));
-  }, []);
+  }, [translate]);
 
   return (
     <Selector

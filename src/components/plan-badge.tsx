@@ -1,5 +1,5 @@
 import { Plan } from "src/user-plan";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 const planStyles: Record<string, string> = {
   free: "bg-gradient-to-r from-purple-100 via-purple-200 to-purple-300 text-purple-800",
@@ -18,6 +18,7 @@ const planBadgeText: Record<Plan, string> = {
 };
 
 export const PlanBadge = ({ plan }: { plan: Plan }) => {
+  const translate = useTranslate();
   if (plan === "free") return null;
 
   return (

@@ -9,7 +9,7 @@ import {
 import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
 import { ChevronDownIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import find from "lodash/find";
 import clsx from "clsx";
@@ -112,6 +112,7 @@ export const ColorRampSelector = ({
 }: {
   geometryType: "node" | "link";
 }) => {
+  const translate = useTranslate();
   const {
     rampName,
     rampColors,

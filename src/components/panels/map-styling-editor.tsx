@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
-import { translate, translateUnit } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -22,7 +23,10 @@ import { FieldList, InlineField } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 
-const colorPropertyLabelFor = (property: string) => {
+const colorPropertyLabelFor = (
+  property: string,
+  translate: (key: string) => string,
+) => {
   if (property === "flow") {
     return translate("flowAbs");
   } else {
@@ -31,6 +35,8 @@ const colorPropertyLabelFor = (property: string) => {
 };
 
 export const MapStylingEditor = () => {
+  const translate = useTranslate();
+
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
       <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
@@ -67,6 +73,8 @@ const SymbologyEditor = ({
   geometryType: "node" | "link";
   properties: readonly SupportedProperty[];
 }) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
 
   const {
@@ -153,7 +161,7 @@ const SymbologyEditor = ({
             const unit = type !== "none" ? quantities.getUnit(type) : null;
             return {
               value: type,
-              label: `${colorPropertyLabelFor(type)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+              label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
               disabled:
                 simulation.status === "idle" &&
                 simulationProperties.includes(type),
@@ -240,6 +248,8 @@ const RangeColorRuleEditorTrigger = ({
   mode: RangeMode;
   numIntervals: number;
 }) => {
+  const translate = useTranslate();
+
   return (
     <Popover.Root>
       <Popover.Trigger asChild>

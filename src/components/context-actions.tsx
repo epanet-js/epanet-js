@@ -7,7 +7,7 @@ import * as T from "@radix-ui/react-tooltip";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { pluralize } from "src/lib/utils";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 export function ToolbarTrigger({
   children,
@@ -34,6 +34,7 @@ export function ToolbarTrigger({
 }
 
 export default function ContextActions() {
+  const translate = useTranslate();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
 
   if (selectedWrappedFeatures.length === 0) return null;

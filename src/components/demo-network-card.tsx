@@ -1,5 +1,5 @@
 import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import Image from "next/image";
 
@@ -9,22 +9,24 @@ type DemoModel = {
   url: string;
   thumbnailUrl: string;
 };
-export const demoModels: DemoModel[] = [
-  {
-    name: "Drumchapel",
-    description: translate("demoUKStyleDescription"),
-    url: "/example-models/01-uk-style.inp",
-    thumbnailUrl: "/example-models/01-uk-style.png",
-  },
-  {
-    name: "Waterdown",
-    description: translate("demoUSStyleDescription"),
-    url: "/example-models/02-us-style.inp",
-    thumbnailUrl: "/example-models/02-us-style.png",
-  },
-];
 
 export const DemoNetworksList = () => {
+  const translate = useTranslate();
+  const demoModels: DemoModel[] = [
+    {
+      name: "Drumchapel",
+      description: translate("demoUKStyleDescription"),
+      url: "/example-models/01-uk-style.inp",
+      thumbnailUrl: "/example-models/01-uk-style.png",
+    },
+    {
+      name: "Waterdown",
+      description: translate("demoUSStyleDescription"),
+      url: "/example-models/02-us-style.inp",
+      thumbnailUrl: "/example-models/02-us-style.png",
+    },
+  ];
+
   return (
     <div className="flex flex-col sm:flex-row gap-6">
       {demoModels.map((demoModel, i) => (

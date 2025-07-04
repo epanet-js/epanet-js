@@ -1,6 +1,6 @@
 import type { ConvertResult } from "src/lib/convert/utils";
 import { DialogHeader } from "src/components/dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 import { SimpleDialogActions } from "src/components/dialog";
@@ -10,6 +10,7 @@ import { Form, Formik } from "formik";
 export type OnNext = (arg0: ConvertResult | null) => void;
 
 export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
+  const translate = useTranslate();
   const showWelcome = useShowWelcome();
   return (
     <>

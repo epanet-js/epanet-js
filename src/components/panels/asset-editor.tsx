@@ -10,7 +10,8 @@ import {
   Pump,
 } from "src/hydraulic-model";
 import { PanelDetails } from "src/components/panel-details";
-import { translate, translateUnit } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
   PropertyRow,
   PropertyRowReadonly,
@@ -257,6 +258,7 @@ const PipeEditor = ({
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
+  const translate = useTranslate();
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -385,6 +387,7 @@ const ValveEditor = ({
   onPropertyChange: OnPropertyChange;
   onTypeChange: OnTypeChange<ValveKind>;
 }) => {
+  const translate = useTranslate();
   const statusText = translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
@@ -393,7 +396,7 @@ const ValveEditor = ({
       { label: translate("valve.open"), value: "open" },
       { label: translate("valve.closed"), value: "closed" },
     ] as { label: string; value: ValveStatus }[];
-  }, []);
+  }, [translate]);
 
   const kindOptions = useMemo(() => {
     return valveKinds.map((kind) => {
@@ -403,7 +406,7 @@ const ValveEditor = ({
         value: kind,
       };
     });
-  }, []);
+  }, [translate]);
 
   return (
     <PanelDetails title={translate("valve")} variant="fullwidth">
@@ -527,6 +530,7 @@ const PumpEditor = ({
   ) => void;
   quantitiesMetadata: Quantities;
 }) => {
+  const translate = useTranslate();
   const statusText = translate(pumpStatusLabel(pump));
 
   const definitionOptions = useMemo(() => {
@@ -534,7 +538,7 @@ const PumpEditor = ({
       { label: translate("constantPower"), value: "power" },
       { label: translate("flowVsHead"), value: "flow-vs-head" },
     ] as { label: string; value: PumpDefintionType }[];
-  }, []);
+  }, [translate]);
 
   return (
     <PanelDetails title={translate("pump")} variant="fullwidth">
@@ -633,6 +637,7 @@ const JunctionEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
 }) => {
+  const translate = useTranslate();
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -693,6 +698,7 @@ const ReservoirEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
 }) => {
+  const translate = useTranslate();
   return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -724,13 +730,14 @@ const ReservoirEditor = ({
 };
 
 const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
+  const translate = useTranslate();
   const label = translate(name);
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
 const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
   name,
-  label = translate(name),
+  label,
   selected,
   options,
   onChange,
@@ -741,11 +748,13 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
   options: { label: string; description?: string; value: T }[];
   onChange: (name: string, newValue: T, oldValue: T) => void;
 }) => {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
   return (
-    <PropertyRow label={label}>
+    <PropertyRow label={actualLabel}>
       <div className="relative group-1">
         <Selector
-          ariaLabel={label}
+          ariaLabel={actualLabel}
           options={options}
           selected={selected}
           onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
@@ -762,7 +771,7 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
 
 const StatusRow = <T extends AssetStatus>({
   name,
-  label = translate(name),
+  label,
   type,
   status,
   availableStatuses,
@@ -775,16 +784,18 @@ const StatusRow = <T extends AssetStatus>({
   availableStatuses: readonly T[];
   onChange: (oldValue: T, oldStatus: T) => void;
 }) => {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
   const options = useMemo(() => {
     const options = availableStatuses.map((status) => ({
       label: translate(`${type}.${status}`),
       value: status,
     })) as { label: string; value: T }[];
     return options;
-  }, [availableStatuses, type]);
+  }, [availableStatuses, type, translate]);
 
   return (
-    <PropertyRow label={label}>
+    <PropertyRow label={actualLabel}>
       <div className="relative group-1">
         <Selector
           ariaLabel={"Value for: Status"}
@@ -818,6 +829,8 @@ const QuantityRow = ({
   decimals?: number;
   onChange?: (name: string, newValue: number, oldValue: number | null) => void;
 }) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const lastChange = useRef<number>(0);
 
   const displayValue =
@@ -853,6 +866,7 @@ const QuantityRow = ({
 };
 
 export function PropertyTableHead() {
+  const translate = useTranslate();
   return (
     <thead>
       <tr className="bg-gray-100 dark:bg-gray-800 font-sans text-gray-500 dark:text-gray-100 text-xs text-left">

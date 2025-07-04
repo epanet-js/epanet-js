@@ -13,7 +13,7 @@ import {
   initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence/context";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "../form/selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
@@ -26,6 +26,7 @@ type SubmitProps = {
 };
 
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
+  const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
@@ -90,6 +91,7 @@ const UnitsSystemSelector = ({
   selected: keyof Presets;
   onChange: (specId: keyof Presets) => void;
 }) => {
+  const translate = useTranslate();
   const options = Object.entries(presets).map(([presetId, spec]) => ({
     label: `${spec.name}: ${spec.description}`,
     value: presetId as keyof Presets,
@@ -119,6 +121,7 @@ const HeadlossFormulaSelector = ({
   selected: HeadlossFormula;
   onChange: (headlossFormula: HeadlossFormula) => void;
 }) => {
+  const translate = useTranslate();
   const options = Object.values(headlossFormulas).map((headlossFormula, i) => ({
     label: `${headlossFormulasFullNames[i]} (${headlossFormula})`,
     value: headlossFormula,

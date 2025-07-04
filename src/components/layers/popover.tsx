@@ -51,7 +51,7 @@ import clamp from "lodash/clamp";
 import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
@@ -130,6 +130,7 @@ const MapboxStyleSkeleton = z.object({
 });
 
 function BackButton({ to }: { to: Mode }) {
+  const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
   return (
     <E.Button
@@ -151,6 +152,7 @@ function LayerFormHeader({
 }: React.PropsWithChildren<{
   isEditing?: boolean;
 }>) {
+  const translate = useTranslate();
   return (
     <div className="flex justify-between items-center pb-2">
       <div className="font-bold">{children}</div>
@@ -174,6 +176,7 @@ function MapboxLayer({
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
 }) {
+  const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
   const { applyChanges } = useLayerConfigState();
   const isEditing = !!layer;
@@ -273,6 +276,7 @@ function TileJSONLayer({
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
 }) {
+  const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
   const { applyChanges } = useLayerConfigState();
   const isEditing = !!layer;
@@ -363,6 +367,7 @@ function XYZLayer({
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
 }) {
+  const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
@@ -445,6 +450,7 @@ function XYZLayer({
 }
 
 function AddLayer({ onClose }: { onClose: () => void }) {
+  const translate = useTranslate();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
   const userTracking = useUserTracking();
@@ -689,6 +695,7 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
 
@@ -721,6 +728,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
 
@@ -754,6 +762,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const translate = useTranslate();
   const isRaster = layerConfig.name.includes("Satellite");
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -1032,6 +1041,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
 export { FORM_ERROR } from "src/core/components/Form";
 
 export function LayersPopover({ onClose }: { onClose: () => void }) {
+  const translate = useTranslate();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
   const items = [...layerConfigs.values()];
@@ -1154,6 +1164,7 @@ const LayerTypeButton = ({
 };
 
 const UpgradeTag = () => {
+  const translate = useTranslate();
   return (
     <span className="bg-purple-100 text-purple-500 text-xs px-1 rounded-md">
       {translate("upgrade").toUpperCase()}

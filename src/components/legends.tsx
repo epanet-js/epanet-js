@@ -1,5 +1,6 @@
 import { linearGradient } from "src/lib/color";
-import { translate, translateUnit } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
@@ -30,6 +31,8 @@ export const Legends = () => {
 };
 
 const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
   const { property, unit } = symbology;
 

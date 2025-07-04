@@ -2,9 +2,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { Button } from "./elements";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { supportEmail } from "src/global-config";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const FallbackError = () => {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
 
   return (

@@ -11,7 +11,7 @@ import clsx from "clsx";
 
 import FeatureEditor from "src/components/panels/feature-editor";
 import { DefaultErrorBoundary } from "src/components/elements";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 
 function Tab({
@@ -68,6 +68,7 @@ const TabList = memo(function TabList({
   activeTab: TabOption;
   setTab: React.Dispatch<React.SetStateAction<TabOption>>;
 }) {
+  const translate = useTranslate();
   return (
     <div
       role="tablist"

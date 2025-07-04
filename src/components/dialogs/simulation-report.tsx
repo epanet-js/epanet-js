@@ -1,4 +1,4 @@
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { FileTextIcon } from "@radix-ui/react-icons";
 import { replaceIdWithLabels } from "src/simulation/report";
@@ -7,6 +7,7 @@ import { useAtomValue } from "jotai";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 
 export const SimulationReportDialog = () => {
+  const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
 

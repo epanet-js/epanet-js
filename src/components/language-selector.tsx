@@ -6,7 +6,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, DDContent, StyledItem } from "./elements";
 import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -19,6 +19,7 @@ export const LanguageSelector = ({
   padding?: boolean;
   asChild?: boolean;
 }) => {
+  const translate = useTranslate();
   const [locale, setLocale] = useAtom(localeAtom);
   const userTracking = useUserTracking();
   const isFlagBREnabled = useFeatureFlag("FLAG_BR");

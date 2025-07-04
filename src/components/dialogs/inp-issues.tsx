@@ -1,5 +1,5 @@
 import { DialogHeader } from "../dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { SimpleDialogActions } from "src/components/dialog";
 import {
   BellIcon,
@@ -22,6 +22,7 @@ export const GeocodingNotSupportedDialog = ({
 }: {
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
@@ -62,6 +63,7 @@ export const MissingCoordinatesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
@@ -102,6 +104,7 @@ export const InpIssuesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
@@ -138,6 +141,7 @@ export const InpIssuesDialog = ({
 };
 
 export const ProjectionCTA = () => {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
   return (
     <>
@@ -167,6 +171,7 @@ export const SubscribeCTA = ({
 }: {
   source: "geocodeError" | "inpIssues";
 }) => {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
   return (
     <>
@@ -192,6 +197,7 @@ export const SubscribeCTA = ({
 };
 
 const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
+  const translate = useTranslate();
   const maxDisplayed = 4;
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
@@ -245,6 +251,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
 };
 
 const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
+  const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
 

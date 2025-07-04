@@ -1,7 +1,7 @@
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { notify } from "./notifications";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 type NotificationData = {
   variant: "success" | "warning" | "error";
@@ -13,17 +13,19 @@ type NotificationData = {
 
 type SupportedTypes = "checkoutSuccess";
 
-const notificationData: Record<SupportedTypes, NotificationData> = {
-  checkoutSuccess: {
-    variant: "success",
-    title: translate("upgradeSuccessful"),
-    description: translate("upgradeSuccessfulExplain"),
-    Icon: CheckIcon,
-    size: "md",
-  },
-};
-
 export const NotificationFromUrl = () => {
+  const translate = useTranslate();
+
+  const notificationData: Record<SupportedTypes, NotificationData> = {
+    checkoutSuccess: {
+      variant: "success",
+      title: translate("upgradeSuccessful"),
+      description: translate("upgradeSuccessfulExplain"),
+      Icon: CheckIcon,
+      size: "md",
+    },
+  };
+
   useEffect(() => {
     const messageType = getMessageTypeFromUrl();
     if (!messageType) return;

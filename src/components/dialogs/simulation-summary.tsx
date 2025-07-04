@@ -6,7 +6,7 @@ import {
   LoadingDialog,
   SimpleDialogActions,
 } from "../dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import {
   CheckCircledIcon,
   CrossCircledIcon,
@@ -21,6 +21,7 @@ export const SimulationSummaryDialog = ({
   modal: SimulationSummaryState;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const showReport = useShowReport();
 
   const handleOpenReport = () => {

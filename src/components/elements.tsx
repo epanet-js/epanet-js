@@ -25,7 +25,7 @@ import {
 import { SUPPORT_EMAIL } from "src/lib/constants";
 import Placemark from "./icons/placemark";
 import { Portal } from "@radix-ui/react-portal";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 export function Hint({ children }: { children: React.ReactNode }) {
   return (
@@ -159,11 +159,13 @@ export function DefaultErrorBoundary({
 
 export function Loading({
   size = "sm",
-  text = translate("loading"),
+  text,
 }: {
   size?: B3Size;
   text?: string;
 }) {
+  const translate = useTranslate();
+  const loadingText = text || translate("loading");
   return (
     <div
       className={clsx(
@@ -175,7 +177,7 @@ export function Loading({
       )}
     >
       <SymbolIcon className="animate-spin" />
-      <span className="ml-2">{text}</span>
+      <span className="ml-2">{loadingText}</span>
     </div>
   );
 }

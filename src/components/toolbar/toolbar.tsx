@@ -1,4 +1,4 @@
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import MenuAction from "../menu-action";
 import {
   CopyIcon,
@@ -38,6 +38,7 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 export const Toolbar = () => {
+  const translate = useTranslate();
   const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const createNewProject = useNewProject();

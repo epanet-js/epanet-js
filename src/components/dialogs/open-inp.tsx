@@ -5,7 +5,7 @@ import { getExtent } from "src/lib/geometry";
 import { FeatureCollection } from "src/types";
 import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { OpenInpDialogState, dialogAtom } from "src/state/dialog";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 
@@ -26,6 +26,7 @@ export function OpenInpDialog({
   modal: OpenInpDialogState;
   onClose: () => void;
 }) {
+  const translate = useTranslate();
   const { file } = modal;
   const map = useContext(MapContext);
 

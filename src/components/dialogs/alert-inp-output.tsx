@@ -1,5 +1,5 @@
 import { DialogHeader } from "src/components/dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik } from "formik";
 import { SimpleDialogActions } from "src/components/dialog";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -11,6 +11,7 @@ export const AlertInpOutputDialog = ({
   onContinue: () => void;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   return (
     <Formik
       onSubmit={() => {

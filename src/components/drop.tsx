@@ -3,7 +3,7 @@ import { captureError } from "src/infra/error-tracking";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useImportInp } from "src/commands/import-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
@@ -29,6 +29,7 @@ const getFileExtension = (filename: string): string | null => {
 };
 
 const Drop = () => {
+  const translate = useTranslate();
   const [dragging, setDragging] = useState<boolean>(false);
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();

@@ -18,7 +18,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { helpCenterUrl, sourceCodeUrl } from "src/global-config";
 import {
   SignInButton,
@@ -77,6 +77,7 @@ export const BrandLogo = ({
 };
 
 export const MenuBarPlay = memo(function MenuBar() {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
   const { user } = useAuth();
   const setDialogState = useSetAtom(dialogAtom);
@@ -171,6 +172,7 @@ export const MenuBarPlay = memo(function MenuBar() {
 });
 
 export const FileMenu = () => {
+  const translate = useTranslate();
   const createNewProject = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
@@ -219,6 +221,7 @@ export const FileMenu = () => {
 };
 
 export function HelpDot() {
+  const translate = useTranslate();
   const showWelcome = useShowWelcome();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
@@ -273,6 +276,7 @@ export const Divider = () => {
 };
 
 export const SideMenu = () => {
+  const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const userTracking = useUserTracking();

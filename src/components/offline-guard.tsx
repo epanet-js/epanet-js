@@ -1,7 +1,7 @@
 import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
 import { pingUrl } from "src/global-config";
@@ -11,6 +11,7 @@ const onlineToastId = "online-toast";
 const intervalMs = 10 * 1000;
 
 export const useOfflineStatus = () => {
+  const translate = useTranslate();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const setOfflineAtom = useSetAtom(offlineAtom);
   const isOfflineRef = useRef<boolean>(false);
@@ -37,7 +38,7 @@ export const useOfflineStatus = () => {
       position: "bottom-right",
       size: "sm",
     });
-  }, [setOfflineAtom]);
+  }, [setOfflineAtom, translate]);
 
   const setOffline = useCallback(() => {
     if (isOfflineRef.current) return;
@@ -56,7 +57,7 @@ export const useOfflineStatus = () => {
       position: "bottom-right",
       size: "sm",
     });
-  }, [setOfflineAtom]);
+  }, [setOfflineAtom, translate]);
 
   const startConnectivityCheck = useCallback(() => {
     if (intervalRef.current) return;

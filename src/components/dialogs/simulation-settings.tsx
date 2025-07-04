@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import { GearIcon } from "@radix-ui/react-icons";
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik } from "formik";
 import { NumericField } from "../form/numeric-field";
 import { dataAtom } from "src/state/jotai";
@@ -15,6 +15,7 @@ import { FieldList, InlineField } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const SimulationSettingsDialog = () => {
+  const translate = useTranslate();
   const { closeDialog } = useDialogState();
 
   const { hydraulicModel } = useAtomValue(dataAtom);

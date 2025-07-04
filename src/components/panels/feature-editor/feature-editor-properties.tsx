@@ -4,9 +4,10 @@ import type { IWrappedFeature } from "src/types";
 import sortBy from "lodash/sortBy";
 
 import { onArrow } from "src/lib/arrow-navigation";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 export function PropertyTableHead() {
+  const translate = useTranslate();
   return (
     <thead>
       <tr className="bg-gray-100 dark:bg-gray-800 font-sans text-gray-500 dark:text-gray-100 text-xs text-left">

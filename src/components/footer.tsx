@@ -8,7 +8,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
@@ -16,6 +16,7 @@ import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { HydraulicModel } from "src/hydraulic-model";
 
 export const Footer = () => {
+  const translate = useTranslate();
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
   const isXlOrLarger = useBreakpoint("xl");
   const isLgOrLarger = useBreakpoint("lg");
@@ -84,6 +85,7 @@ const CollapsedPopover = ({
   headlossFormula: string;
   demandMultiplier: number;
 }) => {
+  const translate = useTranslate();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
   return (
@@ -130,6 +132,7 @@ const CollapsedPopover = ({
 const buildSimulationStatusStyles = (
   simulation: SimulationState,
   hydraulicModel: HydraulicModel,
+  translate: (key: string, ...variables: string[]) => string,
 ) => {
   switch (simulation.status) {
     case "idle":
@@ -190,12 +193,14 @@ const buildSimulationStatusStyles = (
 };
 
 export const SimulationStatusText = () => {
+  const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,
     hydraulicModel,
+    translate,
   );
 
   return (

@@ -5,7 +5,8 @@ import { PanelDetails } from "../panel-details";
 import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow-navigation";
 import { PropertyTableHead } from "./asset-editor";
-import { translate, translateUnit } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import * as P from "@radix-ui/react-popover";
 import { PropertyRowValue } from "./feature-editor/property-row/value";
 import { PropertyRow } from "./feature-editor/property-row";
@@ -51,6 +52,7 @@ export function FeatureEditorPropertiesMulti({
   selectedFeatures: IWrappedFeature[];
   quantitiesMetadata: Quantities;
 }) {
+  const translate = useTranslate();
   const propertyMap = computePropertyStats(
     selectedFeatures as Asset[],
     quantitiesMetadata,
@@ -86,6 +88,8 @@ const PropertyRowMulti = ({
   pair: [string, PropertyStats];
   quantitiesMetadata: Quantities;
 }) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const [property, stats] = pair;
 
   const unit = quantitiesMetadata.getUnit(property as keyof UnitsSpec);
@@ -108,7 +112,7 @@ const PropertyRowMulti = ({
       ) : (
         <PropertyRowValue
           readOnly={true}
-          pair={[label, formatValue(value)]}
+          pair={[label, formatValue(value, translate)]}
           onChangeValue={() => {}}
           onDeleteKey={() => {}}
           onCast={() => {}}
@@ -192,6 +196,7 @@ const QuantityStatsFields = ({
 }: {
   quantityStats: QuantityStats;
 }) => {
+  const translate = useTranslate();
   const [tabIndex, setTabIndex] = useState(-1);
   const handleFocus = () => {
     setTabIndex(0);
@@ -230,7 +235,10 @@ const QuantityStatsFields = ({
   );
 };
 
-const formatValue = (value: JsonValue | undefined): string => {
+const formatValue = (
+  value: JsonValue | undefined,
+  translate: (key: string) => string,
+): string => {
   if (value === undefined) return "";
   if (typeof value === "number") {
     return localizeDecimal(value);
@@ -253,6 +261,7 @@ const itemSize = 32;
 const testSize = { width: 400, height: 400 };
 
 function ValueList({ pair }: { pair: MultiPair }) {
+  const translate = useTranslate();
   const parentRef = useRef<HTMLDivElement | null>(null);
 
   const values = Array.from(pair[1].entries());
@@ -306,10 +315,10 @@ function ValueList({ pair }: { pair: MultiPair }) {
                 }}
               >
                 <div
-                  title={formatValue(value)}
+                  title={formatValue(value, translate)}
                   className="flex-auto font-mono text-xs truncate"
                 >
-                  {formatValue(value)}
+                  {formatValue(value, translate)}
                 </div>
                 <div className="text-xs font-mono" title={translate("assets")}>
                   ({localizeDecimal(times)})

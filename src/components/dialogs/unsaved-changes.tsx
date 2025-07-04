@@ -1,6 +1,6 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "../elements";
 import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
@@ -12,6 +12,7 @@ export const UnsavedChangesDialog = ({
   onContinue: () => void;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const saveInp = useSaveInp();
 
   const handleSaveAndContinue = async () => {

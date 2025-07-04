@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import {
@@ -33,7 +33,9 @@ type DemoModel = {
   url: string;
   thumbnailUrl: string;
 };
-const demoModels: DemoModel[] = [
+const getDemoModels = (
+  translate: ReturnType<typeof useTranslate>,
+): DemoModel[] => [
   {
     name: "Drumchapel",
     description: translate("demoUKStyleDescription"),
@@ -49,12 +51,14 @@ const demoModels: DemoModel[] = [
 ];
 
 export const WelcomeDialog = () => {
+  const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
   const userTracking = useUserTracking();
 
   const isMdOrLarger = useBreakpoint("md");
+  const demoModels = getDemoModels(translate);
 
   return (
     <DialogContainer size={!isMdOrLarger ? "fullscreen" : "md"}>
@@ -199,6 +203,7 @@ export const WelcomeDialog = () => {
 };
 
 const SmallDeviceWarning = () => {
+  const translate = useTranslate();
   return (
     <Message variant="warning" title={translate("headsUpSmallScreen")}>
       <p>{translate("smallScreenExplain")}</p>

@@ -1,7 +1,8 @@
 import { DialogHeader } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
 import React, { Fragment } from "react";
-import { localizeKeybinding, translate } from "src/infra/i18n";
+import { localizeKeybinding } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { KeyboardIcon } from "@radix-ui/react-icons";
 import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
 import { getIsMac } from "src/infra/i18n/mac";
@@ -9,7 +10,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
-const BINDINGS = {
+const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   B: translate("toggleSatellite"),
   "Shift+Enter": translate("simulate"),
   [showSimulationSettingsShortcut]: translate("simulationSettings"),
@@ -27,10 +28,12 @@ const BINDINGS = {
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),
   "Command+y": translate("redo"),
-};
+});
 
 export function CheatsheetDialog() {
+  const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const BINDINGS = getBindings(translate);
   return (
     <>
       <DialogHeader

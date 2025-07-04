@@ -5,7 +5,7 @@ import {
   LoadingDialog,
   useDialogState,
 } from "src/components/dialog";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import {
   CheckIcon,
   Cross1Icon,
@@ -85,6 +85,7 @@ export const UpgradeDialog = () => {
 };
 
 const ChangesFromSupportDialog = () => {
+  const translate = useTranslate();
   const { closeDialog } = useDialogState();
   return (
     <DialogContainer size="sm">
@@ -102,6 +103,7 @@ const ChangesFromSupportDialog = () => {
 };
 
 const PlansDialog = () => {
+  const translate = useTranslate();
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
   const [hasSeenHint, setSeenHint] = useState<boolean>(false);
@@ -112,7 +114,7 @@ const PlansDialog = () => {
       { label: translate("commercialUse"), value: "commercial" },
       { label: translate("nonCommercialUse"), value: "non-commercial" },
     ],
-    [],
+    [translate],
   );
 
   const handleUsageChange = (newUsage: UsageOption) => {
@@ -189,6 +191,7 @@ const PlansDialog = () => {
 };
 
 const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
   return (
     <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6">
@@ -243,6 +246,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
 };
 
 const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
   const price = prices.personal.yearly;
 
   return (
@@ -315,6 +319,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 };
 
 const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { isSignedIn, signOut } = useAuth();
   const userTracking = useUserTracking();
@@ -374,6 +379,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 };
 
 const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
   const price = prices.pro[paymentType];
 
   return (
@@ -446,6 +452,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 };
 
 const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
   const price = prices.teams[paymentType];
 
   return (
@@ -515,6 +522,7 @@ const PlanHeader = ({
   claim: string;
   tooltip?: string;
 }) => {
+  const translate = useTranslate();
   const recurrency =
     payment === "yearly"
       ? `/${translate("year")}`
@@ -564,6 +572,7 @@ const FeaturesList = ({
 };
 
 const NonCommercialHint = () => {
+  const translate = useTranslate();
   return (
     <div className="hidden sm:flex relative items-center ml-4 lg:ml-6 text-gray-400 font-handwritten text-xl whitespace-nowrap">
       <svg

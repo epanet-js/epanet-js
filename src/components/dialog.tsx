@@ -17,7 +17,7 @@ import {
   StyledDialogOverlay,
 } from "src/components/elements";
 import { SymbolIcon } from "@radix-ui/react-icons";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
@@ -152,6 +152,7 @@ export const AckDialogAction = ({
   onAck?: () => void;
   variant?: "md" | "xs";
 }) => {
+  const translate = useTranslate();
   return (
     <div
       className={clsx(
@@ -205,6 +206,7 @@ export function SimpleDialogActions({
   };
   variant?: "md" | "xs";
 }) {
+  const translate = useTranslate();
   const { isSubmitting } = useFormikContext();
   return (
     <div

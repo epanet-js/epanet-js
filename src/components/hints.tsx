@@ -11,7 +11,8 @@ import {
   simulationAtom,
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { localizeKeybinding, translate } from "src/infra/i18n";
+import { localizeKeybinding } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/symbology";
 
 export const tipLike = `
@@ -67,6 +68,7 @@ function Hint({
 }
 
 export function Hints() {
+  const translate = useTranslate();
   const mode = useAtomValue(modeAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const simulation = useAtomValue(simulationAtom);

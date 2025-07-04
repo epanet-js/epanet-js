@@ -12,7 +12,8 @@ import {
 } from "@radix-ui/react-icons";
 import { memo } from "react";
 import { Button } from "./elements";
-import { localizeKeybinding, translate } from "src/infra/i18n";
+import { localizeKeybinding } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -20,6 +21,7 @@ import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 
 export const NothingSelected = memo(function NothingSelected() {
+  const translate = useTranslate();
   const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const showShortcuts = useShowShortcuts();

@@ -8,13 +8,14 @@ import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
-import { translate } from "src/infra/i18n";
+import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
   source: ActionProps["as"],
 ): Action[] {
+  const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
 
