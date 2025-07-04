@@ -3,9 +3,8 @@ import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
-import { translate } from "src/infra/i18n";
 
-const warnOffline = () =>
+const warnOffline = (translate: (key: string) => string) =>
   notify({
     variant: "warning",
     Icon: LinkBreak1Icon,
@@ -18,6 +17,7 @@ const warnOffline = () =>
 export async function addMapboxStyle(
   base: mapboxgl.Style,
   layer: ILayerConfig,
+  translate: (key: string) => string,
 ): Promise<mapboxgl.Style> {
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
@@ -36,7 +36,7 @@ export async function addMapboxStyle(
       return res.json();
     })
     .catch(() => {
-      warnOffline();
+      warnOffline(translate);
       return {
         version: 8,
         name: "Empty",
@@ -84,6 +84,7 @@ export async function addTileJSONStyle(
   style: mapboxgl.Style,
   layer: ILayerConfig,
   id: number,
+  translate: (key: string) => string,
 ) {
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;

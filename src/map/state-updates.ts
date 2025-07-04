@@ -45,6 +45,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
+import { useTranslate } from "src/hooks/use-translate";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -168,6 +169,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
+  const translate = useTranslate();
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -193,7 +195,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(map, mapState.stylesConfig);
+          await updateLayerStyles(map, mapState.stylesConfig, translate);
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -280,7 +282,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         setMapLoading(false);
       }
     }, 0);
-  }, [mapState, assets, idMap, map, momentLog, quantities, setMapLoading]);
+  }, [
+    mapState,
+    assets,
+    idMap,
+    map,
+    momentLog,
+    quantities,
+    setMapLoading,
+    translate,
+  ]);
 
   doUpdates();
 };
@@ -294,8 +305,12 @@ const resetMapState = withDebugInstrumentation(
 );
 
 const updateLayerStyles = withDebugInstrumentation(
-  async (map: MapEngine, styles: StylesConfig) => {
-    const style = await loadAndAugmentStyle(styles);
+  async (
+    map: MapEngine,
+    styles: StylesConfig,
+    translate: (key: string) => string,
+  ) => {
+    const style = await loadAndAugmentStyle({ ...styles, translate });
     await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
