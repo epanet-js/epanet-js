@@ -1,10 +1,33 @@
-export const isFeatureOn = (name: string) => {
-  if (typeof window === "undefined") return false;
+import { PostHog } from "posthog-js";
 
-  const params = new URLSearchParams(window.location.search);
+let posthogInstance: PostHog | null = null;
 
-  const flag = params.get(name);
-  if (!flag) return false;
+export const setPostHogInstance = (instance: PostHog) => {
+  posthogInstance = instance;
+};
 
-  return flag === "true";
+export const checkFeatureFlag = (
+  name: string,
+  posthog: PostHog | null = posthogInstance,
+): boolean => {
+  if (posthog?.isFeatureEnabled) {
+    const posthogFlag = posthog.isFeatureEnabled(name);
+    if (posthogFlag !== undefined) {
+      return posthogFlag;
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const flag = params.get(name);
+    if (flag) {
+      return flag === "true";
+    }
+  }
+
+  return false;
+};
+
+export const isFeatureOn = (name: string): boolean => {
+  return checkFeatureFlag(name);
 };

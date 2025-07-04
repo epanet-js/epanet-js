@@ -1,11 +1,12 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
+import { setPostHogInstance } from "./feature-flags";
 
 type Metadata = {
   [key: string]: boolean | string | number | string[];
@@ -25,6 +26,23 @@ const options = {
 
 const isPosthogConfigured = !!apiKey;
 
+const PostHogLoadWrapper = ({ children }: { children: React.ReactNode }) => {
+  const posthog = usePostHog();
+  const [flagsLoaded, setFlagsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (posthog) {
+      setPostHogInstance(posthog);
+
+      posthog.onFeatureFlags(() => {
+        setFlagsLoaded(true);
+      });
+    }
+  }, [posthog]);
+
+  return <div key={flagsLoaded ? "loaded" : "loading"}>{children}</div>;
+};
+
 export const UserTrackingProvider = ({
   children,
 }: {
@@ -34,7 +52,7 @@ export const UserTrackingProvider = ({
 
   return (
     <PostHogProvider apiKey={apiKey} options={options}>
-      {children}
+      <PostHogLoadWrapper>{children}</PostHogLoadWrapper>
     </PostHogProvider>
   );
 };
