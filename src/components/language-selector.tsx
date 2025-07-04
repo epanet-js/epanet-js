@@ -16,9 +16,11 @@ const languageOptions = [
 export const LanguageSelector = ({
   align = "end",
   padding = true,
+  asChild = false,
 }: {
   align?: "start" | "center" | "end";
   padding?: boolean;
+  asChild?: boolean;
 }) => {
   const [locale, setLocale] = useAtom(localeAtom);
   const userTracking = useUserTracking();
@@ -40,10 +42,14 @@ export const LanguageSelector = ({
         }
       }}
     >
-      <DD.Trigger asChild>
-        <Button variant="quiet" className={padding ? "" : "!p-0"}>
-          {translate("language")}
-        </Button>
+      <DD.Trigger asChild={!asChild}>
+        {asChild ? (
+          <span className={padding ? "" : "!p-0"}>{translate("language")}</span>
+        ) : (
+          <Button variant="quiet" className={padding ? "" : "!p-0"}>
+            {translate("language")}
+          </Button>
+        )}
       </DD.Trigger>
       <DDContent side="bottom" align={align}>
         {languageOptions.map((option) => (

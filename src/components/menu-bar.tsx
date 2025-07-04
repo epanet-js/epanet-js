@@ -373,7 +373,7 @@ export const SideMenu = () => {
                   <li>
                     <Button variant="quiet">
                       <GlobeIcon className="mr-2" />
-                      <LanguageSelector align="start" padding={false} />
+                      <LanguageSelector align="start" padding={false} asChild />
                     </Button>
                   </li>
                 </ul>
