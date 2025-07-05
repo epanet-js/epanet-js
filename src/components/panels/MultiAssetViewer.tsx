@@ -61,7 +61,7 @@ export function FeatureEditorPropertiesMulti({
 
   return (
     <PanelDetails
-      title={`${translate("selection")} (${pluralize("asset", selectedFeatures.length)})`}
+      title={`${translate("selection")} (${pluralize(translate, "asset", selectedFeatures.length)})`}
       variant="fullwidth"
     >
       <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
@@ -126,6 +126,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   const [label, value] = pair;
   const [isOpen, setOpen] = useState(false);
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
     event,
@@ -175,7 +176,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
           flex overflow-hidden"
         >
           <CardStackIcon />
-          {pluralize("value", value.size)}
+          {pluralize(translate, "value", value.size)}
         </P.Trigger>
         <P.Portal>
           <StyledPopoverContent onKeyDown={handleContentKeyDown}>

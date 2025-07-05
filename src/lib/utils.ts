@@ -6,7 +6,6 @@ import { Promisable } from "type-fest";
 import { SafeParseReturnType, z } from "zod";
 import { Just, Maybe, Nothing } from "purify-ts/Maybe";
 import { ILayerConfig } from "src/types";
-import { translate } from "src/infra/i18n";
 import { zTileJSON } from "./tile-json";
 
 /**
@@ -155,6 +154,7 @@ const IRREGS: { [key: string]: string } = {
  * @param irregular Irregular form, if any
  */
 export function pluralize(
+  translateFn: (key: string) => string,
   word: string,
   count: number,
   inclusive = true,
@@ -164,7 +164,7 @@ export function pluralize(
   const pluralized = count === 1 ? word : irregular ? irregular : word + "s";
   return (
     (inclusive ? count.toLocaleString() + " " : "") +
-    translate(pluralized).toLowerCase()
+    translateFn(pluralized).toLowerCase()
   );
 }
 
