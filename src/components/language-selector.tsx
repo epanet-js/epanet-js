@@ -34,7 +34,7 @@ export const LanguageSelector = ({
       language: newLocale,
     });
     setLocale(newLocale);
-    window.location.reload();
+    //window.location.reload();
   };
 
   return (
