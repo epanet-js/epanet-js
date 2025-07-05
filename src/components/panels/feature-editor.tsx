@@ -3,7 +3,7 @@ import { AssetEditor } from "./asset-editor";
 import React from "react";
 import { NothingSelected } from "src/components/nothing-selected";
 import { dataAtom, selectedFeaturesAtom } from "src/state/jotai";
-import MultiAssetViewer from "./MultiAssetViewer";
+import MultiAssetViewer from "./multi-asset-viewer";
 
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesAtom);
