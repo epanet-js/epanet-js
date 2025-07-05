@@ -116,7 +116,7 @@ describe("build optimized source", () => {
         initIDMap(assets),
         symbology,
         defaultQuantities,
-        fakeTranslateUnit,
+        () => "m",
       );
 
       const [junction] = features;
