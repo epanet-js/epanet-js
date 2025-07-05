@@ -11,7 +11,6 @@ import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { translateUnit } from "src/infra/i18n";
 import {
   Quantities,
   QuantityProperty,
@@ -56,6 +55,7 @@ export const buildOptimizedAssetsSource = (
         feature,
         symbology.node,
         quantities,
+        translateUnit,
       );
     if (asset.type === "pump") {
       const pump = asset as Pump;
@@ -176,6 +176,7 @@ const appendJunctionSymbologyProps = (
   feature: Feature,
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
 ) => {
   if (!nodeSymbology.colorRule) return;
 
@@ -184,9 +185,10 @@ const appendJunctionSymbologyProps = (
   const numericValue = value !== null ? value : 0;
 
   if (!!nodeSymbology.labelRule) {
-    const unit = junction.getUnit(property as JunctionQuantity);
+    const labelProperty = nodeSymbology.labelRule;
+    const unit = junction.getUnit(labelProperty as JunctionQuantity);
     const localizedNumber = localizeDecimal(numericValue, {
-      decimals: quantities.getDecimals(property as QuantityProperty),
+      decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;
