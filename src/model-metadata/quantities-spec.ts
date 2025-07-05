@@ -5,7 +5,6 @@ import {
 } from "src/hydraulic-model/asset-types/pipe";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
-import { translate, translateUnit } from "src/infra/i18n";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
 import { ValveQuantity } from "src/hydraulic-model/asset-types/valve";
@@ -43,7 +42,7 @@ const defaultDecimals = 3;
 export type AssetQuantitiesSpec = {
   id: string;
   name: string;
-  description: string;
+  descriptionKey: string;
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
@@ -62,7 +61,7 @@ const allFlowUnits = (unit: Unit) => ({
 const metricSpec: AssetQuantitiesSpec = {
   id: "metric-spec",
   name: "",
-  description: "",
+  descriptionKey: "",
   units: {
     diameter: "mm",
     length: "m",
@@ -106,7 +105,7 @@ const metricSpec: AssetQuantitiesSpec = {
 const usCustomarySpec: AssetQuantitiesSpec = {
   id: "us-customary",
   name: "",
-  description: "",
+  descriptionKey: "",
   units: {
     diameter: "in",
     length: "ft",
@@ -153,7 +152,7 @@ const GPMSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
   id: "gpm",
   name: "GPM",
-  description: translate("usCustomaryFlowsExpressed", translateUnit("gal/min")),
+  descriptionKey: "gpmDescription",
   units: {
     ...usCustomarySpec.units,
     ...allFlowUnits("gal/min"),
@@ -163,7 +162,7 @@ const CFSSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
   id: "cfs",
   name: "CFS",
-  description: translate("usCustomaryFlowsExpressed", translateUnit("ft^3/s")),
+  descriptionKey: "cfsDescription",
   units: {
     ...usCustomarySpec.units,
     ...allFlowUnits("ft^3/s"),
@@ -173,7 +172,7 @@ const MGDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
   id: "mgd",
   name: "MGD",
-  description: translate("usCustomaryFlowsExpressed", translateUnit("Mgal/d")),
+  descriptionKey: "mgdDescription",
   units: {
     ...usCustomarySpec.units,
     ...allFlowUnits("Mgal/d"),
@@ -184,7 +183,7 @@ const IMGDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
   id: "imgd",
   name: "IMGD",
-  description: translate("usCustomaryFlowsExpressed", translateUnit("IMgal/d")),
+  descriptionKey: "imgdDescription",
   units: {
     ...usCustomarySpec.units,
     ...allFlowUnits("IMgal/d"),
@@ -195,7 +194,7 @@ const AFDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
   id: "afd",
   name: "AFD",
-  description: translate("usCustomaryFlowsExpressed", translateUnit("acft/d")),
+  descriptionKey: "afdDescription",
   units: {
     ...usCustomarySpec.units,
     ...allFlowUnits("acft/d"),
@@ -206,7 +205,7 @@ const LPSSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "lps",
   name: "LPS",
-  description: translate("siFlowsExpressed", translateUnit("l/s")),
+  descriptionKey: "lpsDescription",
   units: {
     ...metricSpec.units,
     ...allFlowUnits("l/s"),
@@ -216,7 +215,7 @@ const LPMSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "lpm",
   name: "LPM",
-  description: translate("siFlowsExpressed", translateUnit("l/min")),
+  descriptionKey: "lpmDescription",
   units: {
     ...metricSpec.units,
     ...allFlowUnits("l/min"),
@@ -226,7 +225,7 @@ const MLDSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "mld",
   name: "MLD",
-  description: translate("siFlowsExpressed", translateUnit("Ml/d")),
+  descriptionKey: "mldDescription",
   units: {
     ...metricSpec.units,
     ...allFlowUnits("Ml/d"),
@@ -236,7 +235,7 @@ const CMHSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "cmh",
   name: "CMH",
-  description: translate("siFlowsExpressed", translateUnit("m^3/h")),
+  descriptionKey: "cmhDescription",
   units: {
     ...metricSpec.units,
     ...allFlowUnits("m^3/h"),
@@ -246,7 +245,7 @@ const CMDSpec: AssetQuantitiesSpec = {
   ...metricSpec,
   id: "cmd",
   name: "CMD",
-  description: translate("siFlowsExpressed", translateUnit("m^3/d")),
+  descriptionKey: "cmdDescription",
   units: {
     ...metricSpec.units,
     ...allFlowUnits("m^3/d"),

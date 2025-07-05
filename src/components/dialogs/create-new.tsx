@@ -93,7 +93,7 @@ const UnitsSystemSelector = ({
 }) => {
   const translate = useTranslate();
   const options = Object.entries(presets).map(([presetId, spec]) => ({
-    label: `${spec.name}: ${spec.description}`,
+    label: `${spec.name}: ${translate(spec.descriptionKey)}`,
     value: presetId as keyof Presets,
   }));
 
