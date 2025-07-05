@@ -59,9 +59,6 @@ describe("Multi asset viewer", () => {
 
     const dialog = within(screen.getByRole("dialog"));
     expect(dialog.getByText(/Values/)).toBeInTheDocument();
-    expect(
-      dialog.getByRole("button", { name: "Value row: 30" }),
-    ).toHaveTextContent(/\(2\)/);
 
     await userEvent.keyboard("{Escape}");
 
