@@ -134,6 +134,7 @@
     "htmlparser2": "^9.1.0",
     "i18next": "^25.3.1",
     "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
     "jotai": "^2.8.1",
     "jotai-optics": "^0.3.2",
     "jotai-xstate": "^0.3.0",

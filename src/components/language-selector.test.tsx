@@ -9,6 +9,10 @@ import { Mock } from "vitest";
 import * as useFeatureFlags from "src/hooks/use-feature-flags";
 import { localeAtom } from "src/state/locale";
 
+import esTranslations from "../../public/locales/es/translation.json";
+import ptBRTranslations from "../../public/locales/pt-BR/translation.json";
+import i18n from "src/infra/i18n/i18next-config";
+
 const setLocaleFromAnotherTab = (locale: string, store: Store) => {
   localStorage.setItem("locale", JSON.stringify(locale));
   store.set(localeAtom, locale as any);
@@ -25,6 +29,8 @@ const renderComponent = ({ store }: { store: Store }) => {
 describe("Language Selector", () => {
   beforeEach(() => {
     localStorage.clear();
+    i18n.addResourceBundle("es", "translation", esTranslations);
+    i18n.addResourceBundle("pt-BR", "translation", ptBRTranslations);
   });
 
   describe("with deprecated translation system", () => {

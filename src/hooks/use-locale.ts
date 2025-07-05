@@ -14,6 +14,7 @@ export const useLocale = () => {
 
   useEffect(() => {
     if (isI18NextOn) {
+      setIsI18nReady(false);
       const syncLanguage = async () => {
         if (i18n.language !== locale) {
           await i18n.changeLanguage(locale);
