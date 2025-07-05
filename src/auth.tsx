@@ -69,12 +69,10 @@ export const useAuth = isAuthEnabled ? useAuthWithClerk : useAuthNull;
 
 export const SignedIn = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthEnabled) return null;
-  // @ts-expect-error need to fix @types/react https://github.com/reduxjs/react-redux/issues/1886
   return <ClerkSignedIn>{children}</ClerkSignedIn>;
 };
 export const SignedOut = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthEnabled) return children as JSX.Element;
-  // @ts-expect-error need to fix @types/react https://github.com/reduxjs/react-redux/issues/1886
   return <ClerkSignedOut>{children}</ClerkSignedOut>;
 };
 export const UserButton = isAuthEnabled
