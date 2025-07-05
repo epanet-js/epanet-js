@@ -1,13 +1,12 @@
-import { useAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { localeAtom } from "src/state/locale";
 import { Locale } from "src/infra/i18n/locale";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUserSettings } from "src/hooks/use-user-settings";
 import "src/infra/i18n/i18next-config";
 
 export const useLocale = () => {
-  const [locale, setLocaleAtom] = useAtom(localeAtom);
+  const { locale, setLocale: setUserLocale } = useUserSettings();
   const isI18NextOn = useFeatureFlag("FLAG_I18NEXT");
   const { i18n } = useTranslation();
   const [isI18nReady, setIsI18nReady] = useState(false);
@@ -29,12 +28,12 @@ export const useLocale = () => {
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {
-      setLocaleAtom(newLocale);
+      await setUserLocale(newLocale);
       if (isI18NextOn) {
         await i18n.changeLanguage(newLocale);
       }
     },
-    [setLocaleAtom, isI18NextOn, i18n],
+    [setUserLocale, isI18NextOn, i18n],
   );
 
   return {

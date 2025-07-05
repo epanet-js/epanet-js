@@ -1,4 +1,5 @@
 import { Plan } from "./user-plan";
+import { Locale } from "./infra/i18n/locale";
 
 export type User = {
   id: string | null;
@@ -6,6 +7,8 @@ export type User = {
   firstName?: string;
   lastName?: string;
   plan: Plan;
+  getLocale?: () => Locale | undefined;
+  setLocale?: (locale: Locale) => Promise<void>;
 };
 
 export const nullUser: User = {
@@ -14,6 +17,8 @@ export const nullUser: User = {
   firstName: undefined,
   lastName: undefined,
   plan: "free",
+  getLocale: undefined,
+  setLocale: undefined,
 };
 
 export type UseAuthHook = () => {

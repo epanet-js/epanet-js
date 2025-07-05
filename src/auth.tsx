@@ -12,7 +12,7 @@ import {
 } from "@clerk/nextjs";
 import { captureWarning } from "./infra/error-tracking";
 import { enUS, esES } from "@clerk/localizations";
-import { getLocale } from "./infra/i18n/locale";
+import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
 export { ClerkSignInButton, ClerkSignUpButton };
 import { Plan } from "./user-plan";
@@ -49,6 +49,20 @@ const useAuthWithClerk: UseAuthHook = () => {
         firstName: clerkUser.firstName || undefined,
         lastName: clerkUser.lastName || undefined,
         plan: (clerkUser.publicMetadata?.userPlan || "free") as Plan,
+        getLocale: () => {
+          const savedLocale = clerkUser.unsafeMetadata?.locale as Locale;
+          return savedLocale && allSupportedLanguages.includes(savedLocale)
+            ? savedLocale
+            : undefined;
+        },
+        setLocale: async (locale: Locale) => {
+          await clerkUser.update({
+            unsafeMetadata: {
+              ...clerkUser.unsafeMetadata,
+              locale,
+            },
+          });
+        },
       }
     : nullUser;
 
