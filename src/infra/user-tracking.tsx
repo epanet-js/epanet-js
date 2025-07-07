@@ -23,7 +23,7 @@ const options = {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST as string,
 };
 
-const isPosthogConfigured = !!apiKey;
+export const isPosthogConfigured = !!apiKey;
 
 export const UserTrackingProvider = ({
   children,

@@ -1,8 +1,9 @@
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
+import { isPosthogConfigured } from "src/infra/user-tracking";
 
-export const FeatureFlagsProvider = ({
+const FeatureFlagsPostHogProvider = ({
   children,
 }: {
   children: React.ReactNode;
@@ -16,16 +17,30 @@ export const FeatureFlagsProvider = ({
         setFlagsContext(flagsEnabled);
         setFlagsVersion((prev) => prev + 1);
       });
-    } else {
-      const flagsEnabled = getEnabledFlagsFromUrl();
-      setFlagsContext(flagsEnabled);
     }
   }, [posthog]);
 
   return <div key={`flags-${flagsVersion}`}>{children}</div>;
 };
 
-export const useFeatureFlag = (name: string): boolean => {
+const FeatureFlagsUrlProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  useEffect(() => {
+    const flagsEnabled = getEnabledFlagsFromUrl();
+    setFlagsContext(flagsEnabled);
+  }, []);
+
+  return children as JSX.Element;
+};
+
+export const FeatureFlagsProvider = isPosthogConfigured
+  ? FeatureFlagsPostHogProvider
+  : FeatureFlagsUrlProvider;
+
+const useFeatureFlagWithPostHog = (name: string): boolean => {
   const posthog = usePostHog();
 
   if (posthog?.isFeatureEnabled) {
@@ -35,9 +50,17 @@ export const useFeatureFlag = (name: string): boolean => {
     }
   }
 
+  return false;
+};
+
+const useFeatureFlagWithUrl = (name: string): boolean => {
   const flagsFromUrl = getEnabledFlagsFromUrl();
   return flagsFromUrl.includes(name);
 };
+
+export const useFeatureFlag = isPosthogConfigured
+  ? useFeatureFlagWithPostHog
+  : useFeatureFlagWithUrl;
 
 const getEnabledFlagsFromUrl = (): string[] => {
   if (typeof window === "undefined" || typeof window.location === "undefined") {
