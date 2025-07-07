@@ -35,13 +35,14 @@ export const setUserContext = (user: UserData | null) => {
 export const setFlagsContext = (flagsEnabled: string[]) => {
   const flagsObject = flagsEnabled.reduce(
     (acc, name: string) => {
-      acc[name] = true;
+      acc["flags." + name] = true;
       return acc;
     },
     {} as Record<string, boolean>,
   );
 
   Sentry.setContext("Flags", flagsObject);
+  Sentry.setTags(flagsObject);
 };
 
 export const ErrorBoundary = Sentry.ErrorBoundary;
