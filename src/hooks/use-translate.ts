@@ -41,7 +41,8 @@ export const useTranslate = () => {
 
   const translateDeprecated = useCallback(
     (key: string, ...variables: string[]): string => {
-      const translations = locales[locale].translations;
+      const localeData = locales[locale] || locales.en;
+      const translations = localeData.translations;
       const template = translations[key as keyof Translations];
       if (!template) {
         captureError(new Error(`Missing translation for ${key}`));
