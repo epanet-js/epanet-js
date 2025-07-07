@@ -1,17 +1,20 @@
 import * as en from "./locales-deprecated/en";
 import * as es from "./locales-deprecated/es";
 import * as ptBR from "./locales-deprecated/pt-BR";
+import * as fr from "./locales-deprecated/fr";
 
 export const locales = {
   en: en,
   es: es,
   "pt-BR": ptBR,
+  fr: fr,
 };
 
 export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
   "pt-BR": { decimals: ",", groups: "." },
+  fr: { decimals: ",", groups: " " },
 };
 
 export type Locale = keyof typeof locales;
@@ -24,6 +27,7 @@ export const languageConfig: Array<{
   { code: "en", name: "English" },
   { code: "es", name: "Español" },
   { code: "pt-BR", name: "Português (BR)", experimental: true },
+  { code: "fr", name: "Français", experimental: true },
 ];
 
 export const stableLanguages: Locale[] = languageConfig

@@ -22,18 +22,26 @@ export const LanguageSelector = ({
   const { locale, setLocale } = useLocale();
   const userTracking = useUserTracking();
   const isFlagBREnabled = useFeatureFlag("FLAG_BR");
+  const isFlagFREnabled = useFeatureFlag("FLAG_FR");
 
-  const availableLanguages = isFlagBREnabled
-    ? languageConfig
-    : languageConfig.filter((lang) => lang.code !== "pt-BR");
+  let availableLanguages = languageConfig;
+  if (!isFlagBREnabled) {
+    availableLanguages = availableLanguages.filter(
+      (lang) => lang.code !== "pt-BR",
+    );
+  }
+  if (!isFlagFREnabled) {
+    availableLanguages = availableLanguages.filter(
+      (lang) => lang.code !== "fr",
+    );
+  }
 
   const handleLanguageChange = (newLocale: Locale) => {
     userTracking.capture({
       name: "language.changed",
       language: newLocale,
     });
-    setLocale(newLocale);
-    //window.location.reload();
+    void setLocale(newLocale);
   };
 
   return (
