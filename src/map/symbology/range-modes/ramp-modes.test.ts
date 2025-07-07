@@ -107,6 +107,53 @@ describe("pretty breaks", () => {
     expect(checkPrettyBreaksData([0, 0])).toEqual(false);
     expect(checkPrettyBreaksData([0, 1])).toEqual(true);
   });
+
+  it("handles data with very small range gracefully", () => {
+    const sortedData = [1.0000000001, 1.0000000002, 1.0000000003];
+    const breaks = calculatePrettyBreaks(sortedData, 3);
+    expect(breaks).toHaveLength(3);
+    expect(breaks[0]).toBeLessThan(breaks[1]);
+    expect(breaks[1]).toBeLessThan(breaks[2]);
+  });
+
+  it("handles identical values gracefully", () => {
+    const sortedData = [5, 5, 5, 5];
+    const breaks = calculatePrettyBreaks(sortedData, 3);
+    expect(breaks).toHaveLength(3);
+    expect(breaks).toEqual([4, 5, 6]);
+  });
+
+  it("handles identical values with different number of breaks", () => {
+    const sortedData = [10, 10, 10];
+
+    expect(calculatePrettyBreaks(sortedData, 2)).toEqual([0, 10]);
+    expect(calculatePrettyBreaks(sortedData, 4)).toEqual([0, 10, 20, 30]);
+    expect(calculatePrettyBreaks(sortedData, 5)).toEqual([0, 10, 20, 30, 40]);
+  });
+
+  it("handles small values with different number of breaks", () => {
+    const sortedData = [0.5, 0.5, 0.5];
+
+    const breaks2 = calculatePrettyBreaks(sortedData, 2);
+    const breaks3 = calculatePrettyBreaks(sortedData, 3);
+    const breaks4 = calculatePrettyBreaks(sortedData, 4);
+
+    expect(breaks2).toHaveLength(2);
+    expect(breaks3).toHaveLength(3);
+    expect(breaks4).toHaveLength(4);
+
+    expect(breaks2[0]).toBeLessThan(breaks2[1]);
+    expect(breaks3[0]).toBeLessThan(breaks3[1]);
+    expect(breaks3[1]).toBeLessThan(breaks3[2]);
+  });
+
+  it("handles zero values with different number of breaks", () => {
+    const sortedData = [0, 0, 0];
+
+    expect(calculatePrettyBreaks(sortedData, 1)).toEqual([-1]);
+    expect(calculatePrettyBreaks(sortedData, 2)).toEqual([-1, 0]);
+    expect(calculatePrettyBreaks(sortedData, 3)).toEqual([-1, 0, 1]);
+  });
 });
 
 describe("ckmeans", () => {

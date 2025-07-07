@@ -16,7 +16,7 @@ export function calculatePrettyBreaks(
   const dataRange = maxValue - minValue;
 
   if (dataRange < EPSILON) {
-    throw new Error("Data range is too small");
+    return generatePrettyBreaksForTinyRange(minValue, numBreaksTarget);
   }
 
   const focusedCandidateSteps = generateFocusedPrettySteps(
@@ -131,6 +131,28 @@ interface BestSequenceForStep {
   breaks: number[];
   centeringScore: number;
   firstBreakValue: number;
+}
+
+function generatePrettyBreaksForTinyRange(
+  centerValue: number,
+  numBreaksTarget: number,
+): number[] {
+  const prettyStep = findPrettyStepForValue(centerValue);
+  const breaks: number[] = [];
+
+  for (let i = 0; i < numBreaksTarget; i++) {
+    breaks.push(centerValue - prettyStep + i * prettyStep);
+  }
+
+  return breaks;
+}
+
+function findPrettyStepForValue(value: number): number {
+  const magnitude = Math.abs(value);
+  if (magnitude === 0) return 1;
+
+  const exponent = Math.floor(Math.log10(magnitude));
+  return Math.pow(10, exponent);
 }
 
 function generateFocusedPrettySteps(
