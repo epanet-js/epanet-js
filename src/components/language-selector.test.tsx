@@ -55,7 +55,9 @@ describe("Language Selector", () => {
 
       await userEvent.click(screen.getByRole("button", { name: "Language" }));
 
-      await userEvent.click(screen.getByRole("menuitem", { name: "Español" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Español (ES)" }),
+      );
 
       await waitFor(() => {
         expect(
@@ -64,7 +66,9 @@ describe("Language Selector", () => {
       });
 
       await userEvent.click(screen.getByRole("button", { name: "Idioma" }));
-      const spanishOption = screen.getByRole("menuitem", { name: "Español" });
+      const spanishOption = screen.getByRole("menuitem", {
+        name: "Español (ES)",
+      });
       expect(spanishOption.querySelector("svg")).toBeInTheDocument();
     });
 
@@ -112,7 +116,9 @@ describe("Language Selector", () => {
       });
 
       await userEvent.click(screen.getByRole("button", { name: "Idioma" }));
-      const spanishOption = screen.getByRole("menuitem", { name: "Español" });
+      const spanishOption = screen.getByRole("menuitem", {
+        name: "Español (ES)",
+      });
       expect(spanishOption.querySelector("svg")).toBeInTheDocument();
     });
   });
@@ -150,7 +156,9 @@ describe("Language Selector", () => {
 
       await userEvent.click(screen.getByRole("button", { name: "Language" }));
 
-      await userEvent.click(screen.getByRole("menuitem", { name: "Español" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Español (ES)" }),
+      );
 
       await waitFor(
         () => {
@@ -162,7 +170,9 @@ describe("Language Selector", () => {
       );
 
       await userEvent.click(screen.getByRole("button", { name: "Idioma" }));
-      const spanishOption = screen.getByRole("menuitem", { name: "Español" });
+      const spanishOption = screen.getByRole("menuitem", {
+        name: "Español (ES)",
+      });
       expect(spanishOption.querySelector("svg")).toBeInTheDocument();
     });
 
@@ -222,7 +232,9 @@ describe("Language Selector", () => {
       );
 
       await userEvent.click(screen.getByRole("button", { name: "Idioma" }));
-      const spanishOption = screen.getByRole("menuitem", { name: "Español" });
+      const spanishOption = screen.getByRole("menuitem", {
+        name: "Español (ES)",
+      });
       expect(spanishOption.querySelector("svg")).toBeInTheDocument();
     });
 
@@ -237,7 +249,9 @@ describe("Language Selector", () => {
       });
 
       await userEvent.click(screen.getByRole("button", { name: "Language" }));
-      await userEvent.click(screen.getByRole("menuitem", { name: "Español" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Español (ES)" }),
+      );
 
       await waitFor(
         () => {
@@ -263,7 +277,9 @@ describe("Language Selector", () => {
       );
 
       await userEvent.click(screen.getByRole("button", { name: "Idioma" }));
-      await userEvent.click(screen.getByRole("menuitem", { name: "English" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "English (US)" }),
+      );
 
       await waitFor(
         () => {
@@ -275,7 +291,9 @@ describe("Language Selector", () => {
       );
 
       await userEvent.click(screen.getByRole("button", { name: "Language" }));
-      const englishOption = screen.getByRole("menuitem", { name: "English" });
+      const englishOption = screen.getByRole("menuitem", {
+        name: "English (US)",
+      });
       expect(englishOption.querySelector("svg")).toBeInTheDocument();
     });
   });

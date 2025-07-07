@@ -24,10 +24,10 @@ export const languageConfig: Array<{
   name: string;
   experimental?: boolean;
 }> = [
-  { code: "en", name: "English" },
-  { code: "es", name: "Español" },
+  { code: "en", name: "English (US)" },
+  { code: "es", name: "Español (ES)" },
   { code: "pt-BR", name: "Português (BR)", experimental: true },
-  { code: "fr", name: "Français", experimental: true },
+  { code: "fr", name: "Français (FR)", experimental: true },
 ];
 
 export const stableLanguages: Locale[] = languageConfig
