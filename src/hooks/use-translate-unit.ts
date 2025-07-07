@@ -8,7 +8,6 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCallback } from "react";
 import { useLocale } from "src/hooks/use-locale";
 
-// Units are standardized and the same across all languages
 const UNITS_MAP: Record<Exclude<Unit, null>, string> = {
   m: "m",
   mm: "mm",
