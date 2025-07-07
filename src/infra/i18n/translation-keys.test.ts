@@ -1,6 +1,6 @@
 import enTranslations from "./locales/en.json";
 import esTranslations from "../../../public/locales/es/translation.json";
-import ptBRTranslations from "../../../public/locales/pt-BR/translation.json";
+import ptTranslations from "../../../public/locales/pt/translation.json";
 
 const getAllKeys = (obj: Record<string, any>, prefix = ""): string[] => {
   const keys: string[] = [];
@@ -21,7 +21,7 @@ const getAllKeys = (obj: Record<string, any>, prefix = ""): string[] => {
 describe("Translation Keys Consistency", () => {
   const englishKeys = getAllKeys(enTranslations);
   const spanishKeys = getAllKeys(esTranslations);
-  const portugueseKeys = getAllKeys(ptBRTranslations);
+  const portugueseKeys = getAllKeys(ptTranslations);
 
   it("Spanish translations should have all English keys", () => {
     const missingKeys = englishKeys.filter((key) => !spanishKeys.includes(key));

@@ -1,19 +1,19 @@
 import * as en from "./locales-deprecated/en";
 import * as es from "./locales-deprecated/es";
-import * as ptBR from "./locales-deprecated/pt-BR";
+import * as pt from "./locales-deprecated/pt";
 import * as fr from "./locales-deprecated/fr";
 
 export const locales = {
   en: en,
   es: es,
-  "pt-BR": ptBR,
+  pt: pt,
   fr: fr,
 };
 
 export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
-  "pt-BR": { decimals: ",", groups: "." },
+  pt: { decimals: ",", groups: "." },
   fr: { decimals: ",", groups: " " },
 };
 
@@ -26,7 +26,7 @@ export const languageConfig: Array<{
 }> = [
   { code: "en", name: "English (US)" },
   { code: "es", name: "Español (ES)" },
-  { code: "pt-BR", name: "Português (BR)", experimental: true },
+  { code: "pt", name: "Português (BR)", experimental: true },
   { code: "fr", name: "Français (FR)", experimental: true },
 ];
 

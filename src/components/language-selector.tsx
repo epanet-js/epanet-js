@@ -27,7 +27,7 @@ export const LanguageSelector = ({
   let availableLanguages = languageConfig;
   if (!isFlagBREnabled) {
     availableLanguages = availableLanguages.filter(
-      (lang) => lang.code !== "pt-BR",
+      (lang) => lang.code !== "pt",
     );
   }
   if (!isFlagFREnabled) {
