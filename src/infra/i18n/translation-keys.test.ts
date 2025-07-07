@@ -1,4 +1,4 @@
-import enTranslations from "./locales/en.json";
+import enTranslations from "../../../public/locales/en/translation.json";
 import esTranslations from "../../../public/locales/es/translation.json";
 import ptTranslations from "../../../public/locales/pt/translation.json";
 
