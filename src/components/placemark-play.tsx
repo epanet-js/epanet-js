@@ -218,15 +218,15 @@ function DraggableMap({
 }
 
 function useMapResize(element: HTMLElement | null, layout: ResolvedLayout) {
-  const pmap = useContext(MapContext);
+  const mapEngine = useContext(MapContext);
 
   useLayoutEffect(() => {
     if (element) {
       element.style.width = "";
       element.style.height = "";
     }
-    pmap?.map?.resize();
-  }, [element, pmap, layout]);
+    mapEngine?.safeResize();
+  }, [element, mapEngine, layout]);
 
   useLayoutEffect(() => {
     if (element) {
@@ -239,7 +239,7 @@ function useMapResize(element: HTMLElement | null, layout: ResolvedLayout) {
           return;
         }
 
-        pmap?.map?.resize();
+        mapEngine?.safeResize();
       }, 50);
 
       const resizeObserver = new ResizeObserver(callback);
@@ -248,5 +248,5 @@ function useMapResize(element: HTMLElement | null, layout: ResolvedLayout) {
     } else {
       // Nothing
     }
-  }, [element, pmap, layout]);
+  }, [element, mapEngine, layout]);
 }

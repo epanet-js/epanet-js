@@ -296,4 +296,10 @@ export class MapEngine {
       key,
     );
   }
+
+  safeResize() {
+    if (this.map && this.map.getCanvas()) {
+      this.map.resize();
+    }
+  }
 }
