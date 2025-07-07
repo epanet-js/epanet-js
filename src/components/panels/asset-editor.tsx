@@ -851,7 +851,7 @@ const QuantityRow = ({
     <PropertyRow label={label}>
       <div className="relative group-1">
         <NumericField
-          key={lastChange.current + (value === null ? "NULL" : displayValue)}
+          key={lastChange.current + displayValue}
           label={label}
           positiveOnly={positiveOnly}
           isNullable={isNullable}
