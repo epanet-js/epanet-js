@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import Backend from "i18next-http-backend";
 
-import enTranslations from "./i18next-locales/en.json";
+import enTranslations from "./locales/en.json";
 
 void i18n
   .use(Backend)

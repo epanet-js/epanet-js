@@ -1,6 +1,6 @@
-import * as en from "./locales/en";
-import * as es from "./locales/es";
-import * as ptBR from "./locales/pt-BR";
+import * as en from "./locales-deprecated/en";
+import * as es from "./locales-deprecated/es";
+import * as ptBR from "./locales-deprecated/pt-BR";
 
 export const locales = {
   en: en,

@@ -1,4 +1,4 @@
-import enTranslations from "./i18next-locales/en.json";
+import enTranslations from "./locales/en.json";
 import esTranslations from "../../../public/locales/es/translation.json";
 import ptBRTranslations from "../../../public/locales/pt-BR/translation.json";
 

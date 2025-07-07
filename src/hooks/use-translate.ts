@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { localeAtom } from "src/state/locale";
-import { Translations } from "src/infra/i18n/locales/locale";
+import { Translations } from "src/infra/i18n/locales-deprecated/locale";
 import { locales } from "src/infra/i18n/locale";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
