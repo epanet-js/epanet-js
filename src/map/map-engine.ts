@@ -122,7 +122,8 @@ export class MapEngine {
         resolve();
       });
 
-      this.map.setStyle(style);
+      const forceStyleLoadEvent = { diff: false };
+      this.map.setStyle(style, forceStyleLoadEvent);
     });
   }
 
