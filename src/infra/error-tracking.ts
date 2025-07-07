@@ -33,16 +33,25 @@ export const setUserContext = (user: UserData | null) => {
 };
 
 export const setFlagsContext = (flagsEnabled: string[]) => {
-  const flagsObject = flagsEnabled.reduce(
-    (acc, name: string) => {
-      acc["flags." + name] = true;
-      return acc;
-    },
-    {} as Record<string, boolean>,
+  Sentry.setContext(
+    "Feature Flags",
+    flagsEnabled.reduce(
+      (acc, name: string) => {
+        acc[name] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    ),
   );
-
-  Sentry.setContext("Flags", flagsObject);
-  Sentry.setTags(flagsObject);
+  Sentry.setTags(
+    flagsEnabled.reduce(
+      (acc, name: string) => {
+        acc["flags." + name] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    ),
+  );
 };
 
 export const ErrorBoundary = Sentry.ErrorBoundary;
