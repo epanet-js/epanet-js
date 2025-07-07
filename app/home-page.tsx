@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 
 import { ErrorBoundary } from "@sentry/nextjs";
 import { FallbackError } from "src/components/fallback-error";
+import { FeatureFlagsProvider } from "src/hooks/use-feature-flags";
 
 const queryClient = new QueryClient();
 export default function HomePage({}) {
@@ -50,13 +51,15 @@ function ScratchpadInner({ store }: { store: Store }) {
   return (
     <AuthProvider>
       <UserTrackingProvider>
-        <PersistenceContext.Provider
-          value={new MemPersistence(idMap.current, store)}
-        >
-          <Suspense fallback={null}>
-            <PlacemarkPlay />
-          </Suspense>
-        </PersistenceContext.Provider>
+        <FeatureFlagsProvider>
+          <PersistenceContext.Provider
+            value={new MemPersistence(idMap.current, store)}
+          >
+            <Suspense fallback={null}>
+              <PlacemarkPlay />
+            </Suspense>
+          </PersistenceContext.Provider>
+        </FeatureFlagsProvider>
       </UserTrackingProvider>
     </AuthProvider>
   );

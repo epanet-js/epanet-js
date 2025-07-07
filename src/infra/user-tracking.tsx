@@ -1,5 +1,5 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO, SimulationState } from "src/state/jotai";
@@ -25,21 +25,6 @@ const options = {
 
 const isPosthogConfigured = !!apiKey;
 
-const PostHogLoadWrapper = ({ children }: { children: React.ReactNode }) => {
-  const posthog = usePostHog();
-  const [flagsVersion, setFlagsVersion] = useState(0);
-
-  useEffect(() => {
-    if (posthog) {
-      posthog.onFeatureFlags(() => {
-        setFlagsVersion((prev) => prev + 1);
-      });
-    }
-  }, [posthog]);
-
-  return <div key={`flags-${flagsVersion}`}>{children}</div>;
-};
-
 export const UserTrackingProvider = ({
   children,
 }: {
@@ -49,7 +34,7 @@ export const UserTrackingProvider = ({
 
   return (
     <PostHogProvider apiKey={apiKey} options={options}>
-      <PostHogLoadWrapper>{children}</PostHogLoadWrapper>
+      {children}
     </PostHogProvider>
   );
 };
