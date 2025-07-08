@@ -30,9 +30,18 @@ export type JunctionSimulation = {
   demand: number;
 };
 
+export type TankSimulation = {
+  type: "tank";
+  pressure: number;
+  head: number;
+  level: number;
+  volume: number;
+};
+
 export interface ResultsReader {
   getValve: (valveId: string) => ValveSimulation | null;
   getPump: (pumpId: string) => PumpSimulation | null;
   getJunction: (junctionId: string) => JunctionSimulation | null;
   getPipe: (pipeId: string) => PipeSimulation | null;
+  getTank: (tankId: string) => TankSimulation | null;
 }

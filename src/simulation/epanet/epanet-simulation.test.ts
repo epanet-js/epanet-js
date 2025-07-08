@@ -4,7 +4,11 @@ import { buildInp } from "../build-inp";
 import { runSimulation } from "./main";
 import { runSimulation as workerRunSimulation } from "./worker";
 import { Mock } from "vitest";
-import { JunctionSimulation, ValveSimulation } from "../results-reader";
+import {
+  JunctionSimulation,
+  ValveSimulation,
+  TankSimulation,
+} from "../results-reader";
 import { pumpStatusFor, valveStatusFor } from "./extract-simulation-results";
 
 vi.mock("src/lib/worker", () => ({
@@ -124,6 +128,33 @@ describe("epanet simulation", () => {
       expect(valve.velocity).toBeCloseTo(0.014);
       expect(valve.headloss).toBeCloseTo(0);
       expect(valve.status).toEqual("active");
+    });
+
+    it("can read tank values", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1", { head: 120 })
+        .aTank("t1", {
+          elevation: 100,
+          initialLevel: 15,
+          minLevel: 5,
+          maxLevel: 25,
+          diameter: 120,
+          minVolume: 14,
+        })
+        .aJunction("j1", { baseDemand: 1 })
+        .aPipe("p1", { startNodeId: "r1", endNodeId: "t1" })
+        .aPipe("p2", { startNodeId: "t1", endNodeId: "j1" })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp);
+
+      expect(status).toEqual("success");
+      const tank = results.getTank("t1") as TankSimulation;
+      expect(tank.pressure).toBeGreaterThan(0);
+      expect(tank.head).toBeGreaterThan(100);
+      expect(tank.level).toBeGreaterThan(0);
+      expect(tank.volume).toBeGreaterThan(0);
     });
 
     it("can read closed status", async () => {

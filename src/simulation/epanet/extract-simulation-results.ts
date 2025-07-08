@@ -20,8 +20,16 @@ const appendNodeResults = (results: SimulationResults, model: Project) => {
   const nodesCount = model.getCount(CountType.NodeCount);
   for (let i = 1; i <= nodesCount; i++) {
     const type = model.getNodeType(i);
-    if (type === NodeType.Junction) {
-      appendJunctionResults(results, model, i);
+    switch (type) {
+      case NodeType.Junction:
+        appendJunctionResults(results, model, i);
+        break;
+      case NodeType.Tank:
+        appendTankResults(results, model, i);
+        break;
+      case NodeType.Reservoir:
+        // Reservoirs don't have dynamic simulation results, they maintain constant head
+        break;
     }
   }
 };
@@ -61,6 +69,19 @@ const appendJunctionResults = (
   const head = model.getNodeValue(index, NodeProperty.Head);
   const demand = model.getNodeValue(index, NodeProperty.Demand);
   results.set(id, { type: "junction", pressure, head, demand });
+};
+
+const appendTankResults = (
+  results: SimulationResults,
+  model: Project,
+  index: number,
+) => {
+  const id = model.getNodeId(index);
+  const pressure = model.getNodeValue(index, NodeProperty.Pressure);
+  const head = model.getNodeValue(index, NodeProperty.Head);
+  const level = model.getNodeValue(index, NodeProperty.TankLevel);
+  const volume = model.getNodeValue(index, NodeProperty.TankVolume);
+  results.set(id, { type: "tank", pressure, head, level, volume });
 };
 
 const appendPipeResults = (

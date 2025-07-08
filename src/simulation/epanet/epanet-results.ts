@@ -3,12 +3,17 @@ import {
   PipeSimulation,
   PumpSimulation,
   ResultsReader,
+  TankSimulation,
   ValveSimulation,
 } from "../results-reader";
 
 export type SimulationResults = Map<
   string,
-  PipeSimulation | ValveSimulation | PumpSimulation | JunctionSimulation
+  | PipeSimulation
+  | ValveSimulation
+  | PumpSimulation
+  | JunctionSimulation
+  | TankSimulation
 >;
 
 export class EpanetResultsReader implements ResultsReader {
@@ -40,5 +45,11 @@ export class EpanetResultsReader implements ResultsReader {
     if (!this.results.has(pipeId)) return null;
 
     return this.results.get(pipeId) as PipeSimulation;
+  }
+
+  getTank(tankId: string): TankSimulation | null {
+    if (!this.results.has(tankId)) return null;
+
+    return this.results.get(tankId) as TankSimulation;
   }
 }
