@@ -4,6 +4,7 @@ import { Pipe, PipeQuantity, PipeStatus } from "./asset-types/pipe";
 import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
 import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
+import { Tank, TankQuantity } from "./asset-types/tank";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -59,6 +60,18 @@ export type ReservoirBuildData = {
   elevation?: number;
 };
 
+export type TankBuildData = {
+  id?: AssetId;
+  label?: string;
+  coordinates?: Position;
+  elevation?: number;
+  initialLevel?: number;
+  minLevel?: number;
+  maxLevel?: number;
+  minVolume?: number;
+  diameter?: number;
+};
+
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "./id-generator";
 import { LabelGenerator } from "./label-manager";
@@ -78,6 +91,7 @@ export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
   junction: Partial<Record<JunctionQuantity, number>>;
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
+  tank: Partial<Record<TankQuantity, number>>;
   pump: Partial<Record<PumpQuantity, number>>;
   valve: Partial<Record<ValveQuantity, number>>;
 };
@@ -265,6 +279,37 @@ export class AssetBuilder {
     );
   }
 
+  buildTank({
+    id = this.idGenerator.newId(),
+    label,
+    coordinates = [0, 0],
+    elevation,
+    initialLevel,
+    minLevel,
+    maxLevel,
+    minVolume,
+    diameter,
+  }: TankBuildData = {}) {
+    return new Tank(
+      id,
+      coordinates,
+      {
+        type: "tank",
+        label:
+          label !== undefined
+            ? label
+            : this.labelGenerator.generateFor("tank", id),
+        elevation: this.getTankValue("elevation", elevation),
+        initialLevel: this.getTankValue("initialLevel", initialLevel),
+        minLevel: this.getTankValue("minLevel", minLevel),
+        maxLevel: this.getTankValue("maxLevel", maxLevel),
+        minVolume: this.getTankValue("minVolume", minVolume),
+        diameter: this.getTankValue("diameter", diameter),
+      },
+      this.units,
+    );
+  }
+
   private getPipeValue(name: PipeQuantity, candidate?: number) {
     if (candidate !== undefined) return candidate;
 
@@ -302,5 +347,11 @@ export class AssetBuilder {
     if (candidate !== undefined) return candidate;
 
     return this.defaults.reservoir[name] || 0;
+  }
+
+  private getTankValue(name: TankQuantity, candidate?: number) {
+    if (candidate !== undefined) return candidate;
+
+    return this.defaults.tank[name] || 0;
   }
 }

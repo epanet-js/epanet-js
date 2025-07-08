@@ -16,6 +16,7 @@ import {
 } from "src/hydraulic-model";
 import {
   PumpBuildData,
+  TankBuildData,
   ValveBuildData,
 } from "src/hydraulic-model/asset-builder";
 import {
@@ -155,6 +156,15 @@ export class HydraulicModelBuilder {
       ...properties,
     });
     this.assets.set(id, reservoir);
+    return this;
+  }
+
+  aTank(id: string, properties: Partial<TankBuildData> = {}) {
+    const tank = this.assetBuilder.buildTank({
+      id,
+      ...properties,
+    });
+    this.assets.set(id, tank);
     return this;
   }
 

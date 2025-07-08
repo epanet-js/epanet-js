@@ -17,7 +17,7 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     }),
     [Mode.DRAW_TANK]: useDrawNodeHandlers({
       ...handlerContext,
-      nodeType: "reservoir",
+      nodeType: "tank",
     }),
     [Mode.DRAW_PIPE]: useDrawLinkHandlers({
       ...handlerContext,

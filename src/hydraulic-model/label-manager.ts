@@ -4,6 +4,7 @@ const typeToPrefix: Record<Asset["type"], string> = {
   pipe: "P",
   junction: "J",
   reservoir: "R",
+  tank: "T",
   pump: "PU",
   valve: "V",
 };

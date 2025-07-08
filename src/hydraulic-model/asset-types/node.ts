@@ -3,7 +3,7 @@ import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
 
 export type NodeProperties = {
   elevation: number;
-  type: "junction" | "reservoir";
+  type: "junction" | "reservoir" | "tank";
 } & AssetProperties;
 
 export class Node<T> extends BaseAsset<T & NodeProperties> {

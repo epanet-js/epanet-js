@@ -22,6 +22,8 @@ export const useSnapping = (
         "imported-reservoirs",
         "junction-results",
         "imported-junction-results",
+        "imported-features-tanks",
+        "features-tanks",
       ],
     });
     if (!pointFeatures.length) return null;

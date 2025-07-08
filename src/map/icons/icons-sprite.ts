@@ -10,6 +10,7 @@ import {
   buildPrvSvg,
   buildPsvSvg,
   buildPumpSvg,
+  buildTankSvg,
 } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
@@ -34,7 +35,8 @@ export type IconId =
   | "valve-fcv-closed"
   | "valve-pbv-active"
   | "valve-pbv-open"
-  | "valve-pbv-closed";
+  | "valve-pbv-closed"
+  | "tank";
 
 export type TextureProps = {
   width: number;
@@ -224,6 +226,17 @@ const iconUrls: IconUrl[] = [
       buildPbvSvg({
         triangleColor: colors.red700,
         fillColor: colors.red300,
+      }),
+    ),
+  },
+  {
+    id: "tank",
+    url: urlFor(
+      buildTankSvg({
+        borderColor: colors.indigo800,
+        fillColor: colors.indigo500,
+        width: 32,
+        height: 32,
       }),
     ),
   },

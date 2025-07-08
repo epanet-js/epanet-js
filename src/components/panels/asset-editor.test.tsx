@@ -465,6 +465,39 @@ describe("AssetEditor", () => {
     });
   });
 
+  describe("with a tank", () => {
+    it("shows its properties", () => {
+      const tankId = "T1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(tankId, {
+          label: "MY_TANK",
+          elevation: 10,
+          diameter: 300,
+          initialLevel: 50,
+          minLevel: 0,
+          maxLevel: 100,
+          minVolume: 0,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: tankId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/tank/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_TANK");
+      expectPropertyDisplayed("elevation (m)", "10");
+      expectPropertyDisplayed("diameter (mm)", "300");
+      expectPropertyDisplayed("initial level (m)", "50");
+      expectPropertyDisplayed("min level (m)", "0");
+      expectPropertyDisplayed("max level (m)", "100");
+      expectPropertyDisplayed("min volume (m³)", "0");
+    });
+  });
+
   it("can change its status", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()

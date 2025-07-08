@@ -10,7 +10,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { NodeAsset } from "src/hydraulic-model";
 
-type NodeType = "junction" | "reservoir";
+type NodeType = "junction" | "reservoir" | "tank";
 
 export function useDrawNodeHandlers({
   hydraulicModel,
@@ -46,6 +46,12 @@ export function useDrawNodeHandlers({
           break;
         case "reservoir":
           node = assetBuilder.buildReservoir({
+            elevation,
+            coordinates: clickPosition,
+          });
+          break;
+        case "tank":
+          node = assetBuilder.buildTank({
             elevation,
             coordinates: clickPosition,
           });

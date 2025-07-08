@@ -49,6 +49,7 @@ import {
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
 import { NumericField } from "../form/numeric-field";
+import { Tank } from "src/hydraulic-model/asset-types/tank";
 
 export function AssetEditor({
   selectedFeature,
@@ -221,11 +222,18 @@ const AssetEditorInner = ({
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
-      return null;
     case "reservoir":
       return (
         <ReservoirEditor
           reservoir={asset as Reservoir}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
+        />
+      );
+    case "tank":
+      return (
+        <TankEditor
+          tank={asset as Tank}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
         />
@@ -719,6 +727,74 @@ const ReservoirEditor = ({
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("head")}
                 decimals={quantitiesMetadata.getDecimals("head")}
+                onChange={onPropertyChange}
+              />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </PanelDetails>
+  );
+};
+
+const TankEditor = ({
+  tank,
+  quantitiesMetadata,
+  onPropertyChange,
+}: {
+  tank: Tank;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+}) => {
+  const translate = useTranslate();
+  return (
+    <PanelDetails title={translate("tank")} variant="fullwidth">
+      <div className="pb-3 contain-layout">
+        <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
+          <table className="pb-2 w-full">
+            <PropertyTableHead />
+            <tbody>
+              <TextRowReadOnly name="label" value={tank.label} />
+              <QuantityRow
+                name="elevation"
+                value={tank.elevation}
+                unit={quantitiesMetadata.getUnit("elevation")}
+                decimals={quantitiesMetadata.getDecimals("elevation")}
+                onChange={onPropertyChange}
+              />
+              <QuantityRow
+                name="initialLevel"
+                value={tank.initialLevel}
+                unit={quantitiesMetadata.getUnit("initialLevel")}
+                decimals={quantitiesMetadata.getDecimals("initialLevel")}
+                onChange={onPropertyChange}
+              />
+              <QuantityRow
+                name="minLevel"
+                value={tank.minLevel}
+                unit={quantitiesMetadata.getUnit("minLevel")}
+                decimals={quantitiesMetadata.getDecimals("minLevel")}
+                onChange={onPropertyChange}
+              />
+              <QuantityRow
+                name="maxLevel"
+                value={tank.maxLevel}
+                unit={quantitiesMetadata.getUnit("maxLevel")}
+                decimals={quantitiesMetadata.getDecimals("maxLevel")}
+                onChange={onPropertyChange}
+              />
+              <QuantityRow
+                name="diameter"
+                value={tank.diameter}
+                unit={quantitiesMetadata.getUnit("diameter")}
+                decimals={quantitiesMetadata.getDecimals("diameter")}
+                onChange={onPropertyChange}
+              />
+              <QuantityRow
+                name="minVolume"
+                value={tank.minVolume}
+                unit={quantitiesMetadata.getUnit("minVolume")}
+                decimals={quantitiesMetadata.getDecimals("minVolume")}
                 onChange={onPropertyChange}
               />
             </tbody>

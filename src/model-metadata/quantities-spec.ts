@@ -8,6 +8,7 @@ import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
 import { ValveQuantity } from "src/hydraulic-model/asset-types/valve";
+import { TankQuantity } from "src/hydraulic-model/asset-types/tank";
 
 export type QuantityProperty =
   | "diameter"
@@ -25,7 +26,11 @@ export type QuantityProperty =
   | "head"
   | "power"
   | "speed"
-  | "tcvSetting";
+  | "tcvSetting"
+  | "initialLevel"
+  | "minLevel"
+  | "maxLevel"
+  | "minVolume";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -35,6 +40,7 @@ type DefaultsSpec = {
   reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
   pump: Partial<Record<PumpQuantity, number>>;
   valve: Partial<Record<ValveQuantity, number>>;
+  tank: Partial<Record<TankQuantity, number>>;
 };
 
 const defaultDecimals = 3;
@@ -58,6 +64,12 @@ const allFlowUnits = (unit: Unit) => ({
   actualDemand: unit,
 });
 
+const allLevelUnits = (unit: Unit) => ({
+  initialLevel: unit,
+  minLevel: unit,
+  maxLevel: unit,
+});
+
 const metricSpec: AssetQuantitiesSpec = {
   id: "metric-spec",
   name: "",
@@ -76,6 +88,8 @@ const metricSpec: AssetQuantitiesSpec = {
     power: "kW",
     speed: null,
     tcvSetting: null,
+    minVolume: "m^3",
+    ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
   },
   decimals: {},
@@ -88,6 +102,13 @@ const metricSpec: AssetQuantitiesSpec = {
     junction: {},
     reservoir: {
       relativeHead: 10,
+    },
+    tank: {
+      diameter: 300,
+      initialLevel: 50,
+      minLevel: 0,
+      maxLevel: 100,
+      minVolume: 0,
     },
     pump: {
       designHead: 1,
@@ -120,6 +141,8 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     power: "hp",
     speed: null,
     tcvSetting: null,
+    minVolume: "ft^3",
+    ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
   },
   decimals: {
@@ -134,6 +157,13 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     junction: {},
     reservoir: {
       relativeHead: 32,
+    },
+    tank: {
+      diameter: 12,
+      initialLevel: 50,
+      minLevel: 0,
+      maxLevel: 100,
+      minVolume: 0,
     },
     pump: {
       designHead: 1,
