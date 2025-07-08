@@ -240,6 +240,11 @@ export function Hints() {
         />
       );
     }
+    case Mode.DRAW_TANK: {
+      return (
+        <Hint hintId={"DRAW_TANK"} text={translate("onboardingDrawTank")} />
+      );
+    }
   }
 
   return null;

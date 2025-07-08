@@ -114,6 +114,7 @@
   "onboardingViewAndEdit": "Ver y editar propiedades",
   "onboardingSelectDrawing": "Selecciona una herramienta de dibujo del menú{{1}}",
   "onboardingDrawReservoir": "Haz clic en cualquier lugar para colocar un embalse.",
+  "onboardingDrawTank": "Haz clic en cualquier lugar para colocar un tanque.",
   "onboardingDrawJunctions": "Haz clic para colocar nudos.",
   "onboardingStartPipe": "Haz clic en un nodo existente para dibujar una tubería o en cualquier lugar para comenzar con un nudo nuevo.",
   "onboardingStartPipeEmpty": "Haz clic donde quieras empezar una tubería.",

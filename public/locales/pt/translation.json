@@ -114,6 +114,7 @@
   "onboardingViewAndEdit": "Ver e editar propriedades",
   "onboardingSelectDrawing": "Selecione uma ferramenta de desenho do menu{{1}}",
   "onboardingDrawReservoir": "Clique em qualquer lugar para colocar um reservatório.",
+  "onboardingDrawTank": "Clique em qualquer lugar para colocar um tanque.",
   "onboardingDrawJunctions": "Clique para colocar nós.",
   "onboardingStartPipe": "Clique em um nó existente para desenhar uma tubulação ou em qualquer lugar para começar com um novo nó.",
   "onboardingStartPipeEmpty": "Clique onde quiser começar uma tubulação.",

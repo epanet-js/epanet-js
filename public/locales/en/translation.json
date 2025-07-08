@@ -114,6 +114,7 @@
   "onboardingViewAndEdit": "View and edit properties",
   "onboardingSelectDrawing": "Select a drawing tool from the menu{{1}}",
   "onboardingDrawReservoir": "Click anywhere to place a reservoir.",
+  "onboardingDrawTank": "Click anywhere to place a tank.",
   "onboardingDrawJunctions": "Click to place junctions.",
   "onboardingStartPipe": "Click on an existing node to draw a pipe, or click anywhere to start with a new junction.",
   "onboardingStartPipeEmpty": "Click anywhere to start drawing a pipe.",

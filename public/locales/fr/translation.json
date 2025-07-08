@@ -114,6 +114,7 @@
   "onboardingViewAndEdit": "Voir et modifier les propriétés",
   "onboardingSelectDrawing": "Sélectionnez un outil de dessin dans le menu{{1}}",
   "onboardingDrawReservoir": "Cliquez n'importe où pour placer un réservoir.",
+  "onboardingDrawTank": "Cliquez n'importe où pour placer un château d'eau.",
   "onboardingDrawJunctions": "Cliquez pour placer des nœuds.",
   "onboardingStartPipe": "Cliquez sur un nœud existant pour dessiner une conduite, ou cliquez n'importe où pour commencer avec un nouveau nœud.",
   "onboardingStartPipeEmpty": "Cliquez n'importe où pour commencer à dessiner une conduite.",
