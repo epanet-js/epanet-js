@@ -7,7 +7,6 @@ import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const LanguageSelector = ({
   align = "end",
@@ -21,20 +20,8 @@ export const LanguageSelector = ({
   const translate = useTranslate();
   const { locale, setLocale } = useLocale();
   const userTracking = useUserTracking();
-  const isFlagBREnabled = useFeatureFlag("FLAG_BR");
-  const isFlagFREnabled = useFeatureFlag("FLAG_FR");
 
-  let availableLanguages = languageConfig;
-  if (!isFlagBREnabled) {
-    availableLanguages = availableLanguages.filter(
-      (lang) => lang.code !== "pt",
-    );
-  }
-  if (!isFlagFREnabled) {
-    availableLanguages = availableLanguages.filter(
-      (lang) => lang.code !== "fr",
-    );
-  }
+  const availableLanguages = languageConfig;
 
   const handleLanguageChange = (newLocale: Locale) => {
     userTracking.capture({

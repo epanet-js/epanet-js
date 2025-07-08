@@ -4,7 +4,6 @@ import { Store } from "src/state/jotai";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { LanguageSelector } from "./language-selector";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { localeAtom } from "src/state/locale";
 
 import esTranslations from "../../public/locales/es/translation.json";
@@ -29,7 +28,6 @@ describe("Language Selector", () => {
     localStorage.clear();
     i18n.addResourceBundle("es", "translation", esTranslations);
     i18n.addResourceBundle("pt", "translation", ptTranslations);
-    stubFeatureOn("FLAG_BR");
   });
 
   it("displays language button in English by default", async () => {
