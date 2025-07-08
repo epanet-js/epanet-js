@@ -51,6 +51,8 @@ export const computePropertyStats = (
       case "valve":
         appendValveStats(statsMap, asset as Valve, quantitiesMetadata);
         break;
+      case "tank":
+        break;
     }
   }
 
