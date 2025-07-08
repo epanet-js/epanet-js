@@ -3,7 +3,7 @@ import {
   defaultAccuracy,
   defaultUnbalanced,
 } from "src/simulation/build-inp";
-import { InpData } from "./inp-data";
+import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
@@ -171,11 +171,20 @@ export const parseTankPartially: RowParser = ({
   inpData.nodeIds.add(id);
 };
 
-export const parseTank: RowParser = ({ trimmedRow, inpData }) => {
-  const [id, elevation, initialLevel, minLevel, maxLevel, diameter, minVolume] =
-    readValues(trimmedRow);
+export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
+  const [
+    id,
+    elevation,
+    initialLevel,
+    minLevel,
+    maxLevel,
+    diameter,
+    minVolume,
+    volumeCurveId,
+    overflow,
+  ] = readValues(trimmedRow);
 
-  inpData.tanks.push({
+  const tankData: TankData = {
     id,
     elevation: parseFloat(elevation),
     initialLevel: parseFloat(initialLevel),
@@ -183,8 +192,18 @@ export const parseTank: RowParser = ({ trimmedRow, inpData }) => {
     maxLevel: parseFloat(maxLevel),
     diameter: parseFloat(diameter),
     minVolume: parseFloat(minVolume),
-  });
+  };
 
+  if (volumeCurveId && volumeCurveId !== "*") {
+    tankData.volumeCurveId = volumeCurveId;
+    issues.addUsedSection("[CURVES]");
+  }
+
+  if (overflow) {
+    tankData.overflow = overflow.toUpperCase() === "YES";
+  }
+
+  inpData.tanks.push(tankData);
   inpData.nodeIds.add(id);
 };
 

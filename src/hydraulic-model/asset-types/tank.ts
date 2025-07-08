@@ -7,6 +7,7 @@ export type TankProperties = {
   maxLevel: number;
   minVolume: number;
   diameter: number;
+  canOverflow: boolean;
 } & NodeProperties;
 
 export const tankQuantities = [
@@ -90,5 +91,9 @@ export class Tank extends Node<TankProperties> {
 
   get diameter() {
     return this.properties.diameter;
+  }
+
+  get canOverflow() {
+    return this.properties.canOverflow;
   }
 }

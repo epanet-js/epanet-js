@@ -27,6 +27,7 @@ describe("parse tanks", () => {
     expect(tank.maxLevel).toEqual(25);
     expect(tank.diameter).toEqual(120);
     expect(tank.minVolume).toEqual(14);
+    expect(tank.canOverflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
     expect(issues).toBeNull();
   });
@@ -49,8 +50,82 @@ describe("parse tanks", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
     expect(tank.id).not.toEqual("T1");
+    expect(tank.canOverflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
     expect(issues).toBeNull();
+  });
+
+  it("registers CURVES section as used when tank references a volume curve", () => {
+    const lat = 10;
+    const lng = -10;
+    const inp = `
+    [TANKS]
+    ;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve  Overflow
+    ;---------------------------------------------------------------------
+    T1    100     15       5       25     120   14       TANK1_VOL  YES
+
+    [COORDINATES]
+    T1\t${lng}\t${lat}
+    `;
+
+    const { hydraulicModel, issues, stats } = parseInp(inp, {
+      FLAG_TANK: true,
+    });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.id).not.toBeUndefined();
+    expect(tank.type).toEqual("tank");
+    expect(tank.canOverflow).toEqual(true);
+    expect(tank.coordinates).toEqual([-10, 10]);
+
+    expect(stats.counts.get("[CURVES]")).toBeUndefined();
+    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+  });
+
+  it("does not register CURVES section when tank uses asterisk placeholder", () => {
+    const lat = 10;
+    const lng = -10;
+    const inp = `
+    [TANKS]
+    ;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve  Overflow
+    ;---------------------------------------------------------------------
+    T1    100     15       5       25     120   14       *          YES
+
+    [COORDINATES]
+    T1\t${lng}\t${lat}
+    `;
+
+    const { hydraulicModel, issues, stats } = parseInp(inp, {
+      FLAG_TANK: true,
+    });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.id).not.toBeUndefined();
+    expect(tank.type).toEqual("tank");
+    expect(tank.canOverflow).toEqual(true);
+    expect(tank.coordinates).toEqual([-10, 10]);
+
+    expect(stats.counts.get("[CURVES]")).toBeUndefined();
+    expect(issues?.unsupportedSections?.has("[CURVES]") || false).toBe(false);
+  });
+
+  it("sets canOverflow to false when tank overflow is NO", () => {
+    const lat = 10;
+    const lng = -10;
+    const inp = `
+    [TANKS]
+    ;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve  Overflow
+    ;---------------------------------------------------------------------
+    T1    100     15       5       25     120   14       *          NO
+
+    [COORDINATES]
+    T1\t${lng}\t${lat}
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { FLAG_TANK: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.canOverflow).toEqual(false);
   });
 
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {

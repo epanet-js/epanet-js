@@ -189,6 +189,7 @@ const addTank = (
     maxLevel: tankData.maxLevel,
     diameter: tankData.diameter,
     minVolume: tankData.minVolume,
+    canOverflow: tankData.overflow ?? false,
   });
   hydraulicModel.assets.set(tank.id, tank);
   nodeIds.set(tankData.id, tank.id);

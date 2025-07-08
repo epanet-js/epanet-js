@@ -35,6 +35,8 @@ export type TankData = {
   maxLevel: number;
   diameter: number;
   minVolume: number;
+  volumeCurveId?: string;
+  overflow?: boolean;
 };
 
 export type ReservoirData = {
