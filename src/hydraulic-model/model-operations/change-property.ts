@@ -6,7 +6,13 @@ import { ModelOperation } from "../model-operation";
 type InputData = {
   assetIds: AssetId[];
   property: string;
-  value: number | PumpStatus | PumpDefintionType | ValveStatus | ValveKind;
+  value:
+    | number
+    | PumpStatus
+    | PumpDefintionType
+    | ValveStatus
+    | ValveKind
+    | boolean;
 };
 
 export const changeProperty: ModelOperation<InputData> = (

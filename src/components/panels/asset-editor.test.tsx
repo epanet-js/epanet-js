@@ -477,7 +477,7 @@ describe("AssetEditor", () => {
           minLevel: 0,
           maxLevel: 100,
           minVolume: 0,
-          canOverflow: true,
+          overflow: true,
         })
         .build();
       const store = setInitialState({
@@ -500,6 +500,36 @@ describe("AssetEditor", () => {
         "aria-checked",
         "true",
       );
+    });
+
+    it("can change the overflow setting", async () => {
+      const tankId = "T1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(tankId, {
+          label: "MY_TANK",
+          overflow: false,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: tankId,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText(/tank/i)).toBeInTheDocument();
+      expect(screen.getByRole("switch", { name: /overflow/i })).toHaveAttribute(
+        "aria-checked",
+        "false",
+      );
+
+      await userEvent.click(screen.getByRole("switch", { name: /overflow/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("switch", { name: /overflow/i }),
+        ).toHaveAttribute("aria-checked", "true");
+      });
     });
 
     it("can show simulation results", () => {

@@ -27,7 +27,7 @@ describe("parse tanks", () => {
     expect(tank.maxLevel).toEqual(25);
     expect(tank.diameter).toEqual(120);
     expect(tank.minVolume).toEqual(14);
-    expect(tank.canOverflow).toEqual(true);
+    expect(tank.overflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
     expect(issues).toBeNull();
   });
@@ -50,7 +50,7 @@ describe("parse tanks", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
     expect(tank.id).not.toEqual("T1");
-    expect(tank.canOverflow).toEqual(true);
+    expect(tank.overflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
     expect(issues).toBeNull();
   });
@@ -75,7 +75,7 @@ describe("parse tanks", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
     expect(tank.type).toEqual("tank");
-    expect(tank.canOverflow).toEqual(true);
+    expect(tank.overflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
 
     expect(stats.counts.get("[CURVES]")).toBeUndefined();
@@ -102,14 +102,14 @@ describe("parse tanks", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
     expect(tank.type).toEqual("tank");
-    expect(tank.canOverflow).toEqual(true);
+    expect(tank.overflow).toEqual(true);
     expect(tank.coordinates).toEqual([-10, 10]);
 
     expect(stats.counts.get("[CURVES]")).toBeUndefined();
     expect(issues?.unsupportedSections?.has("[CURVES]") || false).toBe(false);
   });
 
-  it("sets canOverflow to false when tank overflow is NO", () => {
+  it("sets overflow to false when tank overflow is NO", () => {
     const lat = 10;
     const lng = -10;
     const inp = `
@@ -125,7 +125,7 @@ describe("parse tanks", () => {
     const { hydraulicModel } = parseInp(inp, { FLAG_TANK: true });
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
-    expect(tank.canOverflow).toEqual(false);
+    expect(tank.overflow).toEqual(false);
   });
 
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {

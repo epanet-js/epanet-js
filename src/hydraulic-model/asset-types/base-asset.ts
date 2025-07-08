@@ -44,7 +44,7 @@ export class BaseAsset<T> {
     return this.feature.properties.label;
   }
 
-  setProperty(name: string, value: number | string) {
+  setProperty(name: string, value: number | string | boolean) {
     this.feature.properties[name as keyof AssetProperties] = value as never;
   }
 

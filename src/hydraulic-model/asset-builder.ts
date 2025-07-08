@@ -70,7 +70,7 @@ export type TankBuildData = {
   maxLevel?: number;
   minVolume?: number;
   diameter?: number;
-  canOverflow?: boolean;
+  overflow?: boolean;
 };
 
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
@@ -290,7 +290,7 @@ export class AssetBuilder {
     maxLevel,
     minVolume,
     diameter,
-    canOverflow,
+    overflow,
   }: TankBuildData = {}) {
     return new Tank(
       id,
@@ -307,7 +307,7 @@ export class AssetBuilder {
         maxLevel: this.getTankValue("maxLevel", maxLevel),
         minVolume: this.getTankValue("minVolume", minVolume),
         diameter: this.getTankValue("diameter", diameter),
-        canOverflow: canOverflow ?? false,
+        overflow: overflow ?? false,
       },
       this.units,
     );

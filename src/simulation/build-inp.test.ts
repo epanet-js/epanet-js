@@ -331,7 +331,7 @@ describe("build inp", () => {
         maxLevel: 30,
         diameter: 50,
         minVolume: 10,
-        canOverflow: true,
+        overflow: true,
         coordinates: [30, 40],
       })
       .build();

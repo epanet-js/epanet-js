@@ -268,7 +268,7 @@ const appendTank = (
       tank.diameter,
       tank.minVolume,
       nullCurveId,
-      tank.canOverflow ? "YES" : "NO",
+      tank.overflow ? "YES" : "NO",
     ].join("\t"),
   );
   if (geolocation) {

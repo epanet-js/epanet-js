@@ -1,6 +1,6 @@
 import type { IWrappedFeature } from "src/types";
 import * as Switch from "@radix-ui/react-switch";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { RawEditor } from "./feature-editor/raw-editor";
 import {
   Asset,
@@ -87,22 +87,22 @@ const AssetEditorInner = ({
   const userTracking = useUserTracking();
 
   const handlePropertyChange = (
-    name: string,
-    value: number,
-    oldValue: number | null,
+    property: string,
+    value: number | boolean,
+    oldValue: number | boolean | null,
   ) => {
     const moment = changeProperty(hydraulicModel, {
       assetIds: [asset.id],
-      property: name,
+      property,
       value,
     });
     transact(moment);
     userTracking.capture({
       name: "assetProperty.edited",
       type: asset.type,
-      property: name,
-      newValue: value,
-      oldValue,
+      property,
+      newValue: typeof value === "boolean" ? Number(value) : value,
+      oldValue: typeof oldValue === "boolean" ? Number(oldValue) : oldValue,
     });
   };
 
@@ -244,8 +244,8 @@ const AssetEditorInner = ({
 
 type OnPropertyChange = (
   name: string,
-  value: number,
-  oldValue: number | null,
+  value: number | boolean,
+  oldValue: number | boolean | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type OnTypeChange<T> = (newType: T, oldType: T) => void;
@@ -801,8 +801,8 @@ const TankEditor = ({
               <SwitchRow
                 name="overflow"
                 label={translate("overflow")}
-                enabled={tank.canOverflow}
-                onChange={() => {}}
+                enabled={tank.overflow}
+                onChange={onPropertyChange}
               />
               <QuantityRow
                 name="pressure"
@@ -889,23 +889,20 @@ const SwitchRow = ({
   name: string;
   label?: string;
   enabled: boolean;
-  onChange: (oldValue: boolean, newValue: boolean) => void;
+  onChange: (property: string, newValue: boolean, oldValue: boolean) => void;
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
-  const [isEnabled, setEnabled] = useState<boolean>(enabled);
-
   const handleToggle = (checked: boolean) => {
-    setEnabled(!isEnabled);
-    onChange(enabled, checked);
+    onChange(name, checked, enabled);
   };
 
   return (
     <PropertyRow label={actualLabel}>
       <div className="flex items-center space-x-2 p-2">
         <Switch.Root
-          checked={isEnabled}
+          checked={enabled}
           onCheckedChange={handleToggle}
           aria-label={label}
           className="w-[28px] h-[16px] bg-gray-300 rounded-full relative data-[state=checked]:bg-purple-300 transition-colors"
