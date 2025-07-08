@@ -159,11 +159,33 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aTank(id: string, properties: Partial<TankBuildData> = {}) {
+  aTank(
+    id: string,
+    data: Partial<
+      TankBuildData & {
+        simulation: Partial<{
+          pressure: number;
+          head: number;
+          level: number;
+          volume: number;
+        }>;
+      }
+    > = {},
+  ) {
+    const { simulation, ...properties } = data;
     const tank = this.assetBuilder.buildTank({
       id,
       ...properties,
     });
+    if (simulation) {
+      tank.setSimulation({
+        pressure: 15,
+        head: 125,
+        level: 25,
+        volume: 1500,
+        ...simulation,
+      });
+    }
     this.assets.set(id, tank);
     return this;
   }

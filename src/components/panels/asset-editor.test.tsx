@@ -496,6 +496,31 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("max level (m)", "100");
       expectPropertyDisplayed("min volume (m³)", "0");
     });
+
+    it("can show simulation results", () => {
+      const tankId = "T1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(tankId, {
+          simulation: {
+            pressure: 15.1234,
+            head: 125.5678,
+            level: 25.9876,
+            volume: 1500.4321,
+          },
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: tankId,
+      });
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("pressure (m)", "15.123");
+      expectPropertyDisplayed("head (m)", "125.568");
+      expectPropertyDisplayed("level (m)", "25.988");
+      expectPropertyDisplayed("volume (m³)", "1,500.432");
+    });
   });
 
   it("can change its status", async () => {

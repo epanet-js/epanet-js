@@ -797,6 +797,34 @@ const TankEditor = ({
                 decimals={quantitiesMetadata.getDecimals("minVolume")}
                 onChange={onPropertyChange}
               />
+              <QuantityRow
+                name="pressure"
+                value={tank.pressure}
+                unit={quantitiesMetadata.getUnit("pressure")}
+                decimals={quantitiesMetadata.getDecimals("pressure")}
+                readOnly={true}
+              />
+              <QuantityRow
+                name="head"
+                value={tank.head}
+                unit={quantitiesMetadata.getUnit("head")}
+                decimals={quantitiesMetadata.getDecimals("head")}
+                readOnly={true}
+              />
+              <QuantityRow
+                name="level"
+                value={tank.level}
+                unit={quantitiesMetadata.getUnit("level")}
+                decimals={quantitiesMetadata.getDecimals("level")}
+                readOnly={true}
+              />
+              <QuantityRow
+                name="volume"
+                value={tank.volume}
+                unit={quantitiesMetadata.getUnit("volume")}
+                decimals={quantitiesMetadata.getDecimals("volume")}
+                readOnly={true}
+              />
             </tbody>
           </table>
         </div>

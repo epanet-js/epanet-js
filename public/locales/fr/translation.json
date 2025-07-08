@@ -78,6 +78,8 @@
   "notAvailable": "Non Disponible",
   "pressure": "Pression",
   "pressures": "Pressions",
+  "level": "Niveau",
+  "volume": "Volume",
   "flow": "Débit",
   "flows": "Débits",
   "velocity": "Vitesse",

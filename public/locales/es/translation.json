@@ -77,6 +77,8 @@
   "runningSimulation": "Ejecutando simulación",
   "pressure": "Presión",
   "pressures": "Presiones",
+  "level": "Nivel",
+  "volume": "Volumen",
   "notAvailable": "No Disponible",
   "flow": "Caudal",
   "flows": "Caudales",

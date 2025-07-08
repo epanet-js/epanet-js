@@ -28,6 +28,13 @@ describe("attach simulation", () => {
       head: 8,
       demand: 15,
     }),
+    getTank: () => ({
+      pressure: 10,
+      head: 8,
+      elevation: 15,
+      level: 12,
+      volume: 10,
+    }),
   };
   it("sets the simulation for the assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()

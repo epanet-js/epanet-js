@@ -30,7 +30,9 @@ export type QuantityProperty =
   | "initialLevel"
   | "minLevel"
   | "maxLevel"
-  | "minVolume";
+  | "minVolume"
+  | "level"
+  | "volume";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -89,6 +91,8 @@ const metricSpec: AssetQuantitiesSpec = {
     speed: null,
     tcvSetting: null,
     minVolume: "m^3",
+    level: "m",
+    volume: "m^3",
     ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
   },
@@ -142,6 +146,8 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     speed: null,
     tcvSetting: null,
     minVolume: "ft^3",
+    level: "ft",
+    volume: "ft^3",
     ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
   },

@@ -1,6 +1,7 @@
 import { Junction } from "./asset-types";
 import { JunctionSimulation } from "./asset-types/junction";
 import { Pipe, PipeSimulation } from "./asset-types/pipe";
+import { Tank, TankSimulation } from "./asset-types/tank";
 import { Pump, PumpSimulation } from "./asset-types/pump";
 import { Valve, ValveSimulation } from "./asset-types/valve";
 import { HydraulicModel } from "./hydraulic-model";
@@ -10,6 +11,7 @@ export interface ResultsReader {
   getPump: (pumpId: string) => PumpSimulation | null;
   getJunction: (junctionId: string) => JunctionSimulation | null;
   getPipe: (pipe: string) => PipeSimulation | null;
+  getTank: (tank: string) => TankSimulation | null;
 }
 
 export const attachSimulation = (
@@ -34,6 +36,7 @@ export const attachSimulation = (
       case "reservoir":
         break;
       case "tank":
+        (asset as Tank).setSimulation(simulation.getTank(asset.id));
         break;
     }
     newAssets.set(asset.id, asset);
