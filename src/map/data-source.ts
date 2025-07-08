@@ -16,6 +16,7 @@ import {
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
+import { Tank } from "src/hydraulic-model/asset-types/tank";
 
 export type DataSource = "imported-features" | "features" | "icons";
 
@@ -131,6 +132,22 @@ export const buildIconPointsSource = (
           type: "Point",
           coordinates: center.geometry.coordinates,
         },
+      };
+      strippedFeatures.push(feature);
+    }
+
+    if (asset.type === "tank") {
+      const tank = asset as Tank;
+      const featureId = UIDMap.getIntID(idMap, asset.id);
+
+      const feature: Feature = {
+        type: "Feature",
+        id: featureId,
+        properties: {
+          type: tank.type,
+          selected: selectedAssets.has(tank.id),
+        },
+        geometry: tank.feature.geometry,
       };
       strippedFeatures.push(feature);
     }

@@ -235,8 +235,6 @@ const iconUrls: IconUrl[] = [
       buildTankSvg({
         borderColor: colors.indigo800,
         fillColor: colors.indigo500,
-        width: 32,
-        height: 32,
       }),
     ),
   },

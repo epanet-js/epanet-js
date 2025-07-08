@@ -215,7 +215,7 @@ export function makeLayers({
       layerId: "imported-reservoirs",
       symbology,
     }),
-    ...tankLayers({ sources: ["imported-features", "features"], symbology }),
+    ...tankLayers({ sources: ["icons"], symbology }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"
