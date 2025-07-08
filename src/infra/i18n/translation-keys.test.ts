@@ -1,6 +1,4 @@
-import enTranslations from "../../../public/locales/en/translation.json";
-import esTranslations from "../../../public/locales/es/translation.json";
-import ptTranslations from "../../../public/locales/pt/translation.json";
+import { allSupportedLanguages } from "./locale";
 
 const getAllKeys = (obj: Record<string, any>, prefix = ""): string[] => {
   const keys: string[] = [];
@@ -19,36 +17,47 @@ const getAllKeys = (obj: Record<string, any>, prefix = ""): string[] => {
 };
 
 describe("Translation Keys Consistency", () => {
-  const englishKeys = getAllKeys(enTranslations);
-  const spanishKeys = getAllKeys(esTranslations);
-  const portugueseKeys = getAllKeys(ptTranslations);
-
-  it("Spanish translations should have all English keys", () => {
-    const missingKeys = englishKeys.filter((key) => !spanishKeys.includes(key));
-    expect(missingKeys).toEqual([]);
-  });
-
-  it("Portuguese translations should have all English keys", () => {
-    const missingKeys = englishKeys.filter(
-      (key) => !portugueseKeys.includes(key),
+  const loadTranslations = async (
+    locale: string,
+  ): Promise<Record<string, any>> => {
+    const translations = await import(
+      `../../../public/locales/${locale}/translation.json`
     );
-    expect(missingKeys).toEqual([]);
-  });
+    return translations.default as Record<string, any>;
+  };
 
-  it("should not have extra keys in Spanish that don't exist in English", () => {
-    const extraKeys = spanishKeys.filter((key) => !englishKeys.includes(key));
-    expect(extraKeys).toEqual([]);
-  });
+  let englishKeys: string[];
+  const translationsByLocale: Record<string, any> = {};
 
-  it("should not have extra keys in Portuguese that don't exist in English", () => {
-    const extraKeys = portugueseKeys.filter(
-      (key) => !englishKeys.includes(key),
-    );
-    expect(extraKeys).toEqual([]);
-  });
+  beforeAll(async () => {
+    for (const locale of allSupportedLanguages) {
+      translationsByLocale[locale] = await loadTranslations(locale);
+    }
 
-  it("should have the same number of keys across all locales", () => {
-    expect(spanishKeys.length).toBe(englishKeys.length);
-    expect(portugueseKeys.length).toBe(englishKeys.length);
+    englishKeys = getAllKeys(translationsByLocale.en);
   });
+  allSupportedLanguages
+    .filter((locale) => locale !== "en")
+    .forEach((locale) => {
+      it(`${locale} translations should have all English keys`, () => {
+        const localeKeys = getAllKeys(translationsByLocale[locale]);
+        const missingKeys = englishKeys.filter(
+          (key) => !localeKeys.includes(key),
+        );
+        expect(missingKeys).toEqual([]);
+      });
+
+      it(`should not have extra keys in ${locale} that don't exist in English`, () => {
+        const localeKeys = getAllKeys(translationsByLocale[locale]);
+        const extraKeys = localeKeys.filter(
+          (key) => !englishKeys.includes(key),
+        );
+        expect(extraKeys).toEqual([]);
+      });
+
+      it(`${locale} should have the same number of keys as English`, () => {
+        const localeKeys = getAllKeys(translationsByLocale[locale]);
+        expect(localeKeys.length).toBe(englishKeys.length);
+      });
+    });
 });
