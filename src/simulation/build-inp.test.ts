@@ -312,4 +312,38 @@ describe("build inp", () => {
     expect(inp).toContain(";MADE BY EPANET-JS");
     expect(inp).toContain("junction1");
   });
+
+  it("adds tanks", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank("t1", {
+        elevation: 100,
+        initialLevel: 15,
+        minLevel: 5,
+        maxLevel: 25,
+        diameter: 120,
+        minVolume: 14,
+        coordinates: [10, 20],
+      })
+      .aTank("t2", {
+        elevation: 200,
+        initialLevel: 10,
+        minLevel: 0,
+        maxLevel: 30,
+        diameter: 50,
+        minVolume: 0,
+        coordinates: [30, 40],
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      geolocation: true,
+    });
+
+    expect(inp).toContain("[TANKS]");
+    expect(inp).toContain("t1\t100\t15\t5\t25\t120\t14");
+    expect(inp).toContain("t2\t200\t10\t0\t30\t50\t0");
+    expect(inp).toContain("[COORDINATES]");
+    expect(inp).toContain("t1\t10\t20");
+    expect(inp).toContain("t2\t30\t40");
+  });
 });

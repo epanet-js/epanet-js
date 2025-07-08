@@ -6,6 +6,7 @@ import {
   Pipe,
   Reservoir,
   Pump,
+  Tank,
 } from "src/hydraulic-model";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
@@ -107,6 +108,7 @@ class EpanetIds {
 type InpSections = {
   junctions: string[];
   reservoirs: string[];
+  tanks: string[];
   pipes: string[];
   pumps: string[];
   valves: string[];
@@ -143,6 +145,10 @@ export const buildInp = withDebugInstrumentation(
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
+      tanks: [
+        "[TANKS]",
+        ";Id\tElevation\tInitLevel\tMinLevel\tMaxLevel\tDiameter\tMinVol",
+      ],
       pipes: [
         "[PIPES]",
         ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
@@ -173,6 +179,10 @@ export const buildInp = withDebugInstrumentation(
         appendReservoir(sections, idMap, geolocation, asset as Reservoir);
       }
 
+      if (asset.type === "tank") {
+        appendTank(sections, idMap, geolocation, asset as Tank);
+      }
+
       if (asset.type === "junction") {
         appendJunction(sections, idMap, geolocation, asset as Junction);
       }
@@ -199,6 +209,7 @@ export const buildInp = withDebugInstrumentation(
     let content = [
       sections.junctions.join("\n"),
       sections.reservoirs.join("\n"),
+      sections.tanks.join("\n"),
       sections.pipes.join("\n"),
       sections.pumps.join("\n"),
       sections.valves.join("\n"),
@@ -235,6 +246,30 @@ const appendReservoir = (
   sections.reservoirs.push([reservoirId, reservoir.head].join("\t"));
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, reservoir);
+  }
+};
+
+const appendTank = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  geolocation: boolean,
+  tank: Tank,
+) => {
+  const tankId = idMap.nodeId(tank);
+
+  sections.tanks.push(
+    [
+      tankId,
+      tank.elevation,
+      tank.initialLevel,
+      tank.minLevel,
+      tank.maxLevel,
+      tank.diameter,
+      tank.minVolume,
+    ].join("\t"),
+  );
+  if (geolocation) {
+    appendNodeCoordinates(sections, idMap, tank);
   }
 };
 
