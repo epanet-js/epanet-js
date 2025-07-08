@@ -33,6 +33,8 @@ export const attachSimulation = (
         break;
       case "reservoir":
         break;
+      case "tank":
+        break;
     }
     newAssets.set(asset.id, asset);
   });
