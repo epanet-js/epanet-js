@@ -3,6 +3,9 @@
 
 [epanet-js](https://epanetjs.com) is a web application that makes [EPANET](https://www.epa.gov/water-research/epanet) accessible from the browser.
 
+![epanet-js app](https://github.com/user-attachments/assets/dc6bbd39-bf00-4fab-8c22-b0fb4e05c2be)
+
+
 The project is a NextJS application. Although most of the logic occurs on the browser, it uses cloud functions to protect secrets and authenticate users.
 
 ## Getting started
