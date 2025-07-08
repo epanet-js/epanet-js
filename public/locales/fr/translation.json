@@ -59,6 +59,7 @@
   "minLevel": "Niveau Min.",
   "maxLevel": "Nín. Max.",
   "minVolume": "Volume Min.",
+  "overflow": "Débordement",
   "head": "Charge",
   "pumpType": "Type de Pompe",
   "pumpHead": "Charge de la Pompe",

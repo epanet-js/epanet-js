@@ -477,6 +477,7 @@ describe("AssetEditor", () => {
           minLevel: 0,
           maxLevel: 100,
           minVolume: 0,
+          canOverflow: true,
         })
         .build();
       const store = setInitialState({
@@ -495,6 +496,10 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("min level (m)", "0");
       expectPropertyDisplayed("max level (m)", "100");
       expectPropertyDisplayed("min volume (m³)", "0");
+      expect(screen.getByRole("switch", { name: /overflow/i })).toHaveAttribute(
+        "aria-checked",
+        "true",
+      );
     });
 
     it("can show simulation results", () => {

@@ -1,5 +1,6 @@
 import type { IWrappedFeature } from "src/types";
-import React, { useCallback, useMemo, useRef } from "react";
+import * as Switch from "@radix-ui/react-switch";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { RawEditor } from "./feature-editor/raw-editor";
 import {
   Asset,
@@ -797,6 +798,12 @@ const TankEditor = ({
                 decimals={quantitiesMetadata.getDecimals("minVolume")}
                 onChange={onPropertyChange}
               />
+              <SwitchRow
+                name="overflow"
+                label={translate("overflow")}
+                enabled={tank.canOverflow}
+                onChange={() => {}}
+              />
               <QuantityRow
                 name="pressure"
                 value={tank.pressure}
@@ -868,6 +875,43 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
             textSize: "text-xs",
           }}
         />
+      </div>
+    </PropertyRow>
+  );
+};
+
+const SwitchRow = ({
+  name,
+  label,
+  enabled,
+  onChange,
+}: {
+  name: string;
+  label?: string;
+  enabled: boolean;
+  onChange: (oldValue: boolean, newValue: boolean) => void;
+}) => {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
+
+  const [isEnabled, setEnabled] = useState<boolean>(enabled);
+
+  const handleToggle = (checked: boolean) => {
+    setEnabled(!isEnabled);
+    onChange(enabled, checked);
+  };
+
+  return (
+    <PropertyRow label={actualLabel}>
+      <div className="flex items-center space-x-2 p-2">
+        <Switch.Root
+          checked={isEnabled}
+          onCheckedChange={handleToggle}
+          aria-label={label}
+          className="w-[28px] h-[16px] bg-gray-300 rounded-full relative data-[state=checked]:bg-purple-300 transition-colors"
+        >
+          <Switch.Thumb className="block w-[12px] h-[12px] bg-white rounded-full shadow transition-transform translate-x-[2px] data-[state=checked]:translate-x-[14px]" />
+        </Switch.Root>
       </div>
     </PropertyRow>
   );
