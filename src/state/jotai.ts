@@ -305,13 +305,6 @@ export const SELECTION_NONE: Sel = {
 };
 
 // ----------------------------------------------------------------------------
-/**
- * Ephemeral editing state
- */
-export interface EphemeralEditingStateLasso {
-  type: "lasso";
-  box: [Pos2, Pos2];
-}
 
 export interface EphemeralDragState {
   type: "drag";
@@ -322,7 +315,6 @@ export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
 
 export type EphemeralEditingState =
-  | EphemeralEditingStateLasso
   | EphemeralDrawLink
   | EphemeralMoveAssets
   | { type: "none" };

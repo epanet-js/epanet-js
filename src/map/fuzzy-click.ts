@@ -7,7 +7,6 @@ export type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
 type QueryOptions = Parameters<MapboxMap["queryRenderedFeatures"]>[1];
 const queryOptions: Parameters<MapboxMap["queryRenderedFeatures"]>[1] = {
   layers: clickableLayers,
-  filter: ["!has", "lasso"],
 };
 
 type Point = { x: number; y: number };

@@ -7,7 +7,6 @@ import type {
 } from "src/types";
 import type { Map as MapboxMap } from "mapbox-gl";
 import { bufferPoint } from "src/lib/geometry";
-import type { EphemeralEditingStateLasso } from "src/state/jotai";
 import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";
@@ -59,19 +58,8 @@ export function newPolygonFromClickEvent(e: MouseOrTouchEvent): Polygon {
   };
 }
 
-export function isLassoTiny(
-  ephemeralState: EphemeralEditingStateLasso,
-  map: mapboxgl.Map,
-) {
-  const tl = map.project(ephemeralState.box[0]);
-  const br = map.project(ephemeralState.box[1]);
-  const pxArea = Math.abs(tl.x - br.x) * Math.abs(tl.y - br.y);
-  return pxArea < 5;
-}
-
 const QRF_OPTIONS: Parameters<MapboxMap["queryRenderedFeatures"]>[1] = {
   layers: clickableLayers,
-  filter: ["!has", "lasso"],
 };
 
 /**

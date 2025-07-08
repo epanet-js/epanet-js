@@ -30,13 +30,6 @@ import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
-import { PolygonLayer } from "@deck.gl/layers";
-import {
-  DECK_LASSO_ID,
-  LASSO_DARK_YELLOW,
-  LASSO_YELLOW,
-} from "src/lib/constants";
-import { makeRectangle } from "src/lib/pmap/merge-ephemeral-state";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
@@ -492,23 +485,6 @@ const buildEphemeralStateOvelay = withDebugInstrumentation(
     if (ephemeralState.type === "moveAssets") {
       ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
     }
-    if (ephemeralState.type === "lasso") {
-      ephemeralLayers = [
-        new PolygonLayer<number[]>({
-          id: DECK_LASSO_ID,
-          data: [makeRectangle(ephemeralState)],
-          visible: ephemeralState.type === "lasso",
-          pickable: false,
-          stroked: true,
-          filled: true,
-          lineWidthUnits: "pixels",
-          getPolygon: (d) => d,
-          getFillColor: LASSO_YELLOW,
-          getLineColor: LASSO_DARK_YELLOW,
-          getLineWidth: 1,
-        }),
-      ];
-    }
     return ephemeralLayers;
   },
   { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
@@ -541,8 +517,6 @@ const getMovedAssets = (
   ephemeralState: EphemeralEditingState,
 ): Set<AssetId> => {
   switch (ephemeralState.type) {
-    case "lasso":
-      return noMoved;
     case "moveAssets":
       return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
     case "drawLink":

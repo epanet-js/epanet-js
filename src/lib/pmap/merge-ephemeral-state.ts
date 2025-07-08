@@ -1,11 +1,4 @@
 import type { IFeature, Feature, LineString } from "src/types";
-import type { EphemeralEditingStateLasso } from "src/state/jotai";
-
-export function makeRectangle(ephemeralState: EphemeralEditingStateLasso) {
-  const [a, b] = ephemeralState.box;
-  // X, Y, Z format for deck's flattened arrays
-  return [...a, 0, a[0], b[1], 0, ...b, 0, b[0], a[1], 0, ...a, 0];
-}
 
 export function fixDegenerates(feature: Feature) {
   if (feature.geometry?.type === "Polygon") {

@@ -21,7 +21,6 @@ export const LEFT_PANEL_ROW_HEIGHT = 24;
  */
 
 export const DECK_SYNTHETIC_ID = "deckgl-synthetic";
-export const DECK_LASSO_ID = "deckgl-lasso";
 
 /**
  * Colors
@@ -317,6 +316,3 @@ export const LINE_COLORS = {
 
 export const LINE_IDLE = hexToArray(LINE_COLORS.idle);
 export const LINE_SELECTED = hexToArray(LINE_COLORS.selected);
-
-export const LASSO_YELLOW = hexToArray("#FDE68A55");
-export const LASSO_DARK_YELLOW = hexToArray("#F59E0B");
