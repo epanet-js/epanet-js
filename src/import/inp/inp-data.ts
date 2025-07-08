@@ -31,6 +31,10 @@ export type TankData = {
   id: string;
   elevation: number;
   initialLevel: number;
+  minLevel: number;
+  maxLevel: number;
+  diameter: number;
+  minVolume: number;
 };
 
 export type ReservoirData = {

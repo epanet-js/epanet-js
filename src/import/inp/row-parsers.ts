@@ -162,6 +162,27 @@ export const parseTankPartially: RowParser = ({
     id,
     elevation: parseFloat(elevation),
     initialLevel: parseFloat(initialLevel),
+    minLevel: 0,
+    maxLevel: 100,
+    diameter: 50,
+    minVolume: 0,
+  });
+
+  inpData.nodeIds.add(id);
+};
+
+export const parseTank: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, elevation, initialLevel, minLevel, maxLevel, diameter, minVolume] =
+    readValues(trimmedRow);
+
+  inpData.tanks.push({
+    id,
+    elevation: parseFloat(elevation),
+    initialLevel: parseFloat(initialLevel),
+    minLevel: parseFloat(minLevel),
+    maxLevel: parseFloat(maxLevel),
+    diameter: parseFloat(diameter),
+    minVolume: parseFloat(minVolume),
   });
 
   inpData.nodeIds.add(id);

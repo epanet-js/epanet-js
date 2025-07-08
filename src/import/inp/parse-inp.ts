@@ -8,6 +8,7 @@ import { InpStats } from "./inp-data";
 
 export const parseInp = (
   inp: string,
+  featureFlags: Record<string, boolean> = {},
 ): {
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
@@ -17,8 +18,12 @@ export const parseInp = (
 } => {
   const issues = new IssuesAccumulator();
   const isMadeByApp = validateChecksum(inp);
-  const { inpData, stats } = readInpData(inp, issues);
-  const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
+  const { inpData, stats } = readInpData(inp, issues, featureFlags);
+  const { hydraulicModel, modelMetadata } = buildModel(
+    inpData,
+    issues,
+    featureFlags,
+  );
   return {
     isMadeByApp,
     hydraulicModel,

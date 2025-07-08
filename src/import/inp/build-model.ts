@@ -19,6 +19,7 @@ import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
+  featureFlags: Record<string, boolean> = {},
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
@@ -43,11 +44,19 @@ export const buildModel = (
   }
 
   for (const tankData of inpData.tanks) {
-    addTankAsReservoir(hydraulicModel, tankData, {
-      inpData,
-      issues,
-      nodeIds,
-    });
+    if (featureFlags.FLAG_TANK) {
+      addTank(hydraulicModel, tankData, {
+        inpData,
+        issues,
+        nodeIds,
+      });
+    } else {
+      addTankAsReservoir(hydraulicModel, tankData, {
+        inpData,
+        issues,
+        nodeIds,
+      });
+    }
   }
 
   for (const pumpData of inpData.pumps) {
@@ -153,6 +162,36 @@ const addTankAsReservoir = (
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);
   nodeIds.set(tankData.id, reservoir.id);
+};
+
+const addTank = (
+  hydraulicModel: HydraulicModel,
+  tankData: TankData,
+  {
+    inpData,
+    issues,
+    nodeIds,
+  }: {
+    inpData: InpData;
+    issues: IssuesAccumulator;
+    nodeIds: ItemData<string>;
+  },
+) => {
+  const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
+  if (!coordinates) return;
+
+  const tank = hydraulicModel.assetBuilder.buildTank({
+    label: tankData.id,
+    coordinates,
+    elevation: tankData.elevation,
+    initialLevel: tankData.initialLevel,
+    minLevel: tankData.minLevel,
+    maxLevel: tankData.maxLevel,
+    diameter: tankData.diameter,
+    minVolume: tankData.minVolume,
+  });
+  hydraulicModel.assets.set(tank.id, tank);
+  nodeIds.set(tankData.id, tank.id);
 };
 
 const addPump = (
