@@ -2,7 +2,6 @@ import { useAtom } from "jotai";
 import { useCallback } from "react";
 import { localeAtom } from "src/state/locale";
 import { Locale } from "src/infra/i18n/locale";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/auth";
 
 export type UserSettings = {
@@ -50,13 +49,10 @@ const useUserSettingsWithoutAuth = (): UserSettings => {
 };
 
 export const useUserSettings: UseUserSettingsHook = () => {
-  const isI18NextOn = useFeatureFlag("FLAG_I18NEXT");
   const { isSignedIn } = useAuth();
 
   const authSettings = useUserSettingsWithAuth();
   const localSettings = useUserSettingsWithoutAuth();
 
-  const shouldUseAuth = isI18NextOn && isSignedIn;
-
-  return shouldUseAuth ? authSettings : localSettings;
+  return isSignedIn ? authSettings : localSettings;
 };

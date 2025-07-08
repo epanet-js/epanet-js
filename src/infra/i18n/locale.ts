@@ -1,15 +1,3 @@
-import * as en from "./locales-deprecated/en";
-import * as es from "./locales-deprecated/es";
-import * as pt from "./locales-deprecated/pt";
-import * as fr from "./locales-deprecated/fr";
-
-export const locales = {
-  en: en,
-  es: es,
-  pt: pt,
-  fr: fr,
-};
-
 export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
@@ -17,7 +5,7 @@ export const symbols = {
   fr: { decimals: ",", groups: " " },
 };
 
-export type Locale = keyof typeof locales;
+export type Locale = "en" | "es" | "pt" | "fr";
 
 export const languageConfig: Array<{
   code: Locale;
