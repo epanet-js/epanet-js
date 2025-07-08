@@ -256,6 +256,7 @@ const appendTank = (
   tank: Tank,
 ) => {
   const tankId = idMap.nodeId(tank);
+  const nullCurveId = "*";
 
   sections.tanks.push(
     [
@@ -266,6 +267,8 @@ const appendTank = (
       tank.maxLevel,
       tank.diameter,
       tank.minVolume,
+      nullCurveId,
+      tank.canOverflow ? "YES" : "NO",
     ].join("\t"),
   );
   if (geolocation) {

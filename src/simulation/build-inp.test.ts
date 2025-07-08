@@ -330,7 +330,8 @@ describe("build inp", () => {
         minLevel: 0,
         maxLevel: 30,
         diameter: 50,
-        minVolume: 0,
+        minVolume: 10,
+        canOverflow: true,
         coordinates: [30, 40],
       })
       .build();
@@ -341,7 +342,7 @@ describe("build inp", () => {
 
     expect(inp).toContain("[TANKS]");
     expect(inp).toContain("t1\t100\t15\t5\t25\t120\t14");
-    expect(inp).toContain("t2\t200\t10\t0\t30\t50\t0");
+    expect(inp).toContain("t2\t200\t10\t0\t30\t50\t10\t*\tYES");
     expect(inp).toContain("[COORDINATES]");
     expect(inp).toContain("t1\t10\t20");
     expect(inp).toContain("t2\t30\t40");
