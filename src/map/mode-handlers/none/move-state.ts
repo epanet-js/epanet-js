@@ -42,6 +42,9 @@ export const buildLayers = (state: EphemeralMoveAssets) => {
             position: (asset as Reservoir).coordinates,
           });
           break;
+        case "tank":
+          acc.geojsonFeatures.push(asset.feature);
+          break;
       }
       return acc;
     },
