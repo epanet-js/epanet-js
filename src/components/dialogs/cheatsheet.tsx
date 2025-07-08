@@ -24,6 +24,31 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   "2": translate("junction"),
   "3": translate("pipe"),
   "4": translate("reservoir"),
+  "5": translate("pump"),
+  "6": translate("valve"),
+  "7": translate("tank"),
+  Esc: `${translate("exit")} / ${translate("clearSelection")}`,
+  "Command+a": translate("selectAll"),
+  "Command+z": translate("undo"),
+  "Command+y": translate("redo"),
+});
+
+const getBindingsDeprecated = (translate: ReturnType<typeof useTranslate>) => ({
+  B: translate("toggleSatellite"),
+  "Shift+Enter": translate("simulate"),
+  [showSimulationSettingsShortcut]: translate("simulationSettings"),
+  "Alt+R": translate("viewReport"),
+  "Alt+N": translate("newProject"),
+  "Command+O": translate("openProject"),
+  "Command+S": translate("save"),
+  "Command+Shift+S": translate("save"),
+  "?": translate("help"),
+  "1": translate("select"),
+  "2": translate("junction"),
+  "3": translate("pipe"),
+  "4": translate("reservoir"),
+  "5": translate("pump"),
+  "6": translate("valve"),
   Esc: `${translate("exit")} / ${translate("clearSelection")}`,
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),
@@ -33,7 +58,11 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const BINDINGS = getBindings(translate);
+  const isTankEnabled = useFeatureFlag("FLAG_TANK");
+  const BINDINGS = isTankEnabled
+    ? getBindings(translate)
+    : getBindingsDeprecated(translate);
+
   return (
     <>
       <DialogHeader
