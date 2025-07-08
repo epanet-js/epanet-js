@@ -284,6 +284,7 @@
   "startNode": "Nœud de Départ",
   "endNode": "Nœud d'Arrivée",
   "pump": "Pompe",
+  "tank": "Château d'eau",
   "designHead": "Charge de Conception",
   "designFlow": "Débit de Conception",
   "power": "Puissance",

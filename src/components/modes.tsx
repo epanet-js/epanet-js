@@ -13,7 +13,9 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { PumpIcon } from "src/custom-icons/pump-icon";
 import { ValveIcon } from "src/custom-icons/valve-icon";
+import { TankIcon } from "src/custom-icons/tank-icon";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const MODE_OPTIONS = [
   {
@@ -46,6 +48,11 @@ const MODE_OPTIONS = [
     hotkey: "6",
     Icon: () => <ValveIcon width={15} height={15} />,
   },
+  {
+    mode: Mode.DRAW_TANK,
+    hotkey: "7",
+    Icon: () => <TankIcon width={15} height={15} />,
+  },
 ] as const;
 
 export default memo(function Modes({
@@ -57,34 +64,42 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isTankOn = useFeatureFlag("FLAG_TANK");
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
       {MODE_OPTIONS.filter((mode) => {
         if (!replaceGeometryForId) return true;
         return mode.mode !== Mode.NONE;
-      }).map(({ mode, hotkey, Icon }, i) => {
-        const modeInfo = MODE_INFO[mode];
-        return (
-          <MenuAction
-            role="radio"
-            key={i}
-            selected={currentMode === mode}
-            readOnlyHotkey={hotkey}
-            label={translate(modeInfo.name)}
-            onClick={() => {
-              userTracking.capture({
-                name: "drawingMode.enabled",
-                source: "toolbar",
-                type: modeInfo.name,
-              });
-              void setDrawingMode(mode);
-            }}
-          >
-            <Icon />
-          </MenuAction>
-        );
-      })}
+      })
+        .filter((mode) => {
+          if (mode.mode === Mode.DRAW_TANK) {
+            return isTankOn;
+          }
+          return true;
+        })
+        .map(({ mode, hotkey, Icon }, i) => {
+          const modeInfo = MODE_INFO[mode];
+          return (
+            <MenuAction
+              role="radio"
+              key={i}
+              selected={currentMode === mode}
+              readOnlyHotkey={hotkey}
+              label={translate(modeInfo.name)}
+              onClick={() => {
+                userTracking.capture({
+                  name: "drawingMode.enabled",
+                  source: "toolbar",
+                  type: modeInfo.name,
+                });
+                void setDrawingMode(mode);
+              }}
+            >
+              <Icon />
+            </MenuAction>
+          );
+        })}
     </div>
   );
 });

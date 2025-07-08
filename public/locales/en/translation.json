@@ -284,6 +284,7 @@
   "startNode": "Start Node",
   "endNode": "End Node",
   "pump": "Pump",
+  "tank": "Tank",
   "designHead": "Design Head",
   "designFlow": "Design Flow",
   "power": "Power",

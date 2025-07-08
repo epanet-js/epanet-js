@@ -284,6 +284,7 @@
   "startNode": "Nudo Inicio",
   "endNode": "Nudo Fin",
   "pump": "Bomba",
+  "tank": "Tanque",
   "designHead": "Carga Diseño",
   "designFlow": "Flujo Diseño",
   "power": "Potencia",

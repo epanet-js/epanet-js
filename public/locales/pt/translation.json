@@ -284,6 +284,7 @@
   "startNode": "Nó Inicial",
   "endNode": "Nó Final",
   "pump": "Bomba",
+  "tank": "Tanque",
   "designHead": "Carga de Projeto",
   "designFlow": "Vazão de Projeto",
   "power": "Potência",
