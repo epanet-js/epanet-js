@@ -343,16 +343,9 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "move") return "cursor-move";
     if (cursor === "pointer") return "placemark-cursor-pointer";
 
+    if (mode.mode !== Mode.NONE) return "placemark-cursor-crosshair";
     if (mode.mode === Mode.NONE) return "placemark-cursor-default";
 
-    if (
-      mode.mode === Mode.DRAW_PIPE ||
-      mode.mode === Mode.DRAW_JUNCTION ||
-      mode.mode === Mode.DRAW_RESERVOIR ||
-      mode.mode === Mode.DRAW_PUMP ||
-      mode.mode === Mode.DRAW_VALVE
-    )
-      return "placemark-cursor-crosshair";
     return "auto";
   }, [cursor, mode]);
 
