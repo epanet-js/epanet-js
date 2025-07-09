@@ -214,7 +214,7 @@ const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
       ...asset.feature,
       properties: {
         ...iconProps(asset),
-      },
+      } as any,
     });
   }
 
@@ -240,7 +240,7 @@ const buildDrawLinkSourceData = (
       properties: {
         halo: true,
         ...iconProps(candidate),
-      },
+      } as any,
       geometry: {
         type: "Point",
         coordinates: candidate.coordinates,
@@ -255,7 +255,7 @@ const buildDrawLinkSourceData = (
       id: startNode.id,
       properties: {
         ...iconProps(startNode),
-      },
+      } as any,
       geometry: {
         type: "Point",
         coordinates: startNode.coordinates,
