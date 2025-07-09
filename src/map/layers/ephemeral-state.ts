@@ -3,17 +3,13 @@ import { DataSource } from "../data-source";
 import { colors } from "src/lib/constants";
 import { junctionCircleSizes } from "./junctions";
 
-export const snappingCandidateHaloLayer = ({
-  source,
-}: {
-  source: DataSource;
-}) => {
+export const ephemeralHaloLayer = ({ source }: { source: DataSource }) => {
   return {
-    id: "snapping-candidate-halo",
+    id: "ephemeral-halo",
     type: "circle",
     source,
     layout: {},
-    filter: ["all", ["==", "type", "draw-link-node"], ["has", "halo"]],
+    filter: ["all", ["==", "$type", "Point"], ["has", "halo"]],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 24],
       "circle-color": colors.indigo300,
@@ -24,13 +20,17 @@ export const snappingCandidateHaloLayer = ({
   } as CircleLayer;
 };
 
-export const drawLinkNodeLayers = ({ source }: { source: DataSource }) => {
+export const ephemeralJunctionHighlightLayers = ({
+  source,
+}: {
+  source: DataSource;
+}) => {
   return {
-    id: "ephemeral-draw-link-nodes",
+    id: "ephemeral-junction-highlight",
     type: "circle",
     source,
     layout: {},
-    filter: ["all", ["==", "type", "draw-link-node"], ["!has", "icon"]],
+    filter: ["all", ["==", "$type", "Point"], ["!has", "icon"]],
     paint: {
       "circle-color": colors.indigo800,
       "circle-stroke-color": colors.indigo200,
@@ -40,9 +40,13 @@ export const drawLinkNodeLayers = ({ source }: { source: DataSource }) => {
   } as CircleLayer;
 };
 
-export const drawLinkIconLayers = ({ source }: { source: DataSource }) => {
+export const ephemeralIconHighlightLayers = ({
+  source,
+}: {
+  source: DataSource;
+}) => {
   return {
-    id: "ephemeral-draw-link-icons",
+    id: "ephemeral-icons-highlight",
     type: "symbol",
     source,
     layout: {
@@ -58,16 +62,16 @@ export const drawLinkIconLayers = ({ source }: { source: DataSource }) => {
   } as SymbolLayer;
 };
 
-export const draftLineLayer = ({
+export const ephemeralDraftLineLayer = ({
   source,
 }: {
   source: DataSource;
 }): LineLayer => {
   return {
-    id: "draft-line",
+    id: "ephemeral-draft-line",
     type: "line",
     source,
-    filter: ["==", "type", "draw-link-line"],
+    filter: ["==", "$type", "LineString"],
     paint: {
       "line-opacity": 1,
       "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],

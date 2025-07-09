@@ -202,7 +202,6 @@ export const buildEphemeralStateSource = (
         type: "Feature",
         id: `snapping-${candidate.id}`,
         properties: {
-          type: "draw-link-node",
           halo: true,
           ...iconProps(candidate),
         },
@@ -219,7 +218,6 @@ export const buildEphemeralStateSource = (
         type: "Feature",
         id: startNode.id,
         properties: {
-          type: "draw-link-node",
           ...iconProps(startNode),
         },
         geometry: {
@@ -233,9 +231,7 @@ export const buildEphemeralStateSource = (
     features.push({
       type: "Feature",
       id: "draw-link-line",
-      properties: {
-        type: "draw-link-line",
-      },
+      properties: {},
       geometry: {
         type: "LineString",
         coordinates: linkCoordinates,

@@ -30,10 +30,10 @@ import { linkLabelsLayer } from "src/map/layers/link-labels";
 import { nodeLabelsLayer } from "src/map/layers/node-labels";
 import { tankLayers } from "src/map/layers/tank";
 import {
-  draftLineLayer,
-  drawLinkIconLayers,
-  drawLinkNodeLayers,
-  snappingCandidateHaloLayer,
+  ephemeralDraftLineLayer,
+  ephemeralIconHighlightLayers,
+  ephemeralJunctionHighlightLayers,
+  ephemeralHaloLayer,
 } from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
@@ -158,7 +158,7 @@ export function makeLayers({
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
     ...(isTankFlagOn
-      ? [snappingCandidateHaloLayer({ source: "ephemeral-state" })]
+      ? [ephemeralHaloLayer({ source: "ephemeral-state" })]
       : []),
     pipesLayer({
       source: "imported-features",
@@ -190,7 +190,9 @@ export function makeLayers({
       layerId: "valve-lines",
       symbology,
     }),
-    ...(isTankFlagOn ? [draftLineLayer({ source: "ephemeral-state" })] : []),
+    ...(isTankFlagOn
+      ? [ephemeralDraftLineLayer({ source: "ephemeral-state" })]
+      : []),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
@@ -246,10 +248,10 @@ export function makeLayers({
         ]),
     ...tankLayers({ sources: ["icons"] }),
     ...(isTankFlagOn
-      ? [drawLinkNodeLayers({ source: "ephemeral-state" })]
+      ? [ephemeralJunctionHighlightLayers({ source: "ephemeral-state" })]
       : []),
     ...(isTankFlagOn
-      ? [drawLinkIconLayers({ source: "ephemeral-state" })]
+      ? [ephemeralIconHighlightLayers({ source: "ephemeral-state" })]
       : []),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
