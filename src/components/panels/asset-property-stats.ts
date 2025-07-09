@@ -170,6 +170,13 @@ const appendTankStats = (
   quantitiesMetadata: Quantities,
 ) => {
   updateQuantityStats(statsMap, "level", tank.level, quantitiesMetadata);
+  updateQuantityStats(statsMap, "volume", tank.volume, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "elevation",
+    tank.elevation,
+    quantitiesMetadata,
+  );
 };
 
 const updateQuantityStats = (
