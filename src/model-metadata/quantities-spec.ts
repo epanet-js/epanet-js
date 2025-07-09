@@ -110,10 +110,10 @@ const metricSpec: AssetQuantitiesSpec = {
       relativeHead: 10,
     },
     tank: {
-      diameter: 50,
+      diameter: 10,
       initialLevel: 10,
       minLevel: 0,
-      maxLevel: 20,
+      maxLevel: 35,
       minVolume: 0,
     },
     pump: {
@@ -168,10 +168,10 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       relativeHead: 32,
     },
     tank: {
-      diameter: 50,
+      diameter: 120,
       initialLevel: 10,
       minLevel: 0,
-      maxLevel: 20,
+      maxLevel: 30,
       minVolume: 0,
     },
     pump: {
