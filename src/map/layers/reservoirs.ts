@@ -63,7 +63,7 @@ export const reservoirLayers = ({
               13,
               0.2,
               20,
-              0.4,
+              0.5,
             ],
             "icon-allow-overlap": true,
           },

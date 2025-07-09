@@ -787,7 +787,7 @@ const TankEditor = ({
               <QuantityRow
                 name="diameter"
                 value={tank.diameter}
-                unit={quantitiesMetadata.getUnit("diameter")}
+                unit={quantitiesMetadata.getUnit("tankDiameter")}
                 decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
               />
