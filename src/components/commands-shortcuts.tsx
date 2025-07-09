@@ -21,6 +21,7 @@ import {
 } from "src/commands/history-control";
 import {
   drawingModeShorcuts,
+  drawingModeShorcutsDeprecated,
   useDrawingMode,
 } from "src/commands/set-drawing-mode";
 import { MODE_INFO, Mode } from "src/state/mode";
@@ -47,6 +48,7 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -244,7 +246,11 @@ export const CommandShortcuts = () => {
     `Show simulaton settings`,
   );
 
-  for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
+  const isTank = useFeatureFlag("FLAG_TANK");
+
+  for (const [mode, shortcut] of Object.entries(
+    isTank ? drawingModeShorcuts : drawingModeShorcutsDeprecated,
+  )) {
     // eslint-disable-next-line
     useHotkeys(
       shortcut,
