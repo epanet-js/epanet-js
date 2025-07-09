@@ -769,6 +769,7 @@ const TankEditor = ({
                 unit={quantitiesMetadata.getUnit("initialLevel")}
                 decimals={quantitiesMetadata.getDecimals("initialLevel")}
                 onChange={onPropertyChange}
+                positiveOnly={true}
               />
               <QuantityRow
                 name="minLevel"
@@ -776,6 +777,7 @@ const TankEditor = ({
                 unit={quantitiesMetadata.getUnit("minLevel")}
                 decimals={quantitiesMetadata.getDecimals("minLevel")}
                 onChange={onPropertyChange}
+                positiveOnly={true}
               />
               <QuantityRow
                 name="maxLevel"
@@ -783,6 +785,7 @@ const TankEditor = ({
                 unit={quantitiesMetadata.getUnit("maxLevel")}
                 decimals={quantitiesMetadata.getDecimals("maxLevel")}
                 onChange={onPropertyChange}
+                positiveOnly={true}
               />
               <QuantityRow
                 name="diameter"
@@ -790,6 +793,8 @@ const TankEditor = ({
                 unit={quantitiesMetadata.getUnit("tankDiameter")}
                 decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
+                positiveOnly={true}
+                isNullable={false}
               />
               <QuantityRow
                 name="minVolume"
@@ -797,6 +802,7 @@ const TankEditor = ({
                 unit={quantitiesMetadata.getUnit("minVolume")}
                 decimals={quantitiesMetadata.getDecimals("minVolume")}
                 onChange={onPropertyChange}
+                positiveOnly={true}
               />
               <SwitchRow
                 name="overflow"
