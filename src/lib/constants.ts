@@ -39,6 +39,7 @@ export const colors = {
   indigo600: "#4f46e5",
   fuchsia500: "#d946ef",
   fuchsia400: "#e879f9",
+  fuchsia300: "#f0abfc",
   amber800: "#6C5B37",
   orange800: "#705A31",
   yellow600: "#C6C95C",

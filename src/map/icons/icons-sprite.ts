@@ -36,7 +36,8 @@ export type IconId =
   | "valve-pbv-active"
   | "valve-pbv-open"
   | "valve-pbv-closed"
-  | "tank";
+  | "tank"
+  | "tank-selected";
 
 export type TextureProps = {
   width: number;
@@ -235,6 +236,15 @@ const iconUrls: IconUrl[] = [
       buildTankSvg({
         borderColor: colors.indigo800,
         fillColor: colors.indigo500,
+      }),
+    ),
+  },
+  {
+    id: "tank-selected",
+    url: urlFor(
+      buildTankSvg({
+        borderColor: colors.fuchsia300,
+        fillColor: colors.fuchsia500,
       }),
     ),
   },
