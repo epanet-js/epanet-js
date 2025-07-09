@@ -264,7 +264,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSelection && !hasNewImport) {
+        if ((hasNewSelection && !hasNewImport) || hasNewStyles) {
           updateSelection(
             map,
             mapState.selection,
