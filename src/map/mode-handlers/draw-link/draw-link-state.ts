@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { AssetBuilder, LinkAsset, LinkType } from "src/hydraulic-model";
 import { NodeAsset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
 type DrawingState =
@@ -18,6 +19,7 @@ export const useDrawingState = (
   linkType: LinkType,
 ) => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const isTankFlagOn = useFeatureFlag("FLAG_TANK");
 
   const resetDrawing = () => {
     setEphemeralState({ type: "none" });
@@ -58,6 +60,10 @@ export const useDrawingState = (
           link,
           snappingCandidate,
         };
+      }
+
+      if (isTankFlagOn && prev.snappingCandidate === snappingCandidate) {
+        return prev;
       }
 
       return {
