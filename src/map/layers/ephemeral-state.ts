@@ -55,7 +55,7 @@ export const ephemeralIconHighlightLayers = ({
       "icon-size": ["interpolate", ["linear"], ["zoom"], 13, 0.2, 20, 0.4],
       "icon-allow-overlap": true,
     },
-    filter: ["all", ["==", "type", "draw-link-node"], ["has", "icon"]],
+    filter: ["all", ["==", "$type", "Point"], ["has", "icon"]],
     paint: {
       "icon-opacity": 1,
     },

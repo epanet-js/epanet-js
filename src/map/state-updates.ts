@@ -511,7 +511,7 @@ const buildEphemeralStateOvelay = withDebugInstrumentation(
         ephemeralState,
       ) as DeckLayer[];
     }
-    if (ephemeralState.type === "moveAssets") {
+    if (ephemeralState.type === "moveAssets" && !isTankFlagOn) {
       ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
     }
     return ephemeralLayers;

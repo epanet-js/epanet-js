@@ -13,7 +13,7 @@ import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
-import { NodeAsset, Valve } from "src/hydraulic-model/asset-types";
+import { Asset, NodeAsset, Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
@@ -25,6 +25,8 @@ import {
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { EphemeralEditingState } from "src/state/jotai";
+import { EphemeralDrawLink } from "./mode-handlers/draw-link";
+import { EphemeralMoveAssets } from "./mode-handlers/none/move-state";
 
 export type DataSource =
   | "imported-features"
@@ -187,6 +189,41 @@ export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
   _idMap: IDMap,
 ): Feature[] => {
+  if (ephemeralState.type == "drawLink") {
+    return buildDrawLinkSourceData(ephemeralState);
+  }
+
+  if (ephemeralState.type === "moveAssets") {
+    return buildMoveAssetsSourceData(ephemeralState);
+  }
+
+  return [];
+};
+
+const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
+  const features: Feature[] = [];
+
+  const iconProps = (asset: Asset) => {
+    if (asset.isLink || asset.type === "junction") return {};
+
+    return { icon: `${asset.type}-highlight` };
+  };
+
+  for (const asset of ephemeralState.targetAssets) {
+    features.push({
+      ...asset.feature,
+      properties: {
+        ...iconProps(asset),
+      },
+    });
+  }
+
+  return features;
+};
+
+const buildDrawLinkSourceData = (
+  ephemeralState: EphemeralDrawLink,
+): Feature[] => {
   const features: Feature[] = [];
 
   const iconProps = (node: NodeAsset) => {
@@ -195,49 +232,47 @@ export const buildEphemeralStateSource = (
     return { icon: `${node.type}-highlight` };
   };
 
-  if (ephemeralState.type === "drawLink") {
-    if (ephemeralState.snappingCandidate) {
-      const candidate = ephemeralState.snappingCandidate;
-      features.push({
-        type: "Feature",
-        id: `snapping-${candidate.id}`,
-        properties: {
-          halo: true,
-          ...iconProps(candidate),
-        },
-        geometry: {
-          type: "Point",
-          coordinates: candidate.coordinates,
-        },
-      });
-    }
-
-    if (ephemeralState.startNode) {
-      const startNode = ephemeralState.startNode;
-      features.push({
-        type: "Feature",
-        id: startNode.id,
-        properties: {
-          ...iconProps(startNode),
-        },
-        geometry: {
-          type: "Point",
-          coordinates: startNode.coordinates,
-        },
-      });
-    }
-
-    const linkCoordinates = ephemeralState.link.coordinates;
+  if (ephemeralState.snappingCandidate) {
+    const candidate = ephemeralState.snappingCandidate;
     features.push({
       type: "Feature",
-      id: "draw-link-line",
-      properties: {},
+      id: `snapping-${candidate.id}`,
+      properties: {
+        halo: true,
+        ...iconProps(candidate),
+      },
       geometry: {
-        type: "LineString",
-        coordinates: linkCoordinates,
+        type: "Point",
+        coordinates: candidate.coordinates,
       },
     });
   }
+
+  if (ephemeralState.startNode) {
+    const startNode = ephemeralState.startNode;
+    features.push({
+      type: "Feature",
+      id: startNode.id,
+      properties: {
+        ...iconProps(startNode),
+      },
+      geometry: {
+        type: "Point",
+        coordinates: startNode.coordinates,
+      },
+    });
+  }
+
+  const linkCoordinates = ephemeralState.link.coordinates;
+  features.push({
+    type: "Feature",
+    id: "draw-link-line",
+    properties: {},
+    geometry: {
+      type: "LineString",
+      coordinates: linkCoordinates,
+    },
+  });
 
   return features;
 };
