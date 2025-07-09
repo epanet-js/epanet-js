@@ -1,5 +1,5 @@
 import { Asset, Junction, Pipe, Pump, Reservoir } from "src/hydraulic-model";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { Tank, Valve } from "src/hydraulic-model/asset-types";
 import { junctionQuantities } from "src/hydraulic-model/asset-types/junction";
 import { pipeQuantities } from "src/hydraulic-model/asset-types/pipe";
 import { reservoirQuantities } from "src/hydraulic-model/asset-types/reservoir";
@@ -52,6 +52,7 @@ export const computePropertyStats = (
         appendValveStats(statsMap, asset as Valve, quantitiesMetadata);
         break;
       case "tank":
+        appendTankStats(statsMap, asset as Tank, quantitiesMetadata);
         break;
     }
   }
@@ -161,6 +162,14 @@ const appendReservoirStats = (
       quantitiesMetadata,
     );
   }
+};
+
+const appendTankStats = (
+  statsMap: StatsMap,
+  tank: Tank,
+  quantitiesMetadata: Quantities,
+) => {
+  updateQuantityStats(statsMap, "level", tank.level, quantitiesMetadata);
 };
 
 const updateQuantityStats = (
