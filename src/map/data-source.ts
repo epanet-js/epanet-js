@@ -24,8 +24,13 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
+import { EphemeralEditingState } from "src/state/jotai";
 
-export type DataSource = "imported-features" | "features" | "icons";
+export type DataSource =
+  | "imported-features"
+  | "features"
+  | "icons"
+  | "ephemeral-state";
 
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
@@ -176,6 +181,46 @@ export const buildIconPointsSource = (
     }
   }
   return strippedFeatures;
+};
+
+export const buildEphemeralStateSource = (
+  ephemeralState: EphemeralEditingState,
+  _idMap: IDMap,
+): Feature[] => {
+  const features: Feature[] = [];
+
+  if (ephemeralState.type === "drawLink") {
+    if (ephemeralState.snappingCandidate) {
+      const candidate = ephemeralState.snappingCandidate;
+      features.push({
+        type: "Feature",
+        id: "snapping-candidate",
+        properties: {
+          type: "snapping-candidate",
+          radius: 14,
+        },
+        geometry: {
+          type: "Point",
+          coordinates: candidate.coordinates,
+        },
+      });
+    }
+
+    const linkCoordinates = ephemeralState.link.coordinates;
+    features.push({
+      type: "Feature",
+      id: "draw-link-line",
+      properties: {
+        type: "draw-link-line",
+      },
+      geometry: {
+        type: "LineString",
+        coordinates: linkCoordinates,
+      },
+    });
+  }
+
+  return features;
 };
 
 const appendPipeSymbologyProps = (

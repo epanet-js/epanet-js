@@ -22,6 +22,7 @@ import { MapEngine } from "./map-engine";
 import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
+  buildEphemeralStateSource,
 } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
@@ -262,7 +263,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           ephemeralStateOverlays.current = buildEphemeralStateOvelay(
             map,
             mapState.ephemeralState,
+            isTankFlagOn,
           );
+
+          if (isTankFlagOn) {
+            await updateEphemeralStateSource(
+              map,
+              mapState.ephemeralState,
+              idMap,
+            );
+          }
+
           updateEditionsVisibility(
             map,
             previousMapState.movedAssetIds,
@@ -489,9 +500,13 @@ const updateEditionsVisibility = withDebugInstrumentation(
 );
 
 const buildEphemeralStateOvelay = withDebugInstrumentation(
-  (map: MapEngine, ephemeralState: EphemeralEditingState): DeckLayer[] => {
+  (
+    map: MapEngine,
+    ephemeralState: EphemeralEditingState,
+    isTankFlagOn: boolean,
+  ): DeckLayer[] => {
     let ephemeralLayers: DeckLayer[] = [];
-    if (ephemeralState.type === "drawLink") {
+    if (ephemeralState.type === "drawLink" && !isTankFlagOn) {
       ephemeralLayers = buildEphemeralDrawLinkLayers(
         ephemeralState,
       ) as DeckLayer[];
@@ -524,6 +539,21 @@ const updateSelection = withDebugInstrumentation(
     }
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
+);
+
+const updateEphemeralStateSource = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    ephemeralState: EphemeralEditingState,
+    idMap: IDMap,
+  ): Promise<void> => {
+    const features = buildEphemeralStateSource(ephemeralState, idMap);
+    await map.setSource("ephemeral-state", features);
+  },
+  {
+    name: "MAP_STATE:UPDATE_EPHEMERAL_STATE_SOURCE",
+    maxDurationMs: 100,
+  },
 );
 
 const noMoved: Set<AssetId> = new Set();

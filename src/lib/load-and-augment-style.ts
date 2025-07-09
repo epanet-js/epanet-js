@@ -29,6 +29,10 @@ import { valveIcons, valveLines } from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
 import { nodeLabelsLayer } from "src/map/layers/node-labels";
 import { tankLayers } from "src/map/layers/tank";
+import {
+  draftLineLayer,
+  snappingCandidateLayer,
+} from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
   const style: mapboxgl.Style = {
@@ -127,6 +131,10 @@ export function addEditingLayers({
   style.sources["features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
 
+  if (isTankFlagOn) {
+    style.sources["ephemeral-state"] = emptyGeoJSONSource;
+  }
+
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
   }
@@ -147,6 +155,9 @@ export function makeLayers({
 }): mapboxgl.AnyLayer[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
+    ...(isTankFlagOn
+      ? [snappingCandidateLayer({ source: "ephemeral-state" })]
+      : []),
     pipesLayer({
       source: "imported-features",
       layerId: "imported-pipes",
@@ -177,6 +188,7 @@ export function makeLayers({
       layerId: "valve-lines",
       symbology,
     }),
+    ...(isTankFlagOn ? [draftLineLayer({ source: "ephemeral-state" })] : []),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
