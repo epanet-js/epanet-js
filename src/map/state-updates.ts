@@ -260,27 +260,33 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewEphemeralState) {
-          ephemeralStateOverlays.current = buildEphemeralStateOvelay(
-            map,
-            mapState.ephemeralState,
-            isTankFlagOn,
-          );
-
           if (isTankFlagOn) {
+            updateEditionsVisibility(
+              map,
+              previousMapState.movedAssetIds,
+              mapState.movedAssetIds,
+              lastHiddenFeatures.current,
+              idMap,
+            );
             await updateEphemeralStateSource(
               map,
               mapState.ephemeralState,
               idMap,
             );
+          } else {
+            ephemeralStateOverlays.current = buildEphemeralStateOvelay(
+              map,
+              mapState.ephemeralState,
+              isTankFlagOn,
+            );
+            updateEditionsVisibility(
+              map,
+              previousMapState.movedAssetIds,
+              mapState.movedAssetIds,
+              lastHiddenFeatures.current,
+              idMap,
+            );
           }
-
-          updateEditionsVisibility(
-            map,
-            previousMapState.movedAssetIds,
-            mapState.movedAssetIds,
-            lastHiddenFeatures.current,
-            idMap,
-          );
         }
 
         if ((hasNewSelection && !hasNewImport) || hasNewStyles) {
@@ -292,7 +298,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        map.setOverlay(ephemeralStateOverlays.current);
+        if (!isTankFlagOn) map.setOverlay(ephemeralStateOverlays.current);
         setMapLoading(false);
       } catch (error) {
         captureError(error as Error);
