@@ -1,13 +1,14 @@
 import { IFeature } from "src/types";
 import { LineString, Point } from "geojson";
 import { Unit } from "src/quantity";
+import { AssetType } from "./types";
 
 export type AssetId = StringId;
 
 type AssetGeometry = LineString | Point;
 
 export type AssetProperties = {
-  type: "pipe" | "junction" | "reservoir" | "tank" | "pump" | "valve";
+  type: AssetType;
   visibility?: boolean;
   label: string;
 };

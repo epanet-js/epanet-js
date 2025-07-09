@@ -13,7 +13,8 @@ export const nullCoordinates = [
 
 export const nullConnections: LinkConnections = ["", ""];
 
-export type LinkType = "pipe" | "pump" | "valve";
+import { LinkType } from "./types";
+export type { LinkType };
 
 export type LinkProperties = {
   type: LinkType;
@@ -36,6 +37,10 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
   }
   get isNode() {
     return false;
+  }
+
+  get type(): LinkType {
+    return this.feature.properties.type;
   }
 
   get connections() {

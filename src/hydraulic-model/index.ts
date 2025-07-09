@@ -27,4 +27,4 @@ export { Topology } from "./topology";
 export { attachSimulation } from "./simulation";
 export type { HeadlossFormula } from "./asset-types/pipe";
 export { headlossFormulas } from "./asset-types/pipe";
-export type { LinkType } from "./asset-types/link";
+export type { LinkType, NodeType, AssetType } from "./asset-types/types";

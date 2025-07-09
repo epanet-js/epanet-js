@@ -14,3 +14,4 @@ export { Pipe, Junction, Reservoir, Pump, Valve, Tank };
 export type { AssetId } from "./base-asset";
 export { BaseAsset } from "./base-asset";
 export type { PipeProperties } from "./pipe";
+export type { NodeType, LinkType, AssetType } from "./types";

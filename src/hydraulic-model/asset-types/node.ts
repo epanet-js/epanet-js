@@ -1,9 +1,10 @@
 import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
+import { NodeType } from "./types";
 
 export type NodeProperties = {
   elevation: number;
-  type: "junction" | "reservoir" | "tank";
+  type: NodeType;
 } & AssetProperties;
 
 export class Node<T> extends BaseAsset<T & NodeProperties> {
