@@ -29,6 +29,44 @@ const MODE_OPTIONS = [
     Icon: CircleIcon,
   },
   {
+    mode: Mode.DRAW_RESERVOIR,
+    hotkey: "3",
+    Icon: VercelLogoIcon,
+  },
+  {
+    mode: Mode.DRAW_TANK,
+    hotkey: "4",
+    Icon: () => <TankIcon width={15} height={15} />,
+  },
+  {
+    mode: Mode.DRAW_PIPE,
+    hotkey: "5",
+    Icon: StretchHorizontallyIcon,
+  },
+  {
+    mode: Mode.DRAW_PUMP,
+    hotkey: "6",
+    Icon: () => <PumpIcon width={15} height={15} />,
+  },
+  {
+    mode: Mode.DRAW_VALVE,
+    hotkey: "7",
+    Icon: () => <ValveIcon width={15} height={15} />,
+  },
+] as const;
+
+const MODE_OPTIONS_DEPRECATED = [
+  {
+    mode: Mode.NONE,
+    hotkey: "1",
+    Icon: CursorArrowIcon,
+  },
+  {
+    mode: Mode.DRAW_JUNCTION,
+    hotkey: "2",
+    Icon: CircleIcon,
+  },
+  {
     mode: Mode.DRAW_PIPE,
     hotkey: "3",
     Icon: StretchHorizontallyIcon,
@@ -48,11 +86,6 @@ const MODE_OPTIONS = [
     hotkey: "6",
     Icon: () => <ValveIcon width={15} height={15} />,
   },
-  {
-    mode: Mode.DRAW_TANK,
-    hotkey: "7",
-    Icon: () => <TankIcon width={15} height={15} />,
-  },
 ] as const;
 
 export default memo(function Modes({
@@ -66,17 +99,14 @@ export default memo(function Modes({
   const translate = useTranslate();
   const isTankOn = useFeatureFlag("FLAG_TANK");
 
+  const modeOptions = isTankOn ? MODE_OPTIONS : MODE_OPTIONS_DEPRECATED;
+
   return (
     <div className="flex items-center justify-start" role="radiogroup">
-      {MODE_OPTIONS.filter((mode) => {
-        if (!replaceGeometryForId) return true;
-        return mode.mode !== Mode.NONE;
-      })
+      {modeOptions
         .filter((mode) => {
-          if (mode.mode === Mode.DRAW_TANK) {
-            return isTankOn;
-          }
-          return true;
+          if (!replaceGeometryForId) return true;
+          return mode.mode !== Mode.NONE;
         })
         .map(({ mode, hotkey, Icon }, i) => {
           const modeInfo = MODE_INFO[mode];
