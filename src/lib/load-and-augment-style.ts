@@ -31,7 +31,8 @@ import { nodeLabelsLayer } from "src/map/layers/node-labels";
 import { tankLayers } from "src/map/layers/tank";
 import {
   draftLineLayer,
-  snappingCandidateLayer,
+  drawLinkNodeLayers,
+  snappingCandidateHaloLayer,
 } from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
@@ -156,7 +157,7 @@ export function makeLayers({
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
     ...(isTankFlagOn
-      ? [snappingCandidateLayer({ source: "ephemeral-state" })]
+      ? [snappingCandidateHaloLayer({ source: "ephemeral-state" })]
       : []),
     pipesLayer({
       source: "imported-features",
@@ -243,6 +244,9 @@ export function makeLayers({
           }),
         ]),
     ...tankLayers({ sources: ["icons"] }),
+    ...(isTankFlagOn
+      ? [drawLinkNodeLayers({ source: "ephemeral-state" })]
+      : []),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"

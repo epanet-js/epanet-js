@@ -9,6 +9,21 @@ import { strokeColorFor } from "src/lib/color";
 const defaultInnerColor = colors.indigo200;
 const selectedInnerColor = POINT_COLORS_SELECTED;
 
+export const junctionCircleSizes = (): Partial<CircleLayer["paint"]> => {
+  return {
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      13,
+      0.5,
+      16,
+      1,
+    ],
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
+  };
+};
+
 export const junctionsLayer = ({
   source,
   layerId,
@@ -26,17 +41,8 @@ export const junctionsLayer = ({
     paint: {
       "circle-opacity": opacityExpression(symbology),
       "circle-stroke-color": strokeColorExpression(),
-      "circle-stroke-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        13,
-        0.5,
-        16,
-        1,
-      ],
+      ...junctionCircleSizes(),
       "circle-stroke-opacity": opacityExpression(symbology),
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
       "circle-color": colorExpression(),
     },
     minzoom: 13,

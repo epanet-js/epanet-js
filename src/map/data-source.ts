@@ -194,14 +194,29 @@ export const buildEphemeralStateSource = (
       const candidate = ephemeralState.snappingCandidate;
       features.push({
         type: "Feature",
-        id: "snapping-candidate",
+        id: `snapping-${candidate.id}`,
         properties: {
-          type: "snapping-candidate",
-          radius: 14,
+          type: "draw-link-node",
+          halo: true,
         },
         geometry: {
           type: "Point",
           coordinates: candidate.coordinates,
+        },
+      });
+    }
+
+    if (ephemeralState.startNode) {
+      const startNode = ephemeralState.startNode;
+      features.push({
+        type: "Feature",
+        id: startNode.id,
+        properties: {
+          type: "draw-link-node",
+        },
+        geometry: {
+          type: "Point",
+          coordinates: startNode.coordinates,
         },
       });
     }
