@@ -11,7 +11,6 @@ import {
   buildPsvSvg,
   buildPumpSvg,
   buildTankSvg,
-  buildReservoirSvg,
 } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
@@ -67,7 +66,10 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const commonIconUrls: IconUrl[] = [
+const iconUrls: IconUrl[] = [
+  { id: "reservoir", url: reservoirPng.src, isSdf: true },
+  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
+  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
   {
     id: "triangle",
     url: triangle.src,
@@ -248,35 +250,6 @@ const commonIconUrls: IconUrl[] = [
   },
 ];
 
-const iconUrlsDeprecated: IconUrl[] = [
-  ...commonIconUrls,
-  { id: "reservoir", url: reservoirPng.src, isSdf: true },
-  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
-  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
-];
-
-const iconUrlsEnabled: IconUrl[] = [
-  ...commonIconUrls,
-  {
-    id: "reservoir",
-    url: urlFor(
-      buildReservoirSvg({
-        borderColor: colors.indigo800,
-        fillColor: colors.indigo500,
-      }),
-    ),
-  },
-  {
-    id: "reservoir-selected",
-    url: urlFor(
-      buildReservoirSvg({
-        borderColor: colors.fuchsia300,
-        fillColor: colors.fuchsia500,
-      }),
-    ),
-  },
-];
-
 const iconsMapping: IconsMapping = {
   reservoir: { x: 0, y: 0, width: 32, height: 32 },
   "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
@@ -298,10 +271,9 @@ export const getIconsSprite = () => {
 };
 
 export const prepareIconsSprite = withDebugInstrumentation(
-  async (isTankFlagOn: boolean = false): Promise<IconImage[]> => {
-    const iconUrlsToUse = isTankFlagOn ? iconUrlsEnabled : iconUrlsDeprecated;
+  async (): Promise<IconImage[]> => {
     const iconImages = await Promise.all(
-      iconUrlsToUse.map((iconUrl) => fetchImage(iconUrl)),
+      iconUrls.map((iconUrl) => fetchImage(iconUrl)),
     );
     const { atlas } = buildSprite(iconImages);
 

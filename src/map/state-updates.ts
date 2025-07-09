@@ -41,7 +41,6 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -167,7 +166,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isTankFlagOn = useFeatureFlag("FLAG_TANK");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -193,12 +191,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(
-            map,
-            mapState.stylesConfig,
-            translate,
-            isTankFlagOn,
-          );
+          await updateLayerStyles(map, mapState.stylesConfig, translate);
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -248,7 +241,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          hasNewImport ||
           hasNewEditions ||
           hasNewStyles ||
           hasNewSymbology ||
@@ -298,7 +290,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     setMapLoading,
     translate,
     translateUnit,
-    isTankFlagOn,
   ]);
 
   doUpdates();
@@ -317,14 +308,9 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
-    isTankFlagOn: boolean,
   ) => {
-    const style = await loadAndAugmentStyle({
-      ...styles,
-      translate,
-      isTankFlagOn,
-    });
-    await map.setStyle(style, isTankFlagOn);
+    const style = await loadAndAugmentStyle({ ...styles, translate });
+    await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
 );
