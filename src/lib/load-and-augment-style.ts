@@ -31,6 +31,7 @@ import { nodeLabelsLayer } from "src/map/layers/node-labels";
 import { tankLayers } from "src/map/layers/tank";
 import {
   draftLineLayer,
+  drawLinkIconLayers,
   drawLinkNodeLayers,
   snappingCandidateHaloLayer,
 } from "src/map/layers/ephemeral-state";
@@ -246,6 +247,9 @@ export function makeLayers({
     ...tankLayers({ sources: ["icons"] }),
     ...(isTankFlagOn
       ? [drawLinkNodeLayers({ source: "ephemeral-state" })]
+      : []),
+    ...(isTankFlagOn
+      ? [drawLinkIconLayers({ source: "ephemeral-state" })]
       : []),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),

@@ -19,6 +19,7 @@ export type IconId =
   | "reservoir"
   | "reservoir-outlined"
   | "reservoir-selected"
+  | "reservoir-highlight"
   | "triangle"
   | "pump-on"
   | "pump-off"
@@ -38,7 +39,8 @@ export type IconId =
   | "valve-pbv-open"
   | "valve-pbv-closed"
   | "tank"
-  | "tank-selected";
+  | "tank-selected"
+  | "tank-highlight";
 
 export type TextureProps = {
   width: number;
@@ -258,6 +260,15 @@ const iconUrlsEnabled: IconUrl[] = [
     ),
   },
   {
+    id: "tank-highlight",
+    url: urlFor(
+      buildTankSvg({
+        borderColor: colors.indigo300,
+        fillColor: colors.indigo800,
+      }),
+    ),
+  },
+  {
     id: "reservoir",
     url: urlFor(
       buildReservoirSvg({
@@ -272,6 +283,15 @@ const iconUrlsEnabled: IconUrl[] = [
       buildReservoirSvg({
         borderColor: colors.fuchsia300,
         fillColor: colors.fuchsia500,
+      }),
+    ),
+  },
+  {
+    id: "reservoir-highlight",
+    url: urlFor(
+      buildReservoirSvg({
+        borderColor: colors.indigo300,
+        fillColor: colors.indigo800,
       }),
     ),
   },

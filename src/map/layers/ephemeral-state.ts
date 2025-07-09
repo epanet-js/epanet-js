@@ -1,4 +1,4 @@
-import { CircleLayer, LineLayer } from "mapbox-gl";
+import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { colors } from "src/lib/constants";
 import { junctionCircleSizes } from "./junctions";
@@ -38,6 +38,24 @@ export const drawLinkNodeLayers = ({ source }: { source: DataSource }) => {
     },
     minzoom: 10,
   } as CircleLayer;
+};
+
+export const drawLinkIconLayers = ({ source }: { source: DataSource }) => {
+  return {
+    id: "ephemeral-draw-link-icons",
+    type: "symbol",
+    source,
+    layout: {
+      "symbol-placement": "point",
+      "icon-image": ["get", "icon"],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 13, 0.2, 20, 0.4],
+      "icon-allow-overlap": true,
+    },
+    filter: ["all", ["==", "type", "draw-link-node"], ["has", "icon"]],
+    paint: {
+      "icon-opacity": 1,
+    },
+  } as SymbolLayer;
 };
 
 export const draftLineLayer = ({

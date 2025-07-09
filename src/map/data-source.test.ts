@@ -4,7 +4,6 @@ import { IDMap, UIDMap } from "src/lib/id-mapper";
 import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
-  buildEphemeralStateSource,
 } from "./data-source";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
@@ -15,7 +14,6 @@ import {
   aRangeColorRule,
 } from "src/__helpers__/state";
 import { getColors } from "src/map/symbology/range-color-rule";
-import { EphemeralEditingState } from "src/state/jotai";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
@@ -436,125 +434,6 @@ describe("build icons source", () => {
       expect(features.length).toEqual(1);
       const { properties } = features[0];
       expect(properties?.icon).toEqual("valve-prv-closed");
-    });
-  });
-});
-
-describe("build ephemeral state source", () => {
-  describe("for drawLink state", () => {
-    it("creates snapping candidate feature", () => {
-      const ephemeralState: EphemeralEditingState = {
-        type: "drawLink",
-        linkType: "pipe",
-        link: {
-          coordinates: [
-            [10, 20],
-            [30, 40],
-          ],
-        } as any,
-        snappingCandidate: {
-          coordinates: [15, 25],
-        } as any,
-      };
-      const idMap = initIDMap(new AssetsMap());
-
-      const features = buildEphemeralStateSource(ephemeralState, idMap);
-
-      expect(features).toHaveLength(2);
-
-      const snappingFeature = features.find(
-        (f) => f.id === "snapping-candidate",
-      );
-      expect(snappingFeature).toBeDefined();
-      expect(snappingFeature!.properties).toEqual({
-        type: "snapping-candidate",
-        radius: 14,
-      });
-      expect(snappingFeature!.geometry).toEqual({
-        type: "Point",
-        coordinates: [15, 25],
-      });
-    });
-
-    it("creates draw link line feature", () => {
-      const ephemeralState: EphemeralEditingState = {
-        type: "drawLink",
-        linkType: "pipe",
-        link: {
-          coordinates: [
-            [10, 20],
-            [30, 40],
-            [50, 60],
-          ],
-        } as any,
-        snappingCandidate: null,
-      };
-      const idMap = initIDMap(new AssetsMap());
-
-      const features = buildEphemeralStateSource(ephemeralState, idMap);
-
-      expect(features).toHaveLength(1);
-
-      const linkFeature = features.find((f) => f.id === "draw-link-line");
-      expect(linkFeature).toBeDefined();
-      expect(linkFeature!.properties).toEqual({
-        type: "draw-link-line",
-      });
-      expect(linkFeature!.geometry).toEqual({
-        type: "LineString",
-        coordinates: [
-          [10, 20],
-          [30, 40],
-          [50, 60],
-        ],
-      });
-    });
-
-    it("creates both snapping candidate and link line when both present", () => {
-      const ephemeralState: EphemeralEditingState = {
-        type: "drawLink",
-        linkType: "pipe",
-        link: {
-          coordinates: [
-            [10, 20],
-            [30, 40],
-          ],
-        } as any,
-        snappingCandidate: {
-          coordinates: [15, 25],
-        } as any,
-      };
-      const idMap = initIDMap(new AssetsMap());
-
-      const features = buildEphemeralStateSource(ephemeralState, idMap);
-
-      expect(features).toHaveLength(2);
-      expect(features.find((f) => f.id === "snapping-candidate")).toBeDefined();
-      expect(features.find((f) => f.id === "draw-link-line")).toBeDefined();
-    });
-  });
-
-  describe("for other states", () => {
-    it("returns empty array for none state", () => {
-      const ephemeralState: EphemeralEditingState = {
-        type: "none",
-      };
-      const idMap = initIDMap(new AssetsMap());
-
-      const features = buildEphemeralStateSource(ephemeralState, idMap);
-
-      expect(features).toHaveLength(0);
-    });
-
-    it("returns empty array for moveAssets state", () => {
-      const ephemeralState: EphemeralEditingState = {
-        type: "moveAssets",
-      } as any;
-      const idMap = initIDMap(new AssetsMap());
-
-      const features = buildEphemeralStateSource(ephemeralState, idMap);
-
-      expect(features).toHaveLength(0);
     });
   });
 });

@@ -13,7 +13,7 @@ import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { NodeAsset, Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
@@ -189,6 +189,12 @@ export const buildEphemeralStateSource = (
 ): Feature[] => {
   const features: Feature[] = [];
 
+  const iconProps = (node: NodeAsset) => {
+    if (node.type === "junction") return {};
+
+    return { icon: `${node.type}-highlight` };
+  };
+
   if (ephemeralState.type === "drawLink") {
     if (ephemeralState.snappingCandidate) {
       const candidate = ephemeralState.snappingCandidate;
@@ -198,6 +204,7 @@ export const buildEphemeralStateSource = (
         properties: {
           type: "draw-link-node",
           halo: true,
+          ...iconProps(candidate),
         },
         geometry: {
           type: "Point",
@@ -213,6 +220,7 @@ export const buildEphemeralStateSource = (
         id: startNode.id,
         properties: {
           type: "draw-link-node",
+          ...iconProps(startNode),
         },
         geometry: {
           type: "Point",
