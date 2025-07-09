@@ -228,23 +228,12 @@ const commonIconUrls: IconUrl[] = [
       }),
     ),
   },
-];
-
-const iconUrlsDeprecated: IconUrl[] = [
-  ...commonIconUrls,
-  { id: "reservoir", url: reservoirPng.src, isSdf: true },
-  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
-  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
-];
-
-const iconUrlsEnabled: IconUrl[] = [
-  ...commonIconUrls,
   {
     id: "tank",
     url: urlFor(
       buildTankSvg({
         borderColor: colors.indigo800,
-        fillColor: colors.indigo300,
+        fillColor: colors.indigo500,
       }),
     ),
   },
@@ -257,12 +246,23 @@ const iconUrlsEnabled: IconUrl[] = [
       }),
     ),
   },
+];
+
+const iconUrlsDeprecated: IconUrl[] = [
+  ...commonIconUrls,
+  { id: "reservoir", url: reservoirPng.src, isSdf: true },
+  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
+  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
+];
+
+const iconUrlsEnabled: IconUrl[] = [
+  ...commonIconUrls,
   {
     id: "reservoir",
     url: urlFor(
       buildReservoirSvg({
         borderColor: colors.indigo800,
-        fillColor: colors.indigo300,
+        fillColor: colors.indigo500,
       }),
     ),
   },
