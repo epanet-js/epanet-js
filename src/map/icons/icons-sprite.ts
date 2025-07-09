@@ -228,24 +228,6 @@ const commonIconUrls: IconUrl[] = [
       }),
     ),
   },
-  {
-    id: "tank",
-    url: urlFor(
-      buildTankSvg({
-        borderColor: colors.indigo800,
-        fillColor: colors.indigo500,
-      }),
-    ),
-  },
-  {
-    id: "tank-selected",
-    url: urlFor(
-      buildTankSvg({
-        borderColor: colors.fuchsia300,
-        fillColor: colors.fuchsia500,
-      }),
-    ),
-  },
 ];
 
 const iconUrlsDeprecated: IconUrl[] = [
@@ -258,11 +240,29 @@ const iconUrlsDeprecated: IconUrl[] = [
 const iconUrlsEnabled: IconUrl[] = [
   ...commonIconUrls,
   {
+    id: "tank",
+    url: urlFor(
+      buildTankSvg({
+        borderColor: colors.indigo800,
+        fillColor: colors.indigo300,
+      }),
+    ),
+  },
+  {
+    id: "tank-selected",
+    url: urlFor(
+      buildTankSvg({
+        borderColor: colors.fuchsia300,
+        fillColor: colors.fuchsia500,
+      }),
+    ),
+  },
+  {
     id: "reservoir",
     url: urlFor(
       buildReservoirSvg({
         borderColor: colors.indigo800,
-        fillColor: colors.indigo500,
+        fillColor: colors.indigo300,
       }),
     ),
   },
