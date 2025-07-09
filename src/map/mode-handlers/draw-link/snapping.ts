@@ -23,6 +23,7 @@ export const useSnapping = (
         "junction-results",
         "imported-junction-results",
         "icons-tanks",
+        "icons-reservoirs",
       ],
     });
     if (!pointFeatures.length) return null;

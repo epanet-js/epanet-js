@@ -285,3 +285,48 @@ export const buildTankSvg = ({
     </svg>
   `;
 };
+
+export const buildReservoirSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  fillColor?: string;
+}) => {
+  const viewboxWidth = 32;
+  const viewboxHeight = 32;
+
+  const triangleHeight = 24;
+  const triangleBase = 28;
+
+  const p1x = (viewboxWidth - triangleBase) / 2;
+  const p1y = (viewboxHeight + triangleHeight) / 2;
+
+  const p2x = (viewboxWidth + triangleBase) / 2;
+  const p2y = (viewboxHeight + triangleHeight) / 2;
+
+  const p3x = viewboxWidth / 2;
+  const p3y = (viewboxHeight - triangleHeight) / 2;
+
+  return `
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 ${viewboxWidth} ${viewboxHeight}"
+      fill="none"
+      stroke="currentColor"
+      width="${width}"
+      height="${height}"
+    >
+      <polygon
+        points="${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}"
+        stroke="${borderColor}"
+        stroke-width="2"
+        fill="${fillColor}"
+      />
+    </svg>
+  `;
+};

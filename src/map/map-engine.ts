@@ -115,10 +115,10 @@ export class MapEngine {
     this.map = map;
   }
 
-  setStyle(style: Style): Promise<void> {
+  setStyle(style: Style, isTankFlagOn: boolean = false): Promise<void> {
     return new Promise((resolve) => {
       this.map.once("style.load", () => {
-        void this.addIcons();
+        void this.addIcons(isTankFlagOn);
         resolve();
       });
 
@@ -127,9 +127,9 @@ export class MapEngine {
     });
   }
 
-  async addIcons() {
+  async addIcons(isTankFlagOn: boolean = false) {
     if (!this.icons.length) {
-      this.icons = await prepareIconsSprite();
+      this.icons = await prepareIconsSprite(isTankFlagOn);
     }
 
     for (const { id, image, isSdf } of this.icons) {
