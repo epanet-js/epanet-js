@@ -12,7 +12,12 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer-config-adapters";
-import { reservoirsLayer, pipesLayer, junctionsLayer } from "src/map/layers";
+import {
+  reservoirsLayerDeprecated,
+  reservoirLayers,
+  pipesLayer,
+  junctionsLayer,
+} from "src/map/layers";
 import {
   asColorExpression,
   asNumberExpression,
@@ -73,11 +78,13 @@ export default async function loadAndAugmentStyle({
   symbology,
   previewProperty,
   translate,
+  isTankFlagOn,
 }: {
   layerConfigs: LayerConfigMap;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
   translate: (key: string) => string;
+  isTankFlagOn: boolean;
 }): Promise<Style> {
   let style = getEmptyStyle();
   let id = 0;
@@ -100,7 +107,7 @@ export default async function loadAndAugmentStyle({
     }
   }
 
-  addEditingLayers({ style, symbology, previewProperty });
+  addEditingLayers({ style, symbology, previewProperty, isTankFlagOn });
 
   return style;
 }
@@ -109,10 +116,12 @@ export function addEditingLayers({
   style,
   symbology,
   previewProperty,
+  isTankFlagOn,
 }: {
   style: Style;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
+  isTankFlagOn: boolean;
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
@@ -123,16 +132,18 @@ export function addEditingLayers({
   }
 
   style.layers = style.layers.concat(
-    makeLayers({ symbology, previewProperty }),
+    makeLayers({ symbology, previewProperty, isTankFlagOn }),
   );
 }
 
 export function makeLayers({
   symbology,
   previewProperty,
+  isTankFlagOn,
 }: {
   symbology: ISymbology;
   previewProperty: PreviewProperty;
+  isTankFlagOn: boolean;
 }): mapboxgl.AnyLayer[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
@@ -205,16 +216,20 @@ export function makeLayers({
       layerId: "pump-icons",
       symbology,
     }),
-    reservoirsLayer({
-      source: "features",
-      layerId: "reservoirs",
-      symbology,
-    }),
-    reservoirsLayer({
-      source: "imported-features",
-      layerId: "imported-reservoirs",
-      symbology,
-    }),
+    ...(isTankFlagOn
+      ? reservoirLayers({ sources: ["icons"] })
+      : [
+          reservoirsLayerDeprecated({
+            source: "features",
+            layerId: "reservoirs",
+            symbology,
+          }),
+          reservoirsLayerDeprecated({
+            source: "imported-features",
+            layerId: "imported-reservoirs",
+            symbology,
+          }),
+        ]),
     ...tankLayers({ sources: ["icons"] }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),

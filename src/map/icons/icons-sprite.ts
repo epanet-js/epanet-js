@@ -11,6 +11,7 @@ import {
   buildPsvSvg,
   buildPumpSvg,
   buildTankSvg,
+  buildReservoirSvg,
 } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
@@ -66,10 +67,7 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const iconUrls: IconUrl[] = [
-  { id: "reservoir", url: reservoirPng.src, isSdf: true },
-  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
-  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
+const commonIconUrls: IconUrl[] = [
   {
     id: "triangle",
     url: triangle.src,
@@ -230,12 +228,23 @@ const iconUrls: IconUrl[] = [
       }),
     ),
   },
+];
+
+const iconUrlsDeprecated: IconUrl[] = [
+  { id: "reservoir", url: reservoirPng.src, isSdf: true },
+  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
+  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
+  ...commonIconUrls,
+];
+
+const iconUrlsEnabled: IconUrl[] = [
+  ...commonIconUrls,
   {
     id: "tank",
     url: urlFor(
       buildTankSvg({
         borderColor: colors.indigo800,
-        fillColor: colors.indigo500,
+        fillColor: colors.indigo300,
       }),
     ),
   },
@@ -243,6 +252,24 @@ const iconUrls: IconUrl[] = [
     id: "tank-selected",
     url: urlFor(
       buildTankSvg({
+        borderColor: colors.fuchsia300,
+        fillColor: colors.fuchsia500,
+      }),
+    ),
+  },
+  {
+    id: "reservoir",
+    url: urlFor(
+      buildReservoirSvg({
+        borderColor: colors.indigo800,
+        fillColor: colors.indigo300,
+      }),
+    ),
+  },
+  {
+    id: "reservoir-selected",
+    url: urlFor(
+      buildReservoirSvg({
         borderColor: colors.fuchsia300,
         fillColor: colors.fuchsia500,
       }),
@@ -271,9 +298,10 @@ export const getIconsSprite = () => {
 };
 
 export const prepareIconsSprite = withDebugInstrumentation(
-  async (): Promise<IconImage[]> => {
+  async (isTankFlagOn: boolean = false): Promise<IconImage[]> => {
+    const iconUrlsToUse = isTankFlagOn ? iconUrlsEnabled : iconUrlsDeprecated;
     const iconImages = await Promise.all(
-      iconUrls.map((iconUrl) => fetchImage(iconUrl)),
+      iconUrlsToUse.map((iconUrl) => fetchImage(iconUrl)),
     );
     const { atlas } = buildSprite(iconImages);
 

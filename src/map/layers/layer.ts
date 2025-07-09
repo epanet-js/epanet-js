@@ -20,7 +20,7 @@ export type LayerId =
   | "reservoirs-selected"
   | "imported-reservoirs-selected"
   | "icons-tanks"
-  | "icons-tanks-selected";
+  | "icons-reservoirs";
 
 export const assetLayers: LayerId[] = [
   "pipes",
@@ -30,6 +30,7 @@ export const assetLayers: LayerId[] = [
   "junction-results",
   "imported-junction-results",
   "reservoirs",
+  "icons-reservoirs",
   "reservoirs-selected",
   "imported-reservoirs",
   "imported-reservoirs-selected",

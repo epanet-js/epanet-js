@@ -1,5 +1,12 @@
 import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
-import { AssetId, AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
+import {
+  AssetId,
+  AssetsMap,
+  Junction,
+  Pipe,
+  Pump,
+  Reservoir,
+} from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Unit, convertTo } from "src/quantity";
@@ -148,6 +155,22 @@ export const buildIconPointsSource = (
           selected: selectedAssets.has(tank.id),
         },
         geometry: tank.feature.geometry,
+      };
+      strippedFeatures.push(feature);
+    }
+
+    if (asset.type === "reservoir") {
+      const reservoir = asset as Reservoir;
+      const featureId = UIDMap.getIntID(idMap, asset.id);
+
+      const feature: Feature = {
+        type: "Feature",
+        id: featureId,
+        properties: {
+          type: reservoir.type,
+          selected: selectedAssets.has(reservoir.id),
+        },
+        geometry: reservoir.feature.geometry,
       };
       strippedFeatures.push(feature);
     }
