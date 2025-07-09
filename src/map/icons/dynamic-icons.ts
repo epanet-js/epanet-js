@@ -259,7 +259,7 @@ export const buildTankSvg = ({
   const viewboxHeight = 32;
 
   const rectWidth = 28;
-  const rectHeight = 16;
+  const rectHeight = 22;
 
   const rectX = (viewboxWidth - rectWidth) / 2;
   const rectY = (viewboxHeight - rectHeight) / 2;
