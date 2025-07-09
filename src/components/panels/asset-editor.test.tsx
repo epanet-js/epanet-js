@@ -491,15 +491,14 @@ describe("AssetEditor", () => {
 
       expectPropertyDisplayed("label", "MY_TANK");
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("diameter (mm)", "300");
+      expectPropertyDisplayed("diameter (m)", "300");
       expectPropertyDisplayed("initial level (m)", "50");
       expectPropertyDisplayed("min level (m)", "0");
       expectPropertyDisplayed("max level (m)", "100");
       expectPropertyDisplayed("min volume (m³)", "0");
-      expect(screen.getByRole("switch", { name: /overflow/i })).toHaveAttribute(
-        "aria-checked",
-        "true",
-      );
+      expect(
+        screen.getByRole("switch", { name: /can overflow/i }),
+      ).toHaveAttribute("aria-checked", "true");
     });
 
     it("can change the overflow setting", async () => {

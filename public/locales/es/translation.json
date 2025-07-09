@@ -59,7 +59,7 @@
   "minLevel": "Nivel Mín.",
   "maxLevel": "Nivel Máx.",
   "minVolume": "Volumen Mín.",
-  "overflow": "Desbordamiento",
+  "canOverflow": "Puede Desbordar",
   "head": "Carga",
   "pumpType": "Tipo de Bomba",
   "pumpHead": "Carga Bomba",

@@ -800,7 +800,7 @@ const TankEditor = ({
               />
               <SwitchRow
                 name="overflow"
-                label={translate("overflow")}
+                label={translate("canOverflow")}
                 enabled={tank.overflow}
                 onChange={onPropertyChange}
               />

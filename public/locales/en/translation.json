@@ -59,7 +59,7 @@
   "minLevel": "Min Level",
   "maxLevel": "Max Level",
   "minVolume": "Min Volume",
-  "overflow": "Overflow",
+  "canOverflow": "Can Overflow",
   "head": "Head",
   "pumpType": "Pump Type",
   "pumpHead": "Pump Head",
