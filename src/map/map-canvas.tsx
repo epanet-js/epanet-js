@@ -26,7 +26,7 @@ import {
   satelliteModeOnAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/map";
-import { MapEngine, MapHandlers } from "./map-engine";
+import { MapEngine } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate-flatbush-instance";
 import * as CM from "@radix-ui/react-context-menu";
 import { env } from "src/lib/env-client";
@@ -49,6 +49,7 @@ import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
+import { MapHandlers } from "./types";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(

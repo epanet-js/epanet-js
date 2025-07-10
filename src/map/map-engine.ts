@@ -1,4 +1,4 @@
-import mapboxgl, { MapboxEvent, Style } from "mapbox-gl";
+import mapboxgl, { Style } from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
 
 import { CURSOR_DEFAULT } from "src/lib/constants";
@@ -10,6 +10,7 @@ import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
+import type { MapHandlers, MoveEvent } from "./types";
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -27,23 +28,6 @@ const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
   if (totalFeatures < 10000) return 5000;
 
   return 10000;
-};
-
-type ClickEvent = mapboxgl.MapMouseEvent & mapboxgl.EventData;
-type MoveEvent = mapboxgl.MapboxEvent & mapboxgl.EventData;
-
-export type MapHandlers = {
-  onClick: (e: ClickEvent) => void;
-  onDoubleClick: (e: ClickEvent) => void;
-  onMapMouseUp: (e: mapboxgl.MapMouseEvent) => void;
-  onMapMouseMove: (e: mapboxgl.MapMouseEvent) => void;
-  onMapTouchMove: (e: mapboxgl.MapTouchEvent) => void;
-  onMapMouseDown: (e: mapboxgl.MapMouseEvent) => void;
-  onMapTouchStart: (e: mapboxgl.MapTouchEvent) => void;
-  onMoveEnd: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
-  onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => void;
-  onMove: (e: mapboxgl.MapboxEvent & mapboxgl.EventData) => void;
-  onZoom: (e: mapboxgl.MapBoxZoomEvent) => void;
 };
 
 export class MapEngine {

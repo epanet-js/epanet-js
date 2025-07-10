@@ -14,7 +14,9 @@ import {
   momentLogAtom,
   nullData,
   simulationAtom,
+  modeAtom,
 } from "src/state/jotai";
+import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/lib/convert";
 import { ILayerConfig, LayerConfigMap } from "src/types";
@@ -43,6 +45,7 @@ export const setInitialState = ({
   nodeSymbology = nullSymbologySpec.node,
   linkSymbology = nullSymbologySpec.link,
   locale = "en",
+  mode = Mode.NONE,
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -54,6 +57,7 @@ export const setInitialState = ({
   nodeSymbology?: NodeSymbology;
   linkSymbology?: LinkSymbology;
   locale?: Locale;
+  mode?: Mode;
 } = {}): Store => {
   store.set(dataAtom, {
     ...nullData,
@@ -67,6 +71,7 @@ export const setInitialState = ({
   store.set(nodeSymbologyAtom, nodeSymbology);
   store.set(linkSymbologyAtom, linkSymbology);
   store.set(localeAtom, locale);
+  store.set(modeAtom, { mode });
 
   return store;
 };
