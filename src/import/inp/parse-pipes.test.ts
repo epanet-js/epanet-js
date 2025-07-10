@@ -173,4 +173,82 @@ describe("parse pipes", () => {
     ]);
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
+
+  it("can handle CV pipe status", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pipeId = "p1";
+    const length = 10;
+    const diameter = 100;
+    const roughness = 0.1;
+    const minorLoss = 0.2;
+    const status = "CV";
+    const anyNumber = 10;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}\t${status}
+
+    [COORDINATES]
+    ${reservoirId}\t${10}\t${20}
+    ${junctionId}\t${30}\t${40}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.status).toEqual("CV");
+    expect(pipe.length).toEqual(length);
+    expect(pipe.diameter).toEqual(diameter);
+    expect(pipe.roughness).toEqual(roughness);
+    expect(pipe.minorLoss).toEqual(minorLoss);
+  });
+
+  it("overrides pipe status with CV in STATUS section", () => {
+    const pipeId = "p1";
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    [PIPES]
+    ${pipeId}\tj1\tj2\t${anyNumber}\t${anyNumber}\t${anyNumber}\t${anyNumber}\tOPEN
+
+    [STATUS]
+    ${pipeId}\tCV
+
+    [COORDINATES]
+    j1\t10\t10
+    j2\t10\t10
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.status).toEqual("CV");
+  });
+
+  it("handles case insensitive CV status", () => {
+    const pipeId = "p1";
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    [PIPES]
+    ${pipeId}\tj1\tj2\t${anyNumber}\t${anyNumber}\t${anyNumber}\t${anyNumber}\tcv
+
+    [COORDINATES]
+    j1\t10\t10
+    j2\t10\t10
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.status).toEqual("CV");
+  });
 });

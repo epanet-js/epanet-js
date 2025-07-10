@@ -9,6 +9,7 @@ describe("attach simulation", () => {
       velocity: 5,
       headloss: 10,
       unitHeadloss: 20,
+      status: "open",
     }),
     getPump: () => ({
       flow: 10,
@@ -49,6 +50,7 @@ describe("attach simulation", () => {
     const pipe = hydraulicModel.assets.get("p1") as Pipe;
     expect(pipe.flow).toEqual(20);
     expect(pipe.unitHeadloss).toEqual(20);
+    expect(pipe.simulationStatus).toEqual("open");
 
     const junction = hydraulicModel.assets.get("j1") as Junction;
     expect(junction.pressure).toEqual(10);
@@ -62,6 +64,30 @@ describe("attach simulation", () => {
 
     const valve = hydraulicModel.assets.get("valve1") as Valve;
     expect(valve.status).toEqual("closed");
+  });
+
+  it("handles CV pipes with simulation status", () => {
+    const cvResultsReader: ResultsReader = {
+      ...resultsReader,
+      getPipe: () => ({
+        flow: 15,
+        velocity: 3,
+        headloss: 5,
+        unitHeadloss: 10,
+        status: "closed",
+      }),
+    };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe("cv1", { status: "CV" })
+      .build();
+
+    attachSimulation(hydraulicModel, cvResultsReader);
+
+    const cvPipe = hydraulicModel.assets.get("cv1") as Pipe;
+    expect(cvPipe.status).toEqual("CV"); // Initial status
+    expect(cvPipe.simulationStatus).toEqual("closed"); // Simulation status
+    expect(cvPipe.flow).toEqual(15);
   });
 
   it("forces a reference change in the assets collection", () => {

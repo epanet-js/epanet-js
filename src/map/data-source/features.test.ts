@@ -34,8 +34,11 @@ describe("build optimized source", () => {
 
     expect(features).toHaveLength(2);
     const [pipe, junction] = features;
-    expect(pipe.properties).toEqual({ type: "pipe", status: "open" });
-    expect(pipe.properties).toEqual({ type: "pipe", status: "open" });
+    expect(pipe.properties).toEqual({
+      type: "pipe",
+      status: "open",
+      simulationStatus: null,
+    });
     expect(pipe.geometry!.type).toEqual("LineString");
 
     expect(junction.properties).toEqual({ type: "junction" });

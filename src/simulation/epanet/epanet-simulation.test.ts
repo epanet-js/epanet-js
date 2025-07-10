@@ -92,8 +92,32 @@ describe("epanet simulation", () => {
 
       expect(status).toEqual("success");
       expect(results.getJunction("j1")!.pressure).toBeCloseTo(10);
-      expect(results.getPipe("p1")!.flow).toBeCloseTo(1);
-      expect(results.getPipe("p1")!.velocity).toBeCloseTo(0.014);
+      const pipeResult = results.getPipe("p1")!;
+      expect(pipeResult.flow).toBeCloseTo(1);
+      expect(pipeResult.velocity).toBeCloseTo(0.014);
+      expect(pipeResult.status).toBeDefined();
+      expect(["open", "closed"]).toContain(pipeResult.status);
+    });
+
+    it("can read pipe status for CV pipes", async () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir("r1")
+        .aJunction("j1", { baseDemand: 1 })
+        .aPipe("p1", {
+          startNodeId: "r1",
+          endNodeId: "j1",
+          status: "CV",
+        })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const { status, results } = await runSimulation(inp);
+
+      expect(status).toEqual("success");
+      const pipeResult = results.getPipe("p1")!;
+      expect(pipeResult.flow).toBeCloseTo(1);
+      expect(pipeResult.status).toBeDefined();
+      expect(["open", "closed"]).toContain(pipeResult.status);
     });
 
     it("can read junction values", async () => {

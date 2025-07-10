@@ -62,7 +62,11 @@ export const valveIcons = ({
       type: "circle",
       source,
       layout: {},
-      filter: ["all", ["==", "type", "valve"], ["==", "selected", true]],
+      filter: [
+        "all",
+        ["any", ["==", "type", "valve"], ["==", "type", "pipe-cv"]],
+        ["==", "selected", true],
+      ],
       paint: {
         "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
         "circle-color": LINE_COLORS_SELECTED,
@@ -114,6 +118,28 @@ export const valveIcons = ({
         ],
       },
       minzoom: 10,
+    },
+    {
+      id: layerId + "-cv-pipes",
+      type: "symbol",
+      source,
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.1, 20, 0.3],
+        "icon-rotate": ["get", "rotation"],
+        "icon-allow-overlap": true,
+        "icon-rotation-alignment": "map",
+      },
+      filter: ["==", "type", "pipe-cv"],
+      paint: {
+        "icon-opacity": [
+          "case",
+          ["boolean", ["feature-state", "hidden"], false],
+          0,
+          1,
+        ],
+      },
+      minzoom: 12,
     },
   ];
 };

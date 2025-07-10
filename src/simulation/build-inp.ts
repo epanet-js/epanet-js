@@ -13,7 +13,7 @@ import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
-type SimulationPipeStatus = "Open" | "Closed";
+type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV";
@@ -424,6 +424,8 @@ const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
       return "Open";
     case "closed":
       return "Closed";
+    case "CV":
+      return "CV";
   }
 };
 

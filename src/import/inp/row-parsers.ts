@@ -227,7 +227,12 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     diameter: parseFloat(diameter),
     roughness: parseFloat(roughness),
     minorLoss: parseFloat(minorLoss),
-    status: status && status.toLowerCase() === "closed" ? "closed" : "open",
+    status:
+      status && status.toLowerCase() === "closed"
+        ? "closed"
+        : status && status.toLowerCase() === "cv"
+          ? "CV"
+          : "open",
   });
 };
 

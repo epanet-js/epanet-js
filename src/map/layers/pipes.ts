@@ -37,6 +37,12 @@ export const pipesLayer = ({
       "case",
       ["==", ["get", "status"], "closed"],
       ["literal", [2, 1]],
+      [
+        "all",
+        ["==", ["get", "status"], "CV"],
+        ["==", ["get", "simulationStatus"], "closed"],
+      ],
+      ["literal", [2, 1]],
       ["literal", [1, 0]],
     ],
   };

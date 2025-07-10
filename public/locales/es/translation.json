@@ -34,6 +34,7 @@
   "closed": "Cerrada",
   "pipe.open": "Abierta",
   "pipe.closed": "Cerrada",
+  "pipe.CV": "Válvula de Retención",
   "pump.on": "Encendida",
   "pump.off": "Apagada",
   "pump.off.cannot-deliver-head": "Apagada - No puede suministrar la carga",

@@ -592,6 +592,53 @@ describe("AssetEditor", () => {
     });
   });
 
+  it("can change status to CV", async () => {
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "open" })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
+
+    const historyControl = renderComponent(store);
+
+    const selector = screen.getByRole("combobox", {
+      name: /value for: status/i,
+    });
+
+    await user.click(selector);
+
+    await user.click(screen.getByText(/check valve/i));
+
+    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    expect(
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
+    ).toEqual("CV");
+
+    expect(selector).not.toHaveFocus();
+    expect(selector).toHaveTextContent("Check Valve");
+
+    historyControl("undo");
+    await waitFor(() => {
+      const updatedSelector = screen.getByRole("combobox", {
+        name: /value for: status/i,
+      });
+      expect(updatedSelector).toHaveTextContent("Open");
+    });
+  });
+
+  it("displays CV status correctly", () => {
+    const pipeId = "PIPE1";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "CV" })
+      .build();
+    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+
+    renderComponent(store);
+
+    expectStatusDisplayed("Check Valve");
+  });
+
   it("can change a property", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()

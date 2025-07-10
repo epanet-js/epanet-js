@@ -92,6 +92,42 @@ describe("build inp export ", () => {
     expect(rowsFrom(inp)).toContain("P_2\tJ_2\tRES_1\t20\t200\t2\t0\tClosed");
   });
 
+  it("adds CV pipes", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("j1", { label: "J_1" })
+      .aJunction("j2", { label: "J_2" })
+      .aReservoir("r1", { label: "RES_1" })
+      .aPipe("pipe1", {
+        label: "P_1",
+        startNodeId: "j1",
+        endNodeId: "j2",
+        length: 10,
+        diameter: 100,
+        roughness: 1,
+        status: "CV",
+      })
+      .aPipe("pipe2", {
+        label: "P_2",
+        startNodeId: "j2",
+        endNodeId: "r1",
+        length: 20,
+        diameter: 200,
+        roughness: 2,
+        status: "open",
+      })
+      .build();
+
+    const inp = buildInp(
+      hydraulicModel,
+
+      exportOptions,
+    );
+
+    expect(rowsFrom(inp)).toContain("[PIPES]");
+    expect(rowsFrom(inp)).toContain("P_1\tJ_1\tJ_2\t10\t100\t1\t0\tCV");
+    expect(rowsFrom(inp)).toContain("P_2\tJ_2\tRES_1\t20\t200\t2\t0\tOpen");
+  });
+
   it("includes simulation settings", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 

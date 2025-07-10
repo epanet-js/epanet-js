@@ -331,7 +331,12 @@ const addPipe = (
 
   if (inpData.status.has(pipeData.id)) {
     const statusValue = inpData.status.get(pipeData.id) as string;
-    status = statusValue === "CLOSED" ? "closed" : "open";
+    status =
+      statusValue === "CLOSED"
+        ? "closed"
+        : statusValue === "CV"
+          ? "CV"
+          : "open";
   }
 
   const pipe = hydraulicModel.assetBuilder.buildPipe({

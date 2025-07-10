@@ -7,6 +7,7 @@ import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 export const buildIconPointsSource = (
   assets: AssetsMap,
@@ -59,6 +60,34 @@ export const buildIconPointsSource = (
           rotation: bearing,
           selected: selectedAssets.has(valve.id),
           isControlValve: controlKinds.includes(valve.kind),
+        },
+        geometry: {
+          type: "Point",
+          coordinates: center.geometry.coordinates,
+        },
+      };
+      strippedFeatures.push(feature);
+    }
+
+    if (asset.type === "pipe" && (asset as Pipe).status === "CV") {
+      const pipe = asset as Pipe;
+      const featureId = UIDMap.getIntID(idMap, asset.id);
+      const largestSegment = findLargestSegment(pipe);
+      const center = calculateMidpoint(...largestSegment);
+      const bearing = calculateBearing(...largestSegment);
+
+      // Use simulation status if available, otherwise default to active/open
+      const simulationStatus = pipe.simulationStatus;
+      const iconStatus = simulationStatus === "closed" ? "closed" : "active";
+
+      const feature: Feature = {
+        type: "Feature",
+        id: featureId,
+        properties: {
+          type: "pipe-cv",
+          icon: `valve-prv-${iconStatus}`, // Using existing valve icons with status
+          rotation: bearing,
+          selected: selectedAssets.has(pipe.id),
         },
         geometry: {
           type: "Point",

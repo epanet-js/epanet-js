@@ -21,7 +21,7 @@ export const buildOptimizedAssetsSource = (
   translateUnit: (unit: Unit) => string,
 ): Feature[] => {
   const strippedFeatures = [];
-  const keepProperties: string[] = ["type", "status"];
+  const keepProperties: string[] = ["type", "status", "simulationStatus"];
 
   for (const asset of assets.values()) {
     if (asset.feature.properties?.visibility === false) {
@@ -35,14 +35,17 @@ export const buildOptimizedAssetsSource = (
       geometry: asset.feature.geometry,
     };
 
-    if (asset.type === "pipe")
+    if (asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      feature.properties!.simulationStatus = pipe.simulationStatus;
       appendPipeSymbologyProps(
-        asset as Pipe,
+        pipe,
         feature,
         symbology.link,
         quantities,
         translateUnit,
       );
+    }
     if (asset.type === "junction")
       appendJunctionSymbologyProps(
         asset as Junction,

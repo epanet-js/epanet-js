@@ -4,6 +4,7 @@ export type PipeSimulation = {
   velocity: number;
   headloss: number;
   unitHeadloss: number;
+  status: "open" | "closed";
 };
 
 export type ValveSimulation = {
