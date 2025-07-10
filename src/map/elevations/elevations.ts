@@ -55,29 +55,6 @@ export async function fetchElevationForPoint(
   return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
-export async function fetchElevationForPointDeprecated(
-  { lat, lng }: LngLat,
-  {
-    unit,
-    setUpCanvas = defaultCanvasSetupFn,
-  }: { unit: Unit; setUpCanvas?: CanvasSetupFn },
-): Promise<number> {
-  const { queryKey, url } = buildTileDescriptor(lng, lat);
-
-  const tileBlob = await queryClientDeprecated.fetchQuery({
-    queryKey,
-    queryFn: () => fetchTileFromUrlDeprecated(url),
-  });
-
-  if (!tileBlob) {
-    return fallbackElevation;
-  }
-
-  const { ctx, img } = await setUpCanvas(tileBlob);
-  const elevationInMeters = getElevationPixel(ctx, img, { lng, lat });
-  return convertTo({ value: elevationInMeters, unit: "m" }, unit);
-}
-
 export async function prefetchElevationsTile({ lng, lat }: LngLat) {
   const { queryKey, url } = buildTileDescriptor(lng, lat);
 
