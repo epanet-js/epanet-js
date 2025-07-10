@@ -48,8 +48,8 @@ export const waitForLoaded = async () => {
 };
 
 export const matchPoint = (
-  geometry: Partial<{ coordinates: any; [key: string]: any }>,
-): void =>
+  geometry: Partial<{ coordinates: number[]; [key: string]: unknown }>,
+): ReturnType<typeof expect.objectContaining> =>
   expect.objectContaining({
     geometry: expect.objectContaining({
       type: "Point",
@@ -58,8 +58,8 @@ export const matchPoint = (
   });
 
 export const matchLineString = (
-  geometry: Partial<{ coordinates: any; [key: string]: any }>,
-): void =>
+  geometry: Partial<{ coordinates: number[][]; [key: string]: unknown }>,
+): ReturnType<typeof expect.objectContaining> =>
   expect.objectContaining({
     geometry: expect.objectContaining({
       type: "LineString",
