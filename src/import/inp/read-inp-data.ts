@@ -10,7 +10,6 @@ import {
   parsePipe,
   parsePosition,
   parseReservoir,
-  parseTankPartially,
   parseTank,
   parseTimeSetting,
   parseVertex,
@@ -25,9 +24,7 @@ const commentIdentifier = ";";
 
 type SectionParsers = Record<string, RowParser>;
 
-const buildSectionParsers = (
-  featureFlags: Record<string, boolean> = {},
-): SectionParsers => ({
+const buildSectionParsers = (): SectionParsers => ({
   "[TITLE]": ignore,
   "[CURVES]": parseCurve,
   "[QUALITY]": unsupported,
@@ -43,7 +40,7 @@ const buildSectionParsers = (
   "[SOURCES]": unsupported,
   "[REPORT]": ignore,
   "[VERTICES]": parseVertex,
-  "[TANKS]": featureFlags.FLAG_TANK ? parseTank : parseTankPartially,
+  "[TANKS]": parseTank,
   "[STATUS]": parseStatus,
   "[MIXING]": unsupported,
   "[LABELS]": unsupported,
@@ -59,12 +56,11 @@ const buildSectionParsers = (
 export const readInpData = (
   inp: string,
   issues: IssuesAccumulator,
-  featureFlags: Record<string, boolean> = {},
 ): { inpData: InpData; stats: InpStats } => {
   const rows = inp.split("\n");
   let section = null;
   const inpData = nullInpData();
-  const sectionParsers = buildSectionParsers(featureFlags);
+  const sectionParsers = buildSectionParsers();
   const counts = new Map<string, number>();
 
   for (const row of rows) {

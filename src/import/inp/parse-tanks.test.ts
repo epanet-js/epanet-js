@@ -15,7 +15,7 @@ describe("parse tanks", () => {
     T1\t${lng}\t${lat}
     `;
 
-    const { hydraulicModel, issues } = parseInp(inp, { FLAG_TANK: true });
+    const { hydraulicModel, issues } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
@@ -45,7 +45,7 @@ describe("parse tanks", () => {
     t1\t${lng}\t${lat}
     `;
 
-    const { hydraulicModel, issues } = parseInp(inp, { FLAG_TANK: true });
+    const { hydraulicModel, issues } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
@@ -68,9 +68,7 @@ describe("parse tanks", () => {
     T1\t${lng}\t${lat}
     `;
 
-    const { hydraulicModel, issues, stats } = parseInp(inp, {
-      FLAG_TANK: true,
-    });
+    const { hydraulicModel, issues, stats } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
@@ -95,9 +93,7 @@ describe("parse tanks", () => {
     T1\t${lng}\t${lat}
     `;
 
-    const { hydraulicModel, issues, stats } = parseInp(inp, {
-      FLAG_TANK: true,
-    });
+    const { hydraulicModel, issues, stats } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.id).not.toBeUndefined();
@@ -122,7 +118,7 @@ describe("parse tanks", () => {
     T1\t${lng}\t${lat}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { FLAG_TANK: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.overflow).toEqual(false);

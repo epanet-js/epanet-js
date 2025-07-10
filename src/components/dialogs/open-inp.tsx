@@ -16,7 +16,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -37,7 +36,6 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const isTankOn = useFeatureFlag("FLAG_TANK");
 
   const importInp = useCallback(async () => {
     try {
@@ -48,10 +46,8 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata, issues, isMadeByApp } = parseInp(
-        content,
-        { FLAG_TANK: isTankOn },
-      );
+      const { hydraulicModel, modelMetadata, issues, isMadeByApp } =
+        parseInp(content);
       if (
         !issues ||
         (!issues.nodesMissingCoordinates &&
@@ -88,15 +84,7 @@ export function OpenInpDialog({
       captureError(error as Error);
       setError(true);
     }
-  }, [
-    file,
-    map?.map,
-    onClose,
-    transactImport,
-    setFileInfo,
-    setDialogState,
-    isTankOn,
-  ]);
+  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
 
   useEffect(
     function onRender() {

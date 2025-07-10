@@ -1,6 +1,3 @@
-import reservoirPng from "src/map/icons/reservoir.png";
-import reservoirOutlinedPng from "src/map/icons/reservoir-outlined.png";
-import reservoirSelectedPng from "src/map/icons/reservoir-selected.png";
 import triangle from "src/map/icons/triangle.png";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
@@ -69,7 +66,7 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const commonIconUrls: IconUrl[] = [
+const iconUrlsEnabled: IconUrl[] = [
   {
     id: "triangle",
     url: triangle.src,
@@ -230,17 +227,6 @@ const commonIconUrls: IconUrl[] = [
       }),
     ),
   },
-];
-
-const iconUrlsDeprecated: IconUrl[] = [
-  { id: "reservoir", url: reservoirPng.src, isSdf: true },
-  { id: "reservoir-outlined", url: reservoirOutlinedPng.src, isSdf: true },
-  { id: "reservoir-selected", url: reservoirSelectedPng.src, isSdf: true },
-  ...commonIconUrls,
-];
-
-const iconUrlsEnabled: IconUrl[] = [
-  ...commonIconUrls,
   {
     id: "tank",
     url: urlFor(
@@ -318,10 +304,9 @@ export const getIconsSprite = () => {
 };
 
 export const prepareIconsSprite = withDebugInstrumentation(
-  async (isTankFlagOn: boolean = false): Promise<IconImage[]> => {
-    const iconUrlsToUse = isTankFlagOn ? iconUrlsEnabled : iconUrlsDeprecated;
+  async (): Promise<IconImage[]> => {
     const iconImages = await Promise.all(
-      iconUrlsToUse.map((iconUrl) => fetchImage(iconUrl)),
+      iconUrlsEnabled.map((iconUrl) => fetchImage(iconUrl)),
     );
     const { atlas } = buildSprite(iconImages);
 

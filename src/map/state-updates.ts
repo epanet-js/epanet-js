@@ -1,6 +1,5 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useRef } from "react";
-import { Layer as DeckLayer } from "@deck.gl/core";
 import { Unit } from "src/quantity";
 import { Moment } from "src/lib/persistence/moment";
 import {
@@ -30,11 +29,9 @@ import loadAndAugmentStyle from "src/lib/load-and-augment-style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
-import { buildLayers as buildMoveAssetsLayers } from "./mode-handlers/none/move-state";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
-import { buildEphemeralDrawLinkLayers } from "./mode-handlers/draw-link/ephemeral-link-state";
 import { SymbologySpec, symbologyAtom } from "src/state/symbology";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { nullSymbologySpec } from "src/map/symbology";
@@ -42,7 +39,6 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -165,10 +161,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
-  const ephemeralStateOverlays = useRef<DeckLayer[]>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isTankFlagOn = useFeatureFlag("FLAG_TANK");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -194,12 +188,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(
-            map,
-            mapState.stylesConfig,
-            translate,
-            isTankFlagOn,
-          );
+          await updateLayerStyles(map, mapState.stylesConfig, translate);
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -260,33 +249,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewEphemeralState) {
-          if (isTankFlagOn) {
-            updateEditionsVisibility(
-              map,
-              previousMapState.movedAssetIds,
-              mapState.movedAssetIds,
-              lastHiddenFeatures.current,
-              idMap,
-            );
-            await updateEphemeralStateSource(
-              map,
-              mapState.ephemeralState,
-              idMap,
-            );
-          } else {
-            ephemeralStateOverlays.current = buildEphemeralStateOvelay(
-              map,
-              mapState.ephemeralState,
-              isTankFlagOn,
-            );
-            updateEditionsVisibility(
-              map,
-              previousMapState.movedAssetIds,
-              mapState.movedAssetIds,
-              lastHiddenFeatures.current,
-              idMap,
-            );
-          }
+          updateEditionsVisibility(
+            map,
+            previousMapState.movedAssetIds,
+            mapState.movedAssetIds,
+            lastHiddenFeatures.current,
+            idMap,
+          );
+          await updateEphemeralStateSource(map, mapState.ephemeralState, idMap);
         }
 
         if ((hasNewSelection && !hasNewImport) || hasNewStyles) {
@@ -298,7 +268,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (!isTankFlagOn) map.setOverlay(ephemeralStateOverlays.current);
         setMapLoading(false);
       } catch (error) {
         captureError(error as Error);
@@ -315,7 +284,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     setMapLoading,
     translate,
     translateUnit,
-    isTankFlagOn,
   ]);
 
   doUpdates();
@@ -334,14 +302,12 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
-    isTankFlagOn: boolean,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
-      isTankFlagOn,
     });
-    await map.setStyle(style, isTankFlagOn);
+    await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
 );
@@ -503,26 +469,6 @@ const updateEditionsVisibility = withDebugInstrumentation(
     name: "MAP_STATE:UPDATE_EDITIONS_VISIBILITY",
     maxDurationMs: 100,
   },
-);
-
-const buildEphemeralStateOvelay = withDebugInstrumentation(
-  (
-    map: MapEngine,
-    ephemeralState: EphemeralEditingState,
-    isTankFlagOn: boolean,
-  ): DeckLayer[] => {
-    let ephemeralLayers: DeckLayer[] = [];
-    if (ephemeralState.type === "drawLink" && !isTankFlagOn) {
-      ephemeralLayers = buildEphemeralDrawLinkLayers(
-        ephemeralState,
-      ) as DeckLayer[];
-    }
-    if (ephemeralState.type === "moveAssets" && !isTankFlagOn) {
-      ephemeralLayers = buildMoveAssetsLayers(ephemeralState);
-    }
-    return ephemeralLayers;
-  },
-  { name: "MAP_STATE:BUILD_EPHEMERAL_STATE_OVERLAY", maxDurationMs: 100 },
 );
 
 const updateSelection = withDebugInstrumentation(

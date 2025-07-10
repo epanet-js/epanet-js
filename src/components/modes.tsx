@@ -15,7 +15,6 @@ import { PumpIcon } from "src/custom-icons/pump-icon";
 import { ValveIcon } from "src/custom-icons/valve-icon";
 import { TankIcon } from "src/custom-icons/tank-icon";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const MODE_OPTIONS = [
   {
@@ -55,39 +54,6 @@ const MODE_OPTIONS = [
   },
 ] as const;
 
-const MODE_OPTIONS_DEPRECATED = [
-  {
-    mode: Mode.NONE,
-    hotkey: "1",
-    Icon: CursorArrowIcon,
-  },
-  {
-    mode: Mode.DRAW_JUNCTION,
-    hotkey: "2",
-    Icon: CircleIcon,
-  },
-  {
-    mode: Mode.DRAW_PIPE,
-    hotkey: "3",
-    Icon: StretchHorizontallyIcon,
-  },
-  {
-    mode: Mode.DRAW_RESERVOIR,
-    hotkey: "4",
-    Icon: VercelLogoIcon,
-  },
-  {
-    mode: Mode.DRAW_PUMP,
-    hotkey: "5",
-    Icon: () => <PumpIcon width={15} height={15} />,
-  },
-  {
-    mode: Mode.DRAW_VALVE,
-    hotkey: "6",
-    Icon: () => <ValveIcon width={15} height={15} />,
-  },
-] as const;
-
 export default memo(function Modes({
   replaceGeometryForId,
 }: {
@@ -97,9 +63,7 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isTankOn = useFeatureFlag("FLAG_TANK");
-
-  const modeOptions = isTankOn ? MODE_OPTIONS : MODE_OPTIONS_DEPRECATED;
+  const modeOptions = MODE_OPTIONS;
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">

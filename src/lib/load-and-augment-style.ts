@@ -12,12 +12,7 @@ import {
   addXYZStyle,
   addTileJSONStyle,
 } from "src/lib/layer-config-adapters";
-import {
-  reservoirsLayerDeprecated,
-  reservoirLayers,
-  pipesLayer,
-  junctionsLayer,
-} from "src/map/layers";
+import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
 import {
   asColorExpression,
   asNumberExpression,
@@ -84,13 +79,11 @@ export default async function loadAndAugmentStyle({
   symbology,
   previewProperty,
   translate,
-  isTankFlagOn,
 }: {
   layerConfigs: LayerConfigMap;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
   translate: (key: string) => string;
-  isTankFlagOn: boolean;
 }): Promise<Style> {
   let style = getEmptyStyle();
   let id = 0;
@@ -113,7 +106,7 @@ export default async function loadAndAugmentStyle({
     }
   }
 
-  addEditingLayers({ style, symbology, previewProperty, isTankFlagOn });
+  addEditingLayers({ style, symbology, previewProperty });
 
   return style;
 }
@@ -122,44 +115,35 @@ export function addEditingLayers({
   style,
   symbology,
   previewProperty,
-  isTankFlagOn,
 }: {
   style: Style;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
-  isTankFlagOn: boolean;
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
-
-  if (isTankFlagOn) {
-    style.sources["ephemeral-state"] = emptyGeoJSONSource;
-  }
+  style.sources["ephemeral-state"] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
   }
 
   style.layers = style.layers.concat(
-    makeLayers({ symbology, previewProperty, isTankFlagOn }),
+    makeLayers({ symbology, previewProperty }),
   );
 }
 
 export function makeLayers({
   symbology,
   previewProperty,
-  isTankFlagOn,
 }: {
   symbology: ISymbology;
   previewProperty: PreviewProperty;
-  isTankFlagOn: boolean;
 }): mapboxgl.AnyLayer[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
-    ...(isTankFlagOn
-      ? [ephemeralHaloLayer({ source: "ephemeral-state" })]
-      : []),
+    ephemeralHaloLayer({ source: "ephemeral-state" }),
     pipesLayer({
       source: "imported-features",
       layerId: "imported-pipes",
@@ -190,9 +174,7 @@ export function makeLayers({
       layerId: "valve-lines",
       symbology,
     }),
-    ...(isTankFlagOn
-      ? [ephemeralDraftLineLayer({ source: "ephemeral-state" })]
-      : []),
+    ephemeralDraftLineLayer({ source: "ephemeral-state" }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
@@ -232,27 +214,10 @@ export function makeLayers({
       layerId: "pump-icons",
       symbology,
     }),
-    ...(isTankFlagOn
-      ? reservoirLayers({ sources: ["icons"] })
-      : [
-          reservoirsLayerDeprecated({
-            source: "features",
-            layerId: "reservoirs",
-            symbology,
-          }),
-          reservoirsLayerDeprecated({
-            source: "imported-features",
-            layerId: "imported-reservoirs",
-            symbology,
-          }),
-        ]),
+    ...reservoirLayers({ sources: ["icons"] }),
     ...tankLayers({ sources: ["icons"] }),
-    ...(isTankFlagOn
-      ? [ephemeralJunctionHighlightLayers({ source: "ephemeral-state" })]
-      : []),
-    ...(isTankFlagOn
-      ? [ephemeralIconHighlightLayers({ source: "ephemeral-state" })]
-      : []),
+    ephemeralJunctionHighlightLayers({ source: "ephemeral-state" }),
+    ephemeralIconHighlightLayers({ source: "ephemeral-state" }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"

@@ -17,7 +17,6 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
@@ -29,7 +28,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const isTankOn = useFeatureFlag("FLAG_TANK");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -63,7 +61,7 @@ export const useImportInp = () => {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content, { FLAG_TANK: isTankOn });
+          parseInp(content);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -115,7 +113,6 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
-      isTankOn,
     ],
   );
 
