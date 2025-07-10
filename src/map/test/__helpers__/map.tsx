@@ -2,7 +2,7 @@ import { MapTestEngine } from "./map-engine-mock";
 import { Store } from "src/state/jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import { MemPersistence } from "src/lib/persistence/memory";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
@@ -33,4 +33,11 @@ export const renderMap = async (store: Store): Promise<MapTestEngine> => {
   if (!mapEngine) throw new Error("MapTestEngine instance not set");
 
   return mapEngine;
+};
+
+export const waitForLoaded = async () => {
+  await waitFor(() => {
+    const loadingElement = screen.queryByText(/loading/i);
+    expect(loadingElement).toHaveClass("opacity-0");
+  });
 };

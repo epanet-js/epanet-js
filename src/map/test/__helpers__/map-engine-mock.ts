@@ -61,7 +61,14 @@ class MapTestEngine {
   addIcons() {
     return Promise.resolve();
   }
-  setSource() {
+  setSource(name: string, sourceFeatures: any[]): Promise<void> {
+    const source = this.sources.get(name);
+    if (source) {
+      source.data = {
+        type: "FeatureCollection",
+        features: sourceFeatures,
+      };
+    }
     return Promise.resolve();
   }
   removeSource() {}
@@ -99,6 +106,15 @@ export const fireMapClick = (
     preventDefault: () => {},
     defaultPrevented: false,
   } as unknown as ClickEvent);
+};
+
+export const getSourceFeatures = (
+  map: MapTestEngine,
+  sourceName: string,
+): GeoJSON.Feature[] => {
+  const source = map.getSource(sourceName);
+  const featureCollection = source?.data as GeoJSON.FeatureCollection;
+  return featureCollection.features;
 };
 
 export type { MapTestEngine };
