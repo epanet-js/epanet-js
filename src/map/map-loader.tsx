@@ -10,10 +10,12 @@ export const MapLoading = () => {
   const ref = useRef();
 
   const opacityClass = mapLoading ? "opacity-100" : "opacity-0";
+  const isHidden = !mapLoading;
   return (
     <div className="absolute right-3 top-3 mx-auto mb-2">
       <div
         key={ref.current}
+        aria-hidden={isHidden}
         className={`flex items-center gap-x-2 bg-black bg-opacity-30 text-white
             px-3 py-1
             rounded

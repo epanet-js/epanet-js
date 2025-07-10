@@ -37,7 +37,32 @@ export const renderMap = async (store: Store): Promise<MapTestEngine> => {
 
 export const waitForLoaded = async () => {
   await waitFor(() => {
-    const loadingElement = screen.queryByText(/loading/i);
+    const loadingElement = screen.getByText(/loading/i);
+    expect(loadingElement).toHaveAttribute("aria-hidden", "false");
+  });
+  await waitFor(() => {
+    const loadingElement = screen.getByText(/loading/i);
+    expect(loadingElement).toHaveAttribute("aria-hidden", "true");
     expect(loadingElement).toHaveClass("opacity-0");
   });
 };
+
+export const matchPoint = (
+  geometry: Partial<{ coordinates: any; [key: string]: any }>,
+): void =>
+  expect.objectContaining({
+    geometry: expect.objectContaining({
+      type: "Point",
+      ...geometry,
+    }),
+  });
+
+export const matchLineString = (
+  geometry: Partial<{ coordinates: any; [key: string]: any }>,
+): void =>
+  expect.objectContaining({
+    geometry: expect.objectContaining({
+      type: "LineString",
+      ...geometry,
+    }),
+  });

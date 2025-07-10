@@ -6,16 +6,22 @@ vi.mock("src/map/elevations/use-elevations", () => ({
 }));
 
 export const stubElevation = (
-  point: { lng: number; lat: number },
-  elevation: number,
+  point?: { lng: number; lat: number },
+  elevation?: number,
 ) => {
   const mockImpl = () => ({
     fetchElevation: vi
       .fn()
       .mockImplementation((lngLat: { lng: number; lat: number }) => {
-        if (lngLat.lng === point.lng && lngLat.lat === point.lat) {
+        if (
+          point &&
+          elevation !== undefined &&
+          lngLat.lng === point.lng &&
+          lngLat.lat === point.lat
+        ) {
           return Promise.resolve(elevation);
         }
+
         return Promise.resolve(0);
       }),
     prefetchTile: vi.fn(),

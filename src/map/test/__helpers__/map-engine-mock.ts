@@ -1,6 +1,8 @@
 import mapboxgl from "mapbox-gl";
 import type { GeoJSONSourceRaw } from "mapbox-gl";
 import type { MapHandlers, ClickEvent } from "../../types";
+import { DataSource } from "src/map/data-source";
+import { Feature } from "geojson";
 
 class MapTestEngine {
   handlers: React.MutableRefObject<MapHandlers>;
@@ -27,6 +29,10 @@ class MapTestEngine {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
     });
+    this.sources.set("ephemeral-state", {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    });
   }
 
   map = {
@@ -49,6 +55,13 @@ class MapTestEngine {
     queryRenderedFeatures: vi.fn().mockReturnValue([]),
     remove: vi.fn(),
     resize: vi.fn(),
+    getCenter: vi.fn().mockReturnValue({ toArray: () => [0, 0] }),
+    getBounds: vi.fn().mockReturnValue({
+      toArray: () => [
+        [-180, -90],
+        [180, 90],
+      ],
+    }),
   };
 
   getSource(name: string): GeoJSONSourceRaw | null {
@@ -61,12 +74,13 @@ class MapTestEngine {
   addIcons() {
     return Promise.resolve();
   }
-  setSource(name: string, sourceFeatures: any[]): Promise<void> {
+
+  setSource(name: DataSource, features: Feature[]): Promise<void> {
     const source = this.sources.get(name);
     if (source) {
       source.data = {
         type: "FeatureCollection",
-        features: sourceFeatures,
+        features,
       };
     }
     return Promise.resolve();
@@ -100,12 +114,43 @@ export const fireMapClick = (
 ) => {
   map.handlers.current.onClick({
     lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
+    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
     originalEvent: new MouseEvent("click"),
     target: map.map,
     type: "click",
     preventDefault: () => {},
     defaultPrevented: false,
   } as unknown as ClickEvent);
+};
+
+export const fireDoubleClick = (
+  map: MapTestEngine,
+  clickPoint: { lng: number; lat: number },
+) => {
+  map.handlers.current.onDoubleClick({
+    lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
+    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
+    originalEvent: new MouseEvent("click"),
+    target: map.map,
+    type: "dblclick",
+    preventDefault: () => {},
+    defaultPrevented: false,
+  } as unknown as ClickEvent);
+};
+
+export const fireMapMove = (
+  map: MapTestEngine,
+  movePoint: { lng: number; lat: number },
+) => {
+  map.handlers.current.onMapMouseMove({
+    lngLat: new mapboxgl.LngLat(movePoint.lng, movePoint.lat),
+    point: new mapboxgl.Point(movePoint.lng * 100, movePoint.lat * 100), // Mock point coordinates
+    originalEvent: new MouseEvent("mousemove"),
+    target: map.map,
+    type: "mousemove",
+    preventDefault: () => {},
+    defaultPrevented: false,
+  } as any);
 };
 
 export const getSourceFeatures = (
