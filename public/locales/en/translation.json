@@ -73,7 +73,7 @@
   "simulationWarningExplain": "The simulation finished with one or more warnings. Review the simulation report for details.",
   "simulationFailure": "Simulation with Errors",
   "simulationFailureExplain": "Simulation run was unsuccessful. Review the simulation report for details.",
-  "simulationTook": "SimulationS run took {{1}}s.",
+  "simulationTook": "Simulation run took {{1}}s.",
   "simulationOutdated": "Simulation Outdated",
   "runningSimulation": "Running Simulation...",
   "notAvailable": "Not Available",
