@@ -5,6 +5,7 @@ import { Mode } from "src/state/mode";
 import { renderMap, waitForLoaded } from "./__helpers__/map";
 import { dataAtom } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { vi } from "vitest";
 
 describe("Drawing a junction", () => {
@@ -47,9 +48,7 @@ describe("Drawing a junction", () => {
       hydraulicModel: { assets },
     } = store.get(dataAtom);
 
-    const junctions = Array.from(assets.values()).filter(
-      (asset): asset is Junction => asset.type === "junction",
-    );
+    const junctions = getAssetsByType<Junction>(assets, "junction");
 
     expect(junctions).toHaveLength(1);
 
