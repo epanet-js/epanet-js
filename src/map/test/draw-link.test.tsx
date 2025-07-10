@@ -34,7 +34,7 @@ describe("Drawing a pipe", () => {
     fireMapClick(map, firstClick);
     await waitForLoaded();
 
-    expect(getSourceFeatures(map, "ephemeral-state")).toEqual([
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
       matchPoint({ coordinates: [10, 20] }),
       matchLineString({
         coordinates: [
@@ -47,7 +47,7 @@ describe("Drawing a pipe", () => {
     fireMapMove(map, movePoint);
     await waitForLoaded();
 
-    expect(getSourceFeatures(map, "ephemeral-state")).toEqual([
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
       matchPoint({ coordinates: [10, 20] }),
       matchLineString({
         coordinates: [
@@ -73,6 +73,6 @@ describe("Drawing a pipe", () => {
       matchPoint({ coordinates: [30, 40] }),
     ]);
 
-    expect(getSourceFeatures(map, "ephemeral-state")).toHaveLength(0);
+    expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
   });
 });

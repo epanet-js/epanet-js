@@ -500,7 +500,7 @@ const updateEphemeralStateSource = withDebugInstrumentation(
     idMap: IDMap,
   ): Promise<void> => {
     const features = buildEphemeralStateSource(ephemeralState, idMap);
-    await map.setSource("ephemeral-state", features);
+    await map.setSource("ephemeral", features);
   },
   {
     name: "MAP_STATE:UPDATE_EPHEMERAL_STATE_SOURCE",

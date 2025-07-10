@@ -123,7 +123,7 @@ export function addEditingLayers({
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
-  style.sources["ephemeral-state"] = emptyGeoJSONSource;
+  style.sources["ephemeral"] = emptyGeoJSONSource;
 
   if (!style.layers) {
     throw new Error("Style unexpectedly had no layers");
@@ -143,7 +143,7 @@ export function makeLayers({
 }): mapboxgl.AnyLayer[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
-    ephemeralHaloLayer({ source: "ephemeral-state" }),
+    ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "imported-features",
       layerId: "imported-pipes",
@@ -174,7 +174,7 @@ export function makeLayers({
       layerId: "valve-lines",
       symbology,
     }),
-    ephemeralDraftLineLayer({ source: "ephemeral-state" }),
+    ephemeralDraftLineLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
@@ -216,8 +216,8 @@ export function makeLayers({
     }),
     ...reservoirLayers({ sources: ["icons"] }),
     ...tankLayers({ sources: ["icons"] }),
-    ephemeralJunctionHighlightLayers({ source: "ephemeral-state" }),
-    ephemeralIconHighlightLayers({ source: "ephemeral-state" }),
+    ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
+    ephemeralIconHighlightLayers({ source: "ephemeral" }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"

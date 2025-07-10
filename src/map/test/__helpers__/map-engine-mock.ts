@@ -29,7 +29,7 @@ class MapTestEngine {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
     });
-    this.sources.set("ephemeral-state", {
+    this.sources.set("ephemeral", {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
     });
