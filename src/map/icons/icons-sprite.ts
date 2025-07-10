@@ -45,16 +45,6 @@ export type TextureProps = {
   data: Uint8Array;
 };
 
-type IconMapping = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  mask?: boolean;
-};
-
-type IconsMapping = Partial<Record<IconId, IconMapping>>;
-
 type IconUrl = { id: IconId; url: string; isSdf?: boolean };
 export type IconImage = {
   id: IconId;
@@ -66,7 +56,7 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const iconUrlsEnabled: IconUrl[] = [
+const iconUrls: IconUrl[] = [
   {
     id: "triangle",
     url: triangle.src,
@@ -283,37 +273,11 @@ const iconUrlsEnabled: IconUrl[] = [
   },
 ];
 
-const iconsMapping: IconsMapping = {
-  reservoir: { x: 0, y: 0, width: 32, height: 32 },
-  "reservoir-outlined": { x: 32, y: 0, width: 32, height: 32 },
-  "reservoir-selected": { x: 64, y: 0, width: 32, height: 32 },
-  triangle: { x: 96, y: 0, width: 64, height: 64, mask: true },
-};
-
-export type Sprite = {
-  atlas: TextureProps;
-  mapping: IconsMapping;
-};
-
-const sprite: { current: Sprite | null } = { current: null };
-
-export const getIconsSprite = () => {
-  if (!sprite.current) throw new Error("Icons sprite is not ready!");
-
-  return sprite.current;
-};
-
 export const prepareIconsSprite = withDebugInstrumentation(
   async (): Promise<IconImage[]> => {
     const iconImages = await Promise.all(
-      iconUrlsEnabled.map((iconUrl) => fetchImage(iconUrl)),
+      iconUrls.map((iconUrl) => fetchImage(iconUrl)),
     );
-    const { atlas } = buildSprite(iconImages);
-
-    sprite.current = {
-      atlas,
-      mapping: iconsMapping,
-    };
 
     return iconImages;
   },
@@ -331,44 +295,4 @@ const fetchImage = async ({ id, url, isSdf }: IconUrl): Promise<IconImage> => {
   img.src = URL.createObjectURL(blob);
   await img.decode();
   return { id, image: img, isSdf };
-};
-
-const buildSprite = (iconImages: IconImage[]): { atlas: TextureProps } => {
-  const { width, height } = calculateCanvasDimensions(iconImages);
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Failed to get canvas 2D context");
-  }
-
-  let xOffset = 0;
-  iconImages.forEach(({ image }) => {
-    ctx.drawImage(image, xOffset, 0);
-    xOffset += image.width;
-  });
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-  return {
-    atlas: {
-      width: width,
-      height: height,
-      data: new Uint8Array(imageData.data.buffer),
-    },
-  };
-};
-
-const calculateCanvasDimensions = (
-  images: IconImage[],
-): { width: number; height: number } => {
-  let width = 0;
-  let height = 0;
-  for (const { image } of images) {
-    if (image.height > height) height = image.height;
-    width += image.width;
-  }
-  return { width, height };
 };
