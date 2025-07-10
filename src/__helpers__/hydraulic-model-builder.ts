@@ -199,6 +199,7 @@ export class HydraulicModelBuilder {
           velocity: number;
           headloss: number;
           unitHeadloss: number;
+          status: "open" | "closed";
         }>;
       }
     > = {},
@@ -220,6 +221,7 @@ export class HydraulicModelBuilder {
         velocity: 10,
         headloss: 10,
         unitHeadloss: 10,
+        status: "open",
         ...simulation,
       });
     }

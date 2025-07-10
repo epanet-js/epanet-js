@@ -337,6 +337,7 @@
   "linkSymbology": "Simbología de Enlaces",
   "ckmeans": "Ckmeans",
   "simulationSettings": "Ajustes de Simulación",
+  "simulationStatus": "Estado de Simulación",
   "demandMultiplier": "Multiplicador de Demanda",
   "saveAndRun": "Guardar y Ejecutar",
   "failedToFetchElevation": "No se pudo obtener la elevación",

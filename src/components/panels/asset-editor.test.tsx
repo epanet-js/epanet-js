@@ -75,6 +75,47 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("headloss (m)", "0.234");
       expectPropertyDisplayed("unit headloss (m/km)", "0.123");
     });
+
+    it("can show simulation status", () => {
+      const pipeId = "P1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(pipeId, {
+          simulation: {
+            flow: 20.1234,
+            velocity: 10.1234,
+            headloss: 0.234,
+            unitHeadloss: 0.1234,
+            status: "closed",
+          },
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pipeId,
+      });
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("simulation status", "Closed");
+    });
+
+    it("shows 'Not Available' when no simulation", () => {
+      const pipeId = "P1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(pipeId, {
+          label: "MY_PIPE",
+          status: "CV",
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: pipeId,
+      });
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("simulation status", "Not Available");
+    });
   });
 
   describe("with a valve", () => {

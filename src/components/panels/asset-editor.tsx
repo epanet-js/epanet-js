@@ -268,6 +268,8 @@ const PipeEditor = ({
   onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   const translate = useTranslate();
+  const simulationStatusText = translate(pipeStatusLabel(pipe));
+
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -353,12 +355,22 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("headloss")}
                 readOnly={true}
               />
+              <TextRowReadOnly
+                name="simulationStatus"
+                value={simulationStatusText}
+              />
             </tbody>
           </table>
         </div>
       </div>
     </PanelDetails>
   );
+};
+
+const pipeStatusLabel = (pipe: Pipe) => {
+  if (pipe.simulationStatus === null) return "notAvailable";
+
+  return "pipe." + pipe.simulationStatus;
 };
 
 const pumpStatusLabel = (pump: Pump) => {
