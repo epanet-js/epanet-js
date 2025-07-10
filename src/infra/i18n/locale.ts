@@ -2,10 +2,11 @@ export const symbols = {
   es: { decimals: ",", groups: "." },
   en: { decimals: ".", groups: "," },
   pt: { decimals: ",", groups: "." },
-  fr: { decimals: ",", groups: " " },
+  fr: { decimals: ",", groups: "" },
+  nl: { decimals: ",", groups: "." },
 };
 
-export type Locale = "en" | "es" | "pt" | "fr";
+export type Locale = "en" | "es" | "pt" | "fr" | "nl";
 
 export const languageConfig: Array<{
   code: Locale;
@@ -16,6 +17,7 @@ export const languageConfig: Array<{
   { code: "es", name: "Español (ES)" },
   { code: "pt", name: "Português (BR)", experimental: true },
   { code: "fr", name: "Français (FR)", experimental: true },
+  { code: "nl", name: "Nederlands (NL)", experimental: true },
 ];
 
 export const stableLanguages: Locale[] = languageConfig
