@@ -148,7 +148,6 @@ describe("build ephemeral state source", () => {
         type: "moveAssets",
         oldAssets: [tankOld, junctionOld],
         targetAssets: [tankNew, junctionNew],
-        isMoving: true,
       };
 
       const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
@@ -163,30 +162,5 @@ describe("build ephemeral state source", () => {
       expect(junctionFeature.properties).toEqual({});
       expect(junctionFeature.geometry).toEqual(junctionNew.feature.geometry);
     });
-  });
-
-  it("skips all assets when not moving", () => {
-    const { assets } = HydraulicModelBuilder.with()
-      .aTank("T1_OLD", { coordinates: [10, 20] })
-      .aJunction("J1_OLD", { coordinates: [30, 40] })
-      .aTank("T1_NEW", { coordinates: [50, 60] })
-      .aJunction("J1_NEW", { coordinates: [70, 80] })
-      .build();
-
-    const tankOld = assets.get("T1_OLD")!;
-    const junctionOld = assets.get("J1_OLD")!;
-    const tankNew = assets.get("T1_NEW")!;
-    const junctionNew = assets.get("J1_NEW")!;
-
-    const ephemeralState: EphemeralMoveAssets = {
-      type: "moveAssets",
-      oldAssets: [tankOld, junctionOld],
-      targetAssets: [tankNew, junctionNew],
-      isMoving: false,
-    };
-
-    const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
-
-    expect(features).toHaveLength(0);
   });
 });

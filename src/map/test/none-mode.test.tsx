@@ -25,7 +25,7 @@ describe("None mode selection", () => {
     vi.clearAllMocks();
   });
 
-  it("selects/unselects node when clicking close to it without moving", async () => {
+  it("selects/unselects node when clicking close", async () => {
     stubFeatureOn("FLAG_MAP_CLICK_FIX");
     const junctionCoords = [10, 20];
     const createClick = { lng: 10, lat: 20 };
@@ -82,7 +82,7 @@ describe("None mode selection", () => {
     });
   });
 
-  it.skip("moves node when performing mouse down, move, up sequence with feature flag on", async () => {
+  it("moves node when dragging it to a different location", async () => {
     stubFeatureOn("FLAG_MAP_CLICK_FIX");
     const junctionCoords = [10, 20];
     const createClick = { lng: 10, lat: 20 };
@@ -141,6 +141,11 @@ describe("None mode selection", () => {
     await waitFor(() => {
       const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
       expect(ephemeralFeatures).toHaveLength(0);
+    });
+    await waitFor(() => {
+      expect(getFeatureState(map, "features", junctionFeatureId)).toEqual({
+        selected: "false",
+      });
     });
   });
 });

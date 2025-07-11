@@ -17,6 +17,20 @@ import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
+const isMovementSignificant = (
+  startPoint: mapboxgl.Point,
+  endPoint: mapboxgl.Point,
+  threshold = 5,
+) => {
+  const dx = endPoint.x - startPoint.x;
+  const dy = endPoint.y - startPoint.y;
+
+  const distanceSquared = dx * dx + dy * dy;
+  const thresholdSquared = threshold * threshold;
+
+  return distanceSquared >= thresholdSquared;
+};
+
 export function useNoneHandlers({
   throttledMovePointer,
   selection,
@@ -35,7 +49,15 @@ export function useNoneHandlers({
     getSelectionIds,
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
-  const { startMove, updateMove, resetMove, isMoving } = useMoveState();
+  const {
+    setStartPoint,
+    startPoint,
+    startMove,
+    updateMove,
+    updateMoveDeprecated,
+    resetMove,
+    isMoving,
+  } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
     hydraulicModel.units.elevation,
@@ -75,21 +97,21 @@ export function useNoneHandlers({
         return;
       }
 
-      // Fix: When flag is enabled, don't start move on already selected nodes
-      if (isMapClickFixOn) {
-        return;
-      }
-
       e.preventDefault();
       const node = getNode(hydraulicModel.assets, assetId);
       if (!node) return;
 
-      const { putAssets } = moveNode(hydraulicModel, {
-        nodeId: node.id,
-        newCoordinates: node.coordinates,
-        newElevation: await fetchElevation(e.lngLat),
-      });
-      putAssets && startMove(putAssets);
+      if (isMapClickFixOn) {
+        setStartPoint(e.point);
+      } else {
+        const { putAssets } = moveNode(hydraulicModel, {
+          nodeId: node.id,
+          newCoordinates: node.coordinates,
+          newElevation: await fetchElevation(e.lngLat),
+        });
+        putAssets && startMove(putAssets);
+      }
+
       setCursor("move");
     },
     move: (e) => {
@@ -110,7 +132,11 @@ export function useNoneHandlers({
         newCoordinates,
         newElevation: noElevation,
       });
-      putAssets && updateMove(putAssets);
+      if (isMapClickFixOn) {
+        putAssets && updateMove(putAssets);
+      } else {
+        putAssets && updateMoveDeprecated(putAssets);
+      }
     },
     up: async (e) => {
       e.preventDefault();
@@ -123,14 +149,28 @@ export function useNoneHandlers({
       if (!node) return skipMove(e);
 
       const newCoordinates = getMapCoord(e);
-      const moment = moveNode(hydraulicModel, {
-        nodeId: assetId,
-        newCoordinates,
-        newElevation: await fetchElevation(e.lngLat),
-      });
-      transact(moment);
-      resetMove();
-      clearSelection();
+
+      if (isMapClickFixOn) {
+        if (startPoint && isMovementSignificant(e.point, startPoint)) {
+          const moment = moveNode(hydraulicModel, {
+            nodeId: assetId,
+            newCoordinates,
+            newElevation: await fetchElevation(e.lngLat),
+          });
+          transact(moment);
+          clearSelection();
+        }
+        resetMove();
+      } else {
+        const moment = moveNode(hydraulicModel, {
+          nodeId: assetId,
+          newCoordinates,
+          newElevation: await fetchElevation(e.lngLat),
+        });
+        transact(moment);
+        resetMove();
+        clearSelection();
+      }
     },
     click: (e) => {
       const clickedAsset = getClickedAsset(e);
