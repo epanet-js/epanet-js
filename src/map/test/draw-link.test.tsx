@@ -3,9 +3,11 @@ import {
   fireMapClick,
   fireMapMove,
   getSourceFeatures,
+  stubSnappingOnce,
 } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Mode } from "src/state/mode";
 import {
   matchLineString,
@@ -14,6 +16,9 @@ import {
   waitForLoaded,
 } from "./__helpers__/map";
 import { vi } from "vitest";
+import { Asset } from "src/hydraulic-model";
+import { buildFeatureId } from "../data-source/features";
+import { UIDMap } from "src/lib/id-mapper";
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -71,6 +76,63 @@ describe("Drawing a pipe", () => {
       }),
       matchPoint({ coordinates: [10, 20] }),
       matchPoint({ coordinates: [30, 40] }),
+    ]);
+
+    expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+  });
+
+  it("snaps to existing starting node", async () => {
+    const existingNodeCoords = [15, 25];
+    const nearbyClick = { lng: 15.001, lat: 25.001 };
+    const movePoint = { lng: 35, lat: 45 };
+    const endClick = { lng: 50, lat: 60 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: existingNodeCoords })
+      .build();
+    const junction = hydraulicModel.assets.get("J1") as Asset;
+    const idMap = UIDMap.empty();
+    UIDMap.pushUUID(idMap, junction.id);
+
+    const store = setInitialState({
+      mode: Mode.DRAW_PIPE,
+      hydraulicModel,
+    });
+    const map = await renderMap(store, idMap);
+
+    stubSnappingOnce(map, [buildFeatureId(idMap, junction.id)]);
+
+    fireMapClick(map, nearbyClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: existingNodeCoords }),
+      matchLineString({
+        coordinates: [existingNodeCoords, existingNodeCoords],
+      }),
+    ]);
+
+    fireMapMove(map, movePoint);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: existingNodeCoords }),
+      matchLineString({
+        coordinates: [existingNodeCoords, [35, 45]],
+      }),
+    ]);
+
+    fireMapMove(map, endClick);
+    await waitForLoaded();
+    fireDoubleClick(map, endClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "features")).toEqual([
+      matchLineString({
+        coordinates: [existingNodeCoords, [50, 60]],
+      }),
+      matchPoint({ coordinates: existingNodeCoords }),
+      matchPoint({ coordinates: [50, 60] }),
     ]);
 
     expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);

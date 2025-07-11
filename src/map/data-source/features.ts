@@ -3,7 +3,7 @@ import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -12,6 +12,9 @@ import {
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
+
+export const buildFeatureId = (idMap: IDMap, assetId: AssetId) =>
+  UIDMap.getIntID(idMap, assetId);
 
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
@@ -27,7 +30,7 @@ export const buildOptimizedAssetsSource = (
     if (asset.feature.properties?.visibility === false) {
       continue;
     }
-    const featureId = UIDMap.getIntID(idMap, asset.id);
+    const featureId = buildFeatureId(idMap, asset.id);
     const feature: Feature = {
       type: "Feature",
       id: featureId,

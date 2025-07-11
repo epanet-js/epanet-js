@@ -1,8 +1,9 @@
 import mapboxgl from "mapbox-gl";
-import type { GeoJSONSourceRaw } from "mapbox-gl";
+import type { GeoJSONSourceRaw, PointLike } from "mapbox-gl";
 import type { MapHandlers, ClickEvent } from "../../types";
 import { DataSource } from "src/map/data-source";
 import { Feature } from "geojson";
+import { vi } from "vitest";
 
 class MapTestEngine {
   handlers: React.MutableRefObject<MapHandlers>;
@@ -52,7 +53,7 @@ class MapTestEngine {
     setFeatureState: vi.fn(),
     setLayoutProperty: vi.fn(),
     getLayer: vi.fn(),
-    queryRenderedFeatures: vi.fn().mockReturnValue([]),
+    queryRenderedFeatures: vi.fn(),
     remove: vi.fn(),
     resize: vi.fn(),
     getCenter: vi.fn().mockReturnValue({ toArray: () => [0, 0] }),
@@ -83,6 +84,7 @@ class MapTestEngine {
         features,
       };
     }
+
     return Promise.resolve();
   }
   removeSource() {}
@@ -93,9 +95,33 @@ class MapTestEngine {
   showFeatures() {}
   hideFeatures() {}
   setOverlay() {}
-  queryRenderedFeatures() {
-    return [];
+
+  queryRenderedFeatures(
+    _pointOrBox?: PointLike | [PointLike, PointLike],
+    _options?: { layers?: string[] },
+  ): Feature[] {
+    return this.map.queryRenderedFeatures(_pointOrBox, _options) as Feature[];
   }
+
+  searchNearbyRenderedFeatures({
+    point,
+    distance = 12,
+    layers,
+  }: {
+    point: mapboxgl.Point;
+    distance?: number;
+    layers: string[];
+  }): Feature[] {
+    const { x, y } = point;
+
+    const searchBox = [
+      [x - distance, y - distance] as PointLike,
+      [x + distance, y + distance] as PointLike,
+    ] as [PointLike, PointLike];
+
+    return this.queryRenderedFeatures(searchBox, { layers });
+  }
+
   remove() {}
   selectFeature() {}
   unselectFeature() {}
@@ -160,6 +186,22 @@ export const getSourceFeatures = (
   const source = map.getSource(sourceName);
   const featureCollection = source?.data as GeoJSON.FeatureCollection;
   return featureCollection.features;
+};
+
+export const stubNoSnapping = (map: MapTestEngine) => {
+  vi.mocked(map.map.queryRenderedFeatures).mockReturnValue([]);
+};
+
+export const stubSnappingOnce = (map: MapTestEngine, featureIds: RawId[]) => {
+  vi.mocked(map.map.queryRenderedFeatures)
+    .mockReturnValueOnce(
+      featureIds.map((id) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [0, 0] },
+        id,
+      })),
+    )
+    .mockReturnValue([]);
 };
 
 export type { MapTestEngine };

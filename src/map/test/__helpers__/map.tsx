@@ -1,4 +1,4 @@
-import { MapTestEngine } from "./map-engine-mock";
+import { MapTestEngine, stubNoSnapping } from "./map-engine-mock";
 import { Store } from "src/state/jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -8,9 +8,11 @@ import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MapCanvas } from "src/map/map-canvas";
 
-export const renderMap = async (store: Store): Promise<MapTestEngine> => {
+export const renderMap = async (
+  store: Store,
+  idMap = UIDMap.empty(),
+): Promise<MapTestEngine> => {
   let mapEngine: MapTestEngine | null = null;
-  const idMap = UIDMap.empty();
   const persistence = new MemPersistence(idMap, store);
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -31,6 +33,8 @@ export const renderMap = async (store: Store): Promise<MapTestEngine> => {
   });
 
   if (!mapEngine) throw new Error("MapTestEngine instance not set");
+
+  stubNoSnapping(mapEngine);
 
   return mapEngine;
 };
