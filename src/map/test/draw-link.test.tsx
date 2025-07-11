@@ -33,6 +33,7 @@ describe("Drawing a pipe", () => {
     const firstClick = { lng: 10, lat: 20 };
     const movePoint = { lng: 20, lat: 30 };
     const secondClick = { lng: 30, lat: 40 };
+    const thirdClick = { lng: 40, lat: 50 };
 
     const store = setInitialState({ mode: Mode.DRAW_PIPE });
     const map = await renderMap(store);
@@ -65,7 +66,12 @@ describe("Drawing a pipe", () => {
 
     fireMapMove(map, secondClick);
     await waitForLoaded();
-    fireDoubleClick(map, secondClick);
+    fireMapClick(map, secondClick);
+    await waitForLoaded();
+
+    fireMapMove(map, thirdClick);
+    await waitForLoaded();
+    fireDoubleClick(map, thirdClick);
     await waitForLoaded();
 
     expect(getSourceFeatures(map, "features")).toEqual([
@@ -73,10 +79,11 @@ describe("Drawing a pipe", () => {
         coordinates: [
           [10, 20],
           [30, 40],
+          [40, 50],
         ],
       }),
       matchPoint({ coordinates: [10, 20] }),
-      matchPoint({ coordinates: [30, 40] }),
+      matchPoint({ coordinates: [40, 50] }),
     ]);
 
     expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
