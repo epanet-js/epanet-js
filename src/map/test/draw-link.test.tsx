@@ -4,6 +4,7 @@ import {
   fireMapMove,
   getSourceFeatures,
   stubSnappingOnce,
+  stubNoSnapping,
 } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
@@ -133,6 +134,78 @@ describe("Drawing a pipe", () => {
       }),
       matchPoint({ coordinates: existingNodeCoords }),
       matchPoint({ coordinates: [50, 60] }),
+    ]);
+
+    expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+  });
+
+  it("snaps to existing end node", async () => {
+    const firstClick = { lng: 10, lat: 20 };
+    const movePoint = { lng: 35, lat: 45 };
+    const existingNodeCoords = [50, 60];
+    const nearbyEndClick = { lng: 50.001, lat: 60.001 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: existingNodeCoords })
+      .build();
+    const junction = hydraulicModel.assets.get("J1") as Asset;
+    const idMap = UIDMap.empty();
+    UIDMap.pushUUID(idMap, junction.id);
+
+    const store = setInitialState({
+      mode: Mode.DRAW_PIPE,
+      hydraulicModel,
+    });
+    const map = await renderMap(store, idMap);
+
+    stubNoSnapping(map);
+    fireMapClick(map, firstClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    fireMapMove(map, movePoint);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [35, 45],
+        ],
+      }),
+    ]);
+
+    stubSnappingOnce(map, [buildFeatureId(idMap, junction.id)]);
+    fireMapMove(map, nearbyEndClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: existingNodeCoords }),
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [[10, 20], existingNodeCoords],
+      }),
+    ]);
+
+    fireDoubleClick(map, nearbyEndClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "features")).toEqual([
+      matchLineString({
+        coordinates: [[10, 20], existingNodeCoords],
+      }),
+      matchPoint({ coordinates: [10, 20] }),
+      matchPoint({ coordinates: existingNodeCoords }),
     ]);
 
     expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
