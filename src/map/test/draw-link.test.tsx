@@ -4,7 +4,6 @@ import {
   fireMapMove,
   getSourceFeatures,
   stubSnappingOnce,
-  stubNoSnapping,
 } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
@@ -20,6 +19,7 @@ import { vi } from "vitest";
 import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
 import { UIDMap } from "src/lib/id-mapper";
+import { triggerShortcut } from "src/__helpers__/shortcuts";
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -158,7 +158,6 @@ describe("Drawing a pipe", () => {
     });
     const map = await renderMap(store, idMap);
 
-    stubNoSnapping(map);
     fireMapClick(map, firstClick);
     await waitForLoaded();
 
@@ -207,6 +206,45 @@ describe("Drawing a pipe", () => {
       matchPoint({ coordinates: [10, 20] }),
       matchPoint({ coordinates: existingNodeCoords }),
     ]);
+
+    expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+  });
+
+  it("cancels drawing when pressing escape", async () => {
+    const firstClick = { lng: 10, lat: 20 };
+    const movePoint = { lng: 35, lat: 45 };
+
+    const store = setInitialState({ mode: Mode.DRAW_PIPE });
+    const map = await renderMap(store);
+
+    fireMapClick(map, firstClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    fireMapMove(map, movePoint);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [35, 45],
+        ],
+      }),
+    ]);
+
+    triggerShortcut("esc");
+    await waitForLoaded();
 
     expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
   });
