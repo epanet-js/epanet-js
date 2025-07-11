@@ -2,7 +2,7 @@ import { MapTestEngine, stubNoSnapping } from "./map-engine-mock";
 import { Store } from "src/state/jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import { MemPersistence } from "src/lib/persistence/memory";
-import { render, waitFor, screen } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
@@ -37,18 +37,6 @@ export const renderMap = async (
   stubNoSnapping(mapEngine);
 
   return mapEngine;
-};
-
-export const waitForLoaded = async () => {
-  await waitFor(() => {
-    const loadingElement = screen.getByText(/loading/i);
-    expect(loadingElement).toHaveAttribute("aria-hidden", "false");
-  });
-  await waitFor(() => {
-    const loadingElement = screen.getByText(/loading/i);
-    expect(loadingElement).toHaveAttribute("aria-hidden", "true");
-    expect(loadingElement).toHaveClass("opacity-0");
-  });
 };
 
 export const matchPoint = (

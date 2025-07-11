@@ -137,7 +137,7 @@ vi.mock("../../map-engine", () => {
 export const fireMapClick = (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
-) => {
+): Promise<void> => {
   map.handlers.current.onClick({
     lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
     point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
@@ -147,12 +147,18 @@ export const fireMapClick = (
     preventDefault: () => {},
     defaultPrevented: false,
   } as unknown as ClickEvent);
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, 0);
+  });
 };
 
 export const fireDoubleClick = (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
-) => {
+): Promise<void> => {
   map.handlers.current.onDoubleClick({
     lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
     point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
@@ -162,12 +168,18 @@ export const fireDoubleClick = (
     preventDefault: () => {},
     defaultPrevented: false,
   } as unknown as ClickEvent);
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, 0);
+  });
 };
 
 export const fireMapMove = (
   map: MapTestEngine,
   movePoint: { lng: number; lat: number },
-) => {
+): Promise<void> => {
   map.handlers.current.onMapMouseMove({
     lngLat: new mapboxgl.LngLat(movePoint.lng, movePoint.lat),
     point: new mapboxgl.Point(movePoint.lng * 100, movePoint.lat * 100), // Mock point coordinates
@@ -177,6 +189,12 @@ export const fireMapMove = (
     preventDefault: () => {},
     defaultPrevented: false,
   } as any);
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, 0);
+  });
 };
 
 export const getSourceFeatures = (

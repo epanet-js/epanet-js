@@ -2,11 +2,12 @@ import { fireMapClick, getSourceFeatures } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
 import { Mode } from "src/state/mode";
-import { renderMap, waitForLoaded } from "./__helpers__/map";
+import { renderMap } from "./__helpers__/map";
 import { dataAtom } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { vi } from "vitest";
+import { waitFor } from "@testing-library/react";
 
 describe("Drawing a junction", () => {
   afterEach(() => {
@@ -19,19 +20,19 @@ describe("Drawing a junction", () => {
     const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
     const map = await renderMap(store);
 
-    fireMapClick(map, clickPoint);
+    await fireMapClick(map, clickPoint);
 
-    await waitForLoaded();
+    await waitFor(() => {
+      const features = getSourceFeatures(map, "features");
+      expect(features).toHaveLength(1);
 
-    const features = getSourceFeatures(map, "features");
-    expect(features).toHaveLength(1);
-
-    const feature = features[0];
-    expect(feature.geometry).toEqual({
-      type: "Point",
-      coordinates: [10, 20],
+      const feature = features[0];
+      expect(feature.geometry).toEqual({
+        type: "Point",
+        coordinates: [10, 20],
+      });
+      expect(feature.properties?.type).toBe("junction");
     });
-    expect(feature.properties?.type).toBe("junction");
   });
 
   it("registers the junction in the model", async () => {
@@ -40,9 +41,7 @@ describe("Drawing a junction", () => {
     const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
     const map = await renderMap(store);
 
-    fireMapClick(map, clickPoint);
-
-    await waitForLoaded();
+    await fireMapClick(map, clickPoint);
 
     const {
       hydraulicModel: { assets },
