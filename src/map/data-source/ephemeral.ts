@@ -21,6 +21,8 @@ export const buildEphemeralStateSource = (
 };
 
 const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
+  if (!ephemeralState.isMoving) return [];
+
   const features: Feature[] = [];
 
   const iconProps = (asset: Asset) => {
