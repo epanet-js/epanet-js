@@ -1,5 +1,5 @@
 import mapboxgl, { Style } from "mapbox-gl";
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { Map as MapboxMap, MapboxGeoJSONFeature } from "mapbox-gl";
 
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import type { Feature, IFeatureCollection } from "src/types";
@@ -238,6 +238,27 @@ export class MapEngine {
     return this.map.queryRenderedFeatures(pointOrBox, {
       ...options,
       layers: availableLayers,
+    });
+  }
+
+  searchNearbyRenderedFeatures({
+    point,
+    distance = 12,
+    layers,
+  }: {
+    point: mapboxgl.Point;
+    distance?: number;
+    layers: LayerId[];
+  }): MapboxGeoJSONFeature[] {
+    const { x, y } = point;
+
+    const searchBox = [
+      [x - distance, y - distance] as mapboxgl.PointLike,
+      [x + distance, y + distance] as mapboxgl.PointLike,
+    ] as [mapboxgl.PointLike, mapboxgl.PointLike];
+
+    return this.queryRenderedFeatures(searchBox, {
+      layers: layers as unknown as string[],
     });
   }
 
