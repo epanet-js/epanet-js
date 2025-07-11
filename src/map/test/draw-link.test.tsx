@@ -1,4 +1,4 @@
-import { triggerShortcut, stubKeyboardState } from "src/__helpers__/shortcuts";
+import { triggerShortcut, stubKeyboardState } from "src/__helpers__/keyboard";
 import {
   fireDoubleClick,
   fireMapClick,
