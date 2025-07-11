@@ -1,3 +1,4 @@
+import { triggerShortcut, stubKeyboardState } from "src/__helpers__/shortcuts";
 import {
   fireDoubleClick,
   fireMapClick,
@@ -19,7 +20,6 @@ import { vi } from "vitest";
 import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
 import { UIDMap } from "src/lib/id-mapper";
-import { triggerShortcut } from "src/__helpers__/shortcuts";
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -245,6 +245,82 @@ describe("Drawing a pipe", () => {
 
     triggerShortcut("esc");
     await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+  });
+
+  it("creates two connected links when using control+click", async () => {
+    const firstClick = { lng: 10, lat: 20 };
+    const secondClick = { lng: 30, lat: 40 };
+    const thirdClick = { lng: 50, lat: 60 };
+
+    const store = setInitialState({ mode: Mode.DRAW_PIPE });
+    const map = await renderMap(store);
+
+    fireMapClick(map, firstClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [10, 20] }),
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    fireMapMove(map, secondClick);
+    await waitForLoaded();
+    stubKeyboardState({ ctrl: true });
+    fireMapClick(map, secondClick);
+    await waitForLoaded();
+    stubKeyboardState({ ctrl: false });
+
+    expect(getSourceFeatures(map, "features")).toEqual([
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [30, 40],
+        ],
+      }),
+      matchPoint({ coordinates: [10, 20] }),
+      matchPoint({ coordinates: [30, 40] }),
+    ]);
+
+    expect(getSourceFeatures(map, "ephemeral")).toEqual([
+      matchPoint({ coordinates: [30, 40] }),
+      matchLineString({
+        coordinates: [
+          [30, 40],
+          [30, 40],
+        ],
+      }),
+    ]);
+
+    fireMapMove(map, thirdClick);
+    await waitForLoaded();
+
+    fireDoubleClick(map, thirdClick);
+    await waitForLoaded();
+
+    expect(getSourceFeatures(map, "features")).toEqual([
+      matchLineString({
+        coordinates: [
+          [10, 20],
+          [30, 40],
+        ],
+      }),
+      matchPoint({ coordinates: [10, 20] }),
+      matchPoint({ coordinates: [30, 40] }),
+      matchLineString({
+        coordinates: [
+          [30, 40],
+          [50, 60],
+        ],
+      }),
+      matchPoint({ coordinates: [50, 60] }),
+    ]);
 
     expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
   });
