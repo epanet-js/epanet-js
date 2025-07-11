@@ -32,7 +32,6 @@ export const useDrawingMode = () => {
 
       setMode({
         mode,
-        modeOptions: { multi: true },
       });
     },
     [

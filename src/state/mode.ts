@@ -34,13 +34,6 @@ export interface ModeOptions {
    * to remember to add points to that end.
    */
   reverse?: boolean;
-  /**
-   * Accessed by shift-clicking mode buttons or adding
-   * shift to the shortcuts, this lets people
-   * draw multiple features by staying in the drawing
-   * mode after finishing a feature.
-   */
-  multi?: boolean;
 
   circleType?: CIRCLE_TYPE;
 
