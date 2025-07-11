@@ -22,7 +22,8 @@ export const MapLoading = () => {
             font-semibold
             text-sm
             select-none
-            transition-opacity duration-1000
+            transition-opacity
+            duration-1000
             ${opacityClass}
             pointer-events-none`}
       >

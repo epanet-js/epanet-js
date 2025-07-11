@@ -1,4 +1,5 @@
 import { useAtom } from "jotai";
+import mapboxgl from "mapbox-gl";
 import { Asset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
@@ -8,6 +9,8 @@ export type EphemeralMoveAssets = {
   targetAssets: Asset[];
   startPoint?: mapboxgl.Point;
 };
+
+const nullPoint = new mapboxgl.Point(0, 0);
 
 export const useMoveState = () => {
   const [state, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -41,21 +44,22 @@ export const useMoveState = () => {
   };
 
   const updateMove = (targetAssets: Asset[]) => {
-    if (state.type !== "moveAssets")
-      throw new Error("Update called without start!");
+    setEphemeralState((prev: EphemeralEditingState) => {
+      if (prev.type !== "moveAssets") {
+        return {
+          type: "moveAssets",
+          startPoint: nullPoint,
+          targetAssets,
+          oldAssets: targetAssets,
+        } as EphemeralMoveAssets;
+      }
 
-    setEphemeralState((prev: EphemeralEditingState) =>
-      (prev as EphemeralMoveAssets).oldAssets.length > 0
-        ? {
-            ...prev,
-            targetAssets,
-          }
-        : {
-            ...prev,
-            targetAssets,
-            oldAssets: targetAssets,
-          },
-    );
+      return {
+        ...prev,
+        targetAssets,
+        oldAssets: prev.oldAssets.length > 0 ? prev.oldAssets : targetAssets,
+      };
+    });
   };
 
   const resetMove = () => {
