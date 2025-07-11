@@ -15,6 +15,7 @@ import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useNoneHandlers({
   throttledMovePointer,
@@ -40,6 +41,7 @@ export function useNoneHandlers({
     hydraulicModel.units.elevation,
   );
   const transact = rep.useTransact();
+  const isMapClickFixOn = useFeatureFlag("FLAG_MAP_CLICK_FIX");
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     throttledMovePointer(e.point);
@@ -70,6 +72,11 @@ export function useNoneHandlers({
       const [assetId] = getSelectionIds();
       const clickedAsset = getClickedAsset(e);
       if (!clickedAsset || clickedAsset.id !== assetId) {
+        return;
+      }
+
+      // Fix: When flag is enabled, don't start move on already selected nodes
+      if (isMapClickFixOn) {
         return;
       }
 

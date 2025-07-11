@@ -72,6 +72,7 @@ describe("Drawing a pipe", () => {
           coordinates: [
             [10, 20],
             [30, 40],
+            [30, 40], //to fix
           ],
         }),
       ]);
