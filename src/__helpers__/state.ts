@@ -18,7 +18,7 @@ import {
 } from "src/state/jotai";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
-import { ExportOptions } from "src/lib/convert";
+import { ExportOptions } from "src/types/export";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";

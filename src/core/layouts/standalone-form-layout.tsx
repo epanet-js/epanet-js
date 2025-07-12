@@ -26,8 +26,8 @@ const StandaloneFormLayout = ({
           </div>
         </div>
         <div className="mx-auto max-w-sm px-8 md:px-0 w-full py-4 text-sm">
-          <a className={styledInlineA} href="https://www.placemark.io/">
-            © Placemark
+          <a className={styledInlineA} href="https://epanet.org/">
+            EPANET-JS
           </a>
         </div>
       </div>

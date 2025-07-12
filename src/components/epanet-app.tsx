@@ -57,7 +57,7 @@ const persistentTransformAtom = atom<Transform>({
   y: 5,
 });
 
-export function PlacemarkPlay() {
+export function EpanetApp() {
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const userTracking = useUserTracking();

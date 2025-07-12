@@ -1,29 +1,12 @@
-import { FILE_TYPES } from "src/lib/convert";
 import { Field, ErrorMessage } from "formik";
 import { InlineError } from "./inline-error";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { styledSelect } from "./elements";
 
-interface SelectFileTypeProps {
-  exportable?: boolean;
-  textOnly?: boolean;
-}
+// Only INP format is supported for EPANET-JS
+const FILE_TYPES = [{ id: "inp", label: "INP" }];
 
-export function SelectFileTypeField({
-  name,
-  exportable = false,
-  textOnly = false,
-}: {
-  name: string;
-} & SelectFileTypeProps) {
-  const applicableTypes = FILE_TYPES.filter((type) => {
-    if (exportable && !("back" in type)) return false;
-    if (textOnly) {
-      return "forwardString" in type;
-    }
-    return true;
-  });
-
+export function SelectFileTypeField({ name }: { name: string }) {
   return (
     <Field
       as="select"
@@ -31,23 +14,16 @@ export function SelectFileTypeField({
       aria-label="File format"
       className={styledSelect({ size: "md" }) + "w-full"}
     >
-      {applicableTypes.map((type) =>
-        [type.label].flat().map((label, i) => {
-          return (
-            <option key={`${type.id}-${i}`} value={type.id}>
-              {label}
-            </option>
-          );
-        }),
-      )}
+      {FILE_TYPES.map((type) => (
+        <option key={type.id} value={type.id}>
+          {type.label}
+        </option>
+      ))}
     </Field>
   );
 }
 
-export function SelectFileType({
-  exportable = false,
-  textOnly = false,
-}: SelectFileTypeProps) {
+export function SelectFileType() {
   const name = "type";
 
   return (
@@ -59,17 +35,13 @@ export function SelectFileType({
             target="_blank"
             className="focus:underline hover:underline"
             rel="noreferrer"
-            href="https://www.placemark.io/documentation-index"
+            href="https://epanet.org"
           >
             <QuestionMarkCircledIcon className="mr-1 inline-block" />
             Help
           </a>
         </div>
-        <SelectFileTypeField
-          name={name}
-          exportable={exportable}
-          textOnly={textOnly}
-        />
+        <SelectFileTypeField name={name} />
       </label>
       <ErrorMessage name={name} component={InlineError} />
     </>

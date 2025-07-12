@@ -23,7 +23,6 @@ import {
   TextNoneIcon,
 } from "@radix-ui/react-icons";
 import { SUPPORT_EMAIL } from "src/lib/constants";
-import Placemark from "./icons/placemark";
 import { Portal } from "@radix-ui/react-portal";
 import { useTranslate } from "src/hooks/use-translate";
 
@@ -876,7 +875,9 @@ export const MinimalHeaderLogoLink = () => {
       title="Home"
     >
       <SiteIcon className="w-8 h-8" />
-      <Placemark className="hidden sm:block w-24 text-gray-700 dark:text-gray-300" />
+      <span className="hidden sm:block text-lg font-semibold text-gray-700 dark:text-gray-300">
+        EPANET-JS
+      </span>
     </Link>
   );
 };

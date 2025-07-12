@@ -1,5 +1,5 @@
 import { dataAtom, dialogAtom, fileInfoAtom } from "src/state/jotai";
-import { ExportOptions } from "src/lib/convert";
+import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";

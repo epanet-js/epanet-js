@@ -1,4 +1,4 @@
-import type { ConvertResult } from "src/lib/convert/utils";
+import type { ConvertResult } from "src/types/export";
 import { DialogHeader } from "src/components/dialog";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { getExtent } from "src/lib/geometry";

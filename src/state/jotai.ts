@@ -11,7 +11,7 @@ import {
   SYMBOLIZATION_NONE,
 } from "src/types";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
-import type { ExportOptions } from "src/lib/convert";
+import type { ExportOptions } from "src/types/export";
 import { focusAtom } from "jotai-optics";
 import { USelection } from "src/selection/selection";
 import { atomWithMachine } from "jotai-xstate";

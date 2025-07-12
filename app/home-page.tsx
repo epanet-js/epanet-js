@@ -31,8 +31,8 @@ export default function HomePage({}) {
     </ErrorBoundary>
   );
 }
-const PlacemarkPlay = dynamic(
-  () => import("src/components/placemark-play").then((m) => m.PlacemarkPlay),
+const EpanetApp = dynamic(
+  () => import("src/components/epanet-app").then((m) => m.EpanetApp),
   {
     ssr: false,
   },
@@ -56,7 +56,7 @@ function ScratchpadInner({ store }: { store: Store }) {
             value={new MemPersistence(idMap.current, store)}
           >
             <Suspense fallback={null}>
-              <PlacemarkPlay />
+              <EpanetApp />
             </Suspense>
           </PersistenceContext.Provider>
         </FeatureFlagsProvider>

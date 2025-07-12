@@ -1,4 +1,4 @@
-import type { ConvertResult } from "src/lib/convert/utils";
+import type { ConvertResult } from "src/types/export";
 import { DialogHeader } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { CrossCircledIcon } from "@radix-ui/react-icons";

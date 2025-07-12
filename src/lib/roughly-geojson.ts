@@ -17,7 +17,7 @@ import { geometryTypes } from "./constants";
 import type { Either } from "purify-ts/Either";
 import { Left, Right } from "purify-ts/Either";
 import { ConvertError } from "./errors";
-import type { GeoJSONResult } from "./convert/utils";
+import type { GeoJSONResult } from "src/types/export";
 
 type RoughResultTmp = SetOptional<GeoJSONResult, "geojson"> & {
   _state: {
