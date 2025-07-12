@@ -12,7 +12,7 @@ export function LayoutHead({
 }: React.PropsWithChildren<Pick<LayoutProps, "title">>) {
   return (
     <Head>
-      <title>{title || "Placemark"}</title>
+      <title>{title || "epanet-js"}</title>
       <link rel="icon" href="/favicon.ico" />
       {children}
     </Head>

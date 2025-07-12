@@ -6,11 +6,6 @@ const Layout = ({ title, children }: LayoutProps) => {
     <>
       <LayoutHead title={title || ""} />
       {children}
-      <script
-        data-goatcounter="https://placemark.goatcounter.com/count"
-        async
-        src="//gc.zgo.at/count.js"
-      ></script>
     </>
   );
 };

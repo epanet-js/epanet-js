@@ -1,6 +1,6 @@
 {
-  "short_name": "Placemark",
-  "name": "Placemark: map data editor",
+  "short_name": "epanet-js",
+  "name": "epanet-js: hydraulic network editor",
   "icons": [
     {
       "src": "/favicon.png",
@@ -14,7 +14,7 @@
   "scope": "/",
   "theme_color": "#3367D6",
   "shortcuts": [],
-  "description": "Edit map data",
+  "description": "Edit hydraulic network data",
   "screenshots": [],
   "file_handlers": [
     {
