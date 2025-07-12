@@ -66,3 +66,6 @@ lib-cov
 .env.sentry-build-plugin
 
 *.patch
+
+.claude
+specs/
