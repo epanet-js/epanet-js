@@ -8,7 +8,6 @@ import {
   stubSnapping,
 } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { Mode } from "src/state/mode";
 import { renderMap, matchPoint } from "./__helpers__/map";
@@ -26,7 +25,6 @@ describe("None mode selection", () => {
   });
 
   it("selects/unselects node when clicking close", async () => {
-    stubFeatureOn("FLAG_MAP_CLICK_FIX");
     const junctionCoords = [10, 20];
     const createClick = { lng: 10, lat: 20 };
     const nearbyClick = { lng: 10.001, lat: 20.001 };
@@ -83,7 +81,6 @@ describe("None mode selection", () => {
   });
 
   it("moves node when dragging it to a different location", async () => {
-    stubFeatureOn("FLAG_MAP_CLICK_FIX");
     const junctionCoords = [10, 20];
     const createClick = { lng: 10, lat: 20 };
     const selectClick = { lng: 10.001, lat: 20.001 };

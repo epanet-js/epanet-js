@@ -15,7 +15,6 @@ import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const isMovementSignificant = (
   startPoint: mapboxgl.Point,
@@ -49,21 +48,13 @@ export function useNoneHandlers({
     getSelectionIds,
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
-  const {
-    setStartPoint,
-    startPoint,
-    startMove,
-    updateMove,
-    updateMoveDeprecated,
-    resetMove,
-    isMoving,
-  } = useMoveState();
+  const { setStartPoint, startPoint, updateMove, resetMove, isMoving } =
+    useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
     hydraulicModel.units.elevation,
   );
   const transact = rep.useTransact();
-  const isMapClickFixOn = useFeatureFlag("FLAG_MAP_CLICK_FIX");
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     throttledMovePointer(e.point);
@@ -86,7 +77,7 @@ export function useNoneHandlers({
 
   const handlers: Handlers = {
     double: noop,
-    down: async (e) => {
+    down: (e) => {
       if (selection.type !== "single") {
         return skipMove(e);
       }
@@ -101,16 +92,7 @@ export function useNoneHandlers({
       const node = getNode(hydraulicModel.assets, assetId);
       if (!node) return;
 
-      if (isMapClickFixOn) {
-        setStartPoint(e.point);
-      } else {
-        const { putAssets } = moveNode(hydraulicModel, {
-          nodeId: node.id,
-          newCoordinates: node.coordinates,
-          newElevation: await fetchElevation(e.lngLat),
-        });
-        putAssets && startMove(putAssets);
-      }
+      setStartPoint(e.point);
 
       setCursor("move");
     },
@@ -132,11 +114,7 @@ export function useNoneHandlers({
         newCoordinates,
         newElevation: noElevation,
       });
-      if (isMapClickFixOn) {
-        putAssets && updateMove(putAssets);
-      } else {
-        putAssets && updateMoveDeprecated(putAssets);
-      }
+      putAssets && updateMove(putAssets);
     },
     up: async (e) => {
       e.preventDefault();
@@ -150,27 +128,16 @@ export function useNoneHandlers({
 
       const newCoordinates = getMapCoord(e);
 
-      if (isMapClickFixOn) {
-        if (startPoint && isMovementSignificant(e.point, startPoint)) {
-          const moment = moveNode(hydraulicModel, {
-            nodeId: assetId,
-            newCoordinates,
-            newElevation: await fetchElevation(e.lngLat),
-          });
-          transact(moment);
-          clearSelection();
-        }
-        resetMove();
-      } else {
+      if (startPoint && isMovementSignificant(e.point, startPoint)) {
         const moment = moveNode(hydraulicModel, {
           nodeId: assetId,
           newCoordinates,
           newElevation: await fetchElevation(e.lngLat),
         });
         transact(moment);
-        resetMove();
         clearSelection();
       }
+      resetMove();
     },
     click: (e) => {
       const clickedAsset = getClickedAsset(e);

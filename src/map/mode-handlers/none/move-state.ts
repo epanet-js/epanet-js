@@ -24,25 +24,6 @@ export const useMoveState = () => {
     });
   };
 
-  const startMove = (startAssets: Asset[]) => {
-    setEphemeralState({
-      type: "moveAssets",
-      oldAssets: startAssets,
-      targetAssets: startAssets,
-    });
-  };
-
-  const updateMoveDeprecated = (targetAssets: Asset[]) => {
-    if (state.type !== "moveAssets") {
-      return startMove(targetAssets);
-    }
-
-    setEphemeralState((prev: EphemeralEditingState) => ({
-      ...prev,
-      targetAssets,
-    }));
-  };
-
   const updateMove = (targetAssets: Asset[]) => {
     setEphemeralState((prev: EphemeralEditingState) => {
       if (prev.type !== "moveAssets") {
@@ -68,10 +49,8 @@ export const useMoveState = () => {
 
   return {
     setStartPoint,
-    startMove,
     startPoint: (state as EphemeralMoveAssets).startPoint,
     updateMove,
-    updateMoveDeprecated,
     resetMove,
     isMoving: state.type === "moveAssets",
   };
