@@ -3,10 +3,7 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import {
-  parseGeoJSONLToCustomerPoints,
-  parseGeoJSONToCustomerPoints,
-} from "src/import/customer-points";
+import { parseCustomerPointsFromFile } from "src/import/customer-points";
 import { dataAtom } from "src/state/jotai";
 
 const geoJsonExtension = ".geojson";
@@ -44,9 +41,7 @@ export const useImportCustomerPoints = () => {
 
         const nextId = 1;
 
-        const customerPoints = file.name.endsWith(geoJsonLExtension)
-          ? parseGeoJSONLToCustomerPoints(text, nextId)
-          : parseGeoJSONToCustomerPoints(text, nextId);
+        const customerPoints = parseCustomerPointsFromFile(text, nextId);
 
         const newCustomerPointsMap = new Map();
         customerPoints.forEach((customerPoint) => {
