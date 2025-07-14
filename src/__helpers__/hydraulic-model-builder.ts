@@ -323,6 +323,7 @@ export class HydraulicModelBuilder {
     return {
       version: nanoid(),
       assets: this.assets,
+      customerPoints: new Map(),
       assetBuilder: this.assetBuilder,
       labelManager: this.labelManager,
       topology: this.topology,

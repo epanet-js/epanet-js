@@ -16,6 +16,7 @@ import {
   momentLogAtom,
   selectionAtom,
   simulationAtom,
+  customerPointsMetaAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import {
@@ -40,6 +41,7 @@ import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { buildCustomerPointsOverlay } from "./overlays/customer-points";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -69,6 +71,7 @@ type MapState = {
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
   isOffline: boolean;
+  customerPointsMeta: { count: number; keysHash: string };
 };
 
 const nullMapState: MapState = {
@@ -86,6 +89,7 @@ const nullMapState: MapState = {
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
   isOffline: false,
+  customerPointsMeta: { count: 0, keysHash: "" },
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -106,6 +110,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
+  const customerPointsMeta = get(customerPointsMetaAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
   const movedAssetIds = getMovedAssets(ephemeralState);
@@ -122,6 +127,7 @@ const mapStateAtom = atom<MapState>((get) => {
     selectedAssetIds,
     movedAssetIds,
     isOffline,
+    customerPointsMeta,
   };
 });
 
@@ -136,6 +142,7 @@ const detectChanges = (
   hasNewEphemeralState: boolean;
   hasNewSimulation: boolean;
   hasNewSymbology: boolean;
+  hasNewCustomerPoints: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -147,6 +154,7 @@ const detectChanges = (
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
+    hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
   };
 };
 
@@ -157,6 +165,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
   const assets = useAtomValue(assetsAtom);
   const {
+    hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const { idMap } = usePersistence();
@@ -165,6 +174,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isSelectiveMapLoaderOn = useFeatureFlag("FLAG_SELECTIVE_MAP_LOADER");
+  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const doUpdatesDeprecated = useCallback(() => {
     if (!map) return;
@@ -305,6 +315,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewEphemeralState,
       hasNewSymbology,
       hasNewSimulation,
+      hasNewCustomerPoints,
     } = changes;
 
     const shouldShowLoader =
@@ -382,6 +393,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           await updateIconsSource(map, assets, idMap, mapState.selection);
         }
 
+        if (
+          isCustomerPointOn &&
+          (hasNewImport ||
+            hasNewEditions ||
+            hasNewStyles ||
+            hasNewCustomerPoints)
+        ) {
+          const overlay = buildCustomerPointsOverlay(
+            hydraulicModel.customerPoints,
+          );
+          map.setOverlay([overlay]);
+        }
+
         if (hasNewEphemeralState) {
           updateEditionsVisibility(
             map,
@@ -418,6 +442,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     setMapLoading,
     translate,
     translateUnit,
+    hydraulicModel.customerPoints,
+    isCustomerPointOn,
   ]);
 
   if (isSelectiveMapLoaderOn) {

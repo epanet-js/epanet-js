@@ -318,6 +318,17 @@ type LanguageChanged = {
   language: string;
 };
 
+type ImportCustomerPointsStarted = {
+  name: "importCustomerPoints.started";
+  source: string;
+};
+
+type ImportCustomerPointsCompleted = {
+  name: "importCustomerPoints.completed";
+  source: string;
+  count: number;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -371,6 +382,8 @@ type UserEvent =
   | LayerOpacityChanged
   | LanguageListOpened
   | LanguageChanged
+  | ImportCustomerPointsStarted
+  | ImportCustomerPointsCompleted
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }

@@ -124,6 +124,19 @@ export const selectionAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("selection"),
 );
 
+export const customerPointsAtom = focusAtom(dataAtom, (optic) =>
+  optic.prop("hydraulicModel").prop("customerPoints"),
+);
+
+export const customerPointsMetaAtom = atom((get) => {
+  const customerPoints = get(customerPointsAtom);
+  const keys = Array.from(customerPoints.keys()).sort().join(",");
+  return {
+    count: customerPoints.size,
+    keysHash: keys,
+  };
+});
+
 export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const fileInfo = get(fileInfoAtom);
   const momentLog = get(momentLogAtom);
