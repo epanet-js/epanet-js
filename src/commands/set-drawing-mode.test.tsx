@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { aSingleSelection, setInitialState } from "src/__helpers__/state";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { CommandContainer } from "./__helpers__/command-container";
 
@@ -37,9 +36,8 @@ const renderComponent = ({ store }: { store: Store }) => {
   );
 };
 
-describe("useDrawingMode with FLAG_CLEAR_SELECT", () => {
+describe("useDrawingMode", () => {
   it("clears selection when changing to none mode", async () => {
-    stubFeatureOn("FLAG_CLEAR_SELECT");
     const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
     const selection = aSingleSelection({ id: "J1" });
     const store = setInitialState({
@@ -61,7 +59,6 @@ describe("useDrawingMode with FLAG_CLEAR_SELECT", () => {
   });
 
   it("clears selection when changing to another drawing mode", async () => {
-    stubFeatureOn("FLAG_CLEAR_SELECT");
     const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
     const selection = aSingleSelection({ id: "J1" });
     const store = setInitialState({

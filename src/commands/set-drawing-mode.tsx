@@ -2,7 +2,6 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { ephemeralStateAtom, selectionAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { USelection } from "src/selection/selection";
 
 export const drawingModeShorcuts: { [key in Mode]: string } = {
@@ -20,13 +19,12 @@ export const useDrawingMode = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setSelection = useSetAtom(selectionAtom);
   const currentMode = useAtomValue(modeAtom);
-  const isClearSelectOn = useFeatureFlag("FLAG_CLEAR_SELECT");
 
   const setDrawingMode = useCallback(
     (mode: Mode) => {
       setEphemeralState({ type: "none" });
 
-      if (isClearSelectOn && currentMode.mode !== mode) {
+      if (currentMode.mode !== mode) {
         setSelection(USelection.none());
       }
 
@@ -34,13 +32,7 @@ export const useDrawingMode = () => {
         mode,
       });
     },
-    [
-      setMode,
-      setEphemeralState,
-      setSelection,
-      currentMode.mode,
-      isClearSelectOn,
-    ],
+    [setMode, setEphemeralState, setSelection, currentMode.mode],
   );
 
   return setDrawingMode;
