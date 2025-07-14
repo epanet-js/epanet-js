@@ -48,8 +48,16 @@ export function useNoneHandlers({
     getSelectionIds,
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
-  const { setStartPoint, startPoint, updateMove, resetMove, isMoving } =
-    useMoveState();
+  const {
+    setStartPoint,
+    startPoint,
+    updateMove,
+    resetMove,
+    isMoving,
+    startCommit,
+    finishCommit,
+    isCommitting,
+  } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
     hydraulicModel.units.elevation,
@@ -93,12 +101,11 @@ export function useNoneHandlers({
       if (!node) return;
 
       setStartPoint(e.point);
-
       setCursor("move");
     },
     move: (e) => {
       e.preventDefault();
-      if (selection.type !== "single" || !isMoving) {
+      if (selection.type !== "single" || !isMoving || isCommitting) {
         return skipMove(e);
       }
       void prefetchTile(e.lngLat);
@@ -124,11 +131,16 @@ export function useNoneHandlers({
 
       const [assetId] = getSelectionIds();
       const node = getNode(hydraulicModel.assets, assetId);
-      if (!node) return skipMove(e);
+      if (!node) {
+        return skipMove(e);
+      }
 
       const newCoordinates = getMapCoord(e);
+      const significant =
+        startPoint && isMovementSignificant(e.point, startPoint);
 
-      if (startPoint && isMovementSignificant(e.point, startPoint)) {
+      if (significant) {
+        startCommit();
         const moment = moveNode(hydraulicModel, {
           nodeId: assetId,
           newCoordinates,
@@ -136,8 +148,10 @@ export function useNoneHandlers({
         });
         transact(moment);
         clearSelection();
+        finishCommit();
+      } else {
+        resetMove();
       }
-      resetMove();
     },
     click: (e) => {
       const clickedAsset = getClickedAsset(e);

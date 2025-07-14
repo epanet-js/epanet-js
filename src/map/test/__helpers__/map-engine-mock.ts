@@ -169,15 +169,7 @@ export const fireMapDown = (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
-  map.handlers.current.onMapMouseDown({
-    lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
-    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
-    originalEvent: new MouseEvent("mousedown"),
-    target: map.map,
-    type: "mousedown",
-    preventDefault: () => {},
-    defaultPrevented: false,
-  } as unknown as mapboxgl.MapMouseEvent);
+  fireMapDownSync(map, clickPoint);
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -186,25 +178,46 @@ export const fireMapDown = (
   });
 };
 
+export const fireMapDownSync = (
+  map: MapTestEngine,
+  clickPoint: { lng: number; lat: number },
+): void => {
+  map.handlers.current.onMapMouseDown({
+    lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
+    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100),
+    originalEvent: new MouseEvent("mousedown"),
+    target: map.map,
+    type: "mousedown",
+    preventDefault: () => {},
+    defaultPrevented: false,
+  } as unknown as mapboxgl.MapMouseEvent);
+};
+
 export const fireMapUp = (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
+  fireMapUpSync(map, clickPoint);
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, 10); // Small delay to allow React state updates
+  });
+};
+
+export const fireMapUpSync = (
+  map: MapTestEngine,
+  clickPoint: { lng: number; lat: number },
+): void => {
   map.handlers.current.onMapMouseUp({
     lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
-    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
+    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100),
     originalEvent: new MouseEvent("mouseup"),
     target: map.map,
     type: "mouseup",
     preventDefault: () => {},
     defaultPrevented: false,
   } as unknown as mapboxgl.MapMouseEvent);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 10); // Small delay to allow React state updates
-  });
 };
 
 export const fireMapClick = async (
@@ -256,21 +269,28 @@ export const fireMapMove = (
   map: MapTestEngine,
   movePoint: { lng: number; lat: number },
 ): Promise<void> => {
-  map.handlers.current.onMapMouseMove({
-    lngLat: new mapboxgl.LngLat(movePoint.lng, movePoint.lat),
-    point: new mapboxgl.Point(movePoint.lng * 100, movePoint.lat * 100), // Mock point coordinates
-    originalEvent: new MouseEvent("mousemove"),
-    target: map.map,
-    type: "mousemove",
-    preventDefault: () => {},
-    defaultPrevented: false,
-  } as any);
+  fireMapMoveSync(map, movePoint);
 
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, 0);
   });
+};
+
+export const fireMapMoveSync = (
+  map: MapTestEngine,
+  movePoint: { lng: number; lat: number },
+): void => {
+  map.handlers.current.onMapMouseMove({
+    lngLat: new mapboxgl.LngLat(movePoint.lng, movePoint.lat),
+    point: new mapboxgl.Point(movePoint.lng * 100, movePoint.lat * 100),
+    originalEvent: new MouseEvent("mousemove"),
+    target: map.map,
+    type: "mousemove",
+    preventDefault: () => {},
+    defaultPrevented: false,
+  } as any);
 };
 
 export const getSourceFeatures = (
