@@ -161,6 +161,7 @@ class MapTestEngine {
 vi.mock("../../map-engine", () => {
   return {
     MapEngine: MapTestEngine,
+    DEFAULT_ZOOM: 15.5,
   };
 });
 

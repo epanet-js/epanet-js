@@ -26,6 +26,7 @@ import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
+import { DEFAULT_ZOOM } from "src/map/map-engine";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -211,6 +212,8 @@ export const defaultSplits: Splits = {
 export const splitsAtom = atom<Splits>(defaultSplits);
 
 export const showPanelBottomAtom = atom<boolean>(true);
+
+export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
 // ----------------------------------------------------------------------------
 /**

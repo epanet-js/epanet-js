@@ -12,6 +12,8 @@ import { IconImage } from "./icons";
 import { LayerId } from "./layers";
 import type { MapHandlers, MoveEvent } from "./types";
 
+export const DEFAULT_ZOOM = 15.5;
+
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
   maxZoom: 26,
@@ -45,7 +47,7 @@ export class MapEngine {
   }) {
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
-      zoom: 15.5,
+      zoom: DEFAULT_ZOOM,
     };
 
     const map = new mapboxgl.Map({
@@ -223,6 +225,10 @@ export class MapEngine {
 
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
+  }
+
+  getZoom(): number {
+    return this.map.getZoom();
   }
 
   queryRenderedFeatures(

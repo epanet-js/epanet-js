@@ -17,6 +17,7 @@ import {
   selectionAtom,
   simulationAtom,
   customerPointsMetaAtom,
+  currentZoomAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import {
@@ -42,6 +43,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { buildCustomerPointsOverlay } from "./overlays/customer-points";
+import { DEFAULT_ZOOM } from "./map-engine";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -72,6 +74,7 @@ type MapState = {
   movedAssetIds: Set<AssetId>;
   isOffline: boolean;
   customerPointsMeta: { count: number; keysHash: string };
+  currentZoom: number;
 };
 
 const nullMapState: MapState = {
@@ -90,6 +93,7 @@ const nullMapState: MapState = {
   movedAssetIds: new Set(),
   isOffline: false,
   customerPointsMeta: { count: 0, keysHash: "" },
+  currentZoom: DEFAULT_ZOOM,
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -111,6 +115,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
   const customerPointsMeta = get(customerPointsMetaAtom);
+  const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
   const movedAssetIds = getMovedAssets(ephemeralState);
@@ -128,6 +133,7 @@ const mapStateAtom = atom<MapState>((get) => {
     movedAssetIds,
     isOffline,
     customerPointsMeta,
+    currentZoom,
   };
 });
 
@@ -143,6 +149,7 @@ const detectChanges = (
   hasNewSimulation: boolean;
   hasNewSymbology: boolean;
   hasNewCustomerPoints: boolean;
+  hasNewZoom: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -155,6 +162,7 @@ const detectChanges = (
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
     hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
+    hasNewZoom: state.currentZoom !== prev.currentZoom,
   };
 };
 
@@ -316,6 +324,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSymbology,
       hasNewSimulation,
       hasNewCustomerPoints,
+      hasNewZoom,
     } = changes;
 
     const shouldShowLoader =
@@ -398,10 +407,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           (hasNewImport ||
             hasNewEditions ||
             hasNewStyles ||
-            hasNewCustomerPoints)
+            hasNewCustomerPoints ||
+            hasNewZoom)
         ) {
           const overlay = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
+            mapState.currentZoom,
           );
           map.setOverlay([overlay]);
         }

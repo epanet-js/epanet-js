@@ -24,6 +24,7 @@ import {
   Data,
   EphemeralEditingState,
   satelliteModeOnAtom,
+  currentZoomAtom,
 } from "src/state/jotai";
 import { MapContext } from "src/map";
 import { MapEngine } from "./map-engine";
@@ -101,7 +102,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
-  const [zoom, setZoom] = useState<number>();
+  const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
@@ -273,7 +274,7 @@ export const MapCanvas = memo(function MapCanvas({
     }, 300),
     onZoom: (e: mapboxgl.MapBoxZoomEvent) => {
       const zoom = e.target.getZoom();
-      setZoom(zoom);
+      setCurrentZoom(zoom);
     },
   };
 
@@ -365,7 +366,7 @@ export const MapCanvas = memo(function MapCanvas({
       <Hints />
       <MapLoading />
       <SatelliteToggle />
-      <SatelliteResolutionMessage zoom={zoom} />
+      <SatelliteResolutionMessage zoom={currentZoom} />
     </CM.Root>
   );
 });
