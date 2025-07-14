@@ -181,130 +181,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isSelectiveMapLoaderOn = useFeatureFlag("FLAG_SELECTIVE_MAP_LOADER");
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
-
-  const doUpdatesDeprecated = useCallback(() => {
-    if (!map) return;
-
-    if (mapState === previousMapStateRef.current) return;
-
-    setMapLoading(true);
-    setTimeout(async () => {
-      try {
-        const previousMapState = previousMapStateRef.current;
-        previousMapStateRef.current = mapState;
-
-        const changes = detectChanges(mapState, previousMapState);
-        const {
-          hasNewImport,
-          hasNewStyles,
-          hasNewEditions,
-          hasNewSelection,
-          hasNewEphemeralState,
-          hasNewSymbology,
-          hasNewSimulation,
-        } = changes;
-
-        if (hasNewStyles) {
-          resetMapState(map);
-          await updateLayerStyles(map, mapState.stylesConfig, translate);
-        }
-
-        if (hasNewSymbology || hasNewStyles) {
-          toggleAnalysisLayers(map, mapState.symbology);
-        }
-
-        if (
-          hasNewImport ||
-          hasNewStyles ||
-          hasNewSymbology ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
-        ) {
-          await updateImportSource(
-            map,
-            momentLog,
-            assets,
-            idMap,
-            mapState.symbology,
-            quantities,
-            translateUnit,
-          );
-        }
-
-        if (
-          hasNewEditions ||
-          hasNewStyles ||
-          hasNewSymbology ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
-        ) {
-          const editedAssetIds = await updateEditionsSource(
-            map,
-            momentLog,
-            assets,
-            idMap,
-            mapState.symbology,
-            quantities,
-            translateUnit,
-          );
-          const newHiddenFeatures = updateImportedSourceVisibility(
-            map,
-            lastHiddenFeatures.current,
-            editedAssetIds,
-            idMap,
-          );
-
-          lastHiddenFeatures.current = newHiddenFeatures;
-        }
-
-        if (
-          hasNewImport ||
-          hasNewEditions ||
-          hasNewStyles ||
-          hasNewSymbology ||
-          hasNewSelection ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
-        ) {
-          await updateIconsSource(map, assets, idMap, mapState.selection);
-        }
-
-        if (hasNewEphemeralState) {
-          updateEditionsVisibility(
-            map,
-            previousMapState.movedAssetIds,
-            mapState.movedAssetIds,
-            lastHiddenFeatures.current,
-            idMap,
-          );
-          await updateEphemeralStateSource(map, mapState.ephemeralState, idMap);
-        }
-
-        if ((hasNewSelection && !hasNewImport) || hasNewStyles) {
-          updateSelection(
-            map,
-            mapState.selection,
-            previousMapState.selection,
-            idMap,
-          );
-        }
-
-        setMapLoading(false);
-      } catch (error) {
-        captureError(error as Error);
-        setMapLoading(false);
-      }
-    }, 0);
-  }, [
-    mapState,
-    assets,
-    idMap,
-    map,
-    momentLog,
-    quantities,
-    setMapLoading,
-    translate,
-    translateUnit,
-  ]);
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -457,11 +334,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     isCustomerPointOn,
   ]);
 
-  if (isSelectiveMapLoaderOn) {
-    doUpdates();
-  } else {
-    doUpdatesDeprecated();
-  }
+  doUpdates();
 };
 
 const resetMapState = withDebugInstrumentation(
