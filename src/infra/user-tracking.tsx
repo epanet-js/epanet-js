@@ -329,6 +329,19 @@ type ImportCustomerPointsCompleted = {
   count: number;
 };
 
+type ImportCustomerPointsCompletedWithWarnings = {
+  name: "importCustomerPoints.completedWithWarnings";
+  source: string;
+  count: number;
+  issuesCount: number;
+};
+
+type ImportCustomerPointsCompletedWithErrors = {
+  name: "importCustomerPoints.completedWithErrors";
+  source: string;
+  count: number;
+};
+
 type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -384,6 +397,8 @@ type UserEvent =
   | LanguageChanged
   | ImportCustomerPointsStarted
   | ImportCustomerPointsCompleted
+  | ImportCustomerPointsCompletedWithWarnings
+  | ImportCustomerPointsCompletedWithErrors
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }

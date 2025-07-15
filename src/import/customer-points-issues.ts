@@ -1,0 +1,40 @@
+export type CustomerPointsParserIssues = {
+  skippedNonPointFeatures?: number;
+  skippedInvalidCoordinates?: number;
+  skippedInvalidLines?: number;
+  skippedCreationFailures?: number;
+};
+
+export class CustomerPointsIssuesAccumulator {
+  private issues: CustomerPointsParserIssues;
+
+  constructor() {
+    this.issues = {};
+  }
+
+  addSkippedNonPoint() {
+    this.issues.skippedNonPointFeatures =
+      (this.issues.skippedNonPointFeatures || 0) + 1;
+  }
+
+  addSkippedInvalidCoordinates() {
+    this.issues.skippedInvalidCoordinates =
+      (this.issues.skippedInvalidCoordinates || 0) + 1;
+  }
+
+  addSkippedInvalidLine() {
+    this.issues.skippedInvalidLines =
+      (this.issues.skippedInvalidLines || 0) + 1;
+  }
+
+  addSkippedCreationFailure() {
+    this.issues.skippedCreationFailures =
+      (this.issues.skippedCreationFailures || 0) + 1;
+  }
+
+  buildResult(): CustomerPointsParserIssues | null {
+    if (Object.keys(this.issues).length === 0) return null;
+
+    return this.issues;
+  }
+}

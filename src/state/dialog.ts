@@ -1,6 +1,7 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
+import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
 
 export type OpenInpDialogState = {
   type: "openInp";
@@ -55,7 +56,9 @@ export type UpgradeDialogState = {
 
 export type CustomerPointsImportSummaryState = {
   type: "customerPointsImportSummary";
+  status: "success" | "warning" | "error";
   count: number;
+  issues?: CustomerPointsParserIssues;
 };
 
 export type DialogState =

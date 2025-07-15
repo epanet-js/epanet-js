@@ -44,7 +44,8 @@ export const useImportCustomerPoints = () => {
 
         const nextId = 1;
 
-        const customerPoints = parseCustomerPointsFromFile(text, nextId);
+        const parseResult = parseCustomerPointsFromFile(text, nextId);
+        const { customerPoints, issues } = parseResult;
 
         const newCustomerPointsMap = new Map();
         customerPoints.forEach((customerPoint) => {
@@ -59,21 +60,49 @@ export const useImportCustomerPoints = () => {
           },
         });
 
+        // Determine status based on results
+        let status: "success" | "warning" | "error";
+        if (customerPoints.length === 0) {
+          status = "error";
+        } else if (issues) {
+          status = "warning";
+        } else {
+          status = "success";
+        }
+
         setDialogState({
           type: "customerPointsImportSummary",
+          status,
           count: customerPoints.length,
+          issues: issues || undefined,
         });
 
-        userTracking.capture({
-          name: "importCustomerPoints.completed",
-          source,
-          count: customerPoints.length,
-        });
+        // Track completion with appropriate event based on status
+        if (status === "error") {
+          userTracking.capture({
+            name: "importCustomerPoints.completedWithErrors",
+            source,
+            count: customerPoints.length,
+          });
+        } else if (status === "warning") {
+          userTracking.capture({
+            name: "importCustomerPoints.completedWithWarnings",
+            source,
+            count: customerPoints.length,
+            issuesCount: issues ? Object.keys(issues).length : 0,
+          });
+        } else {
+          userTracking.capture({
+            name: "importCustomerPoints.completed",
+            source,
+            count: customerPoints.length,
+          });
+        }
       } catch (error) {
         setDialogState(null);
         captureError(error as Error);
         userTracking.capture({
-          name: "importCustomerPoints.completed",
+          name: "importCustomerPoints.completedWithErrors",
           source,
           count: 0,
         });

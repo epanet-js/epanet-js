@@ -3,31 +3,37 @@ import {
   createCustomerPoint,
   CustomerPoint,
 } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPointsParserIssues,
+  CustomerPointsIssuesAccumulator,
+} from "./customer-points-issues";
+
+export type CustomerPointsParseResult = {
+  customerPoints: CustomerPoint[];
+  issues: CustomerPointsParserIssues | null;
+};
 
 export const parseGeoJSONToCustomerPoints = (
   geoJson: FeatureCollection,
   startingId: number = 1,
-): CustomerPoint[] => {
+): CustomerPointsParseResult => {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
   }
 
   const customerPoints: CustomerPoint[] = [];
+  const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 
   for (const feature of geoJson.features || []) {
     if (feature.geometry?.type !== "Point") {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "DEBUG: Skipping non-Point feature in customer points import",
-      );
+      issues.addSkippedNonPoint();
       continue;
     }
 
     const coordinates = feature.geometry.coordinates;
     if (!Array.isArray(coordinates) || coordinates.length < 2) {
-      // eslint-disable-next-line no-console
-      console.warn("DEBUG: Skipping feature with invalid coordinates");
+      issues.addSkippedInvalidCoordinates();
       continue;
     }
 
@@ -40,20 +46,23 @@ export const parseGeoJSONToCustomerPoints = (
       customerPoints.push(customerPoint);
       currentId++;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn("DEBUG: Failed to create customer point:", error);
+      issues.addSkippedCreationFailure();
     }
   }
 
-  return customerPoints;
+  return {
+    customerPoints,
+    issues: issues.buildResult(),
+  };
 };
 
 export const parseGeoJSONLToCustomerPoints = (
   geoJsonLText: string,
   startingId: number = 1,
-): CustomerPoint[] => {
+): CustomerPointsParseResult => {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
   const customerPoints: CustomerPoint[] = [];
+  const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 
   for (const line of lines) {
@@ -66,35 +75,45 @@ export const parseGeoJSONLToCustomerPoints = (
       }
 
       // Process feature lines
-      if (json.type === "Feature" && json.geometry?.type === "Point") {
-        const coordinates = json.geometry.coordinates;
-        if (!Array.isArray(coordinates) || coordinates.length < 2) {
-          // eslint-disable-next-line no-console
-          console.warn("DEBUG: Skipping feature with invalid coordinates");
+      if (json.type === "Feature") {
+        if (json.geometry?.type !== "Point") {
+          issues.addSkippedNonPoint();
           continue;
         }
 
-        const customerPoint = createCustomerPoint(
-          [coordinates[0], coordinates[1]],
-          json.properties || {},
-          currentId.toString(),
-        );
-        customerPoints.push(customerPoint);
-        currentId++;
+        const coordinates = json.geometry.coordinates;
+        if (!Array.isArray(coordinates) || coordinates.length < 2) {
+          issues.addSkippedInvalidCoordinates();
+          continue;
+        }
+
+        try {
+          const customerPoint = createCustomerPoint(
+            [coordinates[0], coordinates[1]],
+            json.properties || {},
+            currentId.toString(),
+          );
+          customerPoints.push(customerPoint);
+          currentId++;
+        } catch (error) {
+          issues.addSkippedCreationFailure();
+        }
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn("DEBUG: Failed to parse GeoJSONL line:", line, error);
+      issues.addSkippedInvalidLine();
     }
   }
 
-  return customerPoints;
+  return {
+    customerPoints,
+    issues: issues.buildResult(),
+  };
 };
 
 export const parseCustomerPointsFromFile = (
   fileContent: string,
   startingId: number = 1,
-): CustomerPoint[] => {
+): CustomerPointsParseResult => {
   const trimmedContent = fileContent.trim();
 
   if (trimmedContent.startsWith("{")) {
@@ -103,7 +122,9 @@ export const parseCustomerPointsFromFile = (
       if (geoJson.type === "FeatureCollection") {
         return parseGeoJSONToCustomerPoints(geoJson, startingId);
       }
-    } catch (error) {}
+    } catch (error) {
+      // Fall through to GeoJSONL parsing
+    }
   }
 
   return parseGeoJSONLToCustomerPoints(fileContent, startingId);

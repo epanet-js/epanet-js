@@ -122,9 +122,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
     expect(
-      screen.getByText("Successfully imported 2 customer points."),
+      screen.getByText(/Successfully imported 2 customer points/),
     ).toBeInTheDocument();
   });
 
@@ -147,9 +147,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
     expect(
-      screen.getByText("Successfully imported 2 customer points."),
+      screen.getByText(/Successfully imported 2 customer points/),
     ).toBeInTheDocument();
   });
 
@@ -207,13 +207,13 @@ describe("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(0);
 
-    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
     expect(
-      screen.getByText("Successfully imported 0 customer points."),
+      screen.getByText(/No valid customer points found/),
     ).toBeInTheDocument();
 
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.completed",
+      name: "importCustomerPoints.completedWithErrors",
       source: "test",
       count: 0,
     });
@@ -243,6 +243,85 @@ describe("importCustomerPoints", () => {
     expect(hydraulicModel.customerPoints.get("1")?.properties.name).toBe(
       "Point Customer",
     );
+  });
+
+  it("shows warning dialog when some features are skipped", async () => {
+    stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    const mixedGeometryContent = createMixedGeometryGeoJSON();
+    const file = aTestFile({
+      filename: "mixed-geometry.geojson",
+      content: mixedGeometryContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(/Import Completed with Warnings/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Imported 1 customer point/)).toBeInTheDocument();
+    expect(screen.getByText(/2 non-point features/)).toBeInTheDocument();
+  });
+
+  it("shows error dialog when no valid customer points found", async () => {
+    stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    const onlyNonPointContent = createOnlyNonPointGeoJSON();
+    const file = aTestFile({
+      filename: "only-lines.geojson",
+      content: onlyNonPointContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No valid customer points found/),
+    ).toBeInTheDocument();
+  });
+
+  it("tracks warning completion events", async () => {
+    const userTracking = stubUserTracking();
+    stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    const mixedGeometryContent = createMixedGeometryGeoJSON();
+    const file = aTestFile({
+      filename: "mixed-geometry.geojson",
+      content: mixedGeometryContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.completedWithWarnings",
+      source: "test",
+      count: 1,
+      issuesCount: 1,
+    });
   });
 });
 
@@ -355,6 +434,45 @@ const createMixedGeometryGeoJSON = (): string => {
         properties: {
           name: "Polygon Feature",
           type: "Should be skipped",
+        },
+      },
+    ],
+  });
+};
+
+const createOnlyNonPointGeoJSON = (): string => {
+  return JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [10, 20],
+            [30, 40],
+          ],
+        },
+        properties: {
+          name: "Line Feature 1",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
+        },
+        properties: {
+          name: "Polygon Feature 1",
         },
       },
     ],
