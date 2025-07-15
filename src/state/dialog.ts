@@ -53,6 +53,11 @@ export type UpgradeDialogState = {
   type: "upgrade";
 };
 
+export type CustomerPointsImportSummaryState = {
+  type: "customerPointsImportSummary";
+  count: number;
+};
+
 export type DialogState =
   | OpenInpDialogState
   | InvalidFilesErrorDialogState
@@ -70,6 +75,7 @@ export type DialogState =
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
+  | CustomerPointsImportSummaryState
   | { type: "simulationSettings" }
   | null;
 

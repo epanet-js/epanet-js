@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { parseCustomerPointsFromFile } from "src/import/customer-points";
-import { dataAtom } from "src/state/jotai";
+import { dataAtom, dialogAtom } from "src/state/jotai";
 
 const geoJsonExtension = ".geojson";
 const geoJsonLExtension = ".geojsonl";
@@ -12,6 +12,7 @@ const geoJsonLExtension = ".geojsonl";
 export const useImportCustomerPoints = () => {
   const data = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
+  const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
 
   const { data: fsAccess } = useQuery({
@@ -37,6 +38,8 @@ export const useImportCustomerPoints = () => {
           description: "GeoJSON/GeoJSONL Customer Points",
         });
 
+        setDialogState({ type: "loading" });
+
         const text = await file.text();
 
         const nextId = 1;
@@ -56,12 +59,18 @@ export const useImportCustomerPoints = () => {
           },
         });
 
+        setDialogState({
+          type: "customerPointsImportSummary",
+          count: customerPoints.length,
+        });
+
         userTracking.capture({
           name: "importCustomerPoints.completed",
           source,
           count: customerPoints.length,
         });
       } catch (error) {
+        setDialogState(null);
         captureError(error as Error);
         userTracking.capture({
           name: "importCustomerPoints.completed",
@@ -70,7 +79,7 @@ export const useImportCustomerPoints = () => {
         });
       }
     },
-    [fsAccess, data, setData, userTracking],
+    [fsAccess, data, setData, setDialogState, userTracking],
   );
 
   return importCustomerPoints;

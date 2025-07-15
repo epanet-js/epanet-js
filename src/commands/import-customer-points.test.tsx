@@ -104,6 +104,55 @@ describe("importCustomerPoints", () => {
     expect(hydraulicModel.customerPoints.has("2")).toBe(true);
   });
 
+  it("shows loading dialog during import", async () => {
+    stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    await triggerCommand();
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: createGeoJSONContent(),
+    });
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(
+      screen.getByText("Successfully imported 2 customer points."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows success dialog with correct count", async () => {
+    stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    const geoJsonContent = createGeoJSONContent();
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(
+      screen.getByText("Successfully imported 2 customer points."),
+    ).toBeInTheDocument();
+  });
+
   it("captures user tracking events", async () => {
     const userTracking = stubUserTracking();
     stubFileOpen();
@@ -158,6 +207,11 @@ describe("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(0);
 
+    expect(screen.getByText("Import Successful")).toBeInTheDocument();
+    expect(
+      screen.getByText("Successfully imported 0 customer points."),
+    ).toBeInTheDocument();
+
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.completed",
       source: "test",
@@ -185,7 +239,7 @@ describe("importCustomerPoints", () => {
     });
 
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(1); // Only the Point geometry
+    expect(hydraulicModel.customerPoints.size).toBe(1);
     expect(hydraulicModel.customerPoints.get("1")?.properties.name).toBe(
       "Point Customer",
     );

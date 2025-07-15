@@ -154,6 +154,19 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
   },
 );
 
+const CustomerPointsImportSummaryDialog = dynamic<{
+  modal: dialogState.CustomerPointsImportSummaryState;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/customer-points-import-summary").then(
+      (r) => r.CustomerPointsImportSummaryDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -202,6 +215,11 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
+  }
+  if (dialog.type === "customerPointsImportSummary") {
+    return (
+      <CustomerPointsImportSummaryDialog modal={dialog} onClose={onClose} />
+    );
   }
   if (dialog.type === "welcome") {
     return <WelcomeDialog />;

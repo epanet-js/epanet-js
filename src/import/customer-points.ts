@@ -1,10 +1,11 @@
+import { FeatureCollection } from "geojson";
 import {
   createCustomerPoint,
   CustomerPoint,
 } from "src/hydraulic-model/customer-points";
 
 export const parseGeoJSONToCustomerPoints = (
-  geoJson: any,
+  geoJson: FeatureCollection,
   startingId: number = 1,
 ): CustomerPoint[] => {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
