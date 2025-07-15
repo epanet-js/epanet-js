@@ -113,18 +113,20 @@ export function DialogHeader({
 }) {
   return (
     <div
-      className="flex items-center justify-between
+      className="flex items-center
         gap-x-2
-        pb-4 text-lg
+        pb-4 text-base sm:text-lg
         text-black dark:text-white"
     >
       {children && children}
       {TitleIcon && (
         <TitleIcon
-          className={`w-6 h-6 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : variant === "warning" ? "text-yellow-500" : ""}`}
+          className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : variant === "warning" ? "text-yellow-500" : ""}`}
         />
       )}
-      {title && <div className="truncate flex-auto">{title}</div>}
+      {title && (
+        <div className="flex-auto min-w-0 break-words sm:truncate">{title}</div>
+      )}
       <DialogCloseX />
     </div>
   );

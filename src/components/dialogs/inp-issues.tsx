@@ -1,6 +1,10 @@
 import { DialogHeader } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { SimpleDialogActions } from "src/components/dialog";
+import {
+  SimpleDialogActions,
+  SimpleDialogButtons,
+} from "src/components/dialog";
+import { Trans } from "react-i18next";
 import {
   BellIcon,
   CrossCircledIcon,
@@ -18,40 +22,68 @@ import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const GeocodingNotSupportedDialog = ({
-  onClose,
+  onClose: _onClose,
 }: {
   onClose: () => void;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
+  const userTracking = useUserTracking();
 
   const goToWelcome = () => {
     showWelcome({ source: "geocodeError" });
+  };
+
+  const handleReprojectNetwork = () => {
+    userTracking.capture({
+      name: "projectionConverter.visited",
+    });
+    window.open(projectionConverterUrl);
   };
 
   return (
     <>
       <DialogHeader
         title={translate("geocodingNotSupported")}
-        titleIcon={CrossCircledIcon}
-        variant="danger"
+        titleIcon={ExclamationTriangleIcon}
+        variant="warning"
       />
-      <Formik onSubmit={() => onClose()} initialValues={{}}>
-        <Form>
-          <div className="text-sm">
-            <p className="pb-4">{translate("geocodingNotSupportedDetail")}</p>
-            <ProjectionCTA />
-          </div>
-          <SimpleDialogActions
-            autoFocusSubmit={true}
-            action={translate("understood")}
-            secondary={{
-              action: translate("seeDemoNetworks"),
-              onClick: goToWelcome,
+      <div className="text-sm">
+        <p className="pb-4">
+          <Trans
+            i18nKey="geocodingNotSupportedDetail"
+            components={{
+              converterLink: (
+                <a
+                  href={projectionConverterUrl}
+                  target="_blank"
+                  className="text-purple-700 dark:text-purple-300 underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    userTracking.capture({
+                      name: "projectionConverter.visited",
+                    });
+                    window.open(projectionConverterUrl);
+                  }}
+                />
+              ),
             }}
           />
-        </Form>
-      </Formik>
+        </p>
+      </div>
+      <SimpleDialogButtons>
+        <Button
+          type="button"
+          variant="primary"
+          autoFocus={true}
+          onClick={handleReprojectNetwork}
+        >
+          {translate("reprojectNetwork")}
+        </Button>
+        <Button type="button" variant="default" onClick={goToWelcome}>
+          {translate("seeDemoNetworks")}
+        </Button>
+      </SimpleDialogButtons>
     </>
   );
 };
