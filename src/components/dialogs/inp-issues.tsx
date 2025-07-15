@@ -60,10 +60,7 @@ export const GeocodingNotSupportedDialog = ({
                   className="text-purple-700 dark:text-purple-300 underline"
                   onClick={(e) => {
                     e.preventDefault();
-                    userTracking.capture({
-                      name: "projectionConverter.visited",
-                    });
-                    window.open(projectionConverterUrl);
+                    handleReprojectNetwork();
                   }}
                 />
               ),
