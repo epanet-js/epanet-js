@@ -5,6 +5,9 @@ import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { parseCustomerPointsFromFile } from "src/import/customer-points";
 import { dataAtom, dialogAtom } from "src/state/jotai";
+import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
+import { UserEvent } from "src/infra/user-tracking";
+import { CustomerPointsImportSummaryState } from "src/state/dialog";
 
 const geoJsonExtension = ".geojson";
 const geoJsonLExtension = ".geojsonl";
@@ -60,44 +63,14 @@ export const useImportCustomerPoints = () => {
           },
         });
 
-        // Determine status based on results
-        let status: "success" | "warning" | "error";
-        if (customerPoints.length === 0) {
-          status = "error";
-        } else if (issues) {
-          status = "warning";
-        } else {
-          status = "success";
-        }
+        const { dialogState, trackingEvent } = processImportResult(
+          customerPoints.length,
+          issues,
+          source,
+        );
 
-        setDialogState({
-          type: "customerPointsImportSummary",
-          status,
-          count: customerPoints.length,
-          issues: issues || undefined,
-        });
-
-        // Track completion with appropriate event based on status
-        if (status === "error") {
-          userTracking.capture({
-            name: "importCustomerPoints.completedWithErrors",
-            source,
-            count: customerPoints.length,
-          });
-        } else if (status === "warning") {
-          userTracking.capture({
-            name: "importCustomerPoints.completedWithWarnings",
-            source,
-            count: customerPoints.length,
-            issuesCount: issues ? Object.keys(issues).length : 0,
-          });
-        } else {
-          userTracking.capture({
-            name: "importCustomerPoints.completed",
-            source,
-            count: customerPoints.length,
-          });
-        }
+        setDialogState(dialogState);
+        userTracking.capture(trackingEvent);
       } catch (error) {
         setDialogState(null);
         captureError(error as Error);
@@ -112,4 +85,63 @@ export const useImportCustomerPoints = () => {
   );
 
   return importCustomerPoints;
+};
+
+type ImportStatus = "success" | "warning" | "error";
+
+type ProcessImportResult = {
+  status: ImportStatus;
+  dialogState: {
+    type: "customerPointsImportSummary";
+    status: ImportStatus;
+    count: number;
+    issues?: CustomerPointsParserIssues;
+  };
+  trackingEvent: UserEvent;
+};
+
+const processImportResult = (
+  count: number,
+  issues: CustomerPointsParserIssues | null,
+  source: string,
+): ProcessImportResult => {
+  let status: ImportStatus;
+  if (count === 0) {
+    status = "error";
+  } else if (issues) {
+    status = "warning";
+  } else {
+    status = "success";
+  }
+
+  const dialogState: CustomerPointsImportSummaryState = {
+    type: "customerPointsImportSummary",
+    status,
+    count,
+    issues: issues || undefined,
+  };
+
+  let trackingEvent: UserEvent;
+  if (status === "error") {
+    trackingEvent = {
+      name: "importCustomerPoints.completedWithErrors",
+      source,
+      count,
+    };
+  } else if (status === "warning") {
+    trackingEvent = {
+      name: "importCustomerPoints.completedWithWarnings",
+      source,
+      count,
+      issuesCount: issues ? Object.keys(issues).length : 0,
+    };
+  } else {
+    trackingEvent = {
+      name: "importCustomerPoints.completed",
+      source,
+      count,
+    };
+  }
+
+  return { status, dialogState, trackingEvent };
 };

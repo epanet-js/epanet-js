@@ -342,7 +342,7 @@ type ImportCustomerPointsCompletedWithErrors = {
   count: number;
 };
 
-type UserEvent =
+export type UserEvent =
   | AssetCreated
   | AssetSelected
   | AssetDeselected
