@@ -323,6 +323,64 @@ describe("importCustomerPoints", () => {
       issuesCount: 1,
     });
   });
+
+  it("attaches connection data during import", async () => {
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonWithNearbyPoints = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [5, 1],
+          },
+          properties: {
+            name: "Customer Near Pipe",
+          },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "nearby-customer-points.geojson",
+      content: geoJsonWithNearbyPoints,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const customerPoint = hydraulicModel.customerPoints.get("1");
+
+    // Verify connection was calculated
+    expect(customerPoint).toBeDefined();
+    expect(customerPoint!.connection).toBeDefined();
+    expect(customerPoint!.connection!.pipeId).toBe("P1");
+    expect(customerPoint!.connection!.snapPoint).toBeDefined();
+    expect(customerPoint!.connection!.distance).toBeGreaterThan(0);
+  });
 });
 
 const triggerCommand = async () => {

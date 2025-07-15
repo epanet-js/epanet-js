@@ -287,11 +287,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             hasNewCustomerPoints ||
             hasNewZoom)
         ) {
-          const overlay = buildCustomerPointsOverlay(
+          const overlays = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             mapState.currentZoom,
           );
-          map.setOverlay([overlay]);
+          map.setOverlay(overlays);
         }
 
         if (hasNewEphemeralState) {

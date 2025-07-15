@@ -34,6 +34,7 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
+    "specs",
     "docs",
     "node_modules",
     "**/*.e2e.ts",

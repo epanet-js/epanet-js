@@ -8,6 +8,7 @@ import { dataAtom, dialogAtom } from "src/state/jotai";
 import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
 import { UserEvent } from "src/infra/user-tracking";
 import { CustomerPointsImportSummaryState } from "src/state/dialog";
+import { connectCustomerPointsToPipes } from "src/hydraulic-model/model-operations/connect-customer-points";
 
 const geoJsonExtension = ".geojson";
 const geoJsonLExtension = ".geojsonl";
@@ -50,16 +51,21 @@ export const useImportCustomerPoints = () => {
         const parseResult = parseCustomerPointsFromFile(text, nextId);
         const { customerPoints, issues } = parseResult;
 
-        const newCustomerPointsMap = new Map();
+        const customerPointsMap = new Map();
         customerPoints.forEach((customerPoint) => {
-          newCustomerPointsMap.set(customerPoint.id, customerPoint);
+          customerPointsMap.set(customerPoint.id, customerPoint);
         });
+
+        const connectedCustomerPoints = connectCustomerPointsToPipes(
+          customerPointsMap,
+          data.hydraulicModel.assets,
+        );
 
         setData({
           ...data,
           hydraulicModel: {
             ...data.hydraulicModel,
-            customerPoints: newCustomerPointsMap,
+            customerPoints: connectedCustomerPoints,
           },
         });
 

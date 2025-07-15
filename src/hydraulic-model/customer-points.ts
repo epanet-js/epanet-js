@@ -1,12 +1,19 @@
+export interface CustomerPointConnection {
+  pipeId: string;
+  snapPoint: [number, number];
+  distance: number;
+}
+
 export interface CustomerPoint {
   id: string;
-  coordinates: [number, number]; // [longitude, latitude]
+  coordinates: [number, number];
   properties: {
     name?: string;
     description?: string;
     demand?: number;
-    [key: string]: any; // Allow arbitrary GeoJSON properties
+    [key: string]: any;
   };
+  connection?: CustomerPointConnection;
 }
 
 export const createCustomerPoint = (
