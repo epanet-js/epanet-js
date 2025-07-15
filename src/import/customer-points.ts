@@ -69,12 +69,10 @@ export const parseGeoJSONLToCustomerPoints = (
     try {
       const json = JSON.parse(line);
 
-      // Skip metadata lines
       if (json.type === "metadata") {
         continue;
       }
 
-      // Process feature lines
       if (json.type === "Feature") {
         if (json.geometry?.type !== "Point") {
           issues.addSkippedNonPoint();
@@ -122,9 +120,7 @@ export const parseCustomerPointsFromFile = (
       if (geoJson.type === "FeatureCollection") {
         return parseGeoJSONToCustomerPoints(geoJson, startingId);
       }
-    } catch (error) {
-      // Fall through to GeoJSONL parsing
-    }
+    } catch (error) {}
   }
 
   return parseGeoJSONLToCustomerPoints(fileContent, startingId);
