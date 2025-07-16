@@ -10,6 +10,8 @@
     "lint:fix": "pnpm lint --fix",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --watch",
+    "test:benchmark": "vitest run --config vitest.benchmark.config.ts",
+    "test:benchmark:watch": "vitest --watch --config vitest.benchmark.config.ts",
     "check-types": "tsc --noEmit",
     "check-types:watch": "tsc --noEmit -w"
   },

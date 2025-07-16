@@ -11,13 +11,8 @@ loadEnvConfig(projectDir);
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    environment: "jsdom",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    exclude: ["src/**/*.benchmark.test.ts"],
-    environmentMatchGlobs: [
-      ["src/**/*.test.tsx", "jsdom"],
-      ["src/**/*.test.ts", "node"],
-    ],
+    environment: "node",
+    include: ["src/**/*.benchmark.test.ts"],
     dir: "./",
     deps: {
       interopDefault: true,
@@ -26,6 +21,13 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts", "./src/__helpers__/feature-flags.ts"],
     coverage: {
       reporter: ["text", "json", "html"],
+    },
+    testTimeout: 300000,
+    hookTimeout: 60000,
+    poolOptions: {
+      forks: {
+        execArgv: ["--expose-gc"],
+      },
     },
   },
 });

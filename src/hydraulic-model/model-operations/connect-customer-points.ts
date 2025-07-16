@@ -17,37 +17,44 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { AssetsMap } from "src/hydraulic-model";
 import { extractPipeNetwork } from "src/lib/spatial-index/pipe-network";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 const INITIAL_SEARCH_RADIUS_METERS = 10;
 const NEAREST_NEIGHBOR_COUNT = 5;
 
-function createSpatialIndex(lineNetwork: FeatureCollection<LineString>): {
-  spatialIndex: Flatbush;
-  segments: Feature<LineString>[];
-} {
-  const allSegments: Feature<LineString>[] = [];
+const createSpatialIndex = withDebugInstrumentation(
+  function createSpatialIndex(lineNetwork: FeatureCollection<LineString>): {
+    spatialIndex: Flatbush;
+    segments: Feature<LineString>[];
+  } {
+    const allSegments: Feature<LineString>[] = [];
 
-  for (const pipeFeature of lineNetwork.features) {
-    const segments = lineSegment(pipeFeature);
-    for (const segment of segments.features) {
-      segment.properties = {
-        ...segment.properties,
-        pipeId: pipeFeature.properties?.pipeId || "unknown",
-      };
-      allSegments.push(segment);
+    for (const pipeFeature of lineNetwork.features) {
+      const segments = lineSegment(pipeFeature);
+      for (const segment of segments.features) {
+        segment.properties = {
+          ...segment.properties,
+          pipeId: pipeFeature.properties?.pipeId || "unknown",
+        };
+        allSegments.push(segment);
+      }
     }
-  }
 
-  const spatialIndex = new Flatbush(allSegments.length);
+    const spatialIndex = new Flatbush(allSegments.length);
 
-  for (const segment of allSegments) {
-    const [minX, minY, maxX, maxY] = bbox(segment);
-    spatialIndex.add(minX, minY, maxX, maxY);
-  }
+    for (const segment of allSegments) {
+      const [minX, minY, maxX, maxY] = bbox(segment);
+      spatialIndex.add(minX, minY, maxX, maxY);
+    }
 
-  spatialIndex.finish();
-  return { spatialIndex, segments: allSegments };
-}
+    spatialIndex.finish();
+    return { spatialIndex, segments: allSegments };
+  },
+  {
+    name: "createSpatialIndex",
+    maxDurationMs: 10000,
+  },
+);
 
 function locateNearestPointOnNetwork(
   targetPoint: Feature<Point>,
@@ -133,46 +140,58 @@ function findNearestPipeConnection(
   };
 }
 
-function calculateConnections(
-  customerPoints: Map<string, CustomerPoint>,
-  pipeNetwork: FeatureCollection<LineString>,
-): Map<string, CustomerPointConnection> {
-  const connections = new Map<string, CustomerPointConnection>();
+const calculateConnections = withDebugInstrumentation(
+  function calculateConnections(
+    customerPoints: Map<string, CustomerPoint>,
+    pipeNetwork: FeatureCollection<LineString>,
+  ): Map<string, CustomerPointConnection> {
+    const connections = new Map<string, CustomerPointConnection>();
 
-  if (customerPoints.size === 0 || pipeNetwork.features.length === 0) {
-    return connections;
-  }
-
-  const { spatialIndex, segments } = createSpatialIndex(pipeNetwork);
-
-  for (const [id, customerPoint] of customerPoints) {
-    const connection = findNearestPipeConnection(
-      customerPoint,
-      spatialIndex,
-      segments,
-    );
-    if (connection) {
-      connections.set(id, connection);
+    if (customerPoints.size === 0 || pipeNetwork.features.length === 0) {
+      return connections;
     }
-  }
 
-  return connections;
-}
+    const { spatialIndex, segments } = createSpatialIndex(pipeNetwork);
 
-export function connectCustomerPointsToPipes(
-  customerPoints: Map<string, CustomerPoint>,
-  assets: AssetsMap,
-): Map<string, CustomerPoint> {
-  const pipeNetwork = extractPipeNetwork(assets);
-  const connections = calculateConnections(customerPoints, pipeNetwork);
+    for (const [id, customerPoint] of customerPoints) {
+      const connection = findNearestPipeConnection(
+        customerPoint,
+        spatialIndex,
+        segments,
+      );
+      if (connection) {
+        connections.set(id, connection);
+      }
+    }
 
-  const connectedCustomerPoints = new Map<string, CustomerPoint>();
-  for (const [id, customerPoint] of customerPoints) {
-    connectedCustomerPoints.set(id, {
-      ...customerPoint,
-      connection: connections.get(id),
-    });
-  }
+    return connections;
+  },
+  {
+    name: "calculateConnections",
+    maxDurationMs: 30000,
+  },
+);
 
-  return connectedCustomerPoints;
-}
+export const connectCustomerPointsToPipes = withDebugInstrumentation(
+  function connectCustomerPointsToPipes(
+    customerPoints: Map<string, CustomerPoint>,
+    assets: AssetsMap,
+  ): Map<string, CustomerPoint> {
+    const pipeNetwork = extractPipeNetwork(assets);
+    const connections = calculateConnections(customerPoints, pipeNetwork);
+
+    const connectedCustomerPoints = new Map<string, CustomerPoint>();
+    for (const [id, customerPoint] of customerPoints) {
+      connectedCustomerPoints.set(id, {
+        ...customerPoint,
+        connection: connections.get(id),
+      });
+    }
+
+    return connectedCustomerPoints;
+  },
+  {
+    name: "connectCustomerPointsToPipes",
+    maxDurationMs: 60000,
+  },
+);
