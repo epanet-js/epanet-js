@@ -98,7 +98,7 @@
     "@turf/line-segment": "^6.5.0",
     "@turf/meta": "^6.5.0",
     "@turf/midpoint": "^7.1.0",
-    "@turf/nearest-point-on-line": "^7.1.0",
+    "@turf/nearest-point-on-line": "^6.5.0",
     "@types/d3-array": "^2.12.7",
     "@types/d3-color": "^2.0.6",
     "@types/d3-geo": "^3.1.0",
