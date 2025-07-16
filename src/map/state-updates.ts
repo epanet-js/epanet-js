@@ -42,7 +42,11 @@ import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { buildCustomerPointsOverlay } from "./overlays/customer-points";
+import {
+  CustomerPointsOverlay,
+  buildCustomerPointsOverlay,
+  updateCustomerPointsOverlayVisibility,
+} from "./overlays/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -179,6 +183,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const { idMap } = usePersistence();
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
+  const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
@@ -284,14 +289,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           (hasNewImport ||
             hasNewEditions ||
             hasNewStyles ||
-            hasNewCustomerPoints ||
-            hasNewZoom)
+            hasNewCustomerPoints)
         ) {
-          const overlays = buildCustomerPointsOverlay(
+          const overlay = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             mapState.currentZoom,
           );
-          map.setOverlay(overlays);
+          customerPointsOverlayRef.current = overlay;
+          map.setOverlay(overlay);
+        }
+
+        if (hasNewZoom && isCustomerPointOn) {
+          const overlay = updateCustomerPointsOverlayVisibility(
+            customerPointsOverlayRef.current,
+            mapState.currentZoom,
+          );
+          customerPointsOverlayRef.current = overlay;
+          map.setOverlay(overlay);
         }
 
         if (hasNewEphemeralState) {
