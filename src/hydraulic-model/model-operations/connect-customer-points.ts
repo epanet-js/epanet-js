@@ -1,10 +1,4 @@
-import {
-  FeatureCollection,
-  LineString,
-  Point,
-  Feature,
-  point,
-} from "@turf/helpers";
+import { LineString, Point, Feature, point } from "@turf/helpers";
 import { getCoord } from "@turf/invariant";
 import lineSegment from "@turf/line-segment";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
@@ -16,27 +10,35 @@ import {
   CustomerPointConnection,
 } from "src/hydraulic-model/customer-points";
 import { AssetsMap } from "src/hydraulic-model";
-import { extractPipeNetwork } from "src/lib/spatial-index/pipe-network";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 const INITIAL_SEARCH_RADIUS_METERS = 10;
 const NEAREST_NEIGHBOR_COUNT = 5;
 
 const createSpatialIndex = withDebugInstrumentation(
-  function createSpatialIndex(lineNetwork: FeatureCollection<LineString>): {
+  function createSpatialIndex(pipes: Pipe[]): {
     spatialIndex: Flatbush;
     segments: Feature<LineString>[];
   } {
     const allSegments: Feature<LineString>[] = [];
 
-    for (const pipeFeature of lineNetwork.features) {
-      const segments = lineSegment(pipeFeature);
-      for (const segment of segments.features) {
-        segment.properties = {
-          ...segment.properties,
-          pipeId: pipeFeature.properties?.pipeId || "unknown",
+    for (const pipe of pipes) {
+      if (pipe.feature.geometry.type === "LineString") {
+        const pipeFeature = {
+          type: "Feature" as const,
+          geometry: pipe.feature.geometry as LineString,
+          properties: { pipeId: pipe.id },
         };
-        allSegments.push(segment);
+        const segments = lineSegment(pipeFeature);
+        for (const segment of segments.features) {
+          segment.properties = {
+            ...segment.properties,
+            pipeId: pipe.id,
+          };
+          allSegments.push(segment);
+        }
       }
     }
 
@@ -145,13 +147,13 @@ export const connectCustomerPointsToPipes = withDebugInstrumentation(
     customerPoints: Map<string, CustomerPoint>,
     assets: AssetsMap,
   ): Map<string, CustomerPoint> {
-    const pipeNetwork = extractPipeNetwork(assets);
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
 
-    if (customerPoints.size === 0 || pipeNetwork.features.length === 0) {
+    if (customerPoints.size === 0 || pipes.length === 0) {
       return customerPoints;
     }
 
-    const { spatialIndex, segments } = createSpatialIndex(pipeNetwork);
+    const { spatialIndex, segments } = createSpatialIndex(pipes);
 
     for (const [, customerPoint] of customerPoints) {
       const connection = findNearestPipeConnection(
