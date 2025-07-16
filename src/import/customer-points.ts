@@ -1,4 +1,4 @@
-import { FeatureCollection } from "geojson";
+import { Feature, FeatureCollection } from "geojson";
 import {
   createCustomerPoint,
   CustomerPoint,
@@ -17,6 +17,11 @@ export type CustomerPointsStreamingParseResult = {
   issues: CustomerPointsParserIssues | null;
 };
 
+type ProcessFeatureResult = {
+  customerPoint: CustomerPoint | null;
+  nextId: number;
+};
+
 export const parseCustomerPointsStreamingFromFile = (
   fileContent: string,
   spatialIndexData: SpatialIndexData,
@@ -28,7 +33,7 @@ export const parseCustomerPointsStreamingFromFile = (
     try {
       const geoJson = JSON.parse(fileContent);
       if (geoJson.type === "FeatureCollection") {
-        return parseGeoJSONStreamingToCustomerPoints(
+        return parseGeoJSONToCustomerPoints(
           geoJson,
           spatialIndexData,
           startingId,
@@ -37,14 +42,14 @@ export const parseCustomerPointsStreamingFromFile = (
     } catch (error) {}
   }
 
-  return parseGeoJSONLStreamingToCustomerPoints(
+  return parseGeoJSONLToCustomerPoints(
     fileContent,
     spatialIndexData,
     startingId,
   );
 };
 
-const parseGeoJSONStreamingToCustomerPoints = (
+const parseGeoJSONToCustomerPoints = (
   geoJson: FeatureCollection,
   spatialIndexData: SpatialIndexData,
   startingId: number = 1,
@@ -58,35 +63,18 @@ const parseGeoJSONStreamingToCustomerPoints = (
   let currentId = startingId;
 
   for (const feature of geoJson.features || []) {
-    if (feature.geometry?.type !== "Point") {
-      issues.addSkippedNonPoint();
-      continue;
+    const result = processGeoJSONFeature(
+      feature,
+      spatialIndexData,
+      currentId,
+      issues,
+    );
+
+    if (result.customerPoint) {
+      customerPoints.set(result.customerPoint.id, result.customerPoint);
     }
 
-    const coordinates = feature.geometry.coordinates;
-    if (!Array.isArray(coordinates) || coordinates.length < 2) {
-      issues.addSkippedInvalidCoordinates();
-      continue;
-    }
-
-    try {
-      const customerPoint = createCustomerPoint(
-        [coordinates[0], coordinates[1]],
-        feature.properties || {},
-        currentId.toString(),
-      );
-
-      const connection = connectCustomerPointToPipe(
-        customerPoint,
-        spatialIndexData,
-      );
-      customerPoint.connection = connection || undefined;
-
-      customerPoints.set(customerPoint.id, customerPoint);
-      currentId++;
-    } catch (error) {
-      issues.addSkippedCreationFailure();
-    }
+    currentId = result.nextId;
   }
 
   return {
@@ -95,7 +83,7 @@ const parseGeoJSONStreamingToCustomerPoints = (
   };
 };
 
-const parseGeoJSONLStreamingToCustomerPoints = (
+const parseGeoJSONLToCustomerPoints = (
   geoJsonLText: string,
   spatialIndexData: SpatialIndexData,
   startingId: number = 1,
@@ -114,35 +102,18 @@ const parseGeoJSONLStreamingToCustomerPoints = (
       }
 
       if (json.type === "Feature") {
-        if (json.geometry?.type !== "Point") {
-          issues.addSkippedNonPoint();
-          continue;
+        const result = processGeoJSONFeature(
+          json,
+          spatialIndexData,
+          currentId,
+          issues,
+        );
+
+        if (result.customerPoint) {
+          customerPoints.set(result.customerPoint.id, result.customerPoint);
         }
 
-        const coordinates = json.geometry.coordinates;
-        if (!Array.isArray(coordinates) || coordinates.length < 2) {
-          issues.addSkippedInvalidCoordinates();
-          continue;
-        }
-
-        try {
-          const customerPoint = createCustomerPoint(
-            [coordinates[0], coordinates[1]],
-            json.properties || {},
-            currentId.toString(),
-          );
-
-          const connection = connectCustomerPointToPipe(
-            customerPoint,
-            spatialIndexData,
-          );
-          customerPoint.connection = connection || undefined;
-
-          customerPoints.set(customerPoint.id, customerPoint);
-          currentId++;
-        } catch (error) {
-          issues.addSkippedCreationFailure();
-        }
+        currentId = result.nextId;
       }
     } catch (error) {
       issues.addSkippedInvalidLine();
@@ -153,4 +124,41 @@ const parseGeoJSONLStreamingToCustomerPoints = (
     customerPoints,
     issues: issues.buildResult(),
   };
+};
+
+const processGeoJSONFeature = (
+  feature: Feature,
+  spatialIndexData: SpatialIndexData,
+  currentId: number,
+  issues: CustomerPointsIssuesAccumulator,
+): ProcessFeatureResult => {
+  if (feature.geometry.type !== "Point") {
+    issues.addSkippedNonPoint();
+    return { customerPoint: null, nextId: currentId };
+  }
+
+  const coordinates = feature.geometry.coordinates;
+  if (!Array.isArray(coordinates) || coordinates.length < 2) {
+    issues.addSkippedInvalidCoordinates();
+    return { customerPoint: null, nextId: currentId };
+  }
+
+  try {
+    const customerPoint = createCustomerPoint(
+      [coordinates[0], coordinates[1]],
+      feature.properties || {},
+      currentId.toString(),
+    );
+
+    const connection = connectCustomerPointToPipe(
+      customerPoint,
+      spatialIndexData,
+    );
+    customerPoint.connection = connection || undefined;
+
+    return { customerPoint, nextId: currentId + 1 };
+  } catch (error) {
+    issues.addSkippedCreationFailure();
+    return { customerPoint: null, nextId: currentId };
+  }
 };
