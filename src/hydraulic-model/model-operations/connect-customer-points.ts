@@ -140,55 +140,29 @@ function findNearestPipeConnection(
   };
 }
 
-const calculateConnections = withDebugInstrumentation(
-  function calculateConnections(
-    customerPoints: Map<string, CustomerPoint>,
-    pipeNetwork: FeatureCollection<LineString>,
-  ): Map<string, CustomerPointConnection> {
-    const connections = new Map<string, CustomerPointConnection>();
-
-    if (customerPoints.size === 0 || pipeNetwork.features.length === 0) {
-      return connections;
-    }
-
-    const { spatialIndex, segments } = createSpatialIndex(pipeNetwork);
-
-    for (const [id, customerPoint] of customerPoints) {
-      const connection = findNearestPipeConnection(
-        customerPoint,
-        spatialIndex,
-        segments,
-      );
-      if (connection) {
-        connections.set(id, connection);
-      }
-    }
-
-    return connections;
-  },
-  {
-    name: "calculateConnections",
-    maxDurationMs: 30000,
-  },
-);
-
 export const connectCustomerPointsToPipes = withDebugInstrumentation(
   function connectCustomerPointsToPipes(
     customerPoints: Map<string, CustomerPoint>,
     assets: AssetsMap,
   ): Map<string, CustomerPoint> {
     const pipeNetwork = extractPipeNetwork(assets);
-    const connections = calculateConnections(customerPoints, pipeNetwork);
 
-    const connectedCustomerPoints = new Map<string, CustomerPoint>();
-    for (const [id, customerPoint] of customerPoints) {
-      connectedCustomerPoints.set(id, {
-        ...customerPoint,
-        connection: connections.get(id),
-      });
+    if (customerPoints.size === 0 || pipeNetwork.features.length === 0) {
+      return customerPoints;
     }
 
-    return connectedCustomerPoints;
+    const { spatialIndex, segments } = createSpatialIndex(pipeNetwork);
+
+    for (const [, customerPoint] of customerPoints) {
+      const connection = findNearestPipeConnection(
+        customerPoint,
+        spatialIndex,
+        segments,
+      );
+      customerPoint.connection = connection || undefined;
+    }
+
+    return customerPoints;
   },
   {
     name: "connectCustomerPointsToPipes",
