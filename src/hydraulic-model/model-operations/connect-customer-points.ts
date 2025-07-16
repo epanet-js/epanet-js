@@ -9,19 +9,36 @@ import {
   CustomerPoint,
   CustomerPointConnection,
 } from "src/hydraulic-model/customer-points";
-import { AssetsMap } from "src/hydraulic-model";
-import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 const INITIAL_SEARCH_RADIUS_METERS = 10;
 const NEAREST_NEIGHBOR_COUNT = 5;
 
-const createSpatialIndex = withDebugInstrumentation(
-  function createSpatialIndex(pipes: Pipe[]): {
-    spatialIndex: Flatbush;
-    segments: Feature<LineString>[];
-  } {
+export interface SpatialIndexData {
+  spatialIndex: Flatbush | null;
+  segments: Feature<LineString>[];
+}
+
+export const connectCustomerPointToPipe = (
+  customerPoint: CustomerPoint,
+  spatialIndexData: SpatialIndexData,
+): CustomerPointConnection | null => {
+  const { spatialIndex, segments } = spatialIndexData;
+
+  if (!spatialIndex || segments.length === 0) {
+    return null;
+  }
+
+  return findNearestPipeConnection(customerPoint, spatialIndex, segments);
+};
+
+export const createSpatialIndex = withDebugInstrumentation(
+  function createSpatialIndex(pipes: Pipe[]): SpatialIndexData {
+    if (pipes.length === 0) {
+      return { spatialIndex: null, segments: [] };
+    }
+
     const allSegments: Feature<LineString>[] = [];
 
     for (const pipe of pipes) {
@@ -40,6 +57,10 @@ const createSpatialIndex = withDebugInstrumentation(
           allSegments.push(segment);
         }
       }
+    }
+
+    if (allSegments.length === 0) {
+      return { spatialIndex: null, segments: [] };
     }
 
     const spatialIndex = new Flatbush(allSegments.length);
@@ -114,10 +135,10 @@ function locateNearestPointOnNetwork(
 
 function findNearestPipeConnection(
   customerPoint: CustomerPoint,
-  searchIndex: Flatbush,
+  searchIndex: Flatbush | null,
   segments: Feature<LineString>[],
 ): CustomerPointConnection | null {
-  if (segments.length === 0) {
+  if (!searchIndex || segments.length === 0) {
     return null;
   }
 
@@ -141,33 +162,3 @@ function findNearestPipeConnection(
     distance: nearestPoint.properties?.dist || 0,
   };
 }
-
-export const connectCustomerPointsToPipes = withDebugInstrumentation(
-  function connectCustomerPointsToPipes(
-    customerPoints: Map<string, CustomerPoint>,
-    assets: AssetsMap,
-  ): Map<string, CustomerPoint> {
-    const pipes = getAssetsByType<Pipe>(assets, "pipe");
-
-    if (customerPoints.size === 0 || pipes.length === 0) {
-      return customerPoints;
-    }
-
-    const { spatialIndex, segments } = createSpatialIndex(pipes);
-
-    for (const [, customerPoint] of customerPoints) {
-      const connection = findNearestPipeConnection(
-        customerPoint,
-        spatialIndex,
-        segments,
-      );
-      customerPoint.connection = connection || undefined;
-    }
-
-    return customerPoints;
-  },
-  {
-    name: "connectCustomerPointsToPipes",
-    maxDurationMs: 60000,
-  },
-);

@@ -7,21 +7,53 @@ import {
   CustomerPointsParserIssues,
   CustomerPointsIssuesAccumulator,
 } from "./customer-points-issues";
+import {
+  connectCustomerPointToPipe,
+  SpatialIndexData,
+} from "src/hydraulic-model/model-operations/connect-customer-points";
 
-export type CustomerPointsParseResult = {
-  customerPoints: CustomerPoint[];
+export type CustomerPointsStreamingParseResult = {
+  customerPoints: Map<string, CustomerPoint>;
   issues: CustomerPointsParserIssues | null;
 };
 
-export const parseGeoJSONToCustomerPoints = (
-  geoJson: FeatureCollection,
+export const parseCustomerPointsStreamingFromFile = (
+  fileContent: string,
+  spatialIndexData: SpatialIndexData,
   startingId: number = 1,
-): CustomerPointsParseResult => {
+): CustomerPointsStreamingParseResult => {
+  const trimmedContent = fileContent.trim();
+
+  if (trimmedContent.startsWith("{")) {
+    try {
+      const geoJson = JSON.parse(fileContent);
+      if (geoJson.type === "FeatureCollection") {
+        return parseGeoJSONStreamingToCustomerPoints(
+          geoJson,
+          spatialIndexData,
+          startingId,
+        );
+      }
+    } catch (error) {}
+  }
+
+  return parseGeoJSONLStreamingToCustomerPoints(
+    fileContent,
+    spatialIndexData,
+    startingId,
+  );
+};
+
+const parseGeoJSONStreamingToCustomerPoints = (
+  geoJson: FeatureCollection,
+  spatialIndexData: SpatialIndexData,
+  startingId: number = 1,
+): CustomerPointsStreamingParseResult => {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
   }
 
-  const customerPoints: CustomerPoint[] = [];
+  const customerPoints = new Map<string, CustomerPoint>();
   const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 
@@ -43,7 +75,14 @@ export const parseGeoJSONToCustomerPoints = (
         feature.properties || {},
         currentId.toString(),
       );
-      customerPoints.push(customerPoint);
+
+      const connection = connectCustomerPointToPipe(
+        customerPoint,
+        spatialIndexData,
+      );
+      customerPoint.connection = connection || undefined;
+
+      customerPoints.set(customerPoint.id, customerPoint);
       currentId++;
     } catch (error) {
       issues.addSkippedCreationFailure();
@@ -56,12 +95,13 @@ export const parseGeoJSONToCustomerPoints = (
   };
 };
 
-export const parseGeoJSONLToCustomerPoints = (
+const parseGeoJSONLStreamingToCustomerPoints = (
   geoJsonLText: string,
+  spatialIndexData: SpatialIndexData,
   startingId: number = 1,
-): CustomerPointsParseResult => {
+): CustomerPointsStreamingParseResult => {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
-  const customerPoints: CustomerPoint[] = [];
+  const customerPoints = new Map<string, CustomerPoint>();
   const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 
@@ -91,7 +131,14 @@ export const parseGeoJSONLToCustomerPoints = (
             json.properties || {},
             currentId.toString(),
           );
-          customerPoints.push(customerPoint);
+
+          const connection = connectCustomerPointToPipe(
+            customerPoint,
+            spatialIndexData,
+          );
+          customerPoint.connection = connection || undefined;
+
+          customerPoints.set(customerPoint.id, customerPoint);
           currentId++;
         } catch (error) {
           issues.addSkippedCreationFailure();
@@ -106,22 +153,4 @@ export const parseGeoJSONLToCustomerPoints = (
     customerPoints,
     issues: issues.buildResult(),
   };
-};
-
-export const parseCustomerPointsFromFile = (
-  fileContent: string,
-  startingId: number = 1,
-): CustomerPointsParseResult => {
-  const trimmedContent = fileContent.trim();
-
-  if (trimmedContent.startsWith("{")) {
-    try {
-      const geoJson = JSON.parse(fileContent);
-      if (geoJson.type === "FeatureCollection") {
-        return parseGeoJSONToCustomerPoints(geoJson, startingId);
-      }
-    } catch (error) {}
-  }
-
-  return parseGeoJSONLToCustomerPoints(fileContent, startingId);
 };

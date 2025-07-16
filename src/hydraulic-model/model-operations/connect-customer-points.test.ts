@@ -1,10 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { connectCustomerPointsToPipes } from "./connect-customer-points";
+import {
+  connectCustomerPointToPipe,
+  createSpatialIndex,
+  SpatialIndexData,
+} from "./connect-customer-points";
 import { createCustomerPoint } from "src/hydraulic-model/customer-points";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
-describe("connectCustomerPointsToPipes", () => {
-  it("connects customer points to nearest pipes", () => {
+describe("connectCustomerPointToPipe", () => {
+  it("connects customer point to nearest pipe", () => {
     const { assets } = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aJunction("J2", { coordinates: [10, 0] })
@@ -18,130 +24,39 @@ describe("connectCustomerPointsToPipes", () => {
       })
       .build();
 
-    const customerPoints = new Map([
-      ["CP1", createCustomerPoint([5, 1], {}, "CP1")],
-    ]);
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
 
-    const connectedPoints = connectCustomerPointsToPipes(
-      customerPoints,
-      assets,
+    const connection = connectCustomerPointToPipe(
+      customerPoint,
+      spatialIndexData,
     );
 
-    const cp1 = connectedPoints.get("CP1");
-    expect(cp1).toBeDefined();
-    expect(cp1!.connection).toBeDefined();
-    expect(cp1!.connection!.pipeId).toBe("P1");
-    expect(cp1!.connection!.snapPoint).toBeDefined();
-    expect(cp1!.connection!.distance).toBeGreaterThan(0);
+    expect(connection).toBeDefined();
+    expect(connection!.pipeId).toBe("P1");
+    expect(connection!.snapPoint).toBeDefined();
+    expect(connection!.distance).toBeGreaterThan(0);
   });
 
-  it("handles empty customer points map", () => {
-    const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
-        coordinates: [
-          [0, 0],
-          [10, 0],
-        ],
-      })
-      .build();
-
-    const customerPoints = new Map();
-
-    const result = connectCustomerPointsToPipes(customerPoints, assets);
-
-    expect(result.size).toBe(0);
-  });
-
-  it("handles network with no pipes", () => {
+  it("returns null when no pipes exist", () => {
     const { assets } = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .build();
 
-    const customerPoints = new Map([
-      ["CP1", createCustomerPoint([5, 1], {}, "CP1")],
-    ]);
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
 
-    const result = connectCustomerPointsToPipes(customerPoints, assets);
-
-    const cp1 = result.get("CP1");
-    expect(cp1).toBeDefined();
-    expect(cp1!.connection).toBeUndefined();
-  });
-
-  it("connects multiple customer points to different pipes", () => {
-    const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aJunction("J3", { coordinates: [0, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
-        coordinates: [
-          [0, 0],
-          [10, 0],
-        ],
-      })
-      .aPipe("P2", {
-        startNodeId: "J1",
-        endNodeId: "J3",
-        coordinates: [
-          [0, 0],
-          [0, 10],
-        ],
-      })
-      .build();
-
-    const customerPoints = new Map([
-      ["CP1", createCustomerPoint([5, 1], {}, "CP1")],
-      ["CP2", createCustomerPoint([1, 5], {}, "CP2")],
-    ]);
-
-    const connectedPoints = connectCustomerPointsToPipes(
-      customerPoints,
-      assets,
+    const connection = connectCustomerPointToPipe(
+      customerPoint,
+      spatialIndexData,
     );
 
-    const cp1 = connectedPoints.get("CP1");
-    expect(cp1!.connection!.pipeId).toBe("P1");
-
-    const cp2 = connectedPoints.get("CP2");
-    expect(cp2!.connection!.pipeId).toBe("P2");
+    expect(connection).toBeNull();
   });
 
-  it("preserves original customer point properties", () => {
-    const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
-        coordinates: [
-          [0, 0],
-          [10, 0],
-        ],
-      })
-      .build();
-
-    const originalProperties = { name: "Test Customer", demand: 100 };
-    const customerPoints = new Map([
-      ["CP1", createCustomerPoint([5, 1], originalProperties, "CP1")],
-    ]);
-
-    const connectedPoints = connectCustomerPointsToPipes(
-      customerPoints,
-      assets,
-    );
-
-    const cp1 = connectedPoints.get("CP1");
-    expect(cp1!.properties).toEqual(originalProperties);
-    expect(cp1!.connection).toBeDefined();
-  });
-
-  it("finds closest pipe when multiple pipes are nearby", () => {
+  it("connects to closest pipe when multiple pipes are nearby", () => {
     const { assets } = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aJunction("J2", { coordinates: [10, 0] })
@@ -165,17 +80,98 @@ describe("connectCustomerPointsToPipes", () => {
       })
       .build();
 
-    const customerPoints = new Map([
-      ["CP1", createCustomerPoint([5, 1], {}, "CP1")],
-    ]);
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
 
-    const connectedPoints = connectCustomerPointsToPipes(
-      customerPoints,
-      assets,
+    const connection = connectCustomerPointToPipe(
+      customerPoint,
+      spatialIndexData,
     );
 
-    const cp1 = connectedPoints.get("CP1");
-    expect(cp1!.connection!.pipeId).toBe("P1");
-    expect(cp1!.connection!.distance).toBeGreaterThan(0);
+    expect(connection!.pipeId).toBe("P1");
+    expect(connection!.distance).toBeGreaterThan(0);
+  });
+
+  it("handles null spatial index gracefully", () => {
+    const spatialIndexData: SpatialIndexData = {
+      spatialIndex: null,
+      segments: [],
+    };
+    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
+
+    const connection = connectCustomerPointToPipe(
+      customerPoint,
+      spatialIndexData,
+    );
+
+    expect(connection).toBeNull();
+  });
+});
+
+describe("createSpatialIndex", () => {
+  it("creates spatial index from pipes", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+
+    expect(spatialIndexData.spatialIndex).toBeDefined();
+    expect(spatialIndexData.segments).toHaveLength(1);
+    expect(spatialIndexData.segments[0].properties?.pipeId).toBe("P1");
+  });
+
+  it("returns null spatial index when no pipes", () => {
+    const spatialIndexData = createSpatialIndex([]);
+
+    expect(spatialIndexData.spatialIndex).toBeNull();
+    expect(spatialIndexData.segments).toHaveLength(0);
+  });
+
+  it("handles multiple pipes with segments", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aJunction("J3", { coordinates: [0, 10] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .aPipe("P2", {
+        startNodeId: "J1",
+        endNodeId: "J3",
+        coordinates: [
+          [0, 0],
+          [0, 10],
+        ],
+      })
+      .build();
+
+    const pipes = getAssetsByType<Pipe>(assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+
+    expect(spatialIndexData.spatialIndex).toBeDefined();
+    expect(spatialIndexData.segments).toHaveLength(2);
+
+    const pipeIds = spatialIndexData.segments.map(
+      (s) => s.properties?.pipeId as string,
+    );
+    expect(pipeIds).toContain("P1");
+    expect(pipeIds).toContain("P2");
   });
 });

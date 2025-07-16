@@ -3,12 +3,14 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { parseCustomerPointsFromFile } from "src/import/customer-points";
+import { parseCustomerPointsStreamingFromFile } from "src/import/customer-points";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
 import { UserEvent } from "src/infra/user-tracking";
 import { CustomerPointsImportSummaryState } from "src/state/dialog";
-import { connectCustomerPointsToPipes } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { createSpatialIndex } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 const geoJsonExtension = ".geojson";
 const geoJsonLExtension = ".geojsonl";
@@ -48,18 +50,15 @@ export const useImportCustomerPoints = () => {
 
         const nextId = 1;
 
-        const parseResult = parseCustomerPointsFromFile(text, nextId);
-        const { customerPoints, issues } = parseResult;
+        const pipes = getAssetsByType<Pipe>(data.hydraulicModel.assets, "pipe");
+        const spatialIndexData = createSpatialIndex(pipes);
 
-        const customerPointsMap = new Map();
-        customerPoints.forEach((customerPoint) => {
-          customerPointsMap.set(customerPoint.id, customerPoint);
-        });
-
-        const connectedCustomerPoints = connectCustomerPointsToPipes(
-          customerPointsMap,
-          data.hydraulicModel.assets,
+        const parseResult = parseCustomerPointsStreamingFromFile(
+          text,
+          spatialIndexData,
+          nextId,
         );
+        const { customerPoints: connectedCustomerPoints, issues } = parseResult;
 
         setData({
           ...data,
@@ -70,7 +69,7 @@ export const useImportCustomerPoints = () => {
         });
 
         const { dialogState, trackingEvent } = processImportResult(
-          customerPoints.length,
+          connectedCustomerPoints.size,
           issues,
           source,
         );
