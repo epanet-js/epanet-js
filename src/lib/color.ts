@@ -46,8 +46,8 @@ export function linearGradient({
 }
 
 export const strokeColorFor = (fillColor: string): string => {
-  const minLightness = 0.7;
-  const maxLightness = 0.9;
+  const minLightness = 0.75;
+  const maxLightness = 0.95;
   const luminanceThreshold = 0.45;
   const saturationAdjust = 80;
   const color = chroma(fillColor);
@@ -61,19 +61,23 @@ export const strokeColorFor = (fillColor: string): string => {
       "oklch.l",
       minLightness
     );
+    // Adjust saturation
+    strokeColor = strokeColor.set(
+      "lch.c",
+      35,
+    );
   } else {
     // Dark color: Lighten the stroke
     strokeColor = strokeColor.set(
       "oklch.l",
       maxLightness
     );
+    // Adjust saturation
+    strokeColor = strokeColor.set(
+      "lch.c",
+      25,
+    );
   }
-
-  // Adjust saturation
-  strokeColor = strokeColor.set(
-    "lch.c",
-    saturationAdjust,
-  );
 
   return strokeColor.hex();
 };
