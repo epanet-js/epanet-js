@@ -56,6 +56,7 @@ export const useImportCustomerPoints = () => {
         const parseResult = parseCustomerPointsStreamingFromFile(
           text,
           spatialIndexData,
+          data.hydraulicModel.assets,
           nextId,
         );
         const { customerPoints: connectedCustomerPoints, issues } = parseResult;

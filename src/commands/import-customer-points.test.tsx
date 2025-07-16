@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, dataAtom } from "src/state/jotai";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
@@ -12,7 +13,7 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 describe("importCustomerPoints", () => {
   it("imports GeoJSON customer points correctly", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -46,7 +47,7 @@ describe("importCustomerPoints", () => {
 
   it("imports GeoJSONL customer points correctly", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -77,9 +78,7 @@ describe("importCustomerPoints", () => {
 
   it("assigns IDs starting from 1 for empty model", async () => {
     stubFileOpen();
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -103,7 +102,7 @@ describe("importCustomerPoints", () => {
 
   it("shows loading dialog during import", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -127,7 +126,7 @@ describe("importCustomerPoints", () => {
 
   it("shows success dialog with correct count", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -153,7 +152,7 @@ describe("importCustomerPoints", () => {
   it("captures user tracking events", async () => {
     const userTracking = stubUserTracking();
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -184,7 +183,7 @@ describe("importCustomerPoints", () => {
   it("handles invalid JSON gracefully", async () => {
     const userTracking = stubUserTracking();
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -218,7 +217,7 @@ describe("importCustomerPoints", () => {
 
   it("skips non-Point geometries", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -244,7 +243,7 @@ describe("importCustomerPoints", () => {
 
   it("shows warning dialog when some features are skipped", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -270,7 +269,7 @@ describe("importCustomerPoints", () => {
 
   it("shows error dialog when no valid customer points found", async () => {
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -296,7 +295,7 @@ describe("importCustomerPoints", () => {
   it("tracks warning completion events", async () => {
     const userTracking = stubUserTracking();
     stubFileOpen();
-    const store = setInitialState();
+    const store = createStoreWithPipes();
 
     renderComponent({ store });
 
@@ -377,6 +376,211 @@ describe("importCustomerPoints", () => {
     expect(customerPoint!.connection!.pipeId).toBe("P1");
     expect(customerPoint!.connection!.snapPoint).toBeDefined();
     expect(customerPoint!.connection!.distance).toBeGreaterThan(0);
+  });
+
+  it("assigns junctions during customer point import", async () => {
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [3, 1] },
+          properties: { demand: 50 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const customerPoint = hydraulicModel.customerPoints.get("1");
+    const junction = hydraulicModel.assets.get("J1") as Junction;
+
+    // Verify bidirectional relationship
+    expect(customerPoint!.connection!.junction).toBe(junction);
+    expect(junction.customerPointCount).toBe(1);
+    expect(junction.customerPoints).toContain(customerPoint);
+  });
+
+  it("generates warning when no valid junction found", async () => {
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aTank("T1", { coordinates: [0, 0] })
+        .aReservoir("R1", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "T1",
+          endNodeId: "R1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [5, 1] },
+          properties: { demand: 50 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No valid customer points found/),
+    ).toBeInTheDocument();
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.customerPoints.size).toBe(0);
+  });
+
+  it("assigns customer points to closest junction", async () => {
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [8, 1] },
+          properties: { demand: 50 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const customerPoint = hydraulicModel.customerPoints.get("1");
+    const junction2 = hydraulicModel.assets.get("J2") as Junction;
+
+    // Customer point at [8, 1] should be assigned to J2 (closer to snap point)
+    expect(customerPoint!.connection!.junction).toBe(junction2);
+    expect(junction2.customerPointCount).toBe(1);
+  });
+
+  it("excludes tanks and reservoirs from junction assignment", async () => {
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aTank("T1", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "T1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [8, 1] },
+          properties: { demand: 50 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const customerPoint = hydraulicModel.customerPoints.get("1");
+    const junction = hydraulicModel.assets.get("J1") as Junction;
+
+    // Tank should be excluded, junction should be assigned
+    expect(customerPoint!.connection!.junction).toBe(junction);
+    expect(junction.customerPointCount).toBe(1);
   });
 });
 
@@ -531,6 +735,28 @@ const createOnlyNonPointGeoJSON = (): string => {
         },
       },
     ],
+  });
+};
+
+const createStoreWithPipes = (
+  additionalSetup?: (builder: HydraulicModelBuilder) => HydraulicModelBuilder,
+) => {
+  const baseModel = HydraulicModelBuilder.with()
+    .aJunction("J1", { coordinates: [0, 0] })
+    .aJunction("J2", { coordinates: [50, 50] })
+    .aPipe("P1", {
+      startNodeId: "J1",
+      endNodeId: "J2",
+      coordinates: [
+        [0, 0],
+        [50, 50],
+      ],
+    });
+
+  const finalModel = additionalSetup ? additionalSetup(baseModel) : baseModel;
+
+  return setInitialState({
+    hydraulicModel: finalModel.build(),
   });
 };
 

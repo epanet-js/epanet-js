@@ -6,8 +6,10 @@ import {
 } from "./customer-points-issues";
 import {
   connectCustomerPointToPipe,
+  assignJunctionToCustomerPoint,
   SpatialIndexData,
 } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { AssetsMap } from "src/hydraulic-model/assets-map";
 
 export type CustomerPointsStreamingParseResult = {
   customerPoints: Map<string, CustomerPoint>;
@@ -22,6 +24,7 @@ type ProcessFeatureResult = {
 export const parseCustomerPointsStreamingFromFile = (
   fileContent: string,
   spatialIndexData: SpatialIndexData,
+  assets: AssetsMap,
   startingId: number = 1,
 ): CustomerPointsStreamingParseResult => {
   const trimmedContent = fileContent.trim();
@@ -33,6 +36,7 @@ export const parseCustomerPointsStreamingFromFile = (
         return parseGeoJSONToCustomerPoints(
           geoJson,
           spatialIndexData,
+          assets,
           startingId,
         );
       }
@@ -42,6 +46,7 @@ export const parseCustomerPointsStreamingFromFile = (
   return parseGeoJSONLToCustomerPoints(
     fileContent,
     spatialIndexData,
+    assets,
     startingId,
   );
 };
@@ -49,6 +54,7 @@ export const parseCustomerPointsStreamingFromFile = (
 const parseGeoJSONToCustomerPoints = (
   geoJson: FeatureCollection,
   spatialIndexData: SpatialIndexData,
+  assets: AssetsMap,
   startingId: number = 1,
 ): CustomerPointsStreamingParseResult => {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
@@ -63,6 +69,7 @@ const parseGeoJSONToCustomerPoints = (
     const result = processGeoJSONFeature(
       feature,
       spatialIndexData,
+      assets,
       currentId,
       issues,
     );
@@ -83,6 +90,7 @@ const parseGeoJSONToCustomerPoints = (
 const parseGeoJSONLToCustomerPoints = (
   geoJsonLText: string,
   spatialIndexData: SpatialIndexData,
+  assets: AssetsMap,
   startingId: number = 1,
 ): CustomerPointsStreamingParseResult => {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
@@ -102,6 +110,7 @@ const parseGeoJSONLToCustomerPoints = (
         const result = processGeoJSONFeature(
           json,
           spatialIndexData,
+          assets,
           currentId,
           issues,
         );
@@ -126,6 +135,7 @@ const parseGeoJSONLToCustomerPoints = (
 const processGeoJSONFeature = (
   feature: Feature,
   spatialIndexData: SpatialIndexData,
+  assets: AssetsMap,
   currentId: number,
   issues: CustomerPointsIssuesAccumulator,
 ): ProcessFeatureResult => {
@@ -157,10 +167,25 @@ const processGeoJSONFeature = (
       spatialIndexData,
     );
     if (connection) {
-      customerPoint.connect(connection);
-    }
+      const assignedJunction = assignJunctionToCustomerPoint(
+        customerPoint,
+        connection,
+        assets,
+      );
 
-    return { customerPoint, nextId: currentId + 1 };
+      if (assignedJunction) {
+        connection.junction = assignedJunction;
+        assignedJunction.assignCustomerPoint(customerPoint);
+        customerPoint.connect(connection);
+        return { customerPoint, nextId: currentId + 1 };
+      } else {
+        issues.addSkippedNoValidJunction();
+        return { customerPoint: null, nextId: currentId + 1 };
+      }
+    } else {
+      issues.addSkippedNoValidJunction();
+      return { customerPoint: null, nextId: currentId + 1 };
+    }
   } catch (error) {
     issues.addSkippedCreationFailure();
     return { customerPoint: null, nextId: currentId };

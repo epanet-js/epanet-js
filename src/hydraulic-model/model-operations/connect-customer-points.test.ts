@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   connectCustomerPointToPipe,
   createSpatialIndex,
+  assignJunctionToCustomerPoint,
   SpatialIndexData,
 } from "./connect-customer-points";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -173,5 +174,128 @@ describe("createSpatialIndex", () => {
     );
     expect(pipeIds).toContain("P1");
     expect(pipeIds).toContain("P2");
+  });
+});
+
+describe("assignJunctionToCustomerPoint", () => {
+  it("assigns customer point to closest junction on connected pipe", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [3, 1], { baseDemand: 50 });
+    const connection = { pipeId: "P1", snapPoint: [3, 0], distance: 1 };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeDefined();
+    expect(assignedJunction!.id).toBe("J1");
+  });
+
+  it("excludes tanks and reservoirs from assignment", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aTank("T1", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "T1" })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [8, 1], { baseDemand: 50 });
+    const connection = { pipeId: "P1", snapPoint: [8, 0], distance: 1 };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeDefined();
+    expect(assignedJunction!.id).toBe("J1");
+    expect(assignedJunction!.type).toBe("junction");
+  });
+
+  it("returns null when no valid junctions available", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aTank("T1", { coordinates: [0, 0] })
+      .aReservoir("R1", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "T1", endNodeId: "R1" })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 50 });
+    const connection = { pipeId: "P1", snapPoint: [5, 0], distance: 1 };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeNull();
+  });
+
+  it("assigns to single junction when only one available", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aTank("T1", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "T1" })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 50 });
+    const connection = { pipeId: "P1", snapPoint: [5, 0], distance: 1 };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeDefined();
+    expect(assignedJunction!.id).toBe("J1");
+  });
+
+  it("returns null when pipe not found", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 50 });
+    const connection = {
+      pipeId: "P_NONEXISTENT",
+      snapPoint: [5, 0],
+      distance: 1,
+    };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeNull();
+  });
+
+  it("chooses closest junction when multiple junctions available", () => {
+    const { assets } = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const customerPoint = new CustomerPoint("CP1", [9, 1], { baseDemand: 50 });
+    const connection = { pipeId: "P1", snapPoint: [9, 0], distance: 1 };
+
+    const assignedJunction = assignJunctionToCustomerPoint(
+      customerPoint,
+      connection,
+      assets,
+    );
+
+    expect(assignedJunction).toBeDefined();
+    expect(assignedJunction!.id).toBe("J2");
   });
 });

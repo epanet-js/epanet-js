@@ -21,11 +21,12 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       .build();
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
-    return createSpatialIndex(pipes);
+    return { spatialIndex: createSpatialIndex(pipes), assets };
   };
 
   const createEmptySpatialIndex = () => {
-    return createSpatialIndex([]);
+    const { assets } = HydraulicModelBuilder.with().build();
+    return { spatialIndex: createSpatialIndex([]), assets };
   };
 
   describe("GeoJSON parsing", () => {
@@ -47,10 +48,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -82,18 +84,17 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createEmptySpatialIndex();
+      const { spatialIndex, assets } = createEmptySpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
-      expect(result.customerPoints.size).toBe(1);
-
-      const customerPoint = result.customerPoints.get("1");
-      expect(customerPoint).toBeDefined();
-      expect(customerPoint!.connection).toBeNull();
+      expect(result.customerPoints.size).toBe(0);
+      expect(result.issues).toBeDefined();
+      expect(result.issues!.skippedNoValidJunction).toBe(1);
     });
 
     it("skips non-Point geometries", () => {
@@ -122,10 +123,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -157,10 +159,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -175,10 +178,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         features: [],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -194,8 +198,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [7, 2]}, "properties": {"name": "Customer 2"}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
       expect(result.customerPoints.size).toBe(2);
       expect(result.issues).toBeNull();
@@ -217,14 +221,12 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       const geoJsonL =
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [5, 1]}, "properties": {"name": "Customer 1"}}';
 
-      const spatialIndexData = createEmptySpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createEmptySpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
-      expect(result.customerPoints.size).toBe(1);
-
-      const customerPoint = result.customerPoints.get("1");
-      expect(customerPoint).toBeDefined();
-      expect(customerPoint!.connection).toBeNull();
+      expect(result.customerPoints.size).toBe(0);
+      expect(result.issues).toBeDefined();
+      expect(result.issues!.skippedNoValidJunction).toBe(1);
     });
 
     it("skips metadata lines", () => {
@@ -233,8 +235,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [5, 1]}, "properties": {"name": "Customer 1"}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
       expect(result.customerPoints.size).toBe(1);
       expect(result.issues).toBeNull();
@@ -246,8 +248,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [5, 1]}, "properties": {}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
       expect(result.customerPoints.size).toBe(1);
       expect(result.issues).toBeDefined();
@@ -261,8 +263,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [7, 2]}, "properties": {}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
       expect(result.customerPoints.size).toBe(2);
       expect(result.issues).toBeDefined();
@@ -277,8 +279,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [7, 2]}, "properties": {}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets, 1);
 
       expect(result.customerPoints.size).toBe(2);
       expect(result.issues).toBeNull();
@@ -292,8 +294,13 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [7, 2]}, "properties": {}}',
       ].join("\n");
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 100);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(
+        geoJsonL,
+        spatialIndex,
+        assets,
+        100,
+      );
 
       expect(result.customerPoints.size).toBe(2);
       expect(result.customerPoints.has("100")).toBe(true);
@@ -304,8 +311,8 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       const geoJsonL =
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [5, 1]}, "properties": {}}';
 
-      const spatialIndexData = createTestSpatialIndex();
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData);
+      const { spatialIndex, assets } = createTestSpatialIndex();
+      const result = parseStreamingFromFile(geoJsonL, spatialIndex, assets);
 
       expect(result.customerPoints.size).toBe(1);
       expect(result.customerPoints.has("1")).toBe(true);
@@ -333,10 +340,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -359,10 +367,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 
@@ -403,7 +412,12 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 5]}, "properties": {}}', // Should connect to P2
       ].join("\n");
 
-      const result = parseStreamingFromFile(geoJsonL, spatialIndexData, 1);
+      const result = parseStreamingFromFile(
+        geoJsonL,
+        spatialIndexData,
+        assets,
+        1,
+      );
 
       expect(result.customerPoints.size).toBe(2);
 
@@ -429,10 +443,11 @@ describe("parseCustomerPointsStreamingFromFile", () => {
         ],
       };
 
-      const spatialIndexData = createTestSpatialIndex();
+      const { spatialIndex, assets } = createTestSpatialIndex();
       const result = parseStreamingFromFile(
         JSON.stringify(geoJson),
-        spatialIndexData,
+        spatialIndex,
+        assets,
         1,
       );
 

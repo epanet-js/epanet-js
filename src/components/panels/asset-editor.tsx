@@ -13,6 +13,7 @@ import {
 import { PanelDetails } from "src/components/panel-details";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PropertyRow,
   PropertyRowReadonly,
@@ -647,6 +648,8 @@ const JunctionEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
+  const isCustomerPointsEnabled = useFeatureFlag("FLAG_CUSTOMER_POINT");
+
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -669,6 +672,12 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("baseDemand")}
                 onChange={onPropertyChange}
               />
+              {isCustomerPointsEnabled && (
+                <CountRow
+                  name="customerPoints"
+                  value={junction.customerPointCount}
+                />
+              )}
               <QuantityRow
                 name="pressure"
                 value={junction.pressure}
@@ -850,6 +859,12 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   const translate = useTranslate();
   const label = translate(name);
   return <PropertyRowReadonly pair={[label, value]} />;
+};
+
+const CountRow = ({ name, value }: { name: string; value: number }) => {
+  const translate = useTranslate();
+  const label = translate(name);
+  return <PropertyRowReadonly pair={[label, value.toString()]} />;
 };
 
 const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({

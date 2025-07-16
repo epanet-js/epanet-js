@@ -11,6 +11,8 @@ import {
   CustomerPointConnection,
 } from "src/hydraulic-model/customer-points";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { AssetsMap, getLinkNodes } from "src/hydraulic-model/assets-map";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 const INITIAL_SEARCH_RADIUS_METERS = 10;
@@ -163,3 +165,42 @@ function findNearestPipeConnection(
     distance: nearestPoint.properties?.dist || 0,
   };
 }
+
+function calculateDistance(point1: Position, point2: Position): number {
+  const [x1, y1] = point1;
+  const [x2, y2] = point2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+export const assignJunctionToCustomerPoint = (
+  customerPoint: CustomerPoint,
+  connection: CustomerPointConnection,
+  assets: AssetsMap,
+): Junction | null => {
+  const pipe = assets.get(connection.pipeId) as Pipe;
+  if (!pipe) return null;
+
+  const { startNode, endNode } = getLinkNodes(assets, pipe);
+
+  const junctionNodes = [startNode, endNode].filter(
+    (node) => node && node.type === "junction",
+  ) as Junction[];
+
+  if (junctionNodes.length === 0) {
+    return null;
+  }
+
+  if (junctionNodes.length === 1) {
+    return junctionNodes[0];
+  }
+
+  const junctionDistances = junctionNodes.map((junction) => ({
+    junction,
+    distance: calculateDistance(connection.snapPoint, junction.coordinates),
+  }));
+
+  junctionDistances.sort((a, b) => a.distance - b.distance);
+  return junctionDistances[0].junction;
+};

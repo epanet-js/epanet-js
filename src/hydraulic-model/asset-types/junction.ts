@@ -1,4 +1,5 @@
 import { Node, NodeProperties } from "./node";
+import { CustomerPoint } from "../customer-points";
 
 export type JunctionProperties = {
   type: "junction";
@@ -20,6 +21,7 @@ export type JunctionSimulation = {
 
 export class Junction extends Node<JunctionProperties> {
   private simulation: JunctionSimulation | null = null;
+  private assignedCustomerPoints: Set<CustomerPoint> = new Set();
 
   get baseDemand() {
     return this.properties.baseDemand;
@@ -51,12 +53,38 @@ export class Junction extends Node<JunctionProperties> {
     return this.units[key];
   }
 
+  get customerPoints(): CustomerPoint[] {
+    return Array.from(this.assignedCustomerPoints);
+  }
+
+  get customerPointCount(): number {
+    return this.assignedCustomerPoints.size;
+  }
+
+  assignCustomerPoint(customerPoint: CustomerPoint): void {
+    this.assignedCustomerPoints.add(customerPoint);
+  }
+
+  removeCustomerPoint(customerPoint: CustomerPoint): void {
+    this.assignedCustomerPoints.delete(customerPoint);
+  }
+
+  get totalCustomerDemand(): number {
+    return this.customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
+  }
+
   copy() {
-    return new Junction(
+    const newJunction = new Junction(
       this.id,
       [...this.coordinates],
       { ...this.properties },
       this.units,
     );
+
+    this.assignedCustomerPoints.forEach((cp) => {
+      newJunction.assignCustomerPoint(cp);
+    });
+
+    return newJunction;
   }
 }

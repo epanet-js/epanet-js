@@ -3,6 +3,7 @@ export type CustomerPointsParserIssues = {
   skippedInvalidCoordinates?: number;
   skippedInvalidLines?: number;
   skippedCreationFailures?: number;
+  skippedNoValidJunction?: number;
 };
 
 export class CustomerPointsIssuesAccumulator {
@@ -30,6 +31,11 @@ export class CustomerPointsIssuesAccumulator {
   addSkippedCreationFailure() {
     this.issues.skippedCreationFailures =
       (this.issues.skippedCreationFailures || 0) + 1;
+  }
+
+  addSkippedNoValidJunction() {
+    this.issues.skippedNoValidJunction =
+      (this.issues.skippedNoValidJunction || 0) + 1;
   }
 
   buildResult(): CustomerPointsParserIssues | null {

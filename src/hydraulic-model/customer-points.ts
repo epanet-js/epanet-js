@@ -1,9 +1,11 @@
 import { Position } from "geojson";
+import { Junction } from "./asset-types/junction";
 
 export interface CustomerPointConnection {
   pipeId: string;
   snapPoint: Position;
   distance: number;
+  junction?: Junction;
 }
 
 export class CustomerPoint {

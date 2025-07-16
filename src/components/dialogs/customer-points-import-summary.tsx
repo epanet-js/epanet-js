@@ -61,6 +61,11 @@ export const CustomerPointsImportSummaryDialog = ({
         `${issues.skippedCreationFailures} creation failure${issues.skippedCreationFailures === 1 ? "" : "s"}`,
       );
     }
+    if (issues?.skippedNoValidJunction) {
+      issuesList.push(
+        `${issues.skippedNoValidJunction} customer point${issues.skippedNoValidJunction === 1 ? "" : "s"} without valid junction`,
+      );
+    }
 
     return (
       <DialogContainer size="sm">

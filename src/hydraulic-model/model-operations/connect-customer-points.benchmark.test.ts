@@ -132,6 +132,7 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     const result = parseCustomerPointsStreamingFromFile(
       fileContent,
       spatialIndexData,
+      assets,
       1,
     );
 
@@ -198,6 +199,7 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     const result = parseCustomerPointsStreamingFromFile(
       fileContent,
       spatialIndexData,
+      assets,
       1,
     );
     const endTime = performance.now();
