@@ -1,24 +1,20 @@
-import { createCustomerPoint, validateCustomerPoint } from "./customer-points";
+import { CustomerPoint, validateCustomerPoint } from "./customer-points";
 
-describe("createCustomerPoint", () => {
+describe("CustomerPoint", () => {
   it("creates customer point with provided ID", () => {
-    const customerPoint = createCustomerPoint([10, 20], { name: "Test" }, "5");
+    const customerPoint = new CustomerPoint("5", [10, 20], { baseDemand: 100 });
 
-    expect(customerPoint).toEqual({
-      id: "5",
-      coordinates: [10, 20],
-      properties: { name: "Test" },
-    });
+    expect(customerPoint.id).toBe("5");
+    expect(customerPoint.coordinates).toEqual([10, 20]);
+    expect(customerPoint.baseDemand).toBe(100);
   });
 
-  it("creates customer point with default ID when none provided", () => {
-    const customerPoint = createCustomerPoint([10, 20], { name: "Test" });
+  it("creates customer point with zero demand", () => {
+    const customerPoint = new CustomerPoint("1", [10, 20], { baseDemand: 0 });
 
-    expect(customerPoint).toEqual({
-      id: "1",
-      coordinates: [10, 20],
-      properties: { name: "Test" },
-    });
+    expect(customerPoint.id).toBe("1");
+    expect(customerPoint.coordinates).toEqual([10, 20]);
+    expect(customerPoint.baseDemand).toBe(0);
   });
 });
 

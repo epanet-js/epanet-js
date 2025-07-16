@@ -4,6 +4,7 @@ import lineSegment from "@turf/line-segment";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
+import { Position } from "geojson";
 
 import {
   CustomerPoint,
@@ -158,7 +159,7 @@ function findNearestPipeConnection(
 
   return {
     pipeId,
-    snapPoint: nearestPoint.geometry.coordinates as [number, number],
+    snapPoint: nearestPoint.geometry.coordinates as Position,
     distance: nearestPoint.properties?.dist || 0,
   };
 }

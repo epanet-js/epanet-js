@@ -41,6 +41,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
             },
             properties: {
               name: "Customer 1",
+              demand: 30,
             },
           },
         ],
@@ -59,7 +60,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       const customerPoint = result.customerPoints.get("1");
       expect(customerPoint).toBeDefined();
       expect(customerPoint!.coordinates).toEqual([5, 1]);
-      expect(customerPoint!.properties.name).toBe("Customer 1");
+      expect(customerPoint!.baseDemand).toBe(30);
       expect(customerPoint!.connection).toBeDefined();
       expect(customerPoint!.connection!.pipeId).toBe("P1");
     });
@@ -92,7 +93,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
 
       const customerPoint = result.customerPoints.get("1");
       expect(customerPoint).toBeDefined();
-      expect(customerPoint!.connection).toBeUndefined();
+      expect(customerPoint!.connection).toBeNull();
     });
 
     it("skips non-Point geometries", () => {
@@ -223,7 +224,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
 
       const customerPoint = result.customerPoints.get("1");
       expect(customerPoint).toBeDefined();
-      expect(customerPoint!.connection).toBeUndefined();
+      expect(customerPoint!.connection).toBeNull();
     });
 
     it("skips metadata lines", () => {
@@ -312,7 +313,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
   });
 
   describe("Properties preservation", () => {
-    it("preserves original customer point properties", () => {
+    it("extracts demand property and filters out other properties", () => {
       const originalProperties = {
         name: "Test Customer",
         demand: 100,
@@ -340,7 +341,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       );
 
       const customerPoint = result.customerPoints.get("1");
-      expect(customerPoint!.properties).toEqual(originalProperties);
+      expect(customerPoint!.baseDemand).toBe(100);
       expect(customerPoint!.connection).toBeDefined();
     });
 
@@ -366,7 +367,7 @@ describe("parseCustomerPointsStreamingFromFile", () => {
       );
 
       const customerPoint = result.customerPoints.get("1");
-      expect(customerPoint!.properties).toEqual({});
+      expect(customerPoint!.baseDemand).toBe(0);
     });
   });
 

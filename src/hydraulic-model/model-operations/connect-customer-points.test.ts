@@ -4,7 +4,7 @@ import {
   createSpatialIndex,
   SpatialIndexData,
 } from "./connect-customer-points";
-import { createCustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
@@ -26,7 +26,7 @@ describe("connectCustomerPointToPipe", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
 
     const connection = connectCustomerPointToPipe(
       customerPoint,
@@ -46,7 +46,7 @@ describe("connectCustomerPointToPipe", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
 
     const connection = connectCustomerPointToPipe(
       customerPoint,
@@ -82,7 +82,7 @@ describe("connectCustomerPointToPipe", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
 
     const connection = connectCustomerPointToPipe(
       customerPoint,
@@ -98,7 +98,7 @@ describe("connectCustomerPointToPipe", () => {
       spatialIndex: null,
       segments: [],
     };
-    const customerPoint = createCustomerPoint([5, 1], {}, "CP1");
+    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
 
     const connection = connectCustomerPointToPipe(
       customerPoint,

@@ -34,10 +34,11 @@ export const buildCustomerPointsOverlay = (
   const connectionLines: ConnectionLineData[] = [];
 
   for (const customerPoint of customerPoints.values()) {
-    if (customerPoint.connection) {
+    const snapPosition = customerPoint.snapPosition;
+    if (snapPosition) {
       connectionLines.push({
-        sourcePosition: customerPoint.coordinates,
-        targetPosition: customerPoint.connection.snapPoint,
+        sourcePosition: customerPoint.coordinates as [number, number],
+        targetPosition: snapPosition as [number, number],
       });
     }
   }
@@ -65,7 +66,7 @@ export const buildCustomerPointsOverlay = (
     id: "customer-points-layer",
     beforeId: "ephemeral-junction-highlight",
     data: [...customerPoints.values()],
-    getPosition: (d: CustomerPoint) => d.coordinates,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
 
     radiusUnits: "meters",
     getRadius: 1.5,

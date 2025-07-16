@@ -1,30 +1,43 @@
+import { Position } from "geojson";
+
 export interface CustomerPointConnection {
   pipeId: string;
-  snapPoint: [number, number];
+  snapPoint: Position;
   distance: number;
 }
 
-export interface CustomerPoint {
-  id: string;
-  coordinates: [number, number];
-  properties: {
-    name?: string;
-    description?: string;
-    demand?: number;
-    [key: string]: any;
-  };
-  connection?: CustomerPointConnection;
-}
+export class CustomerPoint {
+  public readonly id: string;
+  public readonly coordinates: Position;
+  private properties: { baseDemand: number };
+  private connectionData: CustomerPointConnection | null = null;
 
-export const createCustomerPoint = (
-  coordinates: [number, number],
-  properties: Record<string, any> = {},
-  id?: string,
-): CustomerPoint => ({
-  id: id || "1",
-  coordinates,
-  properties,
-});
+  constructor(
+    id: string,
+    coordinates: Position,
+    properties: { baseDemand: number },
+  ) {
+    this.id = id;
+    this.coordinates = coordinates;
+    this.properties = properties;
+  }
+
+  get baseDemand() {
+    return this.properties.baseDemand;
+  }
+
+  get snapPosition(): Position | null {
+    return this.connectionData ? this.connectionData.snapPoint : null;
+  }
+
+  get connection(): CustomerPointConnection | null {
+    return this.connectionData;
+  }
+
+  connect(connection: CustomerPointConnection): void {
+    this.connectionData = connection;
+  }
+}
 
 export const validateCustomerPoint = (data: any): data is CustomerPoint => {
   return (

@@ -1,8 +1,5 @@
-import { Feature, FeatureCollection } from "geojson";
-import {
-  createCustomerPoint,
-  CustomerPoint,
-} from "src/hydraulic-model/customer-points";
+import { Feature, FeatureCollection, Position } from "geojson";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
   CustomerPointsParserIssues,
   CustomerPointsIssuesAccumulator,
@@ -144,17 +141,24 @@ const processGeoJSONFeature = (
   }
 
   try {
-    const customerPoint = createCustomerPoint(
-      [coordinates[0], coordinates[1]],
-      feature.properties || {},
+    const demand =
+      typeof feature.properties?.demand === "number"
+        ? feature.properties.demand
+        : 0;
+
+    const customerPoint = new CustomerPoint(
       currentId.toString(),
+      [coordinates[0], coordinates[1]] as Position,
+      { baseDemand: demand },
     );
 
     const connection = connectCustomerPointToPipe(
       customerPoint,
       spatialIndexData,
     );
-    customerPoint.connection = connection || undefined;
+    if (connection) {
+      customerPoint.connect(connection);
+    }
 
     return { customerPoint, nextId: currentId + 1 };
   } catch (error) {

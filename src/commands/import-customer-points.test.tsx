@@ -37,11 +37,11 @@ describe("importCustomerPoints", () => {
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([10.5, 20.5]);
-    expect(customerPoint1?.properties.name).toBe("Customer A");
+    expect(customerPoint1?.baseDemand).toBe(25.5);
 
     expect(customerPoint2).toBeDefined();
     expect(customerPoint2?.coordinates).toEqual([30.5, 40.5]);
-    expect(customerPoint2?.properties.name).toBe("Customer B");
+    expect(customerPoint2?.baseDemand).toBe(150);
   });
 
   it("imports GeoJSONL customer points correctly", async () => {
@@ -71,11 +71,8 @@ describe("importCustomerPoints", () => {
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([15.5, 25.5]);
-    expect(customerPoint1?.properties.name).toBe("Customer X");
-
     expect(customerPoint2).toBeDefined();
     expect(customerPoint2?.coordinates).toEqual([35.5, 45.5]);
-    expect(customerPoint2?.properties.name).toBe("Customer Y");
   });
 
   it("assigns IDs starting from 1 for empty model", async () => {
@@ -240,9 +237,9 @@ describe("importCustomerPoints", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(1);
-    expect(hydraulicModel.customerPoints.get("1")?.properties.name).toBe(
-      "Point Customer",
-    );
+    expect(hydraulicModel.customerPoints.get("1")?.coordinates).toEqual([
+      10.5, 20.5,
+    ]);
   });
 
   it("shows warning dialog when some features are skipped", async () => {
