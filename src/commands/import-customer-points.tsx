@@ -8,7 +8,7 @@ import { dataAtom, dialogAtom } from "src/state/jotai";
 import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
 import { UserEvent } from "src/infra/user-tracking";
 import { CustomerPointsImportSummaryState } from "src/state/dialog";
-import { createSpatialIndex } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 

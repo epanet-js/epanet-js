@@ -4,11 +4,8 @@ import {
   CustomerPointsParserIssues,
   CustomerPointsIssuesAccumulator,
 } from "./customer-points-issues";
-import {
-  connectCustomerPointToPipe,
-  assignJunctionToCustomerPoint,
-  SpatialIndexData,
-} from "src/hydraulic-model/model-operations/connect-customer-points";
+import { connectCustomerPoint } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { SpatialIndexData } from "src/hydraulic-model/spatial-index";
 import { AssetsMap } from "src/hydraulic-model/assets-map";
 
 export type CustomerPointsStreamingParseResult = {
@@ -162,26 +159,15 @@ const processGeoJSONFeature = (
       { baseDemand: demand },
     );
 
-    const connection = connectCustomerPointToPipe(
+    const connection = connectCustomerPoint(
       customerPoint,
       spatialIndexData,
+      assets,
     );
-    if (connection) {
-      const assignedJunction = assignJunctionToCustomerPoint(
-        customerPoint,
-        connection,
-        assets,
-      );
 
-      if (assignedJunction) {
-        connection.junction = assignedJunction;
-        assignedJunction.assignCustomerPoint(customerPoint);
-        customerPoint.connect(connection);
-        return { customerPoint, nextId: currentId + 1 };
-      } else {
-        issues.addSkippedNoValidJunction();
-        return { customerPoint: null, nextId: currentId + 1 };
-      }
+    if (connection) {
+      customerPoint.connect(connection);
+      return { customerPoint, nextId: currentId + 1 };
     } else {
       issues.addSkippedNoValidJunction();
       return { customerPoint: null, nextId: currentId + 1 };

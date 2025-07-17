@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { describe, it, expect } from "vitest";
-import { createSpatialIndex } from "./connect-customer-points";
+import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
