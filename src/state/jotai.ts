@@ -18,6 +18,7 @@ import { atomWithMachine } from "jotai-xstate";
 import { createMachine } from "xstate";
 import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { ScaleUnit } from "src/lib/constants";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
@@ -27,7 +28,6 @@ import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
-import { Position } from "geojson";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -331,18 +331,15 @@ export interface EphemeralDragState {
 export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
 
-export type EphemeralCustomerPointHover = {
-  type: "customerPointHover";
-  customerPoint: {
-    id: string;
-    coordinates: Position;
-  };
+export type EphemeralCustomerPointsHighlight = {
+  type: "customerPointsHighlight";
+  customerPoints: CustomerPoint[];
 };
 
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralMoveAssets
-  | EphemeralCustomerPointHover
+  | EphemeralCustomerPointsHighlight
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

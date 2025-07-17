@@ -38,16 +38,16 @@ const CustomerPointsPopover = ({
 
   const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
     setEphemeralState({
-      type: "customerPointHover",
-      customerPoint: {
-        id: customerPoint.id,
-        coordinates: customerPoint.coordinates,
-      },
+      type: "customerPointsHighlight",
+      customerPoints: [customerPoint],
     });
   };
 
   const handleCustomerPointLeave = () => {
-    setEphemeralState({ type: "none" });
+    setEphemeralState({
+      type: "customerPointsHighlight",
+      customerPoints: customerPoints,
+    });
   };
 
   const rowVirtualizer = useVirtualizer({
@@ -170,6 +170,10 @@ export const CustomerDemandField = ({
             handleClose();
           } else {
             setIsOpen(true);
+            setEphemeralState({
+              type: "customerPointsHighlight",
+              customerPoints: customerPoints,
+            });
           }
         }}
       >

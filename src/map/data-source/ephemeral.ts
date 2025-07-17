@@ -3,7 +3,7 @@ import { Feature } from "src/types";
 import { Asset, NodeAsset } from "src/hydraulic-model/asset-types";
 import {
   EphemeralEditingState,
-  EphemeralCustomerPointHover,
+  EphemeralCustomerPointsHighlight,
 } from "src/state/jotai";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
@@ -20,8 +20,8 @@ export const buildEphemeralStateSource = (
     return buildMoveAssetsSourceData(ephemeralState);
   }
 
-  if (ephemeralState.type === "customerPointHover") {
-    return buildCustomerPointHoverSourceData(ephemeralState);
+  if (ephemeralState.type === "customerPointsHighlight") {
+    return buildCustomerPointsHighlightSourceData(ephemeralState);
   }
 
   return [];
@@ -48,22 +48,24 @@ const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
   return features;
 };
 
-const buildCustomerPointHoverSourceData = (
-  ephemeralState: EphemeralCustomerPointHover,
+const buildCustomerPointsHighlightSourceData = (
+  ephemeralState: EphemeralCustomerPointsHighlight,
 ) => {
   const features: Feature[] = [];
 
-  features.push({
-    type: "Feature",
-    id: `customer-point-halo-${ephemeralState.customerPoint.id}`,
-    properties: {
-      halo: true,
-    } as any,
-    geometry: {
-      type: "Point",
-      coordinates: ephemeralState.customerPoint.coordinates,
-    },
-  });
+  for (const customerPoint of ephemeralState.customerPoints) {
+    features.push({
+      type: "Feature",
+      id: `customer-point-halo-${customerPoint.id}`,
+      properties: {
+        halo: true,
+      } as any,
+      geometry: {
+        type: "Point",
+        coordinates: customerPoint.coordinates,
+      },
+    });
+  }
 
   return features;
 };

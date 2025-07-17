@@ -579,7 +579,7 @@ const getMovedAssets = (
       return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
     case "drawLink":
       return noMoved;
-    case "customerPointHover":
+    case "customerPointsHighlight":
       return noMoved;
     case "none":
       return noMoved;
