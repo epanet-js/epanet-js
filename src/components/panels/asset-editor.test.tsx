@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
+import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -11,6 +11,8 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -437,6 +439,157 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("pressure (m)", "20");
       expectPropertyDisplayed("head (m)", "10");
       expectPropertyDisplayed("actual demand (l/s)", "20");
+    });
+
+    describe("with FLAG_CUSTOMER_POINT enabled", () => {
+      beforeEach(() => {
+        stubFeatureOn("FLAG_CUSTOMER_POINT");
+      });
+
+      it("shows Direct Demand instead of Base Demand", () => {
+        const junctionId = "J1";
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(junctionId, {
+            label: "MY_JUNCTION",
+            elevation: 10,
+            baseDemand: 100,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: junctionId,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText(/junction/i)).toBeInTheDocument();
+        expectPropertyDisplayed("direct demand (l/s)", "100");
+        expect(
+          screen.queryByRole("textbox", {
+            name: /key: base demand/i,
+          }),
+        ).not.toBeInTheDocument();
+      });
+
+      it("shows Customer Demand field when junction has customer points", () => {
+        const junctionId = "J1";
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(junctionId, {
+            label: "MY_JUNCTION",
+            baseDemand: 50,
+          })
+          .build();
+
+        // Add customer points to the junction
+        const junction = hydraulicModel.assets.get(junctionId) as Junction;
+        const customerPoint1 = new CustomerPoint("CP1", [1, 2], {
+          baseDemand: 25,
+        });
+        const customerPoint2 = new CustomerPoint("CP2", [3, 4], {
+          baseDemand: 30,
+        });
+
+        junction.assignCustomerPoint(customerPoint1);
+        junction.assignCustomerPoint(customerPoint2);
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: junctionId,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText(/junction/i)).toBeInTheDocument();
+        expectPropertyDisplayed("direct demand (l/s)", "50");
+
+        // Check if Customer Demand field is present with units in label
+        expect(
+          screen.getByRole("textbox", {
+            name: /key: customer demand \(l\/s\)/i,
+          }),
+        ).toBeInTheDocument();
+
+        // Check if the customer demand trigger is clickable and shows correct summary without units
+        const customerDemandTrigger = screen.getByRole("button", {
+          name: /customer demand values/i,
+        });
+        expect(customerDemandTrigger).toBeInTheDocument();
+        expect(customerDemandTrigger).toHaveTextContent("55 (2 customers)");
+      });
+
+      it("opens popover when Customer Demand field is clicked", async () => {
+        const junctionId = "J1";
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(junctionId, {
+            label: "MY_JUNCTION",
+            baseDemand: 50,
+          })
+          .build();
+
+        // Add customer points to the junction
+        const junction = hydraulicModel.assets.get(junctionId) as Junction;
+        const customerPoint1 = new CustomerPoint("CP1", [1, 2], {
+          baseDemand: 25,
+        });
+        const customerPoint2 = new CustomerPoint("CP2", [3, 4], {
+          baseDemand: 30,
+        });
+
+        junction.assignCustomerPoint(customerPoint1);
+        junction.assignCustomerPoint(customerPoint2);
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: junctionId,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        const customerDemandTrigger = screen.getByRole("button", {
+          name: /customer demand values/i,
+        });
+
+        await user.click(customerDemandTrigger);
+
+        // Check if popover content is displayed
+        await waitFor(() => {
+          expect(screen.getByText("CP1")).toBeInTheDocument();
+        });
+        expect(screen.getByText("CP2")).toBeInTheDocument();
+        expect(screen.getByText("25")).toBeInTheDocument();
+        expect(screen.getByText("30")).toBeInTheDocument();
+      });
+
+      it("does not show Customer Demand field when junction has no customer points", () => {
+        const junctionId = "J1";
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(junctionId, {
+            label: "MY_JUNCTION",
+            baseDemand: 100,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: junctionId,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText(/junction/i)).toBeInTheDocument();
+        expectPropertyDisplayed("direct demand (l/s)", "100");
+
+        // Customer Demand field should not be present
+        expect(
+          screen.queryByRole("textbox", {
+            name: /key: customer demand \(l\/s\)/i,
+          }),
+        ).not.toBeInTheDocument();
+      });
+
+      afterEach(() => {
+        stubFeatureOff("FLAG_CUSTOMER_POINT");
+      });
     });
   });
 

@@ -257,6 +257,19 @@ if (
     }),
   };
 
+  // Mock getBoundingClientRect for virtualizer
+  Element.prototype.getBoundingClientRect = vi.fn(() => ({
+    top: 0,
+    left: 0,
+    bottom: 128,
+    right: 300,
+    width: 300,
+    height: 128,
+    x: 0,
+    y: 0,
+    toJSON: () => {},
+  }));
+
   (window as any).fetch = (url: string) => {
     if (url !== "/zip-lookup.json") throw new Error("Unexpected fetch");
     return Promise.resolve({

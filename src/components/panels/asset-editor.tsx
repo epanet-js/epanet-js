@@ -18,6 +18,7 @@ import {
   PropertyRow,
   PropertyRowReadonly,
 } from "./feature-editor/property-row";
+import { CustomerDemandField } from "./feature-editor/customer-demand-field";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -648,7 +649,17 @@ const JunctionEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const isCustomerPointsEnabled = useFeatureFlag("FLAG_CUSTOMER_POINT");
+
+  const baseDemandUnit = quantitiesMetadata.getUnit("baseDemand");
+  const baseDemandLabel = isCustomerPointsEnabled
+    ? baseDemandUnit
+      ? `${translate("directDemand")} (${translateUnit(baseDemandUnit)})`
+      : translate("directDemand")
+    : baseDemandUnit
+      ? `${translate("baseDemand")} (${translateUnit(baseDemandUnit)})`
+      : translate("baseDemand");
 
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -665,18 +676,47 @@ const JunctionEditor = ({
                 decimals={quantitiesMetadata.getDecimals("elevation")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
-                name="baseDemand"
-                value={junction.baseDemand}
-                unit={quantitiesMetadata.getUnit("baseDemand")}
-                decimals={quantitiesMetadata.getDecimals("baseDemand")}
-                onChange={onPropertyChange}
-              />
-              {isCustomerPointsEnabled && (
-                <CountRow
-                  name="customerPoints"
-                  value={junction.customerPointCount}
-                />
+              <PropertyRow label={baseDemandLabel}>
+                <div className="relative group-1">
+                  <NumericField
+                    label={baseDemandLabel}
+                    positiveOnly={false}
+                    isNullable={true}
+                    readOnly={false}
+                    displayValue={
+                      junction.baseDemand === null
+                        ? translate("notAvailable")
+                        : localizeDecimal(junction.baseDemand, {
+                            decimals:
+                              quantitiesMetadata.getDecimals("baseDemand"),
+                          })
+                    }
+                    onChangeValue={(newValue: number) =>
+                      onPropertyChange(
+                        "baseDemand",
+                        newValue,
+                        junction.baseDemand,
+                      )
+                    }
+                    styleOptions={{ border: "none" }}
+                  />
+                </div>
+              </PropertyRow>
+              {isCustomerPointsEnabled && junction.customerPointCount > 0 && (
+                <PropertyRow
+                  label={
+                    quantitiesMetadata.getUnit("baseDemand")
+                      ? `${translate("customerDemand")} (${translateUnit(quantitiesMetadata.getUnit("baseDemand"))})`
+                      : translate("customerDemand")
+                  }
+                >
+                  <CustomerDemandField
+                    totalDemand={junction.totalCustomerDemand}
+                    customerCount={junction.customerPointCount}
+                    customerPoints={junction.customerPoints}
+                    unit={quantitiesMetadata.getUnit("baseDemand")}
+                  />
+                </PropertyRow>
               )}
               <QuantityRow
                 name="pressure"
@@ -859,12 +899,6 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   const translate = useTranslate();
   const label = translate(name);
   return <PropertyRowReadonly pair={[label, value]} />;
-};
-
-const CountRow = ({ name, value }: { name: string; value: number }) => {
-  const translate = useTranslate();
-  const label = translate(name);
-  return <PropertyRowReadonly pair={[label, value.toString()]} />;
 };
 
 const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
