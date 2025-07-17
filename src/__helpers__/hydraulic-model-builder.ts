@@ -33,6 +33,7 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
 import { Demands, nullDemands } from "src/hydraulic-model/demands";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -84,6 +85,18 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
     new IdGenerator(),
     new LabelManager(),
   ).buildReservoir(data);
+};
+
+export const buildCustomerPoint = (
+  id: string,
+  options: {
+    demand?: number;
+    coordinates?: Position;
+    junctionId?: string;
+  } = {},
+) => {
+  const { demand = 0, coordinates = [0, 0] } = options;
+  return new CustomerPoint(id, coordinates, { baseDemand: demand });
 };
 
 export class HydraulicModelBuilder {

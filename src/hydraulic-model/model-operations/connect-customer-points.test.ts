@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { connectCustomerPoint } from "./connect-customer-points";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import {
+  HydraulicModelBuilder,
+  buildCustomerPoint,
+} from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import {
@@ -26,7 +28,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [5, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -49,7 +51,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [5, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -76,7 +78,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [8, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [8, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -103,7 +105,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [8, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [8, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -132,7 +134,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [5, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -169,7 +171,7 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [5, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -190,7 +192,7 @@ describe("connectCustomerPoint", () => {
       spatialIndex: null,
       segments: [],
     };
-    const customerPoint = new CustomerPoint("CP1", [5, 1], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [5, 1] });
 
     const connection = connectCustomerPoint(
       customerPoint,
@@ -217,7 +219,10 @@ describe("connectCustomerPoint", () => {
 
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
-    const customerPoint = new CustomerPoint("CP1", [3, 1], { baseDemand: 50 });
+    const customerPoint = buildCustomerPoint("CP1", {
+      coordinates: [3, 1],
+      demand: 50,
+    });
 
     const connection = connectCustomerPoint(
       customerPoint,

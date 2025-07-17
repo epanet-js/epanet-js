@@ -2,7 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import {
+  HydraulicModelBuilder,
+  buildCustomerPoint,
+} from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id-mapper";
@@ -12,7 +15,6 @@ import FeatureEditor from "./feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -482,11 +484,13 @@ describe("AssetEditor", () => {
 
         // Add customer points to the junction
         const junction = hydraulicModel.assets.get(junctionId) as Junction;
-        const customerPoint1 = new CustomerPoint("CP1", [1, 2], {
-          baseDemand: 25,
+        const customerPoint1 = buildCustomerPoint("CP1", {
+          coordinates: [1, 2],
+          demand: 25,
         });
-        const customerPoint2 = new CustomerPoint("CP2", [3, 4], {
-          baseDemand: 30,
+        const customerPoint2 = buildCustomerPoint("CP2", {
+          coordinates: [3, 4],
+          demand: 30,
         });
 
         junction.assignCustomerPoint(customerPoint1);
@@ -528,11 +532,13 @@ describe("AssetEditor", () => {
 
         // Add customer points to the junction
         const junction = hydraulicModel.assets.get(junctionId) as Junction;
-        const customerPoint1 = new CustomerPoint("CP1", [1, 2], {
-          baseDemand: 25,
+        const customerPoint1 = buildCustomerPoint("CP1", {
+          coordinates: [1, 2],
+          demand: 25,
         });
-        const customerPoint2 = new CustomerPoint("CP2", [3, 4], {
-          baseDemand: 30,
+        const customerPoint2 = buildCustomerPoint("CP2", {
+          coordinates: [3, 4],
+          demand: 30,
         });
 
         junction.assignCustomerPoint(customerPoint1);

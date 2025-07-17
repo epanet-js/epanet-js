@@ -1,8 +1,12 @@
-import { CustomerPoint, validateCustomerPoint } from "./customer-points";
+import { validateCustomerPoint } from "./customer-points";
+import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
 
 describe("CustomerPoint", () => {
   it("creates customer point with provided ID", () => {
-    const customerPoint = new CustomerPoint("5", [10, 20], { baseDemand: 100 });
+    const customerPoint = buildCustomerPoint("5", {
+      coordinates: [10, 20],
+      demand: 100,
+    });
 
     expect(customerPoint.id).toBe("5");
     expect(customerPoint.coordinates).toEqual([10, 20]);
@@ -10,7 +14,7 @@ describe("CustomerPoint", () => {
   });
 
   it("creates customer point with zero demand", () => {
-    const customerPoint = new CustomerPoint("1", [10, 20], { baseDemand: 0 });
+    const customerPoint = buildCustomerPoint("1", { coordinates: [10, 20] });
 
     expect(customerPoint.id).toBe("1");
     expect(customerPoint.coordinates).toEqual([10, 20]);
