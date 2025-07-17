@@ -2,12 +2,14 @@ import React, { useState, KeyboardEventHandler, useRef } from "react";
 import * as P from "@radix-ui/react-popover";
 import { CardStackIcon } from "@radix-ui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useSetAtom } from "jotai";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit } from "src/quantity";
+import { ephemeralStateAtom } from "src/state/jotai";
 
 interface CustomerDemandFieldProps {
   totalDemand: number;
@@ -32,6 +34,21 @@ const CustomerPointsPopover = ({
   const parentRef = useRef<HTMLDivElement | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+
+  const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
+    setEphemeralState({
+      type: "customerPointHover",
+      customerPoint: {
+        id: customerPoint.id,
+        coordinates: customerPoint.coordinates,
+      },
+    });
+  };
+
+  const handleCustomerPointLeave = () => {
+    setEphemeralState({ type: "none" });
+  };
 
   const rowVirtualizer = useVirtualizer({
     count: customerPoints.length,
@@ -45,6 +62,7 @@ const CustomerPointsPopover = ({
   ) => {
     if (event.code === "Escape" || event.code === "Enter") {
       event.stopPropagation();
+      setEphemeralState({ type: "none" });
       onClose();
     }
   };
@@ -93,6 +111,8 @@ const CustomerPointsPopover = ({
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
+                onMouseEnter={() => handleCustomerPointHover(customerPoint)}
+                onMouseLeave={handleCustomerPointLeave}
               >
                 <div
                   title={customerPoint.id}
@@ -123,6 +143,12 @@ export const CustomerDemandField = ({
 }: CustomerDemandFieldProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const translate = useTranslate();
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+
+  const handleClose = () => {
+    setEphemeralState({ type: "none" });
+    setIsOpen(false);
+  };
 
   const handleTriggerKeyDown: KeyboardEventHandler<HTMLButtonElement> = (
     event,
@@ -137,7 +163,16 @@ export const CustomerDemandField = ({
 
   return (
     <div>
-      <P.Root open={isOpen} onOpenChange={setIsOpen}>
+      <P.Root
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleClose();
+          } else {
+            setIsOpen(true);
+          }
+        }}
+      >
         <P.Trigger
           aria-label={`Customer demand values: ${displayValue}`}
           onKeyDown={handleTriggerKeyDown}
@@ -168,7 +203,7 @@ export const CustomerDemandField = ({
             <CustomerPointsPopover
               customerPoints={customerPoints}
               unit={unit}
-              onClose={() => setIsOpen(false)}
+              onClose={handleClose}
             />
           </StyledPopoverContent>
         </P.Portal>

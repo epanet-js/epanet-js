@@ -27,6 +27,7 @@ import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
+import { Position } from "geojson";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -330,9 +331,18 @@ export interface EphemeralDragState {
 export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
 
+export type EphemeralCustomerPointHover = {
+  type: "customerPointHover";
+  customerPoint: {
+    id: string;
+    coordinates: Position;
+  };
+};
+
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralMoveAssets
+  | EphemeralCustomerPointHover
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
