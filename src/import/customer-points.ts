@@ -1,5 +1,9 @@
 import { Feature, FeatureCollection, Position } from "geojson";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  CustomerPoints,
+  initializeCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import {
   CustomerPointsParserIssues,
   CustomerPointsIssuesAccumulator,
@@ -9,7 +13,7 @@ import { SpatialIndexData } from "src/hydraulic-model/spatial-index";
 import { AssetsMap } from "src/hydraulic-model/assets-map";
 
 export type CustomerPointsStreamingParseResult = {
-  customerPoints: Map<string, CustomerPoint>;
+  customerPoints: CustomerPoints;
   issues: CustomerPointsParserIssues | null;
 };
 
@@ -58,7 +62,7 @@ const parseGeoJSONToCustomerPoints = (
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
   }
 
-  const customerPoints = new Map<string, CustomerPoint>();
+  const customerPoints = initializeCustomerPoints();
   const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 
@@ -91,7 +95,7 @@ const parseGeoJSONLToCustomerPoints = (
   startingId: number = 1,
 ): CustomerPointsStreamingParseResult => {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
-  const customerPoints = new Map<string, CustomerPoint>();
+  const customerPoints = initializeCustomerPoints();
   const issues = new CustomerPointsIssuesAccumulator();
   let currentId = startingId;
 

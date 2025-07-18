@@ -52,3 +52,9 @@ export const validateCustomerPoint = (data: any): data is CustomerPoint => {
     typeof data.properties === "object"
   );
 };
+
+export type CustomerPoints = Map<string, CustomerPoint>;
+
+export const initializeCustomerPoints = (): CustomerPoints => {
+  return new Map<string, CustomerPoint>();
+};

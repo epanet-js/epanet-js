@@ -1,5 +1,8 @@
 import { LineLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  CustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import { hexToArray, strokeColorFor } from "src/lib/color";
 import { colors } from "src/lib/constants";
 
@@ -36,7 +39,7 @@ export const updateCustomerPointsOverlayVisibility = (
 };
 
 export const buildCustomerPointsOverlay = (
-  customerPoints: Map<string, CustomerPoint>,
+  customerPoints: CustomerPoints,
   zoom: number,
 ): CustomerPointsOverlay => {
   const connectionLines: ConnectionLineData[] = [];

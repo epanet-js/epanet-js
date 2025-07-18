@@ -34,7 +34,11 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
 import { Demands, nullDemands } from "src/hydraulic-model/demands";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  CustomerPoints,
+  initializeCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -108,7 +112,7 @@ export class HydraulicModelBuilder {
   private headlossFormulaValue: HeadlossFormula;
   private labelManager: LabelManager;
   private demands: Demands;
-  private customerPointsMap: Map<string, CustomerPoint>;
+  private customerPointsMap: CustomerPoints;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -120,7 +124,7 @@ export class HydraulicModelBuilder {
 
   constructor(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     this.assets = new Map();
-    this.customerPointsMap = new Map();
+    this.customerPointsMap = initializeCustomerPoints();
     this.labelManager = new LabelManager();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;

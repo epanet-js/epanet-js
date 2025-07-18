@@ -7,12 +7,12 @@ import { HeadlossFormula } from "./asset-types/pipe";
 import { IdGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, nullDemands } from "./demands";
-import { CustomerPoint } from "./customer-points";
+import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
-  customerPoints: Map<string, CustomerPoint>;
+  customerPoints: CustomerPoints;
   assetBuilder: AssetBuilder;
   topology: Topology;
   units: UnitsSpec;
@@ -38,7 +38,7 @@ export const initializeHydraulicModel = ({
   return {
     version: nanoid(),
     assets: new Map(),
-    customerPoints: new Map(),
+    customerPoints: initializeCustomerPoints(),
     assetBuilder: new AssetBuilder(
       units,
       defaults,
