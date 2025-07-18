@@ -4,7 +4,10 @@ import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import { parseCustomerPointsStreamingFromFile } from "src/import/parse-customer-points";
+import { parseCustomerPoints } from "src/import/parse-customer-points";
+import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
+import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
+import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 
 function generateGridNetwork(rows: number, cols: number) {
   const builder = HydraulicModelBuilder.with();
@@ -100,7 +103,8 @@ describe("Customer Points Streaming Connection Benchmark", () => {
 
     console.log("DEBUG: Generating 32x32 grid network...");
     const startNetworkGen = performance.now();
-    const { assets } = generateGridNetwork(32, 32);
+    const hydraulicModel = generateGridNetwork(32, 32);
+    const { assets } = hydraulicModel;
     const endNetworkGen = performance.now();
     console.log(
       `DEBUG: Network generation took ${(endNetworkGen - startNetworkGen).toFixed(2)}ms`,
@@ -129,12 +133,24 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     );
     const startConnection = performance.now();
 
-    const result = parseCustomerPointsStreamingFromFile(
-      fileContent,
-      spatialIndexData,
-      assets,
-      1,
-    );
+    const issues = new CustomerPointsIssuesAccumulator();
+    const mutableHydraulicModel = {
+      ...hydraulicModel,
+      customerPoints: initializeCustomerPoints(),
+    };
+
+    for (const customerPoint of parseCustomerPoints(fileContent, issues, 1)) {
+      connectCustomerPoint(
+        mutableHydraulicModel,
+        spatialIndexData,
+        customerPoint,
+      );
+    }
+
+    const result = {
+      customerPoints: mutableHydraulicModel.customerPoints,
+      issues: issues.buildResult(),
+    };
 
     const endConnection = performance.now();
     const memAfter = measureMemoryUsage();
@@ -188,7 +204,8 @@ describe("Customer Points Streaming Connection Benchmark", () => {
       "DEBUG: Starting smaller streaming benchmark for comparison...",
     );
 
-    const { assets } = generateGridNetwork(8, 8);
+    const hydraulicModel = generateGridNetwork(8, 8);
+    const { assets } = hydraulicModel;
     const pipes = getAssetsByType<Pipe>(assets, "pipe");
     const spatialIndexData = createSpatialIndex(pipes);
 
@@ -196,12 +213,24 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     const fileContent = customerPointsLines.join("\n");
 
     const startTime = performance.now();
-    const result = parseCustomerPointsStreamingFromFile(
-      fileContent,
-      spatialIndexData,
-      assets,
-      1,
-    );
+    const issues = new CustomerPointsIssuesAccumulator();
+    const mutableHydraulicModel = {
+      ...hydraulicModel,
+      customerPoints: initializeCustomerPoints(),
+    };
+
+    for (const customerPoint of parseCustomerPoints(fileContent, issues, 1)) {
+      connectCustomerPoint(
+        mutableHydraulicModel,
+        spatialIndexData,
+        customerPoint,
+      );
+    }
+
+    const result = {
+      customerPoints: mutableHydraulicModel.customerPoints,
+      issues: issues.buildResult(),
+    };
     const endTime = performance.now();
 
     const duration = endTime - startTime;

@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
-import { connectCustomerPoint } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import {
@@ -59,19 +59,19 @@ export const useImportCustomerPoints = () => {
         const spatialIndexData = createSpatialIndex(pipes);
 
         const issues = new CustomerPointsIssuesAccumulator();
-        const connectedCustomerPoints = initializeCustomerPoints();
+        const mutableHydraulicModel = {
+          ...data.hydraulicModel,
+          customerPoints: initializeCustomerPoints(),
+        };
 
         for (const customerPoint of parseCustomerPoints(text, issues, nextId)) {
           const connection = connectCustomerPoint(
-            customerPoint,
+            mutableHydraulicModel,
             spatialIndexData,
-            data.hydraulicModel.assets,
+            customerPoint,
           );
 
-          if (connection) {
-            customerPoint.connect(connection);
-            connectedCustomerPoints.set(customerPoint.id, customerPoint);
-          } else {
+          if (!connection) {
             issues.addSkippedNoValidJunction();
           }
         }
@@ -80,14 +80,11 @@ export const useImportCustomerPoints = () => {
 
         setData({
           ...data,
-          hydraulicModel: {
-            ...data.hydraulicModel,
-            customerPoints: connectedCustomerPoints,
-          },
+          hydraulicModel: mutableHydraulicModel,
         });
 
         const { dialogState, trackingEvent } = processImportResult(
-          connectedCustomerPoints.size,
+          mutableHydraulicModel.customerPoints.size,
           finalIssues,
           source,
         );

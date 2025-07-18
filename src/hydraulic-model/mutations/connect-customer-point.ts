@@ -10,16 +10,17 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
-import { AssetsMap, getLinkNodes } from "src/hydraulic-model/assets-map";
+import { getLinkNodes } from "src/hydraulic-model/assets-map";
 import { SpatialIndexData } from "src/hydraulic-model/spatial-index";
+import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 
 const INITIAL_SEARCH_RADIUS_METERS = 10;
 const NEAREST_NEIGHBOR_COUNT = 5;
 
 export const connectCustomerPoint = (
-  customerPoint: CustomerPoint,
+  hydraulicModel: HydraulicModel,
   spatialIndexData: SpatialIndexData,
-  assets: AssetsMap,
+  customerPoint: CustomerPoint,
 ): CustomerPointConnection | null => {
   const { spatialIndex, segments } = spatialIndexData;
 
@@ -39,12 +40,16 @@ export const connectCustomerPoint = (
   const assignedJunction = assignJunctionToCustomerPoint(
     customerPoint,
     connection,
-    assets,
+    hydraulicModel.assets,
   );
 
   if (assignedJunction) {
     connection.junction = assignedJunction;
+
+    customerPoint.connect(connection);
+    hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
     assignedJunction.assignCustomerPoint(customerPoint);
+
     return connection;
   }
 
@@ -146,7 +151,7 @@ const calculateDistance = (point1: Position, point2: Position): number => {
 const assignJunctionToCustomerPoint = (
   customerPoint: CustomerPoint,
   connection: CustomerPointConnection,
-  assets: AssetsMap,
+  assets: HydraulicModel["assets"],
 ): Junction | null => {
   const pipe = assets.get(connection.pipeId) as Pipe;
   if (!pipe) return null;
