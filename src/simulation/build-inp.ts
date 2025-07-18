@@ -131,16 +131,15 @@ type BuildOptions = {
 };
 
 export const buildInp = withDebugInstrumentation(
-  (
-    hydraulicModel: HydraulicModel,
-    {
-      geolocation = false,
-      madeBy = false,
-      labelIds = false,
-      customerDemands = false,
-    }: BuildOptions = {},
-  ): string => {
-    const idMap = new EpanetIds({ strategy: labelIds ? "label" : "id" });
+  (hydraulicModel: HydraulicModel, options: BuildOptions = {}): string => {
+    const defaultOptions: Required<BuildOptions> = {
+      geolocation: false,
+      madeBy: false,
+      labelIds: false,
+      customerDemands: false,
+    };
+    const opts = { ...defaultOptions, ...options };
+    const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
@@ -178,29 +177,41 @@ export const buildInp = withDebugInstrumentation(
 
     for (const asset of hydraulicModel.assets.values()) {
       if (asset.type === "reservoir") {
-        appendReservoir(sections, idMap, geolocation, asset as Reservoir);
+        appendReservoir(sections, idMap, opts.geolocation, asset as Reservoir);
       }
 
       if (asset.type === "tank") {
-        appendTank(sections, idMap, geolocation, asset as Tank);
+        appendTank(sections, idMap, opts.geolocation, asset as Tank);
       }
 
       if (asset.type === "junction") {
         appendJunction(
           sections,
           idMap,
-          geolocation,
-          customerDemands,
+          opts.geolocation,
+          opts.customerDemands,
           asset as Junction,
         );
       }
 
       if (asset.type === "pipe") {
-        appendPipe(sections, idMap, hydraulicModel, geolocation, asset as Pipe);
+        appendPipe(
+          sections,
+          idMap,
+          hydraulicModel,
+          opts.geolocation,
+          asset as Pipe,
+        );
       }
 
       if (asset.type === "pump") {
-        appendPump(sections, idMap, hydraulicModel, geolocation, asset as Pump);
+        appendPump(
+          sections,
+          idMap,
+          hydraulicModel,
+          opts.geolocation,
+          asset as Pump,
+        );
       }
 
       if (asset.type === "valve") {
@@ -208,7 +219,7 @@ export const buildInp = withDebugInstrumentation(
           sections,
           idMap,
           hydraulicModel,
-          geolocation,
+          opts.geolocation,
           asset as Valve,
         );
       }
@@ -227,15 +238,15 @@ export const buildInp = withDebugInstrumentation(
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
-      geolocation && sections.backdrop.join("\n"),
-      geolocation && sections.coordinates.join("\n"),
-      geolocation && sections.vertices.join("\n"),
+      opts.geolocation && sections.backdrop.join("\n"),
+      opts.geolocation && sections.coordinates.join("\n"),
+      opts.geolocation && sections.vertices.join("\n"),
       "[END]",
     ]
       .filter((f) => !!f)
       .join("\n\n");
 
-    if (madeBy) {
+    if (opts.madeBy) {
       content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }
     return content;
