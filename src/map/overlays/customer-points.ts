@@ -12,6 +12,14 @@ const fillColor = hexToArray(colors.gray500);
 const strokeColor = hexToArray(strokeColorFor(colors.gray500));
 const connectionLineColor = hexToArray(colors.gray300);
 
+const highlightFillColor = hexToArray(colors.cyan500);
+const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
+  number,
+  number,
+  number,
+  number,
+];
+
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
 
@@ -85,4 +93,55 @@ export const buildCustomerPointsOverlay = (
   });
 
   return [connectionLinesLayer, scatterLayer];
+};
+
+export const buildCustomerPointsHighlightOverlay = (
+  highlightedPoints: CustomerPoint[],
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (highlightedPoints.length === 0) {
+    return [];
+  }
+
+  const isVisible = shouldShowOvelay(zoom);
+
+  const haloLayer = new ScatterplotLayer({
+    id: "customer-points-halo-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: highlightedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 3,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 6,
+
+    getFillColor: haloFillColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const highlightLayer = new ScatterplotLayer({
+    id: "customer-points-highlight-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: highlightedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 1.5,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 4,
+
+    getFillColor: highlightFillColor,
+    stroked: true,
+    getLineColor: haloFillColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  return [haloLayer, highlightLayer];
 };

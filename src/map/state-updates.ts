@@ -45,6 +45,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
+  buildCustomerPointsHighlightOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
@@ -184,6 +185,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
+  const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
@@ -296,7 +298,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.currentZoom,
           );
           customerPointsOverlayRef.current = overlay;
-          map.setOverlay(overlay);
         }
 
         if (hasNewZoom && isCustomerPointOn) {
@@ -305,7 +306,24 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.currentZoom,
           );
           customerPointsOverlayRef.current = overlay;
-          map.setOverlay(overlay);
+
+          const ephemeralOverlay = updateCustomerPointsOverlayVisibility(
+            ephemeralDeckLayersRef.current,
+            mapState.currentZoom,
+          );
+          ephemeralDeckLayersRef.current = ephemeralOverlay;
+        }
+
+        if (hasNewEphemeralState && isCustomerPointOn) {
+          const ephemeralOverlay =
+            mapState.ephemeralState.type === "customerPointsHighlight"
+              ? buildCustomerPointsHighlightOverlay(
+                  mapState.ephemeralState.customerPoints,
+                  mapState.currentZoom,
+                )
+              : [];
+
+          ephemeralDeckLayersRef.current = ephemeralOverlay;
         }
 
         if (hasNewEphemeralState) {
@@ -326,6 +344,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             previousMapState.selection,
             idMap,
           );
+        }
+
+        if (isCustomerPointOn) {
+          const combinedOverlay = [
+            ...customerPointsOverlayRef.current,
+            ...ephemeralDeckLayersRef.current,
+          ];
+          map.setOverlay(combinedOverlay);
         }
 
         setMapLoading(false);

@@ -1,10 +1,7 @@
 import { IDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import { Asset, NodeAsset } from "src/hydraulic-model/asset-types";
-import {
-  EphemeralEditingState,
-  EphemeralCustomerPointsHighlight,
-} from "src/state/jotai";
+import { EphemeralEditingState } from "src/state/jotai";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 
@@ -18,10 +15,6 @@ export const buildEphemeralStateSource = (
 
   if (ephemeralState.type === "moveAssets") {
     return buildMoveAssetsSourceData(ephemeralState);
-  }
-
-  if (ephemeralState.type === "customerPointsHighlight") {
-    return buildCustomerPointsHighlightSourceData(ephemeralState);
   }
 
   return [];
@@ -42,28 +35,6 @@ const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
       properties: {
         ...iconProps(asset),
       } as any,
-    });
-  }
-
-  return features;
-};
-
-const buildCustomerPointsHighlightSourceData = (
-  ephemeralState: EphemeralCustomerPointsHighlight,
-) => {
-  const features: Feature[] = [];
-
-  for (const customerPoint of ephemeralState.customerPoints) {
-    features.push({
-      type: "Feature",
-      id: `customer-point-halo-${customerPoint.id}`,
-      properties: {
-        halo: true,
-      } as any,
-      geometry: {
-        type: "Point",
-        coordinates: customerPoint.coordinates,
-      },
     });
   }
 
