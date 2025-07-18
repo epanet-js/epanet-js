@@ -13,6 +13,7 @@ import {
   NodeAsset,
   AssetId,
   HeadlossFormula,
+  Junction,
 } from "src/hydraulic-model";
 import {
   PumpBuildData,
@@ -107,6 +108,7 @@ export class HydraulicModelBuilder {
   private headlossFormulaValue: HeadlossFormula;
   private labelManager: LabelManager;
   private demands: Demands;
+  private customerPointsMap: Map<string, CustomerPoint>;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -118,6 +120,7 @@ export class HydraulicModelBuilder {
 
   constructor(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     this.assets = new Map();
+    this.customerPointsMap = new Map();
     this.labelManager = new LabelManager();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
@@ -332,11 +335,32 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  withCustomerPoint(
+    id: string,
+    junctionId: string,
+    options: {
+      demand?: number;
+      coordinates?: Position;
+    } = {},
+  ) {
+    const junction = this.assets.get(junctionId);
+    if (!junction || junction.type !== "junction") {
+      throw new Error(
+        `Junction ${junctionId} must be created before assigning customer point ${id}`,
+      );
+    }
+
+    const customerPoint = buildCustomerPoint(id, options);
+    (junction as Junction).assignCustomerPoint(customerPoint);
+    this.customerPointsMap.set(id, customerPoint);
+    return this;
+  }
+
   build(): HydraulicModel {
     return {
       version: nanoid(),
       assets: this.assets,
-      customerPoints: new Map(),
+      customerPoints: this.customerPointsMap,
       assetBuilder: this.assetBuilder,
       labelManager: this.labelManager,
       topology: this.topology,

@@ -127,6 +127,7 @@ type BuildOptions = {
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
+  customerDemands?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -136,6 +137,7 @@ export const buildInp = withDebugInstrumentation(
       geolocation = false,
       madeBy = false,
       labelIds = false,
+      customerDemands = false,
     }: BuildOptions = {},
   ): string => {
     const idMap = new EpanetIds({ strategy: labelIds ? "label" : "id" });
@@ -184,7 +186,13 @@ export const buildInp = withDebugInstrumentation(
       }
 
       if (asset.type === "junction") {
-        appendJunction(sections, idMap, geolocation, asset as Junction);
+        appendJunction(
+          sections,
+          idMap,
+          geolocation,
+          customerDemands,
+          asset as Junction,
+        );
       }
 
       if (asset.type === "pipe") {
@@ -280,12 +288,21 @@ const appendJunction = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
+  customerDemands: boolean,
   junction: Junction,
 ) => {
   const junctionId = idMap.nodeId(junction);
 
   sections.junctions.push([junctionId, junction.elevation].join("\t"));
   sections.demands.push([junctionId, junction.baseDemand].join("\t"));
+
+  if (customerDemands) {
+    const totalCustomerDemand = junction.totalCustomerDemand;
+    if (totalCustomerDemand > 0) {
+      sections.demands.push([junctionId, totalCustomerDemand].join("\t"));
+    }
+  }
+
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, junction);
   }

@@ -347,4 +347,59 @@ describe("build inp", () => {
     expect(inp).toContain("t1\t10\t20");
     expect(inp).toContain("t2\t30\t40");
   });
+
+  describe("customer demands", () => {
+    it("includes customer demands when enabled", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10, baseDemand: 50 })
+        .withCustomerPoint("cp1", "j1", { demand: 25 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerDemands: true });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("j1\t50");
+      expect(inp).toContain("j1\t25");
+    });
+
+    it("does not include customer demands when disabled", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10, baseDemand: 50 })
+        .withCustomerPoint("cp1", "j1", { demand: 25 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerDemands: false });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("j1\t50");
+      expect(inp).not.toContain("j1\t25");
+    });
+
+    it("skips customer demands when they are zero", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10, baseDemand: 50 })
+        .withCustomerPoint("cp1", "j1", { demand: 0 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerDemands: true });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("j1\t50");
+      expect(inp).not.toContain("j1\t0");
+    });
+
+    it("handles multiple customer points on same junction", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10, baseDemand: 50 })
+        .withCustomerPoint("cp1", "j1", { demand: 25 })
+        .withCustomerPoint("cp2", "j1", { demand: 30 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerDemands: true });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("j1\t50");
+      expect(inp).toContain("j1\t55");
+    });
+  });
 });
