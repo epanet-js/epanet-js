@@ -17,11 +17,17 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 const INITIAL_SEARCH_RADIUS_METERS = 10;
 const NEAREST_NEIGHBOR_COUNT = 5;
 
+type ConnectCustomerPointOptions = {
+  keepDemands?: boolean;
+};
+
 export const connectCustomerPoint = (
   hydraulicModel: HydraulicModel,
   spatialIndexData: SpatialIndexData,
   customerPoint: CustomerPoint,
+  options?: ConnectCustomerPointOptions,
 ): CustomerPointConnection | null => {
+  const { keepDemands = false } = options || {};
   const { spatialIndex, segments } = spatialIndexData;
 
   if (!spatialIndex || segments.length === 0) {
@@ -45,6 +51,10 @@ export const connectCustomerPoint = (
 
   if (assignedJunction) {
     connection.junction = assignedJunction;
+
+    if (!keepDemands) {
+      assignedJunction.setBaseDemand(0);
+    }
 
     customerPoint.connect(connection);
     hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);

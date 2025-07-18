@@ -33,4 +33,16 @@ describe("Junction", () => {
     expect(junction.baseDemand).toEqual(10);
     expect(junction.elevation).toEqual(100);
   });
+
+  it("can set base demand", () => {
+    const junction = buildJunction({ baseDemand: 50 });
+
+    expect(junction.baseDemand).toEqual(50);
+
+    junction.setBaseDemand(25);
+    expect(junction.baseDemand).toEqual(25);
+
+    junction.setBaseDemand(0);
+    expect(junction.baseDemand).toEqual(0);
+  });
 });

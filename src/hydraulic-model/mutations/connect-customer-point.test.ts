@@ -6,6 +6,7 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
 import {
   createSpatialIndex,
   SpatialIndexData,
@@ -238,5 +239,68 @@ describe("connectCustomerPoint", () => {
 
     expect(junction.customerPointCount).toBe(1);
     expect(junction.customerPoints).toContain(customerPoint);
+  });
+
+  it("sets junction demand to 0 by default", () => {
+    const mutableHydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0], baseDemand: 100 })
+      .aJunction("J2", { coordinates: [10, 0], baseDemand: 50 })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const pipes = getAssetsByType<Pipe>(mutableHydraulicModel.assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [3, 1] });
+
+    const junction = mutableHydraulicModel.assets.get("J1") as Junction;
+    expect(junction?.baseDemand).toBe(100);
+
+    connectCustomerPoint(
+      mutableHydraulicModel,
+      spatialIndexData,
+      customerPoint,
+    );
+
+    expect(junction?.baseDemand).toBe(0);
+  });
+
+  it("preserves junction demand when keepDemands is true", () => {
+    const mutableHydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0], baseDemand: 100 })
+      .aJunction("J2", { coordinates: [10, 0], baseDemand: 50 })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const pipes = getAssetsByType<Pipe>(mutableHydraulicModel.assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = buildCustomerPoint("CP1", { coordinates: [3, 1] });
+
+    const junction = mutableHydraulicModel.assets.get("J1") as Junction;
+    expect(junction?.baseDemand).toBe(100);
+
+    connectCustomerPoint(
+      mutableHydraulicModel,
+      spatialIndexData,
+      customerPoint,
+      {
+        keepDemands: true,
+      },
+    );
+
+    expect(junction?.baseDemand).toBe(100);
   });
 });

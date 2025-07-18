@@ -27,6 +27,10 @@ export class Junction extends Node<JunctionProperties> {
     return this.properties.baseDemand;
   }
 
+  setBaseDemand(value: number) {
+    this.properties.baseDemand = value;
+  }
+
   get pressure() {
     if (!this.simulation) return null;
 
