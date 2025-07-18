@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseCustomerPointsStreamingFromFile as parseStreamingFromFile } from "./customer-points";
+import { parseCustomerPointsStreamingFromFile as parseStreamingFromFile } from "./parse-customer-points";
 import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";

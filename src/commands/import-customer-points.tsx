@@ -3,9 +3,14 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { parseCustomerPointsStreamingFromFile } from "src/import/customer-points";
+import { parseCustomerPoints } from "src/import/parse-customer-points";
+import { connectCustomerPoint } from "src/hydraulic-model/model-operations/connect-customer-points";
+import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { dataAtom, dialogAtom } from "src/state/jotai";
-import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
+import {
+  CustomerPointsParserIssues,
+  CustomerPointsIssuesAccumulator,
+} from "src/import/parse-customer-points-issues";
 import { UserEvent } from "src/infra/user-tracking";
 import { CustomerPointsImportSummaryState } from "src/state/dialog";
 import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
@@ -53,13 +58,25 @@ export const useImportCustomerPoints = () => {
         const pipes = getAssetsByType<Pipe>(data.hydraulicModel.assets, "pipe");
         const spatialIndexData = createSpatialIndex(pipes);
 
-        const parseResult = parseCustomerPointsStreamingFromFile(
-          text,
-          spatialIndexData,
-          data.hydraulicModel.assets,
-          nextId,
-        );
-        const { customerPoints: connectedCustomerPoints, issues } = parseResult;
+        const issues = new CustomerPointsIssuesAccumulator();
+        const connectedCustomerPoints = initializeCustomerPoints();
+
+        for (const customerPoint of parseCustomerPoints(text, issues, nextId)) {
+          const connection = connectCustomerPoint(
+            customerPoint,
+            spatialIndexData,
+            data.hydraulicModel.assets,
+          );
+
+          if (connection) {
+            customerPoint.connect(connection);
+            connectedCustomerPoints.set(customerPoint.id, customerPoint);
+          } else {
+            issues.addSkippedNoValidJunction();
+          }
+        }
+
+        const finalIssues = issues.buildResult();
 
         setData({
           ...data,
@@ -71,7 +88,7 @@ export const useImportCustomerPoints = () => {
 
         const { dialogState, trackingEvent } = processImportResult(
           connectedCustomerPoints.size,
-          issues,
+          finalIssues,
           source,
         );
 

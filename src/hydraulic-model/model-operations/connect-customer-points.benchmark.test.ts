@@ -4,7 +4,7 @@ import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import { parseCustomerPointsStreamingFromFile } from "src/import/customer-points";
+import { parseCustomerPointsStreamingFromFile } from "src/import/parse-customer-points";
 
 function generateGridNetwork(rows: number, cols: number) {
   const builder = HydraulicModelBuilder.with();

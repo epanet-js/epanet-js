@@ -1,7 +1,7 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
-import { CustomerPointsParserIssues } from "src/import/customer-points-issues";
+import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 
 export type OpenInpDialogState = {
   type: "openInp";
