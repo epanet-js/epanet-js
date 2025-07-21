@@ -8,19 +8,21 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { Unit } from "src/quantity";
+import { Unit, convertTo } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
 
 interface CustomerDemandFieldProps {
   totalDemand: number;
   customerCount: number;
   customerPoints: CustomerPoint[];
-  unit: Unit;
+  aggregateUnit: Unit;
+  customerUnit: Unit;
 }
 
 interface CustomerPointsPopoverProps {
   customerPoints: CustomerPoint[];
-  unit: Unit;
+  aggregateUnit: Unit;
+  customerUnit: Unit;
   onClose: () => void;
 }
 
@@ -28,7 +30,8 @@ const itemSize = 32;
 
 const CustomerPointsPopover = ({
   customerPoints,
-  unit,
+  aggregateUnit,
+  customerUnit,
   onClose,
 }: CustomerPointsPopoverProps) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -80,7 +83,7 @@ const CustomerPointsPopover = ({
       <div className="font-sans text-gray-500 dark:text-gray-100 text-xs text-left py-2 flex font-bold border-b border-gray-200 dark:border-gray-700 rounded-t">
         <div className="flex-auto px-2">{translate("customer")}</div>
         <div className="px-2">
-          {translate("demand")} ({translateUnit(unit)})
+          {translate("demand")} ({translateUnit(customerUnit)})
         </div>
       </div>
       <div
@@ -97,7 +100,11 @@ const CustomerPointsPopover = ({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
-            const demandValue = localizeDecimal(customerPoint.baseDemand);
+            const convertedDemand = convertTo(
+              { value: customerPoint.baseDemand, unit: aggregateUnit },
+              customerUnit,
+            );
+            const demandValue = localizeDecimal(convertedDemand);
 
             return (
               <div
@@ -139,7 +146,8 @@ export const CustomerDemandField = ({
   totalDemand,
   customerCount,
   customerPoints,
-  unit,
+  aggregateUnit,
+  customerUnit,
 }: CustomerDemandFieldProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const translate = useTranslate();
@@ -206,7 +214,8 @@ export const CustomerDemandField = ({
             <StyledPopoverArrow />
             <CustomerPointsPopover
               customerPoints={customerPoints}
-              unit={unit}
+              aggregateUnit={aggregateUnit}
+              customerUnit={customerUnit}
               onClose={handleClose}
             />
           </StyledPopoverContent>

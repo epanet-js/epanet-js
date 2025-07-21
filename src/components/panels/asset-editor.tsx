@@ -714,7 +714,10 @@ const JunctionEditor = ({
                     totalDemand={junction.totalCustomerDemand}
                     customerCount={junction.customerPointCount}
                     customerPoints={junction.customerPoints}
-                    unit={quantitiesMetadata.getUnit("baseDemand")}
+                    aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
+                    customerUnit={quantitiesMetadata.getUnit(
+                      "customerDemandPerDay",
+                    )}
                   />
                 </PropertyRow>
               )}

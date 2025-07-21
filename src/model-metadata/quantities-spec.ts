@@ -20,6 +20,8 @@ export type QuantityProperty =
   | "elevation"
   | "baseDemand"
   | "actualDemand"
+  | "customerDemand"
+  | "customerDemandPerDay"
   | "pressure"
   | "headloss"
   | "unitHeadloss"
@@ -95,6 +97,8 @@ const metricSpec: AssetQuantitiesSpec = {
     level: "m",
     volume: "m^3",
     tankDiameter: "m",
+    customerDemand: "l/s",
+    customerDemandPerDay: "l/d",
     ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
   },
@@ -151,6 +155,8 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     level: "ft",
     volume: "ft^3",
     tankDiameter: "ft",
+    customerDemand: "gal/min",
+    customerDemandPerDay: "gal/d",
     ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
   },
@@ -194,6 +200,8 @@ const GPMSpec: AssetQuantitiesSpec = {
   descriptionKey: "gpmDescription",
   units: {
     ...usCustomarySpec.units,
+    customerDemand: "gal/min",
+    customerDemandPerDay: "gal/d",
     ...allFlowUnits("gal/min"),
   },
 };
@@ -204,6 +212,8 @@ const CFSSpec: AssetQuantitiesSpec = {
   descriptionKey: "cfsDescription",
   units: {
     ...usCustomarySpec.units,
+    customerDemand: "ft^3/s",
+    customerDemandPerDay: "ft^3/d",
     ...allFlowUnits("ft^3/s"),
   },
 };
@@ -214,6 +224,8 @@ const MGDSpec: AssetQuantitiesSpec = {
   descriptionKey: "mgdDescription",
   units: {
     ...usCustomarySpec.units,
+    customerDemand: "Mgal/d",
+    customerDemandPerDay: "Mgal/d",
     ...allFlowUnits("Mgal/d"),
   },
 };
@@ -225,6 +237,8 @@ const IMGDSpec: AssetQuantitiesSpec = {
   descriptionKey: "imgdDescription",
   units: {
     ...usCustomarySpec.units,
+    customerDemand: "IMgal/d",
+    customerDemandPerDay: "IMgal/d",
     ...allFlowUnits("IMgal/d"),
   },
 };
@@ -236,6 +250,8 @@ const AFDSpec: AssetQuantitiesSpec = {
   descriptionKey: "afdDescription",
   units: {
     ...usCustomarySpec.units,
+    customerDemand: "acft/d",
+    customerDemandPerDay: "acft/d",
     ...allFlowUnits("acft/d"),
   },
 };
@@ -247,6 +263,8 @@ const LPSSpec: AssetQuantitiesSpec = {
   descriptionKey: "lpsDescription",
   units: {
     ...metricSpec.units,
+    customerDemand: "l/s",
+    customerDemandPerDay: "l/d",
     ...allFlowUnits("l/s"),
   },
 };
@@ -257,6 +275,8 @@ const LPMSpec: AssetQuantitiesSpec = {
   descriptionKey: "lpmDescription",
   units: {
     ...metricSpec.units,
+    customerDemand: "l/min",
+    customerDemandPerDay: "l/d",
     ...allFlowUnits("l/min"),
   },
 };
@@ -267,6 +287,8 @@ const MLDSpec: AssetQuantitiesSpec = {
   descriptionKey: "mldDescription",
   units: {
     ...metricSpec.units,
+    customerDemand: "Ml/d",
+    customerDemandPerDay: "Ml/d",
     ...allFlowUnits("Ml/d"),
   },
 };
@@ -277,6 +299,8 @@ const CMHSpec: AssetQuantitiesSpec = {
   descriptionKey: "cmhDescription",
   units: {
     ...metricSpec.units,
+    customerDemand: "m^3/h",
+    customerDemandPerDay: "m^3/d",
     ...allFlowUnits("m^3/h"),
   },
 };
@@ -287,6 +311,8 @@ const CMDSpec: AssetQuantitiesSpec = {
   descriptionKey: "cmdDescription",
   units: {
     ...metricSpec.units,
+    customerDemand: "m^3/d",
+    customerDemandPerDay: "m^3/d",
     ...allFlowUnits("m^3/d"),
   },
 };

@@ -563,8 +563,8 @@ describe("AssetEditor", () => {
           expect(screen.getByText("CP1")).toBeInTheDocument();
         });
         expect(screen.getByText("CP2")).toBeInTheDocument();
-        expect(screen.getByText("25")).toBeInTheDocument();
-        expect(screen.getByText("30")).toBeInTheDocument();
+        expect(screen.getByText("2,160,000")).toBeInTheDocument();
+        expect(screen.getByText("2,592,000")).toBeInTheDocument();
       });
 
       it("does not show Customer Demand field when junction has no customer points", () => {
