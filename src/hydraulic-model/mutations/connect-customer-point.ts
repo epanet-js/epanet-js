@@ -14,7 +14,8 @@ import { getLinkNodes } from "src/hydraulic-model/assets-map";
 import { SpatialIndexData } from "src/hydraulic-model/spatial-index";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 
-const INITIAL_SEARCH_RADIUS_METERS = 10;
+const INITIAL_SEARCH_RADIUS_METERS = 20;
+const SEARCH_FACTOR = 3; //to guarantee the radius is included in the box
 const NEAREST_NEIGHBOR_COUNT = 5;
 
 type ConnectCustomerPointOptions = {
@@ -76,7 +77,8 @@ const locateNearestPointOnNetwork = (
   }
 
   const [x, y] = getCoord(targetPoint);
-  const searchBufferDegrees = INITIAL_SEARCH_RADIUS_METERS / 111139;
+  const searchBufferDegrees =
+    (INITIAL_SEARCH_RADIUS_METERS * SEARCH_FACTOR) / 111139;
 
   let candidateIds = searchIndex.search(
     x - searchBufferDegrees,

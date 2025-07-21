@@ -303,4 +303,46 @@ describe("connectCustomerPoint", () => {
 
     expect(junction?.baseDemand).toBe(100);
   });
+
+  it("connects to closest pipe when one pipe has multiple segments", () => {
+    const mutableHydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("42377", { coordinates: [-95.4089633, 29.701228] })
+      .aJunction("36511", { coordinates: [-95.4077939, 29.702706499999998] })
+      .aJunction("34565", { coordinates: [-95.4067166, 29.7042533] })
+      .aJunction("44030", { coordinates: [-95.4088497, 29.7015361] })
+      .aPipe("53021", {
+        startNodeId: "42377",
+        endNodeId: "36511",
+        coordinates: [
+          [-95.4089633, 29.701228],
+          [-95.4077939, 29.702706499999998],
+        ],
+      })
+      .aPipe("11778", {
+        startNodeId: "34565",
+        endNodeId: "44030",
+        coordinates: [
+          [-95.4067166, 29.7042533],
+          [-95.407341, 29.703475900000004],
+          [-95.407883, 29.7027583],
+          [-95.4088497, 29.7015361],
+        ],
+      })
+      .build();
+
+    const pipes = getAssetsByType<Pipe>(mutableHydraulicModel.assets, "pipe");
+    const spatialIndexData = createSpatialIndex(pipes);
+    const customerPoint = buildCustomerPoint("CP1", {
+      coordinates: [-95.40901589995099, 29.70185854971288],
+    });
+
+    const connection = connectCustomerPoint(
+      mutableHydraulicModel,
+      spatialIndexData,
+      customerPoint,
+    );
+
+    expect(connection).toBeDefined();
+    expect(connection!.pipeId).toBe("11778");
+  });
 });
