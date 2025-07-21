@@ -1,14 +1,17 @@
-import React, { useRef, KeyboardEventHandler } from "react";
+import React, { KeyboardEventHandler, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useSetAtom } from "jotai";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { Unit } from "src/quantity";
+import { Unit, convertTo } from "src/quantity";
+import { ephemeralStateAtom } from "src/state/jotai";
 
 interface CustomerPointsPopoverProps {
   customerPoints: CustomerPoint[];
-  unit: Unit;
+  aggregateUnit: Unit;
+  customerUnit: Unit;
   onClose: () => void;
 }
 
@@ -16,12 +19,28 @@ const itemSize = 32;
 
 export const CustomerPointsPopover = ({
   customerPoints,
-  unit,
+  aggregateUnit,
+  customerUnit,
   onClose,
 }: CustomerPointsPopoverProps) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+
+  const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
+    setEphemeralState({
+      type: "customerPointsHighlight",
+      customerPoints: [customerPoint],
+    });
+  };
+
+  const handleCustomerPointLeave = () => {
+    setEphemeralState({
+      type: "customerPointsHighlight",
+      customerPoints: customerPoints,
+    });
+  };
 
   const rowVirtualizer = useVirtualizer({
     count: customerPoints.length,
@@ -35,6 +54,7 @@ export const CustomerPointsPopover = ({
   ) => {
     if (event.code === "Escape" || event.code === "Enter") {
       event.stopPropagation();
+      setEphemeralState({ type: "none" });
       onClose();
     }
   };
@@ -49,10 +69,10 @@ export const CustomerPointsPopover = ({
 
   return (
     <div onKeyDown={handleContentKeyDown}>
-      <div className="font-sans text-gray-500 dark:text-gray-100 text-xs text-left py-2 flex font-semibold border-t border-gray-200 dark:border-gray-700">
-        <div className="flex-auto px-2">{translate("label")}</div>
+      <div className="font-sans text-gray-500 dark:text-gray-100 text-xs text-left py-2 flex font-bold border-b border-gray-200 dark:border-gray-700 rounded-t">
+        <div className="flex-auto px-2">{translate("customer")}</div>
         <div className="px-2">
-          {translate("demand")} ({translateUnit(unit)})
+          {translate("demand")} ({translateUnit(customerUnit)})
         </div>
       </div>
       <div
@@ -69,7 +89,11 @@ export const CustomerPointsPopover = ({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
-            const demandValue = localizeDecimal(customerPoint.baseDemand);
+            const convertedDemand = convertTo(
+              { value: customerPoint.baseDemand, unit: aggregateUnit },
+              customerUnit,
+            );
+            const demandValue = localizeDecimal(convertedDemand);
 
             return (
               <div
@@ -83,6 +107,8 @@ export const CustomerPointsPopover = ({
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
+                onMouseEnter={() => handleCustomerPointHover(customerPoint)}
+                onMouseLeave={handleCustomerPointLeave}
               >
                 <div
                   title={customerPoint.id}
