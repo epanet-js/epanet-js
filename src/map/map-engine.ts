@@ -311,6 +311,14 @@ export class MapEngine {
   safeResize() {
     if (this.map && this.map.getCanvas()) {
       this.map.resize();
+      if (
+        this.overlay &&
+        (this.overlay as any).deck &&
+        (this.overlay as any).deck.redraw
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        (this.overlay as any).deck.redraw(true);
+      }
     }
   }
 }
