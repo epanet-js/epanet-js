@@ -6,6 +6,8 @@ import {
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { Form, Formik } from "formik";
+import { useTranslate } from "src/hooks/use-translate";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export const CustomerPointsImportSummaryDialog = ({
   modal,
@@ -14,25 +16,29 @@ export const CustomerPointsImportSummaryDialog = ({
   modal: CustomerPointsImportSummaryState;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const { status, count, issues } = modal;
 
   if (status === "error") {
     return (
       <DialogContainer size="sm">
         <DialogHeader
-          title="Import Failed"
+          title={translate("importFailed")}
           titleIcon={CrossCircledIcon}
           variant="danger"
         />
         <Formik onSubmit={() => onClose()} initialValues={{}}>
           <Form>
             <p className="text-sm text-gray">
-              Could not import customer points.{" "}
+              {translate("couldNotImportCustomerPoints")}{" "}
               {count === 0
-                ? "No valid customer points found in the file."
-                : "File format not recognized."}
+                ? translate("noValidCustomerPointsFound")
+                : translate("fileFormatNotRecognized")}
             </p>
-            <SimpleDialogActions autoFocusSubmit={true} action="OK" />
+            <SimpleDialogActions
+              autoFocusSubmit={true}
+              action={translate("ok")}
+            />
           </Form>
         </Formik>
       </DialogContainer>
@@ -43,46 +49,98 @@ export const CustomerPointsImportSummaryDialog = ({
     const issuesList = [];
     if (issues?.skippedNonPointFeatures) {
       issuesList.push(
-        `${issues.skippedNonPointFeatures} non-point feature${issues.skippedNonPointFeatures === 1 ? "" : "s"}`,
+        issues.skippedNonPointFeatures === 1
+          ? translate(
+              "nonPointFeatureSingular",
+              localizeDecimal(issues.skippedNonPointFeatures),
+            )
+          : translate(
+              "nonPointFeaturePlural",
+              localizeDecimal(issues.skippedNonPointFeatures),
+            ),
       );
     }
     if (issues?.skippedInvalidCoordinates) {
       issuesList.push(
-        `${issues.skippedInvalidCoordinates} feature${issues.skippedInvalidCoordinates === 1 ? "" : "s"} with invalid coordinates`,
+        issues.skippedInvalidCoordinates === 1
+          ? translate(
+              "featureWithInvalidCoordSingular",
+              localizeDecimal(issues.skippedInvalidCoordinates),
+            )
+          : translate(
+              "featureWithInvalidCoordPlural",
+              localizeDecimal(issues.skippedInvalidCoordinates),
+            ),
       );
     }
     if (issues?.skippedInvalidLines) {
       issuesList.push(
-        `${issues.skippedInvalidLines} invalid line${issues.skippedInvalidLines === 1 ? "" : "s"}`,
+        issues.skippedInvalidLines === 1
+          ? translate(
+              "invalidLineSingular",
+              localizeDecimal(issues.skippedInvalidLines),
+            )
+          : translate(
+              "invalidLinePlural",
+              localizeDecimal(issues.skippedInvalidLines),
+            ),
       );
     }
     if (issues?.skippedCreationFailures) {
       issuesList.push(
-        `${issues.skippedCreationFailures} creation failure${issues.skippedCreationFailures === 1 ? "" : "s"}`,
+        issues.skippedCreationFailures === 1
+          ? translate(
+              "creationFailureSingular",
+              localizeDecimal(issues.skippedCreationFailures),
+            )
+          : translate(
+              "creationFailurePlural",
+              localizeDecimal(issues.skippedCreationFailures),
+            ),
       );
     }
     if (issues?.skippedNoValidJunction) {
       issuesList.push(
-        `${issues.skippedNoValidJunction} customer point${issues.skippedNoValidJunction === 1 ? "" : "s"} without valid junction`,
+        issues.skippedNoValidJunction === 1
+          ? translate(
+              "customerPointWithoutJunctionSingular",
+              localizeDecimal(issues.skippedNoValidJunction),
+            )
+          : translate(
+              "customerPointWithoutJunctionPlural",
+              localizeDecimal(issues.skippedNoValidJunction),
+            ),
       );
     }
 
     return (
       <DialogContainer size="sm">
         <DialogHeader
-          title="Import Completed with Warnings"
+          title={translate("importCompletedWithWarnings")}
           titleIcon={ExclamationTriangleIcon}
           variant="warning"
         />
         <Formik onSubmit={() => onClose()} initialValues={{}}>
           <Form>
             <p className="text-sm text-gray">
-              Imported {count} customer point{count === 1 ? "" : "s"}.
+              {count === 1
+                ? translate(
+                    "importedCustomerPointSingular",
+                    localizeDecimal(count),
+                  )
+                : translate(
+                    "importedCustomerPointPlural",
+                    localizeDecimal(count),
+                  )}
+              .
             </p>
             <p className="text-sm text-gray mt-2">
-              Skipped: {issuesList.join(", ")}.
+              {translate("skippedLabel", issuesList.join(", "))}
             </p>
-            <SimpleDialogActions autoFocusSubmit={true} action="OK" />
+            <SimpleDialogActions
+              autoFocusSubmit={true}
+              action={translate("ok")}
+            />
           </Form>
         </Formik>
       </DialogContainer>
@@ -92,17 +150,24 @@ export const CustomerPointsImportSummaryDialog = ({
   return (
     <DialogContainer size="sm">
       <DialogHeader
-        title="Import Successful"
+        title={translate("importSuccessful")}
         titleIcon={CheckCircledIcon}
         variant="success"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
         <Form>
           <p className="text-sm text-gray">
-            Successfully imported {count} customer point{count === 1 ? "" : "s"}
-            .
+            {count === 1
+              ? translate(
+                  "successfullyImportedSingular",
+                  localizeDecimal(count),
+                )
+              : translate("successfullyImportedPlural", localizeDecimal(count))}
           </p>
-          <SimpleDialogActions autoFocusSubmit={true} action="OK" />
+          <SimpleDialogActions
+            autoFocusSubmit={true}
+            action={translate("ok")}
+          />
         </Form>
       </Formik>
     </DialogContainer>

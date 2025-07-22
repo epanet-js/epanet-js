@@ -13,8 +13,14 @@ import {
 } from "src/__helpers__/browser-fs-mock";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import i18n from "src/infra/i18n/i18next-config";
+import enTranslations from "../../public/locales/en/translation.json";
 
 describe("importCustomerPoints", () => {
+  beforeEach(() => {
+    i18n.addResourceBundle("en", "translation", enTranslations);
+  });
+
   it("imports GeoJSON customer points correctly", async () => {
     stubFileOpen();
     const store = createStoreWithPipes();
@@ -122,9 +128,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
+    expect(screen.getByText(/Import Successful/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Successfully imported 2 customer points/),
+      screen.getByText(/Successfully imported 2 customer points?\.?/i),
     ).toBeInTheDocument();
   });
 
@@ -147,9 +153,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
+    expect(screen.getByText(/Import Successful/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Successfully imported 2 customer points/),
+      screen.getByText(/Successfully imported 2 customer points?\.?/i),
     ).toBeInTheDocument();
   });
 
@@ -207,9 +213,9 @@ describe("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(0);
 
-    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
+    expect(screen.getByText(/Import Failed/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/No valid customer points found/),
+      screen.getByText(/No valid customer points found/i),
     ).toBeInTheDocument();
 
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -265,9 +271,11 @@ describe("importCustomerPoints", () => {
     });
 
     expect(
-      screen.getByText(/Import Completed with Warnings/),
+      screen.getByText(/Import Completed with Warnings/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Imported 1 customer point/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Imported 1 customer points?\.?/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/2 non-point features/)).toBeInTheDocument();
   });
 
@@ -290,9 +298,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
+    expect(screen.getByText(/Import Failed/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/No valid customer points found/),
+      screen.getByText(/No valid customer points found/i),
     ).toBeInTheDocument();
   });
 
@@ -476,9 +484,9 @@ describe("importCustomerPoints", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Import Failed/)).toBeInTheDocument();
+    expect(screen.getByText(/Import Failed/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/No valid customer points found/),
+      screen.getByText(/No valid customer points found/i),
     ).toBeInTheDocument();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -671,7 +679,7 @@ describe("importCustomerPoints", () => {
     await doFileSelection(file);
 
     await waitFor(() => {
-      expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
+      expect(screen.getByText(/Import Successful/i)).toBeInTheDocument();
     });
   });
 
