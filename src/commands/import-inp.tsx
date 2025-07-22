@@ -4,6 +4,7 @@ import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ParserIssues, parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { FeatureCollection } from "geojson";
@@ -22,6 +23,7 @@ export const inpExtension = ".inp";
 
 export const useImportInp = () => {
   const translate = useTranslate();
+  const isCVEnabled = useFeatureFlag("FLAG_CV");
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
@@ -61,7 +63,7 @@ export const useImportInp = () => {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content);
+          parseInp(content, { enableCV: isCVEnabled });
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -113,6 +115,7 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
+      isCVEnabled,
     ],
   );
 

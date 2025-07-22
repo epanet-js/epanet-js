@@ -7,12 +7,15 @@ import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
+import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import { ParseInpOptions } from "./parse-inp";
 
 export type RowParser = (params: {
   sectionName: string;
   trimmedRow: string;
   inpData: InpData;
   issues: IssuesAccumulator;
+  options?: ParseInpOptions;
 }) => void;
 
 export const commentIdentifier = ";";
@@ -207,7 +210,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
   inpData.nodeIds.add(id);
 };
 
-export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
+export const parsePipe: RowParser = ({ trimmedRow, inpData, options }) => {
   const [
     id,
     startNodeDirtyId,
@@ -219,6 +222,16 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     status,
   ] = readValues(trimmedRow);
 
+  let initialStatus: PipeStatus = "open";
+  if (status) {
+    const statusLower = status.toLowerCase();
+    if (statusLower === "closed") {
+      initialStatus = "closed";
+    } else if (statusLower === "cv" && options?.enableCV) {
+      initialStatus = "cv";
+    }
+  }
+
   inpData.pipes.push({
     id,
     startNodeDirtyId,
@@ -227,8 +240,7 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     diameter: parseFloat(diameter),
     roughness: parseFloat(roughness),
     minorLoss: parseFloat(minorLoss),
-    initialStatus:
-      status && status.toLowerCase() === "closed" ? "closed" : "open",
+    initialStatus,
   });
 };
 

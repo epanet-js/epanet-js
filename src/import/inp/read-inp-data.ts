@@ -1,5 +1,6 @@
 import { InpData, InpStats, nullInpData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
+import { ParseInpOptions } from "./parse-inp";
 import {
   RowParser,
   ignore,
@@ -56,6 +57,7 @@ const buildSectionParsers = (): SectionParsers => ({
 export const readInpData = (
   inp: string,
   issues: IssuesAccumulator,
+  options?: ParseInpOptions,
 ): { inpData: InpData; stats: InpStats } => {
   const rows = inp.split("\n");
   let section = null;
@@ -90,7 +92,7 @@ export const readInpData = (
 
     if (!rowParserFn) continue;
 
-    rowParserFn({ sectionName: section, trimmedRow, inpData, issues });
+    rowParserFn({ sectionName: section, trimmedRow, inpData, issues, options });
   }
 
   return { inpData, stats: { counts } };

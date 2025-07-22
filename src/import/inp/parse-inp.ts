@@ -6,8 +6,13 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
 
+export type ParseInpOptions = {
+  enableCV?: boolean;
+};
+
 export const parseInp = (
   inp: string,
+  options?: ParseInpOptions,
 ): {
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
@@ -17,8 +22,12 @@ export const parseInp = (
 } => {
   const issues = new IssuesAccumulator();
   const isMadeByApp = validateChecksum(inp);
-  const { inpData, stats } = readInpData(inp, issues);
-  const { hydraulicModel, modelMetadata } = buildModel(inpData, issues);
+  const { inpData, stats } = readInpData(inp, issues, options);
+  const { hydraulicModel, modelMetadata } = buildModel(
+    inpData,
+    issues,
+    options,
+  );
   return {
     isMadeByApp,
     hydraulicModel,

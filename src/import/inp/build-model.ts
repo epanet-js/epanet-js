@@ -15,10 +15,12 @@ import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
+import { ParseInpOptions } from "./parse-inp";
 
 export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
+  options?: ParseInpOptions,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
@@ -67,7 +69,7 @@ export const buildModel = (
   }
 
   for (const pipeData of inpData.pipes) {
-    addPipe(hydraulicModel, pipeData, { inpData, issues, nodeIds });
+    addPipe(hydraulicModel, pipeData, { inpData, issues, nodeIds, options });
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
@@ -283,10 +285,12 @@ const addPipe = (
     inpData,
     issues,
     nodeIds,
+    options,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<string>;
+    options?: ParseInpOptions;
   },
 ) => {
   const linkProperties = getLinkProperties(inpData, issues, nodeIds, pipeData);
@@ -297,7 +301,13 @@ const addPipe = (
 
   if (inpData.status.has(pipeData.id)) {
     const statusValue = inpData.status.get(pipeData.id) as string;
-    initialStatus = statusValue === "CLOSED" ? "closed" : "open";
+    if (statusValue === "CLOSED") {
+      initialStatus = "closed";
+    } else if (statusValue === "CV" && options?.enableCV) {
+      initialStatus = "cv";
+    } else {
+      initialStatus = "open";
+    }
   }
 
   const pipe = hydraulicModel.assetBuilder.buildPipe({
