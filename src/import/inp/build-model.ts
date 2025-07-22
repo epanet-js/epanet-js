@@ -285,7 +285,7 @@ const addPipe = (
     inpData,
     issues,
     nodeIds,
-    options,
+    options: _options,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -299,12 +299,10 @@ const addPipe = (
 
   let initialStatus = pipeData.initialStatus;
 
-  if (inpData.status.has(pipeData.id)) {
+  if (inpData.status.has(pipeData.id) && pipeData.initialStatus !== "cv") {
     const statusValue = inpData.status.get(pipeData.id) as string;
     if (statusValue === "CLOSED") {
       initialStatus = "closed";
-    } else if (statusValue === "CV" && options?.enableCV) {
-      initialStatus = "cv";
     } else {
       initialStatus = "open";
     }
