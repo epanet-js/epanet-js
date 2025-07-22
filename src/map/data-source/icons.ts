@@ -1,5 +1,5 @@
 import { AssetId, AssetsMap, Pipe, Pump, Reservoir } from "src/hydraulic-model";
-import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
+import { Link, findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
@@ -16,117 +16,114 @@ export const buildIconPointsSource = (
   const strippedFeatures = [];
 
   for (const asset of assets.values()) {
-    if (asset.type === "pump") {
-      const pump = asset as Pump;
-      const featureId = UIDMap.getIntID(idMap, asset.id);
-      const largestSegment = findLargestSegment(pump);
-      const center = calculateMidpoint(...largestSegment);
-      const bearing = calculateBearing(...largestSegment);
+    let feature: Feature | null = null;
 
-      const feature: Feature = {
-        type: "Feature",
-        id: featureId,
-        properties: {
-          type: pump.type,
-          status: pump.status ? pump.status : pump.initialStatus,
-          rotation: bearing,
-          selected: selectedAssets.has(pump.id),
-        },
-        geometry: {
-          type: "Point",
-          coordinates: center.geometry.coordinates,
-        },
-      };
-      strippedFeatures.push(feature);
+    switch (asset.type) {
+      case "pump":
+        feature = buildPumpIcon(asset as Pump, idMap, selectedAssets);
+        break;
+      case "valve":
+        feature = buildValveIcon(asset as Valve, idMap, selectedAssets);
+        break;
+      case "pipe":
+        const pipe = asset as Pipe;
+        if (pipe.initialStatus === "cv") {
+          feature = buildPipeCheckValveIcon(pipe, idMap, selectedAssets);
+        }
+        break;
+      case "tank":
+        feature = buildNodeIcon(asset as Tank, idMap, selectedAssets);
+        break;
+      case "reservoir":
+        feature = buildNodeIcon(asset as Reservoir, idMap, selectedAssets);
+        break;
+      case "junction":
+        break;
     }
 
-    if (asset.type === "valve") {
-      const valve = asset as Valve;
-      const featureId = UIDMap.getIntID(idMap, asset.id);
-      const largestSegment = findLargestSegment(valve);
-      const center = calculateMidpoint(...largestSegment);
-      const bearing = calculateBearing(...largestSegment);
-
-      const status = valve.status ? valve.status : valve.initialStatus;
-
-      const feature: Feature = {
-        type: "Feature",
-        id: featureId,
-        properties: {
-          type: valve.type,
-          kind: valve.kind,
-          icon: `valve-${valve.kind}-${status}`,
-          rotation: bearing,
-          selected: selectedAssets.has(valve.id),
-          isControlValve: controlKinds.includes(valve.kind),
-        },
-        geometry: {
-          type: "Point",
-          coordinates: center.geometry.coordinates,
-        },
-      };
-      strippedFeatures.push(feature);
-    }
-
-    if (asset.type === "tank") {
-      const tank = asset as Tank;
-      const featureId = UIDMap.getIntID(idMap, asset.id);
-
-      const feature: Feature = {
-        type: "Feature",
-        id: featureId,
-        properties: {
-          type: tank.type,
-          selected: selectedAssets.has(tank.id),
-        },
-        geometry: tank.feature.geometry,
-      };
-      strippedFeatures.push(feature);
-    }
-
-    if (asset.type === "pipe") {
-      const pipe = asset as Pipe;
-      if (pipe.initialStatus === "cv") {
-        const featureId = UIDMap.getIntID(idMap, asset.id);
-        const largestSegment = findLargestSegment(pipe);
-        const center = calculateMidpoint(...largestSegment);
-        const bearing = calculateBearing(...largestSegment);
-
-        const status = pipe.status === "closed" ? "closed" : "open";
-
-        const feature: Feature = {
-          type: "Feature",
-          id: featureId,
-          properties: {
-            type: pipe.type,
-            icon: `pipe-cv-${status}`,
-            rotation: bearing,
-            selected: selectedAssets.has(pipe.id),
-          },
-          geometry: {
-            type: "Point",
-            coordinates: center.geometry.coordinates,
-          },
-        };
-        strippedFeatures.push(feature);
-      }
-    }
-
-    if (asset.type === "reservoir") {
-      const reservoir = asset as Reservoir;
-      const featureId = UIDMap.getIntID(idMap, asset.id);
-
-      const feature: Feature = {
-        type: "Feature",
-        id: featureId,
-        properties: {
-          type: reservoir.type,
-          selected: selectedAssets.has(reservoir.id),
-        },
-        geometry: reservoir.feature.geometry,
-      };
+    if (feature) {
       strippedFeatures.push(feature);
     }
   }
+
   return strippedFeatures;
+};
+
+const buildDirectionalLinkIcon = <T extends Link<any>>(
+  asset: T,
+  idMap: IDMap,
+  selectedAssets: Set<AssetId>,
+  getIconProperties: (asset: T) => Record<string, any>,
+): Feature => {
+  const featureId = UIDMap.getIntID(idMap, asset.id);
+  const largestSegment = findLargestSegment(asset);
+  const center = calculateMidpoint(...largestSegment);
+  const bearing = calculateBearing(...largestSegment);
+
+  return {
+    type: "Feature",
+    id: featureId,
+    properties: {
+      type: asset.type,
+      rotation: bearing,
+      selected: selectedAssets.has(asset.id),
+      ...getIconProperties(asset),
+    },
+    geometry: {
+      type: "Point",
+      coordinates: center.geometry.coordinates,
+    },
+  };
+};
+
+const buildNodeIcon = (
+  asset: Tank | Reservoir,
+  idMap: IDMap,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const featureId = UIDMap.getIntID(idMap, asset.id);
+
+  return {
+    type: "Feature",
+    id: featureId,
+    properties: {
+      type: asset.type,
+      selected: selectedAssets.has(asset.id),
+    },
+    geometry: asset.feature.geometry,
+  };
+};
+
+const buildPumpIcon = (
+  pump: Pump,
+  idMap: IDMap,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  return buildDirectionalLinkIcon(pump, idMap, selectedAssets, (asset) => ({
+    status: asset.status ? asset.status : asset.initialStatus,
+  }));
+};
+
+const buildValveIcon = (
+  valve: Valve,
+  idMap: IDMap,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const status = valve.status ? valve.status : valve.initialStatus;
+  return buildDirectionalLinkIcon(valve, idMap, selectedAssets, () => ({
+    kind: valve.kind,
+    icon: `valve-${valve.kind}-${status}`,
+    isControlValve: controlKinds.includes(valve.kind),
+  }));
+};
+
+const buildPipeCheckValveIcon = (
+  pipe: Pipe,
+  idMap: IDMap,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const status = pipe.status === "closed" ? "closed" : "open";
+  return buildDirectionalLinkIcon(pipe, idMap, selectedAssets, () => ({
+    icon: `pipe-cv-${status}`,
+  }));
 };
