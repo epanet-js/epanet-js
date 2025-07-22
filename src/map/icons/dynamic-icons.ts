@@ -1,3 +1,52 @@
+export const buildCheckValveSvg = ({
+  width = 64,
+  height = 64,
+  borderColor = "none",
+  fillColor = "white",
+  triangleColor = "black",
+  lineColor = triangleColor,
+  lineWidth = 70,
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  triangleColor?: string;
+  fillColor?: string;
+  lineColor?: string;
+  lineWidth?: number;
+} = {}) => {
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"
+         viewBox="0 0 815.5 815.5" shape-rendering="crispEdges">
+      <g transform="rotate(-90,407.75,390)">
+        <rect
+          x="31.2"
+          y="31.2"
+          width="717.6"
+          height="717.6"
+          ry="171.86"
+          style="fill:${fillColor};stroke:${borderColor};
+                 stroke-width:35.5;stroke-linecap:round;stroke-linejoin:round"
+        />
+        <!-- Triangle tip nudged right to exactly meet the line -->
+        <path
+          d="M451.5,390 L190,645 V135 Z"
+          style="fill:${triangleColor};stroke:${triangleColor};
+                 stroke-width:47.11;stroke-linecap:round;stroke-linejoin:round"
+        />
+        <!-- Line returned to original x position -->
+        <line
+          x1="451.5"
+          y1="135"
+          x2="451.5"
+          y2="645"
+          style="stroke:${lineColor};stroke-width:${lineWidth};stroke-linecap:round"
+        />
+      </g>
+    </svg>
+  `;
+};
+
 export const buildPumpSvg = ({
   width = 64,
   height = 64,

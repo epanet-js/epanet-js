@@ -91,6 +91,37 @@ export const pipeArrows = ({
   };
 };
 
+export const checkValveIcons = ({
+  source,
+  layerId,
+}: {
+  source: DataSource;
+  layerId: string;
+}): SymbolLayer => {
+  return {
+    id: layerId,
+    type: "symbol",
+    source,
+    layout: {
+      "icon-image": ["get", "icon"],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 13, 0.1, 20, 0.4],
+      "icon-rotate": ["get", "rotation"],
+      "icon-allow-overlap": true,
+      "icon-rotation-alignment": "map",
+    },
+    filter: ["all", ["==", "type", "pipe"], ["has", "icon"]],
+    paint: {
+      "icon-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hidden"], false],
+        0,
+        1,
+      ],
+    },
+    minzoom: 13,
+  };
+};
+
 const zoomExpression = (
   steps: number[],
   lengths: number[],

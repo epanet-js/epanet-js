@@ -1,6 +1,7 @@
 import triangle from "src/map/icons/triangle.png";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
+  buildCheckValveSvg,
   buildFcvSvg,
   buildGpvSvg,
   buildPbvSvg,
@@ -35,6 +36,8 @@ export type IconId =
   | "valve-pbv-active"
   | "valve-pbv-open"
   | "valve-pbv-closed"
+  | "pipe-cv-open"
+  | "pipe-cv-closed"
   | "tank"
   | "tank-selected"
   | "tank-highlight";
@@ -212,6 +215,24 @@ const iconUrls: IconUrl[] = [
     id: "valve-pbv-closed",
     url: urlFor(
       buildPbvSvg({
+        triangleColor: colors.red700,
+        fillColor: colors.red300,
+      }),
+    ),
+  },
+  {
+    id: "pipe-cv-open",
+    url: urlFor(
+      buildCheckValveSvg({
+        triangleColor: colors.gray700,
+        fillColor: colors.gray300,
+      }),
+    ),
+  },
+  {
+    id: "pipe-cv-closed",
+    url: urlFor(
+      buildCheckValveSvg({
         triangleColor: colors.red700,
         fillColor: colors.red300,
       }),

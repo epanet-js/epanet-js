@@ -1,4 +1,4 @@
-import { AssetId, AssetsMap, Pump, Reservoir } from "src/hydraulic-model";
+import { AssetId, AssetsMap, Pipe, Pump, Reservoir } from "src/hydraulic-model";
 import { findLargestSegment } from "src/hydraulic-model/asset-types/link";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
@@ -82,6 +82,34 @@ export const buildIconPointsSource = (
         geometry: tank.feature.geometry,
       };
       strippedFeatures.push(feature);
+    }
+
+    if (asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      if (pipe.initialStatus === "cv") {
+        const featureId = UIDMap.getIntID(idMap, asset.id);
+        const largestSegment = findLargestSegment(pipe);
+        const center = calculateMidpoint(...largestSegment);
+        const bearing = calculateBearing(...largestSegment);
+
+        const status = pipe.status === "closed" ? "closed" : "open";
+
+        const feature: Feature = {
+          type: "Feature",
+          id: featureId,
+          properties: {
+            type: pipe.type,
+            icon: `pipe-cv-${status}`,
+            rotation: bearing,
+            selected: selectedAssets.has(pipe.id),
+          },
+          geometry: {
+            type: "Point",
+            coordinates: center.geometry.coordinates,
+          },
+        };
+        strippedFeatures.push(feature);
+      }
     }
 
     if (asset.type === "reservoir") {

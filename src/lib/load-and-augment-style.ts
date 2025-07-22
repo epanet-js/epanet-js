@@ -17,7 +17,7 @@ import {
   asColorExpression,
   asNumberExpression,
 } from "src/lib/symbolization-deprecated";
-import { pipeArrows } from "src/map/layers/pipes";
+import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";
 import { junctionResultsLayer } from "src/map/layers/junctions";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
 import { valveIcons, valveLines } from "src/map/layers/valves";
@@ -208,6 +208,10 @@ export function makeLayers({
     ...valveIcons({
       source: "icons",
       layerId: "valve-icons",
+    }),
+    checkValveIcons({
+      source: "icons",
+      layerId: "check-valve-icons",
     }),
     ...pumpIcons({
       source: "icons",
