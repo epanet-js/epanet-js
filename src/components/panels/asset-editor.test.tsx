@@ -423,39 +423,6 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("pressure (m)", "Not Available");
     });
 
-    it("updates base demand when switching between junctions", () => {
-      const j1Id = "J1";
-      const j2Id = "J2";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(j1Id, {
-          label: "Junction_1",
-          baseDemand: 100,
-        })
-        .aJunction(j2Id, {
-          label: "Junction_2",
-          baseDemand: 200,
-        })
-        .build();
-
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: j1Id,
-      });
-
-      renderComponent(store);
-
-      expectPropertyDisplayed("base demand (l/s)", "100");
-
-      act(() => {
-        store.set(dataAtom, {
-          ...store.get(dataAtom),
-          selection: { type: "single", id: j2Id, parts: [] },
-        });
-      });
-
-      expectPropertyDisplayed("base demand (l/s)", "200");
-    });
-
     it("can show simulation results", () => {
       const junctionId = "J1";
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -1089,6 +1056,75 @@ describe("AssetEditor", () => {
       expect(updatedField).not.toHaveFocus();
       expect(updatedField).toHaveValue("10");
     });
+  });
+
+  it("updates numeric fields when switching between assets", () => {
+    const j1Id = "J1";
+    const j2Id = "J2";
+    const p1Id = "P1";
+    const p2Id = "P2";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(j1Id, {
+        label: "Junction_1",
+        baseDemand: 100,
+      })
+      .aJunction(j2Id, {
+        label: "Junction_2",
+        baseDemand: 200,
+      })
+      .aPipe(p1Id, {
+        label: "Pipe_1",
+        diameter: 150,
+        length: 500,
+        startNodeId: j1Id,
+        endNodeId: j2Id,
+      })
+      .aPipe(p2Id, {
+        label: "Pipe_2",
+        diameter: 300,
+        length: 1000,
+        startNodeId: j1Id,
+        endNodeId: j2Id,
+      })
+      .build();
+
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: j1Id,
+    });
+
+    renderComponent(store);
+
+    expectPropertyDisplayed("base demand (l/s)", "100");
+
+    act(() => {
+      store.set(dataAtom, {
+        ...store.get(dataAtom),
+        selection: { type: "single", id: j2Id, parts: [] },
+      });
+    });
+
+    expectPropertyDisplayed("base demand (l/s)", "200");
+
+    act(() => {
+      store.set(dataAtom, {
+        ...store.get(dataAtom),
+        selection: { type: "single", id: p1Id, parts: [] },
+      });
+    });
+
+    expectPropertyDisplayed("diameter (mm)", "150");
+    expectPropertyDisplayed("length (m)", "500");
+
+    act(() => {
+      store.set(dataAtom, {
+        ...store.get(dataAtom),
+        selection: { type: "single", id: p2Id, parts: [] },
+      });
+    });
+
+    expectPropertyDisplayed("diameter (mm)", "300");
+    expectPropertyDisplayed("length (m)", "1,000");
   });
 
   const setInitialState = ({
