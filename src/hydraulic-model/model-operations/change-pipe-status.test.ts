@@ -34,4 +34,36 @@ describe("change status", () => {
     expect(updatedPipe.id).toEqual(pipeId);
     expect(updatedPipe.status).toEqual("open");
   });
+
+  it("can set pipe to check valve", () => {
+    const pipeId = "pipeID";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "open" })
+      .build();
+    const { putAssets } = changePipeStatus(hydraulicModel, {
+      pipeId,
+      newStatus: "cv",
+    });
+
+    expect(putAssets!.length).toEqual(1);
+    const updatedPipe = putAssets![0] as Pipe;
+    expect(updatedPipe.id).toEqual(pipeId);
+    expect(updatedPipe.status).toEqual("cv");
+  });
+
+  it("can change from CV to open", () => {
+    const pipeId = "pipeID";
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(pipeId, { status: "cv" })
+      .build();
+    const { putAssets } = changePipeStatus(hydraulicModel, {
+      pipeId,
+      newStatus: "open",
+    });
+
+    expect(putAssets!.length).toEqual(1);
+    const updatedPipe = putAssets![0] as Pipe;
+    expect(updatedPipe.id).toEqual(pipeId);
+    expect(updatedPipe.status).toEqual("open");
+  });
 });

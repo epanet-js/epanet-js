@@ -72,6 +72,26 @@ describe("build inp", () => {
     expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
   });
 
+  it("adds pipes with check valve status", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("node1")
+      .aNode("node2")
+      .aPipe("cvPipe", {
+        startNodeId: "node1",
+        endNodeId: "node2",
+        length: 15,
+        diameter: 150,
+        roughness: 1.5,
+        status: "cv",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel);
+
+    expect(inp).toContain("[PIPES]");
+    expect(inp).toContain("cvPipe\tnode1\tnode2\t15\t150\t1.5\t0\tCV");
+  });
+
   it("adds valves", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("node1")

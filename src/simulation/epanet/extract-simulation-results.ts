@@ -95,12 +95,15 @@ const appendPipeResults = (
   const headloss = model.getLinkValue(index, LinkProperty.Headloss);
   const length = model.getLinkValue(index, LinkProperty.Length);
   const unitHeadloss = length === 0 ? 0 : headloss / (length / 1000);
+  const linkStatusCode = model.getLinkValue(index, LinkProperty.PumpState);
+  const { status } = pipeStatusFor(linkStatusCode);
   results.set(id, {
     type: "pipe",
     flow,
     velocity,
     headloss,
     unitHeadloss,
+    status,
   });
 };
 
@@ -175,4 +178,11 @@ export const pumpStatusFor = (
   if (linkStatusCode < 3) return { status: "off" };
 
   return { status: "on" };
+};
+
+export const pipeStatusFor = (
+  linkStatusCode: number,
+): { status: "open" | "closed" } => {
+  if (linkStatusCode < 3) return { status: "closed" };
+  return { status: "open" };
 };

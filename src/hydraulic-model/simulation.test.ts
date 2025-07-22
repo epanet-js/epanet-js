@@ -9,6 +9,7 @@ describe("attach simulation", () => {
       velocity: 5,
       headloss: 10,
       unitHeadloss: 20,
+      status: "open",
     }),
     getPump: () => ({
       flow: 10,

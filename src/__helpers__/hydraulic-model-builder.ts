@@ -24,6 +24,7 @@ import {
   PumpStatus,
   PumpStatusWarning,
 } from "src/hydraulic-model/asset-types/pump";
+import { PipeSimulation } from "src/hydraulic-model/asset-types/pipe";
 import { IdGenerator } from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
@@ -214,12 +215,7 @@ export class HydraulicModelBuilder {
     id: string,
     data: Partial<
       PipeBuildData & { startNodeId: string; endNodeId: string } & {
-        simulation: Partial<{
-          flow: number;
-          velocity: number;
-          headloss: number;
-          unitHeadloss: number;
-        }>;
+        simulation: Partial<PipeSimulation>;
       }
     > = {},
   ) {
@@ -240,6 +236,7 @@ export class HydraulicModelBuilder {
         velocity: 10,
         headloss: 10,
         unitHeadloss: 10,
+        status: "open",
         ...simulation,
       });
     }

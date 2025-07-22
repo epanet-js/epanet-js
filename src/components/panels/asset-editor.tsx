@@ -252,6 +252,12 @@ type OnPropertyChange = (
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
+const pipeStatusLabel = (pipe: Pipe) => {
+  if (pipe.simulationStatus === null) return "notAvailable";
+
+  return "pipe." + pipe.simulationStatus;
+};
+
 const PipeEditor = ({
   pipe,
   startNode,
@@ -270,6 +276,13 @@ const PipeEditor = ({
   onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   const translate = useTranslate();
+  const isCVOn = useFeatureFlag("FLAG_CV");
+
+  const availableStatuses = isCVOn
+    ? pipeStatuses
+    : pipeStatuses.filter((status) => status !== "cv");
+  const simulationStatusText = translate(pipeStatusLabel(pipe));
+
   return (
     <PanelDetails title={translate("pipe")} variant="fullwidth">
       <div className="pb-3 contain-layout">
@@ -287,10 +300,10 @@ const PipeEditor = ({
                 value={endNode ? endNode.label : ""}
               />
               <StatusRow
-                name={"status"}
+                name={"initialStatus"}
                 type={pipe.type}
                 status={pipe.status}
-                availableStatuses={pipeStatuses}
+                availableStatuses={availableStatuses}
                 onChange={onStatusChange}
               />
               <QuantityRow
@@ -354,6 +367,10 @@ const PipeEditor = ({
                 unit={quantitiesMetadata.getUnit("headloss")}
                 decimals={quantitiesMetadata.getDecimals("headloss")}
                 readOnly={true}
+              />
+              <TextRowReadOnly
+                name="actualStatus"
+                value={simulationStatusText}
               />
             </tbody>
           </table>
@@ -1001,7 +1018,7 @@ const StatusRow = <T extends AssetStatus>({
     <PropertyRow label={actualLabel}>
       <div className="relative group-1">
         <Selector
-          ariaLabel={"Value for: Status"}
+          ariaLabel={"Value for: Initial Status"}
           options={options}
           selected={status}
           onChange={onChange}

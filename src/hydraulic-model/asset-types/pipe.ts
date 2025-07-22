@@ -1,7 +1,7 @@
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
-export const pipeStatuses = ["open", "closed"] as const;
+export const pipeStatuses = ["open", "closed", "cv"] as const;
 export type PipeStatus = (typeof pipeStatuses)[number];
 
 export type PipeProperties = {
@@ -35,6 +35,7 @@ export type PipeSimulation = {
   velocity: number;
   headloss: number;
   unitHeadloss: number;
+  status: "open" | "closed";
 };
 
 export class Pipe extends Link<PipeProperties> {
@@ -94,6 +95,12 @@ export class Pipe extends Link<PipeProperties> {
 
   setSimulation(simulation: PipeSimulation | null) {
     this.simulation = simulation;
+  }
+
+  get simulationStatus() {
+    if (!this.simulation) return null;
+
+    return this.simulation.status;
   }
 
   getUnit(quantity: PipeQuantity): Unit {

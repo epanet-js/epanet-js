@@ -64,6 +64,7 @@ describe("AssetEditor", () => {
             velocity: 10.1234,
             headloss: 0.234,
             unitHeadloss: 0.1234,
+            status: "open",
           },
         })
         .build();
@@ -372,7 +373,7 @@ describe("AssetEditor", () => {
       const historyControl = renderComponent(store);
 
       const selector = screen.getByRole("combobox", {
-        name: /value for: status/i,
+        name: /value for: initial status/i,
       });
 
       await user.click(selector);
@@ -390,7 +391,7 @@ describe("AssetEditor", () => {
       historyControl("undo");
       await waitFor(() => {
         const updatedSelector = screen.getByRole("combobox", {
-          name: /value for: status/i,
+          name: /value for: initial status/i,
         });
         expect(updatedSelector).toHaveTextContent("On");
       });
@@ -727,7 +728,7 @@ describe("AssetEditor", () => {
     const historyControl = renderComponent(store);
 
     const selector = screen.getByRole("combobox", {
-      name: /value for: status/i,
+      name: /value for: initial status/i,
     });
 
     await user.click(selector);
@@ -745,7 +746,7 @@ describe("AssetEditor", () => {
     historyControl("undo");
     await waitFor(() => {
       const updatedSelector = screen.getByRole("combobox", {
-        name: /value for: status/i,
+        name: /value for: initial status/i,
       });
       expect(updatedSelector).toHaveTextContent("Open");
     });
@@ -794,7 +795,7 @@ describe("AssetEditor", () => {
   it("cannot change simulation results", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { simulation: { flow: 10 } })
+      .aPipe(pipeId, { simulation: { flow: 10, status: "open" } })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -862,7 +863,7 @@ describe("AssetEditor", () => {
     await user.tab();
     expect(
       screen.getByRole("combobox", {
-        name: /value for: status/i,
+        name: /value for: initial status/i,
       }),
     ).toHaveFocus();
     await user.keyboard("[ArrowDown]");
@@ -871,7 +872,7 @@ describe("AssetEditor", () => {
     await user.keyboard("[Enter]");
 
     const updatedSelector = screen.getByRole("combobox", {
-      name: /value for: status/i,
+      name: /value for: initial status/i,
     });
     expect(updatedSelector).toHaveTextContent("Open");
 
@@ -1105,7 +1106,10 @@ describe("AssetEditor", () => {
     ).toHaveValue(value);
   };
 
-  const expectStatusDisplayed = (value: string, escapedName = "status") => {
+  const expectStatusDisplayed = (
+    value: string,
+    escapedName = "initial status",
+  ) => {
     expect(
       screen.getByRole("textbox", {
         name: new RegExp(`key: ${escapedName}`, "i"),
