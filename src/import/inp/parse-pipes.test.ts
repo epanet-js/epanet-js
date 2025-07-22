@@ -282,7 +282,7 @@ describe("parse pipes", () => {
     expect(pipe.initialStatus).toEqual("open");
   });
 
-  it("does not override CV pipe status", () => {
+  it("allows STATUS to override CV pipe", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pipeId = "p1";
@@ -306,7 +306,7 @@ describe("parse pipes", () => {
     const { hydraulicModel } = parseInp(inp, { enableCV: true });
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.initialStatus).toEqual("cv");
+    expect(pipe.initialStatus).toEqual("closed");
   });
 
   it("overrides non-CV pipe status", () => {
@@ -342,7 +342,7 @@ describe("parse pipes", () => {
       hydraulicModel.assets,
       regularPipeId,
     ) as Pipe;
-    expect(cvPipe.initialStatus).toEqual("cv");
+    expect(cvPipe.initialStatus).toEqual("closed");
     expect(regularPipe.initialStatus).toEqual("closed");
   });
 

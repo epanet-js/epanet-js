@@ -299,7 +299,7 @@ const addPipe = (
 
   let initialStatus = pipeData.initialStatus;
 
-  if (inpData.status.has(pipeData.id) && pipeData.initialStatus !== "cv") {
+  if (inpData.status.has(pipeData.id)) {
     const statusValue = inpData.status.get(pipeData.id) as string;
     if (statusValue === "CLOSED") {
       initialStatus = "closed";
