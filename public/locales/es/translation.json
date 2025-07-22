@@ -365,6 +365,8 @@
   "visitLandingPageExplain": "Obtén más información sobre la aplicación y lo que puede hacer.",
   "file": "Archivo",
   "somethingWentWrong": "Algo ha ido mal",
+  "somethingWentWrongMessage": "Algo ha ido mal. Si el error persiste, contacta con soporte.",
+  "tryAgain": "Intentar de nuevo",
   "tryAgainOrSupport": "Por favor, inténtalo de nuevo y, si el error persiste, contacta con soporte.",
   "planChangesFromSupport": "Los cambios de plan requieren soporte",
   "planChangesFromSupportExplain": "Por favor, contacta a nuestro equipo de soporte para modificar tu suscripción.",

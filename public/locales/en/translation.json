@@ -365,6 +365,8 @@
   "visitLandingPageExplain": "Learn more about the app and what it can do.",
   "file": "File",
   "somethingWentWrong": "Something Went Wrong",
+  "somethingWentWrongMessage": "Something went wrong. If the error persists, contact support.",
+  "tryAgain": "Try Again",
   "tryAgainOrSupport": "Please try again, and if the error persists, contact support.",
   "planChangesFromSupport": "Plan changes require support",
   "planChangesFromSupportExplain": "Please contact our support team to modify your subscription.",

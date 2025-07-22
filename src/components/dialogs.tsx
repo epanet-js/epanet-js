@@ -167,6 +167,19 @@ const CustomerPointsImportSummaryDialog = dynamic<{
   },
 );
 
+const UnexpectedErrorDialog = dynamic<{
+  modal: dialogState.UnexpectedErrorDialogState;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/unexpected-error").then(
+      (r) => r.UnexpectedErrorDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -203,6 +216,9 @@ export const Dialogs = memo(function Dialogs() {
           duration: dialog.duration,
         });
       }
+      if (dialog.type === "unexpectedError") {
+        userTracking.capture({ name: "unexpectedError.seen" });
+      }
     }
     previousDialog.current = dialog;
   }
@@ -220,6 +236,9 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <CustomerPointsImportSummaryDialog modal={dialog} onClose={onClose} />
     );
+  }
+  if (dialog.type === "unexpectedError") {
+    return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
     return <WelcomeDialog />;

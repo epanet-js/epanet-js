@@ -365,6 +365,8 @@
   "visitLandingPageExplain": "Saiba mais sobre o aplicativo e o que ele pode fazer.",
   "file": "Arquivo",
   "somethingWentWrong": "Algo deu errado",
+  "somethingWentWrongMessage": "Algo deu errado. Se o erro persistir, entre em contato com o suporte.",
+  "tryAgain": "Tentar novamente",
   "tryAgainOrSupport": "Por favor, tente novamente e, se o erro persistir, entre em contato com o suporte.",
   "planChangesFromSupport": "Alterações de plano requerem suporte",
   "planChangesFromSupportExplain": "Por favor, entre em contato com nossa equipe de suporte para modificar sua assinatura.",

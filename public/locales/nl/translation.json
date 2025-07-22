@@ -365,6 +365,8 @@
   "visitLandingPageExplain": "Leer meer over de app en wat deze kan doen.",
   "file": "Bestand",
   "somethingWentWrong": "Er is iets misgegaan",
+  "somethingWentWrongMessage": "Er is iets misgegaan. Als de fout aanhoudt, neem dan contact op met de support.",
+  "tryAgain": "Opnieuw proberen",
   "tryAgainOrSupport": "Probeer het opnieuw, en als de fout aanhoudt, neem dan contact op met de support.",
   "planChangesFromSupport": "Abonnementswijzigingen vereisen support",
   "planChangesFromSupportExplain": "Neem contact op met ons supportteam om uw abonnement te wijzigen.",

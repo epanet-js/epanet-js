@@ -450,6 +450,12 @@ export type UserEvent =
       oldBasemap: string;
       newBasemap: string;
       source: "dropdown" | "popover";
+    }
+  | { name: "unexpectedError.seen" }
+  | {
+      name: "importCustomerPoints.unexpectedError";
+      source: string;
+      error: string;
     };
 
 const debugPostHog = {

@@ -61,6 +61,11 @@ export type CustomerPointsImportSummaryState = {
   issues?: CustomerPointsParserIssues;
 };
 
+export type UnexpectedErrorDialogState = {
+  type: "unexpectedError";
+  onRetry?: () => void;
+};
+
 export type DialogState =
   | OpenInpDialogState
   | InvalidFilesErrorDialogState
@@ -79,6 +84,7 @@ export type DialogState =
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | CustomerPointsImportSummaryState
+  | UnexpectedErrorDialogState
   | { type: "simulationSettings" }
   | null;
 

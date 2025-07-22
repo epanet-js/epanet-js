@@ -77,6 +77,35 @@ export const lastSaveCall = () => {
   };
 };
 
+export const stubFileOpenError = (error = new Error("File access failed")) => {
+  (fileOpen as Mock).mockRejectedValue(error);
+};
+
+export const stubFileTextError = (
+  error = new Error("Failed to read file text"),
+) => {
+  (fileOpen as Mock).mockImplementation(() => {
+    let input = document.querySelector(
+      '[data-testid="file-upload"]',
+    ) as HTMLInputElement;
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "file";
+      input.setAttribute("data-testid", "file-upload");
+      document.body.appendChild(input);
+    }
+    return new Promise((resolve) => {
+      input.addEventListener("change", () => {
+        const mockFile = {
+          ...input.files![0],
+          text: vi.fn().mockRejectedValue(error),
+        };
+        resolve(mockFile as File);
+      });
+    });
+  });
+};
+
 export const buildFileSystemHandleMock = ({
   fileName = "mock.txt",
 }: {

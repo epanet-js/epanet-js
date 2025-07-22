@@ -365,6 +365,8 @@
   "visitLandingPageExplain": "En savoir plus sur l'application et ce qu'elle peut faire.",
   "file": "Fichier",
   "somethingWentWrong": "Quelque Chose s'est Mal Passé",
+  "somethingWentWrongMessage": "Quelque chose s'est mal passé. Si l'erreur persiste, contactez le support.",
+  "tryAgain": "Réessayer",
   "tryAgainOrSupport": "Veuillez réessayer, et si l'erreur persiste, contactez le support.",
   "planChangesFromSupport": "Les modifications de plan nécessitent le support",
   "planChangesFromSupportExplain": "Veuillez contacter notre équipe de support pour modifier votre abonnement.",

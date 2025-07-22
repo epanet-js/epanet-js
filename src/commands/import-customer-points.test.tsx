@@ -6,7 +6,11 @@ import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { stubFileOpen } from "src/__helpers__/browser-fs-mock";
+import {
+  stubFileOpen,
+  stubFileOpenError,
+  stubFileTextError,
+} from "src/__helpers__/browser-fs-mock";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 
@@ -581,6 +585,115 @@ describe("importCustomerPoints", () => {
     // Tank should be excluded, junction should be assigned
     expect(customerPoint!.connection!.junction).toBe(junction);
     expect(junction.customerPointCount).toBe(1);
+  });
+
+  it("shows unexpected error dialog when file access fails", async () => {
+    const userTracking = stubUserTracking();
+    stubFileOpenError();
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    await triggerCommand();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Something Went Wrong/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Something went wrong. If the error persists, contact support./,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Try Again/i }),
+    ).toBeInTheDocument();
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.unexpectedError",
+      source: "test",
+      error: "File access failed",
+    });
+  });
+
+  it("shows unexpected error dialog when file reading fails", async () => {
+    const userTracking = stubUserTracking();
+    stubFileTextError();
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: "valid content",
+    });
+
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Something Went Wrong/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Try Again/i }),
+    ).toBeInTheDocument();
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.unexpectedError",
+      source: "test",
+      error: "Failed to read file text",
+    });
+  });
+
+  it("allows retry when unexpected error occurs", async () => {
+    stubFileOpenError();
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    await triggerCommand();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Something Went Wrong/)).toBeInTheDocument();
+    });
+
+    stubFileOpen();
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: createGeoJSONContent(),
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /Try Again/i }));
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Import Successful/)).toBeInTheDocument();
+    });
+  });
+
+  it("closes error dialog when cancel is clicked", async () => {
+    stubFileOpenError();
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    await triggerCommand();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Something Went Wrong/)).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/Something Went Wrong/),
+      ).not.toBeInTheDocument();
+    });
   });
 });
 

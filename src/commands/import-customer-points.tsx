@@ -40,9 +40,8 @@ export const useImportCustomerPoints = () => {
         source,
       });
 
-      if (!fsAccess) throw new Error("FS not ready");
-
       try {
+        if (!fsAccess) throw new Error("FS not ready");
         const file = await fsAccess.fileOpen({
           multiple: false,
           extensions: [geoJsonExtension, geoJsonLExtension],
@@ -92,12 +91,16 @@ export const useImportCustomerPoints = () => {
         setDialogState(dialogState);
         userTracking.capture(trackingEvent);
       } catch (error) {
-        setDialogState(null);
+        setDialogState({
+          type: "unexpectedError",
+          onRetry: () =>
+            importCustomerPoints({ source: "unexpected-error-dialog" }),
+        });
         captureError(error as Error);
         userTracking.capture({
-          name: "importCustomerPoints.completedWithErrors",
+          name: "importCustomerPoints.unexpectedError",
           source,
-          count: 0,
+          error: (error as Error).message,
         });
       }
     },
