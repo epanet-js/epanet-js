@@ -24,7 +24,7 @@ export const buildOptimizedAssetsSource = (
   translateUnit: (unit: Unit) => string,
 ): Feature[] => {
   const strippedFeatures = [];
-  const keepProperties: string[] = ["type", "status"];
+  const keepProperties: string[] = ["type"];
 
   for (const asset of assets.values()) {
     if (asset.feature.properties?.visibility === false) {
@@ -38,44 +38,82 @@ export const buildOptimizedAssetsSource = (
       geometry: asset.feature.geometry,
     };
 
-    if (asset.type === "pipe")
-      appendPipeSymbologyProps(
-        asset as Pipe,
-        feature,
-        symbology.link,
-        quantities,
-        translateUnit,
-      );
-    if (asset.type === "junction")
-      appendJunctionSymbologyProps(
-        asset as Junction,
-        feature,
-        symbology.node,
-        quantities,
-        translateUnit,
-      );
-    if (asset.type === "pump") {
-      const pump = asset as Pump;
-      feature.properties!.status = pump.status
-        ? pump.status
-        : pump.initialStatus;
-    }
-    if (asset.type === "pipe") {
-      const pipe = asset as Pipe;
-      feature.properties!.status = pipe.status
-        ? pipe.status
-        : pipe.initialStatus;
-    }
-    if (asset.type === "valve") {
-      const valve = asset as Valve;
-      feature.properties!.status = valve.status
-        ? valve.status
-        : valve.initialStatus;
+    switch (asset.type) {
+      case "pipe":
+        appendPipeProps(
+          asset as Pipe,
+          feature,
+          symbology.link,
+          quantities,
+          translateUnit,
+        );
+        break;
+      case "junction":
+        appendJunctionProps(
+          asset as Junction,
+          feature,
+          symbology.node,
+          quantities,
+          translateUnit,
+        );
+        break;
+      case "pump":
+        appendPumpProps(asset as Pump, feature);
+        break;
+      case "valve":
+        appendValveProps(asset as Valve, feature);
+        break;
+      case "tank":
+      case "reservoir":
+        break;
     }
 
     strippedFeatures.push(feature);
   }
   return strippedFeatures;
+};
+
+const appendPipeProps = (
+  pipe: Pipe,
+  feature: Feature,
+  linkSymbology: LinkSymbology,
+  quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
+) => {
+  feature.properties!.status = pipe.status ? pipe.status : pipe.initialStatus;
+  appendPipeSymbologyProps(
+    pipe,
+    feature,
+    linkSymbology,
+    quantities,
+    translateUnit,
+  );
+};
+
+const appendJunctionProps = (
+  junction: Junction,
+  feature: Feature,
+  nodeSymbology: NodeSymbology,
+  quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
+) => {
+  appendJunctionSymbologyProps(
+    junction,
+    feature,
+    nodeSymbology,
+    quantities,
+    translateUnit,
+  );
+};
+
+const appendPumpProps = (pump: Pump, feature: Feature) => {
+  feature.properties!.status = pump.status ? pump.status : pump.initialStatus;
+};
+
+const appendValveProps = (valve: Valve, feature: Feature) => {
+  feature.properties!.status = valve.status
+    ? valve.status
+    : valve.initialStatus;
 };
 
 const appendPipeSymbologyProps = (
