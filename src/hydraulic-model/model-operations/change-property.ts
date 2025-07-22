@@ -1,5 +1,6 @@
 import { Asset, AssetId } from "../asset-types";
 import { PumpDefintionType, PumpStatus } from "../asset-types/pump";
+import { PipeStatus } from "../asset-types/pipe";
 import { ValveStatus, ValveKind } from "../asset-types/valve";
 import { ModelOperation } from "../model-operation";
 
@@ -9,6 +10,7 @@ type InputData = {
   value:
     | number
     | PumpStatus
+    | PipeStatus
     | PumpDefintionType
     | ValveStatus
     | ValveKind

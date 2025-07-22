@@ -1,6 +1,6 @@
 import type { IWrappedFeature } from "src/types";
 import * as Switch from "@radix-ui/react-switch";
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { RawEditor } from "./feature-editor/raw-editor";
 import {
   Asset,
@@ -29,10 +29,7 @@ import {
   PipeStatus,
   pipeStatuses,
 } from "src/hydraulic-model/asset-types/pipe";
-import {
-  changePipeStatus,
-  changeProperty,
-} from "src/hydraulic-model/model-operations";
+import { changeProperty } from "src/hydraulic-model/model-operations";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
@@ -143,7 +140,7 @@ const AssetEditorInner = ({
     });
   };
 
-  const handleStatusChange = <T extends PumpStatus | ValveStatus>(
+  const handleStatusChange = <T extends PumpStatus | ValveStatus | PipeStatus>(
     newStatus: T,
     oldStatus: T,
   ) => {
@@ -161,24 +158,6 @@ const AssetEditorInner = ({
       oldStatus,
     });
   };
-
-  const handlePipeInitialStatusChange = useCallback(
-    (newInitialStatus: PipeStatus, oldInitialStatus: PipeStatus) => {
-      const moment = changePipeStatus(hydraulicModel, {
-        pipeId: asset.id,
-        newInitialStatus,
-      });
-      transact(moment);
-      userTracking.capture({
-        name: "assetStatus.edited",
-        type: asset.type,
-        property: "initialStatus",
-        newStatus: newInitialStatus,
-        oldStatus: oldInitialStatus,
-      });
-    },
-    [hydraulicModel, asset.id, asset.type, transact, userTracking],
-  );
 
   switch (asset.type) {
     case "junction":
@@ -198,7 +177,7 @@ const AssetEditorInner = ({
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onInitialStatusChange={handlePipeInitialStatusChange}
+          onStatusChange={handleStatusChange}
         />
       );
     case "pump":
@@ -265,7 +244,7 @@ const PipeEditor = ({
   headlossFormula,
   quantitiesMetadata,
   onPropertyChange,
-  onInitialStatusChange,
+  onStatusChange,
 }: {
   pipe: Pipe;
   startNode: NodeAsset | null;
@@ -273,7 +252,7 @@ const PipeEditor = ({
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onInitialStatusChange: OnStatusChange<PipeStatus>;
+  onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   const translate = useTranslate();
   const isCVOn = useFeatureFlag("FLAG_CV");
@@ -304,7 +283,7 @@ const PipeEditor = ({
                 type={pipe.type}
                 status={pipe.initialStatus}
                 availableStatuses={availableStatuses}
-                onChange={onInitialStatusChange}
+                onChange={onStatusChange}
               />
               <QuantityRow
                 name="diameter"
