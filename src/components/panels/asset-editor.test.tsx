@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
@@ -421,6 +421,39 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("base demand (l/s)", "100");
       expectPropertyDisplayed("pressure (m)", "Not Available");
+    });
+
+    it("updates base demand when switching between junctions", () => {
+      const j1Id = "J1";
+      const j2Id = "J2";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(j1Id, {
+          label: "Junction_1",
+          baseDemand: 100,
+        })
+        .aJunction(j2Id, {
+          label: "Junction_2",
+          baseDemand: 200,
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: j1Id,
+      });
+
+      renderComponent(store);
+
+      expectPropertyDisplayed("base demand (l/s)", "100");
+
+      act(() => {
+        store.set(dataAtom, {
+          ...store.get(dataAtom),
+          selection: { type: "single", id: j2Id, parts: [] },
+        });
+      });
+
+      expectPropertyDisplayed("base demand (l/s)", "200");
     });
 
     it("can show simulation results", () => {

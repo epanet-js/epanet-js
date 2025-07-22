@@ -4,6 +4,7 @@ import {
   KeyboardEventHandler,
   useRef,
   useState,
+  useEffect,
 } from "react";
 import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
 import clsx from "clsx";
@@ -35,6 +36,12 @@ export const NumericField = ({
   const [inputValue, setInputValue] = useState(displayValue);
   const [hasError, setError] = useState(false);
   const [isDirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (!isDirty && document.activeElement !== inputRef.current) {
+      setInputValue(displayValue);
+    }
+  }, [displayValue, isDirty]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Escape") {
