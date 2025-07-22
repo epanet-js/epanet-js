@@ -53,7 +53,7 @@ describe("build inp", () => {
         length: 10,
         diameter: 100,
         roughness: 1,
-        status: "open",
+        initialStatus: "open",
       })
       .aPipe("pipe2", {
         startNodeId: "node2",
@@ -61,7 +61,7 @@ describe("build inp", () => {
         length: 20,
         diameter: 200,
         roughness: 2,
-        status: "closed",
+        initialStatus: "closed",
       })
       .build();
 
@@ -82,7 +82,7 @@ describe("build inp", () => {
         length: 15,
         diameter: 150,
         roughness: 1.5,
-        status: "cv",
+        initialStatus: "cv",
       })
       .build();
 

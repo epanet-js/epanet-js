@@ -65,7 +65,11 @@ const appendPipeStats = (
   pipe: Pipe,
   quantitiesMetadata: Quantities,
 ) => {
-  updateCategoryStats(statsMap, "status", pipe.status);
+  if (pipe.status !== null) {
+    const statusLabel =
+      pipe.status === null ? "notAvailable" : "pipe." + pipe.status;
+    updateCategoryStats(statsMap, "pipeStatus", statusLabel);
+  }
   for (const name of pipeQuantities) {
     updateQuantityStats(
       statsMap,

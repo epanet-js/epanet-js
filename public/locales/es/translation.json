@@ -308,6 +308,7 @@
   "constantPower": "Potencia Constante",
   "flowVsHead": "Flujo vs Carga",
   "speed": "Vel. Relativa",
+  "pipeStatus": "Estado Tubería",
   "pumpStatus": "Estado Bomba",
   "valve": "Válvula",
   "setting": "Ajuste",

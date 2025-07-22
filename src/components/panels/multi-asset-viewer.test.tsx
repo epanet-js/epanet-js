@@ -13,8 +13,8 @@ describe("Multi asset viewer", () => {
   it("shows properties of multiple selected assets", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe("P1", {
-        status: "open",
         length: 10,
+        simulation: { status: "open" },
       })
       .aJunction("J1", { baseDemand: 20 })
       .build();
@@ -26,7 +26,7 @@ describe("Multi asset viewer", () => {
     renderComponent(store);
 
     expect(screen.getByText(/Selection \(2 assets\)/)).toBeInTheDocument();
-    expectPropertyDisplayed("Status", "Open");
+    expectPropertyDisplayed("Pipe Status", "Open");
     expectPropertyDisplayed("Length (m)", "10");
     expectPropertyDisplayed("Base Demand (l/s)", "20");
   });

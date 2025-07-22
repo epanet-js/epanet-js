@@ -293,11 +293,11 @@ const addPipe = (
   if (!linkProperties) return;
   const { connections, coordinates } = linkProperties;
 
-  let status = pipeData.status;
+  let initialStatus = pipeData.initialStatus;
 
   if (inpData.status.has(pipeData.id)) {
     const statusValue = inpData.status.get(pipeData.id) as string;
-    status = statusValue === "CLOSED" ? "closed" : "open";
+    initialStatus = statusValue === "CLOSED" ? "closed" : "open";
   }
 
   const pipe = hydraulicModel.assetBuilder.buildPipe({
@@ -306,7 +306,7 @@ const addPipe = (
     diameter: pipeData.diameter,
     minorLoss: pipeData.minorLoss,
     roughness: pipeData.roughness,
-    status,
+    initialStatus,
     connections,
     coordinates,
   });

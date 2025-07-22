@@ -5,17 +5,17 @@ import { ModelOperation } from "../model-operation";
 
 type InputData = {
   pipeId: AssetId;
-  newStatus: PipeStatus;
+  newInitialStatus: PipeStatus;
 };
 
 export const changePipeStatus: ModelOperation<InputData> = (
   { assets },
-  { pipeId, newStatus },
+  { pipeId, newInitialStatus },
 ) => {
   const pipe = getPipe(assets, pipeId);
   if (!pipe) throw new Error("Invalid pipe id");
 
   const updatedPipe = pipe.copy();
-  updatedPipe.setStatus(newStatus);
-  return { note: "Change pipe status", putAssets: [updatedPipe] };
+  updatedPipe.setInitialStatus(newInitialStatus);
+  return { note: "Change pipe initial status", putAssets: [updatedPipe] };
 };

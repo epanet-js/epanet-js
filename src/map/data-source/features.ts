@@ -60,6 +60,12 @@ export const buildOptimizedAssetsSource = (
         ? pump.status
         : pump.initialStatus;
     }
+    if (asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      feature.properties!.status = pipe.status
+        ? pipe.status
+        : pipe.initialStatus;
+    }
     if (asset.type === "valve") {
       const valve = asset as Valve;
       feature.properties!.status = valve.status
@@ -101,7 +107,7 @@ const appendPipeSymbologyProps = (
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
   );
-  feature.properties!.hasArrow = pipe.status !== "closed" && value !== null;
+  feature.properties!.hasArrow = pipe.status === "open" && value !== null;
   feature.properties!.rotation = isReverse ? -180 : 0;
 };
 

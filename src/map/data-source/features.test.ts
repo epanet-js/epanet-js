@@ -19,7 +19,7 @@ describe("build optimized source", () => {
     const { assets } = HydraulicModelBuilder.with()
       .aPipe("ID", {
         diameter: 300,
-        status: "open",
+        initialStatus: "open",
       })
       .aJunction("J1", { elevation: 15 })
       .build();
@@ -137,7 +137,7 @@ describe("build optimized source", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("ID", {
           diameter: 300,
-          status: "open",
+          initialStatus: "open",
           length: 14,
           simulation: { flow: 10 },
         })
@@ -175,7 +175,7 @@ describe("build optimized source", () => {
       const { assets } = HydraulicModelBuilder.with()
         .aPipe("ID", {
           diameter: 300,
-          status: "open",
+          initialStatus: "open",
           length: 14,
           simulation: { flow: -10 },
         })

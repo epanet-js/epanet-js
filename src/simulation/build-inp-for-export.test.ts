@@ -68,7 +68,7 @@ describe("build inp export ", () => {
         length: 10,
         diameter: 100,
         roughness: 1,
-        status: "open",
+        initialStatus: "open",
       })
       .aPipe("pipe2", {
         label: "P_2",
@@ -77,7 +77,7 @@ describe("build inp export ", () => {
         length: 20,
         diameter: 200,
         roughness: 2,
-        status: "closed",
+        initialStatus: "closed",
       })
       .build();
 
@@ -212,7 +212,7 @@ describe("build inp export ", () => {
         length: 10,
         diameter: 100,
         roughness: 1,
-        status: "open",
+        initialStatus: "open",
       })
       .build();
 

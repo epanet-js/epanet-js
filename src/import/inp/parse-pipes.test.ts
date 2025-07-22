@@ -43,7 +43,7 @@ describe("parse pipes", () => {
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
     expect(pipe.minorLoss).toEqual(minorLoss);
-    expect(pipe.status).toEqual("open");
+    expect(pipe.initialStatus).toEqual("open");
     expect(pipe.connections).toEqual([reservoir.id, junction.id]);
     expect(pipe.coordinates).toEqual([
       [10, 20],
@@ -88,7 +88,7 @@ describe("parse pipes", () => {
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
     expect(pipe.minorLoss).toEqual(minorLoss);
-    expect(pipe.status).toEqual("open");
+    expect(pipe.initialStatus).toEqual("open");
     expect(pipe.coordinates).toEqual([
       [10, 20],
       [50, 60],
@@ -120,7 +120,7 @@ describe("parse pipes", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.status).toEqual("closed");
+    expect(pipe.initialStatus).toEqual("closed");
   });
 
   it("can handle a pipe without status", () => {
@@ -163,7 +163,7 @@ describe("parse pipes", () => {
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
     expect(pipe.minorLoss).toEqual(minorLoss);
-    expect(pipe.status).toEqual("open");
+    expect(pipe.initialStatus).toEqual("open");
     expect(pipe.connections).toEqual([reservoir.id, junction.id]);
     expect(pipe.coordinates).toEqual([
       [10, 20],

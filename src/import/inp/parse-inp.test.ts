@@ -107,7 +107,7 @@ describe("Parse inp", () => {
     expect(reservoir.head).toEqual(100);
     expect(reservoir.coordinates).toEqual([lng, lat]);
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.status).toEqual("open");
+    expect(pipe.initialStatus).toEqual("open");
     expect(hydraulicModel.assets.size).toEqual(3);
   });
 

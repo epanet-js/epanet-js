@@ -308,6 +308,7 @@
   "constantPower": "Constant vermogen",
   "flowVsHead": "Stroming vs opvoerhoogte",
   "speed": "Snelheid",
+  "pipeStatus": "Buisstatus",
   "pumpStatus": "Pompstatus",
   "valve": "Ventiel",
   "setting": "Instelling",

@@ -308,6 +308,7 @@
   "constantPower": "Constant Power",
   "flowVsHead": "Flow vs Head",
   "speed": "Speed",
+  "pipeStatus": "Pipe Status",
   "pumpStatus": "Pump Status",
   "valve": "Valve",
   "setting": "Setting",

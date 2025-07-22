@@ -447,7 +447,7 @@ const appendLinkVertices = (
 };
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
-  switch (pipe.status) {
+  switch (pipe.initialStatus) {
     case "open":
       return "Open";
     case "closed":

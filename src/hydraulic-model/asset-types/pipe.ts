@@ -9,7 +9,7 @@ export type PipeProperties = {
   diameter: number;
   roughness: number;
   minorLoss: number;
-  status: PipeStatus;
+  initialStatus: PipeStatus;
 } & LinkProperties;
 
 export const pipeQuantities = [
@@ -57,12 +57,12 @@ export class Pipe extends Link<PipeProperties> {
     this.properties.roughness = value;
   }
 
-  get status() {
-    return this.properties.status;
+  get initialStatus() {
+    return this.properties.initialStatus;
   }
 
-  setStatus(newStatus: PipeStatus) {
-    this.properties.status = newStatus;
+  setInitialStatus(newStatus: PipeStatus) {
+    this.properties.initialStatus = newStatus;
   }
 
   get minorLoss() {
@@ -97,7 +97,7 @@ export class Pipe extends Link<PipeProperties> {
     this.simulation = simulation;
   }
 
-  get simulationStatus() {
+  get status() {
     if (!this.simulation) return null;
 
     return this.simulation.status;

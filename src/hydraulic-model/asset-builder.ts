@@ -19,7 +19,7 @@ export type PipeBuildData = {
   label?: string;
   coordinates?: Position[];
   connections?: LinkConnections;
-  status?: PipeStatus;
+  initialStatus?: PipeStatus;
   diameter?: number;
   roughness?: number;
   minorLoss?: number;
@@ -123,7 +123,7 @@ export class AssetBuilder {
       [1, 1],
     ],
     connections = nullConnections,
-    status = "open",
+    initialStatus = "open",
     length,
     diameter,
     minorLoss,
@@ -139,7 +139,7 @@ export class AssetBuilder {
             ? label
             : this.labelGenerator.generateFor("pipe", id),
         connections,
-        status,
+        initialStatus,
         length: this.getPipeValue("length", length),
         diameter: this.getPipeValue("diameter", diameter),
         minorLoss: this.getPipeValue("minorLoss", minorLoss),

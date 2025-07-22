@@ -14,7 +14,7 @@ export type PipeData = {
   diameter: number;
   roughness: number;
   minorLoss: number;
-  status: PipeStatus;
+  initialStatus: PipeStatus;
 };
 
 export type PumpData = {

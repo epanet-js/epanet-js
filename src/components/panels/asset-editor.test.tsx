@@ -26,7 +26,7 @@ describe("AssetEditor", () => {
         .aJunction("j2", { label: "J2" })
         .aPipe(pipeId, {
           label: "MY_PIPE",
-          status: "open",
+          initialStatus: "open",
           length: 10,
           diameter: 100.1,
           roughness: 1,
@@ -720,7 +720,7 @@ describe("AssetEditor", () => {
   it("can change its status", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { status: "open" })
+      .aPipe(pipeId, { initialStatus: "open" })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();
@@ -737,7 +737,7 @@ describe("AssetEditor", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).status,
+      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).initialStatus,
     ).toEqual("closed");
 
     expect(selector).not.toHaveFocus();
@@ -845,7 +845,7 @@ describe("AssetEditor", () => {
   it("can edit from the keyboard", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { status: "closed" })
+      .aPipe(pipeId, { initialStatus: "closed" })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
     const user = userEvent.setup();

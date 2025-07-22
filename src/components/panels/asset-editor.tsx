@@ -162,19 +162,19 @@ const AssetEditorInner = ({
     });
   };
 
-  const handlePipeStatusChange = useCallback(
-    (newStatus: PipeStatus, oldStatus: PipeStatus) => {
+  const handlePipeInitialStatusChange = useCallback(
+    (newInitialStatus: PipeStatus, oldInitialStatus: PipeStatus) => {
       const moment = changePipeStatus(hydraulicModel, {
         pipeId: asset.id,
-        newStatus,
+        newInitialStatus,
       });
       transact(moment);
       userTracking.capture({
         name: "assetStatus.edited",
         type: asset.type,
-        property: "status",
-        newStatus,
-        oldStatus,
+        property: "initialStatus",
+        newStatus: newInitialStatus,
+        oldStatus: oldInitialStatus,
       });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
@@ -198,7 +198,7 @@ const AssetEditorInner = ({
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onStatusChange={handlePipeStatusChange}
+          onInitialStatusChange={handlePipeInitialStatusChange}
         />
       );
     case "pump":
@@ -253,9 +253,9 @@ type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
 const pipeStatusLabel = (pipe: Pipe) => {
-  if (pipe.simulationStatus === null) return "notAvailable";
+  if (pipe.status === null) return "notAvailable";
 
-  return "pipe." + pipe.simulationStatus;
+  return "pipe." + pipe.status;
 };
 
 const PipeEditor = ({
@@ -265,7 +265,7 @@ const PipeEditor = ({
   headlossFormula,
   quantitiesMetadata,
   onPropertyChange,
-  onStatusChange,
+  onInitialStatusChange,
 }: {
   pipe: Pipe;
   startNode: NodeAsset | null;
@@ -273,7 +273,7 @@ const PipeEditor = ({
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onStatusChange: OnStatusChange<PipeStatus>;
+  onInitialStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   const translate = useTranslate();
   const isCVOn = useFeatureFlag("FLAG_CV");
@@ -302,9 +302,9 @@ const PipeEditor = ({
               <StatusRow
                 name={"initialStatus"}
                 type={pipe.type}
-                status={pipe.status}
+                status={pipe.initialStatus}
                 availableStatuses={availableStatuses}
-                onChange={onStatusChange}
+                onChange={onInitialStatusChange}
               />
               <QuantityRow
                 name="diameter"
