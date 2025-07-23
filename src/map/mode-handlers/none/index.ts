@@ -5,6 +5,8 @@ import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
+import { searchNearbyRenderedFeatures } from "src/map/search";
+import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
 import { moveNode } from "src/hydraulic-model/model-operations";
@@ -31,7 +33,6 @@ const isMovementSignificant = (
 };
 
 export function useNoneHandlers({
-  throttledMovePointer,
   selection,
   idMap,
   rep,
@@ -64,8 +65,21 @@ export function useNoneHandlers({
   );
   const transact = rep.useTransact();
 
+  const fastMovePointer = (point: mapboxgl.Point) => {
+    if (!map) return;
+
+    const features = searchNearbyRenderedFeatures(map, {
+      point,
+      distance: 7,
+      layers: clickableLayers,
+    });
+
+    const visibleFeatures = features.filter((f) => !f.state || !f.state.hidden);
+    setCursor(visibleFeatures.length ? "pointer" : "");
+  };
+
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
-    throttledMovePointer(e.point);
+    fastMovePointer(e.point);
   };
 
   const getClickedAsset = (

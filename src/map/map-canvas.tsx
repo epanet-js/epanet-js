@@ -5,7 +5,6 @@ import React, {
   useEffect,
   useMemo,
   useState,
-  useContext,
   useCallback,
   MutableRefObject,
   memo,
@@ -26,7 +25,6 @@ import {
   satelliteModeOnAtom,
   currentZoomAtom,
 } from "src/state/jotai";
-import { MapContext } from "src/map";
 import { MapEngine } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate-flatbush-instance";
 import * as CM from "@radix-ui/react-context-menu";
@@ -42,7 +40,6 @@ import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
-import { searchNearbyRenderedFeatures } from "./search";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/auth";
@@ -123,7 +120,7 @@ export const MapCanvas = memo(function MapCanvas({
   // Atom state
   const selection = data.selection;
   const mode = useAtomValue(modeAtom);
-  const [cursor, setCursor] = useAtom(cursorStyleAtom);
+  const cursor = useAtomValue(cursorStyleAtom);
   const [initError, setInitError] = useState<boolean>(false);
 
   // Refs
@@ -136,7 +133,6 @@ export const MapCanvas = memo(function MapCanvas({
   const mapHandlers = useRef<MapHandlers>();
 
   useMapStateUpdates(mapRef.current);
-  const map = useContext(MapContext);
 
   const idMap = rep.idMap;
 
@@ -169,26 +165,9 @@ export const MapCanvas = memo(function MapCanvas({
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
-  const throttledMovePointer = useMemo(() => {
-    function fastMovePointer(point: mapboxgl.Point) {
-      if (!map) return;
-
-      const features = searchNearbyRenderedFeatures(map, {
-        point,
-        distance: 7,
-        layers: clickableLayers,
-      });
-
-      const visibleFeatures = features.filter((f) => !f.state.hidden);
-      setCursor(visibleFeatures.length ? "pointer" : "");
-    }
-    return fastMovePointer;
-  }, [map, setCursor]);
-
   const handlerContext: HandlerContext = {
     flatbushInstance,
     setFlatbushInstance,
-    throttledMovePointer,
     mode,
     dragTargetRef,
     hydraulicModel,
