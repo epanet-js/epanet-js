@@ -12,18 +12,22 @@ const defaults = {
 export type LayerConfigTemplate = Pick<
   ILayerConfig,
   "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom" | "isBasemap"
->;
+> & {
+  thumbnailClass: string;
+};
 
 const LAYERS: Record<string, LayerConfigTemplate> = {
   MONOCHROME: {
     name: "Monochrome",
     url: "mapbox://styles/mapbox/light-v10",
+    thumbnailClass: "bg-thumbnail-monochrome",
     ...defaults,
     isBasemap: true,
   },
   SATELLITE: {
     name: "Satellite",
     url: "mapbox://styles/mapbox/satellite-streets-v12",
+    thumbnailClass: "bg-thumbnail-satellite",
     ...defaults,
     opacity: 0.65,
     isBasemap: true,
@@ -31,6 +35,7 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
   OUTDOORS: {
     name: "Outdoors",
     url: "mapbox://styles/mapbox/outdoors-v12",
+    thumbnailClass: "bg-thumbnail-outdoors",
     ...defaults,
     opacity: 0.65,
     isBasemap: true,
@@ -38,6 +43,7 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
   STREETS: {
     name: "Streets",
     url: "mapbox://styles/mapbox/navigation-guidance-day-v4",
+    thumbnailClass: "bg-thumbnail-streets",
     ...defaults,
     isBasemap: true,
   },

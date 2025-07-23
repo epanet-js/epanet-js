@@ -368,3 +368,24 @@ body.dark .mapboxgl-ctrl-attrib-button {
     animation: fadeIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* Basemap thumbnail backgrounds */
+.bg-thumbnail-monochrome {
+  background-image: url('/images/basemaps/monochrome-thumbnail.png');
+  background-size: cover;
+}
+
+.bg-thumbnail-satellite {
+  background-image: url('/images/basemaps/satellite-thumbnail.png');
+  background-size: cover;
+}
+
+.bg-thumbnail-outdoors {
+  background-image: url('/images/basemaps/outdoors-thumbnail.png');
+  background-size: cover;
+}
+
+.bg-thumbnail-streets {
+  background-image: url('/images/basemaps/streets-thumbnail.png');
+  background-size: cover;
+}
