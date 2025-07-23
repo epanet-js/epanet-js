@@ -210,7 +210,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
   inpData.nodeIds.add(id);
 };
 
-export const parsePipe: RowParser = ({ trimmedRow, inpData, options }) => {
+export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
   const [
     id,
     startNodeDirtyId,
@@ -227,7 +227,7 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData, options }) => {
     const statusLower = status.toLowerCase();
     if (statusLower === "closed") {
       initialStatus = "closed";
-    } else if (statusLower === "cv" && options?.enableCV) {
+    } else if (statusLower === "cv") {
       initialStatus = "cv";
     }
   }

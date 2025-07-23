@@ -6,9 +6,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
 
-export type ParseInpOptions = {
-  enableCV?: boolean;
-};
+export type ParseInpOptions = Record<string, never>;
 
 export const parseInp = (
   inp: string,

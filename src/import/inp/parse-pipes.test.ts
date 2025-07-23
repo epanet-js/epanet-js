@@ -174,7 +174,7 @@ describe("parse pipes", () => {
     expect(hydraulicModel.topology.hasLink(pipe.id)).toBeTruthy();
   });
 
-  it("parses CV status when FLAG_CV is enabled", () => {
+  it("parses CV status", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pipeId = "p1";
@@ -192,34 +192,10 @@ describe("parse pipes", () => {
     ${junctionId}\t${30}\t${40}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { enableCV: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.initialStatus).toEqual("cv");
-  });
-
-  it("converts CV status to open when FLAG_CV is disabled", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
-    const anyNumber = 10;
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t${anyNumber}\t${anyNumber}\t${anyNumber}\t${anyNumber}\tCV
-
-    [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
-    `;
-
-    const { hydraulicModel } = parseInp(inp, { enableCV: false });
-
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.initialStatus).toEqual("open");
   });
 
   it("handles case insensitive CV status", () => {
@@ -248,7 +224,7 @@ describe("parse pipes", () => {
     j3\t${70}\t${80}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { enableCV: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe1 = getByLabel(hydraulicModel.assets, pipeId1) as Pipe;
     const pipe2 = getByLabel(hydraulicModel.assets, pipeId2) as Pipe;
@@ -256,30 +232,6 @@ describe("parse pipes", () => {
     expect(pipe1.initialStatus).toEqual("cv");
     expect(pipe2.initialStatus).toEqual("cv");
     expect(pipe3.initialStatus).toEqual("cv");
-  });
-
-  it("defaults to backwards compatible behavior without options", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
-    const anyNumber = 10;
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t${anyNumber}\t${anyNumber}\t${anyNumber}\t${anyNumber}\tCV
-
-    [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.initialStatus).toEqual("open");
   });
 
   it("allows STATUS to override CV pipe", () => {
@@ -303,7 +255,7 @@ describe("parse pipes", () => {
     ${junctionId}\t${30}\t${40}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { enableCV: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.initialStatus).toEqual("closed");
@@ -335,7 +287,7 @@ describe("parse pipes", () => {
     j2\t${50}\t${60}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { enableCV: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const cvPipe = getByLabel(hydraulicModel.assets, cvPipeId) as Pipe;
     const regularPipe = getByLabel(
@@ -367,7 +319,7 @@ describe("parse pipes", () => {
     ${junctionId}\t${30}\t${40}
     `;
 
-    const { hydraulicModel } = parseInp(inp, { enableCV: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.initialStatus).toEqual("open");

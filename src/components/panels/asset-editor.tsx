@@ -255,11 +255,6 @@ const PipeEditor = ({
   onStatusChange: OnStatusChange<PipeStatus>;
 }) => {
   const translate = useTranslate();
-  const isCVOn = useFeatureFlag("FLAG_CV");
-
-  const availableStatuses = isCVOn
-    ? pipeStatuses
-    : pipeStatuses.filter((status) => status !== "cv");
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
   return (
@@ -282,7 +277,7 @@ const PipeEditor = ({
                 name={"initialStatus"}
                 type={pipe.type}
                 status={pipe.initialStatus}
-                availableStatuses={availableStatuses}
+                availableStatuses={pipeStatuses}
                 onChange={onStatusChange}
               />
               <QuantityRow
