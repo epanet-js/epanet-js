@@ -14,7 +14,7 @@ if (!MAPBOX_TOKEN) {
   process.exit(1);
 }
 
-// Basemap configurations from src/lib/default-layers.ts
+// Basemap configurations from src/map/basemaps.ts
 const BASEMAPS = {
   monochrome: "mapbox://styles/mapbox/light-v10",
   satellite: "mapbox://styles/mapbox/satellite-streets-v12",

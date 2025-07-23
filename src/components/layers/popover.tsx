@@ -13,7 +13,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom, layerConfigAtom } from "src/state/jotai";
 import * as E from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
-import LAYERS from "src/lib/default-layers";
+import { basemaps } from "src/map/basemaps";
 import { DefaultLayerItem } from "./default-layer-item";
 import { newFeatureId } from "src/lib/id";
 import { Form, FORM_ERROR } from "src/core/components/Form";
@@ -595,7 +595,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
 
   return (
     <>
-      {Object.entries(LAYERS).map(([id, mapboxLayer]) => (
+      {Object.entries(basemaps).map(([id, mapboxLayer]) => (
         <DefaultLayerItem
           key={id}
           mapboxLayer={mapboxLayer}
@@ -775,13 +775,13 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       <span className="select-none truncate text-sm w-auto">
         <Selector
           ariaLabel="basemaps"
-          options={Object.entries(LAYERS).map(([, mapboxLayer]) => ({
+          options={Object.entries(basemaps).map(([, mapboxLayer]) => ({
             value: mapboxLayer.name,
             label: mapboxLayer.name,
           }))}
           selected={layerConfig.name}
           onChange={(name) => {
-            const newMapboxLayer = Object.values(LAYERS).find(
+            const newMapboxLayer = Object.values(basemaps).find(
               (l) => l.name === name,
             );
             if (!newMapboxLayer) return;

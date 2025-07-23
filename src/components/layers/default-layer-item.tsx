@@ -6,7 +6,7 @@ import {
 import * as Tooltip from "@radix-ui/react-tooltip";
 import clsx from "clsx";
 import { Thumbnail } from "./thumbnail";
-import { LayerConfigTemplate } from "src/lib/default-layers";
+import { LayerConfigTemplate } from "src/map/basemaps";
 
 type T = LayerConfigTemplate;
 

@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
-import LAYERS from "src/lib/default-layers";
+import { basemaps } from "src/map/basemaps";
 import { newFeatureId } from "src/lib/id";
 import { useLayerConfigState } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/jotai";
@@ -24,9 +24,9 @@ export const useToggleSatellite = () => {
       maybeDeleteOldMapboxLayer(items);
 
     const newBaseMap =
-      oldMapboxLayer && oldMapboxLayer.name === LAYERS.MONOCHROME.name
-        ? LAYERS.SATELLITE
-        : LAYERS.MONOCHROME;
+      oldMapboxLayer && oldMapboxLayer.name === basemaps.monochrome.name
+        ? basemaps.satellite
+        : basemaps.monochrome;
 
     const newLayerConfig: ILayerConfig = {
       ...newBaseMap,
@@ -37,7 +37,7 @@ export const useToggleSatellite = () => {
       id: newFeatureId(),
       labelVisibility: oldMapboxLayer ? oldMapboxLayer.labelVisibility : true,
       sourceMaxZoom:
-        !isSignedIn && newBaseMap.name === LAYERS.SATELLITE.name
+        !isSignedIn && newBaseMap.name === basemaps.satellite.name
           ? { "mapbox-satellite": satelliteLimitedZoom }
           : {},
     };

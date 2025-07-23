@@ -16,15 +16,15 @@ export type LayerConfigTemplate = Pick<
   thumbnailClass: string;
 };
 
-const LAYERS: Record<string, LayerConfigTemplate> = {
-  MONOCHROME: {
+export const basemaps = {
+  monochrome: {
     name: "Monochrome",
     url: "mapbox://styles/mapbox/light-v10",
     thumbnailClass: "bg-thumbnail-monochrome",
     ...defaults,
     isBasemap: true,
   },
-  SATELLITE: {
+  satellite: {
     name: "Satellite",
     url: "mapbox://styles/mapbox/satellite-streets-v12",
     thumbnailClass: "bg-thumbnail-satellite",
@@ -32,7 +32,7 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     opacity: 0.65,
     isBasemap: true,
   },
-  OUTDOORS: {
+  outdoors: {
     name: "Outdoors",
     url: "mapbox://styles/mapbox/outdoors-v12",
     thumbnailClass: "bg-thumbnail-outdoors",
@@ -40,15 +40,13 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     opacity: 0.65,
     isBasemap: true,
   },
-  STREETS: {
+  streets: {
     name: "Streets",
     url: "mapbox://styles/mapbox/navigation-guidance-day-v4",
     thumbnailClass: "bg-thumbnail-streets",
     ...defaults,
     isBasemap: true,
   },
-};
+} as const;
 
-export const DEFAULT_LAYER = LAYERS.MONOCHROME;
-
-export default LAYERS;
+export const defaultBasemap = basemaps.monochrome;

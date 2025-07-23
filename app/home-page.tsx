@@ -11,7 +11,7 @@ import { Provider, createStore } from "jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
-import LAYERS from "src/lib/default-layers";
+import { basemaps } from "src/map/basemaps";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
 
@@ -75,7 +75,7 @@ const Play = () => {
       [
         layerId,
         {
-          ...LAYERS.MONOCHROME,
+          ...basemaps.monochrome,
           at: "a0",
           opacity: 1,
           tms: false,

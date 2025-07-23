@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import clsx from "clsx";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
 import { useUserTracking } from "src/infra/user-tracking";
-import LAYERS from "src/lib/default-layers";
+import { basemaps } from "src/map/basemaps";
 import { layerConfigAtom } from "src/state/jotai";
 import { offlineAtom } from "src/state/offline";
 
@@ -18,10 +18,10 @@ export const SatelliteToggle = () => {
 
     const currentBaseMap = [...layerConfigs.values()][0];
     if (currentBaseMap.name === "Monochrome") {
-      return LAYERS.SATELLITE.thumbnailClass;
+      return basemaps.satellite.thumbnailClass;
     }
     if (currentBaseMap.name === "Satellite") {
-      return LAYERS.MONOCHROME.thumbnailClass;
+      return basemaps.monochrome.thumbnailClass;
     }
 
     return null;
