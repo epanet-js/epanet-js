@@ -1,8 +1,7 @@
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode, cursorStyleAtom } from "src/state/jotai";
+import { modeAtom, Mode } from "src/state/jotai";
 import noop from "lodash/noop";
 import { useSetAtom } from "jotai";
-import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "../utils";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import throttle from "lodash/throttle";
@@ -18,7 +17,6 @@ export function useDrawNodeHandlers({
   nodeType,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
-  const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { assetBuilder, units } = hydraulicModel;
@@ -66,9 +64,7 @@ export function useDrawNodeHandlers({
       prefetchTile(e.lngLat);
     }, 200),
     down: noop,
-    up() {
-      setCursor(CURSOR_DEFAULT);
-    },
+    up: noop,
     double: noop,
     exit() {
       setMode({ mode: Mode.NONE });

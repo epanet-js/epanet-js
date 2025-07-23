@@ -1,7 +1,7 @@
 import type { HandlerContext, Position } from "src/types";
-import { modeAtom, Mode, cursorStyleAtom } from "src/state/jotai";
+import noop from "lodash/noop";
+import { modeAtom, Mode } from "src/state/jotai";
 import { useSetAtom } from "jotai";
-import { CURSOR_DEFAULT } from "src/lib/constants";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
@@ -25,7 +25,6 @@ export function useDrawLinkHandlers({
   linkType,
 }: HandlerContext & { linkType: LinkType }): Handlers {
   const setMode = useSetAtom(modeAtom);
-  const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -245,9 +244,7 @@ export function useDrawLinkHandlers({
         usingTouchEvents.current = false;
       }
     },
-    up() {
-      setCursor(CURSOR_DEFAULT);
-    },
+    up: noop,
   };
 
   return handlers;
