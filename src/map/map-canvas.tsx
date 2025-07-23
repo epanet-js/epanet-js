@@ -321,13 +321,12 @@ export const MapCanvas = memo(function MapCanvas({
   );
 
   const cursorStyle = useMemo(() => {
+    if (mode.mode !== Mode.NONE) return "placemark-cursor-crosshair";
+
     if (cursor === "move") return "cursor-move";
     if (cursor === "pointer") return "placemark-cursor-pointer";
 
-    if (mode.mode !== Mode.NONE) return "placemark-cursor-crosshair";
-    if (mode.mode === Mode.NONE) return "placemark-cursor-default";
-
-    return "auto";
+    return "placemark-cursor-default";
   }, [cursor, mode]);
 
   if (initError) return <MapError />;
