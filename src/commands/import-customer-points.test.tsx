@@ -185,7 +185,6 @@ describe("importCustomerPoints", () => {
     });
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.completed",
-      source: "test",
       count: 2,
     });
   });
@@ -220,7 +219,6 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.completedWithErrors",
-      source: "test",
       count: 0,
     });
   });
@@ -326,7 +324,6 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.completedWithWarnings",
-      source: "test",
       count: 1,
       issuesCount: 1,
     });
@@ -620,7 +617,6 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.unexpectedError",
-      source: "test",
       error: "File access failed",
     });
   });
@@ -651,7 +647,6 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.unexpectedError",
-      source: "test",
       error: "Failed to read file text",
     });
   });
@@ -702,6 +697,32 @@ describe("importCustomerPoints", () => {
         screen.queryByText(/Something Went Wrong/),
       ).not.toBeInTheDocument();
     });
+  });
+
+  it("tracks cancellation when user aborts file selection", async () => {
+    const userTracking = stubUserTracking();
+    const abortError = new Error("User aborted");
+    abortError.name = "AbortError";
+    stubFileOpenError(abortError);
+
+    const store = createStoreWithPipes();
+    renderComponent({ store });
+
+    await triggerCommand();
+
+    await waitFor(() => {
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.canceled",
+      });
+    });
+
+    // Verify no error dialog is shown
+    expect(screen.queryByText(/Something Went Wrong/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+
+    // Verify hydraulic model unchanged
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.customerPoints.size).toBe(0);
   });
 });
 

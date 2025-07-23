@@ -325,21 +325,22 @@ type ImportCustomerPointsStarted = {
 
 type ImportCustomerPointsCompleted = {
   name: "importCustomerPoints.completed";
-  source: string;
   count: number;
 };
 
 type ImportCustomerPointsCompletedWithWarnings = {
   name: "importCustomerPoints.completedWithWarnings";
-  source: string;
   count: number;
   issuesCount: number;
 };
 
 type ImportCustomerPointsCompletedWithErrors = {
   name: "importCustomerPoints.completedWithErrors";
-  source: string;
   count: number;
+};
+
+type ImportCustomerPointsCanceled = {
+  name: "importCustomerPoints.canceled";
 };
 
 export type UserEvent =
@@ -399,6 +400,7 @@ export type UserEvent =
   | ImportCustomerPointsCompleted
   | ImportCustomerPointsCompletedWithWarnings
   | ImportCustomerPointsCompletedWithErrors
+  | ImportCustomerPointsCanceled
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
@@ -454,7 +456,6 @@ export type UserEvent =
   | { name: "unexpectedError.seen" }
   | {
       name: "importCustomerPoints.unexpectedError";
-      source: string;
       error: string;
     };
 

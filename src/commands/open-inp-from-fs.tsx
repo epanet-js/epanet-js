@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useImportInp, inpExtension } from "./import-inp";
 import { useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { OpenInpStarted, useUserTracking } from "src/infra/user-tracking";
+import { useFileOpen } from "src/hooks/use-file-open";
 
 export const openInpFromFsShortcut = "ctrl+o";
 
@@ -11,13 +11,7 @@ export const useOpenInpFromFs = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();
   const userTracking = useUserTracking();
-
-  const { data: fsAccess } = useQuery({
-    queryKey: ["browser-fs-access"],
-    queryFn: async () => {
-      return import("browser-fs-access");
-    },
-  });
+  const { openFile, isReady } = useFileOpen();
 
   const openInpFromFs = useCallback(
     async ({ source }: { source: string }) => {
@@ -26,19 +20,24 @@ export const useOpenInpFromFs = () => {
         source,
       });
 
-      if (!fsAccess) throw new Error("FS not ready");
+      if (!isReady) throw new Error("FS not ready");
       try {
-        const file = await fsAccess.fileOpen({
+        const file = await openFile({
           multiple: false,
           extensions: [inpExtension],
           description: ".INP",
         });
+
+        if (!file) {
+          return;
+        }
+
         void importInp([file]);
       } catch (error) {
         handleFileOpenError(error as Error);
       }
     },
-    [fsAccess, importInp, userTracking],
+    [openFile, isReady, importInp, userTracking],
   );
 
   return useCallback(
@@ -50,7 +49,5 @@ export const useOpenInpFromFs = () => {
 };
 
 const handleFileOpenError = (error: Error) => {
-  if (error.name === "AbortError") return;
-
   captureError(error);
 };

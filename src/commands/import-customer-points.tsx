@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { captureError } from "src/infra/error-tracking";
@@ -16,6 +15,7 @@ import { CustomerPointsImportSummaryState } from "src/state/dialog";
 import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { useFileOpen } from "src/hooks/use-file-open";
 
 const geoJsonExtension = ".geojson";
 const geoJsonLExtension = ".geojsonl";
@@ -25,13 +25,7 @@ export const useImportCustomerPoints = () => {
   const setData = useSetAtom(dataAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
-
-  const { data: fsAccess } = useQuery({
-    queryKey: ["browser-fs-access"],
-    queryFn: async () => {
-      return import("browser-fs-access");
-    },
-  });
+  const { openFile, isReady } = useFileOpen();
 
   const importCustomerPoints = useCallback(
     async ({ source }: { source: string }) => {
@@ -41,12 +35,20 @@ export const useImportCustomerPoints = () => {
       });
 
       try {
-        if (!fsAccess) throw new Error("FS not ready");
-        const file = await fsAccess.fileOpen({
+        if (!isReady) throw new Error("FS not ready");
+
+        const file = await openFile({
           multiple: false,
           extensions: [geoJsonExtension, geoJsonLExtension],
           description: "GeoJSON/GeoJSONL Customer Points",
         });
+
+        if (!file) {
+          userTracking.capture({
+            name: "importCustomerPoints.canceled",
+          });
+          return;
+        }
 
         setDialogState({ type: "loading" });
 
@@ -85,7 +87,6 @@ export const useImportCustomerPoints = () => {
         const { dialogState, trackingEvent } = processImportResult(
           mutableHydraulicModel.customerPoints.size,
           finalIssues,
-          source,
         );
 
         setDialogState(dialogState);
@@ -99,12 +100,11 @@ export const useImportCustomerPoints = () => {
         captureError(error as Error);
         userTracking.capture({
           name: "importCustomerPoints.unexpectedError",
-          source,
           error: (error as Error).message,
         });
       }
     },
-    [fsAccess, data, setData, setDialogState, userTracking],
+    [openFile, isReady, data, setData, setDialogState, userTracking],
   );
 
   return importCustomerPoints;
@@ -126,7 +126,6 @@ type ProcessImportResult = {
 const processImportResult = (
   count: number,
   issues: CustomerPointsParserIssues | null,
-  source: string,
 ): ProcessImportResult => {
   let status: ImportStatus;
   if (count === 0) {
@@ -148,20 +147,17 @@ const processImportResult = (
   if (status === "error") {
     trackingEvent = {
       name: "importCustomerPoints.completedWithErrors",
-      source,
       count,
     };
   } else if (status === "warning") {
     trackingEvent = {
       name: "importCustomerPoints.completedWithWarnings",
-      source,
       count,
       issuesCount: issues ? Object.keys(issues).length : 0,
     };
   } else {
     trackingEvent = {
       name: "importCustomerPoints.completed",
-      source,
       count,
     };
   }
