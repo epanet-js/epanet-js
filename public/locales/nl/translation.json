@@ -412,6 +412,21 @@
         "next": "Volgende",
         "finish": "Voltooien",
         "processing": "Verwerken..."
+      },
+      "demandAllocation": {
+        "title": "Vraag Toewijzing",
+        "customerPoint": "Klantpunt",
+        "customerPoints": "Klantpunten",
+        "allocationOptions": "Toewijzingsopties",
+        "replaceOption": {
+          "title": "Vervang bestaande vraag door klantvraag (standaard)",
+          "description": "De bestaande basisvraag bij knooppunten wordt op nul gezet en vervangen door de vraag van de klantpunten. Dit is de typische benadering voor klantgebaseerde modellering."
+        },
+        "addOnTopOption": {
+          "title": "Voeg klantvraag toe bovenop bestaande vraag",
+          "description": "De vraag van de klantpunten wordt toegevoegd aan de bestaande basisvraag bij knooppunten. Gebruik deze optie wanneer u de huidige netwerkvraag wilt behouden en klantbelastingen wilt toevoegen als extra vraag."
+        },
+        "processingMessage": "Klantpunten verbinden met netwerk..."
       }
     },
     "dataSource": {

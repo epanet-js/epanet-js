@@ -412,6 +412,21 @@
         "next": "Next",
         "finish": "Finish",
         "processing": "Processing..."
+      },
+      "demandAllocation": {
+        "title": "Demand Allocation",
+        "customerPoint": "Customer Point",
+        "customerPoints": "Customer Points",
+        "allocationOptions": "Allocation Options",
+        "replaceOption": {
+          "title": "Replace existing demands with customer demands (default)",
+          "description": "The existing base demands at junctions will be set to zero and replaced with the customer point demands. This is the typical approach for customer-based modeling."
+        },
+        "addOnTopOption": {
+          "title": "Add customer demands on top of existing demands",
+          "description": "The customer point demands will be added to the existing base demands at junctions. Use this option when you want to maintain the current network demands and add customer loads as additional demand."
+        },
+        "processingMessage": "Connecting customer points to network..."
       }
     },
     "dataSource": {

@@ -412,6 +412,21 @@
         "next": "Siguiente",
         "finish": "Finalizar",
         "processing": "Procesando..."
+      },
+      "demandAllocation": {
+        "title": "Asignación de Demanda",
+        "customerPoint": "Punto de Consumo",
+        "customerPoints": "Puntos de Consumo",
+        "allocationOptions": "Opciones de Asignación",
+        "replaceOption": {
+          "title": "Reemplazar demandas existentes con demandas de consumo (predeterminado)",
+          "description": "Las demandas base existentes en las uniones se establecerán en cero y se reemplazarán con las demandas de los puntos de consumo. Este es el enfoque típico para el modelado basado en consumidores."
+        },
+        "addOnTopOption": {
+          "title": "Agregar demandas de consumo encima de las demandas existentes",
+          "description": "Las demandas de los puntos de consumo se agregarán a las demandas base existentes en las uniones. Use esta opción cuando desee mantener las demandas actuales de la red y agregar cargas de consumidores como demanda adicional."
+        },
+        "processingMessage": "Conectando puntos de consumo a la red..."
       }
     },
     "dataSource": {

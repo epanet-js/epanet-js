@@ -1,6 +1,7 @@
 import React from "react";
 import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useTranslate } from "src/hooks/use-translate";
 
 type DemandAllocationStepProps = {
   state: WizardState;
@@ -14,14 +15,20 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
   onFinish: _onFinish,
 }) => {
   const userTracking = useUserTracking();
+  const translate = useTranslate();
   const customerPointCount = state.parsedCustomerPoints?.length || 0;
   const pointText =
-    customerPointCount === 1 ? "Customer Point" : "Customer Points";
+    customerPointCount === 1
+      ? translate("importCustomerPoints.wizard.demandAllocation.customerPoint")
+      : translate(
+          "importCustomerPoints.wizard.demandAllocation.customerPoints",
+        );
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">
-        Demand Allocation ({customerPointCount} {pointText})
+        {translate("importCustomerPoints.wizard.demandAllocation.title")} (
+        {customerPointCount} {pointText})
       </h2>
 
       {state.error && (
@@ -31,7 +38,11 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
       )}
 
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900">Allocation Options</h3>
+        <h3 className="font-medium text-gray-900">
+          {translate(
+            "importCustomerPoints.wizard.demandAllocation.allocationOptions",
+          )}
+        </h3>
         <div className="space-y-3">
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
@@ -55,12 +66,14 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
             />
             <div className="flex-1">
               <div className="font-medium text-gray-900">
-                Replace existing demands with customer demands (default)
+                {translate(
+                  "importCustomerPoints.wizard.demandAllocation.replaceOption.title",
+                )}
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                The existing base demands at junctions will be set to zero and
-                replaced with the customer point demands. This is the typical
-                approach for customer-based modeling.
+                {translate(
+                  "importCustomerPoints.wizard.demandAllocation.replaceOption.description",
+                )}
               </div>
             </div>
           </label>
@@ -87,13 +100,14 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
             />
             <div className="flex-1">
               <div className="font-medium text-gray-900">
-                Add customer demands on top of existing demands
+                {translate(
+                  "importCustomerPoints.wizard.demandAllocation.addOnTopOption.title",
+                )}
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                The customer point demands will be added to the existing base
-                demands at junctions. Use this option when you want to maintain
-                the current network demands and add customer loads as additional
-                demand.
+                {translate(
+                  "importCustomerPoints.wizard.demandAllocation.addOnTopOption.description",
+                )}
               </div>
             </div>
           </label>
@@ -104,7 +118,9 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           <span className="ml-2 text-sm text-gray-600">
-            Connecting customer points to network...
+            {translate(
+              "importCustomerPoints.wizard.demandAllocation.processingMessage",
+            )}
           </span>
         </div>
       )}

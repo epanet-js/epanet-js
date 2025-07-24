@@ -412,6 +412,21 @@
         "next": "Suivant",
         "finish": "Terminer",
         "processing": "Traitement..."
+      },
+      "demandAllocation": {
+        "title": "Allocation de Demande",
+        "customerPoint": "Point de Consommation",
+        "customerPoints": "Points de Consommation",
+        "allocationOptions": "Options d'Allocation",
+        "replaceOption": {
+          "title": "Remplacer les demandes existantes par les demandes de consommation (par défaut)",
+          "description": "Les demandes de base existantes aux jonctions seront remises à zéro et remplacées par les demandes des points de consommation. C'est l'approche typique pour la modélisation basée sur les consommateurs."
+        },
+        "addOnTopOption": {
+          "title": "Ajouter les demandes de consommation par-dessus les demandes existantes",
+          "description": "Les demandes des points de consommation seront ajoutées aux demandes de base existantes aux jonctions. Utilisez cette option lorsque vous souhaitez maintenir les demandes actuelles du réseau et ajouter les charges des consommateurs comme demande supplémentaire."
+        },
+        "processingMessage": "Connexion des points de consommation au réseau..."
       }
     },
     "dataSource": {

@@ -412,6 +412,21 @@
         "next": "Próximo",
         "finish": "Finalizar",
         "processing": "Processando..."
+      },
+      "demandAllocation": {
+        "title": "Alocação de Demanda",
+        "customerPoint": "Ponto de Consumo",
+        "customerPoints": "Pontos de Consumo",
+        "allocationOptions": "Opções de Alocação",
+        "replaceOption": {
+          "title": "Substituir demandas existentes por demandas de consumo (padrão)",
+          "description": "As demandas base existentes nas junções serão definidas como zero e substituídas pelas demandas dos pontos de consumo. Esta é a abordagem típica para modelagem baseada em consumidores."
+        },
+        "addOnTopOption": {
+          "title": "Adicionar demandas de consumo sobre as demandas existentes",
+          "description": "As demandas dos pontos de consumo serão adicionadas às demandas base existentes nas junções. Use esta opção quando quiser manter as demandas atuais da rede e adicionar cargas de consumidores como demanda adicional."
+        },
+        "processingMessage": "Conectando pontos de consumo à rede..."
       }
     },
     "dataSource": {
