@@ -343,6 +343,14 @@ type ImportCustomerPointsCanceled = {
   name: "importCustomerPoints.canceled";
 };
 
+type ImportCustomerPointsNoValidPoints = {
+  name: "importCustomerPoints.noValidPoints";
+};
+
+type ImportCustomerPointsParseError = {
+  name: "importCustomerPoints.parseError";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -401,6 +409,8 @@ export type UserEvent =
   | ImportCustomerPointsCompletedWithWarnings
   | ImportCustomerPointsCompletedWithErrors
   | ImportCustomerPointsCanceled
+  | ImportCustomerPointsNoValidPoints
+  | ImportCustomerPointsParseError
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }

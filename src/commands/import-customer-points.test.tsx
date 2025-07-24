@@ -117,7 +117,7 @@ describe("importCustomerPoints", () => {
   });
 
   it("handles invalid JSON gracefully", async () => {
-    stubUserTracking();
+    const userTracking = stubUserTracking();
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -136,6 +136,47 @@ describe("importCustomerPoints", () => {
     });
     expectWizardStep("add file");
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.noValidPoints",
+    });
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.customerPoints.size).toBe(0);
+  });
+
+  it("tracks no valid points event", async () => {
+    const userTracking = stubUserTracking();
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    const emptyGeoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [],
+    });
+
+    const file = aTestFile({
+      filename: "empty.geojson",
+      content: emptyGeoJsonContent,
+    });
+
+    await triggerCommand();
+    await waitForWizardToOpen();
+
+    expectWizardStep("add file");
+
+    await uploadFileInWizard(file);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/no valid customer points found/i),
+      ).toBeInTheDocument();
+    });
+    expectWizardStep("add file");
+    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.noValidPoints",
+    });
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(0);

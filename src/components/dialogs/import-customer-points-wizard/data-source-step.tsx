@@ -3,6 +3,7 @@ import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { WizardState, WizardActions } from "./types";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type DataSourceStepProps = {
   state: WizardState;
@@ -13,6 +14,7 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
   state,
   actions,
 }) => {
+  const userTracking = useUserTracking();
   const handleFileSelect = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -26,12 +28,14 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
         const issues = new CustomerPointsIssuesAccumulator();
         const parsedPoints: CustomerPoint[] = [];
 
-        // Parse customer points without connecting them yet
         for (const customerPoint of parseCustomerPoints(text, issues, 1)) {
           parsedPoints.push(customerPoint);
         }
 
         if (parsedPoints.length === 0) {
+          userTracking.capture({
+            name: "importCustomerPoints.noValidPoints",
+          });
           actions.setError(
             "No valid customer points found in the selected file.",
           );
@@ -41,13 +45,15 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
         actions.setParsedCustomerPoints(parsedPoints);
         actions.setLoading(false);
 
-        // Auto-advance to step 2
         actions.goNext();
       } catch (error) {
+        userTracking.capture({
+          name: "importCustomerPoints.parseError",
+        });
         actions.setError(`Failed to parse file: ${(error as Error).message}`);
       }
     },
-    [actions],
+    [actions, userTracking],
   );
 
   return (
