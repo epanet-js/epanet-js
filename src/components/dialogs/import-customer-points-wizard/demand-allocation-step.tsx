@@ -45,7 +45,13 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
       <div className="space-y-4">
         <h3 className="font-medium text-gray-900">Demand Allocation Options</h3>
         <div className="space-y-3">
-          <label className="flex items-start space-x-3">
+          <label
+            className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
+              !state.keepDemands
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+            }`}
+          >
             <input
               type="radio"
               name="keepDemands"
@@ -65,7 +71,13 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
             </div>
           </label>
 
-          <label className="flex items-start space-x-3">
+          <label
+            className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
+              state.keepDemands
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+            }`}
+          >
             <input
               type="radio"
               name="keepDemands"
