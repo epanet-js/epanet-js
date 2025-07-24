@@ -108,7 +108,7 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.started",
-      source: "wizard",
+      source: "test",
     });
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.completed",

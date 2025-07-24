@@ -47,11 +47,6 @@ export const ImportCustomerPointsWizard: React.FC<
 
         await new Promise((resolve) => setTimeout(resolve, 10));
 
-        userTracking.capture({
-          name: "importCustomerPoints.started",
-          source: "wizard",
-        });
-
         const pipes = getAssetsByType<Pipe>(data.hydraulicModel.assets, "pipe");
         const spatialIndexData = createSpatialIndex(pipes);
         const issues = new CustomerPointsIssuesAccumulator();
