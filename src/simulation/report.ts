@@ -1,11 +1,12 @@
 import { Asset, AssetsMap } from "src/hydraulic-model";
+import { captureWarning } from "src/infra/error-tracking";
 
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV)\s+(\d+)/i;
 const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
 const assetReferenceRegExp =
   /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\s+(\d+)/gi;
 
-const skipRegexp = [/Error 213/];
+const skipRegexp = [/Error 213/, /Error 211/];
 
 const idRegExps = [valveTypeRegExp, errorMessageRegExp, assetReferenceRegExp];
 
@@ -24,6 +25,13 @@ export const replaceIdWithLabels = (
 
       return row.replace(regexp, (match, id) => {
         const asset = assets.get(id) as Asset;
+        if (!asset) {
+          captureWarning(
+            `Asset ID '${id}' referenced in report (${match}) but not found in model`,
+          );
+          return match; // Return unchanged if asset not found
+        }
+
         const groupIndexInMatch = match.lastIndexOf(id);
         return (
           match.slice(0, groupIndexInMatch) +

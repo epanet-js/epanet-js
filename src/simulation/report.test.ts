@@ -1,5 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { replaceIdWithLabels } from "./report";
+import * as errorTracking from "src/infra/error-tracking";
 
 describe("report utils", () => {
   it("can replace labels in error messages", () => {
@@ -108,6 +109,33 @@ describe("report utils", () => {
 
     expect(output).toContain(
       "   0:00:00: System ill-conditioned at node J_PROBLEMATIC",
+    );
+  });
+
+  it("does not replace property values in Error 211 messages", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aPipe("0", { label: "P_ZERO" })
+      .build().assets;
+
+    const report = `Error 211: illegal link property value 0 0`;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain("Error 211: illegal link property value 0 0");
+    expect(output).not.toContain("P_ZERO");
+  });
+
+  it("captures warning when match found but asset not found", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+    const captureWarningSpy = vi.spyOn(errorTracking, "captureWarning");
+
+    const report = `Error 205: Node 999 has missing data`;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain("Error 205: Node 999 has missing data");
+    expect(captureWarningSpy).toHaveBeenCalledWith(
+      "Asset ID '999' referenced in report but not found in model",
     );
   });
 });
