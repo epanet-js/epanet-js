@@ -9,6 +9,7 @@ export type WizardState = {
   isLoading: boolean;
   error: string | null;
   isProcessing: boolean;
+  keepDemands: boolean;
 };
 
 export type WizardActions = {
@@ -20,5 +21,6 @@ export type WizardActions = {
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   setProcessing: (processing: boolean) => void;
+  setKeepDemands: (keepDemands: boolean) => void;
   reset: () => void;
 };

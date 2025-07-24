@@ -63,6 +63,7 @@ export const ImportCustomerPointsWizard: React.FC<
             mutableHydraulicModel,
             spatialIndexData,
             customerPoint,
+            { keepDemands: wizardState.keepDemands },
           );
 
           if (!connection) {

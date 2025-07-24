@@ -9,7 +9,7 @@ type DemandAllocationStepProps = {
 
 export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
   state,
-  actions: _actions,
+  actions,
   onFinish: _onFinish,
 }) => {
   const customerPointCount = state.parsedCustomerPoints?.length || 0;
@@ -39,6 +39,52 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
               {customerPointCount} points
             </span>
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-gray-900">Demand Allocation Options</h3>
+        <div className="space-y-3">
+          <label className="flex items-start space-x-3">
+            <input
+              type="radio"
+              name="keepDemands"
+              checked={!state.keepDemands}
+              onChange={() => actions.setKeepDemands(false)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-gray-900">
+                Replace existing demands with customer demands (default)
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                The existing base demands at junctions will be set to zero and
+                replaced with the customer point demands. This is the typical
+                approach for customer-based modeling.
+              </div>
+            </div>
+          </label>
+
+          <label className="flex items-start space-x-3">
+            <input
+              type="radio"
+              name="keepDemands"
+              checked={state.keepDemands}
+              onChange={() => actions.setKeepDemands(true)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-gray-900">
+                Add customer demands on top of existing demands
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                The customer point demands will be added to the existing base
+                demands at junctions. Use this option when you want to maintain
+                the current network demands and add customer loads as additional
+                demand.
+              </div>
+            </div>
+          </label>
         </div>
       </div>
 

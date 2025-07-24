@@ -9,6 +9,7 @@ const initialState: WizardState = {
   isLoading: false,
   error: null,
   isProcessing: false,
+  keepDemands: false,
 };
 
 export const useWizardState = (): WizardState & WizardActions => {
@@ -62,6 +63,10 @@ export const useWizardState = (): WizardState & WizardActions => {
     setState((prev) => ({ ...prev, isProcessing: processing, error: null }));
   }, []);
 
+  const setKeepDemands = useCallback((keepDemands: boolean) => {
+    setState((prev) => ({ ...prev, keepDemands }));
+  }, []);
+
   const reset = useCallback(() => {
     setState(initialState);
   }, []);
@@ -76,6 +81,7 @@ export const useWizardState = (): WizardState & WizardActions => {
     setError,
     setLoading,
     setProcessing,
+    setKeepDemands,
     reset,
   };
 };

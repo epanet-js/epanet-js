@@ -446,6 +446,59 @@ describe("importCustomerPoints", () => {
     });
   });
 
+  it("keeps existing demands when add on top option is selected", async () => {
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0], baseDemand: 30 })
+        .aJunction("J2", { coordinates: [10, 0], baseDemand: 45 })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [2, 1] },
+          properties: { demand: 20 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await waitForWizardToOpen();
+    expectWizardStep("data input");
+    await uploadFileInWizard(file);
+    expectWizardStep("demand allocation");
+
+    await userEvent.click(
+      screen.getByLabelText(/add customer demands on top/i),
+    );
+
+    await finishWizardImport();
+    await expectSuccessNotification();
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const junction = hydraulicModel.assets.get("J1") as Junction;
+
+    expect(junction.baseDemand).toBe(30);
+  });
+
   it("closes wizard when cancel is clicked", async () => {
     const store = createStoreWithPipes();
 
