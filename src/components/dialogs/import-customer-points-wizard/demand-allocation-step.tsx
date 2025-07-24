@@ -15,10 +15,14 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
 }) => {
   const userTracking = useUserTracking();
   const customerPointCount = state.parsedCustomerPoints?.length || 0;
+  const pointText =
+    customerPointCount === 1 ? "Customer Point" : "Customer Points";
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Demand Allocation</h2>
+      <h2 className="text-lg font-semibold">
+        Demand Allocation ({customerPointCount} {pointText})
+      </h2>
 
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -26,26 +30,8 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
         </div>
       )}
 
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h3 className="font-medium text-blue-900 mb-2">Import Summary</h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-blue-700">Selected file:</span>
-            <span className="font-medium text-blue-900">
-              {state.selectedFile?.name || "None"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-blue-700">Customer points to import:</span>
-            <span className="font-medium text-blue-900">
-              {customerPointCount} points
-            </span>
-          </div>
-        </div>
-      </div>
-
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900">Demand Allocation Options</h3>
+        <h3 className="font-medium text-gray-900">Allocation Options</h3>
         <div className="space-y-3">
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${

@@ -37,7 +37,9 @@ describe("importCustomerPoints", () => {
     await uploadFileInWizard(file);
 
     expectWizardStep("demand allocation");
-    expect(screen.getByText("2 points")).toBeInTheDocument();
+    expect(
+      screen.getByText("Demand Allocation (2 Customer Points)"),
+    ).toBeInTheDocument();
 
     await finishWizardImport();
     await expectSuccessNotification(2);
@@ -197,7 +199,9 @@ describe("importCustomerPoints", () => {
     expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("demand allocation");
-    expect(screen.getByText("1 points")).toBeInTheDocument();
+    expect(
+      screen.getByText("Demand Allocation (1 Customer Point)"),
+    ).toBeInTheDocument();
 
     await finishWizardImport();
     await expectSuccessNotification(1);
