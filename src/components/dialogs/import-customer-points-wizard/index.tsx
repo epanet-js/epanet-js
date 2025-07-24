@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { DialogContainer } from "src/components/dialog";
 import { useWizardState } from "./use-wizard-state";
-import { DataSourceStep } from "./data-source-step";
+import { DataInputStep } from "./data-input-step";
 import { SummaryStep } from "./summary-step";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
@@ -160,7 +160,7 @@ export const ImportCustomerPointsWizard: React.FC<
             <div className="flex items-center">
               <div
                 role="tab"
-                aria-label="Step 1: Add File"
+                aria-label="Step 1: Data Input"
                 aria-current={
                   wizardState.currentStep === 1 ? "step" : undefined
                 }
@@ -179,7 +179,7 @@ export const ImportCustomerPointsWizard: React.FC<
                     : "text-gray-500"
                 }`}
               >
-                Add File
+                Data Input
               </span>
             </div>
 
@@ -221,7 +221,7 @@ export const ImportCustomerPointsWizard: React.FC<
 
         <div className="min-h-[300px]">
           {wizardState.currentStep === 1 && (
-            <DataSourceStep state={wizardState} actions={wizardState} />
+            <DataInputStep state={wizardState} actions={wizardState} />
           )}
           {wizardState.currentStep === 2 && (
             <SummaryStep

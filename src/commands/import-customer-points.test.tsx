@@ -32,7 +32,7 @@ describe("importCustomerPoints", () => {
     await triggerCommand();
     await waitForWizardToOpen();
 
-    expectWizardStep("add file");
+    expectWizardStep("data input");
 
     await uploadFileInWizard(file);
 
@@ -71,7 +71,7 @@ describe("importCustomerPoints", () => {
     await triggerCommand();
     await waitForWizardToOpen();
 
-    expectWizardStep("add file");
+    expectWizardStep("data input");
 
     await uploadFileInWizard(file);
 
@@ -99,7 +99,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     await finishWizardImport();
@@ -126,14 +126,14 @@ describe("importCustomerPoints", () => {
     await triggerCommand();
     await waitForWizardToOpen();
 
-    expectWizardStep("add file");
+    expectWizardStep("data input");
 
     await uploadFileWithParseError(invalidContent);
 
     await waitFor(() => {
       expect(screen.getByText(/no valid/i)).toBeInTheDocument();
     });
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.noValidPoints",
@@ -162,7 +162,7 @@ describe("importCustomerPoints", () => {
     await triggerCommand();
     await waitForWizardToOpen();
 
-    expectWizardStep("add file");
+    expectWizardStep("data input");
 
     await uploadFileInWizard(file);
 
@@ -171,7 +171,7 @@ describe("importCustomerPoints", () => {
         screen.getByText(/no valid customer points found/i),
       ).toBeInTheDocument();
     });
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.noValidPoints",
@@ -194,7 +194,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     expect(screen.getByText("1 points")).toBeInTheDocument();
@@ -250,7 +250,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     await finishWizardImport();
@@ -301,7 +301,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     await finishWizardImport();
@@ -351,7 +351,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     await finishWizardImport();
@@ -400,7 +400,7 @@ describe("importCustomerPoints", () => {
 
     await triggerCommand();
     await waitForWizardToOpen();
-    expectWizardStep("add file");
+    expectWizardStep("data input");
     await uploadFileInWizard(file);
     expectWizardStep("summary");
     await finishWizardImport();

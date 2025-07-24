@@ -7,12 +7,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 
-type DataSourceStepProps = {
+type DataInputStepProps = {
   state: WizardState;
   actions: WizardActions;
 };
 
-export const DataSourceStep: React.FC<DataSourceStepProps> = ({
+export const DataInputStep: React.FC<DataInputStepProps> = ({
   state,
   actions,
 }) => {
