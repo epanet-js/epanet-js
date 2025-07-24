@@ -180,6 +180,19 @@ const UnexpectedErrorDialog = dynamic<{
   },
 );
 
+const ImportCustomerPointsWizard = dynamic<{
+  isOpen: boolean;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/import-customer-points-wizard").then(
+      (r) => r.ImportCustomerPointsWizard,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -236,6 +249,9 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <CustomerPointsImportSummaryDialog modal={dialog} onClose={onClose} />
     );
+  }
+  if (dialog.type === "importCustomerPointsWizard") {
+    return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;

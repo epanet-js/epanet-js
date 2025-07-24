@@ -61,6 +61,10 @@ export type CustomerPointsImportSummaryState = {
   issues?: CustomerPointsParserIssues;
 };
 
+export type ImportCustomerPointsWizardState = {
+  type: "importCustomerPointsWizard";
+};
+
 export type UnexpectedErrorDialogState = {
   type: "unexpectedError";
   onRetry?: () => void;
@@ -84,6 +88,7 @@ export type DialogState =
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | CustomerPointsImportSummaryState
+  | ImportCustomerPointsWizardState
   | UnexpectedErrorDialogState
   | { type: "simulationSettings" }
   | null;
