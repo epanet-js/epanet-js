@@ -399,5 +399,14 @@
   "creationFailureSingular": "{{1}} falha de criação",
   "creationFailurePlural": "{{1}} falhas de criação",
   "customerPointWithoutJunctionSingular": "{{1}} ponto de consumo sem nó válido",
-  "customerPointWithoutJunctionPlural": "{{1}} pontos de consumo sem nó válido"
+  "customerPointWithoutJunctionPlural": "{{1}} pontos de consumo sem nó válido",
+  "importCustomerPoints": {
+    "dataSource": {
+      "title": "Adicionar de Arquivo",
+      "noValidPointsError": "Nenhum ponto de consumo válido encontrado no arquivo selecionado.",
+      "parseFileError": "Falha ao analisar o arquivo",
+      "supportedFormats": "Formatos suportados:",
+      "parsingFile": "Lendo arquivo..."
+    }
+  }
 }

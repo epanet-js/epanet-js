@@ -399,5 +399,14 @@
   "creationFailureSingular": "{{1}} creation failure",
   "creationFailurePlural": "{{1}} creation failures",
   "customerPointWithoutJunctionSingular": "{{1}} customer point without valid junction",
-  "customerPointWithoutJunctionPlural": "{{1}} customer points without valid junction"
+  "customerPointWithoutJunctionPlural": "{{1}} customer points without valid junction",
+  "importCustomerPoints": {
+    "dataSource": {
+      "title": "Add from File",
+      "noValidPointsError": "No valid customer points found in the selected file.",
+      "parseFileError": "Failed to parse file",
+      "supportedFormats": "Supported formats:",
+      "parsingFile": "Reading file..."
+    }
+  }
 }

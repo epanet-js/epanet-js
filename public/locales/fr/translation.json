@@ -399,5 +399,14 @@
   "creationFailureSingular": "{{1}} échec de création",
   "creationFailurePlural": "{{1}} échecs de création",
   "customerPointWithoutJunctionSingular": "{{1}} point de consommation sans nœud valide",
-  "customerPointWithoutJunctionPlural": "{{1}} points de consommation sans nœud valide"
+  "customerPointWithoutJunctionPlural": "{{1}} points de consommation sans nœud valide",
+  "importCustomerPoints": {
+    "dataSource": {
+      "title": "Ajouter depuis un Fichier",
+      "noValidPointsError": "Aucun point de consommation valide trouvé dans le fichier sélectionné.",
+      "parseFileError": "Échec de l'analyse du fichier",
+      "supportedFormats": "Formats pris en charge :",
+      "parsingFile": "Lecture du fichier..."
+    }
+  }
 }

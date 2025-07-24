@@ -399,5 +399,14 @@
   "creationFailureSingular": "{{1}} aanmaakfout",
   "creationFailurePlural": "{{1}} aanmaakfouten",
   "customerPointWithoutJunctionSingular": "{{1}} klantpunt zonder geldig knooppunt",
-  "customerPointWithoutJunctionPlural": "{{1}} klantpunten zonder geldig knooppunt"
+  "customerPointWithoutJunctionPlural": "{{1}} klantpunten zonder geldig knooppunt",
+  "importCustomerPoints": {
+    "dataSource": {
+      "title": "Toevoegen vanuit Bestand",
+      "noValidPointsError": "Geen geldige klantpunten gevonden in het geselecteerde bestand.",
+      "parseFileError": "Fout bij het analyseren van het bestand",
+      "supportedFormats": "Ondersteunde formaten:",
+      "parsingFile": "Bestand lezen..."
+    }
+  }
 }

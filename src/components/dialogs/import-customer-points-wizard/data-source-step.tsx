@@ -4,6 +4,8 @@ import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-point
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
+import { captureError } from "src/infra/error-tracking";
+import { useTranslate } from "src/hooks/use-translate";
 
 type DataSourceStepProps = {
   state: WizardState;
@@ -15,6 +17,7 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
   actions,
 }) => {
   const userTracking = useUserTracking();
+  const translate = useTranslate();
   const handleFileSelect = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -37,7 +40,7 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
             name: "importCustomerPoints.noValidPoints",
           });
           actions.setError(
-            "No valid customer points found in the selected file.",
+            translate("importCustomerPoints.dataSource.noValidPointsError"),
           );
           return;
         }
@@ -50,15 +53,20 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
         userTracking.capture({
           name: "importCustomerPoints.parseError",
         });
-        actions.setError(`Failed to parse file: ${(error as Error).message}`);
+        captureError(error as Error);
+        actions.setError(
+          translate("importCustomerPoints.dataSource.parseFileError"),
+        );
       }
     },
-    [actions, userTracking],
+    [actions, userTracking, translate],
   );
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Add Customer Points File</h2>
+      <h2 className="text-lg font-semibold">
+        {translate("importCustomerPoints.dataSource.title")}
+      </h2>
 
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -82,7 +90,8 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
               disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Supported formats: GeoJSON (.geojson), GeoJSONL (.geojsonl)
+            {translate("importCustomerPoints.dataSource.supportedFormats")}{" "}
+            GeoJSON (.geojson), GeoJSONL (.geojsonl)
           </p>
         </div>
       </div>
@@ -90,7 +99,9 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
       {state.isLoading && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-sm text-gray-600">Parsing file...</span>
+          <span className="ml-2 text-sm text-gray-600">
+            {translate("importCustomerPoints.dataSource.parsingFile")}
+          </span>
         </div>
       )}
     </div>
