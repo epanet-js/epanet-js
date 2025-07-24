@@ -401,6 +401,19 @@
   "customerPointWithoutJunctionSingular": "{{1}} point de consommation sans nœud valide",
   "customerPointWithoutJunctionPlural": "{{1}} points de consommation sans nœud valide",
   "importCustomerPoints": {
+    "wizard": {
+      "title": "Importer Points de Consommation",
+      "stepsAriaLabel": "Étapes de l'assistant d'importation",
+      "dataInputStep": "Saisie de Données",
+      "demandAllocationStep": "Allocation de Demande",
+      "buttons": {
+        "cancel": "Annuler",
+        "back": "Retour",
+        "next": "Suivant",
+        "finish": "Terminer",
+        "processing": "Traitement..."
+      }
+    },
     "dataSource": {
       "title": "Ajouter depuis un Fichier",
       "noValidPointsError": "Aucun point de consommation valide trouvé dans le fichier sélectionné.",

@@ -401,6 +401,19 @@
   "customerPointWithoutJunctionSingular": "{{1}} klantpunt zonder geldig knooppunt",
   "customerPointWithoutJunctionPlural": "{{1}} klantpunten zonder geldig knooppunt",
   "importCustomerPoints": {
+    "wizard": {
+      "title": "Klantpunten Importeren",
+      "stepsAriaLabel": "Wizard stappen importeren",
+      "dataInputStep": "Data Invoer",
+      "demandAllocationStep": "Vraag Toewijzing",
+      "buttons": {
+        "cancel": "Annuleren",
+        "back": "Terug",
+        "next": "Volgende",
+        "finish": "Voltooien",
+        "processing": "Verwerken..."
+      }
+    },
     "dataSource": {
       "title": "Toevoegen vanuit Bestand",
       "noValidPointsError": "Geen geldige klantpunten gevonden in het geselecteerde bestand.",

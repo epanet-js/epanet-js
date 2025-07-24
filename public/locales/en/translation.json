@@ -401,6 +401,19 @@
   "customerPointWithoutJunctionSingular": "{{1}} customer point without valid junction",
   "customerPointWithoutJunctionPlural": "{{1}} customer points without valid junction",
   "importCustomerPoints": {
+    "wizard": {
+      "title": "Import Customer Points",
+      "stepsAriaLabel": "Import wizard steps",
+      "dataInputStep": "Data Input",
+      "demandAllocationStep": "Demand Allocation",
+      "buttons": {
+        "cancel": "Cancel",
+        "back": "Back",
+        "next": "Next",
+        "finish": "Finish",
+        "processing": "Processing..."
+      }
+    },
     "dataSource": {
       "title": "Add from File",
       "noValidPointsError": "No valid customer points found in the selected file.",

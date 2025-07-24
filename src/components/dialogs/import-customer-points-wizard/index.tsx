@@ -4,6 +4,7 @@ import { DialogContainer } from "src/components/dialog";
 import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
 import { DemandAllocationStep } from "./demand-allocation-step";
+import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
@@ -29,6 +30,7 @@ export const ImportCustomerPointsWizard: React.FC<
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
+  const translate = useTranslate();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -148,13 +150,13 @@ export const ImportCustomerPointsWizard: React.FC<
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">
-              Import Customer Points
+              {translate("importCustomerPoints.wizard.title")}
             </h1>
           </div>
 
           <nav
             role="navigation"
-            aria-label="Import wizard steps"
+            aria-label={translate("importCustomerPoints.wizard.stepsAriaLabel")}
             className="flex items-center space-x-4"
           >
             <div className="flex items-center">
@@ -179,7 +181,7 @@ export const ImportCustomerPointsWizard: React.FC<
                     : "text-gray-500"
                 }`}
               >
-                Data Input
+                {translate("importCustomerPoints.wizard.dataInputStep")}
               </span>
             </div>
 
@@ -213,7 +215,7 @@ export const ImportCustomerPointsWizard: React.FC<
                     : "text-gray-500"
                 }`}
               >
-                Demand Allocation
+                {translate("importCustomerPoints.wizard.demandAllocationStep")}
               </span>
             </div>
           </nav>
@@ -238,7 +240,7 @@ export const ImportCustomerPointsWizard: React.FC<
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             disabled={wizardState.isProcessing}
           >
-            Cancel
+            {translate("importCustomerPoints.wizard.buttons.cancel")}
           </button>
 
           <div className="flex space-x-3">
@@ -247,7 +249,7 @@ export const ImportCustomerPointsWizard: React.FC<
               disabled={!canGoBack || isNextDisabled}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Back
+              {translate("importCustomerPoints.wizard.buttons.back")}
             </button>
 
             {wizardState.currentStep === 1 && (
@@ -256,7 +258,7 @@ export const ImportCustomerPointsWizard: React.FC<
                 disabled={!canGoNext || isNextDisabled}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {translate("importCustomerPoints.wizard.buttons.next")}
               </button>
             )}
 
@@ -266,7 +268,9 @@ export const ImportCustomerPointsWizard: React.FC<
                 disabled={isFinishDisabled}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {wizardState.isProcessing ? "Processing..." : "Finish"}
+                {wizardState.isProcessing
+                  ? translate("importCustomerPoints.wizard.buttons.processing")
+                  : translate("importCustomerPoints.wizard.buttons.finish")}
               </button>
             )}
           </div>
