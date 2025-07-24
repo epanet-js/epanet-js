@@ -8,13 +8,10 @@ import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import i18n from "src/infra/i18n/i18next-config";
-import enTranslations from "../../public/locales/en/translation.json";
 import toast from "react-hot-toast";
 
-describe.skip("importCustomerPoints", () => {
+describe("importCustomerPoints", () => {
   beforeEach(() => {
-    i18n.addResourceBundle("en", "translation", enTranslations);
     toast.remove();
   });
 

@@ -7,9 +7,13 @@ import "src/infra/i18n/i18next-config";
 export const useLocale = () => {
   const { locale, setLocale: setUserLocale } = useUserSettings();
   const { i18n } = useTranslation();
-  const [isI18nReady, setIsI18nReady] = useState(false);
+  const [isI18nReady, setIsI18nReady] = useState(locale === "en");
 
   useEffect(() => {
+    if (locale === "en" && isI18nReady) {
+      return;
+    }
+
     setIsI18nReady(false);
     const syncLanguage = async () => {
       if (i18n.language !== locale) {
@@ -18,7 +22,7 @@ export const useLocale = () => {
       setIsI18nReady(true);
     };
     void syncLanguage();
-  }, [locale, i18n]);
+  }, [locale, i18n, isI18nReady]);
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {

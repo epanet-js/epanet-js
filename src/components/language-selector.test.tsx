@@ -24,8 +24,9 @@ const renderComponent = ({ store }: { store: Store }) => {
 };
 
 describe("Language Selector", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
+    await i18n.changeLanguage("en"); // Force i18n to English
     i18n.addResourceBundle("es", "translation", esTranslations);
     i18n.addResourceBundle("pt", "translation", ptTranslations);
   });
