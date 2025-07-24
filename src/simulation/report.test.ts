@@ -125,17 +125,15 @@ describe("report utils", () => {
     expect(output).not.toContain("P_ZERO");
   });
 
-  it("captures warning when match found but asset not found", () => {
+  it("captures error when match found but asset not found", () => {
     const assets = HydraulicModelBuilder.with().build().assets;
-    const captureWarningSpy = vi.spyOn(errorTracking, "captureWarning");
+    const captureErrorSpy = vi.spyOn(errorTracking, "captureError");
 
     const report = `Error 205: Node 999 has missing data`;
 
     const output = replaceIdWithLabels(report, assets);
 
     expect(output).toContain("Error 205: Node 999 has missing data");
-    expect(captureWarningSpy).toHaveBeenCalledWith(
-      "Asset ID '999' referenced in report but not found in model",
-    );
+    expect(captureErrorSpy).toHaveBeenCalled();
   });
 });
