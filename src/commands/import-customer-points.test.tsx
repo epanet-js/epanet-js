@@ -6,7 +6,6 @@ import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { stubFileOpenError } from "src/__helpers__/browser-fs-mock";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import i18n from "src/infra/i18n/i18next-config";
@@ -419,7 +418,6 @@ describe("importCustomerPoints", () => {
     const file = aTestFile({
       filename: "customer-points.geojson",
     });
-    stubFileOpenError();
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -448,8 +446,7 @@ describe("importCustomerPoints", () => {
     });
   });
 
-  it("closes error dialog when cancel is clicked", async () => {
-    stubFileOpenError();
+  it("closes wizard when cancel is clicked", async () => {
     const store = createStoreWithPipes();
 
     renderComponent({ store });

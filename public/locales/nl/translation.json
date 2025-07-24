@@ -406,7 +406,8 @@
       "noValidPointsError": "Geen geldige klantpunten gevonden in het geselecteerde bestand.",
       "parseFileError": "Fout bij het analyseren van het bestand",
       "supportedFormats": "Ondersteunde formaten:",
-      "parsingFile": "Bestand lezen..."
+      "parsingFile": "Bestand lezen...",
+      "chooseFile": "Bestand Kiezen"
     }
   }
 }

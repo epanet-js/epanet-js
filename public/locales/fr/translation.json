@@ -406,7 +406,8 @@
       "noValidPointsError": "Aucun point de consommation valide trouvé dans le fichier sélectionné.",
       "parseFileError": "Échec de l'analyse du fichier",
       "supportedFormats": "Formats pris en charge :",
-      "parsingFile": "Lecture du fichier..."
+      "parsingFile": "Lecture du fichier...",
+      "chooseFile": "Choisir un Fichier"
     }
   }
 }

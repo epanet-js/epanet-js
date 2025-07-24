@@ -406,7 +406,8 @@
       "noValidPointsError": "No valid customer points found in the selected file.",
       "parseFileError": "Failed to parse file",
       "supportedFormats": "Supported formats:",
-      "parsingFile": "Reading file..."
+      "parsingFile": "Reading file...",
+      "chooseFile": "Choose File"
     }
   }
 }

@@ -77,18 +77,19 @@ export const DataSourceStep: React.FC<DataSourceStepProps> = ({
       <div className="space-y-3">
         <div>
           <input
+            id="file-input"
             type="file"
             accept=".geojson,.geojsonl"
             onChange={handleFileSelect}
             disabled={state.isLoading}
-            className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100
-              disabled:opacity-50 disabled:cursor-not-allowed"
+            className="sr-only"
           />
+          <label
+            htmlFor="file-input"
+            className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {translate("importCustomerPoints.dataSource.chooseFile")}
+          </label>
           <p className="text-xs text-gray-500 mt-1">
             {translate("importCustomerPoints.dataSource.supportedFormats")}{" "}
             GeoJSON (.geojson), GeoJSONL (.geojsonl)
