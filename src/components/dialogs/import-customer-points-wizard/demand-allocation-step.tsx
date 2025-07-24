@@ -1,5 +1,6 @@
 import React from "react";
 import { WizardState, WizardActions } from "./types";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type DemandAllocationStepProps = {
   state: WizardState;
@@ -12,6 +13,7 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
   actions,
   onFinish: _onFinish,
 }) => {
+  const userTracking = useUserTracking();
   const customerPointCount = state.parsedCustomerPoints?.length || 0;
 
   return (
@@ -56,7 +58,13 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
               type="radio"
               name="keepDemands"
               checked={!state.keepDemands}
-              onChange={() => actions.setKeepDemands(false)}
+              onChange={() => {
+                actions.setKeepDemands(false);
+                userTracking.capture({
+                  name: "importCustomerPoints.demandAllocationSelected",
+                  option: "replace",
+                });
+              }}
               className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
             />
             <div className="flex-1">
@@ -82,7 +90,13 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
               type="radio"
               name="keepDemands"
               checked={state.keepDemands}
-              onChange={() => actions.setKeepDemands(true)}
+              onChange={() => {
+                actions.setKeepDemands(true);
+                userTracking.capture({
+                  name: "importCustomerPoints.demandAllocationSelected",
+                  option: "addOnTop",
+                });
+              }}
               className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
             />
             <div className="flex-1">

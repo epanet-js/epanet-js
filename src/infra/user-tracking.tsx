@@ -351,6 +351,11 @@ type ImportCustomerPointsParseError = {
   name: "importCustomerPoints.parseError";
 };
 
+type ImportCustomerPointsDemandAllocationSelected = {
+  name: "importCustomerPoints.demandAllocationSelected";
+  option: "replace" | "addOnTop";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -411,6 +416,7 @@ export type UserEvent =
   | ImportCustomerPointsCanceled
   | ImportCustomerPointsNoValidPoints
   | ImportCustomerPointsParseError
+  | ImportCustomerPointsDemandAllocationSelected
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
