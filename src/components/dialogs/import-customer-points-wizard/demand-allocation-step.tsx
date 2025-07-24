@@ -1,13 +1,13 @@
 import React from "react";
 import { WizardState, WizardActions } from "./types";
 
-type SummaryStepProps = {
+type DemandAllocationStepProps = {
   state: WizardState;
   actions: WizardActions;
   onFinish: () => Promise<void>;
 };
 
-export const SummaryStep: React.FC<SummaryStepProps> = ({
+export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
   state,
   actions: _actions,
   onFinish: _onFinish,
@@ -16,7 +16,7 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Summary</h2>
+      <h2 className="text-lg font-semibold">Demand Allocation</h2>
 
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">

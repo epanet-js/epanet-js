@@ -36,7 +36,7 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     expect(screen.getByText("2 points")).toBeInTheDocument();
 
     await finishWizardImport();
@@ -75,7 +75,7 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
 
     await finishWizardImport();
     await expectSuccessNotification();
@@ -101,7 +101,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     await finishWizardImport();
     await expectSuccessNotification();
 
@@ -196,7 +196,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     expect(screen.getByText("1 points")).toBeInTheDocument();
 
     await finishWizardImport();
@@ -252,7 +252,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     await finishWizardImport();
     await expectSuccessNotification();
     const { hydraulicModel } = store.get(dataAtom);
@@ -303,7 +303,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     await finishWizardImport();
     await expectSuccessNotification();
     const { hydraulicModel } = store.get(dataAtom);
@@ -353,7 +353,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     await finishWizardImport();
     await expectSuccessNotification();
 
@@ -402,7 +402,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("summary");
+    expectWizardStep("demand allocation");
     await finishWizardImport();
     await expectSuccessNotification(1);
 
