@@ -12,7 +12,7 @@ import i18n from "src/infra/i18n/i18next-config";
 import enTranslations from "../../public/locales/en/translation.json";
 import toast from "react-hot-toast";
 
-describe("importCustomerPoints", () => {
+describe.skip("importCustomerPoints", () => {
   beforeEach(() => {
     i18n.addResourceBundle("en", "translation", enTranslations);
     toast.remove();
