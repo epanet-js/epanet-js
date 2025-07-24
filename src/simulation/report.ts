@@ -3,7 +3,7 @@ import { Asset, AssetsMap } from "src/hydraulic-model";
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV)\s+(\d+)/i;
 const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
 const assetReferenceRegExp =
-  /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank)\s+(\d+)/g;
+  /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\s+(\d+)/gi;
 
 const skipRegexp = [/Error 213/];
 

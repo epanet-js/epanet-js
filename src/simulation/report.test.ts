@@ -96,4 +96,18 @@ describe("report utils", () => {
     expect(output).toContain("0:00:00: FCV OTHER open but");
     expect(output).toContain("WARNING: PRV MY_VALVE open but");
   });
+
+  it("can replace node id in ill-conditioned system messages", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aJunction("51638", { label: "J_PROBLEMATIC" })
+      .build().assets;
+
+    const report = `   0:00:00: System ill-conditioned at node 51638`;
+
+    const output = replaceIdWithLabels(report, assets);
+
+    expect(output).toContain(
+      "   0:00:00: System ill-conditioned at node J_PROBLEMATIC",
+    );
+  });
 });
