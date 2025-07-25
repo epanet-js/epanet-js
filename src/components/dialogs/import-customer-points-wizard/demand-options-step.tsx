@@ -45,7 +45,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
               !state.keepDemands
-                ? "border-blue-500 bg-blue-50"
+                ? "border-purple-500 bg-purple-50"
                 : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
             }`}
           >
@@ -60,7 +60,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
                   option: "replace",
                 });
               }}
-              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="mt-1 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"
             />
             <div className="flex-1">
               <div className="font-medium text-gray-900">
@@ -79,7 +79,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
               state.keepDemands
-                ? "border-blue-500 bg-blue-50"
+                ? "border-purple-500 bg-purple-50"
                 : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
             }`}
           >
@@ -94,7 +94,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
                   option: "addOnTop",
                 });
               }}
-              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="mt-1 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"
             />
             <div className="flex-1">
               <div className="font-medium text-gray-900">
@@ -114,7 +114,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
 
       {state.isProcessing && (
         <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
           <span className="ml-2 text-sm text-gray-600">
             {translate(
               "importCustomerPoints.wizard.demandOptions.processingMessage",
