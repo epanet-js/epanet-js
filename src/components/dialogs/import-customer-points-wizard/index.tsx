@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { DialogContainer } from "src/components/dialog";
 import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
-import { DemandAllocationStep } from "./demand-allocation-step";
+import { DemandOptionsStep } from "./demand-options-step";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
@@ -197,7 +197,7 @@ export const ImportCustomerPointsWizard: React.FC<
             <div className="flex items-center">
               <div
                 role="tab"
-                aria-label="Step 2: Demand Allocation"
+                aria-label="Step 2: Demand Options"
                 aria-current={
                   wizardState.currentStep === 2 ? "step" : undefined
                 }
@@ -216,7 +216,7 @@ export const ImportCustomerPointsWizard: React.FC<
                     : "text-gray-500"
                 }`}
               >
-                {translate("importCustomerPoints.wizard.demandAllocationStep")}
+                {translate("importCustomerPoints.wizard.demandOptionsStep")}
               </span>
             </div>
           </nav>
@@ -227,7 +227,7 @@ export const ImportCustomerPointsWizard: React.FC<
             <DataInputStep state={wizardState} actions={wizardState} />
           )}
           {wizardState.currentStep === 2 && (
-            <DemandAllocationStep
+            <DemandOptionsStep
               state={wizardState}
               actions={wizardState}
               onFinish={handleFinishImport}

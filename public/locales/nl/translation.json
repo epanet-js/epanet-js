@@ -405,7 +405,7 @@
       "title": "Klantpunten Importeren",
       "stepsAriaLabel": "Wizard stappen importeren",
       "dataInputStep": "Data Invoer",
-      "demandAllocationStep": "Vraag Toewijzing",
+      "demandOptionsStep": "Vraag Opties",
       "buttons": {
         "cancel": "Annuleren",
         "back": "Terug",
@@ -413,8 +413,8 @@
         "finish": "Voltooien",
         "processing": "Verwerken..."
       },
-      "demandAllocation": {
-        "title": "Vraag Toewijzing",
+      "demandOptions": {
+        "title": "Vraag Opties",
         "customerPoint": "Klantpunt",
         "customerPoints": "Klantpunten",
         "allocationOptions": "Toewijzingsopties",

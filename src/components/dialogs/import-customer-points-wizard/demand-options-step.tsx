@@ -3,13 +3,13 @@ import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 
-type DemandAllocationStepProps = {
+type DemandOptionsStepProps = {
   state: WizardState;
   actions: WizardActions;
   onFinish: () => Promise<void>;
 };
 
-export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
+export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
   state,
   actions,
   onFinish: _onFinish,
@@ -19,15 +19,13 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
   const customerPointCount = state.parsedCustomerPoints?.length || 0;
   const pointText =
     customerPointCount === 1
-      ? translate("importCustomerPoints.wizard.demandAllocation.customerPoint")
-      : translate(
-          "importCustomerPoints.wizard.demandAllocation.customerPoints",
-        );
+      ? translate("importCustomerPoints.wizard.demandOptions.customerPoint")
+      : translate("importCustomerPoints.wizard.demandOptions.customerPoints");
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">
-        {translate("importCustomerPoints.wizard.demandAllocation.title")} (
+        {translate("importCustomerPoints.wizard.demandOptions.title")} (
         {customerPointCount} {pointText})
       </h2>
 
@@ -40,7 +38,7 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
       <div className="space-y-4">
         <h3 className="font-medium text-gray-900">
           {translate(
-            "importCustomerPoints.wizard.demandAllocation.allocationOptions",
+            "importCustomerPoints.wizard.demandOptions.allocationOptions",
           )}
         </h3>
         <div className="space-y-3">
@@ -67,12 +65,12 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
             <div className="flex-1">
               <div className="font-medium text-gray-900">
                 {translate(
-                  "importCustomerPoints.wizard.demandAllocation.replaceOption.title",
+                  "importCustomerPoints.wizard.demandOptions.replaceOption.title",
                 )}
               </div>
               <div className="text-sm text-gray-600 mt-1">
                 {translate(
-                  "importCustomerPoints.wizard.demandAllocation.replaceOption.description",
+                  "importCustomerPoints.wizard.demandOptions.replaceOption.description",
                 )}
               </div>
             </div>
@@ -101,12 +99,12 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
             <div className="flex-1">
               <div className="font-medium text-gray-900">
                 {translate(
-                  "importCustomerPoints.wizard.demandAllocation.addOnTopOption.title",
+                  "importCustomerPoints.wizard.demandOptions.addOnTopOption.title",
                 )}
               </div>
               <div className="text-sm text-gray-600 mt-1">
                 {translate(
-                  "importCustomerPoints.wizard.demandAllocation.addOnTopOption.description",
+                  "importCustomerPoints.wizard.demandOptions.addOnTopOption.description",
                 )}
               </div>
             </div>
@@ -119,7 +117,7 @@ export const DemandAllocationStep: React.FC<DemandAllocationStepProps> = ({
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           <span className="ml-2 text-sm text-gray-600">
             {translate(
-              "importCustomerPoints.wizard.demandAllocation.processingMessage",
+              "importCustomerPoints.wizard.demandOptions.processingMessage",
             )}
           </span>
         </div>

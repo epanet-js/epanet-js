@@ -33,9 +33,9 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     expect(
-      screen.getByText("Demand Allocation (2 Customer Points)"),
+      screen.getByText("Demand Options (2 Customer Points)"),
     ).toBeInTheDocument();
 
     await finishWizardImport();
@@ -74,7 +74,7 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
 
     await finishWizardImport();
     await expectSuccessNotification();
@@ -100,7 +100,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
 
@@ -195,9 +195,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     expect(
-      screen.getByText("Demand Allocation (1 Customer Point)"),
+      screen.getByText("Demand Options (1 Customer Point)"),
     ).toBeInTheDocument();
 
     await finishWizardImport();
@@ -253,7 +253,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
     const { hydraulicModel } = store.get(dataAtom);
@@ -304,7 +304,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
     const { hydraulicModel } = store.get(dataAtom);
@@ -354,7 +354,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
 
@@ -403,7 +403,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification(1);
 
@@ -485,7 +485,7 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
-    expectWizardStep("demand allocation");
+    expectWizardStep("demand options");
 
     await userEvent.click(
       screen.getByLabelText(/add customer demands on top/i),

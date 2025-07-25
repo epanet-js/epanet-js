@@ -405,7 +405,7 @@
       "title": "Importer Points de Consommation",
       "stepsAriaLabel": "Étapes de l'assistant d'importation",
       "dataInputStep": "Saisie de Données",
-      "demandAllocationStep": "Allocation de Demande",
+      "demandOptionsStep": "Options de Demande",
       "buttons": {
         "cancel": "Annuler",
         "back": "Retour",
@@ -413,8 +413,8 @@
         "finish": "Terminer",
         "processing": "Traitement..."
       },
-      "demandAllocation": {
-        "title": "Allocation de Demande",
+      "demandOptions": {
+        "title": "Options de Demande",
         "customerPoint": "Point de Consommation",
         "customerPoints": "Points de Consommation",
         "allocationOptions": "Options d'Allocation",
