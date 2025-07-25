@@ -42,8 +42,8 @@ export const DropZone: React.FC<DropZoneProps> = ({
         flex flex-col items-center justify-center p-8 cursor-pointer
         transition-all duration-200 ease-in-out
         ${dragState === "idle" ? "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100" : ""}
-        ${dragState === "dragging" ? "border-blue-400 bg-blue-50" : ""}
-        ${dragState === "over" ? "border-blue-500 border-solid bg-blue-100" : ""}
+        ${dragState === "dragging" ? "border-purple-400 bg-purple-50" : ""}
+        ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
       data-testid={testId}
@@ -54,12 +54,12 @@ export const DropZone: React.FC<DropZoneProps> = ({
         <div
           className={`
           p-3 rounded-full
-          ${dragState === "over" ? "bg-blue-200" : "bg-gray-200"}
+          ${dragState === "over" ? "bg-purple-200" : "bg-gray-200"}
         `}
         >
           <UploadIcon
             className={`h-8 w-8 ${
-              dragState === "over" ? "text-blue-600" : "text-gray-400"
+              dragState === "over" ? "text-purple-600" : "text-gray-400"
             }`}
           />
         </div>
@@ -67,7 +67,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
         <div className="text-center">
           <p
             className={`text-lg font-medium ${
-              dragState === "over" ? "text-blue-700" : "text-gray-700"
+              dragState === "over" ? "text-purple-700" : "text-gray-700"
             }`}
           >
             {dragState === "over"
