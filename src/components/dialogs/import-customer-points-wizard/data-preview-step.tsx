@@ -3,6 +3,7 @@ import { Feature } from "geojson";
 import { WizardState, WizardActions } from "./types";
 import { useTranslate } from "src/hooks/use-translate";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 
 type DataPreviewStepProps = {
@@ -39,8 +40,6 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
   const errorCount = getTotalErrorCount(issues);
 
   const MAX_PREVIEW_ROWS = 15;
-  const validPreview = validCustomerPoints.slice(0, MAX_PREVIEW_ROWS);
-  const validHasMore = validCount > MAX_PREVIEW_ROWS;
 
   return (
     <div className="space-y-4">
@@ -88,133 +87,16 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
         <div className="h-80 overflow-y-auto">
           {activeTab === "customerPoints" && (
             <div className="p-4">
-              {validCount === 0 ? (
-                <p className="text-gray-500 text-sm">
-                  {translate(
-                    "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
-                  )}
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.table.id",
-                          )}
-                        </th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.table.latitude",
-                          )}
-                        </th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.table.longitude",
-                          )}
-                        </th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.table.demand",
-                          )}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {validPreview.map((point, index) => (
-                        <tr
-                          key={point.id}
-                          className={
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          }
-                        >
-                          <td className="px-3 py-2 border-b">{point.id}</td>
-                          <td className="px-3 py-2 border-b">
-                            {localizeDecimal(point.coordinates[1], {
-                              decimals: 6,
-                            })}
-                          </td>
-                          <td className="px-3 py-2 border-b">
-                            {localizeDecimal(point.coordinates[0], {
-                              decimals: 6,
-                            })}
-                          </td>
-                          <td className="px-3 py-2 border-b">
-                            {localizeDecimal(point.baseDemand)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {validHasMore && (
-                    <p className="text-sm text-gray-500 text-center pt-2">
-                      {translate(
-                        "importCustomerPoints.wizard.dataPreview.messages.andXMore",
-                        localizeDecimal(validCount - MAX_PREVIEW_ROWS, {
-                          decimals: 0,
-                        }),
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
+              <CustomerPointsTable
+                customerPoints={validCustomerPoints}
+                maxPreviewRows={MAX_PREVIEW_ROWS}
+              />
             </div>
           )}
 
           {activeTab === "issues" && (
             <div className="p-4">
-              {errorCount === 0 ? (
-                <p className="text-gray-500 text-sm">
-                  {translate(
-                    "importCustomerPoints.wizard.dataPreview.messages.noErrors",
-                  )}
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    {translate(
-                      "importCustomerPoints.wizard.dataPreview.messages.issuesSummary",
-                    )}
-                  </h3>
-                  <div className="space-y-4">
-                    {issues?.skippedNonPointFeatures && (
-                      <IssueSection
-                        title={translate(
-                          "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
-                          issues.skippedNonPointFeatures.length.toString(),
-                        )}
-                        features={issues.skippedNonPointFeatures}
-                      />
-                    )}
-                    {issues?.skippedInvalidCoordinates && (
-                      <IssueSection
-                        title={translate(
-                          "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
-                          issues.skippedInvalidCoordinates.length.toString(),
-                        )}
-                        features={issues.skippedInvalidCoordinates}
-                      />
-                    )}
-                    {issues?.skippedCreationFailures && (
-                      <IssueSection
-                        title={translate(
-                          "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
-                          issues.skippedCreationFailures.length.toString(),
-                        )}
-                        features={issues.skippedCreationFailures}
-                      />
-                    )}
-                  </div>
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-sm text-yellow-800">
-                      {translate(
-                        "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
+              <IssuesSummary issues={issues} />
             </div>
           )}
         </div>
@@ -232,6 +114,150 @@ const getTotalErrorCount = (
     (issues.skippedNonPointFeatures?.length || 0) +
     (issues.skippedInvalidCoordinates?.length || 0) +
     (issues.skippedCreationFailures?.length || 0)
+  );
+};
+
+type CustomerPointsTableProps = {
+  customerPoints: CustomerPoint[];
+  maxPreviewRows: number;
+};
+
+const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
+  customerPoints,
+  maxPreviewRows,
+}) => {
+  const translate = useTranslate();
+  const validCount = customerPoints.length;
+  const validPreview = customerPoints.slice(0, maxPreviewRows);
+  const validHasMore = validCount > maxPreviewRows;
+
+  if (validCount === 0) {
+    return (
+      <p className="text-gray-500 text-sm">
+        {translate(
+          "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
+        )}
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-50 sticky top-0">
+          <tr>
+            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+              {translate("importCustomerPoints.wizard.dataPreview.table.id")}
+            </th>
+            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+              {translate(
+                "importCustomerPoints.wizard.dataPreview.table.latitude",
+              )}
+            </th>
+            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+              {translate(
+                "importCustomerPoints.wizard.dataPreview.table.longitude",
+              )}
+            </th>
+            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+              {translate(
+                "importCustomerPoints.wizard.dataPreview.table.demand",
+              )}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {validPreview.map((point, index) => (
+            <tr
+              key={point.id}
+              className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+            >
+              <td className="px-3 py-2 border-b">{point.id}</td>
+              <td className="px-3 py-2 border-b">
+                {localizeDecimal(point.coordinates[1], { decimals: 6 })}
+              </td>
+              <td className="px-3 py-2 border-b">
+                {localizeDecimal(point.coordinates[0], { decimals: 6 })}
+              </td>
+              <td className="px-3 py-2 border-b">
+                {localizeDecimal(point.baseDemand)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {validHasMore && (
+        <p className="text-sm text-gray-500 text-center pt-2">
+          {translate(
+            "importCustomerPoints.wizard.dataPreview.messages.andXMore",
+            localizeDecimal(validCount - maxPreviewRows, { decimals: 0 }),
+          )}
+        </p>
+      )}
+    </div>
+  );
+};
+
+type IssuesSummaryProps = {
+  issues: CustomerPointsParserIssues | null;
+};
+
+const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
+  const translate = useTranslate();
+  const errorCount = getTotalErrorCount(issues);
+
+  if (errorCount === 0) {
+    return (
+      <p className="text-gray-500 text-sm">
+        {translate("importCustomerPoints.wizard.dataPreview.messages.noErrors")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium text-gray-900">
+        {translate(
+          "importCustomerPoints.wizard.dataPreview.messages.issuesSummary",
+        )}
+      </h3>
+      <div className="space-y-4">
+        {issues?.skippedNonPointFeatures && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
+              issues.skippedNonPointFeatures.length.toString(),
+            )}
+            features={issues.skippedNonPointFeatures}
+          />
+        )}
+        {issues?.skippedInvalidCoordinates && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
+              issues.skippedInvalidCoordinates.length.toString(),
+            )}
+            features={issues.skippedInvalidCoordinates}
+          />
+        )}
+        {issues?.skippedCreationFailures && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
+              issues.skippedCreationFailures.length.toString(),
+            )}
+            features={issues.skippedCreationFailures}
+          />
+        )}
+      </div>
+      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+        <p className="text-sm text-yellow-800">
+          {translate(
+            "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
+          )}
+        </p>
+      </div>
+    </div>
   );
 };
 
