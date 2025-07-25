@@ -1,4 +1,10 @@
 {
+  "dropZone": {
+    "defaultText": "Drop files here or click to browse",
+    "activeText": "Drop your file here",
+    "supportedFormats": "Supported formats: {{1}}",
+    "selectedFile": "Selected: {{1}}"
+  },
   "select": "Select",
   "selection": "Selection",
   "junction": "Junction",

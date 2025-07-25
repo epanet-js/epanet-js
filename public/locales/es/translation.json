@@ -1,4 +1,10 @@
 {
+  "dropZone": {
+    "defaultText": "Arrastra archivos aquí o haz clic para explorar",
+    "activeText": "Suelta tu archivo aquí",
+    "supportedFormats": "Formatos soportados: {{1}}",
+    "selectedFile": "Seleccionado: {{1}}"
+  },
   "select": "Seleccionar",
   "selection": "Selección",
   "junction": "Nudo",

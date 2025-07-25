@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -6,8 +6,7 @@ import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useDropZone } from "src/hooks/use-drop-zone";
-import { UploadIcon } from "@radix-ui/react-icons";
+import { DropZone } from "src/components/drop-zone";
 
 type DataInputStepProps = {
   state: WizardState;
@@ -20,7 +19,6 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
 }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileProcess = useCallback(
     async (file: File) => {
@@ -64,16 +62,6 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
     [actions, userTracking, translate],
   );
 
-  const { dragState, dropZoneProps, inputProps } = useDropZone({
-    onFileDrop: handleFileProcess,
-    accept: ".geojson,.geojsonl",
-    disabled: state.isLoading,
-  });
-
-  const handleDropZoneClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">
@@ -87,64 +75,14 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
       )}
 
       <div className="space-y-4">
-        <div
-          {...dropZoneProps}
-          onClick={handleDropZoneClick}
-          className={`
-            relative min-h-[200px] border-2 border-dashed rounded-lg
-            flex flex-col items-center justify-center p-8 cursor-pointer
-            transition-all duration-200 ease-in-out
-            ${dragState === "idle" ? "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100" : ""}
-            ${dragState === "dragging" ? "border-blue-400 bg-blue-50" : ""}
-            ${dragState === "over" ? "border-blue-500 border-solid bg-blue-100" : ""}
-            ${state.isLoading ? "opacity-50 cursor-not-allowed" : ""}
-          `}
-          data-testid="customer-points-drop-zone"
-        >
-          <input ref={fileInputRef} {...inputProps} id="file-input" />
-
-          <div className="flex flex-col items-center space-y-4">
-            <div
-              className={`
-              p-3 rounded-full
-              ${dragState === "over" ? "bg-blue-200" : "bg-gray-200"}
-            `}
-            >
-              <UploadIcon
-                className={`h-8 w-8 ${
-                  dragState === "over" ? "text-blue-600" : "text-gray-400"
-                }`}
-              />
-            </div>
-
-            <div className="text-center">
-              <p
-                className={`text-lg font-medium ${
-                  dragState === "over" ? "text-blue-700" : "text-gray-700"
-                }`}
-              >
-                {dragState === "over"
-                  ? "Drop your file here"
-                  : "Drop files here or click to browse"}
-              </p>
-
-              <p className="text-sm text-gray-500 mt-2">
-                {translate("importCustomerPoints.dataSource.supportedFormats")}{" "}
-                GeoJSON (.geojson), GeoJSONL (.geojsonl)
-              </p>
-            </div>
-          </div>
-
-          {state.selectedFile && (
-            <div className="absolute bottom-4 left-4 right-4">
-              <div className="bg-white rounded-md px-3 py-2 border border-gray-200 shadow-sm">
-                <p className="text-sm text-gray-600 truncate">
-                  Selected: {state.selectedFile.name}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        <DropZone
+          onFileDrop={handleFileProcess}
+          accept=".geojson,.geojsonl"
+          disabled={state.isLoading}
+          supportedFormats="GeoJSON (.geojson), GeoJSONL (.geojsonl)"
+          selectedFile={state.selectedFile}
+          testId="customer-points-drop-zone"
+        />
       </div>
 
       {state.isLoading && (

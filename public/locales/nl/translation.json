@@ -1,4 +1,10 @@
 {
+  "dropZone": {
+    "defaultText": "Sleep bestanden hier of klik om te bladeren",
+    "activeText": "Laat je bestand hier vallen",
+    "supportedFormats": "Ondersteunde formaten: {{1}}",
+    "selectedFile": "Geselecteerd: {{1}}"
+  },
   "select": "Selecteren",
   "selection": "Selectie",
   "junction": "Knooppunt",
