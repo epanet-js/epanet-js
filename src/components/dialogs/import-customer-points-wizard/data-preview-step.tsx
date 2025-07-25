@@ -70,11 +70,14 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
           </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "issues"
-                ? "bg-red-50 text-red-700 border-b-2 border-red-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              errorCount === 0
+                ? "text-gray-300 cursor-not-allowed"
+                : activeTab === "issues"
+                  ? "bg-red-50 text-red-700 border-b-2 border-red-500"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("issues")}
+            onClick={() => errorCount > 0 && setActiveTab("issues")}
+            disabled={errorCount === 0}
           >
             {translate("importCustomerPoints.wizard.dataPreview.issuesTab")} (
             {localizeDecimal(errorCount, { decimals: 0 })})

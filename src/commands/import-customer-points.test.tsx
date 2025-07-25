@@ -576,6 +576,31 @@ describe("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
   });
+
+  it("disables issues tab when no errors", async () => {
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    const geoJsonContent = createGeoJSONContent();
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await waitForWizardToOpen();
+
+    expectWizardStep("data input");
+
+    await uploadFileInWizard(file);
+
+    expectWizardStep("data preview");
+
+    const issuesTab = screen.getByRole("button", { name: /issues \(0\)/i });
+    expect(issuesTab).toBeDisabled();
+    expect(issuesTab).toHaveClass("cursor-not-allowed");
+  });
 });
 
 const triggerCommand = async () => {
