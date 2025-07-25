@@ -501,6 +501,7 @@ describe("importCustomerPoints", () => {
   });
 
   it("closes wizard when cancel is clicked", async () => {
+    const userTracking = stubUserTracking();
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -512,6 +513,10 @@ describe("importCustomerPoints", () => {
 
     await waitFor(() => {
       expect(screen.queryByText(/import customer/)).not.toBeInTheDocument();
+    });
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "importCustomerPoints.canceled",
     });
   });
 });

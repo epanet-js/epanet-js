@@ -37,6 +37,13 @@ export const ImportCustomerPointsWizard: React.FC<
     onClose();
   }, [wizardState, onClose]);
 
+  const handleCancel = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.canceled",
+    });
+    handleClose();
+  }, [userTracking, handleClose]);
+
   const handleFinishImport = useCallback(() => {
     if (!wizardState.parsedCustomerPoints) {
       wizardState.setError("No customer points to import");
@@ -237,7 +244,7 @@ export const ImportCustomerPointsWizard: React.FC<
 
         <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
           <button
-            onClick={handleClose}
+            onClick={handleCancel}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             disabled={wizardState.isProcessing}
           >
