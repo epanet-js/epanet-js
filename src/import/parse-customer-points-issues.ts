@@ -24,7 +24,7 @@ export class CustomerPointsIssuesAccumulator {
       (this.issues.skippedInvalidCoordinates || 0) + 1;
   }
 
-  addSkippedInvalidLine() {
+  addSkippedInvalidLine(_rawData?: any) {
     this.issues.skippedInvalidLines =
       (this.issues.skippedInvalidLines || 0) + 1;
   }

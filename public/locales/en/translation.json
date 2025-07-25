@@ -411,6 +411,7 @@
       "title": "Import Customer Points",
       "stepsAriaLabel": "Import wizard steps",
       "dataInputStep": "Data Input",
+      "dataPreviewStep": "Data Preview", 
       "demandOptionsStep": "Demand Options",
       "buttons": {
         "cancel": "Cancel",
@@ -418,6 +419,11 @@
         "next": "Next",
         "finish": "Finish",
         "processing": "Processing..."
+      },
+      "dataPreview": {
+        "title": "Data Preview",
+        "customerPoints": "Customer Points",
+        "errors": "Errors"
       },
       "demandOptions": {
         "title": "Demand Options",

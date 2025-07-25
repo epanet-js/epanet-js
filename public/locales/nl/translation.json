@@ -411,6 +411,7 @@
       "title": "Klantpunten Importeren",
       "stepsAriaLabel": "Wizard stappen importeren",
       "dataInputStep": "Data Invoer",
+      "dataPreviewStep": "Data Voorbeeld",
       "demandOptionsStep": "Vraag Opties",
       "buttons": {
         "cancel": "Annuleren",
@@ -418,6 +419,11 @@
         "next": "Volgende",
         "finish": "Voltooien",
         "processing": "Verwerken..."
+      },
+      "dataPreview": {
+        "title": "Data Voorbeeld",
+        "customerPoints": "Klantpunten",
+        "errors": "Fouten"
       },
       "demandOptions": {
         "title": "Vraag Opties",

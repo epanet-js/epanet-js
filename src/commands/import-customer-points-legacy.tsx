@@ -66,6 +66,8 @@ export const useImportCustomerPointsLegacy = () => {
         };
 
         for (const customerPoint of parseCustomerPoints(text, issues, nextId)) {
+          if (!customerPoint) continue;
+
           const connection = connectCustomerPoint(
             mutableHydraulicModel,
             spatialIndexData,

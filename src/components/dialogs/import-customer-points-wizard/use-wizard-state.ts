@@ -1,11 +1,17 @@
 import { useState, useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { WizardState, WizardActions, WizardStep } from "./types";
+import {
+  WizardState,
+  WizardActions,
+  WizardStep,
+  ParsedDataSummary,
+} from "./types";
 
 const initialState: WizardState = {
   currentStep: 1,
   selectedFile: null,
   parsedCustomerPoints: null,
+  parsedDataSummary: null,
   isLoading: false,
   error: null,
   isProcessing: false,
@@ -22,7 +28,7 @@ export const useWizardState = (): WizardState & WizardActions => {
   const goNext = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      currentStep: Math.min(2, prev.currentStep + 1) as WizardStep,
+      currentStep: Math.min(3, prev.currentStep + 1) as WizardStep,
       error: null,
     }));
   }, []);
@@ -42,6 +48,13 @@ export const useWizardState = (): WizardState & WizardActions => {
   const setParsedCustomerPoints = useCallback(
     (points: CustomerPoint[] | null) => {
       setState((prev) => ({ ...prev, parsedCustomerPoints: points }));
+    },
+    [],
+  );
+
+  const setParsedDataSummary = useCallback(
+    (summary: ParsedDataSummary | null) => {
+      setState((prev) => ({ ...prev, parsedDataSummary: summary }));
     },
     [],
   );
@@ -78,6 +91,7 @@ export const useWizardState = (): WizardState & WizardActions => {
     goBack,
     setSelectedFile,
     setParsedCustomerPoints,
+    setParsedDataSummary,
     setError,
     setLoading,
     setProcessing,

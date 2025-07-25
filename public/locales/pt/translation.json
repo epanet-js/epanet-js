@@ -411,6 +411,7 @@
       "title": "Importar Pontos de Consumo",
       "stepsAriaLabel": "Etapas do assistente de importação",
       "dataInputStep": "Entrada de Dados",
+      "dataPreviewStep": "Visualização de Dados",
       "demandOptionsStep": "Opções de Demanda",
       "buttons": {
         "cancel": "Cancelar",
@@ -418,6 +419,11 @@
         "next": "Próximo",
         "finish": "Finalizar",
         "processing": "Processando..."
+      },
+      "dataPreview": {
+        "title": "Visualização de Dados",
+        "customerPoints": "Pontos de Consumo",
+        "errors": "Erros"
       },
       "demandOptions": {
         "title": "Opções de Demanda",

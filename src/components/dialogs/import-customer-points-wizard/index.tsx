@@ -9,6 +9,7 @@ import {
 } from "src/components/wizard";
 import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
+import { DataPreviewStep } from "./data-preview-step";
 import { DemandOptionsStep } from "./demand-options-step";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, dialogAtom } from "src/state/jotai";
@@ -51,7 +52,10 @@ export const ImportCustomerPointsWizard: React.FC<
   }, [userTracking, handleClose]);
 
   const handleFinishImport = useCallback(() => {
-    if (!wizardState.parsedCustomerPoints) {
+    const customerPoints =
+      wizardState.parsedDataSummary?.validCustomerPoints ||
+      wizardState.parsedCustomerPoints;
+    if (!customerPoints || customerPoints.length === 0) {
       wizardState.setError("No customer points to import");
       return Promise.resolve();
     }
@@ -71,7 +75,7 @@ export const ImportCustomerPointsWizard: React.FC<
           customerPoints: initializeCustomerPoints(),
         };
 
-        for (const customerPoint of wizardState.parsedCustomerPoints!) {
+        for (const customerPoint of customerPoints) {
           const connection = connectCustomerPoint(
             mutableHydraulicModel,
             spatialIndexData,
@@ -152,11 +156,14 @@ export const ImportCustomerPointsWizard: React.FC<
   }, [wizardState, data, setData, setDialogState, userTracking, handleClose]);
 
   const canGoNext =
-    wizardState.currentStep === 1 && wizardState.parsedCustomerPoints !== null;
-  const canGoBack = wizardState.currentStep === 2;
+    (wizardState.currentStep === 1 && wizardState.parsedDataSummary !== null) ||
+    (wizardState.currentStep === 2 && wizardState.parsedDataSummary !== null);
+  const canGoBack =
+    wizardState.currentStep === 2 || wizardState.currentStep === 3;
   const isNextDisabled = wizardState.isLoading || wizardState.isProcessing;
   const isFinishDisabled =
-    wizardState.isProcessing || !wizardState.parsedCustomerPoints;
+    wizardState.isProcessing ||
+    !wizardState.parsedDataSummary?.validCustomerPoints?.length;
 
   const handleModalDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -176,8 +183,13 @@ export const ImportCustomerPointsWizard: React.FC<
     },
     {
       number: 2,
+      label: translate("importCustomerPoints.wizard.dataPreviewStep"),
+      ariaLabel: "Step 2: Data Preview",
+    },
+    {
+      number: 3,
       label: translate("importCustomerPoints.wizard.demandOptionsStep"),
-      ariaLabel: "Step 2: Demand Options",
+      ariaLabel: "Step 3: Demand Options",
     },
   ];
 
@@ -194,6 +206,9 @@ export const ImportCustomerPointsWizard: React.FC<
           <DataInputStep state={wizardState} actions={wizardState} />
         )}
         {wizardState.currentStep === 2 && (
+          <DataPreviewStep state={wizardState} actions={wizardState} />
+        )}
+        {wizardState.currentStep === 3 && (
           <DemandOptionsStep
             state={wizardState}
             actions={wizardState}
@@ -218,7 +233,7 @@ export const ImportCustomerPointsWizard: React.FC<
             : undefined
         }
         nextAction={
-          wizardState.currentStep === 1
+          wizardState.currentStep === 1 || wizardState.currentStep === 2
             ? {
                 label: translate("importCustomerPoints.wizard.buttons.next"),
                 onClick: wizardState.goNext,
@@ -227,7 +242,7 @@ export const ImportCustomerPointsWizard: React.FC<
             : undefined
         }
         finishAction={
-          wizardState.currentStep === 2
+          wizardState.currentStep === 3
             ? {
                 label: wizardState.isProcessing
                   ? translate("importCustomerPoints.wizard.buttons.processing")

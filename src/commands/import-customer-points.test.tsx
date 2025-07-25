@@ -33,6 +33,10 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
+
     expectWizardStep("demand options");
     expect(
       screen.getByText("Demand Options (2 Customer Points)"),
@@ -74,6 +78,10 @@ describe("importCustomerPoints", () => {
 
     await uploadFileInWizard(file);
 
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
+
     expectWizardStep("demand options");
 
     await finishWizardImport();
@@ -100,6 +108,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
@@ -195,6 +206,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     expect(
       screen.getByText("Demand Options (1 Customer Point)"),
@@ -253,6 +267,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
@@ -304,6 +321,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
@@ -354,6 +374,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification();
@@ -403,6 +426,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
     await finishWizardImport();
     await expectSuccessNotification(1);
@@ -485,6 +511,9 @@ describe("importCustomerPoints", () => {
     await waitForWizardToOpen();
     expectWizardStep("data input");
     await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
 
     await userEvent.click(
@@ -518,6 +547,43 @@ describe("importCustomerPoints", () => {
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.canceled",
     });
+  });
+
+  it("shows data preview with valid and invalid row counts", async () => {
+    const store = createStoreWithPipes();
+
+    renderComponent({ store });
+
+    const mixedData = createMixedValidInvalidGeoJSON();
+    const file = aTestFile({
+      filename: "mixed-data.geojson",
+      content: mixedData,
+    });
+
+    await triggerCommand();
+    await waitForWizardToOpen();
+
+    expectWizardStep("data input");
+
+    await uploadFileInWizard(file);
+
+    expectWizardStep("data preview");
+
+    expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Errors \(3\)/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    expectWizardStep("demand options");
+    expect(
+      screen.getByText("Demand Options (2 Customer Points)"),
+    ).toBeInTheDocument();
+
+    await finishWizardImport();
+    await expectSuccessNotification(2);
+
+    const { hydraulicModel } = store.get(dataAtom);
+    expect(hydraulicModel.customerPoints.size).toBe(2);
   });
 });
 
@@ -618,6 +684,80 @@ const createMixedGeometryGeoJSON = (): string => {
         properties: {
           name: "Polygon Feature",
           type: "Should be skipped",
+        },
+      },
+    ],
+  });
+};
+
+const createMixedValidInvalidGeoJSON = (): string => {
+  return JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [10.5, 20.5],
+        },
+        properties: {
+          name: "Valid Customer A",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [30.5, 40.5],
+        },
+        properties: {
+          name: "Valid Customer B",
+          demand: 150,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [10, 20],
+            [30, 40],
+          ],
+        },
+        properties: {
+          name: "Invalid Line Feature",
+          demand: 100,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [50],
+        },
+        properties: {
+          name: "Invalid Coordinates",
+          demand: 75,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
+        },
+        properties: {
+          name: "Invalid Polygon",
+          demand: 200,
         },
       },
     ],

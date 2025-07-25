@@ -16,7 +16,10 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
 }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const customerPointCount = state.parsedCustomerPoints?.length || 0;
+  const customerPointCount =
+    state.parsedDataSummary?.validCustomerPoints?.length ||
+    state.parsedCustomerPoints?.length ||
+    0;
   const pointText =
     customerPointCount === 1
       ? translate("importCustomerPoints.wizard.demandOptions.customerPoint")

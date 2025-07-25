@@ -2,16 +2,11 @@ import { Feature, FeatureCollection, Position } from "geojson";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 
-type ProcessFeatureResult = {
-  customerPoint: CustomerPoint | null;
-  nextId: number;
-};
-
 export function* parseCustomerPoints(
   fileContent: string,
   issues: CustomerPointsIssuesAccumulator,
   startingId: number = 1,
-): Generator<CustomerPoint, void, unknown> {
+): Generator<CustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
   if (trimmedContent.startsWith("{")) {
@@ -31,7 +26,7 @@ function* parseGeoJSONFeatures(
   geoJson: FeatureCollection,
   issues: CustomerPointsIssuesAccumulator,
   startingId: number = 1,
-): Generator<CustomerPoint, void, unknown> {
+): Generator<CustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
   }
@@ -39,12 +34,8 @@ function* parseGeoJSONFeatures(
   let currentId = startingId;
 
   for (const feature of geoJson.features || []) {
-    const result = processGeoJSONFeatureForParsing(feature, currentId, issues);
-
-    if (result.customerPoint) {
-      yield result.customerPoint;
-    }
-
+    const result = processGeoJSONFeature(feature, currentId, issues);
+    yield result.customerPoint;
     currentId = result.nextId;
   }
 }
@@ -53,7 +44,7 @@ function* parseGeoJSONLFeatures(
   geoJsonLText: string,
   issues: CustomerPointsIssuesAccumulator,
   startingId: number = 1,
-): Generator<CustomerPoint, void, unknown> {
+): Generator<CustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
   let currentId = startingId;
 
@@ -66,34 +57,42 @@ function* parseGeoJSONLFeatures(
       }
 
       if (json.type === "Feature") {
-        const result = processGeoJSONFeatureForParsing(json, currentId, issues);
-
-        if (result.customerPoint) {
-          yield result.customerPoint;
-        }
-
+        const result = processGeoJSONFeature(json, currentId, issues);
+        yield result.customerPoint;
         currentId = result.nextId;
       }
     } catch (error) {
       issues.addSkippedInvalidLine();
+      yield null;
     }
   }
 }
 
-const processGeoJSONFeatureForParsing = (
+type ProcessFeatureResult = {
+  customerPoint: CustomerPoint | null;
+  nextId: number;
+};
+
+const processGeoJSONFeature = (
   feature: Feature,
   currentId: number,
   issues: CustomerPointsIssuesAccumulator,
 ): ProcessFeatureResult => {
   if (feature.geometry.type !== "Point") {
     issues.addSkippedNonPoint();
-    return { customerPoint: null, nextId: currentId };
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
   }
 
   const coordinates = feature.geometry.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length < 2) {
     issues.addSkippedInvalidCoordinates();
-    return { customerPoint: null, nextId: currentId };
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
   }
 
   try {
@@ -111,6 +110,9 @@ const processGeoJSONFeatureForParsing = (
     return { customerPoint, nextId: currentId + 1 };
   } catch (error) {
     issues.addSkippedCreationFailure();
-    return { customerPoint: null, nextId: currentId };
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
   }
 };

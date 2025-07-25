@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { WizardState, WizardActions } from "./types";
+import { WizardState, WizardActions, ParsedDataSummary } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -29,13 +29,23 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
       try {
         const text = await file.text();
         const issues = new CustomerPointsIssuesAccumulator();
-        const parsedPoints: CustomerPoint[] = [];
+        const validCustomerPoints: CustomerPoint[] = [];
+        let totalCount = 0;
 
         for (const customerPoint of parseCustomerPoints(text, issues, 1)) {
-          parsedPoints.push(customerPoint);
+          totalCount++;
+          if (customerPoint) {
+            validCustomerPoints.push(customerPoint);
+          }
         }
 
-        if (parsedPoints.length === 0) {
+        const parsedDataSummary: ParsedDataSummary = {
+          validCustomerPoints,
+          issues: issues.buildResult(),
+          totalCount,
+        };
+
+        if (validCustomerPoints.length === 0) {
           userTracking.capture({
             name: "importCustomerPoints.noValidPoints",
           });
@@ -45,7 +55,9 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
           return;
         }
 
-        actions.setParsedCustomerPoints(parsedPoints);
+        // Keep backward compatibility
+        actions.setParsedCustomerPoints(validCustomerPoints);
+        actions.setParsedDataSummary(parsedDataSummary);
         actions.setLoading(false);
 
         actions.goNext();

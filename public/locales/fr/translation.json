@@ -411,6 +411,7 @@
       "title": "Importer Points de Consommation",
       "stepsAriaLabel": "Étapes de l'assistant d'importation",
       "dataInputStep": "Saisie de Données",
+      "dataPreviewStep": "Aperçu des Données",
       "demandOptionsStep": "Options de Demande",
       "buttons": {
         "cancel": "Annuler",
@@ -418,6 +419,11 @@
         "next": "Suivant",
         "finish": "Terminer",
         "processing": "Traitement..."
+      },
+      "dataPreview": {
+        "title": "Aperçu des Données",
+        "customerPoints": "Points de Consommation",
+        "errors": "Erreurs"
       },
       "demandOptions": {
         "title": "Options de Demande",

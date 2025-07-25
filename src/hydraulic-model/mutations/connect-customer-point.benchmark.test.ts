@@ -140,6 +140,7 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     };
 
     for (const customerPoint of parseCustomerPoints(fileContent, issues, 1)) {
+      if (!customerPoint) continue;
       connectCustomerPoint(
         mutableHydraulicModel,
         spatialIndexData,
@@ -220,6 +221,7 @@ describe("Customer Points Streaming Connection Benchmark", () => {
     };
 
     for (const customerPoint of parseCustomerPoints(fileContent, issues, 1)) {
+      if (!customerPoint) continue;
       connectCustomerPoint(
         mutableHydraulicModel,
         spatialIndexData,
