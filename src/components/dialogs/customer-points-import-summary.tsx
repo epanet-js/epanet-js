@@ -48,68 +48,27 @@ export const CustomerPointsImportSummaryDialog = ({
   if (status === "warning") {
     const issuesList = [];
     if (issues?.skippedNonPointFeatures) {
+      const count = issues.skippedNonPointFeatures.length;
       issuesList.push(
-        issues.skippedNonPointFeatures === 1
-          ? translate(
-              "nonPointFeatureSingular",
-              localizeDecimal(issues.skippedNonPointFeatures),
-            )
-          : translate(
-              "nonPointFeaturePlural",
-              localizeDecimal(issues.skippedNonPointFeatures),
-            ),
+        count === 1
+          ? translate("nonPointFeatureSingular", localizeDecimal(count))
+          : translate("nonPointFeaturePlural", localizeDecimal(count)),
       );
     }
     if (issues?.skippedInvalidCoordinates) {
+      const count = issues.skippedInvalidCoordinates.length;
       issuesList.push(
-        issues.skippedInvalidCoordinates === 1
-          ? translate(
-              "featureWithInvalidCoordSingular",
-              localizeDecimal(issues.skippedInvalidCoordinates),
-            )
-          : translate(
-              "featureWithInvalidCoordPlural",
-              localizeDecimal(issues.skippedInvalidCoordinates),
-            ),
-      );
-    }
-    if (issues?.skippedInvalidLines) {
-      issuesList.push(
-        issues.skippedInvalidLines === 1
-          ? translate(
-              "invalidLineSingular",
-              localizeDecimal(issues.skippedInvalidLines),
-            )
-          : translate(
-              "invalidLinePlural",
-              localizeDecimal(issues.skippedInvalidLines),
-            ),
+        count === 1
+          ? translate("featureWithInvalidCoordSingular", localizeDecimal(count))
+          : translate("featureWithInvalidCoordPlural", localizeDecimal(count)),
       );
     }
     if (issues?.skippedCreationFailures) {
+      const count = issues.skippedCreationFailures.length;
       issuesList.push(
-        issues.skippedCreationFailures === 1
-          ? translate(
-              "creationFailureSingular",
-              localizeDecimal(issues.skippedCreationFailures),
-            )
-          : translate(
-              "creationFailurePlural",
-              localizeDecimal(issues.skippedCreationFailures),
-            ),
-      );
-    }
-    if (issues?.skippedNoValidJunction) {
-      issuesList.push(
-        issues.skippedNoValidJunction === 1
-          ? translate(
-              "customerPointWithoutJunctionSingular",
-              localizeDecimal(issues.skippedNoValidJunction),
-            )
-          : translate(
-              "customerPointWithoutJunctionPlural",
-              localizeDecimal(issues.skippedNoValidJunction),
-            ),
+        count === 1
+          ? translate("creationFailureSingular", localizeDecimal(count))
+          : translate("creationFailurePlural", localizeDecimal(count)),
       );
     }
 

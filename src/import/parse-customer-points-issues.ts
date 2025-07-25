@@ -1,10 +1,9 @@
+import { Feature } from "geojson";
+
 export type CustomerPointsParserIssues = {
-  skippedNonPointFeatures?: number;
-  skippedInvalidCoordinates?: number;
-  skippedInvalidLines?: number;
-  skippedCreationFailures?: number;
-  skippedNoValidJunction?: number;
-  connectionFailures?: number;
+  skippedNonPointFeatures?: Feature[];
+  skippedInvalidCoordinates?: Feature[];
+  skippedCreationFailures?: Feature[];
 };
 
 export class CustomerPointsIssuesAccumulator {
@@ -14,33 +13,25 @@ export class CustomerPointsIssuesAccumulator {
     this.issues = {};
   }
 
-  addSkippedNonPoint() {
-    this.issues.skippedNonPointFeatures =
-      (this.issues.skippedNonPointFeatures || 0) + 1;
+  addSkippedNonPoint(feature: Feature) {
+    if (!this.issues.skippedNonPointFeatures) {
+      this.issues.skippedNonPointFeatures = [];
+    }
+    this.issues.skippedNonPointFeatures.push(feature);
   }
 
-  addSkippedInvalidCoordinates() {
-    this.issues.skippedInvalidCoordinates =
-      (this.issues.skippedInvalidCoordinates || 0) + 1;
+  addSkippedInvalidCoordinates(feature: Feature) {
+    if (!this.issues.skippedInvalidCoordinates) {
+      this.issues.skippedInvalidCoordinates = [];
+    }
+    this.issues.skippedInvalidCoordinates.push(feature);
   }
 
-  addSkippedInvalidLine(_rawData?: any) {
-    this.issues.skippedInvalidLines =
-      (this.issues.skippedInvalidLines || 0) + 1;
-  }
-
-  addSkippedCreationFailure() {
-    this.issues.skippedCreationFailures =
-      (this.issues.skippedCreationFailures || 0) + 1;
-  }
-
-  addSkippedNoValidJunction() {
-    this.issues.skippedNoValidJunction =
-      (this.issues.skippedNoValidJunction || 0) + 1;
-  }
-
-  addConnectionFailure() {
-    this.issues.connectionFailures = (this.issues.connectionFailures || 0) + 1;
+  addSkippedCreationFailure(feature: Feature) {
+    if (!this.issues.skippedCreationFailures) {
+      this.issues.skippedCreationFailures = [];
+    }
+    this.issues.skippedCreationFailures.push(feature);
   }
 
   buildResult(): CustomerPointsParserIssues | null {

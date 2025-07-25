@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Feature } from "geojson";
 import { WizardState, WizardActions } from "./types";
 import { useTranslate } from "src/hooks/use-translate";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
@@ -176,72 +177,33 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       "importCustomerPoints.wizard.dataPreview.messages.issuesSummary",
                     )}
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     {issues?.skippedNonPointFeatures && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
-                            issues.skippedNonPointFeatures.toString(),
-                          )}
-                        </span>
-                      </div>
+                      <IssueSection
+                        title={translate(
+                          "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
+                          issues.skippedNonPointFeatures.length.toString(),
+                        )}
+                        features={issues.skippedNonPointFeatures}
+                      />
                     )}
                     {issues?.skippedInvalidCoordinates && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
-                            issues.skippedInvalidCoordinates.toString(),
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    {issues?.skippedInvalidLines && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.invalidJsonLines",
-                            issues.skippedInvalidLines.toString(),
-                          )}
-                        </span>
-                      </div>
+                      <IssueSection
+                        title={translate(
+                          "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
+                          issues.skippedInvalidCoordinates.length.toString(),
+                        )}
+                        features={issues.skippedInvalidCoordinates}
+                      />
                     )}
                     {issues?.skippedCreationFailures && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
-                            issues.skippedCreationFailures.toString(),
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    {issues?.skippedNoValidJunction && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.noValidJunction",
-                            issues.skippedNoValidJunction.toString(),
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    {issues?.connectionFailures && (
-                      <div className="flex items-start text-sm text-gray-600">
-                        <span className="mr-2">•</span>
-                        <span>
-                          {translate(
-                            "importCustomerPoints.wizard.dataPreview.issues.connectionFailures",
-                            issues.connectionFailures.toString(),
-                          )}
-                        </span>
-                      </div>
+                      <IssueSection
+                        title={translate(
+                          "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
+                          issues.skippedCreationFailures.length.toString(),
+                        )}
+                        features={issues.skippedCreationFailures}
+                      />
                     )}
                   </div>
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -267,11 +229,52 @@ const getTotalErrorCount = (
   if (!issues) return 0;
 
   return (
-    (issues.skippedNonPointFeatures || 0) +
-    (issues.skippedInvalidCoordinates || 0) +
-    (issues.skippedInvalidLines || 0) +
-    (issues.skippedCreationFailures || 0) +
-    (issues.skippedNoValidJunction || 0) +
-    (issues.connectionFailures || 0)
+    (issues.skippedNonPointFeatures?.length || 0) +
+    (issues.skippedInvalidCoordinates?.length || 0) +
+    (issues.skippedCreationFailures?.length || 0)
+  );
+};
+
+type IssueSectionProps = {
+  title: string;
+  features: Feature[];
+};
+
+const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const translate = useTranslate();
+
+  return (
+    <div className="border border-gray-200 rounded-md">
+      <button
+        className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <span>{title}</span>
+        <span className="text-xs text-gray-500">{isExpanded ? "−" : "+"}</span>
+      </button>
+      {isExpanded && (
+        <div className="border-t border-gray-200 p-3 bg-gray-50">
+          <div className="space-y-2">
+            {features.slice(0, 3).map((feature, index) => (
+              <div
+                key={index}
+                className="text-xs font-mono bg-white p-2 rounded border text-gray-800"
+              >
+                {JSON.stringify(feature)}
+              </div>
+            ))}
+            {features.length > 3 && (
+              <p className="text-xs text-gray-500 text-center pt-2">
+                {translate(
+                  "importCustomerPoints.wizard.dataPreview.messages.andXMoreIssues",
+                  (features.length - 3).toString(),
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

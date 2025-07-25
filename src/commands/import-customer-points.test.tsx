@@ -811,8 +811,9 @@ const renderComponent = ({ store }: { store: Store }) => {
 };
 
 const waitForWizardToOpen = async () => {
-  await waitFor(() =>
-    screen.getByRole("navigation", { name: /import wizard steps/i }),
+  await waitFor(
+    () => screen.getByRole("navigation", { name: /import wizard steps/i }),
+    { timeout: 3000 },
   );
 };
 

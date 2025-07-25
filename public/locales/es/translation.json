@@ -435,7 +435,8 @@
           "noErrors": "No se encontraron errores",
           "issuesSummary": "Resumen de Problemas",
           "skippedRowsWarning": "Estas filas fueron omitidas durante la importación. Solo se procesarán los puntos de consumo válidos.",
-          "andXMore": "... y {{1}} puntos de consumo más"
+          "andXMore": "... y {{1}} puntos de consumo más",
+          "andXMoreIssues": "... y {{1}} más"
         },
         "issues": {
           "nonPointGeometries": "Geometrías no puntuales ({{1}})",

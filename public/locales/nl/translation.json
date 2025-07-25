@@ -435,7 +435,8 @@
           "noErrors": "Geen fouten gevonden",
           "issuesSummary": "Samenvatting van Problemen",
           "skippedRowsWarning": "Deze rijen werden overgeslagen tijdens het importeren. Alleen geldige klantpunten worden verwerkt.",
-          "andXMore": "... en nog {{1}} klantpunten"
+          "andXMore": "... en nog {{1}} klantpunten",
+          "andXMoreIssues": "... en nog {{1}}"
         },
         "issues": {
           "nonPointGeometries": "Niet-puntgeometrieën ({{1}})",

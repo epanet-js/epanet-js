@@ -435,7 +435,8 @@
           "noErrors": "No errors found",
           "issuesSummary": "Issues Summary",
           "skippedRowsWarning": "These rows were skipped during import. Only valid customer points will be processed.",
-          "andXMore": "... and {{1}} more customer points"
+          "andXMore": "... and {{1}} more customer points",
+          "andXMoreIssues": "... and {{1}} more"
         },
         "issues": {
           "nonPointGeometries": "Non-point geometries ({{1}})",

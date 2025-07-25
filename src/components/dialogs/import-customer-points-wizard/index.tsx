@@ -76,16 +76,12 @@ export const ImportCustomerPointsWizard: React.FC<
         };
 
         for (const customerPoint of customerPoints) {
-          const connection = connectCustomerPoint(
+          connectCustomerPoint(
             mutableHydraulicModel,
             spatialIndexData,
             customerPoint,
             { keepDemands: wizardState.keepDemands },
           );
-
-          if (!connection) {
-            issues.addSkippedNoValidJunction();
-          }
         }
 
         const finalIssues = issues.buildResult();

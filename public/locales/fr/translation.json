@@ -435,7 +435,8 @@
           "noErrors": "Aucune erreur trouvée",
           "issuesSummary": "Résumé des Problèmes",
           "skippedRowsWarning": "Ces lignes ont été ignorées lors de l'importation. Seuls les points de consommation valides seront traités.",
-          "andXMore": "... et {{1}} points de consommation de plus"
+          "andXMore": "... et {{1}} points de consommation de plus",
+          "andXMoreIssues": "... et {{1}} de plus"
         },
         "issues": {
           "nonPointGeometries": "Géométries non ponctuelles ({{1}})",

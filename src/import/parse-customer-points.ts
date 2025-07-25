@@ -62,7 +62,6 @@ function* parseGeoJSONLFeatures(
         currentId = result.nextId;
       }
     } catch (error) {
-      issues.addSkippedInvalidLine();
       yield null;
     }
   }
@@ -79,7 +78,7 @@ const processGeoJSONFeature = (
   issues: CustomerPointsIssuesAccumulator,
 ): ProcessFeatureResult => {
   if (feature.geometry.type !== "Point") {
-    issues.addSkippedNonPoint();
+    issues.addSkippedNonPoint(feature);
     return {
       customerPoint: null,
       nextId: currentId,
@@ -88,7 +87,7 @@ const processGeoJSONFeature = (
 
   const coordinates = feature.geometry.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length < 2) {
-    issues.addSkippedInvalidCoordinates();
+    issues.addSkippedInvalidCoordinates(feature);
     return {
       customerPoint: null,
       nextId: currentId,
@@ -109,7 +108,7 @@ const processGeoJSONFeature = (
 
     return { customerPoint, nextId: currentId + 1 };
   } catch (error) {
-    issues.addSkippedCreationFailure();
+    issues.addSkippedCreationFailure(feature);
     return {
       customerPoint: null,
       nextId: currentId,
