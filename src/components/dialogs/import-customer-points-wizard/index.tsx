@@ -152,9 +152,23 @@ export const ImportCustomerPointsWizard: React.FC<
   const isFinishDisabled =
     wizardState.isProcessing || !wizardState.parsedCustomerPoints;
 
+  const handleModalDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleModalDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
   return (
     <DialogContainer size="lg">
-      <div className="p-6">
+      <div
+        className="p-6"
+        onDragOver={handleModalDragOver}
+        onDrop={handleModalDrop}
+      >
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">

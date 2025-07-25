@@ -37,6 +37,10 @@ const Drop = () => {
   const dialog = useAtomValue(dialogAtom);
 
   useEffect(() => {
+    if (dialog && dialog.type !== "welcome") {
+      return;
+    }
+
     const onDropFiles = (files: FileWithHandle[]) => {
       if (!files.length) return;
 
@@ -96,7 +100,7 @@ const Drop = () => {
       window.removeEventListener("dragover", stopWindowDrag);
       window.removeEventListener("drop", stopWindowDrag);
     };
-  }, [setDragging, checkUnsavedChanges, importInp, userTracking]);
+  }, [setDragging, checkUnsavedChanges, importInp, userTracking, dialog]);
 
   if (dialog && dialog.type !== "welcome") return null;
 

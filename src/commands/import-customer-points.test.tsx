@@ -661,6 +661,11 @@ const waitForWizardToOpen = async () => {
 };
 
 const uploadFileInWizard = async (file: File) => {
+  const dropZone = screen.getByTestId("customer-points-drop-zone");
+  expect(dropZone).toBeInTheDocument();
+
+  await userEvent.click(dropZone);
+
   const fileInput = document.querySelector(
     'input[type="file"]',
   ) as HTMLInputElement;
