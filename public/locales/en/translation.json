@@ -423,7 +423,28 @@
       "dataPreview": {
         "title": "Data Preview",
         "customerPoints": "Customer Points",
-        "errors": "Errors"
+        "issuesTab": "Issues",
+        "table": {
+          "id": "ID",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "demand": "Demand"
+        },
+        "messages": {
+          "noValidCustomerPoints": "No valid customer points found",
+          "noErrors": "No errors found",
+          "issuesSummary": "Issues Summary",
+          "skippedRowsWarning": "These rows were skipped during import. Only valid customer points will be processed.",
+          "andXMore": "... and {{1}} more customer points"
+        },
+        "issues": {
+          "nonPointGeometries": "Non-point geometries ({{1}})",
+          "invalidCoordinates": "Invalid coordinates ({{1}})",
+          "invalidJsonLines": "Invalid JSON lines ({{1}})",
+          "creationFailures": "Creation failures ({{1}})",
+          "noValidJunction": "No valid junction ({{1}})",
+          "connectionFailures": "Connection failures ({{1}})"
+        }
       },
       "demandOptions": {
         "title": "Demand Options",

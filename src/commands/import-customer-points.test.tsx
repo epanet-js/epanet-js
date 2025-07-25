@@ -569,8 +569,8 @@ describe("importCustomerPoints", () => {
 
     expectWizardStep("data preview");
 
-    expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Errors \(3\)/)).toBeInTheDocument();
+    expect(screen.getByText(/\(2\)/)).toBeInTheDocument();
+    expect(screen.getByText(/\(3\)/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 

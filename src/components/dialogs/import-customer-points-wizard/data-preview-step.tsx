@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { WizardState, WizardActions } from "./types";
 import { useTranslate } from "src/hooks/use-translate";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 type DataPreviewStepProps = {
   state: WizardState;
   actions: WizardActions;
 };
 
-type TabType = "customerPoints" | "errors";
+type TabType = "customerPoints" | "issues";
 
 export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
   state,
@@ -23,7 +24,11 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataPreview.title")}
         </h2>
-        <p className="text-gray-600">No data to preview</p>
+        <p className="text-gray-600">
+          {translate(
+            "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
+          )}
+        </p>
       </div>
     );
   }
@@ -61,18 +66,18 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
             {translate(
               "importCustomerPoints.wizard.dataPreview.customerPoints",
             )}{" "}
-            ({validCount})
+            ({localizeDecimal(validCount, { decimals: 0 })})
           </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "errors"
+              activeTab === "issues"
                 ? "bg-red-50 text-red-700 border-b-2 border-red-500"
                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("errors")}
+            onClick={() => setActiveTab("issues")}
           >
-            {translate("importCustomerPoints.wizard.dataPreview.errors")} (
-            {errorCount})
+            {translate("importCustomerPoints.wizard.dataPreview.issuesTab")} (
+            {localizeDecimal(errorCount, { decimals: 0 })})
           </button>
         </div>
 
@@ -81,7 +86,9 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
             <div className="p-4">
               {validCount === 0 ? (
                 <p className="text-gray-500 text-sm">
-                  No valid customer points found
+                  {translate(
+                    "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
+                  )}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -89,13 +96,24 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
                         <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          ID
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.table.id",
+                          )}
                         </th>
                         <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          Coordinates
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.table.latitude",
+                          )}
                         </th>
                         <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-                          Demand
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.table.longitude",
+                          )}
+                        </th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.table.demand",
+                          )}
                         </th>
                       </tr>
                     </thead>
@@ -109,11 +127,17 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                         >
                           <td className="px-3 py-2 border-b">{point.id}</td>
                           <td className="px-3 py-2 border-b">
-                            [{point.coordinates[0].toFixed(4)},{" "}
-                            {point.coordinates[1].toFixed(4)}]
+                            {localizeDecimal(point.coordinates[1], {
+                              decimals: 6,
+                            })}
                           </td>
                           <td className="px-3 py-2 border-b">
-                            {point.baseDemand}
+                            {localizeDecimal(point.coordinates[0], {
+                              decimals: 6,
+                            })}
+                          </td>
+                          <td className="px-3 py-2 border-b">
+                            {localizeDecimal(point.baseDemand)}
                           </td>
                         </tr>
                       ))}
@@ -121,8 +145,12 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                   </table>
                   {validHasMore && (
                     <p className="text-sm text-gray-500 text-center pt-2">
-                      ... and {validCount - MAX_PREVIEW_ROWS} more customer
-                      points
+                      {translate(
+                        "importCustomerPoints.wizard.dataPreview.messages.andXMore",
+                        localizeDecimal(validCount - MAX_PREVIEW_ROWS, {
+                          decimals: 0,
+                        }),
+                      )}
                     </p>
                   )}
                 </div>
@@ -130,22 +158,30 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
             </div>
           )}
 
-          {activeTab === "errors" && (
+          {activeTab === "issues" && (
             <div className="p-4">
               {errorCount === 0 ? (
-                <p className="text-gray-500 text-sm">No errors found</p>
+                <p className="text-gray-500 text-sm">
+                  {translate(
+                    "importCustomerPoints.wizard.dataPreview.messages.noErrors",
+                  )}
+                </p>
               ) : (
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium text-gray-900">
-                    Issues Summary
+                    {translate(
+                      "importCustomerPoints.wizard.dataPreview.messages.issuesSummary",
+                    )}
                   </h3>
                   <div className="space-y-2">
                     {issues?.skippedNonPointFeatures && (
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          Non-point geometries ({issues.skippedNonPointFeatures}
-                          )
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
+                            issues.skippedNonPointFeatures.toString(),
+                          )}
                         </span>
                       </div>
                     )}
@@ -153,8 +189,10 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          Invalid coordinates (
-                          {issues.skippedInvalidCoordinates})
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
+                            issues.skippedInvalidCoordinates.toString(),
+                          )}
                         </span>
                       </div>
                     )}
@@ -162,7 +200,10 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          Invalid JSON lines ({issues.skippedInvalidLines})
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.invalidJsonLines",
+                            issues.skippedInvalidLines.toString(),
+                          )}
                         </span>
                       </div>
                     )}
@@ -170,7 +211,10 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          Creation failures ({issues.skippedCreationFailures})
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
+                            issues.skippedCreationFailures.toString(),
+                          )}
                         </span>
                       </div>
                     )}
@@ -178,7 +222,10 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          No valid junction ({issues.skippedNoValidJunction})
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.noValidJunction",
+                            issues.skippedNoValidJunction.toString(),
+                          )}
                         </span>
                       </div>
                     )}
@@ -186,15 +233,19 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
                       <div className="flex items-start text-sm text-gray-600">
                         <span className="mr-2">•</span>
                         <span>
-                          Connection failures ({issues.connectionFailures})
+                          {translate(
+                            "importCustomerPoints.wizard.dataPreview.issues.connectionFailures",
+                            issues.connectionFailures.toString(),
+                          )}
                         </span>
                       </div>
                     )}
                   </div>
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                     <p className="text-sm text-yellow-800">
-                      These rows were skipped during import. Only valid customer
-                      points will be processed.
+                      {translate(
+                        "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
+                      )}
                     </p>
                   </div>
                 </div>

@@ -423,7 +423,28 @@
       "dataPreview": {
         "title": "Vista Previa de Datos",
         "customerPoints": "Puntos de Consumo",
-        "errors": "Errores"
+        "issuesTab": "Incidencias",
+        "table": {
+          "id": "ID",
+          "latitude": "Latitud",
+          "longitude": "Longitud",
+          "demand": "Demanda"
+        },
+        "messages": {
+          "noValidCustomerPoints": "No se encontraron puntos de consumo válidos",
+          "noErrors": "No se encontraron errores",
+          "issuesSummary": "Resumen de Problemas",
+          "skippedRowsWarning": "Estas filas fueron omitidas durante la importación. Solo se procesarán los puntos de consumo válidos.",
+          "andXMore": "... y {{1}} puntos de consumo más"
+        },
+        "issues": {
+          "nonPointGeometries": "Geometrías no puntuales ({{1}})",
+          "invalidCoordinates": "Coordenadas inválidas ({{1}})",
+          "invalidJsonLines": "Líneas JSON inválidas ({{1}})",
+          "creationFailures": "Fallas de creación ({{1}})",
+          "noValidJunction": "Sin unión válida ({{1}})",
+          "connectionFailures": "Fallas de conexión ({{1}})"
+        }
       },
       "demandOptions": {
         "title": "Opciones de Demanda",

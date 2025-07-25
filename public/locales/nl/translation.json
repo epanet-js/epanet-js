@@ -423,7 +423,28 @@
       "dataPreview": {
         "title": "Data Voorbeeld",
         "customerPoints": "Klantpunten",
-        "errors": "Fouten"
+        "issuesTab": "Problemen",
+        "table": {
+          "id": "ID",
+          "latitude": "Breedtegraad",
+          "longitude": "Lengtegraad",
+          "demand": "Vraag"
+        },
+        "messages": {
+          "noValidCustomerPoints": "Geen geldige klantpunten gevonden",
+          "noErrors": "Geen fouten gevonden",
+          "issuesSummary": "Samenvatting van Problemen",
+          "skippedRowsWarning": "Deze rijen werden overgeslagen tijdens het importeren. Alleen geldige klantpunten worden verwerkt.",
+          "andXMore": "... en nog {{1}} klantpunten"
+        },
+        "issues": {
+          "nonPointGeometries": "Niet-puntgeometrieën ({{1}})",
+          "invalidCoordinates": "Ongeldige coördinaten ({{1}})",
+          "invalidJsonLines": "Ongeldige JSON-regels ({{1}})",
+          "creationFailures": "Aanmaakfouten ({{1}})",
+          "noValidJunction": "Geen geldig knooppunt ({{1}})",
+          "connectionFailures": "Verbindingsfouten ({{1}})"
+        }
       },
       "demandOptions": {
         "title": "Vraag Opties",
