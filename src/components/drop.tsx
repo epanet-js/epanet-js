@@ -37,6 +37,16 @@ const Drop = () => {
   const dialog = useAtomValue(dialogAtom);
 
   useEffect(() => {
+    window.addEventListener("dragover", stopWindowDrag);
+    window.addEventListener("drop", stopWindowDrag);
+
+    return () => {
+      window.removeEventListener("dragover", stopWindowDrag);
+      window.removeEventListener("drop", stopWindowDrag);
+    };
+  }, []);
+
+  useEffect(() => {
     if (dialog && dialog.type !== "welcome") {
       return;
     }
@@ -90,15 +100,11 @@ const Drop = () => {
     document.addEventListener("dragenter", onDragEnter);
     document.addEventListener("dragleave", onDragLeave);
     document.addEventListener("drop", onDropCaught);
-    window.addEventListener("dragover", stopWindowDrag);
-    window.addEventListener("drop", stopWindowDrag);
 
     return () => {
       document.removeEventListener("dragenter", onDragEnter);
       document.removeEventListener("dragleave", onDragLeave);
       document.removeEventListener("drop", onDropCaught);
-      window.removeEventListener("dragover", stopWindowDrag);
-      window.removeEventListener("drop", stopWindowDrag);
     };
   }, [setDragging, checkUnsavedChanges, importInp, userTracking, dialog]);
 
