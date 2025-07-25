@@ -448,9 +448,6 @@
       },
       "demandOptions": {
         "title": "Options de Demande",
-        "customerPoint": "Point de Consommation",
-        "customerPoints": "Points de Consommation",
-        "allocationOptions": "Options d'Allocation",
         "replaceOption": {
           "title": "Remplacer les demandes existantes par les demandes de consommation (par défaut)",
           "description": "Les demandes de base existantes aux jonctions seront remises à zéro et remplacées par les demandes des points de consommation. C'est l'approche typique pour la modélisation basée sur les consommateurs."

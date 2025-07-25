@@ -16,20 +16,11 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
 }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const customerPointCount =
-    state.parsedDataSummary?.validCustomerPoints?.length ||
-    state.parsedCustomerPoints?.length ||
-    0;
-  const pointText =
-    customerPointCount === 1
-      ? translate("importCustomerPoints.wizard.demandOptions.customerPoint")
-      : translate("importCustomerPoints.wizard.demandOptions.customerPoints");
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">
-        {translate("importCustomerPoints.wizard.demandOptions.title")} (
-        {customerPointCount} {pointText})
+        {translate("importCustomerPoints.wizard.demandOptions.title")}
       </h2>
 
       {state.error && (
@@ -39,11 +30,6 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
       )}
 
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900">
-          {translate(
-            "importCustomerPoints.wizard.demandOptions.allocationOptions",
-          )}
-        </h3>
         <div className="space-y-3">
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${

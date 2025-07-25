@@ -448,9 +448,6 @@
       },
       "demandOptions": {
         "title": "Demand Options",
-        "customerPoint": "Customer Point",
-        "customerPoints": "Customer Points",
-        "allocationOptions": "Allocation Options",
         "replaceOption": {
           "title": "Replace existing demands with customer demands (default)",
           "description": "The existing base demands at junctions will be set to zero and replaced with the customer point demands. This is the typical approach for customer-based modeling."

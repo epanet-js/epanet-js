@@ -448,9 +448,6 @@
       },
       "demandOptions": {
         "title": "Opções de Demanda",
-        "customerPoint": "Ponto de Consumo",
-        "customerPoints": "Pontos de Consumo",
-        "allocationOptions": "Opções de Alocação",
         "replaceOption": {
           "title": "Substituir demandas existentes por demandas de consumo (padrão)",
           "description": "As demandas base existentes nas junções serão definidas como zero e substituídas pelas demandas dos pontos de consumo. Esta é a abordagem típica para modelagem baseada em consumidores."

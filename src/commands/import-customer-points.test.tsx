@@ -38,9 +38,6 @@ describe("importCustomerPoints", () => {
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
-    expect(
-      screen.getByText("Demand Options (2 Customer Points)"),
-    ).toBeInTheDocument();
 
     await finishWizardImport();
     await expectSuccessNotification(2);
@@ -210,9 +207,6 @@ describe("importCustomerPoints", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expectWizardStep("demand options");
-    expect(
-      screen.getByText("Demand Options (1 Customer Point)"),
-    ).toBeInTheDocument();
 
     await finishWizardImport();
     await expectSuccessNotification(1);
@@ -575,9 +569,6 @@ describe("importCustomerPoints", () => {
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
-    expect(
-      screen.getByText("Demand Options (2 Customer Points)"),
-    ).toBeInTheDocument();
 
     await finishWizardImport();
     await expectSuccessNotification(2);

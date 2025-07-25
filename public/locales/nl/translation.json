@@ -448,9 +448,6 @@
       },
       "demandOptions": {
         "title": "Vraag Opties",
-        "customerPoint": "Klantpunt",
-        "customerPoints": "Klantpunten",
-        "allocationOptions": "Toewijzingsopties",
         "replaceOption": {
           "title": "Vervang bestaande vraag door klantvraag (standaard)",
           "description": "De bestaande basisvraag bij knooppunten wordt op nul gezet en vervangen door de vraag van de klantpunten. Dit is de typische benadering voor klantgebaseerde modellering."
