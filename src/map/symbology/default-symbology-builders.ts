@@ -44,7 +44,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       property: "roughness",
       unit: hydraulicModel.units.roughness,
       rampName: "Emrld",
-      mode: "prettyBreaks",
+      mode: "ckmeans",
       sortedData: getSortedValues(hydraulicModel.assets, "roughness"),
     });
     return { colorRule, labelRule: nullLabelRule };
