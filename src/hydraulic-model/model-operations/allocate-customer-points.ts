@@ -33,7 +33,6 @@ export type AllocationResult = {
 };
 
 const SEARCH_FACTOR = 3;
-const NEAREST_NEIGHBOR_COUNT = 5;
 
 export const allocateCustomerPoints = withDebugInstrumentation(
   function allocateCustomerPoints(
@@ -171,16 +170,12 @@ const findNearestPipeConnectionWithinDistance = (
     0.1,
   );
 
-  let candidateIds = spatialIndex.search(
+  const candidateIds = spatialIndex.search(
     x - searchBufferDegrees,
     y - searchBufferDegrees,
     x + searchBufferDegrees,
     y + searchBufferDegrees,
   );
-
-  if (candidateIds.length === 0) {
-    candidateIds = spatialIndex.neighbors(x, y, NEAREST_NEIGHBOR_COUNT);
-  }
 
   if (candidateIds.length === 0) {
     return null;
