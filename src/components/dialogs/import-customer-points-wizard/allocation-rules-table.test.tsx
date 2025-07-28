@@ -281,6 +281,19 @@ describe("AllocationRulesTable", () => {
       expect(moveDownButton).toBeDisabled();
     });
 
+    it("disables remove button when only one rule exists", () => {
+      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+
+      renderComponent({
+        rules,
+        allocationCounts: [25],
+        isEditing: true,
+      });
+
+      const removeButton = screen.getByTitle("Remove rule");
+      expect(removeButton).toBeDisabled();
+    });
+
     it("displays correct order numbers", () => {
       const rules: AllocationRule[] = [
         { maxDistance: 100, maxDiameter: 200 },

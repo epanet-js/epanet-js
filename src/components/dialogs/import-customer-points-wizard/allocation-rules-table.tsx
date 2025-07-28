@@ -168,7 +168,8 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveRule(index)}
-                        className="p-1 text-red-400 hover:text-red-600"
+                        disabled={rules.length <= 1}
+                        className="p-1 text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Remove rule"
                       >
                         <TrashIcon className="w-4 h-4" />
