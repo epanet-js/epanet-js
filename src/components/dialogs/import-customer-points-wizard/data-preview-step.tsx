@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { Feature } from "geojson";
 import { WizardState, WizardActions } from "./types";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
 
 type DataPreviewStepProps = {
   state: WizardState;
@@ -127,9 +130,15 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   maxPreviewRows,
 }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
+
+  const baseDemandUnit = quantities.getUnit("baseDemand");
 
   if (validCount === 0) {
     return (
@@ -146,23 +155,27 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 sticky top-0">
           <tr>
-            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate("importCustomerPoints.wizard.dataPreview.table.id")}
             </th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate(
                 "importCustomerPoints.wizard.dataPreview.table.latitude",
               )}
             </th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500  tracking-wider border-b">
               {translate(
                 "importCustomerPoints.wizard.dataPreview.table.longitude",
               )}
             </th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700 border-b">
-              {translate(
-                "importCustomerPoints.wizard.dataPreview.table.demand",
-              )}
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+              {baseDemandUnit
+                ? `${translate(
+                    "importCustomerPoints.wizard.dataPreview.table.demand",
+                  )} (${translateUnit(baseDemandUnit)})`
+                : translate(
+                    "importCustomerPoints.wizard.dataPreview.table.demand",
+                  )}
             </th>
           </tr>
         </thead>
