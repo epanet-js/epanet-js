@@ -39,6 +39,12 @@ export class CustomerPoint {
   connect(connection: CustomerPointConnection): void {
     this.connectionData = connection;
   }
+
+  copy(): CustomerPoint {
+    return new CustomerPoint(this.id, [...this.coordinates], {
+      baseDemand: this.baseDemand,
+    });
+  }
 }
 
 export const validateCustomerPoint = (data: any): data is CustomerPoint => {

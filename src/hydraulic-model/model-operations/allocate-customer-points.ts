@@ -64,12 +64,7 @@ export const allocateCustomerPoints = withDebugInstrumentation(
       );
 
       if (ruleIndex !== -1 && connection) {
-        const customerPointCopy = new CustomerPoint(
-          customerPoint.id,
-          [...customerPoint.coordinates],
-          { baseDemand: customerPoint.baseDemand },
-        );
-
+        const customerPointCopy = customerPoint.copy();
         customerPointCopy.connect(connection);
         allocatedCustomerPoints.set(customerPoint.id, customerPointCopy);
         ruleMatches[ruleIndex]++;

@@ -20,6 +20,44 @@ describe("CustomerPoint", () => {
     expect(customerPoint.coordinates).toEqual([10, 20]);
     expect(customerPoint.baseDemand).toBe(0);
   });
+
+  it("copies customer point without connection", () => {
+    const originalPoint = buildCustomerPoint("CP1", {
+      coordinates: [10, 20],
+      demand: 50,
+    });
+
+    const copiedPoint = originalPoint.copy();
+
+    expect(copiedPoint.id).toBe(originalPoint.id);
+    expect(copiedPoint.coordinates).toEqual(originalPoint.coordinates);
+    expect(copiedPoint.baseDemand).toBe(originalPoint.baseDemand);
+    expect(copiedPoint.connection).toBeNull();
+
+    expect(copiedPoint.coordinates).not.toBe(originalPoint.coordinates);
+
+    copiedPoint.coordinates[0] = 99;
+    expect(originalPoint.coordinates[0]).toBe(10);
+  });
+
+  it("does not preserve connection data when copying", () => {
+    const originalPoint = buildCustomerPoint("CP1", {
+      coordinates: [10, 20],
+      demand: 50,
+    });
+
+    const connection = {
+      pipeId: "P1",
+      snapPoint: [15, 25] as [number, number],
+      distance: 7.5,
+    };
+
+    originalPoint.connect(connection);
+    const copiedPoint = originalPoint.copy();
+
+    expect(originalPoint.connection).not.toBeNull();
+    expect(copiedPoint.connection).toBeNull();
+  });
 });
 
 describe("validateCustomerPoint", () => {
