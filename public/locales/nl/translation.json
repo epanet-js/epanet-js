@@ -433,7 +433,6 @@
         "messages": {
           "noValidCustomerPoints": "Geen geldige klantpunten gevonden",
           "noErrors": "Geen fouten gevonden",
-          "issuesSummary": "Samenvatting van Problemen",
           "skippedRowsWarning": "Deze rijen werden overgeslagen tijdens het importeren. Alleen geldige klantpunten worden verwerkt.",
           "andXMore": "... en nog {{1}} klantpunten",
           "andXMoreIssues": "... en nog {{1}}"
@@ -451,11 +450,11 @@
         "title": "Vraag Opties",
         "replaceOption": {
           "title": "Vervang bestaande vraag door klantvraag (standaard)",
-          "description": "De bestaande basisvraag bij knooppunten wordt op nul gezet en vervangen door de vraag van de klantpunten. Dit is de typische benadering voor klantgebaseerde modellering."
+          "description": "Stel alle basisvraag bij knooppunten in op nul en gebruik alleen de vraag van de klantpunten. Aanbevolen wanneer klantgegevens de hoofdbron van vraag zijn."
         },
         "addOnTopOption": {
           "title": "Voeg klantvraag toe bovenop bestaande vraag",
-          "description": "De vraag van de klantpunten wordt toegevoegd aan de bestaande basisvraag bij knooppunten. Gebruik deze optie wanneer u de huidige netwerkvraag wilt behouden en klantbelastingen wilt toevoegen als extra vraag."
+          "description": "Behoud de huidige basisvraag en voeg de vraag van de klantpunten erbovenop toe. Gebruik dit als u zowel bestaande als klantgebaseerde vraag wilt opnemen."
         },
         "processingMessage": "Klantpunten verbinden met netwerk..."
       }

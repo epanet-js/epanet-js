@@ -433,7 +433,6 @@
         "messages": {
           "noValidCustomerPoints": "No valid customer points found",
           "noErrors": "No errors found",
-          "issuesSummary": "Issues Summary",
           "skippedRowsWarning": "These rows were skipped during import. Only valid customer points will be processed.",
           "andXMore": "... and {{1}} more customer points",
           "andXMoreIssues": "... and {{1}} more"
@@ -451,11 +450,11 @@
         "title": "Demand Options",
         "replaceOption": {
           "title": "Replace existing demands with customer demands (default)",
-          "description": "The existing base demands at junctions will be set to zero and replaced with the customer point demands. This is the typical approach for customer-based modeling."
+          "description": "Set all base demands at junctions to zero and use only the customer point demands. Recommended when customer data is the main source of demand."
         },
         "addOnTopOption": {
           "title": "Add customer demands on top of existing demands",
-          "description": "The customer point demands will be added to the existing base demands at junctions. Use this option when you want to maintain the current network demands and add customer loads as additional demand."
+          "description": "Keep the current base demands and add customer point demands on top. Use this if you want to include both existing and customer-based demands."
         },
         "processingMessage": "Connecting customer points to network..."
       }

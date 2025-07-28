@@ -215,12 +215,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-medium text-gray-900">
-        {translate(
-          "importCustomerPoints.wizard.dataPreview.messages.issuesSummary",
-        )}
-      </h3>
+    <div className="space-y-4">
       <div className="space-y-4">
         {issues?.skippedNonPointFeatures && (
           <IssueSection

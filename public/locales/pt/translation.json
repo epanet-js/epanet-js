@@ -433,7 +433,6 @@
         "messages": {
           "noValidCustomerPoints": "Nenhum ponto de consumo válido encontrado",
           "noErrors": "Nenhum erro encontrado",
-          "issuesSummary": "Resumo de Problemas",
           "skippedRowsWarning": "Essas linhas foram ignoradas durante a importação. Apenas pontos de consumo válidos serão processados.",
           "andXMore": "... e mais {{1}} pontos de consumo",
           "andXMoreIssues": "... e mais {{1}}"
@@ -451,11 +450,11 @@
         "title": "Opções de Demanda",
         "replaceOption": {
           "title": "Substituir demandas existentes por demandas de consumo (padrão)",
-          "description": "As demandas base existentes nas junções serão definidas como zero e substituídas pelas demandas dos pontos de consumo. Esta é a abordagem típica para modelagem baseada em consumidores."
+          "description": "Definir todas as demandas base nas junções como zero e usar apenas as demandas dos pontos de consumo. Recomendado quando os dados de consumo são a fonte principal de demanda."
         },
         "addOnTopOption": {
           "title": "Adicionar demandas de consumo sobre as demandas existentes",
-          "description": "As demandas dos pontos de consumo serão adicionadas às demandas base existentes nas junções. Use esta opção quando quiser manter as demandas atuais da rede e adicionar cargas de consumidores como demanda adicional."
+          "description": "Manter as demandas base atuais e adicionar as demandas dos pontos de consumo por cima. Use isto se quiser incluir tanto as demandas existentes quanto as baseadas em consumo."
         },
         "processingMessage": "Conectando pontos de consumo à rede..."
       }

@@ -433,7 +433,6 @@
         "messages": {
           "noValidCustomerPoints": "Aucun point de consommation valide trouvé",
           "noErrors": "Aucune erreur trouvée",
-          "issuesSummary": "Résumé des Problèmes",
           "skippedRowsWarning": "Ces lignes ont été ignorées lors de l'importation. Seuls les points de consommation valides seront traités.",
           "andXMore": "... et {{1}} points de consommation de plus",
           "andXMoreIssues": "... et {{1}} de plus"
@@ -451,11 +450,11 @@
         "title": "Options de Demande",
         "replaceOption": {
           "title": "Remplacer les demandes existantes par les demandes de consommation (par défaut)",
-          "description": "Les demandes de base existantes aux jonctions seront remises à zéro et remplacées par les demandes des points de consommation. C'est l'approche typique pour la modélisation basée sur les consommateurs."
+          "description": "Régler toutes les demandes de base aux jonctions à zéro et utiliser uniquement les demandes des points de consommation. Recommandé lorsque les données de consommation sont la source principale de demande."
         },
         "addOnTopOption": {
           "title": "Ajouter les demandes de consommation par-dessus les demandes existantes",
-          "description": "Les demandes des points de consommation seront ajoutées aux demandes de base existantes aux jonctions. Utilisez cette option lorsque vous souhaitez maintenir les demandes actuelles du réseau et ajouter les charges des consommateurs comme demande supplémentaire."
+          "description": "Conserver les demandes de base actuelles et ajouter les demandes des points de consommation par-dessus. Utilisez ceci si vous voulez inclure à la fois les demandes existantes et celles basées sur la consommation."
         },
         "processingMessage": "Connexion des points de consommation au réseau..."
       }
