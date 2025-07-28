@@ -5,6 +5,7 @@ import {
   WizardActions,
   WizardStep,
   ParsedDataSummary,
+  AllocationRule,
 } from "./types";
 
 const initialState: WizardState = {
@@ -16,6 +17,8 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
+  allocationRules: [{ maxDistance: 100, maxDiameter: 200 }],
+  connectionCounts: null,
 };
 
 export const useWizardState = (): WizardState & WizardActions => {
@@ -28,7 +31,7 @@ export const useWizardState = (): WizardState & WizardActions => {
   const goNext = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      currentStep: Math.min(3, prev.currentStep + 1) as WizardStep,
+      currentStep: Math.min(4, prev.currentStep + 1) as WizardStep,
       error: null,
     }));
   }, []);
@@ -80,6 +83,20 @@ export const useWizardState = (): WizardState & WizardActions => {
     setState((prev) => ({ ...prev, keepDemands }));
   }, []);
 
+  const setAllocationRules = useCallback(
+    (allocationRules: AllocationRule[]) => {
+      setState((prev) => ({ ...prev, allocationRules }));
+    },
+    [],
+  );
+
+  const setConnectionCounts = useCallback(
+    (connectionCounts: { [ruleIndex: number]: number } | null) => {
+      setState((prev) => ({ ...prev, connectionCounts }));
+    },
+    [],
+  );
+
   const reset = useCallback(() => {
     setState(initialState);
   }, []);
@@ -96,6 +113,8 @@ export const useWizardState = (): WizardState & WizardActions => {
     setLoading,
     setProcessing,
     setKeepDemands,
+    setAllocationRules,
+    setConnectionCounts,
     reset,
   };
 };

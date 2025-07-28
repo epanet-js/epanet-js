@@ -11,7 +11,9 @@ import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
 import { DataPreviewStep } from "./data-preview-step";
 import { DemandOptionsStep } from "./demand-options-step";
+import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
@@ -38,6 +40,7 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const isAllocationOn = useFeatureFlag("FLAG_ALLOCATION");
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -151,11 +154,15 @@ export const ImportCustomerPointsWizard: React.FC<
     })();
   }, [wizardState, data, setData, setDialogState, userTracking, handleClose]);
 
+  const maxStep = isAllocationOn ? 4 : 3;
   const canGoNext =
     (wizardState.currentStep === 1 && wizardState.parsedDataSummary !== null) ||
-    (wizardState.currentStep === 2 && wizardState.parsedDataSummary !== null);
+    (wizardState.currentStep === 2 && wizardState.parsedDataSummary !== null) ||
+    (wizardState.currentStep === 3 && isAllocationOn);
   const canGoBack =
-    wizardState.currentStep === 2 || wizardState.currentStep === 3;
+    wizardState.currentStep === 2 ||
+    wizardState.currentStep === 3 ||
+    (wizardState.currentStep === 4 && isAllocationOn);
   const isNextDisabled = wizardState.isLoading || wizardState.isProcessing;
   const isFinishDisabled =
     wizardState.isProcessing ||
@@ -187,6 +194,15 @@ export const ImportCustomerPointsWizard: React.FC<
       label: translate("importCustomerPoints.wizard.demandOptionsStep"),
       ariaLabel: "Step 3: Demand Options",
     },
+    ...(isAllocationOn
+      ? [
+          {
+            number: 4,
+            label: "Customers Allocation",
+            ariaLabel: "Step 4: Customers Allocation",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -208,8 +224,13 @@ export const ImportCustomerPointsWizard: React.FC<
           <DemandOptionsStep
             state={wizardState}
             actions={wizardState}
-            onFinish={handleFinishImport}
+            onFinish={
+              !isAllocationOn ? handleFinishImport : () => Promise.resolve()
+            }
           />
+        )}
+        {wizardState.currentStep === 4 && isAllocationOn && (
+          <AllocationStep state={wizardState} actions={wizardState} />
         )}
       </WizardContent>
 
@@ -229,7 +250,7 @@ export const ImportCustomerPointsWizard: React.FC<
             : undefined
         }
         nextAction={
-          wizardState.currentStep === 1 || wizardState.currentStep === 2
+          wizardState.currentStep < maxStep
             ? {
                 label: translate("importCustomerPoints.wizard.buttons.next"),
                 onClick: wizardState.goNext,
@@ -238,7 +259,7 @@ export const ImportCustomerPointsWizard: React.FC<
             : undefined
         }
         finishAction={
-          wizardState.currentStep === 3
+          wizardState.currentStep === maxStep
             ? {
                 label: wizardState.isProcessing
                   ? translate("importCustomerPoints.wizard.buttons.processing")

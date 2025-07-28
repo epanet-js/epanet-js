@@ -9,12 +9,12 @@ import { CommandContainer } from "./__helpers__/command-container";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import toast from "react-hot-toast";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("importCustomerPoints", () => {
   beforeEach(() => {
     toast.remove();
-    stubFeatureOn("FLAG_ALLOCATION");
+    stubFeatureOff("FLAG_ALLOCATION");
   });
 
   it("imports GeoJSON customer points correctly", async () => {
@@ -40,10 +40,6 @@ describe("importCustomerPoints", () => {
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
 
     await finishWizardImport();
     await expectSuccessNotification(2);
@@ -86,10 +82,6 @@ describe("importCustomerPoints", () => {
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
 
     await finishWizardImport();
     await expectSuccessNotification();
@@ -524,10 +516,6 @@ describe("importCustomerPoints", () => {
       screen.getByLabelText(/add customer demands on top/i),
     );
 
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
     await finishWizardImport();
     await expectSuccessNotification();
 
@@ -535,50 +523,6 @@ describe("importCustomerPoints", () => {
     const junction = hydraulicModel.assets.get("J1") as Junction;
 
     expect(junction.baseDemand).toBe(30);
-  });
-
-  it("shows allocation step when FLAG_ALLOCATION is enabled", async () => {
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const geoJsonContent = createGeoJSONContent();
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    expect(
-      screen.getByRole("heading", { level: 2, name: /Customers Allocation/i }),
-    ).toBeInTheDocument();
-
-    // Should show Edit button initially, not Add Rule
-    expect(screen.getByRole("button", { name: /Edit/i })).toBeInTheDocument();
-
-    // Click Edit to enter editing mode
-    await userEvent.click(screen.getByRole("button", { name: /Edit/i }));
-
-    // Now Add Rule button should be visible
-    expect(
-      screen.getByRole("button", { name: /Add Rule/i }),
-    ).toBeInTheDocument();
   });
 
   it("closes wizard when cancel is clicked", async () => {
@@ -627,10 +571,6 @@ describe("importCustomerPoints", () => {
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
 
     await finishWizardImport();
     await expectSuccessNotification(2);
@@ -894,26 +834,6 @@ const uploadFileInWizard = async (file: File) => {
 };
 
 const finishWizardImport = async () => {
-  // Check if we're on step 3 (demand options) and need to navigate to step 4 (allocation)
-  try {
-    // If step 4 exists but we're on step 3, navigate to step 4
-    const step4Tab = screen.queryByRole("tab", {
-      name: /customers allocation/i,
-    });
-    const step3Tab = screen.queryByRole("tab", {
-      name: /demand options/i,
-      current: "step",
-    });
-
-    if (step4Tab && step3Tab) {
-      // We're on step 3 but step 4 exists, navigate to step 4
-      await userEvent.click(screen.getByRole("button", { name: /next/i }));
-      expectWizardStep("customers allocation");
-    }
-  } catch (error) {
-    // If navigation fails, continue with finish
-  }
-
   await userEvent.click(screen.getByRole("button", { name: /finish/i }));
 };
 
