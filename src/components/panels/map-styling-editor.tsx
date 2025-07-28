@@ -22,6 +22,7 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { FieldList, InlineField } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -76,6 +77,7 @@ const SymbologyEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
+  const isRoughnessOn = useFeatureFlag("FLAG_ROUGHNESS");
 
   const {
     linkSymbology,
@@ -92,6 +94,13 @@ const SymbologyEditor = ({
   } = useAtomValue(dataAtom);
 
   const userTracking = useUserTracking();
+
+  const filteredProperties = properties.filter((property) => {
+    if (property === "roughness") {
+      return isRoughnessOn;
+    }
+    return true;
+  });
 
   const handleColorByChange = (property: SelectOption) => {
     userTracking.capture({
@@ -157,16 +166,18 @@ const SymbologyEditor = ({
         <Selector
           styleOptions={{ border: false }}
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-          options={(["none", ...properties] as SelectOption[]).map((type) => {
-            const unit = type !== "none" ? quantities.getUnit(type) : null;
-            return {
-              value: type,
-              label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
-              disabled:
-                simulation.status === "idle" &&
-                simulationProperties.includes(type),
-            };
-          })}
+          options={(["none", ...filteredProperties] as SelectOption[]).map(
+            (type) => {
+              const unit = type !== "none" ? quantities.getUnit(type) : null;
+              return {
+                value: type,
+                label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+                disabled:
+                  simulation.status === "idle" &&
+                  simulationProperties.includes(type),
+              };
+            },
+          )}
           selected={
             (symbology.colorRule
               ? symbology.colorRule.property

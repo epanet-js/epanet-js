@@ -10,6 +10,7 @@ export const supportedLinkProperties = [
   "velocity",
   "unitHeadloss",
   "diameter",
+  "roughness",
 ] as const;
 export const supportedProperties = [
   ...supportedNodeProperties,

@@ -8,6 +8,7 @@ import { getSortedValues } from "src/hydraulic-model/assets-map";
 type DefaultSymbologyBuilders = {
   flow: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
   diameter: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
+  roughness: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
   unitHeadloss: (
     hydraulicModel: HydraulicModel,
     quantities: Quantities,
@@ -34,6 +35,17 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       mode: "prettyBreaks",
       numIntervals: 7,
       sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
+    });
+    return { colorRule, labelRule: nullLabelRule };
+  },
+
+  roughness: (hydraulicModel: HydraulicModel) => (): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "roughness",
+      unit: hydraulicModel.units.roughness,
+      rampName: "Emrld",
+      mode: "prettyBreaks",
+      sortedData: getSortedValues(hydraulicModel.assets, "roughness"),
     });
     return { colorRule, labelRule: nullLabelRule };
   },
