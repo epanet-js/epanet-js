@@ -1,4 +1,4 @@
-import { LineString, Point, Feature, point } from "@turf/helpers";
+import { Point, Feature, point } from "@turf/helpers";
 import { getCoord } from "@turf/invariant";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
@@ -13,7 +13,7 @@ import {
 import { Pipe } from "../asset-types/pipe";
 import { Junction } from "../asset-types/junction";
 import { getLinkNodes } from "../assets-map";
-import { createSpatialIndex } from "../spatial-index";
+import { createSpatialIndex, LinkSegment } from "../spatial-index";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
@@ -117,7 +117,7 @@ const findFirstMatchingRule = (
   allocationRules: AllocationRule[],
   spatialIndexData: {
     spatialIndex: Flatbush | null;
-    segments: Feature<LineString>[];
+    segments: LinkSegment[];
   },
   pipesByDiameter: Map<number, Set<string>>,
   assets: HydraulicModel["assets"],
@@ -158,7 +158,7 @@ const findFirstMatchingRule = (
 const findNearestPipeConnectionWithinDistance = (
   customerPointFeature: Feature<Point>,
   maxDistance: number,
-  spatialIndexData: { spatialIndex: Flatbush; segments: Feature<LineString>[] },
+  spatialIndexData: { spatialIndex: Flatbush; segments: LinkSegment[] },
   validPipeIds: Set<string>,
   assets: HydraulicModel["assets"],
 ): CustomerPointConnection | null => {
@@ -191,9 +191,9 @@ const findNearestPipeConnectionWithinDistance = (
 
   for (const id of candidateIds) {
     const candidateSegment = segments[id];
-    const pipeId = candidateSegment.properties?.pipeId;
+    const linkId = candidateSegment.properties.linkId;
 
-    if (!pipeId || !validPipeIds.has(pipeId)) {
+    if (!linkId || !validPipeIds.has(linkId)) {
       continue;
     }
 
@@ -216,7 +216,7 @@ const findNearestPipeConnectionWithinDistance = (
         distance < closestMatch.properties.dist)
     ) {
       closestMatch = pointOnLine;
-      closestPipeId = pipeId;
+      closestPipeId = linkId;
     }
   }
 

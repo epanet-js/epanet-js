@@ -2,36 +2,44 @@ import { LineString, Feature } from "@turf/helpers";
 import lineSegment from "@turf/line-segment";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
-import { Pipe } from "./asset-types/pipe";
+import { Link } from "./asset-types/link";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+
+export interface LinkSegmentProperties {
+  linkId: string;
+}
+
+export type LinkSegment = Feature<LineString, LinkSegmentProperties>;
 
 export interface SpatialIndexData {
   spatialIndex: Flatbush | null;
-  segments: Feature<LineString>[];
+  segments: LinkSegment[];
 }
 
 export const createSpatialIndex = withDebugInstrumentation(
-  function createSpatialIndex(pipes: Pipe[]): SpatialIndexData {
-    if (pipes.length === 0) {
+  function createSpatialIndex(links: Link<any>[]): SpatialIndexData {
+    if (links.length === 0) {
       return { spatialIndex: null, segments: [] };
     }
 
-    const allSegments: Feature<LineString>[] = [];
+    const allSegments: LinkSegment[] = [];
 
-    for (const pipe of pipes) {
-      if (pipe.feature.geometry.type === "LineString") {
-        const pipeFeature = {
+    for (const link of links) {
+      if (link.feature.geometry.type === "LineString") {
+        const linkFeature = {
           type: "Feature" as const,
-          geometry: pipe.feature.geometry as LineString,
-          properties: { pipeId: pipe.id },
+          geometry: link.feature.geometry as LineString,
+          properties: { linkId: link.id },
         };
-        const segments = lineSegment(pipeFeature);
+        const segments = lineSegment(linkFeature);
         for (const segment of segments.features) {
-          segment.properties = {
-            ...segment.properties,
-            pipeId: pipe.id,
+          const linkSegment: LinkSegment = {
+            ...segment,
+            properties: {
+              linkId: link.id,
+            },
           };
-          allSegments.push(segment);
+          allSegments.push(linkSegment);
         }
       }
     }

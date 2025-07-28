@@ -24,7 +24,7 @@ describe("createSpatialIndex", () => {
 
     expect(spatialIndexData.spatialIndex).toBeDefined();
     expect(spatialIndexData.segments).toHaveLength(1);
-    expect(spatialIndexData.segments[0].properties?.pipeId).toBe("P1");
+    expect(spatialIndexData.segments[0].properties.linkId).toBe("P1");
   });
 
   it("returns null spatial index when no pipes", () => {
@@ -63,9 +63,7 @@ describe("createSpatialIndex", () => {
     expect(spatialIndexData.spatialIndex).toBeDefined();
     expect(spatialIndexData.segments).toHaveLength(2);
 
-    const pipeIds = spatialIndexData.segments.map(
-      (s) => s.properties?.pipeId as string,
-    );
+    const pipeIds = spatialIndexData.segments.map((s) => s.properties.linkId);
     expect(pipeIds).toContain("P1");
     expect(pipeIds).toContain("P2");
   });

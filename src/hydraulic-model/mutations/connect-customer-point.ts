@@ -11,7 +11,10 @@ import {
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
-import { SpatialIndexData } from "src/hydraulic-model/spatial-index";
+import {
+  SpatialIndexData,
+  LinkSegment,
+} from "src/hydraulic-model/spatial-index";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 
 const INITIAL_SEARCH_RADIUS_METERS = 20;
@@ -70,7 +73,7 @@ export const connectCustomerPoint = (
 const locateNearestPointOnNetwork = (
   targetPoint: Feature<Point>,
   searchIndex: Flatbush,
-  segments: Feature<LineString>[],
+  segments: LinkSegment[],
 ): Feature<Point> | null => {
   if (segments.length === 0) {
     return null;
@@ -125,7 +128,7 @@ const locateNearestPointOnNetwork = (
 const findNearestPipeConnection = (
   customerPoint: CustomerPoint,
   searchIndex: Flatbush | null,
-  segments: Feature<LineString>[],
+  segments: LinkSegment[],
 ): CustomerPointConnection | null => {
   if (!searchIndex || segments.length === 0) {
     return null;
@@ -143,7 +146,7 @@ const findNearestPipeConnection = (
   }
 
   const sourceSegment = nearestPoint.properties?.sourceSegment;
-  const pipeId = sourceSegment?.properties?.pipeId || "unknown";
+  const pipeId = sourceSegment?.properties?.linkId || "unknown";
 
   return {
     pipeId,
