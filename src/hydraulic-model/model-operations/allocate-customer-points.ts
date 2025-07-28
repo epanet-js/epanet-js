@@ -52,7 +52,6 @@ export const allocateCustomerPoints = withDebugInstrumentation(
       };
     }
 
-    const pipesByDiameter = createPipesByDiameterMap(pipes, allocationRules);
     const allocatedCustomerPoints = new Map<string, CustomerPoint>();
     const ruleMatches = allocationRules.map(() => 0);
 
@@ -61,7 +60,6 @@ export const allocateCustomerPoints = withDebugInstrumentation(
         customerPoint,
         allocationRules,
         spatialIndexData,
-        pipesByDiameter,
         hydraulicModel.assets,
       );
 
@@ -89,28 +87,6 @@ export const allocateCustomerPoints = withDebugInstrumentation(
   },
 );
 
-const createPipesByDiameterMap = (
-  pipes: Pipe[],
-  allocationRules: AllocationRule[],
-): Map<number, Set<string>> => {
-  const pipesByDiameter = new Map<number, Set<string>>();
-
-  for (let i = 0; i < allocationRules.length; i++) {
-    const rule = allocationRules[i];
-    const validPipes = new Set<string>();
-
-    for (const pipe of pipes) {
-      if (pipe.diameter <= rule.maxDiameter) {
-        validPipes.add(pipe.id);
-      }
-    }
-
-    pipesByDiameter.set(i, validPipes);
-  }
-
-  return pipesByDiameter;
-};
-
 const findFirstMatchingRule = (
   customerPoint: CustomerPoint,
   allocationRules: AllocationRule[],
@@ -118,7 +94,6 @@ const findFirstMatchingRule = (
     spatialIndex: Flatbush | null;
     segments: LinkSegment[];
   },
-  pipesByDiameter: Map<number, Set<string>>,
   assets: HydraulicModel["assets"],
 ): { ruleIndex: number; connection: CustomerPointConnection | null } => {
   const customerPointFeature = point(customerPoint.coordinates);
@@ -129,20 +104,15 @@ const findFirstMatchingRule = (
 
   for (let i = 0; i < allocationRules.length; i++) {
     const rule = allocationRules[i];
-    const validPipeIds = pipesByDiameter.get(i);
-
-    if (!validPipeIds || validPipeIds.size === 0) {
-      continue;
-    }
 
     const connection = findNearestPipeConnectionWithinDistance(
       customerPointFeature,
       rule.maxDistance,
+      rule.maxDiameter,
       {
         spatialIndex: spatialIndexData.spatialIndex,
         segments: spatialIndexData.segments,
       },
-      validPipeIds,
       assets,
     );
 
@@ -157,8 +127,8 @@ const findFirstMatchingRule = (
 const findNearestPipeConnectionWithinDistance = (
   customerPointFeature: Feature<Point>,
   maxDistance: number,
+  maxDiameter: number,
   spatialIndexData: { spatialIndex: Flatbush; segments: LinkSegment[] },
-  validPipeIds: Set<string>,
   assets: HydraulicModel["assets"],
 ): CustomerPointConnection | null => {
   const { spatialIndex, segments } = spatialIndexData;
@@ -188,7 +158,8 @@ const findNearestPipeConnectionWithinDistance = (
     const candidateSegment = segments[id];
     const linkId = candidateSegment.properties.linkId;
 
-    if (!linkId || !validPipeIds.has(linkId)) {
+    const pipe = assets.get(linkId) as Pipe;
+    if (!pipe || pipe.diameter > maxDiameter) {
       continue;
     }
 
