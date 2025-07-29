@@ -223,6 +223,7 @@ export const AllocationStep: React.FC = () => {
           rules={displayRules}
           allocationCounts={allocationCounts}
           isEditing={isEditingRules}
+          isAllocating={isAllocating}
           onChange={handleRulesChange}
         />
 

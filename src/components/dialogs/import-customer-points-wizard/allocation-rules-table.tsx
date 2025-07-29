@@ -8,6 +8,7 @@ import {
   TrashIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  SymbolIcon,
 } from "@radix-ui/react-icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -16,6 +17,7 @@ type AllocationRulesTableProps = {
   rules: AllocationRule[];
   allocationCounts: number[];
   isEditing: boolean;
+  isAllocating?: boolean;
   onChange: (newRules: AllocationRule[]) => void;
 };
 
@@ -23,6 +25,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   rules,
   allocationCounts,
   isEditing,
+  isAllocating = false,
   onChange,
 }) => {
   const handleAddRule = useCallback(() => {
@@ -141,7 +144,16 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                 </td>
                 {!isEditing && (
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {allocationCounts[index]}
+                    {isAllocating ? (
+                      <div className="flex justify-center">
+                        <SymbolIcon
+                          className="animate-spin w-4 h-4 text-gray-500"
+                          data-testid="allocation-loading"
+                        />
+                      </div>
+                    ) : (
+                      allocationCounts[index]
+                    )}
                   </td>
                 )}
                 {isEditing && (

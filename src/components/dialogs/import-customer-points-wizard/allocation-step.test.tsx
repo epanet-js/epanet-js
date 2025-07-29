@@ -153,6 +153,27 @@ describe("AllocationStep", () => {
     expect(backButton).toBeDisabled();
     expect(finishButton).toBeDisabled();
   });
+
+  it("shows loading spinners in allocations column while allocating", () => {
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    setWizardState(store, {
+      allocationRules: [anAllocationRule(), anAllocationRule()],
+      isAllocating: true,
+    });
+    renderWizard(store);
+
+    const allocationHeaders = screen.getAllByText("Allocations");
+    expect(allocationHeaders).toHaveLength(1);
+
+    const loadingSpinners = screen.getAllByTestId("allocation-loading");
+    expect(loadingSpinners).toHaveLength(2);
+
+    loadingSpinners.forEach((spinner) => {
+      expect(spinner).toHaveClass("animate-spin");
+    });
+  });
 });
 
 const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
