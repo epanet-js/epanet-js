@@ -1,7 +1,7 @@
-export { WizardContainer } from "./WizardContainer";
-export { WizardHeader } from "./WizardHeader";
-export { WizardStepIndicator } from "./WizardStepIndicator";
-export { WizardActions } from "./WizardActions";
-export { WizardContent } from "./WizardContent";
+export { WizardContainer } from "./wizard-container";
+export { WizardHeader } from "./wizard-header";
+export { WizardStepIndicator } from "./wizard-step-indicator";
+export { WizardActions } from "./wizard-actions";
+export { WizardContent } from "./wizard-content";
 
-export type { Step } from "./WizardStepIndicator";
+export type { Step } from "./wizard-step-indicator";

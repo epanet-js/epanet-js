@@ -1,5 +1,5 @@
 import React from "react";
-import { WizardStepIndicator, type Step } from "./WizardStepIndicator";
+import { WizardStepIndicator, type Step } from "./wizard-step-indicator";
 
 interface WizardHeaderProps {
   title: string;
