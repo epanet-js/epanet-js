@@ -1,5 +1,8 @@
 import React, { useCallback } from "react";
-import { AllocationRule } from "./types";
+import {
+  AllocationRule,
+  defaultAllocationRule,
+} from "src/hydraulic-model/customer-points";
 import {
   PlusIcon,
   TrashIcon,
@@ -23,10 +26,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   onChange,
 }) => {
   const handleAddRule = useCallback(() => {
-    const newRule: AllocationRule = {
-      maxDistance: 10,
-      maxDiameter: 200,
-    };
+    const newRule: AllocationRule = { ...defaultAllocationRule };
     onChange([...rules, newRule]);
   }, [rules, onChange]);
 

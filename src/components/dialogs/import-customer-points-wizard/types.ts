@@ -1,13 +1,11 @@
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  AllocationRule,
+  CustomerPoint,
+} from "src/hydraulic-model/customer-points";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
 export type WizardStep = 1 | 2 | 3 | 4;
-
-export type AllocationRule = {
-  maxDistance: number;
-  maxDiameter: number;
-};
 
 export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];

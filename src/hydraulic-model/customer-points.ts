@@ -1,6 +1,16 @@
 import { Position } from "geojson";
 import { Junction } from "./asset-types/junction";
 
+export type AllocationRule = {
+  maxDistance: number;
+  maxDiameter: number;
+};
+
+export const defaultAllocationRule: AllocationRule = {
+  maxDistance: 10,
+  maxDiameter: 200,
+};
+
 export interface CustomerPointConnection {
   pipeId: string;
   snapPoint: Position;

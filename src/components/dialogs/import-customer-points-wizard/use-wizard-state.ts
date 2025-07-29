@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  AllocationRule,
+  CustomerPoint,
+  defaultAllocationRule,
+} from "src/hydraulic-model/customer-points";
 import {
   WizardState,
   WizardActions,
   WizardStep,
   ParsedDataSummary,
-  AllocationRule,
 } from "./types";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
@@ -18,7 +21,7 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
-  allocationRules: [{ maxDistance: 10, maxDiameter: 200 }],
+  allocationRules: [defaultAllocationRule],
   connectionCounts: null,
   allocationResult: null,
   isAllocating: false,

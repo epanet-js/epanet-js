@@ -36,8 +36,10 @@ import {
 import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
 import { Demands, nullDemands } from "src/hydraulic-model/demands";
 import {
+  AllocationRule,
   CustomerPoint,
   CustomerPoints,
+  defaultAllocationRule,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
 
@@ -382,3 +384,10 @@ export class HydraulicModelBuilder {
     return node;
   }
 }
+
+export const anAllocationRule = (
+  overrides: Partial<AllocationRule> = {},
+): AllocationRule => ({
+  ...defaultAllocationRule,
+  ...overrides,
+});

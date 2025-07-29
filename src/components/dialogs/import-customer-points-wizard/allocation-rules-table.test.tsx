@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { AllocationRule } from "./types";
+import { AllocationRule } from "src/hydraulic-model/customer-points";
+import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { vi } from "vitest";
 
 type AllocationRulesTableProps = {
@@ -27,7 +28,7 @@ describe("AllocationRulesTable", () => {
 
     it("shows read-only table when isEditing is false", () => {
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
       const allocationCounts = [25, 40];
@@ -61,7 +62,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("shows editable table when isEditing is true", () => {
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
       const allocationCounts = [25];
 
       renderComponent({
@@ -93,7 +94,7 @@ describe("AllocationRulesTable", () => {
   describe("Rule Operations", () => {
     it("calls onChange with new rule when Add Rule is clicked", async () => {
       const user = userEvent.setup();
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
       const onChange = vi.fn();
 
       renderComponent({
@@ -107,15 +108,15 @@ describe("AllocationRulesTable", () => {
       await user.click(addButton);
 
       expect(onChange).toHaveBeenCalledWith([
-        { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 10, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
+        anAllocationRule(),
       ]);
     });
 
     it("calls onChange with removed rule when delete is clicked", async () => {
       const user = userEvent.setup();
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
       const onChange = vi.fn();
@@ -138,7 +139,7 @@ describe("AllocationRulesTable", () => {
     it("calls onChange with reordered rules when move up is clicked", async () => {
       const user = userEvent.setup();
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
       const onChange = vi.fn();
@@ -155,14 +156,14 @@ describe("AllocationRulesTable", () => {
 
       expect(onChange).toHaveBeenCalledWith([
         { maxDistance: 150, maxDiameter: 300 },
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
       ]);
     });
 
     it("calls onChange with reordered rules when move down is clicked", async () => {
       const user = userEvent.setup();
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
       const onChange = vi.fn();
@@ -179,14 +180,14 @@ describe("AllocationRulesTable", () => {
 
       expect(onChange).toHaveBeenCalledWith([
         { maxDistance: 150, maxDiameter: 300 },
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
       ]);
     });
   });
 
   describe("Field Editing", () => {
     it("calls onChange when diameter field changes", () => {
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
       const onChange = vi.fn();
 
       renderComponent({
@@ -208,7 +209,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("calls onChange when distance field changes", () => {
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
       const onChange = vi.fn();
 
       renderComponent({
@@ -233,7 +234,7 @@ describe("AllocationRulesTable", () => {
   describe("Edge Cases", () => {
     it("disables move up button for first rule", () => {
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
 
@@ -250,7 +251,7 @@ describe("AllocationRulesTable", () => {
 
     it("disables move down button for last rule", () => {
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
 
@@ -266,7 +267,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("handles single rule scenario correctly", () => {
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
 
       renderComponent({
         rules,
@@ -282,7 +283,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("disables remove button when only one rule exists", () => {
-      const rules: AllocationRule[] = [{ maxDistance: 100, maxDiameter: 200 }];
+      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
 
       renderComponent({
         rules,
@@ -296,7 +297,7 @@ describe("AllocationRulesTable", () => {
 
     it("displays correct order numbers", () => {
       const rules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
         { maxDistance: 200, maxDiameter: 400 },
       ];
@@ -316,7 +317,7 @@ describe("AllocationRulesTable", () => {
     it("handles multiple operations in sequence", async () => {
       const user = userEvent.setup();
       let currentRules: AllocationRule[] = [
-        { maxDistance: 100, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
       ];
 
       const mockOnChangeIntegration = vi.fn((newRules: AllocationRule[]) => {
@@ -334,13 +335,13 @@ describe("AllocationRulesTable", () => {
 
       await user.click(screen.getByRole("button", { name: /Add Rule/i }));
       expect(mockOnChangeIntegration).toHaveBeenLastCalledWith([
-        { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 10, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
+        anAllocationRule(),
       ]);
 
       currentRules = [
-        { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 10, maxDiameter: 200 },
+        anAllocationRule({ maxDistance: 100 }),
+        anAllocationRule(),
       ];
       rerender(
         <AllocationRulesTable
@@ -354,7 +355,7 @@ describe("AllocationRulesTable", () => {
       const deleteButtons = screen.getAllByTitle("Remove rule");
       await user.click(deleteButtons[0]);
       expect(mockOnChangeIntegration).toHaveBeenLastCalledWith([
-        { maxDistance: 10, maxDiameter: 200 },
+        anAllocationRule(),
       ]);
     });
   });

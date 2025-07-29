@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
-import { WizardState, WizardActions, AllocationRule } from "./types";
+import { AllocationRule } from "src/hydraulic-model/customer-points";
+import { WizardState, WizardActions } from "./types";
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
