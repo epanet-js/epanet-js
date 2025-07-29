@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { Store } from "src/state/jotai";
@@ -130,15 +130,18 @@ describe("AllocationStep", () => {
     });
     renderWizard(store);
 
-    const wizardCancelButton = screen
-      .getAllByRole("button", { name: /cancel/i })
-      .find((button) =>
-        button
-          .closest('[role="dialog"]')
-          ?.querySelector('[aria-label="Import wizard steps"]'),
-      );
-    const backButton = screen.getByRole("button", { name: /back/i });
-    const finishButton = screen.getByRole("button", { name: /finish/i });
+    const navigation = screen.getByRole("navigation", {
+      name: "wizard actions",
+    });
+    const wizardCancelButton = within(navigation).getByRole("button", {
+      name: /cancel/i,
+    });
+    const backButton = within(navigation).getByRole("button", {
+      name: /back/i,
+    });
+    const finishButton = within(navigation).getByRole("button", {
+      name: /finish/i,
+    });
 
     expect(wizardCancelButton).not.toBeDisabled();
     expect(backButton).not.toBeDisabled();

@@ -23,7 +23,11 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
   finishAction,
 }) => {
   return (
-    <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+    <div
+      role="navigation"
+      aria-label="wizard actions"
+      className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200"
+    >
       <Button
         onClick={cancelAction.onClick}
         variant="default"
