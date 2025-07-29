@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { atom, useAtom } from "jotai";
 import {
   AllocationRule,
   CustomerPoint,
@@ -28,103 +28,95 @@ const initialState: WizardState = {
   lastAllocatedRules: null,
 };
 
+export const wizardStateAtom = atom<WizardState>(initialState);
+
 export const useWizardState = (): WizardState & WizardActions => {
-  const [state, setState] = useState<WizardState>(initialState);
+  const [state, setWizardState] = useAtom(wizardStateAtom);
 
-  const goToStep = useCallback((step: WizardStep) => {
-    setState((prev) => ({ ...prev, currentStep: step, error: null }));
-  }, []);
+  const goToStep = (step: WizardStep) => {
+    setWizardState((prev) => ({ ...prev, currentStep: step, error: null }));
+  };
 
-  const goNext = useCallback(() => {
-    setState((prev) => ({
+  const goNext = () => {
+    setWizardState((prev) => ({
       ...prev,
       currentStep: Math.min(4, prev.currentStep + 1) as WizardStep,
       error: null,
     }));
-  }, []);
+  };
 
-  const goBack = useCallback(() => {
-    setState((prev) => ({
+  const goBack = () => {
+    setWizardState((prev) => ({
       ...prev,
       currentStep: Math.max(1, prev.currentStep - 1) as WizardStep,
       error: null,
     }));
-  }, []);
+  };
 
-  const setSelectedFile = useCallback((file: File | null) => {
-    setState((prev) => ({ ...prev, selectedFile: file, error: null }));
-  }, []);
+  const setSelectedFile = (file: File | null) => {
+    setWizardState((prev) => ({ ...prev, selectedFile: file, error: null }));
+  };
 
-  const setParsedCustomerPoints = useCallback(
-    (points: CustomerPoint[] | null) => {
-      setState((prev) => ({ ...prev, parsedCustomerPoints: points }));
-    },
-    [],
-  );
+  const setParsedCustomerPoints = (points: CustomerPoint[] | null) => {
+    setWizardState((prev) => ({ ...prev, parsedCustomerPoints: points }));
+  };
 
-  const setParsedDataSummary = useCallback(
-    (summary: ParsedDataSummary | null) => {
-      setState((prev) => ({ ...prev, parsedDataSummary: summary }));
-    },
-    [],
-  );
+  const setParsedDataSummary = (summary: ParsedDataSummary | null) => {
+    setWizardState((prev) => ({ ...prev, parsedDataSummary: summary }));
+  };
 
-  const setError = useCallback((error: string | null) => {
-    setState((prev) => ({
+  const setError = (error: string | null) => {
+    setWizardState((prev) => ({
       ...prev,
       error,
       isLoading: false,
       isProcessing: false,
     }));
-  }, []);
+  };
 
-  const setLoading = useCallback((loading: boolean) => {
-    setState((prev) => ({ ...prev, isLoading: loading, error: null }));
-  }, []);
+  const setLoading = (loading: boolean) => {
+    setWizardState((prev) => ({ ...prev, isLoading: loading, error: null }));
+  };
 
-  const setProcessing = useCallback((processing: boolean) => {
-    setState((prev) => ({ ...prev, isProcessing: processing, error: null }));
-  }, []);
+  const setProcessing = (processing: boolean) => {
+    setWizardState((prev) => ({
+      ...prev,
+      isProcessing: processing,
+      error: null,
+    }));
+  };
 
-  const setKeepDemands = useCallback((keepDemands: boolean) => {
-    setState((prev) => ({ ...prev, keepDemands }));
-  }, []);
+  const setKeepDemands = (keepDemands: boolean) => {
+    setWizardState((prev) => ({ ...prev, keepDemands }));
+  };
 
-  const setAllocationRules = useCallback(
-    (allocationRules: AllocationRule[]) => {
-      setState((prev) => ({ ...prev, allocationRules }));
-    },
-    [],
-  );
+  const setAllocationRules = (allocationRules: AllocationRule[]) => {
+    setWizardState((prev) => ({ ...prev, allocationRules }));
+  };
 
-  const setConnectionCounts = useCallback(
-    (connectionCounts: { [ruleIndex: number]: number } | null) => {
-      setState((prev) => ({ ...prev, connectionCounts }));
-    },
-    [],
-  );
+  const setConnectionCounts = (
+    connectionCounts: { [ruleIndex: number]: number } | null,
+  ) => {
+    setWizardState((prev) => ({ ...prev, connectionCounts }));
+  };
 
-  const setAllocationResult = useCallback(
-    (allocationResult: AllocationResult | null) => {
-      setState((prev) => ({ ...prev, allocationResult }));
-    },
-    [],
-  );
+  const setAllocationResult = (allocationResult: AllocationResult | null) => {
+    setWizardState((prev) => ({ ...prev, allocationResult }));
+  };
 
-  const setIsAllocating = useCallback((isAllocating: boolean) => {
-    setState((prev) => ({ ...prev, isAllocating, error: null }));
-  }, []);
+  const setIsAllocating = (isAllocating: boolean) => {
+    setWizardState((prev) => ({ ...prev, isAllocating, error: null }));
+  };
 
-  const setLastAllocatedRules = useCallback(
-    (lastAllocatedRules: AllocationRule[] | null) => {
-      setState((prev) => ({ ...prev, lastAllocatedRules }));
-    },
-    [],
-  );
+  const setLastAllocatedRules = (
+    lastAllocatedRules: AllocationRule[] | null,
+  ) => {
+    setWizardState((prev) => ({ ...prev, lastAllocatedRules }));
+  };
 
-  const reset = useCallback(() => {
-    setState(initialState);
-  }, []);
+  const reset = () => {
+    setWizardState(initialState);
+  };
 
   return {
     ...state,
