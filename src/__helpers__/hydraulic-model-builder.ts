@@ -39,7 +39,6 @@ import {
   AllocationRule,
   CustomerPoint,
   CustomerPoints,
-  defaultAllocationRule,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
 
@@ -388,6 +387,7 @@ export class HydraulicModelBuilder {
 export const anAllocationRule = (
   overrides: Partial<AllocationRule> = {},
 ): AllocationRule => ({
-  ...defaultAllocationRule,
+  maxDistance: 10,
+  maxDiameter: 200,
   ...overrides,
 });

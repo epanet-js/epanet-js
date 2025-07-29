@@ -2,7 +2,7 @@ import { atom, useAtom } from "jotai";
 import {
   AllocationRule,
   CustomerPoint,
-  defaultAllocationRule,
+  defaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
 import {
   WizardState,
@@ -21,7 +21,7 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
-  allocationRules: [defaultAllocationRule],
+  allocationRules: defaultAllocationRules,
   connectionCounts: null,
   allocationResult: null,
   isAllocating: false,

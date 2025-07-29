@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import {
   AllocationRule,
-  defaultAllocationRule,
+  defaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
 import {
   PlusIcon,
@@ -29,7 +29,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   onChange,
 }) => {
   const handleAddRule = useCallback(() => {
-    const newRule: AllocationRule = { ...defaultAllocationRule };
+    const newRule: AllocationRule = { ...defaultAllocationRules[0] };
     onChange([...rules, newRule]);
   }, [rules, onChange]);
 

@@ -6,10 +6,12 @@ export type AllocationRule = {
   maxDiameter: number;
 };
 
-export const defaultAllocationRule: AllocationRule = {
-  maxDistance: 10,
-  maxDiameter: 200,
-};
+export const defaultAllocationRules: AllocationRule[] = [
+  { maxDistance: 100, maxDiameter: 200 },
+  { maxDistance: 50, maxDiameter: 300 },
+  { maxDistance: 150, maxDiameter: 200 },
+  { maxDistance: 100, maxDiameter: 300 },
+];
 
 export interface CustomerPointConnection {
   pipeId: string;
