@@ -130,10 +130,7 @@ const findNearestPipeConnectionWithinDistance = (
   const [x, y] = getCoord(customerPointFeature);
 
   // Use a large search buffer to ensure we find candidates, then filter by distance
-  const searchBufferDegrees = Math.max(
-    (maxDistance * SEARCH_FACTOR) / 111139,
-    0.1,
-  );
+  const searchBufferDegrees = (maxDistance * SEARCH_FACTOR) / 111139;
 
   const candidateIds = spatialIndex.search(
     x - searchBufferDegrees,

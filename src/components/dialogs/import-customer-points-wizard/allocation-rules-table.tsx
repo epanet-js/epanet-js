@@ -24,7 +24,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 }) => {
   const handleAddRule = useCallback(() => {
     const newRule: AllocationRule = {
-      maxDistance: 100,
+      maxDistance: 10,
       maxDiameter: 200,
     };
     onChange([...rules, newRule]);

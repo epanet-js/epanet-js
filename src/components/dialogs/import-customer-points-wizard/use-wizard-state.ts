@@ -7,6 +7,7 @@ import {
   ParsedDataSummary,
   AllocationRule,
 } from "./types";
+import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
 const initialState: WizardState = {
   currentStep: 1,
@@ -17,8 +18,11 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
-  allocationRules: [{ maxDistance: 100, maxDiameter: 200 }],
+  allocationRules: [{ maxDistance: 10, maxDiameter: 200 }],
   connectionCounts: null,
+  allocationResult: null,
+  isAllocating: false,
+  lastAllocatedRules: null,
 };
 
 export const useWizardState = (): WizardState & WizardActions => {
@@ -97,6 +101,24 @@ export const useWizardState = (): WizardState & WizardActions => {
     [],
   );
 
+  const setAllocationResult = useCallback(
+    (allocationResult: AllocationResult | null) => {
+      setState((prev) => ({ ...prev, allocationResult }));
+    },
+    [],
+  );
+
+  const setIsAllocating = useCallback((isAllocating: boolean) => {
+    setState((prev) => ({ ...prev, isAllocating, error: null }));
+  }, []);
+
+  const setLastAllocatedRules = useCallback(
+    (lastAllocatedRules: AllocationRule[] | null) => {
+      setState((prev) => ({ ...prev, lastAllocatedRules }));
+    },
+    [],
+  );
+
   const reset = useCallback(() => {
     setState(initialState);
   }, []);
@@ -115,6 +137,9 @@ export const useWizardState = (): WizardState & WizardActions => {
     setKeepDemands,
     setAllocationRules,
     setConnectionCounts,
+    setAllocationResult,
+    setIsAllocating,
+    setLastAllocatedRules,
     reset,
   };
 };

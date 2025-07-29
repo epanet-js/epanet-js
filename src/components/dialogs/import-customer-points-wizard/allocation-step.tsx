@@ -1,10 +1,14 @@
 import React, { useCallback, useState } from "react";
+import { useAtomValue } from "jotai";
 import { WizardState, WizardActions, AllocationRule } from "./types";
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { AllocationRulesTable } from "./allocation-rules-table";
+import { dataAtom } from "src/state/jotai";
+import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 
 type AllocationStepProps = {
   state: WizardState;
@@ -17,6 +21,73 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
+  const data = useAtomValue(dataAtom);
+
+  const performAllocation = useCallback(
+    (rules: AllocationRule[]) => {
+      if (!state.parsedDataSummary?.validCustomerPoints?.length) {
+        return;
+      }
+
+      try {
+        actions.setIsAllocating(true);
+        actions.setError(null);
+
+        const customerPoints = initializeCustomerPoints();
+        state.parsedDataSummary.validCustomerPoints.forEach((point) => {
+          customerPoints.set(point.id, point);
+        });
+
+        const result = allocateCustomerPoints(data.hydraulicModel, {
+          allocationRules: rules,
+          customerPoints,
+        });
+
+        actions.setAllocationResult(result);
+        actions.setLastAllocatedRules([...rules]);
+
+        const connectionCounts: { [ruleIndex: number]: number } = {};
+        result.ruleMatches.forEach((count, index) => {
+          connectionCounts[index] = count;
+        });
+        actions.setConnectionCounts(connectionCounts);
+      } catch (error) {
+        actions.setError(`Allocation failed: ${(error as Error).message}`);
+      } finally {
+        actions.setIsAllocating(false);
+      }
+    },
+    [state.parsedDataSummary, data.hydraulicModel, actions],
+  );
+
+  const shouldTriggerAllocation = useCallback(
+    (rules: AllocationRule[]) => {
+      if (!state.parsedDataSummary?.validCustomerPoints?.length) {
+        return false;
+      }
+
+      if (state.isAllocating) {
+        return false;
+      }
+
+      if (!state.lastAllocatedRules) {
+        return true;
+      }
+
+      if (rules.length !== state.lastAllocatedRules.length) {
+        return true;
+      }
+
+      return rules.some((rule, index) => {
+        const lastRule = state.lastAllocatedRules![index];
+        return (
+          rule.maxDistance !== lastRule.maxDistance ||
+          rule.maxDiameter !== lastRule.maxDiameter
+        );
+      });
+    },
+    [state.parsedDataSummary, state.isAllocating, state.lastAllocatedRules],
+  );
 
   const handleEdit = useCallback(() => {
     setTempRules([...state.allocationRules]);
@@ -27,7 +98,11 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
     actions.setAllocationRules(tempRules);
     setIsEditing(false);
     setTempRules([]);
-  }, [tempRules, actions]);
+
+    if (shouldTriggerAllocation(tempRules)) {
+      performAllocation(tempRules);
+    }
+  }, [tempRules, actions, shouldTriggerAllocation, performAllocation]);
 
   const handleCancel = useCallback(() => {
     setTempRules([]);
@@ -38,14 +113,10 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
     setTempRules(newRules);
   }, []);
 
-  const calculateMockAllocationCounts = (rules: AllocationRule[]): number[] => {
-    return rules.map((_rule) => Math.floor(Math.random() * 50) + 10);
-  };
-
   const displayRules = isEditing ? tempRules : state.allocationRules;
-  const allocationCounts = calculateMockAllocationCounts(displayRules);
-
-  const totalCustomerPoints = 127; // Mock total
+  const allocationCounts = state.allocationResult?.ruleMatches || [];
+  const totalCustomerPoints =
+    state.parsedDataSummary?.validCustomerPoints?.length || 0;
   const totalAllocated = allocationCounts.reduce(
     (total, count) => total + count,
     0,
@@ -110,9 +181,23 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
         <AllocationSummary
           totalAllocated={totalAllocated}
           unallocatedCount={unallocatedCount}
-          isVisible={!isEditing && state.allocationRules.length > 0}
+          isVisible={
+            !isEditing &&
+            state.allocationRules.length > 0 &&
+            !state.isAllocating
+          }
+          totalCustomerPoints={totalCustomerPoints}
         />
       </div>
+
+      {state.isAllocating && (
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+          <span className="ml-2 text-sm text-gray-600">
+            Computing allocations...
+          </span>
+        </div>
+      )}
 
       {state.isProcessing && (
         <div className="flex items-center justify-center py-4">
@@ -130,12 +215,14 @@ type AllocationSummaryProps = {
   totalAllocated: number;
   unallocatedCount: number;
   isVisible: boolean;
+  totalCustomerPoints: number;
 };
 
 const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   totalAllocated,
   unallocatedCount,
   isVisible,
+  totalCustomerPoints,
 }) => {
   if (!isVisible) {
     return null;
@@ -144,7 +231,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
       <h4 className="text-sm font-medium text-gray-800 mb-2">
-        Allocation Summary
+        Allocation Summary ({totalCustomerPoints} total customer points)
       </h4>
       <div className="space-y-2">
         <div className="flex items-center">

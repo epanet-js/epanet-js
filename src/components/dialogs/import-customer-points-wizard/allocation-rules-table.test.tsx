@@ -108,7 +108,7 @@ describe("AllocationRulesTable", () => {
 
       expect(onChange).toHaveBeenCalledWith([
         { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 10, maxDiameter: 200 },
       ]);
     });
 
@@ -335,12 +335,12 @@ describe("AllocationRulesTable", () => {
       await user.click(screen.getByRole("button", { name: /Add Rule/i }));
       expect(mockOnChangeIntegration).toHaveBeenLastCalledWith([
         { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 10, maxDiameter: 200 },
       ]);
 
       currentRules = [
         { maxDistance: 100, maxDiameter: 200 },
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 10, maxDiameter: 200 },
       ];
       rerender(
         <AllocationRulesTable
@@ -354,7 +354,7 @@ describe("AllocationRulesTable", () => {
       const deleteButtons = screen.getAllByTitle("Remove rule");
       await user.click(deleteButtons[0]);
       expect(mockOnChangeIntegration).toHaveBeenLastCalledWith([
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 10, maxDiameter: 200 },
       ]);
     });
   });
