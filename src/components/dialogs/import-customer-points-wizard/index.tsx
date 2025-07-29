@@ -163,9 +163,13 @@ export const ImportCustomerPointsWizard: React.FC<
     wizardState.currentStep === 2 ||
     wizardState.currentStep === 3 ||
     (wizardState.currentStep === 4 && isAllocationOn);
-  const isNextDisabled = wizardState.isLoading || wizardState.isProcessing;
+  const isNextDisabled =
+    wizardState.isLoading ||
+    wizardState.isProcessing ||
+    wizardState.isAllocating;
   const isFinishDisabled =
     wizardState.isProcessing ||
+    wizardState.isAllocating ||
     !wizardState.parsedDataSummary?.validCustomerPoints?.length;
 
   const handleModalDragOver = useCallback((e: React.DragEvent) => {
@@ -230,7 +234,7 @@ export const ImportCustomerPointsWizard: React.FC<
         cancelAction={{
           label: translate("importCustomerPoints.wizard.buttons.cancel"),
           onClick: handleCancel,
-          disabled: wizardState.isProcessing,
+          disabled: wizardState.isProcessing || wizardState.isAllocating,
         }}
         backAction={
           canGoBack

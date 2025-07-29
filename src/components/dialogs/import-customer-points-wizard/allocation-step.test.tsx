@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { Store } from "src/state/jotai";
 import { setInitialState } from "src/__helpers__/state";
@@ -45,7 +46,39 @@ describe("AllocationStep", () => {
     setWizardState(store, { lastAllocatedRules: null });
     renderWizard(store);
 
-    expect(screen.getByText("Computing allocations...")).toBeInTheDocument();
+    await waitForAllocations();
+
+    expect(screen.getByText(/Allocation Summary/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/customer points will be allocated/),
+    ).toBeInTheDocument();
+  });
+
+  it("updates allocation summary when rules are changed", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      lastAllocatedRules: [anAllocationRule({ maxDistance: 10 })],
+      allocationResult: {
+        ruleMatches: [1],
+        allocatedCustomerPoints: new Map(),
+      },
+      connectionCounts: { 0: 1 },
+    });
+    renderWizard(store);
+
+    await waitForAllocations();
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+
+    const distanceField = screen.getByLabelText("Value for: Max Distance");
+    await user.clear(distanceField);
+    await user.type(distanceField, "50");
+
+    await user.click(screen.getByRole("button", { name: /save/i }));
 
     await waitForAllocations();
 
@@ -53,6 +86,37 @@ describe("AllocationStep", () => {
     expect(
       screen.getByText(/customer points will be allocated/),
     ).toBeInTheDocument();
+  });
+
+  it("disables edit button while allocating", () => {
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      lastAllocatedRules: [anAllocationRule({ maxDistance: 10 })],
+      isAllocating: true,
+    });
+    renderWizard(store);
+
+    const editButton = screen.getByRole("button", { name: /edit/i });
+    expect(editButton).toBeDisabled();
+  });
+
+  it("disables navigation and action buttons while allocating", () => {
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      lastAllocatedRules: [anAllocationRule({ maxDistance: 10 })],
+      isAllocating: true,
+    });
+    renderWizard(store);
+
+    expect(screen.getByRole("button", { name: /cancel/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 });
 
