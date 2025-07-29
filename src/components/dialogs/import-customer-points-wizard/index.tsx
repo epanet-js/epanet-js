@@ -16,6 +16,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { dataAtom, dialogAtom } from "src/state/jotai";
 import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
+import { connectCustomerPoints } from "src/hydraulic-model/mutations/connect-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
@@ -54,7 +55,7 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose();
   }, [userTracking, handleClose]);
 
-  const handleFinishImport = useCallback(() => {
+  const handleFinishImportDeprecated = useCallback(() => {
     const customerPoints =
       wizardState.parsedDataSummary?.validCustomerPoints ||
       wizardState.parsedCustomerPoints;
@@ -153,6 +154,63 @@ export const ImportCustomerPointsWizard: React.FC<
       }
     })();
   }, [wizardState, data, setData, setDialogState, userTracking, handleClose]);
+
+  const handleFinishImport = useCallback(() => {
+    if (!isAllocationOn) {
+      return handleFinishImportDeprecated();
+    }
+
+    // Happy path assumption: allocation completed successfully
+    const allocatedCustomerPoints =
+      wizardState.allocationResult!.allocatedCustomerPoints;
+
+    return (async () => {
+      wizardState.setProcessing(true);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const updatedHydraulicModel = connectCustomerPoints(
+        data.hydraulicModel,
+        allocatedCustomerPoints,
+      );
+
+      const importedCount = updatedHydraulicModel.customerPoints.size;
+
+      setData({
+        ...data,
+        hydraulicModel: updatedHydraulicModel,
+      });
+
+      // Success flow
+      setDialogState({
+        type: "customerPointsImportSummary",
+        status: "success",
+        count: importedCount,
+      });
+
+      userTracking.capture({
+        name: "importCustomerPoints.completed",
+        count: importedCount,
+      });
+
+      notify({
+        variant: "success",
+        title: "Import Successful",
+        description: `Successfully imported ${importedCount} customer points`,
+        Icon: CheckIcon,
+      });
+
+      handleClose();
+    })();
+  }, [
+    isAllocationOn,
+    wizardState,
+    data,
+    setData,
+    setDialogState,
+    userTracking,
+    handleClose,
+    handleFinishImportDeprecated,
+  ]);
 
   const maxStep = isAllocationOn ? 4 : 3;
   const canGoNext =

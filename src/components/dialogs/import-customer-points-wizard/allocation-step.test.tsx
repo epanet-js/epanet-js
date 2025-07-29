@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
-import { Store } from "src/state/jotai";
+import { Store, dataAtom } from "src/state/jotai";
 import { setInitialState } from "src/__helpers__/state";
 import {
   HydraulicModelBuilder,
@@ -12,6 +12,7 @@ import { ImportCustomerPointsWizard } from "./index";
 import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
 
 describe("AllocationStep", () => {
   beforeEach(() => {
@@ -173,6 +174,61 @@ describe("AllocationStep", () => {
     loadingSpinners.forEach((spinner) => {
       expect(spinner).toHaveClass("animate-spin");
     });
+  });
+
+  it("uses connectCustomerPoints function when finish is clicked with allocated customer points", async () => {
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
+    const junction = hydraulicModel.assets.get("J1") as Junction;
+
+    const cp1 = buildCustomerPoint("1");
+    const cp2 = buildCustomerPoint("2");
+
+    cp1.connect({
+      pipeId: "P1",
+      snapPoint: [0, 0],
+      distance: 5,
+      junction: junction,
+    });
+    cp2.connect({
+      pipeId: "P1",
+      snapPoint: [1, 1],
+      distance: 3,
+      junction: junction,
+    });
+
+    const store = setInitialState({
+      hydraulicModel,
+    });
+
+    setWizardState(store, {
+      allocationResult: {
+        ruleMatches: [2],
+        allocatedCustomerPoints: new Map([
+          ["1", cp1],
+          ["2", cp2],
+        ]),
+      },
+      lastAllocatedRules: [anAllocationRule()],
+    });
+
+    renderWizard(store);
+
+    await waitForAllocations();
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).not.toBeDisabled();
+
+    await user.click(finishButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/processing/i)).not.toBeInTheDocument();
+    });
+
+    const currentState = store.get(dataAtom);
+    expect(currentState.hydraulicModel.customerPoints.size).toBe(2);
+    expect(currentState.hydraulicModel.customerPoints.has("1")).toBe(true);
+    expect(currentState.hydraulicModel.customerPoints.has("2")).toBe(true);
   });
 });
 
