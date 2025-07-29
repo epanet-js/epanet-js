@@ -13,7 +13,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    exclude: ["src/**/*.benchmark.test.ts"],
+    exclude: ["src/**/*.benchmark.test.ts", "src/**/*.benchmark.test.tsx"],
     environmentMatchGlobs: [
       ["src/**/*.test.tsx", "jsdom"],
       ["src/**/*.test.ts", "node"],

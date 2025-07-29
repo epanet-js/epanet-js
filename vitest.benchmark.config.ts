@@ -11,8 +11,8 @@ loadEnvConfig(projectDir);
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    environment: "node",
-    include: ["src/**/*.benchmark.test.ts"],
+    environment: "jsdom",
+    include: ["src/**/*.benchmark.test.ts", "src/**/*.benchmark.test.tsx"],
     dir: "./",
     deps: {
       interopDefault: true,

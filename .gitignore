@@ -69,3 +69,6 @@ lib-cov
 
 .claude
 specs/
+
+# Benchmark data files
+**/.benchmark/
