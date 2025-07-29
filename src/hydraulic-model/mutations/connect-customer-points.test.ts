@@ -269,4 +269,92 @@ describe("connectCustomerPoints", () => {
     expect(updatedJ1.customerPoints).toContain(newCP);
     expect(updatedJ1.customerPoints).not.toContain(existingCP);
   });
+
+  it("preserves junction base demands by default", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0], baseDemand: 30 })
+      .build();
+
+    const junction1 = hydraulicModel.assets.get("J1") as Junction;
+    const customerPoints: CustomerPoints = new Map();
+
+    const cp1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 25,
+    });
+    cp1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      distance: 1,
+      junction: junction1,
+    });
+    customerPoints.set("CP1", cp1);
+
+    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+
+    const updatedJ1 = updatedModel.assets.get("J1") as Junction;
+    expect(updatedJ1.baseDemand).toBe(30);
+    expect(updatedJ1.customerPointCount).toBe(1);
+    expect(updatedJ1.totalCustomerDemand).toBe(25);
+  });
+
+  it("preserves junction base demands when preserveJunctionDemands is true", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0], baseDemand: 45 })
+      .build();
+
+    const junction1 = hydraulicModel.assets.get("J1") as Junction;
+    const customerPoints: CustomerPoints = new Map();
+
+    const cp1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 20,
+    });
+    cp1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      distance: 1,
+      junction: junction1,
+    });
+    customerPoints.set("CP1", cp1);
+
+    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints, {
+      preserveJunctionDemands: true,
+    });
+
+    const updatedJ1 = updatedModel.assets.get("J1") as Junction;
+    expect(updatedJ1.baseDemand).toBe(45);
+    expect(updatedJ1.customerPointCount).toBe(1);
+    expect(updatedJ1.totalCustomerDemand).toBe(20);
+  });
+
+  it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0], baseDemand: 60 })
+      .build();
+
+    const junction1 = hydraulicModel.assets.get("J1") as Junction;
+    const customerPoints: CustomerPoints = new Map();
+
+    const cp1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 35,
+    });
+    cp1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      distance: 1,
+      junction: junction1,
+    });
+    customerPoints.set("CP1", cp1);
+
+    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints, {
+      preserveJunctionDemands: false,
+    });
+
+    const updatedJ1 = updatedModel.assets.get("J1") as Junction;
+    expect(updatedJ1.baseDemand).toBe(0);
+    expect(updatedJ1.customerPointCount).toBe(1);
+    expect(updatedJ1.totalCustomerDemand).toBe(35);
+  });
 });
