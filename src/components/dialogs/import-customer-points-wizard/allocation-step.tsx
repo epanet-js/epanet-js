@@ -23,18 +23,25 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
 
+  const forceLoadingState = () =>
+    new Promise((resolve) => setTimeout(resolve, 10));
+
   const performAllocation = useCallback(
-    (rules: AllocationRule[]) => {
+    async (rules: AllocationRule[]) => {
       if (!state.parsedDataSummary?.validCustomerPoints?.length) {
         return;
       }
 
-      try {
-        actions.setIsAllocating(true);
-        actions.setError(null);
+      const validCustomerPoints = state.parsedDataSummary.validCustomerPoints;
 
+      actions.setIsAllocating(true);
+      actions.setError(null);
+
+      await forceLoadingState();
+
+      try {
         const customerPoints = initializeCustomerPoints();
-        state.parsedDataSummary.validCustomerPoints.forEach((point) => {
+        validCustomerPoints.forEach((point) => {
           customerPoints.set(point.id, point);
         });
 
@@ -100,7 +107,7 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
     setTempRules([]);
 
     if (shouldTriggerAllocation(tempRules)) {
-      performAllocation(tempRules);
+      void performAllocation(tempRules);
     }
   }, [tempRules, actions, shouldTriggerAllocation, performAllocation]);
 
