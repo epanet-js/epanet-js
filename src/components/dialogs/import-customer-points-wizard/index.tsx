@@ -160,7 +160,6 @@ export const ImportCustomerPointsWizard: React.FC<
       return handleFinishImportDeprecated();
     }
 
-    // Happy path assumption: allocation completed successfully
     const allocatedCustomerPoints =
       wizardState.allocationResult!.allocatedCustomerPoints;
 
@@ -171,6 +170,7 @@ export const ImportCustomerPointsWizard: React.FC<
       const updatedHydraulicModel = connectCustomerPoints(
         data.hydraulicModel,
         allocatedCustomerPoints,
+        { preserveJunctionDemands: wizardState.keepDemands },
       );
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
@@ -180,7 +180,6 @@ export const ImportCustomerPointsWizard: React.FC<
         hydraulicModel: updatedHydraulicModel,
       });
 
-      // Success flow
       setDialogState({
         type: "customerPointsImportSummary",
         status: "success",

@@ -281,13 +281,14 @@ describe("importCustomerPoints", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0], baseDemand: 30 })
-        .aJunction("J2", { coordinates: [10, 0], baseDemand: 45 })
+        .aJunction("J2", { coordinates: [0.001, 0.001], baseDemand: 45 })
         .aPipe("P1", {
           startNodeId: "J1",
           endNodeId: "J2",
+          diameter: 150,
           coordinates: [
             [0, 0],
-            [10, 0],
+            [0.001, 0.001],
           ],
         })
         .build(),
@@ -300,7 +301,7 @@ describe("importCustomerPoints", () => {
       features: [
         {
           type: "Feature",
-          geometry: { type: "Point", coordinates: [2, 1] },
+          geometry: { type: "Point", coordinates: [0.0003, 0.0003] },
           properties: { demand: 20 },
         },
       ],
@@ -337,6 +338,69 @@ describe("importCustomerPoints", () => {
     const junction = hydraulicModel.assets.get("J1") as Junction;
 
     expect(junction.baseDemand).toBe(30);
+    expect(junction.customerPointCount).toBe(1);
+    expect(junction.totalCustomerDemand).toBe(20);
+  });
+
+  it("replaces existing demands when replace option is selected", async () => {
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0], baseDemand: 40 })
+        .aJunction("J2", { coordinates: [0.001, 0.001], baseDemand: 60 })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          diameter: 150,
+          coordinates: [
+            [0, 0],
+            [0.001, 0.001],
+          ],
+        })
+        .build(),
+    });
+
+    renderComponent({ store });
+
+    const geoJsonContent = JSON.stringify({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [0.0002, 0.0002] },
+          properties: { demand: 25 },
+        },
+      ],
+    });
+
+    const file = aTestFile({
+      filename: "customer-points.geojson",
+      content: geoJsonContent,
+    });
+
+    await triggerCommand();
+    await waitForWizardToOpen();
+    expectWizardStep("data input");
+    await uploadFileInWizard(file);
+    expectWizardStep("data preview");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
+    expectWizardStep("demand options");
+
+    await userEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    expectWizardStep("customers allocation");
+
+    await waitForAllocations();
+
+    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await expectSuccessNotification();
+
+    const { hydraulicModel } = store.get(dataAtom);
+    const junction = hydraulicModel.assets.get("J1") as Junction;
+
+    expect(junction.baseDemand).toBe(0);
+    expect(junction.customerPointCount).toBe(1);
+    expect(junction.totalCustomerDemand).toBe(25);
   });
 
   it("closes wizard when cancel is clicked", async () => {
