@@ -118,6 +118,38 @@ describe("AllocationStep", () => {
     expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
+
+  it("disables navigation and action buttons while editing rules", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      lastAllocatedRules: [anAllocationRule({ maxDistance: 10 })],
+    });
+    renderWizard(store);
+
+    const wizardCancelButton = screen
+      .getAllByRole("button", { name: /cancel/i })
+      .find((button) =>
+        button
+          .closest('[role="dialog"]')
+          ?.querySelector('[aria-label="Import wizard steps"]'),
+      );
+    const backButton = screen.getByRole("button", { name: /back/i });
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+
+    expect(wizardCancelButton).not.toBeDisabled();
+    expect(backButton).not.toBeDisabled();
+    expect(finishButton).not.toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+
+    expect(wizardCancelButton).toBeDisabled();
+    expect(backButton).toBeDisabled();
+    expect(finishButton).toBeDisabled();
+  });
 });
 
 const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
@@ -139,6 +171,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     allocationResult: null,
     isAllocating: false,
     lastAllocatedRules: null,
+    isEditingRules: false,
   };
 
   store.set(wizardStateAtom, { ...defaultWizardState, ...overrides });

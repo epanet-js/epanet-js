@@ -12,7 +12,6 @@ import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { useWizardState } from "./use-wizard-state";
 
 export const AllocationStep: React.FC = () => {
-  const [isEditing, setIsEditing] = useState(false);
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
 
@@ -24,12 +23,14 @@ export const AllocationStep: React.FC = () => {
     lastAllocatedRules,
     error,
     isProcessing,
+    isEditingRules,
     setError,
     setIsAllocating,
     setAllocationResult,
     setLastAllocatedRules,
     setConnectionCounts,
     setAllocationRules,
+    setIsEditingRules,
   } = useWizardState();
 
   const forceLoadingState = () =>
@@ -115,12 +116,12 @@ export const AllocationStep: React.FC = () => {
 
   const handleEdit = useCallback(() => {
     setTempRules([...allocationRules]);
-    setIsEditing(true);
-  }, [allocationRules]);
+    setIsEditingRules(true);
+  }, [allocationRules, setIsEditingRules]);
 
   const handleSave = useCallback(() => {
     setAllocationRules(tempRules);
-    setIsEditing(false);
+    setIsEditingRules(false);
     setTempRules([]);
 
     if (shouldTriggerAllocation(tempRules)) {
@@ -129,14 +130,15 @@ export const AllocationStep: React.FC = () => {
   }, [
     tempRules,
     setAllocationRules,
+    setIsEditingRules,
     shouldTriggerAllocation,
     performAllocation,
   ]);
 
   const handleCancel = useCallback(() => {
     setTempRules([]);
-    setIsEditing(false);
-  }, []);
+    setIsEditingRules(false);
+  }, [setIsEditingRules]);
 
   const handleRulesChange = useCallback((newRules: AllocationRule[]) => {
     setTempRules(newRules);
@@ -158,7 +160,7 @@ export const AllocationStep: React.FC = () => {
     performAllocation,
   ]);
 
-  const displayRules = isEditing ? tempRules : allocationRules;
+  const displayRules = isEditingRules ? tempRules : allocationRules;
   const allocationCounts = allocationResult?.ruleMatches || [];
   const totalCustomerPoints =
     parsedDataSummary?.validCustomerPoints?.length || 0;
@@ -188,7 +190,7 @@ export const AllocationStep: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-md font-medium">Allocation Rules</h3>
-          {!isEditing ? (
+          {!isEditingRules ? (
             <button
               type="button"
               onClick={handleEdit}
@@ -220,14 +222,16 @@ export const AllocationStep: React.FC = () => {
         <AllocationRulesTable
           rules={displayRules}
           allocationCounts={allocationCounts}
-          isEditing={isEditing}
+          isEditing={isEditingRules}
           onChange={handleRulesChange}
         />
 
         <AllocationSummary
           totalAllocated={totalAllocated}
           unallocatedCount={unallocatedCount}
-          isVisible={!isEditing && allocationRules.length > 0 && !isAllocating}
+          isVisible={
+            !isEditingRules && allocationRules.length > 0 && !isAllocating
+          }
           totalCustomerPoints={totalCustomerPoints}
         />
       </div>

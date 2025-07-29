@@ -27,6 +27,7 @@ export type WizardState = {
   allocationResult: AllocationResult | null;
   isAllocating: boolean;
   lastAllocatedRules: AllocationRule[] | null;
+  isEditingRules: boolean;
 };
 
 export type WizardActions = {
@@ -45,5 +46,6 @@ export type WizardActions = {
   setAllocationResult: (result: AllocationResult | null) => void;
   setIsAllocating: (isAllocating: boolean) => void;
   setLastAllocatedRules: (rules: AllocationRule[] | null) => void;
+  setIsEditingRules: (isEditingRules: boolean) => void;
   reset: () => void;
 };

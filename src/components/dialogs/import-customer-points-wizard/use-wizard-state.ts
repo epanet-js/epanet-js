@@ -26,6 +26,7 @@ const initialState: WizardState = {
   allocationResult: null,
   isAllocating: false,
   lastAllocatedRules: null,
+  isEditingRules: false,
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
@@ -114,6 +115,10 @@ export const useWizardState = (): WizardState & WizardActions => {
     setWizardState((prev) => ({ ...prev, lastAllocatedRules }));
   };
 
+  const setIsEditingRules = (isEditingRules: boolean) => {
+    setWizardState((prev) => ({ ...prev, isEditingRules }));
+  };
+
   const reset = () => {
     setWizardState(initialState);
   };
@@ -135,6 +140,7 @@ export const useWizardState = (): WizardState & WizardActions => {
     setAllocationResult,
     setIsAllocating,
     setLastAllocatedRules,
+    setIsEditingRules,
     reset,
   };
 };
