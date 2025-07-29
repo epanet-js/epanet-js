@@ -154,19 +154,6 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
   },
 );
 
-const CustomerPointsImportSummaryDialog = dynamic<{
-  modal: dialogState.CustomerPointsImportSummaryState;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/customer-points-import-summary").then(
-      (r) => r.CustomerPointsImportSummaryDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
 const UnexpectedErrorDialog = dynamic<{
   modal: dialogState.UnexpectedErrorDialogState;
   onClose: () => void;
@@ -244,11 +231,6 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
-  }
-  if (dialog.type === "customerPointsImportSummary") {
-    return (
-      <CustomerPointsImportSummaryDialog modal={dialog} onClose={onClose} />
-    );
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;

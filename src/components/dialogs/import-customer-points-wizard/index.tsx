@@ -13,17 +13,9 @@ import { DataPreviewStep } from "./data-preview-step";
 import { DemandOptionsStep } from "./demand-options-step";
 import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { dataAtom, dialogAtom } from "src/state/jotai";
-import { connectCustomerPoint } from "src/hydraulic-model/mutations/connect-customer-point";
+import { dataAtom } from "src/state/jotai";
 import { connectCustomerPoints } from "src/hydraulic-model/mutations/connect-customer-points";
-import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
-import { createSpatialIndex } from "src/hydraulic-model/spatial-index";
-import { getAssetsByType } from "src/__helpers__/asset-queries";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { useUserTracking } from "src/infra/user-tracking";
-import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
 import { CheckIcon } from "@radix-ui/react-icons";
 
@@ -37,11 +29,9 @@ export const ImportCustomerPointsWizard: React.FC<
 > = ({ onClose }) => {
   const data = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
-  const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
-  const isAllocationOn = useFeatureFlag("FLAG_ALLOCATION");
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -55,171 +45,50 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose();
   }, [userTracking, handleClose]);
 
-  const handleFinishImportDeprecated = useCallback(() => {
-    const customerPoints =
-      wizardState.parsedDataSummary?.validCustomerPoints ||
-      wizardState.parsedCustomerPoints;
-    if (!customerPoints || customerPoints.length === 0) {
-      wizardState.setError("No customer points to import");
-      return Promise.resolve();
-    }
-
-    return (async () => {
-      try {
-        wizardState.setProcessing(true);
-
-        await new Promise((resolve) => setTimeout(resolve, 10));
-
-        const pipes = getAssetsByType<Pipe>(data.hydraulicModel.assets, "pipe");
-        const spatialIndexData = createSpatialIndex(pipes);
-        const issues = new CustomerPointsIssuesAccumulator();
-
-        const mutableHydraulicModel = {
-          ...data.hydraulicModel,
-          customerPoints: initializeCustomerPoints(),
-        };
-
-        for (const customerPoint of customerPoints) {
-          connectCustomerPoint(
-            mutableHydraulicModel,
-            spatialIndexData,
-            customerPoint,
-            { keepDemands: wizardState.keepDemands },
-          );
-        }
-
-        const finalIssues = issues.buildResult();
-        const importedCount = mutableHydraulicModel.customerPoints.size;
-
-        setData({
-          ...data,
-          hydraulicModel: mutableHydraulicModel,
-        });
-
-        if (importedCount === 0) {
-          setDialogState({
-            type: "customerPointsImportSummary",
-            status: "error",
-            count: 0,
-            issues: finalIssues || undefined,
-          });
-          userTracking.capture({
-            name: "importCustomerPoints.completedWithErrors",
-            count: 0,
-          });
-        } else if (finalIssues) {
-          setDialogState({
-            type: "customerPointsImportSummary",
-            status: "warning",
-            count: importedCount,
-            issues: finalIssues,
-          });
-          userTracking.capture({
-            name: "importCustomerPoints.completedWithWarnings",
-            count: importedCount,
-            issuesCount: Object.keys(finalIssues).length,
-          });
-          notify({
-            variant: "success",
-            title: "Import Successful",
-            description: `Successfully imported ${importedCount} customer points with some warnings`,
-            Icon: CheckIcon,
-          });
-        } else {
-          setDialogState({
-            type: "customerPointsImportSummary",
-            status: "success",
-            count: importedCount,
-          });
-          userTracking.capture({
-            name: "importCustomerPoints.completed",
-            count: importedCount,
-          });
-          notify({
-            variant: "success",
-            title: "Import Successful",
-            description: `Successfully imported ${importedCount} customer points`,
-            Icon: CheckIcon,
-          });
-        }
-
-        handleClose();
-      } catch (error) {
-        captureError(error as Error);
-        wizardState.setError(`Import failed: ${(error as Error).message}`);
-        userTracking.capture({
-          name: "importCustomerPoints.unexpectedError",
-          error: (error as Error).message,
-        });
-      }
-    })();
-  }, [wizardState, data, setData, setDialogState, userTracking, handleClose]);
-
-  const handleFinishImport = useCallback(() => {
-    if (!isAllocationOn) {
-      return handleFinishImportDeprecated();
-    }
-
+  const handleFinishImport = useCallback(async () => {
     const allocatedCustomerPoints =
       wizardState.allocationResult!.allocatedCustomerPoints;
 
-    return (async () => {
-      wizardState.setProcessing(true);
-      await new Promise((resolve) => setTimeout(resolve, 10));
+    wizardState.setProcessing(true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const updatedHydraulicModel = connectCustomerPoints(
-        data.hydraulicModel,
-        allocatedCustomerPoints,
-        { preserveJunctionDemands: wizardState.keepDemands },
-      );
+    const updatedHydraulicModel = connectCustomerPoints(
+      data.hydraulicModel,
+      allocatedCustomerPoints,
+      { preserveJunctionDemands: wizardState.keepDemands },
+    );
 
-      const importedCount = updatedHydraulicModel.customerPoints.size;
+    const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      setData({
-        ...data,
-        hydraulicModel: updatedHydraulicModel,
-      });
+    setData({
+      ...data,
+      hydraulicModel: updatedHydraulicModel,
+    });
 
-      setDialogState({
-        type: "customerPointsImportSummary",
-        status: "success",
-        count: importedCount,
-      });
+    userTracking.capture({
+      name: "importCustomerPoints.completed",
+      count: importedCount,
+    });
 
-      userTracking.capture({
-        name: "importCustomerPoints.completed",
-        count: importedCount,
-      });
+    notify({
+      variant: "success",
+      title: "Import Successful",
+      description: `Successfully imported ${importedCount} customer points`,
+      Icon: CheckIcon,
+    });
 
-      notify({
-        variant: "success",
-        title: "Import Successful",
-        description: `Successfully imported ${importedCount} customer points`,
-        Icon: CheckIcon,
-      });
+    handleClose();
+  }, [wizardState, data, setData, userTracking, handleClose]);
 
-      handleClose();
-    })();
-  }, [
-    isAllocationOn,
-    wizardState,
-    data,
-    setData,
-    setDialogState,
-    userTracking,
-    handleClose,
-    handleFinishImportDeprecated,
-  ]);
-
-  const maxStep = isAllocationOn ? 4 : 3;
+  const maxStep = 4;
   const canGoNext =
     (wizardState.currentStep === 1 && wizardState.parsedDataSummary !== null) ||
     (wizardState.currentStep === 2 && wizardState.parsedDataSummary !== null) ||
-    (wizardState.currentStep === 3 && isAllocationOn);
+    wizardState.currentStep === 3;
   const canGoBack =
     wizardState.currentStep === 2 ||
     wizardState.currentStep === 3 ||
-    (wizardState.currentStep === 4 && isAllocationOn);
+    wizardState.currentStep === 4;
   const isNextDisabled =
     wizardState.isLoading ||
     wizardState.isProcessing ||
@@ -257,15 +126,11 @@ export const ImportCustomerPointsWizard: React.FC<
       label: translate("importCustomerPoints.wizard.demandOptionsStep"),
       ariaLabel: "Step 3: Demand Options",
     },
-    ...(isAllocationOn
-      ? [
-          {
-            number: 4,
-            label: "Customers Allocation",
-            ariaLabel: "Step 4: Customers Allocation",
-          },
-        ]
-      : []),
+    {
+      number: 4,
+      label: "Customers Allocation",
+      ariaLabel: "Step 4: Customers Allocation",
+    },
   ];
 
   return (
@@ -280,13 +145,9 @@ export const ImportCustomerPointsWizard: React.FC<
         {wizardState.currentStep === 1 && <DataInputStep />}
         {wizardState.currentStep === 2 && <DataPreviewStep />}
         {wizardState.currentStep === 3 && (
-          <DemandOptionsStep
-            onFinish={
-              !isAllocationOn ? handleFinishImport : () => Promise.resolve()
-            }
-          />
+          <DemandOptionsStep onFinish={() => Promise.resolve()} />
         )}
-        {wizardState.currentStep === 4 && isAllocationOn && <AllocationStep />}
+        {wizardState.currentStep === 4 && <AllocationStep />}
       </WizardContent>
 
       <WizardActions

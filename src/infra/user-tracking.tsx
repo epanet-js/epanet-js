@@ -328,17 +328,6 @@ type ImportCustomerPointsCompleted = {
   count: number;
 };
 
-type ImportCustomerPointsCompletedWithWarnings = {
-  name: "importCustomerPoints.completedWithWarnings";
-  count: number;
-  issuesCount: number;
-};
-
-type ImportCustomerPointsCompletedWithErrors = {
-  name: "importCustomerPoints.completedWithErrors";
-  count: number;
-};
-
 type ImportCustomerPointsCanceled = {
   name: "importCustomerPoints.canceled";
 };
@@ -411,8 +400,6 @@ export type UserEvent =
   | LanguageChanged
   | ImportCustomerPointsStarted
   | ImportCustomerPointsCompleted
-  | ImportCustomerPointsCompletedWithWarnings
-  | ImportCustomerPointsCompletedWithErrors
   | ImportCustomerPointsCanceled
   | ImportCustomerPointsNoValidPoints
   | ImportCustomerPointsParseError
@@ -469,11 +456,7 @@ export type UserEvent =
       newBasemap: string;
       source: "dropdown" | "popover";
     }
-  | { name: "unexpectedError.seen" }
-  | {
-      name: "importCustomerPoints.unexpectedError";
-      error: string;
-    };
+  | { name: "unexpectedError.seen" };
 
 const debugPostHog = {
   capture: (...data: any[]) => {

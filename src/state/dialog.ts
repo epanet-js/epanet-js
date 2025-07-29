@@ -1,7 +1,6 @@
 import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
-import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 
 export type OpenInpDialogState = {
   type: "openInp";
@@ -54,13 +53,6 @@ export type UpgradeDialogState = {
   type: "upgrade";
 };
 
-export type CustomerPointsImportSummaryState = {
-  type: "customerPointsImportSummary";
-  status: "success" | "warning" | "error";
-  count: number;
-  issues?: CustomerPointsParserIssues;
-};
-
 export type ImportCustomerPointsWizardState = {
   type: "importCustomerPointsWizard";
 };
@@ -87,7 +79,6 @@ export type DialogState =
   | GeocodingNotSupportedDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
-  | CustomerPointsImportSummaryState
   | ImportCustomerPointsWizardState
   | UnexpectedErrorDialogState
   | { type: "simulationSettings" }

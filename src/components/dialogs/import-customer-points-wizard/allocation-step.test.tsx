@@ -11,14 +11,9 @@ import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { ImportCustomerPointsWizard } from "./index";
 import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 
 describe("AllocationStep", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_ALLOCATION");
-  });
-
   it("renders allocation step with default wizard state", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
