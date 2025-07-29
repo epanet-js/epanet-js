@@ -214,24 +214,16 @@ export const ImportCustomerPointsWizard: React.FC<
       />
 
       <WizardContent>
-        {wizardState.currentStep === 1 && (
-          <DataInputStep state={wizardState} actions={wizardState} />
-        )}
-        {wizardState.currentStep === 2 && (
-          <DataPreviewStep state={wizardState} actions={wizardState} />
-        )}
+        {wizardState.currentStep === 1 && <DataInputStep />}
+        {wizardState.currentStep === 2 && <DataPreviewStep />}
         {wizardState.currentStep === 3 && (
           <DemandOptionsStep
-            state={wizardState}
-            actions={wizardState}
             onFinish={
               !isAllocationOn ? handleFinishImport : () => Promise.resolve()
             }
           />
         )}
-        {wizardState.currentStep === 4 && isAllocationOn && (
-          <AllocationStep state={wizardState} actions={wizardState} />
-        )}
+        {wizardState.currentStep === 4 && isAllocationOn && <AllocationStep />}
       </WizardContent>
 
       <WizardActions

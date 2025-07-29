@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
 import { AllocationRule } from "src/hydraulic-model/customer-points";
-import { WizardState, WizardActions } from "./types";
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
@@ -10,33 +9,42 @@ import { AllocationRulesTable } from "./allocation-rules-table";
 import { dataAtom } from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
+import { useWizardState } from "./use-wizard-state";
 
-type AllocationStepProps = {
-  state: WizardState;
-  actions: WizardActions;
-};
-
-export const AllocationStep: React.FC<AllocationStepProps> = ({
-  state,
-  actions,
-}) => {
+export const AllocationStep: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
+
+  const {
+    parsedDataSummary,
+    allocationRules,
+    allocationResult,
+    isAllocating,
+    lastAllocatedRules,
+    error,
+    isProcessing,
+    setError,
+    setIsAllocating,
+    setAllocationResult,
+    setLastAllocatedRules,
+    setConnectionCounts,
+    setAllocationRules,
+  } = useWizardState();
 
   const forceLoadingState = () =>
     new Promise((resolve) => setTimeout(resolve, 10));
 
   const performAllocation = useCallback(
     async (rules: AllocationRule[]) => {
-      if (!state.parsedDataSummary?.validCustomerPoints?.length) {
+      if (!parsedDataSummary?.validCustomerPoints?.length) {
         return;
       }
 
-      const validCustomerPoints = state.parsedDataSummary.validCustomerPoints;
+      const validCustomerPoints = parsedDataSummary.validCustomerPoints;
 
-      actions.setIsAllocating(true);
-      actions.setError(null);
+      setIsAllocating(true);
+      setError(null);
 
       await forceLoadingState();
 
@@ -51,66 +59,79 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
           customerPoints,
         });
 
-        actions.setAllocationResult(result);
-        actions.setLastAllocatedRules([...rules]);
+        setAllocationResult(result);
+        setLastAllocatedRules([...rules]);
 
         const connectionCounts: { [ruleIndex: number]: number } = {};
         result.ruleMatches.forEach((count, index) => {
           connectionCounts[index] = count;
         });
-        actions.setConnectionCounts(connectionCounts);
+        setConnectionCounts(connectionCounts);
       } catch (error) {
-        actions.setError(`Allocation failed: ${(error as Error).message}`);
+        setError(`Allocation failed: ${(error as Error).message}`);
       } finally {
-        actions.setIsAllocating(false);
+        setIsAllocating(false);
       }
     },
-    [state.parsedDataSummary, data.hydraulicModel, actions],
+    [
+      parsedDataSummary,
+      data.hydraulicModel,
+      setIsAllocating,
+      setError,
+      setAllocationResult,
+      setLastAllocatedRules,
+      setConnectionCounts,
+    ],
   );
 
   const shouldTriggerAllocation = useCallback(
     (rules: AllocationRule[]) => {
-      if (!state.parsedDataSummary?.validCustomerPoints?.length) {
+      if (!parsedDataSummary?.validCustomerPoints?.length) {
         return false;
       }
 
-      if (state.isAllocating) {
+      if (isAllocating) {
         return false;
       }
 
-      if (!state.lastAllocatedRules) {
+      if (!lastAllocatedRules) {
         return true;
       }
 
-      if (rules.length !== state.lastAllocatedRules.length) {
+      if (rules.length !== lastAllocatedRules.length) {
         return true;
       }
 
       return rules.some((rule, index) => {
-        const lastRule = state.lastAllocatedRules![index];
+        const lastRule = lastAllocatedRules[index];
         return (
           rule.maxDistance !== lastRule.maxDistance ||
           rule.maxDiameter !== lastRule.maxDiameter
         );
       });
     },
-    [state.parsedDataSummary, state.isAllocating, state.lastAllocatedRules],
+    [parsedDataSummary, isAllocating, lastAllocatedRules],
   );
 
   const handleEdit = useCallback(() => {
-    setTempRules([...state.allocationRules]);
+    setTempRules([...allocationRules]);
     setIsEditing(true);
-  }, [state.allocationRules]);
+  }, [allocationRules]);
 
   const handleSave = useCallback(() => {
-    actions.setAllocationRules(tempRules);
+    setAllocationRules(tempRules);
     setIsEditing(false);
     setTempRules([]);
 
     if (shouldTriggerAllocation(tempRules)) {
       void performAllocation(tempRules);
     }
-  }, [tempRules, actions, shouldTriggerAllocation, performAllocation]);
+  }, [
+    tempRules,
+    setAllocationRules,
+    shouldTriggerAllocation,
+    performAllocation,
+  ]);
 
   const handleCancel = useCallback(() => {
     setTempRules([]);
@@ -121,10 +142,10 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
     setTempRules(newRules);
   }, []);
 
-  const displayRules = isEditing ? tempRules : state.allocationRules;
-  const allocationCounts = state.allocationResult?.ruleMatches || [];
+  const displayRules = isEditing ? tempRules : allocationRules;
+  const allocationCounts = allocationResult?.ruleMatches || [];
   const totalCustomerPoints =
-    state.parsedDataSummary?.validCustomerPoints?.length || 0;
+    parsedDataSummary?.validCustomerPoints?.length || 0;
   const totalAllocated = allocationCounts.reduce(
     (total, count) => total + count,
     0,
@@ -142,9 +163,9 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
         </p>
       </div>
 
-      {state.error && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{state.error}</p>
+          <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
 
@@ -189,16 +210,12 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
         <AllocationSummary
           totalAllocated={totalAllocated}
           unallocatedCount={unallocatedCount}
-          isVisible={
-            !isEditing &&
-            state.allocationRules.length > 0 &&
-            !state.isAllocating
-          }
+          isVisible={!isEditing && allocationRules.length > 0 && !isAllocating}
           totalCustomerPoints={totalCustomerPoints}
         />
       </div>
 
-      {state.isAllocating && (
+      {isAllocating && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
           <span className="ml-2 text-sm text-gray-600">
@@ -207,7 +224,7 @@ export const AllocationStep: React.FC<AllocationStepProps> = ({
         </div>
       )}
 
-      {state.isProcessing && (
+      {isProcessing && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
           <span className="ml-2 text-sm text-gray-600">

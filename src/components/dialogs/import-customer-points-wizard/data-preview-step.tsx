@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Feature } from "geojson";
-import { WizardState, WizardActions } from "./types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
@@ -8,22 +7,16 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-
-type DataPreviewStepProps = {
-  state: WizardState;
-  actions: WizardActions;
-};
+import { useWizardState } from "./use-wizard-state";
 
 type TabType = "customerPoints" | "issues";
 
-export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
-  state,
-  actions: _actions,
-}) => {
+export const DataPreviewStep: React.FC = () => {
   const translate = useTranslate();
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
+  const { parsedDataSummary, error } = useWizardState();
 
-  if (!state.parsedDataSummary) {
+  if (!parsedDataSummary) {
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">
@@ -38,7 +31,7 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
     );
   }
 
-  const { validCustomerPoints, issues } = state.parsedDataSummary;
+  const { validCustomerPoints, issues } = parsedDataSummary;
   const validCount = validCustomerPoints.length;
   const errorCount = getTotalErrorCount(issues);
 
@@ -50,9 +43,9 @@ export const DataPreviewStep: React.FC<DataPreviewStepProps> = ({
         {translate("importCustomerPoints.wizard.dataPreview.title")}
       </h2>
 
-      {state.error && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{state.error}</p>
+          <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
 

@@ -1,21 +1,18 @@
 import React from "react";
-import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useWizardState } from "./use-wizard-state";
 
 type DemandOptionsStepProps = {
-  state: WizardState;
-  actions: WizardActions;
   onFinish: () => Promise<void>;
 };
 
 export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
-  state,
-  actions,
   onFinish: _onFinish,
 }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const { keepDemands, setKeepDemands, error, isProcessing } = useWizardState();
 
   return (
     <div className="space-y-4">
@@ -23,9 +20,9 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
         {translate("importCustomerPoints.wizard.demandOptions.title")}
       </h2>
 
-      {state.error && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{state.error}</p>
+          <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
 
@@ -33,7 +30,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
         <div className="space-y-3">
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
-              !state.keepDemands
+              !keepDemands
                 ? "border-purple-500 bg-purple-50"
                 : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
             }`}
@@ -41,9 +38,9 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
             <input
               type="radio"
               name="keepDemands"
-              checked={!state.keepDemands}
+              checked={!keepDemands}
               onChange={() => {
-                actions.setKeepDemands(false);
+                setKeepDemands(false);
                 userTracking.capture({
                   name: "importCustomerPoints.demandAllocationSelected",
                   option: "replace",
@@ -67,7 +64,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
 
           <label
             className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
-              state.keepDemands
+              keepDemands
                 ? "border-purple-500 bg-purple-50"
                 : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
             }`}
@@ -75,9 +72,9 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
             <input
               type="radio"
               name="keepDemands"
-              checked={state.keepDemands}
+              checked={keepDemands}
               onChange={() => {
-                actions.setKeepDemands(true);
+                setKeepDemands(true);
                 userTracking.capture({
                   name: "importCustomerPoints.demandAllocationSelected",
                   option: "addOnTop",
@@ -101,7 +98,7 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
         </div>
       </div>
 
-      {state.isProcessing && (
+      {isProcessing && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
           <span className="ml-2 text-sm text-gray-600">

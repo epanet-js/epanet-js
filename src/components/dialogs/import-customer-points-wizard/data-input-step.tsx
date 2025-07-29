@@ -2,29 +2,33 @@ import React, { useCallback } from "react";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { WizardState, WizardActions, ParsedDataSummary } from "./types";
+import { ParsedDataSummary } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
+import { useWizardState } from "./use-wizard-state";
 
-type DataInputStepProps = {
-  state: WizardState;
-  actions: WizardActions;
-};
-
-export const DataInputStep: React.FC<DataInputStepProps> = ({
-  state,
-  actions,
-}) => {
+export const DataInputStep: React.FC = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
+  const {
+    selectedFile,
+    error,
+    isLoading,
+    setSelectedFile,
+    setLoading,
+    setError,
+    setParsedDataSummary,
+    goNext,
+  } = useWizardState();
+
   const handleFileProcess = useCallback(
     async (file: File) => {
-      actions.setSelectedFile(file);
-      actions.setLoading(true);
-      actions.setError(null);
+      setSelectedFile(file);
+      setLoading(true);
+      setError(null);
 
       try {
         const text = await file.text();
@@ -49,29 +53,33 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
           userTracking.capture({
             name: "importCustomerPoints.noValidPoints",
           });
-          actions.setError(
+          setError(
             translate("importCustomerPoints.dataSource.noValidPointsError"),
           );
           return;
         }
 
-        // Keep backward compatibility
-        actions.setParsedCustomerPoints(validCustomerPoints);
-        actions.setParsedDataSummary(parsedDataSummary);
-        actions.setLoading(false);
+        setParsedDataSummary(parsedDataSummary);
+        setLoading(false);
 
-        actions.goNext();
+        goNext();
       } catch (error) {
         userTracking.capture({
           name: "importCustomerPoints.parseError",
         });
         captureError(error as Error);
-        actions.setError(
-          translate("importCustomerPoints.dataSource.parseFileError"),
-        );
+        setError(translate("importCustomerPoints.dataSource.parseFileError"));
       }
     },
-    [actions, userTracking, translate],
+    [
+      setSelectedFile,
+      setLoading,
+      setError,
+      setParsedDataSummary,
+      goNext,
+      userTracking,
+      translate,
+    ],
   );
 
   return (
@@ -80,9 +88,9 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
         {translate("importCustomerPoints.dataSource.title")}
       </h2>
 
-      {state.error && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{state.error}</p>
+          <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
 
@@ -90,14 +98,14 @@ export const DataInputStep: React.FC<DataInputStepProps> = ({
         <DropZone
           onFileDrop={handleFileProcess}
           accept=".geojson,.geojsonl"
-          disabled={state.isLoading}
+          disabled={isLoading}
           supportedFormats="GeoJSON (.geojson), GeoJSONL (.geojsonl)"
-          selectedFile={state.selectedFile}
+          selectedFile={selectedFile}
           testId="customer-points-drop-zone"
         />
       </div>
 
-      {state.isLoading && (
+      {isLoading && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           <span className="ml-2 text-sm text-gray-600">
