@@ -49,6 +49,8 @@ export const strokeColorFor = (fillColor: string): string => {
   const minLightness = 0.75;
   const maxLightness = 0.95;
   const luminanceThreshold = 0.45;
+  const lightColorSaturation = 35;
+  const darkColorSaturation = 25;
   const color = chroma(fillColor);
   const luminance = color.luminance(); // Get luminance (0 = dark, 1 = light)
 
@@ -63,7 +65,7 @@ export const strokeColorFor = (fillColor: string): string => {
     // Adjust saturation
     strokeColor = strokeColor.set(
       "lch.c",
-      35,
+      lightColorSaturation,
     );
   } else {
     // Dark color: Lighten the stroke
@@ -74,7 +76,7 @@ export const strokeColorFor = (fillColor: string): string => {
     // Adjust saturation
     strokeColor = strokeColor.set(
       "lch.c",
-      25,
+      darkColorSaturation,
     );
   }
 

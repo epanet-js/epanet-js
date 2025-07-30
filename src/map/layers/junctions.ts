@@ -66,12 +66,20 @@ export const junctionResultsLayer = ({
   paint: {
     "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": strokeColorExpression(),
-    "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0, 14, 1],
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      12,
+      0.1,
+      14,
+      1,
+    ],
     "circle-stroke-opacity": opacityExpression(symbology),
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": colorExpression(),
   },
-  maxzoom: 14,
+  maxzoom: 13,
 });
 
 const opacityExpression = (symbology: ISymbology): mapboxgl.Expression => [
