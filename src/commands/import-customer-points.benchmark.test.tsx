@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { Store, dataAtom } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
@@ -94,13 +94,32 @@ The benchmark tests will be skipped.`);
 };
 
 describe("importCustomerPoints benchmark", () => {
+  let networks: Array<{
+    name: string;
+    inpPath: string;
+    customerPointsPath: string;
+    fileExtension: string;
+  }> = [];
+
+  beforeAll(async () => {
+    networks = await discoverNetworks();
+
+    if (networks.length === 0) {
+      console.log(
+        "DEBUG: No networks found for benchmarking, tests will be skipped",
+      );
+    } else {
+      console.log(
+        `DEBUG: 📊 Found ${networks.length} network(s) for benchmarking: ${networks.map((n) => n.name).join(", ")}`,
+      );
+    }
+  });
+
   beforeEach(() => {
     toast.remove();
   });
 
-  it("runs benchmarks for all discovered networks", async () => {
-    const networks = await discoverNetworks();
-
+  it("runs benchmarks for discovered networks", async () => {
     if (networks.length === 0) {
       console.log("DEBUG: No networks found for benchmarking, skipping test");
       return;
@@ -114,73 +133,16 @@ describe("importCustomerPoints benchmark", () => {
     } of networks) {
       console.log(`DEBUG: 🚀 Starting benchmark for network: ${name}`);
 
-      const inpContent = await fs.readFile(inpPath, "utf-8");
-      const { hydraulicModel } = parseInp(inpContent);
-
-      const customerPointsContent = await fs.readFile(
+      await runSingleNetworkBenchmark({
+        name,
+        inpPath,
         customerPointsPath,
-        "utf-8",
-      );
-      const file = aTestFile({
-        filename: `customer-points.${fileExtension}`,
-        content: customerPointsContent,
+        fileExtension,
       });
 
-      const store = setInitialState({ hydraulicModel });
-      renderComponent({ store });
-
-      await triggerCommand();
-      await waitForWizardToOpen();
-      expectWizardStep("data input");
-
-      let stepStartTime = performance.now();
-      await uploadFileInWizard(file);
-      expectWizardStep("data preview");
-
-      const uploadTime = performance.now() - stepStartTime;
-
-      stepStartTime = performance.now();
-      await userEvent.click(screen.getByRole("button", { name: /next/i }));
-      expectWizardStep("demand options");
-
-      const previewTime = performance.now() - stepStartTime;
-
-      stepStartTime = performance.now();
-      await userEvent.click(screen.getByRole("button", { name: /next/i }));
-      expectWizardStep("customers allocation");
-      await waitForAllocations();
-
-      const allocationTime = performance.now() - stepStartTime;
-
-      stepStartTime = performance.now();
-      await userEvent.click(screen.getByRole("button", { name: /finish/i }));
-      await expectSuccessNotification();
-
-      const finishTime = performance.now() - stepStartTime;
-
-      const { hydraulicModel: finalModel } = store.get(dataAtom);
-      const totalPoints = finalModel.customerPoints.size;
-      const totalTime = uploadTime + previewTime + allocationTime + finishTime;
-
-      console.log(
-        `DEBUG: [${name}] File upload and parsing: ${uploadTime.toFixed(2)}ms`,
-      );
-      console.log(
-        `DEBUG: [${name}] Data preview step: ${previewTime.toFixed(2)}ms`,
-      );
-      console.log(
-        `DEBUG: [${name}] Customer allocation (full process): ${allocationTime.toFixed(2)}ms`,
-      );
-      console.log(
-        `DEBUG: [${name}] Finish step and notification: ${finishTime.toFixed(2)}ms`,
-      );
-      console.log(
-        `DEBUG: [${name}] Total customer points allocated: ${totalPoints}`,
-      );
-      console.log(`DEBUG: [${name}] Total time: ${totalTime.toFixed(2)}ms`);
-
-      expect(totalPoints).toBeGreaterThan(0);
-      expect(totalTime).toBeLessThan(600000); // 10 minutes max
+      // Clean up DOM between network iterations to prevent state collision
+      cleanup();
+      toast.remove();
 
       console.log(`DEBUG: ✅ Completed benchmark for network: ${name}`);
     }
@@ -190,6 +152,83 @@ describe("importCustomerPoints benchmark", () => {
     );
   });
 });
+
+const runSingleNetworkBenchmark = async ({
+  name,
+  inpPath,
+  customerPointsPath,
+  fileExtension,
+}: {
+  name: string;
+  inpPath: string;
+  customerPointsPath: string;
+  fileExtension: string;
+}) => {
+  const inpContent = await fs.readFile(inpPath, "utf-8");
+  const { hydraulicModel } = parseInp(inpContent);
+
+  const customerPointsContent = await fs.readFile(customerPointsPath, "utf-8");
+  const file = aTestFile({
+    filename: `customer-points.${fileExtension}`,
+    content: customerPointsContent,
+  });
+
+  const store = setInitialState({ hydraulicModel });
+  renderComponent({ store });
+
+  await triggerCommand();
+  await waitForWizardToOpen();
+  expectWizardStep("data input");
+
+  let stepStartTime = performance.now();
+  await uploadFileInWizard(file);
+  expectWizardStep("data preview");
+
+  const uploadTime = performance.now() - stepStartTime;
+
+  stepStartTime = performance.now();
+  await userEvent.click(screen.getByRole("button", { name: /next/i }));
+  expectWizardStep("demand options");
+
+  const previewTime = performance.now() - stepStartTime;
+
+  stepStartTime = performance.now();
+  await userEvent.click(screen.getByRole("button", { name: /next/i }));
+  expectWizardStep("customers allocation");
+  await waitForAllocations();
+
+  const allocationTime = performance.now() - stepStartTime;
+
+  stepStartTime = performance.now();
+  await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+  await expectSuccessNotification();
+
+  const finishTime = performance.now() - stepStartTime;
+
+  const { hydraulicModel: finalModel } = store.get(dataAtom);
+  const totalPoints = finalModel.customerPoints.size;
+  const totalTime = uploadTime + previewTime + allocationTime + finishTime;
+
+  console.log(
+    `DEBUG: [${name}] File upload and parsing: ${uploadTime.toFixed(2)}ms`,
+  );
+  console.log(
+    `DEBUG: [${name}] Data preview step: ${previewTime.toFixed(2)}ms`,
+  );
+  console.log(
+    `DEBUG: [${name}] Customer allocation (full process): ${allocationTime.toFixed(2)}ms`,
+  );
+  console.log(
+    `DEBUG: [${name}] Finish step and notification: ${finishTime.toFixed(2)}ms`,
+  );
+  console.log(
+    `DEBUG: [${name}] Total customer points allocated: ${totalPoints}`,
+  );
+  console.log(`DEBUG: [${name}] Total time: ${totalTime.toFixed(2)}ms`);
+
+  expect(totalPoints).toBeGreaterThan(0);
+  expect(totalTime).toBeLessThan(600000); // 10 minutes max
+};
 
 const triggerCommand = async () => {
   await userEvent.click(
