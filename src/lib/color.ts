@@ -46,26 +46,27 @@ export function linearGradient({
 }
 
 export const strokeColorFor = (fillColor: string): string => {
-  const brightnessAdjust = 0.5;
-  const saturationAdjust = 0.2;
+  const minLightness = 0.75;
+  const maxLightness = 0.95;
+  const luminanceThreshold = 0.45;
+  const lightColorSaturation = 35;
+  const darkColorSaturation = 25;
   const color = chroma(fillColor);
   const luminance = color.luminance(); // Get luminance (0 = dark, 1 = light)
 
   let strokeColor = color;
 
-  if (luminance > 0.5) {
+  if (luminance > luminanceThreshold) {
     // Light color: Darken the stroke
-    strokeColor = strokeColor.darken(Math.abs(brightnessAdjust));
+    strokeColor = strokeColor.set("oklch.l", minLightness);
+    // Adjust saturation
+    strokeColor = strokeColor.set("lch.c", lightColorSaturation);
   } else {
     // Dark color: Lighten the stroke
-    strokeColor = strokeColor.brighten(Math.abs(brightnessAdjust + 0.75));
+    strokeColor = strokeColor.set("oklch.l", maxLightness);
+    // Adjust saturation
+    strokeColor = strokeColor.set("lch.c", darkColorSaturation);
   }
-
-  // Adjust saturation
-  strokeColor = strokeColor.set(
-    "hsl.s",
-    Math.min(1, Math.max(0, color.get("hsl.s") + saturationAdjust)),
-  );
 
   return strokeColor.hex();
 };
