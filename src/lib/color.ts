@@ -58,26 +58,14 @@ export const strokeColorFor = (fillColor: string): string => {
 
   if (luminance > luminanceThreshold) {
     // Light color: Darken the stroke
-    strokeColor = strokeColor.set(
-      "oklch.l",
-      minLightness
-    );
+    strokeColor = strokeColor.set("oklch.l", minLightness);
     // Adjust saturation
-    strokeColor = strokeColor.set(
-      "lch.c",
-      lightColorSaturation,
-    );
+    strokeColor = strokeColor.set("lch.c", lightColorSaturation);
   } else {
     // Dark color: Lighten the stroke
-    strokeColor = strokeColor.set(
-      "oklch.l",
-      maxLightness
-    );
+    strokeColor = strokeColor.set("oklch.l", maxLightness);
     // Adjust saturation
-    strokeColor = strokeColor.set(
-      "lch.c",
-      darkColorSaturation,
-    );
+    strokeColor = strokeColor.set("lch.c", darkColorSaturation);
   }
 
   return strokeColor.hex();
