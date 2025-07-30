@@ -119,6 +119,47 @@ const findFirstMatchingRule = (
   return { ruleIndex: -1, connection: null };
 };
 
+export function* generateSegmentCandidatesByDistance(
+  customerPointFeature: Feature<Point>,
+  maxDistance: number,
+  spatialIndexData: { spatialIndex: Flatbush; segments: LinkSegment[] },
+): Generator<
+  { bucketDistance: number; candidateIds: number[] },
+  void,
+  unknown
+> {
+  const bucketSize = 50;
+  const processedSegmentIds = new Set<number>();
+
+  for (
+    let bucketDistance = bucketSize;
+    bucketDistance <= maxDistance;
+    bucketDistance += bucketSize
+  ) {
+    const searchBuffer = turfBuffer(customerPointFeature, bucketDistance, {
+      units: "meters",
+    });
+
+    const [minX, minY, maxX, maxY] = turfBbox(searchBuffer);
+    const allCandidateIds = spatialIndexData.spatialIndex.search(
+      minX,
+      minY,
+      maxX,
+      maxY,
+    );
+
+    const newCandidateIds: number[] = [];
+    for (const id of allCandidateIds) {
+      if (!processedSegmentIds.has(id)) {
+        processedSegmentIds.add(id);
+        newCandidateIds.push(id);
+      }
+    }
+
+    yield { bucketDistance, candidateIds: newCandidateIds };
+  }
+}
+
 const findNearestPipeConnectionWithinDistance = (
   customerPointFeature: Feature<Point>,
   maxDistance: number,
@@ -126,70 +167,67 @@ const findNearestPipeConnectionWithinDistance = (
   spatialIndexData: { spatialIndex: Flatbush; segments: LinkSegment[] },
   assets: HydraulicModel["assets"],
 ): CustomerPointConnection | null => {
-  const { spatialIndex, segments } = spatialIndexData;
-
-  const searchBuffer = turfBuffer(customerPointFeature, maxDistance, {
-    units: "meters",
-  });
-
-  const [minX, minY, maxX, maxY] = turfBbox(searchBuffer);
-  const candidateIds = spatialIndex.search(minX, minY, maxX, maxY);
-
-  if (candidateIds.length === 0) {
-    return null;
-  }
+  const { segments } = spatialIndexData;
 
   let closestMatch: Feature<Point> | null = null;
   let closestPipeId: string | null = null;
 
-  for (const id of candidateIds) {
-    const candidateSegment = segments[id];
-    const linkId = candidateSegment.properties.linkId;
+  const candidateGenerator = generateSegmentCandidatesByDistance(
+    customerPointFeature,
+    maxDistance,
+    spatialIndexData,
+  );
 
-    const pipe = assets.get(linkId) as Pipe;
-    if (!pipe || pipe.diameter > maxDiameter) {
-      continue;
+  for (const { candidateIds } of candidateGenerator) {
+    for (const id of candidateIds) {
+      const candidateSegment = segments[id];
+      const linkId = candidateSegment.properties.linkId;
+
+      const pipe = assets.get(linkId) as Pipe;
+      if (!pipe || pipe.diameter > maxDiameter) {
+        continue;
+      }
+
+      const pointOnLine = nearestPointOnLine(
+        candidateSegment,
+        customerPointFeature,
+        {
+          units: "meters",
+        },
+      );
+
+      const distance = pointOnLine.properties?.dist;
+      if (distance == null || distance > maxDistance) {
+        continue;
+      }
+
+      if (
+        !closestMatch ||
+        (closestMatch.properties?.dist != null &&
+          distance < closestMatch.properties.dist)
+      ) {
+        closestMatch = pointOnLine;
+        closestPipeId = linkId;
+      }
     }
 
-    const pointOnLine = nearestPointOnLine(
-      candidateSegment,
-      customerPointFeature,
-      {
-        units: "meters",
-      },
-    );
-
-    const distance = pointOnLine.properties?.dist;
-    if (distance == null || distance > maxDistance) {
-      continue;
-    }
-
-    if (
-      !closestMatch ||
-      (closestMatch.properties?.dist != null &&
-        distance < closestMatch.properties.dist)
-    ) {
-      closestMatch = pointOnLine;
-      closestPipeId = linkId;
+    // Early termination: if we found a match in this bucket, return it
+    // since closer buckets are processed first
+    if (closestMatch && closestPipeId) {
+      const snapPoint = closestMatch.geometry.coordinates as Position;
+      const junction = findAssignedJunction(closestPipeId, snapPoint, assets);
+      if (junction) {
+        return {
+          pipeId: closestPipeId,
+          snapPoint,
+          distance: closestMatch.properties?.dist || 0,
+          junction,
+        };
+      }
     }
   }
 
-  if (!closestMatch || !closestPipeId) {
-    return null;
-  }
-
-  const snapPoint = closestMatch.geometry.coordinates as Position;
-  const junction = findAssignedJunction(closestPipeId, snapPoint, assets);
-  if (!junction) {
-    return null;
-  }
-
-  return {
-    pipeId: closestPipeId,
-    snapPoint,
-    distance: closestMatch.properties?.dist || 0,
-    junction,
-  };
+  return null;
 };
 
 const calculateDistanceMeters = (a: Position, b: Position): number => {
