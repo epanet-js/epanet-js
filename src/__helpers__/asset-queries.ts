@@ -11,6 +11,9 @@ export const getByLabel = (
 export const getAssetsByType = <T extends Asset>(
   assets: AssetsMap,
   type: AssetType,
+  filterFn?: (asset: T) => boolean,
 ): T[] => {
-  return [...assets.values()].filter((asset) => asset.type === type) as T[];
+  return [...assets.values()].filter(
+    (asset) => asset.type === type && (!filterFn || filterFn(asset as T)),
+  ) as T[];
 };

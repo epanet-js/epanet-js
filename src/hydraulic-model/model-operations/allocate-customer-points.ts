@@ -39,7 +39,14 @@ export const allocateCustomerPoints = withDebugInstrumentation(
     hydraulicModel: HydraulicModel,
     { allocationRules, customerPoints }: InputData,
   ): AllocationResult {
-    const pipes = getAssetsByType<Pipe>(hydraulicModel.assets, "pipe");
+    const maxAllowedDiameter = Math.max(
+      ...allocationRules.map((rule) => rule.maxDiameter),
+    );
+    const pipes = getAssetsByType<Pipe>(
+      hydraulicModel.assets,
+      "pipe",
+      (pipe) => pipe.diameter <= maxAllowedDiameter,
+    );
     const spatialIndexData = createSpatialIndex(pipes);
 
     if (
