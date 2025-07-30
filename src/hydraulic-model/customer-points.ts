@@ -7,10 +7,10 @@ export type AllocationRule = {
 };
 
 export const defaultAllocationRules: AllocationRule[] = [
-  { maxDistance: 100, maxDiameter: 200 },
-  { maxDistance: 50, maxDiameter: 300 },
-  { maxDistance: 150, maxDiameter: 200 },
   { maxDistance: 100, maxDiameter: 300 },
+  //{ maxDistance: 50, maxDiameter: 300 },
+  //{ maxDistance: 150, maxDiameter: 200 },
+  //{ maxDistance: 100, maxDiameter: 300 },
 ];
 
 export interface CustomerPointConnection {

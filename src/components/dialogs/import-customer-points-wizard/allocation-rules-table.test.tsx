@@ -109,7 +109,7 @@ describe("AllocationRulesTable", () => {
 
       expect(onChange).toHaveBeenCalledWith([
         anAllocationRule({ maxDistance: 100 }),
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 100, maxDiameter: 300 },
       ]);
     });
 
@@ -336,7 +336,7 @@ describe("AllocationRulesTable", () => {
       await user.click(screen.getByRole("button", { name: /Add Rule/i }));
       expect(mockOnChangeIntegration).toHaveBeenLastCalledWith([
         anAllocationRule({ maxDistance: 100 }),
-        { maxDistance: 100, maxDiameter: 200 },
+        { maxDistance: 100, maxDiameter: 300 },
       ]);
 
       currentRules = [
