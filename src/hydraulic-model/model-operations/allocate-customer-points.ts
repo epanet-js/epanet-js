@@ -1,4 +1,5 @@
 import { Point, Feature, point } from "@turf/helpers";
+import turfDistance from "@turf/distance";
 import { getCoord } from "@turf/invariant";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
@@ -196,12 +197,8 @@ const findNearestPipeConnectionWithinDistance = (
   };
 };
 
-const calculateDistance = (point1: Position, point2: Position): number => {
-  const [x1, y1] = point1;
-  const [x2, y2] = point2;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  return Math.sqrt(dx * dx + dy * dy);
+const calculateDistanceMeters = (a: Position, b: Position): number => {
+  return turfDistance(a, b, { units: "meters" });
 };
 
 const findAssignedJunction = (
@@ -228,7 +225,7 @@ const findAssignedJunction = (
 
   const junctionDistances = junctionNodes.map((junction) => ({
     junction,
-    distance: calculateDistance(snapPoint, junction.coordinates),
+    distance: calculateDistanceMeters(snapPoint, junction.coordinates),
   }));
 
   junctionDistances.sort((a, b) => a.distance - b.distance);
