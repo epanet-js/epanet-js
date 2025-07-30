@@ -1,6 +1,7 @@
 import { Point, Feature, point } from "@turf/helpers";
 import turfDistance from "@turf/distance";
-import { getCoord } from "@turf/invariant";
+import turfBuffer from "@turf/buffer";
+import turfBbox from "@turf/bbox";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
@@ -32,8 +33,6 @@ export type AllocationResult = {
   allocatedCustomerPoints: CustomerPoints;
   ruleMatches: number[];
 };
-
-const SEARCH_FACTOR = 3;
 
 export const allocateCustomerPoints = withDebugInstrumentation(
   function allocateCustomerPoints(
@@ -128,17 +127,13 @@ const findNearestPipeConnectionWithinDistance = (
   assets: HydraulicModel["assets"],
 ): CustomerPointConnection | null => {
   const { spatialIndex, segments } = spatialIndexData;
-  const [x, y] = getCoord(customerPointFeature);
 
-  // Use a large search buffer to ensure we find candidates, then filter by distance
-  const searchBufferDegrees = (maxDistance * SEARCH_FACTOR) / 111139;
+  const searchBuffer = turfBuffer(customerPointFeature, maxDistance, {
+    units: "meters",
+  });
 
-  const candidateIds = spatialIndex.search(
-    x - searchBufferDegrees,
-    y - searchBufferDegrees,
-    x + searchBufferDegrees,
-    y + searchBufferDegrees,
-  );
+  const [minX, minY, maxX, maxY] = turfBbox(searchBuffer);
+  const candidateIds = spatialIndex.search(minX, minY, maxX, maxY);
 
   if (candidateIds.length === 0) {
     return null;
