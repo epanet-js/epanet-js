@@ -34,6 +34,8 @@ export type AllocationResult = {
   ruleMatches: number[];
 };
 
+const bucketSize = 30;
+
 export const allocateCustomerPoints = withDebugInstrumentation(
   function allocateCustomerPoints(
     hydraulicModel: HydraulicModel,
@@ -135,9 +137,6 @@ export function* generateSegmentCandidatesByDistance(
   void,
   unknown
 > {
-  const bucketSize = 50;
-  const processedSegmentIds = new Set<number>();
-
   for (
     let bucketDistance = bucketSize;
     bucketDistance <= maxDistance;
@@ -148,22 +147,14 @@ export function* generateSegmentCandidatesByDistance(
     });
 
     const [minX, minY, maxX, maxY] = turfBbox(searchBuffer);
-    const allCandidateIds = spatialIndexData.spatialIndex.search(
+    const candidateIds = spatialIndexData.spatialIndex.search(
       minX,
       minY,
       maxX,
       maxY,
     );
 
-    const newCandidateIds: number[] = [];
-    for (const id of allCandidateIds) {
-      if (!processedSegmentIds.has(id)) {
-        processedSegmentIds.add(id);
-        newCandidateIds.push(id);
-      }
-    }
-
-    yield { bucketDistance, candidateIds: newCandidateIds };
+    yield { bucketDistance, candidateIds };
   }
 }
 
@@ -179,19 +170,23 @@ const findNearestPipeConnectionWithinDistance = (
   let closestMatch: Feature<Point> | null = null;
   let closestPipeId: string | null = null;
 
+  const processedSegmentIds = new Set<number>();
   const candidateGenerator = generateSegmentCandidatesByDistance(
     customerPointFeature,
     maxDistance,
     spatialIndexData,
   );
 
-  for (const { candidateIds } of candidateGenerator) {
+  for (const { bucketDistance, candidateIds } of candidateGenerator) {
     for (const id of candidateIds) {
+      if (processedSegmentIds.has(id)) continue;
+
       const candidateSegment = segments[id];
       const linkId = candidateSegment.properties.linkId;
 
       const pipe = assets.get(linkId) as Pipe;
       if (!pipe || pipe.diameter > maxDiameter) {
+        processedSegmentIds.add(id);
         continue;
       }
 
@@ -204,7 +199,11 @@ const findNearestPipeConnectionWithinDistance = (
       );
 
       const distance = pointOnLine.properties?.dist;
-      if (distance == null || distance > maxDistance) {
+      if (
+        distance == null ||
+        distance > maxDistance ||
+        distance > bucketDistance
+      ) {
         continue;
       }
 
@@ -216,10 +215,9 @@ const findNearestPipeConnectionWithinDistance = (
         closestMatch = pointOnLine;
         closestPipeId = linkId;
       }
+      processedSegmentIds.add(id);
     }
 
-    // Early termination: if we found a match in this bucket, return it
-    // since closer buckets are processed first
     if (closestMatch && closestPipeId) {
       const snapPoint = closestMatch.geometry.coordinates as Position;
       const junction = findAssignedJunction(closestPipeId, snapPoint, assets);
