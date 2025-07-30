@@ -16,11 +16,11 @@ export const junctionCircleSizes = (): Partial<CircleLayer["paint"]> => {
       ["linear"],
       ["zoom"],
       13,
-      1,
+      0.5,
       16,
-      2,
+      1,
     ],
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 5],
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
   };
 };
 
@@ -66,15 +66,7 @@ export const junctionResultsLayer = ({
   paint: {
     "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": strokeColorExpression(),
-    "circle-stroke-width": [
-      "interpolate",
-      ["linear"],
-      ["zoom"],
-      12,
-      0,
-      14,
-      1,
-    ],
+    "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0, 14, 1],
     "circle-stroke-opacity": opacityExpression(symbology),
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": colorExpression(),
