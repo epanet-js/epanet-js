@@ -12,90 +12,182 @@ import { parseInp } from "src/import/inp";
 import { promises as fs } from "fs";
 import path from "path";
 
+const discoverNetworks = async () => {
+  const benchmarkDir = path.join(__dirname, ".benchmark");
+  const networks: Array<{
+    name: string;
+    inpPath: string;
+    customerPointsPath: string;
+    fileExtension: string;
+  }> = [];
+
+  try {
+    const entries = await fs.readdir(benchmarkDir, { withFileTypes: true });
+    const directories = entries.filter((entry) => entry.isDirectory());
+
+    for (const dir of directories) {
+      const networkDir = path.join(benchmarkDir, dir.name);
+      const inpPath = path.join(networkDir, "network.inp");
+
+      // Check for both .geojsonl and .geojson files, prefer .geojsonl
+      const geojsonlPath = path.join(networkDir, "customer-points.geojsonl");
+      const geojsonPath = path.join(networkDir, "customer-points.geojson");
+
+      let customerPointsPath = "";
+      let fileExtension = "";
+
+      try {
+        await fs.access(geojsonlPath);
+        customerPointsPath = geojsonlPath;
+        fileExtension = "geojsonl";
+      } catch {
+        try {
+          await fs.access(geojsonPath);
+          customerPointsPath = geojsonPath;
+          fileExtension = "geojson";
+        } catch {
+          console.warn(
+            `DEBUG: ⚠️  Network '${dir.name}' skipped - missing customer points file (expected customer-points.geojsonl or customer-points.geojson)`,
+          );
+          continue;
+        }
+      }
+
+      try {
+        await fs.access(inpPath);
+        networks.push({
+          name: dir.name,
+          inpPath,
+          customerPointsPath,
+          fileExtension,
+        });
+      } catch {
+        console.warn(
+          `DEBUG: ⚠️  Network '${dir.name}' skipped - missing network.inp file`,
+        );
+      }
+    }
+
+    if (networks.length === 0) {
+      console.warn(`DEBUG: ⚠️  No valid networks found in ${benchmarkDir}
+
+Expected structure:
+  .benchmark/
+  ├── network-name/
+  │   ├── network.inp
+  │   └── customer-points.geojsonl (or .geojson)
+  └── another-network/
+      ├── network.inp
+      └── customer-points.geojson (or .geojsonl)
+
+The benchmark tests will be skipped.`);
+    } else {
+      console.log(
+        `DEBUG: 📊 Found ${networks.length} network(s) for benchmarking: ${networks.map((n) => n.name).join(", ")}`,
+      );
+    }
+  } catch (error) {
+    console.warn(`DEBUG: ⚠️  Benchmark directory not found: ${benchmarkDir}`);
+  }
+
+  return networks;
+};
+
 describe("importCustomerPoints benchmark", () => {
   beforeEach(() => {
     toast.remove();
   });
 
-  it("benchmarks step timing with sample data", async () => {
-    const benchmarkDir = path.join(__dirname, ".benchmark");
-    const inpPath = path.join(benchmarkDir, "network.inp");
-    const geojsonlPath = path.join(benchmarkDir, "customer-points.geojsonl");
+  it("runs benchmarks for all discovered networks", async () => {
+    const networks = await discoverNetworks();
 
-    try {
-      await fs.access(inpPath);
-      await fs.access(geojsonlPath);
-    } catch (error) {
-      console.warn(`DEBUG: ⚠️  Benchmark data files missing!
-
-Expected files:
-  - ${inpPath}
-  - ${geojsonlPath}
-
-To run this benchmark test, please provide the required data files in the .benchmark directory.
-The test will be skipped.
-      `);
+    if (networks.length === 0) {
+      console.log("DEBUG: No networks found for benchmarking, skipping test");
       return;
     }
 
-    const inpContent = await fs.readFile(inpPath, "utf-8");
-    const { hydraulicModel } = parseInp(inpContent);
+    for (const {
+      name,
+      inpPath,
+      customerPointsPath,
+      fileExtension,
+    } of networks) {
+      console.log(`DEBUG: 🚀 Starting benchmark for network: ${name}`);
 
-    const geojsonlContent = await fs.readFile(geojsonlPath, "utf-8");
-    const file = aTestFile({
-      filename: "customer-points.geojsonl",
-      content: geojsonlContent,
-    });
+      const inpContent = await fs.readFile(inpPath, "utf-8");
+      const { hydraulicModel } = parseInp(inpContent);
 
-    const store = setInitialState({ hydraulicModel });
-    renderComponent({ store });
+      const customerPointsContent = await fs.readFile(
+        customerPointsPath,
+        "utf-8",
+      );
+      const file = aTestFile({
+        filename: `customer-points.${fileExtension}`,
+        content: customerPointsContent,
+      });
 
-    await triggerCommand();
-    await waitForWizardToOpen();
-    expectWizardStep("data input");
+      const store = setInitialState({ hydraulicModel });
+      renderComponent({ store });
 
-    let stepStartTime = performance.now();
-    await uploadFileInWizard(file);
-    expectWizardStep("data preview");
+      await triggerCommand();
+      await waitForWizardToOpen();
+      expectWizardStep("data input");
 
-    const uploadTime = performance.now() - stepStartTime;
+      let stepStartTime = performance.now();
+      await uploadFileInWizard(file);
+      expectWizardStep("data preview");
 
-    stepStartTime = performance.now();
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("demand options");
+      const uploadTime = performance.now() - stepStartTime;
 
-    const previewTime = performance.now() - stepStartTime;
+      stepStartTime = performance.now();
+      await userEvent.click(screen.getByRole("button", { name: /next/i }));
+      expectWizardStep("demand options");
 
-    stepStartTime = performance.now();
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("customers allocation");
-    await waitForAllocations();
+      const previewTime = performance.now() - stepStartTime;
 
-    const allocationTime = performance.now() - stepStartTime;
+      stepStartTime = performance.now();
+      await userEvent.click(screen.getByRole("button", { name: /next/i }));
+      expectWizardStep("customers allocation");
+      await waitForAllocations();
 
-    stepStartTime = performance.now();
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
-    await expectSuccessNotification();
+      const allocationTime = performance.now() - stepStartTime;
 
-    const finishTime = performance.now() - stepStartTime;
+      stepStartTime = performance.now();
+      await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+      await expectSuccessNotification();
 
-    const { hydraulicModel: finalModel } = store.get(dataAtom);
-    const totalPoints = finalModel.customerPoints.size;
-    const totalTime = uploadTime + previewTime + allocationTime + finishTime;
+      const finishTime = performance.now() - stepStartTime;
 
-    console.log(`DEBUG: File upload and parsing: ${uploadTime.toFixed(2)}ms`);
-    console.log(`DEBUG: Data preview step: ${previewTime.toFixed(2)}ms`);
+      const { hydraulicModel: finalModel } = store.get(dataAtom);
+      const totalPoints = finalModel.customerPoints.size;
+      const totalTime = uploadTime + previewTime + allocationTime + finishTime;
+
+      console.log(
+        `DEBUG: [${name}] File upload and parsing: ${uploadTime.toFixed(2)}ms`,
+      );
+      console.log(
+        `DEBUG: [${name}] Data preview step: ${previewTime.toFixed(2)}ms`,
+      );
+      console.log(
+        `DEBUG: [${name}] Customer allocation (full process): ${allocationTime.toFixed(2)}ms`,
+      );
+      console.log(
+        `DEBUG: [${name}] Finish step and notification: ${finishTime.toFixed(2)}ms`,
+      );
+      console.log(
+        `DEBUG: [${name}] Total customer points allocated: ${totalPoints}`,
+      );
+      console.log(`DEBUG: [${name}] Total time: ${totalTime.toFixed(2)}ms`);
+
+      expect(totalPoints).toBeGreaterThan(0);
+      expect(totalTime).toBeLessThan(600000); // 10 minutes max
+
+      console.log(`DEBUG: ✅ Completed benchmark for network: ${name}`);
+    }
+
     console.log(
-      `DEBUG: Customer allocation (full process): ${allocationTime.toFixed(2)}ms`,
+      `DEBUG: 🏁 Finished benchmarking ${networks.length} network(s)`,
     );
-    console.log(
-      `DEBUG: Finish step and notification: ${finishTime.toFixed(2)}ms`,
-    );
-    console.log(`DEBUG: Total customer points allocated: ${totalPoints}`);
-    console.log(`DEBUG: Total time: ${totalTime.toFixed(2)}ms`);
-
-    expect(totalPoints).toBeGreaterThan(0);
-    expect(totalTime).toBeLessThan(600000); // 10 minutes max
   });
 });
 
