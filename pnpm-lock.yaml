@@ -321,8 +321,8 @@ importers:
         specifier: ^0.8.2
         version: 0.8.2
       flatbush:
-        specifier: ^3.3.1
-        version: 3.3.1
+        specifier: ^4.4.1
+        version: 4.4.1
       flatgeobuf:
         specifier: ^3.31.1
         version: 3.31.1(ol@9.2.3)
@@ -4510,16 +4510,17 @@ packages:
   flatbuffers@23.5.26:
     resolution: {integrity: sha512-vE+SI9vrJDwi1oETtTIFldC/o9GsVKRM+s6EL0nQgxXlYV1Vc4Tk30hj4xGICftInKQKj1F3up2n8UbIVobISQ==}
 
-  flatbush@3.3.1:
-    resolution: {integrity: sha512-oKuPbtT+DS2CxH+9Vhbsq8HifmSCuOw+3Cy5zt/vCIrZl5KyengoTHDBLmtpZoBhcwa7/biNjgL1DwdLMJYm1A==}
+  flatbush@4.4.1:
+    resolution: {integrity: sha512-g3eA6ZF0viCV0UslH/mdUzCLcT7aGj0Fjk9MBxxNkbADSXqSHDZhthFBDFgo2umc6SVmSItNefTjWnfyo7DunA==}
 
   flatgeobuf@3.31.1:
     resolution: {integrity: sha512-PXI7NaZSuZRy0LH+ZoeMac3xXB/yIit6BBphXRzbFGjPbwG9JGjS23ldikeZKtZS9b1hidP5EnAi+ZYrWrWJIw==}
     peerDependencies:
       ol: '>3'
 
-  flatqueue@1.2.1:
-    resolution: {integrity: sha512-X86TpWS1rGuY7m382HuA9vngLeDuWA9lJvhEG+GfgKMV5onSvx5a71cl7GMbXzhWtlN9dGfqOBrpfqeOtUfGYQ==}
+  flatqueue@2.0.3:
+    resolution: {integrity: sha512-RZCWZNkmxzUOh8jqEcEGZCycb3B8KAfpPwg3H//cURasunYxsg1eIvE+QDSjX+ZPHTIVfINfK1aLTrVKKO0i4g==}
+    engines: {node: '>= 12.17.0'}
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
@@ -11803,9 +11804,9 @@ snapshots:
 
   flatbuffers@23.5.26: {}
 
-  flatbush@3.3.1:
+  flatbush@4.4.1:
     dependencies:
-      flatqueue: 1.2.1
+      flatqueue: 2.0.3
 
   flatgeobuf@3.31.1(ol@9.2.3):
     dependencies:
@@ -11814,7 +11815,7 @@ snapshots:
       ol: 9.2.3
       slice-source: 0.4.1
 
-  flatqueue@1.2.1: {}
+  flatqueue@2.0.3: {}
 
   flatted@3.3.1: {}
 
