@@ -236,6 +236,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
       validCustomerPoints: [buildCustomerPoint("1"), buildCustomerPoint("2")],
       issues: null,
       totalCount: 2,
+      demandImportUnit: "l/d",
     },
     isLoading: false,
     error: null,
@@ -247,7 +248,6 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     isAllocating: false,
     lastAllocatedRules: null,
     isEditingRules: false,
-    demandUnit: "l/d",
   };
 
   store.set(wizardStateAtom, { ...defaultWizardState, ...overrides });

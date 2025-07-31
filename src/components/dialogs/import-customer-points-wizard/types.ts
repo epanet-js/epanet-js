@@ -12,6 +12,7 @@ export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];
   issues: CustomerPointsParserIssues | null;
   totalCount: number;
+  demandImportUnit: Unit;
 };
 
 export type WizardState = {
@@ -29,7 +30,6 @@ export type WizardState = {
   isAllocating: boolean;
   lastAllocatedRules: AllocationRule[] | null;
   isEditingRules: boolean;
-  demandUnit: Unit;
 };
 
 export type WizardActions = {
@@ -49,6 +49,5 @@ export type WizardActions = {
   setIsAllocating: (isAllocating: boolean) => void;
   setLastAllocatedRules: (rules: AllocationRule[] | null) => void;
   setIsEditingRules: (isEditingRules: boolean) => void;
-  setDemandUnit: (demandUnit: Unit) => void;
   reset: () => void;
 };

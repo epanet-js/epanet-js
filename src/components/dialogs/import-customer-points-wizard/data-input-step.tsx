@@ -8,10 +8,13 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
 import { useWizardState } from "./use-wizard-state";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
 
 export const DataInputStep: React.FC = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const { modelMetadata } = useAtomValue(dataAtom);
 
   const {
     selectedFile,
@@ -36,7 +39,19 @@ export const DataInputStep: React.FC = () => {
         const validCustomerPoints: CustomerPoint[] = [];
         let totalCount = 0;
 
-        for (const customerPoint of parseCustomerPoints(text, issues, 1)) {
+        const demandImportUnit = modelMetadata.quantities.getUnit(
+          "customerDemandPerDay",
+        );
+        const demandTargetUnit =
+          modelMetadata.quantities.getUnit("customerDemand");
+
+        for (const customerPoint of parseCustomerPoints(
+          text,
+          issues,
+          demandImportUnit,
+          demandTargetUnit,
+          1,
+        )) {
           totalCount++;
           if (customerPoint) {
             validCustomerPoints.push(customerPoint);
@@ -47,6 +62,7 @@ export const DataInputStep: React.FC = () => {
           validCustomerPoints,
           issues: issues.buildResult(),
           totalCount,
+          demandImportUnit,
         };
 
         if (validCustomerPoints.length === 0) {
@@ -79,6 +95,7 @@ export const DataInputStep: React.FC = () => {
       goNext,
       userTracking,
       translate,
+      modelMetadata.quantities,
     ],
   );
 
