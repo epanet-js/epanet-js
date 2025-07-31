@@ -3,6 +3,7 @@ import {
   prepareWorkerData,
   getSegmentCoordinates,
   getSegmentPipeIndex,
+  getPipeDiameter,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./allocate-customer-points";
@@ -81,6 +82,42 @@ describe("prepareWorkerData", () => {
       [0, 0],
       [10, 0],
     ]);
-    expect(pipeIndex).toBe(1);
+    expect(pipeIndex).toBe(0);
+  });
+
+  it("can get pipe diameter from binary data using pipe index", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
+
+    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const searchResults = flatbush.search(-1, -1, 11, 1);
+    const segmentIndex = searchResults[0];
+
+    const pipeIndex = getSegmentPipeIndex(
+      workerData.segmentsData,
+      segmentIndex,
+    );
+    const diameter = getPipeDiameter(workerData.pipesData, pipeIndex);
+
+    expect(diameter).toBe(12);
   });
 });
