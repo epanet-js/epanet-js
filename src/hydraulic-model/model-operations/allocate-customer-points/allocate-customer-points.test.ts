@@ -7,7 +7,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { CustomerPoints } from "../customer-points";
+import { CustomerPoints } from "../../customer-points";
 
 describe("allocateCustomerPoints", () => {
   it("allocates customer points based on single rule", () => {

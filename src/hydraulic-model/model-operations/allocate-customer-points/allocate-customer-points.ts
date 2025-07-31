@@ -6,16 +6,16 @@ import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
 
-import { HydraulicModel } from "../hydraulic-model";
+import { HydraulicModel } from "../../hydraulic-model";
 import {
   CustomerPoint,
   CustomerPoints,
   CustomerPointConnection,
-} from "../customer-points";
-import { Pipe } from "../asset-types/pipe";
-import { Junction } from "../asset-types/junction";
-import { getLinkNodes } from "../assets-map";
-import { createSpatialIndex, LinkSegment } from "../spatial-index";
+} from "../../customer-points";
+import { Pipe } from "../../asset-types/pipe";
+import { Junction } from "../../asset-types/junction";
+import { getLinkNodes } from "../../assets-map";
+import { createSpatialIndex, LinkSegment } from "../../spatial-index";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
