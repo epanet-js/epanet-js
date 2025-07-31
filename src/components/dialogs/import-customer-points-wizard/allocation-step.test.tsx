@@ -247,6 +247,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     isAllocating: false,
     lastAllocatedRules: null,
     isEditingRules: false,
+    demandUnit: "l/d",
   };
 
   store.set(wizardStateAtom, { ...defaultWizardState, ...overrides });

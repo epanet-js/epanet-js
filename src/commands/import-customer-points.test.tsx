@@ -90,11 +90,11 @@ describe("importCustomerPoints", () => {
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
-    expect(customerPoint1?.baseDemand).toBe(25.5);
+    expect(customerPoint1?.baseDemand).toBeCloseTo(0.000295, 6);
 
     expect(customerPoint2).toBeDefined();
     expect(customerPoint2?.coordinates).toEqual([0.0007, 0.0007]);
-    expect(customerPoint2?.baseDemand).toBe(150);
+    expect(customerPoint2?.baseDemand).toBeCloseTo(0.00174, 5);
   });
 
   it("assigns IDs starting from 1 for empty model", async () => {
@@ -337,7 +337,7 @@ describe("importCustomerPoints", () => {
 
     expect(junction.baseDemand).toBe(30);
     expect(junction.customerPointCount).toBe(1);
-    expect(junction.totalCustomerDemand).toBe(20);
+    expect(junction.totalCustomerDemand).toBeCloseTo(0.000231, 6);
   });
 
   it("replaces existing demands when replace option is selected", async () => {
@@ -398,7 +398,7 @@ describe("importCustomerPoints", () => {
 
     expect(junction.baseDemand).toBe(0);
     expect(junction.customerPointCount).toBe(1);
-    expect(junction.totalCustomerDemand).toBe(25);
+    expect(junction.totalCustomerDemand).toBeCloseTo(0.000289, 6);
   });
 
   it("closes wizard when cancel is clicked", async () => {

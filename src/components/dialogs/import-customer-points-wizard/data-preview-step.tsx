@@ -5,9 +5,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/jotai";
 import { useWizardState } from "./use-wizard-state";
+import { convertTo } from "src/quantity";
 
 type TabType = "customerPoints" | "issues";
 
@@ -124,14 +123,10 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const {
-    modelMetadata: { quantities },
-  } = useAtomValue(dataAtom);
+  const { demandUnit } = useWizardState();
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
-
-  const baseDemandUnit = quantities.getUnit("baseDemand");
 
   if (validCount === 0) {
     return (
@@ -162,13 +157,9 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
               )}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {baseDemandUnit
-                ? `${translate(
-                    "importCustomerPoints.wizard.dataPreview.table.demand",
-                  )} (${translateUnit(baseDemandUnit)})`
-                : translate(
-                    "importCustomerPoints.wizard.dataPreview.table.demand",
-                  )}
+              {`${translate(
+                "importCustomerPoints.wizard.dataPreview.table.demand",
+              )} (${translateUnit(demandUnit)})`}
             </th>
           </tr>
         </thead>
@@ -186,7 +177,12 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
                 {localizeDecimal(point.coordinates[0], { decimals: 6 })}
               </td>
               <td className="px-3 py-2 border-b">
-                {localizeDecimal(point.baseDemand)}
+                {localizeDecimal(
+                  convertTo(
+                    { value: point.baseDemand, unit: "l/s" },
+                    demandUnit,
+                  ),
+                )}
               </td>
             </tr>
           ))}

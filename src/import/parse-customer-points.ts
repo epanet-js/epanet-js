@@ -1,6 +1,7 @@
 import { Feature, FeatureCollection, Position } from "geojson";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
+import { convertTo } from "src/quantity";
 
 export function* parseCustomerPoints(
   fileContent: string,
@@ -95,15 +96,17 @@ const processGeoJSONFeature = (
   }
 
   try {
-    const demand =
+    const demandInLd =
       typeof feature.properties?.demand === "number"
         ? feature.properties.demand
         : 0;
 
+    const demandInLs = convertTo({ value: demandInLd, unit: "l/d" }, "l/s");
+
     const customerPoint = new CustomerPoint(
       currentId.toString(),
       [coordinates[0], coordinates[1]] as Position,
-      { baseDemand: demand },
+      { baseDemand: demandInLs },
     );
 
     return { customerPoint, nextId: currentId + 1 };

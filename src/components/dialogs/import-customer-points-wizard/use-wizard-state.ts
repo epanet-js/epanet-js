@@ -27,6 +27,7 @@ const initialState: WizardState = {
   isAllocating: false,
   lastAllocatedRules: null,
   isEditingRules: false,
+  demandUnit: "l/d",
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
@@ -119,6 +120,10 @@ export const useWizardState = (): WizardState & WizardActions => {
     setWizardState((prev) => ({ ...prev, isEditingRules }));
   };
 
+  const setDemandUnit = (demandUnit: import("src/quantity").Unit) => {
+    setWizardState((prev) => ({ ...prev, demandUnit }));
+  };
+
   const reset = () => {
     setWizardState(initialState);
   };
@@ -141,6 +146,7 @@ export const useWizardState = (): WizardState & WizardActions => {
     setIsAllocating,
     setLastAllocatedRules,
     setIsEditingRules,
+    setDemandUnit,
     reset,
   };
 };

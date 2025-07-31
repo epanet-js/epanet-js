@@ -19,7 +19,7 @@ const itemSize = 32;
 
 export const CustomerPointsPopover = ({
   customerPoints,
-  aggregateUnit,
+  aggregateUnit: _,
   customerUnit,
   onClose,
 }: CustomerPointsPopoverProps) => {
@@ -89,11 +89,12 @@ export const CustomerPointsPopover = ({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
-            const convertedDemand = convertTo(
-              { value: customerPoint.baseDemand, unit: aggregateUnit },
-              customerUnit,
+            const demandValue = localizeDecimal(
+              convertTo(
+                { value: customerPoint.baseDemand, unit: "l/s" },
+                customerUnit,
+              ),
             );
-            const demandValue = localizeDecimal(convertedDemand);
 
             return (
               <div

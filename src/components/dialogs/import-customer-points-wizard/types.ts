@@ -4,6 +4,7 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { Unit } from "src/quantity";
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
@@ -28,6 +29,7 @@ export type WizardState = {
   isAllocating: boolean;
   lastAllocatedRules: AllocationRule[] | null;
   isEditingRules: boolean;
+  demandUnit: Unit;
 };
 
 export type WizardActions = {
@@ -47,5 +49,6 @@ export type WizardActions = {
   setIsAllocating: (isAllocating: boolean) => void;
   setLastAllocatedRules: (rules: AllocationRule[] | null) => void;
   setIsEditingRules: (isEditingRules: boolean) => void;
+  setDemandUnit: (demandUnit: Unit) => void;
   reset: () => void;
 };

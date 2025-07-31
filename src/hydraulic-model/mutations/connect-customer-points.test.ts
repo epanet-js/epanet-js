@@ -195,7 +195,7 @@ describe("connectCustomerPoints", () => {
     expect(updatedJ1.customerPointCount).toBe(2);
     expect(updatedJ1.customerPoints).toContain(cp1);
     expect(updatedJ1.customerPoints).toContain(cp2);
-    expect(updatedJ1.totalCustomerDemand).toBe(55); // 25 + 30
+    expect(updatedJ1.totalCustomerDemand).toBe(55); // (25 + 30) l/s simple sum
   });
 
   it("maintains immutability by returning a new hydraulic model", () => {
@@ -295,7 +295,7 @@ describe("connectCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(30);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.totalCustomerDemand).toBe(25);
+    expect(updatedJ1.totalCustomerDemand).toBe(25); // 25 l/s
   });
 
   it("preserves junction base demands when preserveJunctionDemands is true", () => {
@@ -325,7 +325,7 @@ describe("connectCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(45);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.totalCustomerDemand).toBe(20);
+    expect(updatedJ1.totalCustomerDemand).toBe(20); // 20 l/s
   });
 
   it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
@@ -355,6 +355,6 @@ describe("connectCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(0);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.totalCustomerDemand).toBe(35);
+    expect(updatedJ1.totalCustomerDemand).toBe(35); // 35 l/s
   });
 });
