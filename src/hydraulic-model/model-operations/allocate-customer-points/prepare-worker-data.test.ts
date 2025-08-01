@@ -9,6 +9,8 @@ import {
   getNodeCoordinates,
   getNodeType,
   getNodeId,
+  getCustomerPointCoordinates,
+  getCustomerPointId,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./allocate-customer-points";
@@ -34,7 +36,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.flatbushIndexData).toBeInstanceOf(SharedArrayBuffer);
     expect(workerData.segmentsData).toBeInstanceOf(SharedArrayBuffer);
@@ -66,7 +68,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.segmentsData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -109,7 +111,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -145,7 +147,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -186,7 +188,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -217,7 +219,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -251,7 +253,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
 
@@ -286,7 +288,7 @@ describe("prepareWorkerData", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
     const emptyId = getNodeId(workerData.nodesData, 0);
     const doubleZeroId = getNodeId(workerData.nodesData, 1);
@@ -295,5 +297,166 @@ describe("prepareWorkerData", () => {
     expect(emptyId).toBe("");
     expect(doubleZeroId).toBe("00");
     expect(specialCharsId).toBe("special-chars-123!@#");
+  });
+
+  it("can get customer point coordinates from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .withCustomerPoint("CP1", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .withCustomerPoint("CP2", "J2", { coordinates: [15, 20], demand: 2.0 })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const customerPoints = Array.from(hydraulicModel.customerPoints.values());
+    const workerData = prepareWorkerData(
+      hydraulicModel,
+      allocationRules,
+      customerPoints,
+    );
+
+    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
+
+    const cp1Coordinates = getCustomerPointCoordinates(
+      workerData.customerPointsData,
+      0,
+    );
+    const cp2Coordinates = getCustomerPointCoordinates(
+      workerData.customerPointsData,
+      1,
+    );
+
+    expect(cp1Coordinates).toEqual([5, 10]);
+    expect(cp2Coordinates).toEqual([15, 20]);
+  });
+
+  it("can get customer point IDs from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .withCustomerPoint("CP1", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .withCustomerPoint("customer-with-long-name", "J2", {
+        coordinates: [15, 20],
+        demand: 2.0,
+      })
+      .aJunction("J3", { coordinates: [20, 0] })
+      .withCustomerPoint("0", "J3", { coordinates: [25, 30], demand: 3.0 })
+      .aJunction("J4", { coordinates: [30, 0] })
+      .withCustomerPoint("exactly-32-character-customer-i", "J4", {
+        coordinates: [35, 40],
+        demand: 4.0,
+      })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const customerPoints = Array.from(hydraulicModel.customerPoints.values());
+    const workerData = prepareWorkerData(
+      hydraulicModel,
+      allocationRules,
+      customerPoints,
+    );
+
+    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
+
+    const shortId = getCustomerPointId(workerData.customerPointsData, 0);
+    const longId = getCustomerPointId(workerData.customerPointsData, 1);
+    const zeroId = getCustomerPointId(workerData.customerPointsData, 2);
+    const exactly32Id = getCustomerPointId(workerData.customerPointsData, 3);
+
+    expect(shortId).toBe("CP1");
+    expect(longId).toBe("customer-with-long-name");
+    expect(zeroId).toBe("0");
+    expect(exactly32Id).toBe("exactly-32-character-customer-i");
+  });
+
+  it("handles edge cases for customer point ID encoding", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .withCustomerPoint("", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .withCustomerPoint("00", "J2", { coordinates: [15, 20], demand: 2.0 })
+      .aJunction("J3", { coordinates: [20, 0] })
+      .withCustomerPoint("special-chars-123!@#", "J3", {
+        coordinates: [25, 30],
+        demand: 3.0,
+      })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const customerPoints = Array.from(hydraulicModel.customerPoints.values());
+    const workerData = prepareWorkerData(
+      hydraulicModel,
+      allocationRules,
+      customerPoints,
+    );
+
+    const emptyId = getCustomerPointId(workerData.customerPointsData, 0);
+    const doubleZeroId = getCustomerPointId(workerData.customerPointsData, 1);
+    const specialCharsId = getCustomerPointId(workerData.customerPointsData, 2);
+
+    expect(emptyId).toBe("");
+    expect(doubleZeroId).toBe("00");
+    expect(specialCharsId).toBe("special-chars-123!@#");
+  });
+
+  it("handles hydraulic model with no customer points", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
+
+    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.customerPointsData.byteLength).toBe(8);
   });
 });

@@ -6,11 +6,7 @@ import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
 
-import {
-  CustomerPoint,
-  CustomerPoints,
-  CustomerPointConnection,
-} from "../../customer-points";
+import { CustomerPointConnection } from "../../customer-points";
 import { AllocationRule } from "./allocate-customer-points";
 import {
   WorkerSpatialData,
@@ -22,6 +18,8 @@ import {
   getNodeCoordinates,
   getNodeType,
   getNodeId,
+  getCustomerPointCoordinates,
+  getCustomerPointId,
 } from "./prepare-worker-data";
 
 export type AllocationResultItem = {
@@ -34,16 +32,28 @@ const bucketSize = 30;
 
 export const runAllocation = (
   workerData: WorkerSpatialData,
-  customerPoints: CustomerPoints,
   allocationRules: AllocationRule[],
+  offset: number = 0,
+  count?: number,
 ): AllocationResultItem[] => {
   const results: AllocationResultItem[] = [];
   const spatialIndex = Flatbush.from(workerData.flatbushIndexData);
 
+  const totalCustomerPointsCount = new DataView(
+    workerData.customerPointsData,
+  ).getUint32(0, true);
+
+  const actualCount = count ?? totalCustomerPointsCount - offset;
+  const endIndex = Math.min(offset + actualCount, totalCustomerPointsCount);
+
   if (!spatialIndex || spatialIndex.numItems === 0) {
-    for (const customerPoint of customerPoints.values()) {
+    for (let i = offset; i < endIndex; i++) {
+      const customerPointId = getCustomerPointId(
+        workerData.customerPointsData,
+        i,
+      );
       results.push({
-        customerPointId: customerPoint.id,
+        customerPointId,
         connection: null,
         ruleIndex: -1,
       });
@@ -51,15 +61,24 @@ export const runAllocation = (
     return results;
   }
 
-  for (const customerPoint of customerPoints.values()) {
+  for (let i = offset; i < endIndex; i++) {
+    const customerPointId = getCustomerPointId(
+      workerData.customerPointsData,
+      i,
+    );
+    const customerPointCoordinates = getCustomerPointCoordinates(
+      workerData.customerPointsData,
+      i,
+    );
+
     const { ruleIndex, connection } = findFirstMatchingRule(
-      customerPoint,
+      customerPointCoordinates,
       allocationRules,
       { spatialIndex, workerData },
     );
 
     results.push({
-      customerPointId: customerPoint.id,
+      customerPointId,
       connection,
       ruleIndex,
     });
@@ -69,11 +88,11 @@ export const runAllocation = (
 };
 
 const findFirstMatchingRule = (
-  customerPoint: CustomerPoint,
+  customerPointCoordinates: Position,
   allocationRules: AllocationRule[],
   spatialData: { spatialIndex: Flatbush; workerData: WorkerSpatialData },
 ): { ruleIndex: number; connection: CustomerPointConnection | null } => {
-  const customerPointFeature = point(customerPoint.coordinates);
+  const customerPointFeature = point(customerPointCoordinates);
 
   for (let i = 0; i < allocationRules.length; i++) {
     const rule = allocationRules[i];

@@ -6,6 +6,7 @@ import { Pipe } from "../../asset-types/pipe";
 import { HydraulicModel } from "../../hydraulic-model";
 import { AllocationRule } from "./allocate-customer-points";
 import { Asset, NodeAsset, NodeType } from "src/hydraulic-model/asset-types";
+import { CustomerPoint } from "../../customer-points";
 
 export interface LinkSegmentProperties {
   linkId: string;
@@ -30,6 +31,7 @@ export interface WorkerSpatialData {
   segmentsData: SharedArrayBuffer;
   pipesData: SharedArrayBuffer;
   nodesData: SharedArrayBuffer;
+  customerPointsData: SharedArrayBuffer;
 }
 
 const BUFFER_HEADER_SIZE = 8;
@@ -37,6 +39,8 @@ const SEGMENT_BINARY_SIZE = 36;
 const PIPE_BINARY_SIZE = 16;
 const NODE_BINARY_SIZE = 52;
 const NODE_ID_MAX_LENGTH = 32;
+const CUSTOMER_POINT_BINARY_SIZE = 48;
+const CUSTOMER_POINT_ID_MAX_LENGTH = 32;
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
@@ -151,12 +155,49 @@ export const getNodeId = (
   return decoder.decode(actualBytes);
 };
 
+export const getCustomerPointCoordinates = (
+  customerPointsData: SharedArrayBuffer,
+  index: number,
+): Position => {
+  const view = new DataView(customerPointsData);
+  const offset =
+    BUFFER_HEADER_SIZE +
+    index * CUSTOMER_POINT_BINARY_SIZE +
+    CUSTOMER_POINT_ID_MAX_LENGTH;
+
+  const lng = view.getFloat64(offset, true);
+  const lat = view.getFloat64(offset + FLOAT64_SIZE, true);
+
+  return [lng, lat];
+};
+
+export const getCustomerPointId = (
+  customerPointsData: SharedArrayBuffer,
+  index: number,
+): string => {
+  const offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
+  const idBytes = new Uint8Array(
+    customerPointsData,
+    offset,
+    CUSTOMER_POINT_ID_MAX_LENGTH,
+  );
+  const nullIndex = idBytes.indexOf(0);
+  const actualLength =
+    nullIndex >= 0 ? nullIndex : CUSTOMER_POINT_ID_MAX_LENGTH;
+  const actualBytes = idBytes.slice(0, actualLength);
+  const decoder = new TextDecoder();
+  return decoder.decode(actualBytes);
+};
+
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
   _allocationRules: AllocationRule[],
+  customerPoints: CustomerPoint[],
 ): WorkerSpatialData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
     generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
+
+  const customerPointsCount = customerPoints.length;
 
   const segmentsBuilder = new SegmentsBinaryBuilder(
     pipeSegmentsCount,
@@ -168,6 +209,9 @@ export const prepareWorkerData = (
     nodesIndex,
   );
   const nodesBuilder = new NodesBinaryBuilder(nodesCount, nodesIndex);
+  const customerPointsBuilder = new CustomerPointsBinaryBuilder(
+    customerPointsCount,
+  );
 
   // Flatbush requires at least 1 item, so we use a placeholder when no segments exist
   const segmentsForIndex = Math.max(pipeSegmentsCount, 1);
@@ -205,6 +249,15 @@ export const prepareWorkerData = (
     }
   }
 
+  for (let i = 0; i < customerPoints.length; i++) {
+    const customerPoint = customerPoints[i];
+    customerPointsBuilder.addCustomerPoint(
+      customerPoint.id,
+      customerPoint.coordinates,
+      i,
+    );
+  }
+
   // Add a placeholder segment if no real segments exist
   if (pipeSegmentsCount === 0) {
     spatialIndex.add(0, 0, 0, 0);
@@ -217,6 +270,7 @@ export const prepareWorkerData = (
     segmentsData: segmentsBuilder.build(),
     pipesData: pipesBuilder.build(),
     nodesData: nodesBuilder.build(),
+    customerPointsData: customerPointsBuilder.build(),
   };
 };
 
@@ -344,6 +398,54 @@ class NodesBinaryBuilder {
       NODE_ID_MAX_LENGTH,
     );
     uint8View.set(paddedId);
+  }
+
+  build(): SharedArrayBuffer {
+    return this.buffer;
+  }
+}
+
+class CustomerPointsBinaryBuilder {
+  private buffer: SharedArrayBuffer;
+  private view: DataView;
+
+  constructor(customerPointCount: number) {
+    const totalSize =
+      BUFFER_HEADER_SIZE + customerPointCount * CUSTOMER_POINT_BINARY_SIZE;
+    this.buffer = new SharedArrayBuffer(totalSize);
+    this.view = new DataView(this.buffer);
+
+    let offset = 0;
+    this.view.setUint32(offset, customerPointCount, true);
+    offset += UINT32_SIZE;
+    this.view.setUint32(offset, 0, true);
+  }
+
+  addCustomerPoint(
+    customerPointId: string,
+    coordinates: Position,
+    index: number,
+  ): void {
+    let offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
+
+    const encoder = new TextEncoder();
+    const idBytes = encoder.encode(
+      customerPointId.slice(0, CUSTOMER_POINT_ID_MAX_LENGTH),
+    );
+    const paddedId = new Uint8Array(CUSTOMER_POINT_ID_MAX_LENGTH);
+    paddedId.set(idBytes);
+
+    const uint8View = new Uint8Array(
+      this.view.buffer,
+      offset,
+      CUSTOMER_POINT_ID_MAX_LENGTH,
+    );
+    uint8View.set(paddedId);
+    offset += CUSTOMER_POINT_ID_MAX_LENGTH;
+
+    this.view.setFloat64(offset, coordinates[0], true);
+    offset += FLOAT64_SIZE;
+    this.view.setFloat64(offset, coordinates[1], true);
   }
 
   build(): SharedArrayBuffer {

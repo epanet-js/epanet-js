@@ -21,13 +21,13 @@ export const allocateCustomerPointsInWorker = (
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<string, CustomerPoint>();
 
-  const workerData = prepareWorkerData(hydraulicModel, allocationRules);
-
-  const allocationResults = runAllocation(
-    workerData,
-    customerPoints,
+  const workerData = prepareWorkerData(
+    hydraulicModel,
     allocationRules,
+    Array.from(customerPoints.values()),
   );
+
+  const allocationResults = runAllocation(workerData, allocationRules, 0);
   for (const result of allocationResults) {
     if (result.ruleIndex !== -1 && result.connection) {
       const customerPointCopy = customerPoints
