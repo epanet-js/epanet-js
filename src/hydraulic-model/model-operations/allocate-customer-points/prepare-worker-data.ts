@@ -168,8 +168,11 @@ export const prepareWorkerData = (
     nodesIndex,
   );
   const nodesBuilder = new NodesBinaryBuilder(nodesCount, nodesIndex);
+
+  // Flatbush requires at least 1 item, so we use a placeholder when no segments exist
+  const segmentsForIndex = Math.max(pipeSegmentsCount, 1);
   const spatialIndex = new Flatbush(
-    pipeSegmentsCount,
+    segmentsForIndex,
     FLATBUSH_NODE_SIZE,
     Float64Array,
     SharedArrayBuffer,
@@ -200,6 +203,11 @@ export const prepareWorkerData = (
       const node = asset as NodeAsset;
       nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
     }
+  }
+
+  // Add a placeholder segment if no real segments exist
+  if (pipeSegmentsCount === 0) {
+    spatialIndex.add(0, 0, 0, 0);
   }
 
   spatialIndex.finish();
