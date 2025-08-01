@@ -8,6 +8,7 @@ import {
   getPipeEndNodeIndex,
   getNodeCoordinates,
   getNodeType,
+  getNodeId,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./allocate-customer-points";
@@ -227,5 +228,72 @@ describe("prepareWorkerData", () => {
     expect(junctionType).toBe("junction");
     expect(reservoirType).toBe("reservoir");
     expect(tankType).toBe("tank");
+  });
+
+  it("can get node IDs from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aReservoir("reservoir-with-long-name", { coordinates: [10, 0] })
+      .aTank("0", { coordinates: [20, 0] })
+      .aJunction("exactly-32-character-node-id-ok", { coordinates: [30, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "reservoir-with-long-name",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+
+    const shortId = getNodeId(workerData.nodesData, 0);
+    const longId = getNodeId(workerData.nodesData, 1);
+    const zeroId = getNodeId(workerData.nodesData, 2);
+    const exactly32Id = getNodeId(workerData.nodesData, 3);
+
+    expect(shortId).toBe("J1");
+    expect(longId).toBe("reservoir-with-long-name");
+    expect(zeroId).toBe("0");
+    expect(exactly32Id).toBe("exactly-32-character-node-id-ok");
+  });
+
+  it("handles edge cases for node ID encoding", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("", { coordinates: [0, 0] })
+      .aReservoir("00", { coordinates: [10, 0] })
+      .aTank("special-chars-123!@#", { coordinates: [20, 0] })
+      .aPipe("P1", {
+        startNodeId: "",
+        endNodeId: "00",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    const emptyId = getNodeId(workerData.nodesData, 0);
+    const doubleZeroId = getNodeId(workerData.nodesData, 1);
+    const specialCharsId = getNodeId(workerData.nodesData, 2);
+
+    expect(emptyId).toBe("");
+    expect(doubleZeroId).toBe("00");
+    expect(specialCharsId).toBe("special-chars-123!@#");
   });
 });

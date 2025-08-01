@@ -35,7 +35,8 @@ export interface WorkerSpatialData {
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
 const PIPE_BINARY_SIZE = 16;
-const NODE_BINARY_SIZE = 20;
+const NODE_BINARY_SIZE = 52;
+const NODE_ID_MAX_LENGTH = 32;
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
@@ -131,6 +132,23 @@ export const getNodeType = (
     BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE + 2 * FLOAT64_SIZE;
   const enumValue = view.getUint32(offset, true);
   return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
+};
+
+export const getNodeId = (
+  nodesData: SharedArrayBuffer,
+  index: number,
+): string => {
+  const offset =
+    BUFFER_HEADER_SIZE +
+    index * NODE_BINARY_SIZE +
+    2 * FLOAT64_SIZE +
+    UINT32_SIZE;
+  const idBytes = new Uint8Array(nodesData, offset, NODE_ID_MAX_LENGTH);
+  const nullIndex = idBytes.indexOf(0);
+  const actualLength = nullIndex >= 0 ? nullIndex : NODE_ID_MAX_LENGTH;
+  const actualBytes = idBytes.slice(0, actualLength);
+  const decoder = new TextDecoder();
+  return decoder.decode(actualBytes);
 };
 
 export const prepareWorkerData = (
@@ -305,6 +323,19 @@ class NodesBinaryBuilder {
     this.view.setFloat64(offset, coordinates[1], true);
     offset += FLOAT64_SIZE;
     this.view.setUint32(offset, NODE_TYPE_TO_ENUM[nodeType], true);
+    offset += UINT32_SIZE;
+
+    const encoder = new TextEncoder();
+    const idBytes = encoder.encode(nodeId.slice(0, NODE_ID_MAX_LENGTH));
+    const paddedId = new Uint8Array(NODE_ID_MAX_LENGTH);
+    paddedId.set(idBytes);
+
+    const uint8View = new Uint8Array(
+      this.view.buffer,
+      offset,
+      NODE_ID_MAX_LENGTH,
+    );
+    uint8View.set(paddedId);
   }
 
   build(): SharedArrayBuffer {
