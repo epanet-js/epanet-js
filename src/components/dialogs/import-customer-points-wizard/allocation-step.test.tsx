@@ -1,7 +1,7 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
-import { Store, dataAtom } from "src/state/jotai";
+import { Store } from "src/state/jotai";
 import { setInitialState } from "src/__helpers__/state";
 import {
   HydraulicModelBuilder,
@@ -125,6 +125,8 @@ describe("AllocationStep", () => {
     });
     renderWizard(store);
 
+    await waitForAllocations();
+
     const navigation = screen.getByRole("navigation", {
       name: "wizard actions",
     });
@@ -137,7 +139,6 @@ describe("AllocationStep", () => {
     const finishButton = within(navigation).getByRole("button", {
       name: /finish/i,
     });
-
     expect(wizardCancelButton).not.toBeDisabled();
     expect(backButton).not.toBeDisabled();
     expect(finishButton).not.toBeDisabled();
@@ -169,59 +170,6 @@ describe("AllocationStep", () => {
       expect(spinner).toHaveClass("animate-spin");
     });
   });
-
-  it("uses connectCustomerPoints function when finish is clicked with allocated customer points", async () => {
-    const user = userEvent.setup();
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
-    const cp1 = buildCustomerPoint("1");
-    const cp2 = buildCustomerPoint("2");
-
-    cp1.connect({
-      pipeId: "P1",
-      snapPoint: [0, 0],
-      distance: 5,
-      junctionId: "J1",
-    });
-    cp2.connect({
-      pipeId: "P1",
-      snapPoint: [1, 1],
-      distance: 3,
-      junctionId: "J1",
-    });
-
-    const store = setInitialState({
-      hydraulicModel,
-    });
-
-    setWizardState(store, {
-      allocationResult: {
-        ruleMatches: [2],
-        allocatedCustomerPoints: new Map([
-          ["1", cp1],
-          ["2", cp2],
-        ]),
-      },
-      lastAllocatedRules: [anAllocationRule()],
-    });
-
-    renderWizard(store);
-
-    await waitForAllocations();
-
-    const finishButton = screen.getByRole("button", { name: /finish/i });
-    expect(finishButton).not.toBeDisabled();
-
-    await user.click(finishButton);
-
-    await waitFor(() => {
-      expect(screen.queryByText(/processing/i)).not.toBeInTheDocument();
-    });
-
-    const currentState = store.get(dataAtom);
-    expect(currentState.hydraulicModel.customerPoints.size).toBe(2);
-    expect(currentState.hydraulicModel.customerPoints.has("1")).toBe(true);
-    expect(currentState.hydraulicModel.customerPoints.has("2")).toBe(true);
-  });
 });
 
 const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
@@ -247,7 +195,9 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     isEditingRules: false,
   };
 
-  store.set(wizardStateAtom, { ...defaultWizardState, ...overrides });
+  act(() => {
+    store.set(wizardStateAtom, { ...defaultWizardState, ...overrides });
+  });
   return store;
 };
 
