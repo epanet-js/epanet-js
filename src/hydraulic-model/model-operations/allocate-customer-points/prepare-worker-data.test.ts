@@ -7,6 +7,7 @@ import {
   getPipeStartNodeIndex,
   getPipeEndNodeIndex,
   getNodeCoordinates,
+  getNodeType,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./allocate-customer-points";
@@ -193,5 +194,38 @@ describe("prepareWorkerData", () => {
 
     expect(node1Coordinates).toEqual([5, 10]);
     expect(node2Coordinates).toEqual([15, 20]);
+  });
+
+  it("can get node types from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aReservoir("R1", { coordinates: [10, 0] })
+      .aTank("T1", { coordinates: [20, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "R1",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+
+    const junctionType = getNodeType(workerData.nodesData, 0);
+    const reservoirType = getNodeType(workerData.nodesData, 1);
+    const tankType = getNodeType(workerData.nodesData, 2);
+
+    expect(junctionType).toBe("junction");
+    expect(reservoirType).toBe("reservoir");
+    expect(tankType).toBe("tank");
   });
 });

@@ -5,13 +5,25 @@ import Flatbush from "flatbush";
 import { Pipe } from "../../asset-types/pipe";
 import { HydraulicModel } from "../../hydraulic-model";
 import { AllocationRule } from "./allocate-customer-points";
-import { Asset, NodeAsset } from "src/hydraulic-model/asset-types";
+import { Asset, NodeAsset, NodeType } from "src/hydraulic-model/asset-types";
 
 export interface LinkSegmentProperties {
   linkId: string;
 }
 
 export type LinkSegment = Feature<LineString, LinkSegmentProperties>;
+
+const NODE_TYPE_TO_ENUM = {
+  junction: 0,
+  reservoir: 1,
+  tank: 2,
+} as const;
+
+const ENUM_TO_NODE_TYPE = {
+  0: "junction" as const,
+  1: "reservoir" as const,
+  2: "tank" as const,
+} as const;
 
 export interface WorkerSpatialData {
   flatbushIndexData: SharedArrayBuffer;
@@ -23,7 +35,7 @@ export interface WorkerSpatialData {
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
 const PIPE_BINARY_SIZE = 16;
-const NODE_BINARY_SIZE = 16;
+const NODE_BINARY_SIZE = 20;
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
@@ -110,6 +122,17 @@ export const getNodeCoordinates = (
   return [lng, lat];
 };
 
+export const getNodeType = (
+  nodesData: SharedArrayBuffer,
+  index: number,
+): NodeType => {
+  const view = new DataView(nodesData);
+  const offset =
+    BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE + 2 * FLOAT64_SIZE;
+  const enumValue = view.getUint32(offset, true);
+  return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
+};
+
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
   _allocationRules: AllocationRule[],
@@ -157,7 +180,7 @@ export const prepareWorkerData = (
       }
     } else if (asset.isNode) {
       const node = asset as NodeAsset;
-      nodesBuilder.addNode(node.id, node.coordinates);
+      nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
     }
   }
 
@@ -273,13 +296,15 @@ class NodesBinaryBuilder {
     this.view.setUint32(offset, 0, true);
   }
 
-  addNode(nodeId: string, coordinates: Position): void {
+  addNode(nodeId: string, coordinates: Position, nodeType: NodeType): void {
     const index = this.nodesIndex.get(nodeId)!;
     let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
 
     this.view.setFloat64(offset, coordinates[0], true);
     offset += FLOAT64_SIZE;
     this.view.setFloat64(offset, coordinates[1], true);
+    offset += FLOAT64_SIZE;
+    this.view.setUint32(offset, NODE_TYPE_TO_ENUM[nodeType], true);
   }
 
   build(): SharedArrayBuffer {
