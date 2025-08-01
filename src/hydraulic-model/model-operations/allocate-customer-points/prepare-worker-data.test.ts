@@ -4,6 +4,9 @@ import {
   getSegmentCoordinates,
   getSegmentPipeIndex,
   getPipeDiameter,
+  getPipeStartNodeIndex,
+  getPipeEndNodeIndex,
+  getNodeCoordinates,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./allocate-customer-points";
@@ -119,5 +122,76 @@ describe("prepareWorkerData", () => {
     const diameter = getPipeDiameter(workerData.pipesData, pipeIndex);
 
     expect(diameter).toBe(12);
+  });
+
+  it("can get pipe start and end node indexes from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
+
+    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const searchResults = flatbush.search(-1, -1, 11, 1);
+    const segmentIndex = searchResults[0];
+
+    const pipeIndex = getSegmentPipeIndex(
+      workerData.segmentsData,
+      segmentIndex,
+    );
+    const startNodeIndex = getPipeStartNodeIndex(
+      workerData.pipesData,
+      pipeIndex,
+    );
+    const endNodeIndex = getPipeEndNodeIndex(workerData.pipesData, pipeIndex);
+
+    expect(startNodeIndex).toBe(0);
+    expect(endNodeIndex).toBe(1);
+  });
+
+  it("can get node coordinates from binary data", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [5, 10] })
+      .aJunction("J2", { coordinates: [15, 20] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [5, 10],
+          [15, 20],
+        ],
+      })
+      .build();
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const workerData = prepareWorkerData(hydraulicModel, allocationRules);
+
+    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+
+    const node1Coordinates = getNodeCoordinates(workerData.nodesData, 0);
+    const node2Coordinates = getNodeCoordinates(workerData.nodesData, 1);
+
+    expect(node1Coordinates).toEqual([5, 10]);
+    expect(node2Coordinates).toEqual([15, 20]);
   });
 });

@@ -4,8 +4,8 @@ import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
 import { Pipe } from "../../asset-types/pipe";
 import { HydraulicModel } from "../../hydraulic-model";
-import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { AllocationRule } from "./allocate-customer-points";
+import { Asset, NodeAsset } from "src/hydraulic-model/asset-types";
 
 export interface LinkSegmentProperties {
   linkId: string;
@@ -17,13 +17,15 @@ export interface WorkerSpatialData {
   flatbushIndexData: SharedArrayBuffer;
   segmentsData: SharedArrayBuffer;
   pipesData: SharedArrayBuffer;
+  nodesData: SharedArrayBuffer;
 }
 
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
+const PIPE_BINARY_SIZE = 16;
+const NODE_BINARY_SIZE = 16;
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
-const MIN_BUFFER_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
 const COORDINATES_PER_SEGMENT = 2;
 
@@ -72,43 +74,59 @@ export const getPipeDiameter = (
   index: number,
 ): number => {
   const view = new DataView(pipesData);
-  const offset = BUFFER_HEADER_SIZE + index * FLOAT64_SIZE;
+  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
   return view.getFloat64(offset, true);
+};
+
+export const getPipeStartNodeIndex = (
+  pipesData: SharedArrayBuffer,
+  index: number,
+): number => {
+  const view = new DataView(pipesData);
+  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE;
+  return view.getUint32(offset, true);
+};
+
+export const getPipeEndNodeIndex = (
+  pipesData: SharedArrayBuffer,
+  index: number,
+): number => {
+  const view = new DataView(pipesData);
+  const offset =
+    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE + UINT32_SIZE;
+  return view.getUint32(offset, true);
+};
+
+export const getNodeCoordinates = (
+  nodesData: SharedArrayBuffer,
+  index: number,
+): Position => {
+  const view = new DataView(nodesData);
+  const offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
+
+  const lng = view.getFloat64(offset, true);
+  const lat = view.getFloat64(offset + FLOAT64_SIZE, true);
+
+  return [lng, lat];
 };
 
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
-  allocationRules: AllocationRule[],
+  _allocationRules: AllocationRule[],
 ): WorkerSpatialData => {
-  const maxAllowedDiameter = Math.max(
-    ...allocationRules.map((rule) => rule.maxDiameter),
-  );
-  const pipes = getAssetsByType<Pipe>(
-    hydraulicModel.assets,
-    "pipe",
-    (pipe) => pipe.diameter <= maxAllowedDiameter,
-  );
-
-  if (pipes.length === 0) {
-    const emptyIndexBuffer = new SharedArrayBuffer(MIN_BUFFER_SIZE);
-    const emptySegmentsBuffer = new SharedArrayBuffer(MIN_BUFFER_SIZE);
-    const emptyPipesBuffer = new SharedArrayBuffer(MIN_BUFFER_SIZE);
-
-    return {
-      flatbushIndexData: emptyIndexBuffer,
-      segmentsData: emptySegmentsBuffer,
-      pipesData: emptyPipesBuffer,
-    };
-  }
-
-  const { pipesIndex, pipesCount, pipeSegmentsCount } =
-    generateAssetIndexes(pipes);
+  const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
+    generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
 
   const segmentsBuilder = new SegmentsBinaryBuilder(
     pipeSegmentsCount,
     pipesIndex,
   );
-  const pipesBuilder = new PipesBinaryBuilder(pipesCount, pipesIndex);
+  const pipesBuilder = new PipesBinaryBuilder(
+    pipesCount,
+    pipesIndex,
+    nodesIndex,
+  );
+  const nodesBuilder = new NodesBinaryBuilder(nodesCount, nodesIndex);
   const spatialIndex = new Flatbush(
     pipeSegmentsCount,
     FLATBUSH_NODE_SIZE,
@@ -116,23 +134,30 @@ export const prepareWorkerData = (
     SharedArrayBuffer,
   );
 
-  for (const pipe of pipes) {
-    pipesBuilder.addPipe(pipe.id, pipe.diameter);
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.isLink && asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      const [startNodeId, endNodeId] = pipe.connections;
+      pipesBuilder.addPipe(pipe.id, pipe.diameter, startNodeId, endNodeId);
 
-    if (pipe.feature.geometry.type === "LineString") {
-      const pipeFeature = {
-        type: "Feature" as const,
-        geometry: pipe.feature.geometry as LineString,
-        properties: {},
-      };
-      const segments = lineSegment(pipeFeature);
-      for (const segment of segments.features) {
-        const coordinates = segment.geometry.coordinates;
-        segmentsBuilder.addSegment(coordinates, pipe.id);
+      if (pipe.feature.geometry.type === "LineString") {
+        const pipeFeature = {
+          type: "Feature" as const,
+          geometry: pipe.feature.geometry as LineString,
+          properties: {},
+        };
+        const segments = lineSegment(pipeFeature);
+        for (const segment of segments.features) {
+          const coordinates = segment.geometry.coordinates;
+          segmentsBuilder.addSegment(coordinates, pipe.id);
 
-        const [minX, minY, maxX, maxY] = bbox(segment);
-        spatialIndex.add(minX, minY, maxX, maxY);
+          const [minX, minY, maxX, maxY] = bbox(segment);
+          spatialIndex.add(minX, minY, maxX, maxY);
+        }
       }
+    } else if (asset.isNode) {
+      const node = asset as NodeAsset;
+      nodesBuilder.addNode(node.id, node.coordinates);
     }
   }
 
@@ -142,6 +167,7 @@ export const prepareWorkerData = (
     flatbushIndexData: spatialIndex.data as SharedArrayBuffer,
     segmentsData: segmentsBuilder.build(),
     pipesData: pipesBuilder.build(),
+    nodesData: nodesBuilder.build(),
   };
 };
 
@@ -193,8 +219,9 @@ class PipesBinaryBuilder {
   constructor(
     pipeCount: number,
     private pipesIndex: Map<string, number>,
+    private nodesIndex: Map<string, number>,
   ) {
-    const totalSize = BUFFER_HEADER_SIZE + pipeCount * FLOAT64_SIZE;
+    const totalSize = BUFFER_HEADER_SIZE + pipeCount * PIPE_BINARY_SIZE;
     this.buffer = new SharedArrayBuffer(totalSize);
     this.view = new DataView(this.buffer);
 
@@ -204,10 +231,55 @@ class PipesBinaryBuilder {
     this.view.setUint32(offset, 0, true);
   }
 
-  addPipe(pipeId: string, diameter: number): void {
+  addPipe(
+    pipeId: string,
+    diameter: number,
+    startNodeId: string,
+    endNodeId: string,
+  ): void {
     const index = this.pipesIndex.get(pipeId)!;
-    const offset = BUFFER_HEADER_SIZE + index * FLOAT64_SIZE;
+    const startNodeIndex = this.nodesIndex.get(startNodeId)!;
+    const endNodeIndex = this.nodesIndex.get(endNodeId)!;
+
+    let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
+
     this.view.setFloat64(offset, diameter, true);
+    offset += FLOAT64_SIZE;
+    this.view.setUint32(offset, startNodeIndex, true);
+    offset += UINT32_SIZE;
+    this.view.setUint32(offset, endNodeIndex, true);
+  }
+
+  build(): SharedArrayBuffer {
+    return this.buffer;
+  }
+}
+
+class NodesBinaryBuilder {
+  private buffer: SharedArrayBuffer;
+  private view: DataView;
+
+  constructor(
+    nodeCount: number,
+    private nodesIndex: Map<string, number>,
+  ) {
+    const totalSize = BUFFER_HEADER_SIZE + nodeCount * NODE_BINARY_SIZE;
+    this.buffer = new SharedArrayBuffer(totalSize);
+    this.view = new DataView(this.buffer);
+
+    let offset = 0;
+    this.view.setUint32(offset, nodeCount, true);
+    offset += UINT32_SIZE;
+    this.view.setUint32(offset, 0, true);
+  }
+
+  addNode(nodeId: string, coordinates: Position): void {
+    const index = this.nodesIndex.get(nodeId)!;
+    let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
+
+    this.view.setFloat64(offset, coordinates[0], true);
+    offset += FLOAT64_SIZE;
+    this.view.setFloat64(offset, coordinates[1], true);
   }
 
   build(): SharedArrayBuffer {
@@ -216,26 +288,37 @@ class PipesBinaryBuilder {
 }
 
 const generateAssetIndexes = (
-  pipes: Pipe[],
+  assets: Asset[],
 ): {
   pipesIndex: Map<string, number>;
   pipesCount: number;
   pipeSegmentsCount: number;
+  nodesIndex: Map<string, number>;
+  nodesCount: number;
 } => {
   const pipesIndex = new Map<string, number>();
+  const nodesIndex = new Map<string, number>();
+  let pipeIndex = 0;
+  let nodeIndex = 0;
   let pipeSegmentsCount = 0;
 
-  for (let pipeIndex = 0; pipeIndex < pipes.length; pipeIndex++) {
-    const pipe = pipes[pipeIndex];
-
-    pipesIndex.set(pipe.id, pipeIndex);
-
-    pipeSegmentsCount += pipe.coordinates.length - 1;
+  for (const asset of assets) {
+    if (asset.isLink && asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      pipesIndex.set(pipe.id, pipeIndex);
+      pipeSegmentsCount += pipe.coordinates.length - 1;
+      pipeIndex++;
+    } else if (asset.isNode) {
+      nodesIndex.set(asset.id, nodeIndex);
+      nodeIndex++;
+    }
   }
 
   return {
     pipesIndex,
-    pipesCount: pipes.length,
+    pipesCount: pipeIndex,
     pipeSegmentsCount,
+    nodesIndex,
+    nodesCount: nodeIndex,
   };
 };
