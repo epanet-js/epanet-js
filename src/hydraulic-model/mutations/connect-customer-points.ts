@@ -18,11 +18,11 @@ export const connectCustomerPoints = (
   const modifiedJunctions = new Set<string>();
 
   for (const [customerPointId, customerPoint] of customerPoints) {
-    if (!customerPoint.connection || !customerPoint.connection.junction) {
+    if (!customerPoint.connection || !customerPoint.connection.junctionId) {
       continue;
     }
 
-    const junctionId = customerPoint.connection.junction.id;
+    const junctionId = customerPoint.connection.junctionId;
     const originalJunction = hydraulicModel.assets.get(junctionId) as Junction;
 
     if (!originalJunction) {

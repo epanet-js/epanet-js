@@ -56,7 +56,7 @@ describe("allocateCustomerPoints", () => {
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     expect(allocatedCP1?.connection?.pipeId).toBe("P1");
-    expect(allocatedCP1?.connection?.junction?.type).toBe("junction");
+    expect(allocatedCP1?.connection?.junctionId).toBe("J1");
   });
 
   it("applies rules in order with first match wins", () => {
@@ -405,7 +405,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
-    expect(allocatedCP1?.connection?.junction?.id).toBe("J2");
+    expect(allocatedCP1?.connection?.junctionId).toBe("J2");
   });
 
   it("creates independent customer point copies", () => {
@@ -498,11 +498,11 @@ describe("findNearestPipeConnectionWithinDistance optimization", () => {
 
     // CP1 should connect to P1 (smaller diameter, matches first rule)
     expect(allocatedCP1?.connection?.pipeId).toBe("P1");
-    expect(allocatedCP1?.connection?.junction?.type).toBe("junction");
+    expect(allocatedCP1?.connection?.junctionId).toBeTruthy();
 
     // CP2 should connect to P2 (larger diameter, matches second rule)
     expect(allocatedCP2?.connection?.pipeId).toBe("P2");
-    expect(allocatedCP2?.connection?.junction?.type).toBe("junction");
+    expect(allocatedCP2?.connection?.junctionId).toBeTruthy();
   });
 
   it("demonstrates early termination with close match", () => {

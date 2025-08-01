@@ -25,9 +25,6 @@ describe("connectCustomerPoints", () => {
       })
       .build();
 
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
-    const junction2 = hydraulicModel.assets.get("J2") as Junction;
-
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -38,7 +35,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
 
     const cp2 = buildCustomerPoint("CP2", {
@@ -49,7 +46,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [8, 0],
       distance: 1,
-      junction: junction2,
+      junctionId: "J2",
     });
 
     customerPoints.set("CP1", cp1);
@@ -121,18 +118,11 @@ describe("connectCustomerPoints", () => {
       demand: 25,
     });
 
-    const fakeJunction = new Junction(
-      "FAKE_J1",
-      [5, 5],
-      { type: "junction", baseDemand: 0, elevation: 0, label: "FAKE_J1" },
-      hydraulicModel.units,
-    );
-
     cpWithInvalidJunction.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: fakeJunction,
+      junctionId: "FAKE_J1",
     });
 
     customerPoints.set("CP1", cpWithInvalidJunction);
@@ -159,7 +149,6 @@ describe("connectCustomerPoints", () => {
       })
       .build();
 
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -170,7 +159,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [1, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
 
     const cp2 = buildCustomerPoint("CP2", {
@@ -181,7 +170,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
 
     customerPoints.set("CP1", cp1);
@@ -203,7 +192,6 @@ describe("connectCustomerPoints", () => {
       .aJunction("J1", { coordinates: [0, 0] })
       .build();
 
-    const junction1 = originalModel.assets.get("J1") as Junction;
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -214,7 +202,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
     customerPoints.set("CP1", cp1);
 
@@ -258,7 +246,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
     customerPoints.set("CP1", newCP);
 
@@ -275,7 +263,6 @@ describe("connectCustomerPoints", () => {
       .aJunction("J1", { coordinates: [0, 0], baseDemand: 30 })
       .build();
 
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -286,7 +273,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
     customerPoints.set("CP1", cp1);
 
@@ -303,7 +290,6 @@ describe("connectCustomerPoints", () => {
       .aJunction("J1", { coordinates: [0, 0], baseDemand: 45 })
       .build();
 
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -314,7 +300,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
     customerPoints.set("CP1", cp1);
 
@@ -333,7 +319,6 @@ describe("connectCustomerPoints", () => {
       .aJunction("J1", { coordinates: [0, 0], baseDemand: 60 })
       .build();
 
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
     const customerPoints: CustomerPoints = new Map();
 
     const cp1 = buildCustomerPoint("CP1", {
@@ -344,7 +329,7 @@ describe("connectCustomerPoints", () => {
       pipeId: "P1",
       snapPoint: [2, 0],
       distance: 1,
-      junction: junction1,
+      junctionId: "J1",
     });
     customerPoints.set("CP1", cp1);
 

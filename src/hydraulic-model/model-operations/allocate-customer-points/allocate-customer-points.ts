@@ -220,13 +220,17 @@ const findNearestPipeConnectionWithinDistance = (
 
     if (closestMatch && closestPipeId) {
       const snapPoint = closestMatch.geometry.coordinates as Position;
-      const junction = findAssignedJunction(closestPipeId, snapPoint, assets);
-      if (junction) {
+      const junctionId = findAssignedJunctionId(
+        closestPipeId,
+        snapPoint,
+        assets,
+      );
+      if (junctionId) {
         return {
           pipeId: closestPipeId,
           snapPoint,
           distance: closestMatch.properties?.dist || 0,
-          junction,
+          junctionId,
         };
       }
     }
@@ -239,11 +243,11 @@ const calculateDistanceMeters = (a: Position, b: Position): number => {
   return turfDistance(a, b, { units: "meters" });
 };
 
-const findAssignedJunction = (
+const findAssignedJunctionId = (
   pipeId: string,
   snapPoint: Position,
   assets: HydraulicModel["assets"],
-): Junction | null => {
+): string | null => {
   const pipe = assets.get(pipeId) as Pipe;
   if (!pipe) return null;
 
@@ -258,7 +262,7 @@ const findAssignedJunction = (
   }
 
   if (junctionNodes.length === 1) {
-    return junctionNodes[0];
+    return junctionNodes[0].id;
   }
 
   const junctionDistances = junctionNodes.map((junction) => ({
@@ -267,5 +271,5 @@ const findAssignedJunction = (
   }));
 
   junctionDistances.sort((a, b) => a.distance - b.distance);
-  return junctionDistances[0].junction;
+  return junctionDistances[0].junction.id;
 };

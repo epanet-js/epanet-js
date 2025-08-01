@@ -11,7 +11,6 @@ import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { ImportCustomerPointsWizard } from "./index";
 import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
 
 describe("AllocationStep", () => {
   it("renders allocation step with default wizard state", async () => {
@@ -174,8 +173,6 @@ describe("AllocationStep", () => {
   it("uses connectCustomerPoints function when finish is clicked with allocated customer points", async () => {
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
-    const junction = hydraulicModel.assets.get("J1") as Junction;
-
     const cp1 = buildCustomerPoint("1");
     const cp2 = buildCustomerPoint("2");
 
@@ -183,13 +180,13 @@ describe("AllocationStep", () => {
       pipeId: "P1",
       snapPoint: [0, 0],
       distance: 5,
-      junction: junction,
+      junctionId: "J1",
     });
     cp2.connect({
       pipeId: "P1",
       snapPoint: [1, 1],
       distance: 3,
-      junction: junction,
+      junctionId: "J1",
     });
 
     const store = setInitialState({

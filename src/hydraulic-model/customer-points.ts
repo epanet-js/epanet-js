@@ -1,5 +1,4 @@
 import { Position } from "geojson";
-import { Junction } from "./asset-types/junction";
 
 export type AllocationRule = {
   maxDistance: number;
@@ -17,7 +16,7 @@ export interface CustomerPointConnection {
   pipeId: string;
   snapPoint: Position;
   distance: number;
-  junction?: Junction;
+  junctionId?: string;
 }
 
 export class CustomerPoint {

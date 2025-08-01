@@ -50,6 +50,7 @@ describe("CustomerPoint", () => {
       pipeId: "P1",
       snapPoint: [15, 25] as [number, number],
       distance: 7.5,
+      junctionId: "J1",
     };
 
     originalPoint.connect(connection);
