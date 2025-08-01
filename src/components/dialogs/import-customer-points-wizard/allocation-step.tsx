@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { AllocationRule } from "src/hydraulic-model/customer-points";
 import {
@@ -156,21 +156,13 @@ export const AllocationStep: React.FC = () => {
     setTempRules(newRules);
   }, []);
 
+  const hasAllocated = useRef<boolean>(false);
   useEffect(() => {
-    if (
-      !lastAllocatedRules &&
-      parsedDataSummary?.validCustomerPoints?.length &&
-      !isAllocating
-    ) {
-      void performAllocation(allocationRules);
-    }
-  }, [
-    lastAllocatedRules,
-    parsedDataSummary,
-    isAllocating,
-    allocationRules,
-    performAllocation,
-  ]);
+    if (hasAllocated.current) return;
+
+    void performAllocation(allocationRules);
+    hasAllocated.current = true;
+  }, [performAllocation, allocationRules]);
 
   const displayRules = isEditingRules ? tempRules : allocationRules;
   const allocationCounts = allocationResult?.ruleMatches || [];
