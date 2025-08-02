@@ -8,7 +8,7 @@ import {
 import { CustomerPoints } from "../../customer-points";
 
 describe("allocateCustomerPointsInWorker", () => {
-  it("allocates customer points based on single rule", () => {
+  it("allocates customer points based on single rule", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -44,7 +44,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -57,7 +57,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(allocatedCP1?.connection?.junctionId).toBe("J1");
   });
 
-  it("applies rules in order with first match wins", () => {
+  it("applies rules in order with first match wins", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -81,7 +81,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -90,7 +90,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([1, 0]);
   });
 
-  it("filters by maximum distance", () => {
+  it("filters by maximum distance", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -114,7 +114,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -125,7 +125,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([1]);
   });
 
-  it("filters by maximum diameter", () => {
+  it("filters by maximum diameter", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -160,7 +160,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -172,7 +172,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([1]);
   });
 
-  it("handles multiple rules with different constraints", () => {
+  it("handles multiple rules with different constraints", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -208,7 +208,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 20 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -222,7 +222,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(allocatedCP2?.connection?.pipeId).toBe("pipe-1");
   });
 
-  it("handles empty customer points", () => {
+  it("handles empty customer points", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -242,7 +242,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -251,7 +251,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([0]);
   });
 
-  it("handles no pipes in hydraulic model", () => {
+  it("handles no pipes in hydraulic model", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .build();
@@ -264,7 +264,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -273,7 +273,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([0]);
   });
 
-  it("handles customer points that match no rules", () => {
+  it("handles customer points that match no rules", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -296,7 +296,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -305,7 +305,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([0]);
   });
 
-  it("preserves immutability of input customer points", () => {
+  it("preserves immutability of input customer points", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -332,7 +332,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    allocateCustomerPointsInWorker(hydraulicModel, {
+    await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -341,7 +341,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(originalCustomerPoint.baseDemand).toBe(50);
   });
 
-  it("excludes tanks and reservoirs from junction assignment", () => {
+  it("excludes tanks and reservoirs from junction assignment", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aTank("T1", { coordinates: [-95.4089633, 29.701228] })
       .aReservoir("R1", { coordinates: [-95.4077939, 29.702706] })
@@ -364,7 +364,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -373,7 +373,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(result.ruleMatches).toEqual([0]);
   });
 
-  it("assigns to closest junction when pipe has multiple junctions", () => {
+  it("assigns to closest junction when pipe has multiple junctions", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -396,7 +396,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -406,7 +406,7 @@ describe("allocateCustomerPointsInWorker", () => {
     expect(allocatedCP1?.connection?.junctionId).toBe("J2");
   });
 
-  it("creates independent customer point copies", () => {
+  it("creates independent customer point copies", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -433,7 +433,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -446,7 +446,7 @@ describe("allocateCustomerPointsInWorker", () => {
 });
 
 describe("findNearestPipeConnectionWithWorkerData optimization", () => {
-  it("returns same results as original implementation", () => {
+  it("returns same results as original implementation", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -482,7 +482,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -500,7 +500,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(allocatedCP2?.connection?.junctionId).toBeTruthy();
   });
 
-  it("demonstrates early termination with close match", () => {
+  it("demonstrates early termination with close match", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
       .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
@@ -534,7 +534,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       { maxDistance: 100, maxDiameter: 15 },
     ];
 
-    const result = allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
       allocationRules,
       customerPoints,
     });

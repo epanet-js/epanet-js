@@ -61,7 +61,7 @@ export const AllocationStep: React.FC = () => {
         });
 
         const result = isWorkerAllocationOn
-          ? allocateCustomerPointsInWorker(data.hydraulicModel, {
+          ? await allocateCustomerPointsInWorker(data.hydraulicModel, {
               allocationRules: rules,
               customerPoints,
             })

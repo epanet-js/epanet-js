@@ -1,8 +1,10 @@
+import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model";
 import { CustomerPoint, CustomerPoints } from "../../customer-points";
 import { AllocationRule } from "./allocate-customer-points";
-import { prepareWorkerData } from "./prepare-worker-data";
-import { runAllocation } from "./worker";
+import { prepareWorkerData, WorkerSpatialData } from "./prepare-worker-data";
+import { runAllocation, AllocationResultItem } from "./worker";
+import type { AllocationWorkerAPI } from "./allocation-worker";
 
 type InputData = {
   allocationRules: AllocationRule[];
@@ -14,10 +16,12 @@ export type AllocationResult = {
   ruleMatches: number[];
 };
 
-export const allocateCustomerPointsInWorker = (
+const WORKER_COUNT = 10;
+
+export const allocateCustomerPointsInWorker = async (
   hydraulicModel: HydraulicModel,
   { allocationRules, customerPoints }: InputData,
-): AllocationResult => {
+): Promise<AllocationResult> => {
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<string, CustomerPoint>();
 
@@ -27,7 +31,27 @@ export const allocateCustomerPointsInWorker = (
     Array.from(customerPoints.values()),
   );
 
-  const allocationResults = runAllocation(workerData, allocationRules, 0);
+  const totalCustomerPoints = customerPoints.size;
+
+  if (totalCustomerPoints === 0) {
+    return {
+      allocatedCustomerPoints,
+      ruleMatches,
+    };
+  }
+
+  let allocationResults;
+
+  try {
+    allocationResults = await runAllocationWithWorkers(
+      workerData,
+      allocationRules,
+      totalCustomerPoints,
+    );
+  } catch (error) {
+    allocationResults = runAllocation(workerData, allocationRules, 0);
+  }
+
   for (const result of allocationResults) {
     if (result.ruleIndex !== -1 && result.connection) {
       const customerPointCopy = customerPoints
@@ -45,4 +69,49 @@ export const allocateCustomerPointsInWorker = (
     allocatedCustomerPoints,
     ruleMatches,
   };
+};
+
+const runAllocationWithWorkers = async (
+  workerData: WorkerSpatialData,
+  allocationRules: AllocationRule[],
+  totalCustomerPoints: number,
+): Promise<AllocationResultItem[]> => {
+  const pointsPerWorker = Math.ceil(totalCustomerPoints / WORKER_COUNT);
+  const workers: Worker[] = [];
+  const workerAPIs: Comlink.Remote<AllocationWorkerAPI>[] = [];
+
+  try {
+    for (let i = 0; i < WORKER_COUNT; i++) {
+      const worker = new Worker(
+        new URL("./allocation-worker.ts", import.meta.url),
+        { type: "module" },
+      );
+      workers.push(worker);
+      workerAPIs.push(Comlink.wrap<AllocationWorkerAPI>(worker));
+    }
+
+    const workerPromises = workerAPIs.map((workerAPI, workerIndex) => {
+      const offset = workerIndex * pointsPerWorker;
+      const count = Math.min(pointsPerWorker, totalCustomerPoints - offset);
+
+      if (count <= 0) {
+        return Promise.resolve([]);
+      }
+
+      return workerAPI.runAllocation(
+        workerData,
+        allocationRules,
+        offset,
+        count,
+      );
+    });
+
+    const workerResults = await Promise.all(workerPromises);
+
+    return workerResults.flat();
+  } finally {
+    workers.forEach((worker) => {
+      worker.terminate();
+    });
+  }
 };
