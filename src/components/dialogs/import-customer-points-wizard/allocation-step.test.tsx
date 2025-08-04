@@ -11,6 +11,9 @@ import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { ImportCustomerPointsWizard } from "./index";
 import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
+import { MemPersistence } from "src/lib/persistence/memory";
+import { PersistenceContext } from "src/lib/persistence/context";
+import { UIDMap } from "src/lib/id-mapper";
 
 describe("AllocationStep", () => {
   it("renders allocation step with default wizard state", async () => {
@@ -208,9 +211,12 @@ const waitForAllocations = () => {
 };
 
 const renderWizard = (store: Store) => {
+  const persistence = new MemPersistence(UIDMap.empty(), store);
   return render(
-    <JotaiProvider store={store}>
-      <ImportCustomerPointsWizard isOpen={true} onClose={() => {}} />
-    </JotaiProvider>,
+    <PersistenceContext.Provider value={persistence}>
+      <JotaiProvider store={store}>
+        <ImportCustomerPointsWizard isOpen={true} onClose={() => {}} />
+      </JotaiProvider>
+    </PersistenceContext.Provider>,
   );
 };

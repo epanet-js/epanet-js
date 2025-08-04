@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   WizardContainer,
   WizardHeader,
@@ -18,6 +18,7 @@ import { connectCustomerPoints } from "src/hydraulic-model/mutations/connect-cus
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { CheckIcon } from "@radix-ui/react-icons";
+import { usePersistence } from "src/lib/persistence/context";
 
 type ImportCustomerPointsWizardProps = {
   isOpen: boolean;
@@ -28,10 +29,11 @@ export const ImportCustomerPointsWizard: React.FC<
   ImportCustomerPointsWizardProps
 > = ({ onClose }) => {
   const data = useAtomValue(dataAtom);
-  const setData = useSetAtom(dataAtom);
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const rep = usePersistence();
+  const transactImport = rep.useTransactImport();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -60,10 +62,7 @@ export const ImportCustomerPointsWizard: React.FC<
 
     const importedCount = updatedHydraulicModel.customerPoints.size;
 
-    setData({
-      ...data,
-      hydraulicModel: updatedHydraulicModel,
-    });
+    transactImport(updatedHydraulicModel, data.modelMetadata, "customerpoints");
 
     userTracking.capture({
       name: "importCustomerPoints.completed",
@@ -78,7 +77,7 @@ export const ImportCustomerPointsWizard: React.FC<
     });
 
     handleClose();
-  }, [wizardState, data, setData, userTracking, handleClose]);
+  }, [wizardState, data, userTracking, handleClose, transactImport]);
 
   const maxStep = 4;
   const canGoNext =
