@@ -7,7 +7,7 @@ import Flatbush from "flatbush";
 import { Position } from "geojson";
 
 import { CustomerPointConnection } from "../../customer-points";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule } from "./types";
 import {
   WorkerSpatialData,
   getSegmentCoordinates,

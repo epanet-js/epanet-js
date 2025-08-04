@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 import { parseInp } from "src/import/inp";
 import { promises as fs } from "fs";
 import path from "path";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const discoverNetworks = async () => {
   const benchmarkDir = path.join(__dirname, ".benchmark");
@@ -117,7 +116,6 @@ describe("importCustomerPoints benchmark", () => {
   });
 
   beforeEach(() => {
-    stubFeatureOn("FLAG_WORKER_ALLOCATION");
     toast.remove();
   });
 

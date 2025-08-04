@@ -13,7 +13,7 @@ import {
   getCustomerPointId,
 } from "./prepare-worker-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule } from "./types";
 import Flatbush from "flatbush";
 
 describe("prepareWorkerData", () => {

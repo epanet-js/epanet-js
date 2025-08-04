@@ -9,11 +9,9 @@ import { CommandContainer } from "./__helpers__/command-container";
 import { useImportCustomerPoints } from "./import-customer-points";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import toast from "react-hot-toast";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("importCustomerPoints", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_WORKER_ALLOCATION");
     toast.remove();
   });
 

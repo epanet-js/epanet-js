@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { allocateCustomerPointsInWorker } from "./allocate-customer-points-in-worker";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule } from "./types";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,

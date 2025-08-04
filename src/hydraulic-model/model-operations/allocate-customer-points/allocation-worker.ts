@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
 import { runAllocation, AllocationResultItem } from "./worker";
 import { WorkerSpatialData } from "./prepare-worker-data";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule } from "./types";
 
 export interface AllocationWorkerAPI {
   runAllocation: (

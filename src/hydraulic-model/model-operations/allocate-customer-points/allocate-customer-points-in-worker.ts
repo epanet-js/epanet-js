@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model";
 import { CustomerPoint, CustomerPoints } from "../../customer-points";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule, AllocationResult } from "./types";
 import { prepareWorkerData, WorkerSpatialData } from "./prepare-worker-data";
 import { runAllocation, AllocationResultItem } from "./worker";
 import type { AllocationWorkerAPI } from "./allocation-worker";
@@ -9,11 +9,6 @@ import type { AllocationWorkerAPI } from "./allocation-worker";
 type InputData = {
   allocationRules: AllocationRule[];
   customerPoints: CustomerPoints;
-};
-
-export type AllocationResult = {
-  allocatedCustomerPoints: CustomerPoints;
-  ruleMatches: number[];
 };
 
 const WORKER_COUNT = 10;

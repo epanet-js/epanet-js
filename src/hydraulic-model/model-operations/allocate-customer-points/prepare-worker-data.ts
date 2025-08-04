@@ -4,7 +4,7 @@ import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
 import { Pipe } from "../../asset-types/pipe";
 import { HydraulicModel } from "../../hydraulic-model";
-import { AllocationRule } from "./allocate-customer-points";
+import { AllocationRule } from "./types";
 import { Asset, NodeAsset, NodeType } from "src/hydraulic-model/asset-types";
 import { CustomerPoint } from "../../customer-points";
 

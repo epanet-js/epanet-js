@@ -7,18 +7,13 @@ import {
 } from "@radix-ui/react-icons";
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { dataAtom } from "src/state/jotai";
-import {
-  allocateCustomerPoints,
-  allocateCustomerPointsInWorker,
-} from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { useWizardState } from "./use-wizard-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AllocationStep: React.FC = () => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
-  const isWorkerAllocationOn = useFeatureFlag("FLAG_WORKER_ALLOCATION");
 
   const {
     parsedDataSummary,
@@ -60,15 +55,10 @@ export const AllocationStep: React.FC = () => {
           customerPoints.set(point.id, point);
         });
 
-        const result = isWorkerAllocationOn
-          ? await allocateCustomerPointsInWorker(data.hydraulicModel, {
-              allocationRules: rules,
-              customerPoints,
-            })
-          : allocateCustomerPoints(data.hydraulicModel, {
-              allocationRules: rules,
-              customerPoints,
-            });
+        const result = await allocateCustomerPoints(data.hydraulicModel, {
+          allocationRules: rules,
+          customerPoints,
+        });
 
         setAllocationResult(result);
         setLastAllocatedRules([...rules]);
@@ -87,7 +77,6 @@ export const AllocationStep: React.FC = () => {
     [
       parsedDataSummary,
       data.hydraulicModel,
-      isWorkerAllocationOn,
       setIsAllocating,
       setError,
       setAllocationResult,
