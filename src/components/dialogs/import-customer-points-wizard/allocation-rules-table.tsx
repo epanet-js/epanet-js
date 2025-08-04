@@ -12,6 +12,8 @@ import {
 } from "@radix-ui/react-icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useWizardState } from "./use-wizard-state";
 
 type AllocationRulesTableProps = {
   rules: AllocationRule[];
@@ -28,6 +30,8 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   isAllocating = false,
   onChange,
 }) => {
+  const { units } = useWizardState();
+  const translateUnit = useTranslateUnit();
   const handleAddRule = useCallback(() => {
     const newRule: AllocationRule = { ...defaultAllocationRules[0] };
     onChange([...rules, newRule]);
@@ -86,10 +90,10 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                 Order
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Max Diameter (mm)
+                Max Diameter ({translateUnit(units.diameter)})
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Max Distance (m)
+                Max Distance ({translateUnit(units.length)})
               </th>
               {!isEditing && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
