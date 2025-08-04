@@ -86,22 +86,22 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-16">
                 Order
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Max Diameter ({translateUnit(units.diameter)})
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Max Distance ({translateUnit(units.length)})
               </th>
               {!isEditing && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-32">
                   Allocations
                 </th>
               )}
               {isEditing && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-24">
                   Actions
                 </th>
               )}
