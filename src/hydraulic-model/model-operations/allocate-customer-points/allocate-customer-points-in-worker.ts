@@ -40,17 +40,13 @@ export const allocateCustomerPointsInWorker = async (
     };
   }
 
-  let allocationResults;
-
-  try {
-    allocationResults = await runAllocationWithWorkers(
-      workerData,
-      allocationRules,
-      totalCustomerPoints,
-    );
-  } catch (error) {
-    allocationResults = runAllocation(workerData, allocationRules, 0);
-  }
+  const allocationResults = hasWebWorker()
+    ? await runAllocationWithWorkers(
+        workerData,
+        allocationRules,
+        totalCustomerPoints,
+      )
+    : runAllocation(workerData, allocationRules, 0);
 
   for (const result of allocationResults) {
     if (result.ruleIndex !== -1 && result.connection) {
@@ -113,5 +109,13 @@ const runAllocationWithWorkers = async (
     workers.forEach((worker) => {
       worker.terminate();
     });
+  }
+};
+
+const hasWebWorker = () => {
+  try {
+    return window.Worker !== undefined;
+  } catch {
+    return false;
   }
 };
