@@ -4,7 +4,7 @@ import { EitherHandler } from "./shared";
 import { bufferFeature } from "src/lib/buffer";
 import { runSimulation } from "src/simulation/epanet/worker";
 
-const lib = {
+export const lib = {
   getIssues,
   bufferFeature,
   runSimulation,
