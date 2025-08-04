@@ -1,3 +1,4 @@
+import { Unit } from "src/quantity";
 import { Position } from "geojson";
 
 export type AllocationRule = {
@@ -7,10 +8,17 @@ export type AllocationRule = {
 
 export const defaultAllocationRules: AllocationRule[] = [
   { maxDistance: 100, maxDiameter: 300 },
-  //{ maxDistance: 50, maxDiameter: 300 },
-  //{ maxDistance: 150, maxDiameter: 200 },
-  //{ maxDistance: 100, maxDiameter: 300 },
 ];
+
+export const getDefaultAllocationRules = (units: {
+  diameter: Unit;
+  length: Unit;
+}): AllocationRule[] => {
+  const maxDiameter = units.diameter === "in" ? 12 : 300;
+  const maxDistance = units.length === "ft" ? 320 : 100;
+
+  return [{ maxDistance, maxDiameter }];
+};
 
 export interface CustomerPointConnection {
   pipeId: string;

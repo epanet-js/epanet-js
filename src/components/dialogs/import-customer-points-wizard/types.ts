@@ -24,7 +24,7 @@ export type WizardState = {
   error: string | null;
   isProcessing: boolean;
   keepDemands: boolean;
-  allocationRules: AllocationRule[];
+  allocationRules: AllocationRule[] | null;
   connectionCounts: { [ruleIndex: number]: number } | null;
   allocationResult: AllocationResult | null;
   isAllocating: boolean;

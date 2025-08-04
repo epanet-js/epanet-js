@@ -1,9 +1,11 @@
 import { atom, useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   AllocationRule,
   CustomerPoint,
-  defaultAllocationRules,
+  getDefaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
+import { dataAtom } from "src/state/jotai";
 import {
   WizardState,
   WizardActions,
@@ -21,7 +23,7 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
-  allocationRules: defaultAllocationRules,
+  allocationRules: null,
   connectionCounts: null,
   allocationResult: null,
   isAllocating: false,
@@ -31,8 +33,11 @@ const initialState: WizardState = {
 
 export const wizardStateAtom = atom<WizardState>(initialState);
 
-export const useWizardState = (): WizardState & WizardActions => {
+export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
+  allocationRules: AllocationRule[];
+} & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
+  const data = useAtomValue(dataAtom);
 
   const goToStep = (step: WizardStep) => {
     setWizardState((prev) => ({ ...prev, currentStep: step, error: null }));
@@ -125,6 +130,9 @@ export const useWizardState = (): WizardState & WizardActions => {
 
   return {
     ...state,
+    allocationRules:
+      state.allocationRules ??
+      getDefaultAllocationRules(data.hydraulicModel.units),
     goToStep,
     goNext,
     goBack,
