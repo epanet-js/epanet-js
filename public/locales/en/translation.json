@@ -457,6 +457,20 @@
           "description": "Keep the current base demands and add customer point demands on top. Use this if you want to include both existing and customer-based demands."
         },
         "processingMessage": "Connecting customer points to network..."
+      },
+      "allocationStep": {
+        "title": "Customers Allocation",
+        "description": "Define rules for connecting customer points to pipes. You can specify multiple max distance and max diameter pairs to control how customer points are allocated to the network.",
+        "rulesTitle": "Allocation Rules",
+        "editButton": "Edit",
+        "saveButton": "Save",
+        "cancelButton": "Cancel",
+        "computingMessage": "Computing allocations...",
+        "processingMessage": "Processing allocation rules...",
+        "summaryTitle": "Allocation Summary ({{1}} total customer points)",
+        "allocatedPoints": "{{1}} customer points will be allocated ({{2}}%)",
+        "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
+        "allocationFailed": "Allocation failed: {{1}}"
       }
     },
     "dataSource": {

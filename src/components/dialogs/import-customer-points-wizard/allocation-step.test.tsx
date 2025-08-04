@@ -203,9 +203,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
 
 const waitForAllocations = () => {
   return waitFor(() => {
-    expect(
-      screen.queryByText("Computing allocations..."),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Computing allocations/)).not.toBeInTheDocument();
   });
 };
 
