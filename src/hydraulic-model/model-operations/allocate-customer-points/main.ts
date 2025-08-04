@@ -2,9 +2,9 @@ import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model";
 import { CustomerPoint, CustomerPoints } from "../../customer-points";
 import { AllocationRule, AllocationResult } from "./types";
-import { prepareWorkerData, WorkerSpatialData } from "./prepare-worker-data";
-import { runAllocation, AllocationResultItem } from "./worker";
-import type { AllocationWorkerAPI } from "./allocation-worker";
+import { prepareWorkerData, RunData } from "./prepare-data";
+import { runAllocation, AllocationResultItem } from "./run-allocation";
+import type { AllocationWorkerAPI } from "./worker";
 
 type InputData = {
   allocationRules: AllocationRule[];
@@ -13,7 +13,7 @@ type InputData = {
 
 const WORKER_COUNT = 10;
 
-export const allocateCustomerPointsInWorker = async (
+export const allocateCustomerPoints = async (
   hydraulicModel: HydraulicModel,
   { allocationRules, customerPoints }: InputData,
 ): Promise<AllocationResult> => {
@@ -63,7 +63,7 @@ export const allocateCustomerPointsInWorker = async (
 };
 
 const runAllocationWithWorkers = async (
-  workerData: WorkerSpatialData,
+  workerData: RunData,
   allocationRules: AllocationRule[],
   totalCustomerPoints: number,
 ): Promise<AllocationResultItem[]> => {
@@ -73,10 +73,9 @@ const runAllocationWithWorkers = async (
 
   try {
     for (let i = 0; i < WORKER_COUNT; i++) {
-      const worker = new Worker(
-        new URL("./allocation-worker.ts", import.meta.url),
-        { type: "module" },
-      );
+      const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+      });
       workers.push(worker);
       workerAPIs.push(Comlink.wrap<AllocationWorkerAPI>(worker));
     }

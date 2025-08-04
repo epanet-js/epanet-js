@@ -26,12 +26,12 @@ const ENUM_TO_NODE_TYPE = {
   2: "tank" as const,
 } as const;
 
-export interface WorkerSpatialData {
-  flatbushIndexData: SharedArrayBuffer;
-  segmentsData: SharedArrayBuffer;
-  pipesData: SharedArrayBuffer;
-  nodesData: SharedArrayBuffer;
-  customerPointsData: SharedArrayBuffer;
+export interface RunData {
+  flatbushIndex: SharedArrayBuffer;
+  segments: SharedArrayBuffer;
+  pipes: SharedArrayBuffer;
+  nodes: SharedArrayBuffer;
+  customerPoints: SharedArrayBuffer;
 }
 
 const BUFFER_HEADER_SIZE = 8;
@@ -59,10 +59,10 @@ const getCoordinatesOffset = (index: number): number => {
 };
 
 export const getSegmentCoordinates = (
-  segmentsData: SharedArrayBuffer,
+  segments: SharedArrayBuffer,
   index: number,
 ): Position[] => {
-  const view = new DataView(segmentsData);
+  const view = new DataView(segments);
   let offset = getCoordinatesOffset(index);
 
   const coordinates: Position[] = [];
@@ -78,47 +78,47 @@ export const getSegmentCoordinates = (
 };
 
 export const getSegmentPipeIndex = (
-  segmentsData: SharedArrayBuffer,
+  segments: SharedArrayBuffer,
   index: number,
 ): number => {
-  const view = new DataView(segmentsData);
+  const view = new DataView(segments);
   const offset = getPipeIndexOffset(index);
   return view.getUint32(offset, true);
 };
 
 export const getPipeDiameter = (
-  pipesData: SharedArrayBuffer,
+  pipes: SharedArrayBuffer,
   index: number,
 ): number => {
-  const view = new DataView(pipesData);
+  const view = new DataView(pipes);
   const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
   return view.getFloat64(offset, true);
 };
 
 export const getPipeStartNodeIndex = (
-  pipesData: SharedArrayBuffer,
+  pipes: SharedArrayBuffer,
   index: number,
 ): number => {
-  const view = new DataView(pipesData);
+  const view = new DataView(pipes);
   const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE;
   return view.getUint32(offset, true);
 };
 
 export const getPipeEndNodeIndex = (
-  pipesData: SharedArrayBuffer,
+  pipes: SharedArrayBuffer,
   index: number,
 ): number => {
-  const view = new DataView(pipesData);
+  const view = new DataView(pipes);
   const offset =
     BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE + UINT32_SIZE;
   return view.getUint32(offset, true);
 };
 
 export const getNodeCoordinates = (
-  nodesData: SharedArrayBuffer,
+  nodes: SharedArrayBuffer,
   index: number,
 ): Position => {
-  const view = new DataView(nodesData);
+  const view = new DataView(nodes);
   const offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
 
   const lng = view.getFloat64(offset, true);
@@ -128,26 +128,23 @@ export const getNodeCoordinates = (
 };
 
 export const getNodeType = (
-  nodesData: SharedArrayBuffer,
+  nodes: SharedArrayBuffer,
   index: number,
 ): NodeType => {
-  const view = new DataView(nodesData);
+  const view = new DataView(nodes);
   const offset =
     BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE + 2 * FLOAT64_SIZE;
   const enumValue = view.getUint32(offset, true);
   return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
 };
 
-export const getNodeId = (
-  nodesData: SharedArrayBuffer,
-  index: number,
-): string => {
+export const getNodeId = (nodes: SharedArrayBuffer, index: number): string => {
   const offset =
     BUFFER_HEADER_SIZE +
     index * NODE_BINARY_SIZE +
     2 * FLOAT64_SIZE +
     UINT32_SIZE;
-  const idBytes = new Uint8Array(nodesData, offset, NODE_ID_MAX_LENGTH);
+  const idBytes = new Uint8Array(nodes, offset, NODE_ID_MAX_LENGTH);
   const nullIndex = idBytes.indexOf(0);
   const actualLength = nullIndex >= 0 ? nullIndex : NODE_ID_MAX_LENGTH;
   const actualBytes = idBytes.slice(0, actualLength);
@@ -156,10 +153,10 @@ export const getNodeId = (
 };
 
 export const getCustomerPointCoordinates = (
-  customerPointsData: SharedArrayBuffer,
+  customerPoints: SharedArrayBuffer,
   index: number,
 ): Position => {
-  const view = new DataView(customerPointsData);
+  const view = new DataView(customerPoints);
   const offset =
     BUFFER_HEADER_SIZE +
     index * CUSTOMER_POINT_BINARY_SIZE +
@@ -172,12 +169,12 @@ export const getCustomerPointCoordinates = (
 };
 
 export const getCustomerPointId = (
-  customerPointsData: SharedArrayBuffer,
+  customerPoints: SharedArrayBuffer,
   index: number,
 ): string => {
   const offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
   const idBytes = new Uint8Array(
-    customerPointsData,
+    customerPoints,
     offset,
     CUSTOMER_POINT_ID_MAX_LENGTH,
   );
@@ -193,7 +190,7 @@ export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
   _allocationRules: AllocationRule[],
   customerPoints: CustomerPoint[],
-): WorkerSpatialData => {
+): RunData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
     generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
 
@@ -266,11 +263,11 @@ export const prepareWorkerData = (
   spatialIndex.finish();
 
   return {
-    flatbushIndexData: spatialIndex.data as SharedArrayBuffer,
-    segmentsData: segmentsBuilder.build(),
-    pipesData: pipesBuilder.build(),
-    nodesData: nodesBuilder.build(),
-    customerPointsData: customerPointsBuilder.build(),
+    flatbushIndex: spatialIndex.data as SharedArrayBuffer,
+    segments: segmentsBuilder.build(),
+    pipes: pipesBuilder.build(),
+    nodes: nodesBuilder.build(),
+    customerPoints: customerPointsBuilder.build(),
   };
 };
 

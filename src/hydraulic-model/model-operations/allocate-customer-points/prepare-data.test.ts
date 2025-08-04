@@ -11,7 +11,7 @@ import {
   getNodeId,
   getCustomerPointCoordinates,
   getCustomerPointId,
-} from "./prepare-worker-data";
+} from "./prepare-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { AllocationRule } from "./types";
 import Flatbush from "flatbush";
@@ -38,10 +38,10 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.flatbushIndexData).toBeInstanceOf(SharedArrayBuffer);
-    expect(workerData.segmentsData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.flatbushIndex).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.segments).toBeInstanceOf(SharedArrayBuffer);
 
-    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const flatbush = Flatbush.from(workerData.flatbushIndex);
 
     const searchResults = flatbush.search(-1, -1, 11, 1);
 
@@ -70,20 +70,17 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.segmentsData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.segments).toBeInstanceOf(SharedArrayBuffer);
 
-    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const flatbush = Flatbush.from(workerData.flatbushIndex);
     const searchResults = flatbush.search(-1, -1, 11, 1);
     const segmentIndex = searchResults[0];
 
     const coordinates = getSegmentCoordinates(
-      workerData.segmentsData,
+      workerData.segments,
       segmentIndex,
     );
-    const pipeIndex = getSegmentPipeIndex(
-      workerData.segmentsData,
-      segmentIndex,
-    );
+    const pipeIndex = getSegmentPipeIndex(workerData.segments, segmentIndex);
 
     expect(coordinates).toEqual([
       [0, 0],
@@ -113,17 +110,14 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.pipes).toBeInstanceOf(SharedArrayBuffer);
 
-    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const flatbush = Flatbush.from(workerData.flatbushIndex);
     const searchResults = flatbush.search(-1, -1, 11, 1);
     const segmentIndex = searchResults[0];
 
-    const pipeIndex = getSegmentPipeIndex(
-      workerData.segmentsData,
-      segmentIndex,
-    );
-    const diameter = getPipeDiameter(workerData.pipesData, pipeIndex);
+    const pipeIndex = getSegmentPipeIndex(workerData.segments, segmentIndex);
+    const diameter = getPipeDiameter(workerData.pipes, pipeIndex);
 
     expect(diameter).toBe(12);
   });
@@ -149,21 +143,15 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.pipesData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.pipes).toBeInstanceOf(SharedArrayBuffer);
 
-    const flatbush = Flatbush.from(workerData.flatbushIndexData);
+    const flatbush = Flatbush.from(workerData.flatbushIndex);
     const searchResults = flatbush.search(-1, -1, 11, 1);
     const segmentIndex = searchResults[0];
 
-    const pipeIndex = getSegmentPipeIndex(
-      workerData.segmentsData,
-      segmentIndex,
-    );
-    const startNodeIndex = getPipeStartNodeIndex(
-      workerData.pipesData,
-      pipeIndex,
-    );
-    const endNodeIndex = getPipeEndNodeIndex(workerData.pipesData, pipeIndex);
+    const pipeIndex = getSegmentPipeIndex(workerData.segments, segmentIndex);
+    const startNodeIndex = getPipeStartNodeIndex(workerData.pipes, pipeIndex);
+    const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
 
     expect(startNodeIndex).toBe(0);
     expect(endNodeIndex).toBe(1);
@@ -190,10 +178,10 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.nodes).toBeInstanceOf(SharedArrayBuffer);
 
-    const node1Coordinates = getNodeCoordinates(workerData.nodesData, 0);
-    const node2Coordinates = getNodeCoordinates(workerData.nodesData, 1);
+    const node1Coordinates = getNodeCoordinates(workerData.nodes, 0);
+    const node2Coordinates = getNodeCoordinates(workerData.nodes, 1);
 
     expect(node1Coordinates).toEqual([5, 10]);
     expect(node2Coordinates).toEqual([15, 20]);
@@ -221,11 +209,11 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.nodes).toBeInstanceOf(SharedArrayBuffer);
 
-    const junctionType = getNodeType(workerData.nodesData, 0);
-    const reservoirType = getNodeType(workerData.nodesData, 1);
-    const tankType = getNodeType(workerData.nodesData, 2);
+    const junctionType = getNodeType(workerData.nodes, 0);
+    const reservoirType = getNodeType(workerData.nodes, 1);
+    const tankType = getNodeType(workerData.nodes, 2);
 
     expect(junctionType).toBe("junction");
     expect(reservoirType).toBe("reservoir");
@@ -255,12 +243,12 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.nodesData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.nodes).toBeInstanceOf(SharedArrayBuffer);
 
-    const shortId = getNodeId(workerData.nodesData, 0);
-    const longId = getNodeId(workerData.nodesData, 1);
-    const zeroId = getNodeId(workerData.nodesData, 2);
-    const exactly32Id = getNodeId(workerData.nodesData, 3);
+    const shortId = getNodeId(workerData.nodes, 0);
+    const longId = getNodeId(workerData.nodes, 1);
+    const zeroId = getNodeId(workerData.nodes, 2);
+    const exactly32Id = getNodeId(workerData.nodes, 3);
 
     expect(shortId).toBe("J1");
     expect(longId).toBe("reservoir-with-long-name");
@@ -290,9 +278,9 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    const emptyId = getNodeId(workerData.nodesData, 0);
-    const doubleZeroId = getNodeId(workerData.nodesData, 1);
-    const specialCharsId = getNodeId(workerData.nodesData, 2);
+    const emptyId = getNodeId(workerData.nodes, 0);
+    const doubleZeroId = getNodeId(workerData.nodes, 1);
+    const specialCharsId = getNodeId(workerData.nodes, 2);
 
     expect(emptyId).toBe("");
     expect(doubleZeroId).toBe("00");
@@ -327,14 +315,14 @@ describe("prepareWorkerData", () => {
       customerPoints,
     );
 
-    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.customerPoints).toBeInstanceOf(SharedArrayBuffer);
 
     const cp1Coordinates = getCustomerPointCoordinates(
-      workerData.customerPointsData,
+      workerData.customerPoints,
       0,
     );
     const cp2Coordinates = getCustomerPointCoordinates(
-      workerData.customerPointsData,
+      workerData.customerPoints,
       1,
     );
 
@@ -380,12 +368,12 @@ describe("prepareWorkerData", () => {
       customerPoints,
     );
 
-    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.customerPoints).toBeInstanceOf(SharedArrayBuffer);
 
-    const shortId = getCustomerPointId(workerData.customerPointsData, 0);
-    const longId = getCustomerPointId(workerData.customerPointsData, 1);
-    const zeroId = getCustomerPointId(workerData.customerPointsData, 2);
-    const exactly32Id = getCustomerPointId(workerData.customerPointsData, 3);
+    const shortId = getCustomerPointId(workerData.customerPoints, 0);
+    const longId = getCustomerPointId(workerData.customerPoints, 1);
+    const zeroId = getCustomerPointId(workerData.customerPoints, 2);
+    const exactly32Id = getCustomerPointId(workerData.customerPoints, 3);
 
     expect(shortId).toBe("CP1");
     expect(longId).toBe("customer-with-long-name");
@@ -426,9 +414,9 @@ describe("prepareWorkerData", () => {
       customerPoints,
     );
 
-    const emptyId = getCustomerPointId(workerData.customerPointsData, 0);
-    const doubleZeroId = getCustomerPointId(workerData.customerPointsData, 1);
-    const specialCharsId = getCustomerPointId(workerData.customerPointsData, 2);
+    const emptyId = getCustomerPointId(workerData.customerPoints, 0);
+    const doubleZeroId = getCustomerPointId(workerData.customerPoints, 1);
+    const specialCharsId = getCustomerPointId(workerData.customerPoints, 2);
 
     expect(emptyId).toBe("");
     expect(doubleZeroId).toBe("00");
@@ -456,7 +444,7 @@ describe("prepareWorkerData", () => {
 
     const workerData = prepareWorkerData(hydraulicModel, allocationRules, []);
 
-    expect(workerData.customerPointsData).toBeInstanceOf(SharedArrayBuffer);
-    expect(workerData.customerPointsData.byteLength).toBe(8);
+    expect(workerData.customerPoints).toBeInstanceOf(SharedArrayBuffer);
+    expect(workerData.customerPoints.byteLength).toBe(8);
   });
 });

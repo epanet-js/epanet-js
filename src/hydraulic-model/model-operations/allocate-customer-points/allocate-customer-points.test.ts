@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { allocateCustomerPointsInWorker } from "./allocate-customer-points-in-worker";
+import { allocateCustomerPoints } from "./main";
 import { AllocationRule } from "./types";
 import {
   HydraulicModelBuilder,
@@ -7,7 +7,7 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import { CustomerPoints } from "../../customer-points";
 
-describe("allocateCustomerPointsInWorker", () => {
+describe("allocateCustomerPoints", () => {
   it("allocates customer points based on single rule", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
@@ -44,7 +44,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -81,7 +81,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -114,7 +114,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -160,7 +160,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -208,7 +208,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 20 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -242,7 +242,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -264,7 +264,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -296,7 +296,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -332,7 +332,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    await allocateCustomerPointsInWorker(hydraulicModel, {
+    await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -364,7 +364,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -396,7 +396,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -433,7 +433,7 @@ describe("allocateCustomerPointsInWorker", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -482,7 +482,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
@@ -534,7 +534,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       { maxDistance: 100, maxDiameter: 15 },
     ];
 
-    const result = await allocateCustomerPointsInWorker(hydraulicModel, {
+    const result = await allocateCustomerPoints(hydraulicModel, {
       allocationRules,
       customerPoints,
     });
