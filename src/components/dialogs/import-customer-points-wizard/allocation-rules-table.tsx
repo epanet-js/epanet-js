@@ -113,8 +113,16 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                 key={index}
                 className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                  {index + 1}
+                <td className="px-4 py-3 text-gray-900">
+                  <NumericField
+                    label="Order"
+                    readOnly={true}
+                    displayValue={String(index + 1)}
+                    styleOptions={{
+                      padding: "sm",
+                      border: "none",
+                    }}
+                  />
                 </td>
                 <td className="px-4 py-3">
                   <NumericField
@@ -156,7 +164,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         />
                       </div>
                     ) : (
-                      allocationCounts[index]
+                      localizeDecimal(allocationCounts[index])
                     )}
                   </td>
                 )}

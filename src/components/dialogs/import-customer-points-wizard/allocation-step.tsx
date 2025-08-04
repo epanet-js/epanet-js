@@ -10,6 +10,7 @@ import { dataAtom } from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { useWizardState } from "./use-wizard-state";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 
 export const AllocationStep: React.FC = () => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
@@ -279,22 +280,23 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
       <h4 className="text-sm font-medium text-gray-800 mb-2">
-        Allocation Summary ({totalCustomerPoints} total customer points)
+        Allocation Summary ({localizeDecimal(totalCustomerPoints)} total
+        customer points)
       </h4>
       <div className="space-y-2">
         <div className="flex items-center">
           <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
           <span className="text-sm text-gray-700">
-            {totalAllocated} customer points will be allocated (
-            {allocatedPercentage}%)
+            {localizeDecimal(totalAllocated)} customer points will be allocated
+            ({allocatedPercentage}%)
           </span>
         </div>
         {unallocatedCount > 0 && (
           <div className="flex items-center">
             <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
             <span className="text-sm text-orange-700">
-              {unallocatedCount} customer points remain unallocated (
-              {unallocatedPercentage}%)
+              {localizeDecimal(unallocatedCount)} customer points remain
+              unallocated ({unallocatedPercentage}%)
             </span>
           </div>
         )}
