@@ -413,6 +413,7 @@
       "dataInputStep": "Data Input",
       "dataPreviewStep": "Data Preview", 
       "demandOptionsStep": "Demand Options",
+      "allocationStepLabel": "Customers Allocation",
       "buttons": {
         "cancel": "Cancel",
         "back": "Back",
@@ -470,7 +471,19 @@
         "summaryTitle": "Allocation Summary ({{1}} total customer points)",
         "allocatedPoints": "{{1}} customer points will be allocated ({{2}}%)",
         "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
-        "allocationFailed": "Allocation failed: {{1}}"
+        "allocationFailed": "Allocation failed: {{1}}",
+        "table": {
+          "noRulesMessage": "No allocation rules defined. Click \"Add Rule\" to create your first rule.",
+          "orderHeader": "Order",
+          "allocationsHeader": "Allocations",
+          "actionsHeader": "Actions",
+          "maxDiameterLabel": "Max Diameter",
+          "maxDistanceLabel": "Max Distance",
+          "moveUpTooltip": "Move up",
+          "moveDownTooltip": "Move down",
+          "removeRuleTooltip": "Remove rule",
+          "addRuleButton": "Add Rule"
+        }
       }
     },
     "dataSource": {

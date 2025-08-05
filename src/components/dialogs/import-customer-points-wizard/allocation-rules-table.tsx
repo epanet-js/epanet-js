@@ -13,6 +13,7 @@ import {
 import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useTranslate } from "src/hooks/use-translate";
 import { useWizardState } from "./use-wizard-state";
 
 type AllocationRulesTableProps = {
@@ -32,6 +33,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 }) => {
   const { units } = useWizardState();
   const translateUnit = useTranslateUnit();
+  const translate = useTranslate();
   const handleAddRule = useCallback(() => {
     const newRule: AllocationRule = { ...defaultAllocationRules[0] };
     onChange([...rules, newRule]);
@@ -73,8 +75,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
         <p className="text-gray-500 text-sm">
-          No allocation rules defined. Click "Add Rule" to create your first
-          rule.
+          {translate(
+            "importCustomerPoints.wizard.allocationStep.table.noRulesMessage",
+          )}
         </p>
       </div>
     );
@@ -87,22 +90,34 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-16">
-                Order
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.orderHeader",
+                )}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Max Diameter ({translateUnit(units.diameter)})
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
+                )}{" "}
+                ({translateUnit(units.diameter)})
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Max Distance ({translateUnit(units.length)})
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
+                )}{" "}
+                ({translateUnit(units.length)})
               </th>
               {!isEditing && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-32">
-                  Allocations
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.table.allocationsHeader",
+                  )}
                 </th>
               )}
               {isEditing && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-24">
-                  Actions
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.table.actionsHeader",
+                  )}
                 </th>
               )}
             </tr>
@@ -118,7 +133,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                 </td>
                 <td className="px-4 py-3">
                   <NumericField
-                    label="Max Diameter"
+                    label={translate(
+                      "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
+                    )}
                     displayValue={localizeDecimal(rule.maxDiameter)}
                     onChangeValue={(value) =>
                       handleRuleChange(index, "maxDiameter", value)
@@ -133,7 +150,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                 </td>
                 <td className="px-4 py-3">
                   <NumericField
-                    label="Max Distance"
+                    label={translate(
+                      "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
+                    )}
                     displayValue={localizeDecimal(rule.maxDistance)}
                     onChangeValue={(value) =>
                       handleRuleChange(index, "maxDistance", value)
@@ -168,7 +187,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         onClick={() => handleMoveRule(index, "up")}
                         disabled={index === 0}
                         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move up"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.moveUpTooltip",
+                        )}
                       >
                         <ChevronUpIcon className="w-4 h-4" />
                       </button>
@@ -177,7 +198,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         onClick={() => handleMoveRule(index, "down")}
                         disabled={index === rules.length - 1}
                         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move down"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.moveDownTooltip",
+                        )}
                       >
                         <ChevronDownIcon className="w-4 h-4" />
                       </button>
@@ -186,7 +209,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         onClick={() => handleRemoveRule(index)}
                         disabled={rules.length <= 1}
                         className="p-1 text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Remove rule"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.removeRuleTooltip",
+                        )}
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
@@ -207,7 +232,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 border border-purple-300 rounded-md hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
-            Add Rule
+            {translate(
+              "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
+            )}
           </button>
         </div>
       )}

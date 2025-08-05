@@ -127,7 +127,7 @@ export const ImportCustomerPointsWizard: React.FC<
     },
     {
       number: 4,
-      label: "Customers Allocation",
+      label: translate("importCustomerPoints.wizard.allocationStepLabel"),
       ariaLabel: "Step 4: Customers Allocation",
     },
   ];
