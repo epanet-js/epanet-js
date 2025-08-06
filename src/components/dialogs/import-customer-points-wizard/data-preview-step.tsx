@@ -106,19 +106,15 @@ export const DataPreviewStep: React.FC<{
 
       <WizardActionsComponent
         cancelAction={{
-          label: translate("importCustomerPoints.wizard.buttons.cancel"),
           onClick: onCancel,
         }}
         backAction={{
-          label: translate("importCustomerPoints.wizard.buttons.back"),
           onClick: onBack,
         }}
         nextAction={
           parsedDataSummary
             ? {
-                label: translate("importCustomerPoints.wizard.buttons.next"),
                 onClick: onNext,
-                variant: "primary" as const,
               }
             : undefined
         }

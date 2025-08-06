@@ -137,14 +137,11 @@ export const DataInputStep: React.FC<{
 
       <WizardActionsComponent
         cancelAction={{
-          label: translate("importCustomerPoints.wizard.buttons.cancel"),
           onClick: onCancel,
           disabled: isLoading,
         }}
         nextAction={{
-          label: translate("importCustomerPoints.wizard.buttons.next"),
           onClick: onNext,
-          variant: "primary" as const,
           disabled: !parsedDataSummary,
         }}
       />

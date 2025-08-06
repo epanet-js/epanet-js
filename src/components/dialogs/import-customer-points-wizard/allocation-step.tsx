@@ -245,24 +245,18 @@ export const AllocationStep: React.FC<{
 
   const actionProps = {
     cancelAction: {
-      label: translate("importCustomerPoints.wizard.buttons.cancel"),
       onClick: onCancel,
       disabled: isProcessing || isAllocating || isEditingRules,
     },
     backAction: {
-      label: translate("importCustomerPoints.wizard.buttons.back"),
       onClick: onBack,
       disabled: isProcessing || isAllocating || isEditingRules,
     },
     finishAction: {
-      label: isProcessing
-        ? translate("importCustomerPoints.wizard.buttons.processing")
-        : translate("importCustomerPoints.wizard.buttons.finish"),
       onClick: handleFinish,
       disabled:
         isProcessing || isAllocating || isEditingRules || !allocationResult,
       loading: isProcessing,
-      variant: "primary" as const,
     },
   };
 

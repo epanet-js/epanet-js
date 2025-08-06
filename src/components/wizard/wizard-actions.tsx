@@ -1,12 +1,12 @@
 import React from "react";
 import { Button } from "src/components/elements";
+import { useTranslate } from "src/hooks/use-translate";
 
 interface WizardAction {
-  label: string;
   onClick: () => void;
-  variant?: "primary" | "default" | "quiet";
   disabled?: boolean;
   loading?: boolean;
+  label?: string; // Optional override
 }
 
 interface WizardActionsProps {
@@ -22,6 +22,8 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
   nextAction,
   finishAction,
 }) => {
+  const translate = useTranslate();
+
   return (
     <div
       role="navigation"
@@ -34,7 +36,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
         size="sm"
         disabled={cancelAction.disabled}
       >
-        {cancelAction.label}
+        {cancelAction.label || translate("wizard.cancel")}
       </Button>
 
       <div className="flex space-x-3">
@@ -45,7 +47,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={backAction.disabled}
           >
-            {backAction.label}
+            {backAction.label || translate("wizard.back")}
           </Button>
         )}
 
@@ -56,7 +58,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={nextAction.disabled}
           >
-            {nextAction.label}
+            {nextAction.label || translate("wizard.next")}
           </Button>
         )}
 
@@ -67,7 +69,9 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={finishAction.disabled}
           >
-            {finishAction.loading ? finishAction.label : finishAction.label}
+            {finishAction.loading
+              ? finishAction.label || translate("wizard.processing")
+              : finishAction.label || translate("wizard.finish")}
           </Button>
         )}
       </div>

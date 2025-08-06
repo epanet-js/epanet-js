@@ -111,20 +111,16 @@ export const DemandOptionsStep: React.FC<{
 
       <WizardActionsComponent
         cancelAction={{
-          label: translate("importCustomerPoints.wizard.buttons.cancel"),
           onClick: onCancel,
           disabled: isProcessing,
         }}
         backAction={{
-          label: translate("importCustomerPoints.wizard.buttons.back"),
           onClick: onBack,
           disabled: isProcessing,
         }}
         nextAction={{
-          label: translate("importCustomerPoints.wizard.buttons.next"),
           onClick: onNext,
           disabled: isProcessing,
-          variant: "primary" as const,
         }}
       />
     </div>

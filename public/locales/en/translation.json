@@ -406,6 +406,13 @@
   "creationFailurePlural": "{{1}} creation failures",
   "customerPointWithoutJunctionSingular": "{{1}} customer point without valid junction",
   "customerPointWithoutJunctionPlural": "{{1}} customer points without valid junction",
+  "wizard": {
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "processing": "Processing..."
+  },
   "importCustomerPoints": {
     "wizard": {
       "title": "Import Customer Points",
@@ -414,13 +421,6 @@
       "dataPreviewStep": "Data Preview", 
       "demandOptionsStep": "Demand Options",
       "allocationStepLabel": "Customers Allocation",
-      "buttons": {
-        "cancel": "Cancel",
-        "back": "Back",
-        "next": "Next",
-        "finish": "Finish",
-        "processing": "Processing..."
-      },
       "dataPreview": {
         "title": "Data Preview",
         "customerPoints": "Customer Points",
