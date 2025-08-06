@@ -12,7 +12,7 @@ export const DemandOptionsStep: React.FC<{
 }> = ({ onNext, onBack, onCancel, wizardState }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const { keepDemands, setKeepDemands, error, isProcessing } = wizardState;
+  const { keepDemands, setKeepDemands, error } = wizardState;
 
   return (
     <div className="space-y-4">
@@ -98,29 +98,15 @@ export const DemandOptionsStep: React.FC<{
         </div>
       </div>
 
-      {isProcessing && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-          <span className="ml-2 text-sm text-gray-600">
-            {translate(
-              "importCustomerPoints.wizard.demandOptions.processingMessage",
-            )}
-          </span>
-        </div>
-      )}
-
       <WizardActionsComponent
         cancelAction={{
           onClick: onCancel,
-          disabled: isProcessing,
         }}
         backAction={{
           onClick: onBack,
-          disabled: isProcessing,
         }}
         nextAction={{
           onClick: onNext,
-          disabled: isProcessing,
         }}
       />
     </div>
