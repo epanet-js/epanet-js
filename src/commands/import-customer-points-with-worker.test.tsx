@@ -196,6 +196,7 @@ describe("importCustomerPoints", () => {
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.dataInput.noValidPoints",
+      fileName: "invalid.geojson",
     });
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -234,6 +235,7 @@ describe("importCustomerPoints", () => {
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.dataInput.noValidPoints",
+      fileName: "empty.geojson",
     });
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -418,7 +420,6 @@ describe("importCustomerPoints", () => {
 
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importCustomerPoints.dataInput.cancel",
-      currentStep: 1,
     });
   });
 

@@ -349,16 +349,19 @@ type ImportCustomerPointsCanceled = {
 
 type ImportCustomerPointsDataInputNoValidPoints = {
   name: "importCustomerPoints.dataInput.noValidPoints";
+  fileName: string;
 };
 
 type ImportCustomerPointsDataInputParseError = {
   name: "importCustomerPoints.dataInput.parseError";
+  fileName: string;
 };
 
 type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   name: "importCustomerPoints.dataInput.customerPointsLoaded";
   validCount: number;
   totalCount: number;
+  fileName: string;
 };
 
 type ImportCustomerPointsDemandAllocationSelected = {

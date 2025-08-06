@@ -72,6 +72,7 @@ export const DataInputStep: React.FC<{
         if (validCustomerPoints.length === 0) {
           userTracking.capture({
             name: "importCustomerPoints.dataInput.noValidPoints",
+            fileName: file.name,
           });
           setError(
             translate("importCustomerPoints.dataSource.noValidPointsError"),
@@ -86,12 +87,14 @@ export const DataInputStep: React.FC<{
           name: "importCustomerPoints.dataInput.customerPointsLoaded",
           validCount: validCustomerPoints.length,
           totalCount,
+          fileName: file.name,
         });
 
         onNext();
       } catch (error) {
         userTracking.capture({
           name: "importCustomerPoints.dataInput.parseError",
+          fileName: file.name,
         });
         captureError(error as Error);
         setError(translate("importCustomerPoints.dataSource.parseFileError"));
