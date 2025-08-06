@@ -176,6 +176,7 @@
   "startBlankProject": "Begin leeg project",
   "startFromExample": "Begin vanuit voorbeeld",
   "importFromINP": "Importeer van INP bestand",
+  "openINP": "Open INP",
   "importFromGIS": "Importeer van GIS gegevens",
   "dropInp": "Sleep een .INP-bestand hier naartoe om het model te openen.",
   "inpMissing": "Ongeldig bestandstype. Gebruik een .INP-bestand.",

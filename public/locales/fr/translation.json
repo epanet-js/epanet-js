@@ -176,6 +176,7 @@
   "startBlankProject": "Démarrer un projet vide",
   "startFromExample": "Démarrer à partir d'un exemple",
   "importFromINP": "Importer depuis un fichier INP",
+  "openINP": "Ouvrir INP",
   "importFromGIS": "Importer depuis des données SIG",
   "dropInp": "Déposez un fichier .INP ici pour ouvrir le modèle.",
   "inpMissing": "Type de fichier invalide. Utilisez un fichier .INP.",

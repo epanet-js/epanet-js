@@ -79,7 +79,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <FileTextIcon />
-                {translate("importFromINP")}
+                {translate("openINP")}
               </StyledItem>
 
               <StyledItem
