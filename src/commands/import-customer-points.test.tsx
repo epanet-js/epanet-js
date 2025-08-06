@@ -195,7 +195,7 @@ describe("importCustomerPoints", () => {
     expectWizardStep("data input");
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.noValidPoints",
+      name: "importCustomerPoints.dataInput.noValidPoints",
     });
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -233,7 +233,7 @@ describe("importCustomerPoints", () => {
     expectWizardStep("data input");
     expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.noValidPoints",
+      name: "importCustomerPoints.dataInput.noValidPoints",
     });
 
     const { hydraulicModel } = store.get(dataAtom);

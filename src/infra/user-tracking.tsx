@@ -347,12 +347,18 @@ type ImportCustomerPointsCanceled = {
   name: "importCustomerPoints.canceled";
 };
 
-type ImportCustomerPointsNoValidPoints = {
-  name: "importCustomerPoints.noValidPoints";
+type ImportCustomerPointsDataInputNoValidPoints = {
+  name: "importCustomerPoints.dataInput.noValidPoints";
 };
 
-type ImportCustomerPointsParseError = {
-  name: "importCustomerPoints.parseError";
+type ImportCustomerPointsDataInputParseError = {
+  name: "importCustomerPoints.dataInput.parseError";
+};
+
+type ImportCustomerPointsDataInputCustomerPointsLoaded = {
+  name: "importCustomerPoints.dataInput.customerPointsLoaded";
+  validCount: number;
+  totalCount: number;
 };
 
 type ImportCustomerPointsDemandAllocationSelected = {
@@ -416,8 +422,9 @@ export type UserEvent =
   | ImportCustomerPointsStarted
   | ImportCustomerPointsCompleted
   | ImportCustomerPointsCanceled
-  | ImportCustomerPointsNoValidPoints
-  | ImportCustomerPointsParseError
+  | ImportCustomerPointsDataInputNoValidPoints
+  | ImportCustomerPointsDataInputParseError
+  | ImportCustomerPointsDataInputCustomerPointsLoaded
   | ImportCustomerPointsDemandAllocationSelected
   | ModelBuilderOpened
   | ExamplesOpened
