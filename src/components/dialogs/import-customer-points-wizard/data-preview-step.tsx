@@ -5,15 +5,21 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { useWizardState } from "./use-wizard-state";
+import { WizardState, WizardActions, ParsedDataSummary } from "./types";
+import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 
 type TabType = "customerPoints" | "issues";
 
-export const DataPreviewStep: React.FC = () => {
+export const DataPreviewStep: React.FC<{
+  onNext: () => void;
+  onBack: () => void;
+  onCancel: () => void;
+  wizardState: WizardState & WizardActions;
+}> = ({ onNext, onBack, onCancel, wizardState }) => {
   const translate = useTranslate();
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
-  const { parsedDataSummary, error } = useWizardState();
+  const { parsedDataSummary, error } = wizardState;
 
   if (!parsedDataSummary) {
     return (
@@ -85,6 +91,7 @@ export const DataPreviewStep: React.FC = () => {
               <CustomerPointsTable
                 customerPoints={validCustomerPoints}
                 maxPreviewRows={MAX_PREVIEW_ROWS}
+                parsedDataSummary={parsedDataSummary}
               />
             </div>
           )}
@@ -96,6 +103,26 @@ export const DataPreviewStep: React.FC = () => {
           )}
         </div>
       </div>
+
+      <WizardActionsComponent
+        cancelAction={{
+          label: translate("importCustomerPoints.wizard.buttons.cancel"),
+          onClick: onCancel,
+        }}
+        backAction={{
+          label: translate("importCustomerPoints.wizard.buttons.back"),
+          onClick: onBack,
+        }}
+        nextAction={
+          parsedDataSummary
+            ? {
+                label: translate("importCustomerPoints.wizard.buttons.next"),
+                onClick: onNext,
+                variant: "primary" as const,
+              }
+            : undefined
+        }
+      />
     </div>
   );
 };
@@ -115,15 +142,16 @@ const getTotalErrorCount = (
 type CustomerPointsTableProps = {
   customerPoints: CustomerPoint[];
   maxPreviewRows: number;
+  parsedDataSummary: ParsedDataSummary;
 };
 
 const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   customerPoints,
   maxPreviewRows,
+  parsedDataSummary,
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const { parsedDataSummary } = useWizardState();
   const demandUnit = parsedDataSummary?.demandImportUnit || "l/d";
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);

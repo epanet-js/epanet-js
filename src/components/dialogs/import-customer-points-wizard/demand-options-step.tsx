@@ -1,18 +1,18 @@
 import React from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useWizardState } from "./use-wizard-state";
+import { WizardState, WizardActions } from "./types";
+import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 
-type DemandOptionsStepProps = {
-  onFinish: () => Promise<void>;
-};
-
-export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
-  onFinish: _onFinish,
-}) => {
+export const DemandOptionsStep: React.FC<{
+  onNext: () => void;
+  onBack: () => void;
+  onCancel: () => void;
+  wizardState: WizardState & WizardActions;
+}> = ({ onNext, onBack, onCancel, wizardState }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const { keepDemands, setKeepDemands, error, isProcessing } = useWizardState();
+  const { keepDemands, setKeepDemands, error, isProcessing } = wizardState;
 
   return (
     <div className="space-y-4">
@@ -108,6 +108,25 @@ export const DemandOptionsStep: React.FC<DemandOptionsStepProps> = ({
           </span>
         </div>
       )}
+
+      <WizardActionsComponent
+        cancelAction={{
+          label: translate("importCustomerPoints.wizard.buttons.cancel"),
+          onClick: onCancel,
+          disabled: isProcessing,
+        }}
+        backAction={{
+          label: translate("importCustomerPoints.wizard.buttons.back"),
+          onClick: onBack,
+          disabled: isProcessing,
+        }}
+        nextAction={{
+          label: translate("importCustomerPoints.wizard.buttons.next"),
+          onClick: onNext,
+          disabled: isProcessing,
+          variant: "primary" as const,
+        }}
+      />
     </div>
   );
 };

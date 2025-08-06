@@ -9,14 +9,32 @@ import { AllocationRulesTable } from "./allocation-rules-table";
 import { dataAtom } from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
-import { useWizardState } from "./use-wizard-state";
+import { connectCustomerPoints } from "src/hydraulic-model/mutations/connect-customer-points";
+import { WizardState, WizardActions } from "./types";
+import { WizardActions as WizardActionsComponent } from "src/components/wizard";
+import { Unit } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
+import { notify } from "src/components/notifications";
+import { usePersistence } from "src/lib/persistence/context";
 
-export const AllocationStep: React.FC = () => {
+export const AllocationStep: React.FC<{
+  onBack: () => void;
+  onCancel: () => void;
+  onFinish: () => void;
+  wizardState: WizardState &
+    WizardActions & {
+      allocationRules: AllocationRule[];
+      units: { diameter: Unit; length: Unit };
+    };
+}> = ({ onBack, onCancel, onFinish, wizardState }) => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
   const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const rep = usePersistence();
+  const transactImport = rep.useTransactImport();
 
   const {
     parsedDataSummary,
@@ -27,6 +45,7 @@ export const AllocationStep: React.FC = () => {
     error,
     isProcessing,
     isEditingRules,
+    keepDemands,
     setError,
     setIsAllocating,
     setAllocationResult,
@@ -34,10 +53,63 @@ export const AllocationStep: React.FC = () => {
     setConnectionCounts,
     setAllocationRules,
     setIsEditingRules,
-  } = useWizardState();
+    setProcessing,
+  } = wizardState;
 
   const forceLoadingState = () =>
     new Promise((resolve) => setTimeout(resolve, 10));
+
+  const handleFinish = useCallback(async () => {
+    if (!allocationResult) return;
+
+    const allocatedCustomerPoints = allocationResult.allocatedCustomerPoints;
+
+    setProcessing(true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    try {
+      const updatedHydraulicModel = connectCustomerPoints(
+        data.hydraulicModel,
+        allocatedCustomerPoints,
+        { preserveJunctionDemands: keepDemands },
+      );
+
+      const importedCount = updatedHydraulicModel.customerPoints.size;
+
+      transactImport(
+        updatedHydraulicModel,
+        data.modelMetadata,
+        "customerpoints",
+      );
+
+      userTracking.capture({
+        name: "importCustomerPoints.completed",
+        count: importedCount,
+      });
+
+      notify({
+        variant: "success",
+        title: "Import Successful",
+        description: `Successfully imported ${importedCount} customer points`,
+        Icon: CheckCircledIcon,
+      });
+
+      onFinish?.();
+    } catch (error) {
+      setError("Import failed. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
+  }, [
+    allocationResult,
+    data,
+    keepDemands,
+    onFinish,
+    setProcessing,
+    transactImport,
+    userTracking,
+    setError,
+  ]);
 
   const performAllocation = useCallback(
     async (rules: AllocationRule[]) => {
@@ -171,6 +243,29 @@ export const AllocationStep: React.FC = () => {
   );
   const unallocatedCount = Math.max(0, totalCustomerPoints - totalAllocated);
 
+  const actionProps = {
+    cancelAction: {
+      label: translate("importCustomerPoints.wizard.buttons.cancel"),
+      onClick: onCancel,
+      disabled: isProcessing || isAllocating || isEditingRules,
+    },
+    backAction: {
+      label: translate("importCustomerPoints.wizard.buttons.back"),
+      onClick: onBack,
+      disabled: isProcessing || isAllocating || isEditingRules,
+    },
+    finishAction: {
+      label: isProcessing
+        ? translate("importCustomerPoints.wizard.buttons.processing")
+        : translate("importCustomerPoints.wizard.buttons.finish"),
+      onClick: handleFinish,
+      disabled:
+        isProcessing || isAllocating || isEditingRules || !allocationResult,
+      loading: isProcessing,
+      variant: "primary" as const,
+    },
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -267,6 +362,7 @@ export const AllocationStep: React.FC = () => {
           </span>
         </div>
       )}
+      <WizardActionsComponent {...actionProps} />
     </div>
   );
 };

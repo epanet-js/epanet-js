@@ -2,16 +2,20 @@ import React, { useCallback } from "react";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { ParsedDataSummary } from "./types";
+import { ParsedDataSummary, WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
-import { useWizardState } from "./use-wizard-state";
+import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 
-export const DataInputStep: React.FC = () => {
+export const DataInputStep: React.FC<{
+  onNext: () => void;
+  onCancel: () => void;
+  wizardState: WizardState & WizardActions;
+}> = ({ onNext, onCancel, wizardState }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
@@ -24,8 +28,8 @@ export const DataInputStep: React.FC = () => {
     setLoading,
     setError,
     setParsedDataSummary,
-    goNext,
-  } = useWizardState();
+    parsedDataSummary,
+  } = wizardState;
 
   const handleFileProcess = useCallback(
     async (file: File) => {
@@ -78,7 +82,7 @@ export const DataInputStep: React.FC = () => {
         setParsedDataSummary(parsedDataSummary);
         setLoading(false);
 
-        goNext();
+        onNext();
       } catch (error) {
         userTracking.capture({
           name: "importCustomerPoints.parseError",
@@ -92,7 +96,7 @@ export const DataInputStep: React.FC = () => {
       setLoading,
       setError,
       setParsedDataSummary,
-      goNext,
+      onNext,
       userTracking,
       translate,
       modelMetadata.quantities,
@@ -130,6 +134,20 @@ export const DataInputStep: React.FC = () => {
           </span>
         </div>
       )}
+
+      <WizardActionsComponent
+        cancelAction={{
+          label: translate("importCustomerPoints.wizard.buttons.cancel"),
+          onClick: onCancel,
+          disabled: isLoading,
+        }}
+        nextAction={{
+          label: translate("importCustomerPoints.wizard.buttons.next"),
+          onClick: onNext,
+          variant: "primary" as const,
+          disabled: !parsedDataSummary,
+        }}
+      />
     </div>
   );
 };
