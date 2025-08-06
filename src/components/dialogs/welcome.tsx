@@ -1,7 +1,9 @@
 import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
+import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import {
@@ -18,7 +20,9 @@ import {
   ArrowRightIcon,
   FileIcon,
   FilePlusIcon,
+  FileTextIcon,
   GitHubLogoIcon,
+  GlobeIcon,
   QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
@@ -55,7 +59,10 @@ export const WelcomeDialog = () => {
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
+  const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
+
+  const isModelBuildEnabled = useFeatureFlag("FLAG_MODEL_BUILD");
 
   const isMdOrLarger = useBreakpoint("md");
   const demoModels = getDemoModels(translate);
@@ -122,7 +129,7 @@ export const WelcomeDialog = () => {
                       }}
                     >
                       <FileIcon />
-                      {translate("createNew")}
+                      {translate("startBlankProject")}
                     </Button>
                   )}
                   <Button
@@ -131,9 +138,24 @@ export const WelcomeDialog = () => {
                       void openInpFromFs({ source: "welcome" });
                     }}
                   >
-                    <FilePlusIcon />
+                    {isModelBuildEnabled ? <FileTextIcon /> : <FilePlusIcon />}
                     {translate("openProject")}
                   </Button>
+                  {isModelBuildEnabled && (
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        userTracking.capture({
+                          name: "gisImport.started",
+                          source: "welcome",
+                        });
+                        openModelBuilder({ source: "welcome" });
+                      }}
+                    >
+                      <GlobeIcon />
+                      {translate("importFromGIS")}
+                    </Button>
+                  )}
                   <a
                     href={helpCenterUrl}
                     target="_blank"
