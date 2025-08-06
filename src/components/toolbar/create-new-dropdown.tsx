@@ -13,6 +13,7 @@ import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useTranslate } from "src/hooks/use-translate";
 import {
   Button,
   DDContent,
@@ -27,6 +28,7 @@ export const CreateNewDropdown = () => {
   const showWelcome = useShowWelcome();
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -51,7 +53,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <FileIcon />
-                Start Blank Project
+                {translate("startBlankProject")}
               </StyledItem>
 
               <StyledItem
@@ -64,7 +66,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <SunIcon />
-                Start from Example
+                {translate("startFromExample")}
               </StyledItem>
 
               <StyledItem
@@ -77,7 +79,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <FileTextIcon />
-                Import from INP File
+                {translate("importFromINP")}
               </StyledItem>
 
               <StyledItem
@@ -90,7 +92,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <GlobeIcon />
-                Import from GIS Data
+                {translate("importFromGIS")}
               </StyledItem>
             </DDContent>
           </DD.Portal>
@@ -98,7 +100,7 @@ export const CreateNewDropdown = () => {
       </div>
       <TContent side="bottom">
         <StyledTooltipArrow />
-        Create New...
+        {translate("createNew")}
       </TContent>
     </Tooltip.Root>
   );
