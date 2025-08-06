@@ -282,7 +282,7 @@ export const SideMenu = () => {
   const openInpFromFs = useOpenInpFromFs();
   const saveInp = useSaveInp();
   const { user } = useAuth();
-  const isMdOrLarger = useBreakpoint("md");
+  const isModelBuildOn = useFeatureFlag("FLAG_MODEL_BUILD");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -311,59 +311,61 @@ export const SideMenu = () => {
             </Button>
           </div>{" "}
           <nav>
-            <ul className="flex flex-col items-start gap-2  text-gray-200">
-              {isMdOrLarger && (
-                <li>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      setIsOpen(false);
-                      void createNewProject({ source: "side-menu" });
-                    }}
-                  >
-                    <FileIcon className="mr-2" />
-                    {translate("newProject")}
-                  </Button>
-                </li>
-              )}
-              <li>
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    setIsOpen(false);
-                    void openInpFromFs({ source: "menu" });
-                  }}
-                >
-                  <FilePlusIcon className="mr-2" />
-                  {translate("openProject")}
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    setIsOpen(false);
-                    void saveInp({ source: "side-menu" });
-                  }}
-                >
-                  <DownloadIcon className="mr-2" />
-                  {translate("save")}
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    setIsOpen(false);
-                    void saveInp({ source: "side-menu", isSaveAs: true });
-                  }}
-                >
-                  <CopyIcon className="mr-2" />
-                  {translate("saveAs")}
-                </Button>
-              </li>
-            </ul>
-            <hr className="my-4 border-gray-200" />
+            {!isModelBuildOn && (
+              <>
+                <ul className="flex flex-col items-start gap-2  text-gray-200">
+                  <li>
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        setIsOpen(false);
+                        void createNewProject({ source: "side-menu" });
+                      }}
+                    >
+                      <FileIcon className="mr-2" />
+                      {translate("newProject")}
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        setIsOpen(false);
+                        void openInpFromFs({ source: "menu" });
+                      }}
+                    >
+                      <FilePlusIcon className="mr-2" />
+                      {translate("openProject")}
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        setIsOpen(false);
+                        void saveInp({ source: "side-menu" });
+                      }}
+                    >
+                      <DownloadIcon className="mr-2" />
+                      {translate("save")}
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      variant="quiet"
+                      onClick={() => {
+                        setIsOpen(false);
+                        void saveInp({ source: "side-menu", isSaveAs: true });
+                      }}
+                    >
+                      <CopyIcon className="mr-2" />
+                      {translate("saveAs")}
+                    </Button>
+                  </li>
+                </ul>
+                <hr className="my-4 border-gray-200" />
+              </>
+            )}
             <ul className="flex flex-col items-start gap-2 text-gray-200">
               <li>
                 <Button variant="quiet">

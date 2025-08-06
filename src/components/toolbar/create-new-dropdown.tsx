@@ -14,7 +14,6 @@ import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useBreakpoint } from "src/hooks/use-breakpoint";
 import {
   Button,
   DDContent,
@@ -31,8 +30,6 @@ export const CreateNewDropdown = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
-  const isMdOrLarger = useBreakpoint("md");
-
   return (
     <Tooltip.Root delayDuration={200}>
       <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-none">
@@ -46,20 +43,18 @@ export const CreateNewDropdown = () => {
           </Tooltip.Trigger>
           <DD.Portal>
             <DDContent align="start" side="bottom">
-              {isMdOrLarger && (
-                <StyledItem
-                  onSelect={() => {
-                    userTracking.capture({
-                      name: "newModel.started",
-                      source: "toolbar",
-                    });
-                    void createNewProject({ source: "toolbar" });
-                  }}
-                >
-                  <FileIcon />
-                  {translate("startBlankProject")}
-                </StyledItem>
-              )}
+              <StyledItem
+                onSelect={() => {
+                  userTracking.capture({
+                    name: "newModel.started",
+                    source: "toolbar",
+                  });
+                  void createNewProject({ source: "toolbar" });
+                }}
+              >
+                <FileIcon />
+                {translate("startBlankProject")}
+              </StyledItem>
 
               <StyledItem
                 onSelect={() => {
