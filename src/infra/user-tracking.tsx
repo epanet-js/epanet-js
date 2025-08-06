@@ -366,6 +366,30 @@ type ImportCustomerPointsDemandAllocationSelected = {
   option: "replace" | "addOnTop";
 };
 
+type ImportCustomerPointsWizardNext = {
+  name:
+    | "importCustomerPoints.dataInput.next"
+    | "importCustomerPoints.dataPreview.next"
+    | "importCustomerPoints.demandOptions.next"
+    | "importCustomerPoints.allocation.next";
+};
+
+type ImportCustomerPointsWizardBack = {
+  name:
+    | "importCustomerPoints.dataInput.back"
+    | "importCustomerPoints.dataPreview.back"
+    | "importCustomerPoints.demandOptions.back"
+    | "importCustomerPoints.allocation.back";
+};
+
+type ImportCustomerPointsWizardCancel = {
+  name:
+    | "importCustomerPoints.dataInput.cancel"
+    | "importCustomerPoints.dataPreview.cancel"
+    | "importCustomerPoints.demandOptions.cancel"
+    | "importCustomerPoints.allocation.cancel";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -426,6 +450,9 @@ export type UserEvent =
   | ImportCustomerPointsDataInputParseError
   | ImportCustomerPointsDataInputCustomerPointsLoaded
   | ImportCustomerPointsDemandAllocationSelected
+  | ImportCustomerPointsWizardNext
+  | ImportCustomerPointsWizardBack
+  | ImportCustomerPointsWizardCancel
   | ModelBuilderOpened
   | ExamplesOpened
   | GisImportStarted

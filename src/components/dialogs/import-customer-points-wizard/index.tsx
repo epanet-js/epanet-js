@@ -13,6 +13,13 @@ import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 
+const stepNames = {
+  1: "dataInput",
+  2: "dataPreview",
+  3: "demandOptions",
+  4: "allocation",
+} as const;
+
 type ImportCustomerPointsWizardProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -31,19 +38,34 @@ export const ImportCustomerPointsWizard: React.FC<
   }, [wizardState, onClose]);
 
   const handleNext = useCallback(() => {
+    const currentStepName = stepNames[wizardState.currentStep];
+
+    userTracking.capture({
+      name: `importCustomerPoints.${currentStepName}.next` as const,
+    });
+
     wizardState.goNext();
-  }, [wizardState]);
+  }, [wizardState, userTracking]);
 
   const handleBack = useCallback(() => {
+    const currentStepName = stepNames[wizardState.currentStep];
+
+    userTracking.capture({
+      name: `importCustomerPoints.${currentStepName}.back` as const,
+    });
+
     wizardState.goBack();
-  }, [wizardState]);
+  }, [wizardState, userTracking]);
 
   const handleCancel = useCallback(() => {
+    const currentStepName = stepNames[wizardState.currentStep];
+
     userTracking.capture({
-      name: "importCustomerPoints.canceled",
+      name: `importCustomerPoints.${currentStepName}.cancel` as const,
     });
+
     handleClose();
-  }, [userTracking, handleClose]);
+  }, [userTracking, handleClose, wizardState.currentStep]);
 
   const handleFinish = useCallback(() => {
     handleClose();

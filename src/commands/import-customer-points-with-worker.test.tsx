@@ -417,7 +417,8 @@ describe("importCustomerPoints", () => {
     });
 
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.canceled",
+      name: "importCustomerPoints.dataInput.cancel",
+      currentStep: 1,
     });
   });
 
