@@ -128,7 +128,7 @@ export const WelcomeDialog = () => {
                         void createNew({ source: "welcome" });
                       }}
                     >
-                      <FileIcon />
+                      <FileIcon className="w-4 h-4 flex-shrink-0" />
                       {translate("startBlankProject")}
                     </Button>
                   )}
@@ -138,7 +138,11 @@ export const WelcomeDialog = () => {
                       void openInpFromFs({ source: "welcome" });
                     }}
                   >
-                    {isModelBuildEnabled ? <FileTextIcon /> : <FilePlusIcon />}
+                    {isModelBuildEnabled ? (
+                      <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+                    ) : (
+                      <FilePlusIcon className="w-4 h-4 flex-shrink-0" />
+                    )}
                     {translate("openProject")}
                   </Button>
                   {isModelBuildEnabled && (
@@ -152,7 +156,7 @@ export const WelcomeDialog = () => {
                         openModelBuilder({ source: "welcome" });
                       }}
                     >
-                      <GlobeIcon />
+                      <GlobeIcon className="w-4 h-4 flex-shrink-0" />
                       {translate("importFromGIS")}
                     </Button>
                   )}
@@ -167,7 +171,7 @@ export const WelcomeDialog = () => {
                     }}
                   >
                     <Button variant="quiet">
-                      <QuestionMarkCircledIcon />
+                      <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
                       {translate("helpCenter")}
                     </Button>
                   </a>
@@ -182,7 +186,7 @@ export const WelcomeDialog = () => {
                     }}
                   >
                     <Button variant="quiet">
-                      <GitHubLogoIcon />
+                      <GitHubLogoIcon className="w-4 h-4 flex-shrink-0" />
                       {translate("openSource")}
                     </Button>
                   </a>
