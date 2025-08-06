@@ -65,7 +65,7 @@ export const Toolbar = () => {
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
-      {isModelBuildEnabled && isMdOrLarger ? (
+      {isModelBuildEnabled ? (
         <CreateNewDropdown />
       ) : (
         <>
