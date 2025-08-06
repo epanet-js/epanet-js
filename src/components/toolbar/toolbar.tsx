@@ -38,6 +38,7 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
+import { CreateNewDropdown } from "./create-new-dropdown";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -53,6 +54,7 @@ export const Toolbar = () => {
   const { undo, redo } = useHistoryControl();
 
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
+  const isModelBuildEnabled = useFeatureFlag("FLAG_MODEL_BUILD");
 
   const simulation = useAtomValue(simulationAtom);
 
@@ -63,28 +65,34 @@ export const Toolbar = () => {
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
     >
-      {isMdOrLarger && (
-        <MenuAction
-          label={translate("newProject")}
-          role="button"
-          readOnlyHotkey={"alt+n"}
-          onClick={() => {
-            void createNewProject({ source: "toolbar" });
-          }}
-        >
-          <FileIcon />
-        </MenuAction>
+      {isModelBuildEnabled && isMdOrLarger ? (
+        <CreateNewDropdown />
+      ) : (
+        <>
+          {isMdOrLarger && (
+            <MenuAction
+              label={translate("newProject")}
+              role="button"
+              readOnlyHotkey={"alt+n"}
+              onClick={() => {
+                void createNewProject({ source: "toolbar" });
+              }}
+            >
+              <FileIcon />
+            </MenuAction>
+          )}
+          <MenuAction
+            label={translate("openProject")}
+            role="button"
+            onClick={() => {
+              void openInpFromFs({ source: "toolbar" });
+            }}
+            readOnlyHotkey={openInpFromFsShortcut}
+          >
+            <FilePlusIcon />
+          </MenuAction>
+        </>
       )}
-      <MenuAction
-        label={translate("openProject")}
-        role="button"
-        onClick={() => {
-          void openInpFromFs({ source: "toolbar" });
-        }}
-        readOnlyHotkey={openInpFromFsShortcut}
-      >
-        <FilePlusIcon />
-      </MenuAction>
       {
         <>
           <MenuAction
