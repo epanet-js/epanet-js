@@ -125,6 +125,21 @@ export type WelcomeOpened = {
     | "toolbar";
 };
 
+type ModelBuilderOpened = {
+  name: "modelBuilder.opened";
+  source: string;
+};
+
+type ExamplesOpened = {
+  name: "examples.opened";
+  source: string;
+};
+
+type GisImportStarted = {
+  name: "gisImport.started";
+  source: string;
+};
+
 type ProjectionConverterVisited = {
   name: "projectionConverter.visited";
 };
@@ -404,6 +419,9 @@ export type UserEvent =
   | ImportCustomerPointsNoValidPoints
   | ImportCustomerPointsParseError
   | ImportCustomerPointsDemandAllocationSelected
+  | ModelBuilderOpened
+  | ExamplesOpened
+  | GisImportStarted
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
