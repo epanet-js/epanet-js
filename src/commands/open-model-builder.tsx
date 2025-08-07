@@ -25,7 +25,7 @@ export const useOpenModelBuilder = () => {
         } else {
           window.open(modelBuilderUrl, "_blank");
         }
-      });
+      }, "modelBuilderIframe");
     },
     [userTracking, isModelBuildIframeOn, setDialogState, onlyEarlyAccess],
   );

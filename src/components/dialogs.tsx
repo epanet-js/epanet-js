@@ -192,6 +192,19 @@ const ModelBuilderIframeDialog = dynamic<{
   },
 );
 
+const EarlyAccessDialog = dynamic<{
+  onContinue: () => void;
+  afterSignupDialog?: string;
+}>(
+  () =>
+    import("src/components/dialogs/early-access").then(
+      (r) => r.EarlyAccessDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -270,6 +283,12 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "alertInpOutput" }, ({ onContinue }) => (
       <AlertInpOutputDialog onContinue={onContinue} onClose={onClose} />
+    ))
+    .with({ type: "earlyAccess" }, ({ onContinue, afterSignupDialog }) => (
+      <EarlyAccessDialog
+        onContinue={onContinue}
+        afterSignupDialog={afterSignupDialog}
+      />
     ))
     .with({ type: "openInp" }, (modal) => (
       <OpenInpDialog modal={modal} onClose={onClose} />

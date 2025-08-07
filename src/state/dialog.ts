@@ -66,6 +66,12 @@ export type ModelBuilderIframeDialogState = {
   type: "modelBuilderIframe";
 };
 
+export type EarlyAccessDialogState = {
+  type: "earlyAccess";
+  onContinue: () => void;
+  afterSignupDialog?: string;
+};
+
 export type DialogState =
   | OpenInpDialogState
   | InvalidFilesErrorDialogState
@@ -86,6 +92,7 @@ export type DialogState =
   | ImportCustomerPointsWizardState
   | UnexpectedErrorDialogState
   | ModelBuilderIframeDialogState
+  | EarlyAccessDialogState
   | { type: "simulationSettings" }
   | null;
 
