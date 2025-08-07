@@ -1,6 +1,7 @@
 import {
   DownloadIcon,
   FilePlusIcon,
+  FileTextIcon,
   VercelLogoIcon,
   StretchHorizontallyIcon,
   CursorArrowIcon,
@@ -9,6 +10,7 @@ import {
   KeyboardIcon,
   ResetIcon,
   CircleIcon,
+  GlobeIcon,
 } from "@radix-ui/react-icons";
 import { memo } from "react";
 import { Button } from "./elements";
@@ -19,6 +21,8 @@ import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useOpenModelBuilder } from "src/commands/open-model-builder";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
@@ -27,6 +31,8 @@ export const NothingSelected = memo(function NothingSelected() {
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
   const isSmOrLarger = useBreakpoint("sm");
+  const openModelBuilder = useOpenModelBuilder();
+  const isModelBuildEnabled = useFeatureFlag("FLAG_MODEL_BUILD");
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
@@ -136,16 +142,31 @@ export const NothingSelected = memo(function NothingSelected() {
         <div className="text-sm font-semibold pb-2">
           {translate("onboardingFiles")}
         </div>
-        <div className="flex items-center gap-x-2">
+        <div className="flex flex-col items-start gap-y-2">
           <Button
             type="button"
             onClick={() => {
               void openInpFromFs({ source: "onboarding" });
             }}
           >
-            <FilePlusIcon />
+            {isModelBuildEnabled ? <FileTextIcon /> : <FilePlusIcon />}
             {translate("openProject")}
           </Button>
+          {isModelBuildEnabled && (
+            <Button
+              type="button"
+              onClick={() => {
+                userTracking.capture({
+                  name: "gisImport.started",
+                  source: "onboarding",
+                });
+                void openModelBuilder({ source: "onboarding" });
+              }}
+            >
+              <GlobeIcon />
+              {translate("importFromGIS")}
+            </Button>
+          )}
           <Button
             type="button"
             onClick={() => {

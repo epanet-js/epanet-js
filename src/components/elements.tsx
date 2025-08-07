@@ -688,11 +688,13 @@ export const styledButton = ({
   variant = "default",
   disabled = false,
   side = "default",
+  textAlign = "center",
 }: {
   size?: B3Size | "full-width";
   variant?: B3Variant;
   disabled?: boolean;
   side?: B3Side;
+  textAlign?: "start" | "center";
 }) =>
   clsx(
     variant === "quiet/mode"
@@ -720,7 +722,8 @@ export const styledButton = ({
     // Outline
     sharedOutline(variant, disabled),
     sharedBackground(variant, disabled),
-    size === "full-width" && "flex-auto justify-center w-full",
+    size === "full-width" &&
+      `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
     // Colored variants
     {},
   );
