@@ -1,10 +1,14 @@
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
-
-const MODEL_BUILDER_URL = "https://utils.epanetjs.com/model-builder";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog";
+import { modelBuilderUrl } from "src/global-config";
 
 export const useOpenModelBuilder = () => {
   const userTracking = useUserTracking();
+  const isModelBuildIframeOn = useFeatureFlag("FLAG_MODEL_BUILD_IFRAME");
+  const setDialogState = useSetAtom(dialogAtom);
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
@@ -13,9 +17,13 @@ export const useOpenModelBuilder = () => {
         source,
       });
 
-      window.open(MODEL_BUILDER_URL, "_blank");
+      if (isModelBuildIframeOn) {
+        setDialogState({ type: "modelBuilderIframe" });
+      } else {
+        window.open(modelBuilderUrl, "_blank");
+      }
     },
-    [userTracking],
+    [userTracking, isModelBuildIframeOn, setDialogState],
   );
 
   return openModelBuilder;

@@ -1,0 +1,78 @@
+import { useState, useEffect } from "react";
+import { DialogContainer, DialogHeader } from "../dialog";
+import { GlobeIcon } from "@radix-ui/react-icons";
+import { useTranslate } from "src/hooks/use-translate";
+import { Loading } from "../elements";
+import { useImportInp } from "src/commands/import-inp";
+import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
+import { useUserTracking } from "src/infra/user-tracking";
+import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { modelBuilderUrl } from "src/global-config";
+
+export const ModelBuilderIframeDialog = ({
+  onClose: _onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const [isLoading, setIsLoading] = useState(true);
+  const importInp = useImportInp();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const userTracking = useUserTracking();
+  const isMdOrLarger = useBreakpoint("md");
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (
+          event.data?.type === "modelBuildComplete" &&
+          event.data?.data?.source === "epanet-model-builder" &&
+          event.data?.data?.inpContent
+        ) {
+          const { inpContent, timestamp } = event.data.data;
+          const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}.inp`;
+
+          userTracking.capture({
+            name: "modelBuilder.completed",
+          });
+
+          const inpFile = new File([inpContent], filename, {
+            type: "text/plain",
+          });
+
+          checkUnsavedChanges(() => {
+            void importInp([inpFile]);
+          });
+        }
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [importInp, checkUnsavedChanges, userTracking]);
+
+  return (
+    <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
+      <DialogHeader title={translate("importFromGIS")} titleIcon={GlobeIcon} />
+      <div className="flex-1 flex flex-col h-full min-h-0">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
+            <Loading />
+          </div>
+        )}
+        <iframe
+          src={modelBuilderUrl}
+          className="w-full h-full min-h-[600px] border-0 rounded"
+          onLoad={() => setIsLoading(false)}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+          title={translate("importFromGIS")}
+        />
+      </div>
+    </DialogContainer>
+  );
+};

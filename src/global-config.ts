@@ -15,3 +15,6 @@ export const studentAccountActiviationHelpUrl =
 export const supportEmail = "support@epanetjs.com";
 export const signUpUrl = process.env.NEXT_PUBLIC_SIGN_UP_URL as string;
 export const pingUrl = process.env.NEXT_PUBLIC_PING_URL || "/ping.txt";
+export const modelBuilderUrl =
+  process.env.NEXT_PUBLIC_MODEL_BUILDER_URL ||
+  "https://utils.epanetjs.com/model-builder?embedded=true";

@@ -180,6 +180,18 @@ const ImportCustomerPointsWizard = dynamic<{
   },
 );
 
+const ModelBuilderIframeDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/model-builder-iframe").then(
+      (r) => r.ModelBuilderIframeDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -234,6 +246,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
+  }
+  if (dialog.type === "modelBuilderIframe") {
+    return <ModelBuilderIframeDialog onClose={onClose} />;
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;

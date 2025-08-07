@@ -129,6 +129,9 @@ type ModelBuilderOpened = {
   name: "modelBuilder.opened";
   source: string;
 };
+type ModelBuilderCompleted = {
+  name: "modelBuilder.completed";
+};
 
 type ExamplesOpened = {
   name: "examples.opened";
@@ -457,6 +460,7 @@ export type UserEvent =
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
   | ModelBuilderOpened
+  | ModelBuilderCompleted
   | ExamplesOpened
   | GisImportStarted
   | { name: "map.labels.shown"; type: string; subtype: string }

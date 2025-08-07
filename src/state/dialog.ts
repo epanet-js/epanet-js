@@ -62,6 +62,10 @@ export type UnexpectedErrorDialogState = {
   onRetry?: () => void;
 };
 
+export type ModelBuilderIframeDialogState = {
+  type: "modelBuilderIframe";
+};
+
 export type DialogState =
   | OpenInpDialogState
   | InvalidFilesErrorDialogState
@@ -81,6 +85,7 @@ export type DialogState =
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | UnexpectedErrorDialogState
+  | ModelBuilderIframeDialogState
   | { type: "simulationSettings" }
   | null;
 
