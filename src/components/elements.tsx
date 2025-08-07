@@ -220,11 +220,15 @@ export const styledDialogContent = ({
         size === "md",
       "max-w-full lg:max-w-screen-lg lg:max-w-screen-lg p-6 sm:p-8":
         size === "lg",
+      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl p-6 sm:p-8":
+        size === "xl",
       "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
-      : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
+      : size === "xl"
+        ? "h-full max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4"
+        : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
 
@@ -563,7 +567,7 @@ export const PopoverTitleAndClose = ({ title }: { title: string }) => (
   </div>
 );
 
-export type B3Size = "xxs" | "xs" | "sm" | "md" | "lg";
+export type B3Size = "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
 export type B3Variant =
   | "default"
   | "primary"

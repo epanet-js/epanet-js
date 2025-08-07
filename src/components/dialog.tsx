@@ -54,7 +54,7 @@ export const DialogContainer = ({
   fillMode = "full",
   children,
 }: {
-  size?: "sm" | "xs" | "md" | "lg" | "fullscreen";
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   children: React.ReactNode;
 }) => {
