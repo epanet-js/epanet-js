@@ -377,6 +377,20 @@ describe("Parse inp", () => {
     expect(modelMetadata.quantities.specName).toEqual("MGD");
   });
 
+  it("treats 'None mg/L' quality setting as equivalent to 'None'", () => {
+    const inp = `
+    [OPTIONS]
+    Quality None mg/L
+    Unbalanced CONTINUE 10
+    Accuracy 0.001
+    Units LPS
+    Headloss H-W
+    `;
+    const { issues } = parseInp(inp);
+
+    expect(issues).toBeNull();
+  });
+
   it("says when override defaults aren't the same", () => {
     const inp = `
     [OPTIONS]

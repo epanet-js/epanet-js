@@ -326,6 +326,17 @@ export const parseOption: RowParser = ({
     return;
   }
 
+  if (name === "QUALITY") {
+    const normalizedValue =
+      typeof value === "string" && value.toUpperCase().startsWith("NONE")
+        ? "NONE"
+        : value;
+    if (defaultValue !== normalizedValue) {
+      issues.addUsedOption(name, defaultValue);
+    }
+    return;
+  }
+
   if (defaultValue !== value) {
     issues.addUsedOption(name, defaultValue);
   }
