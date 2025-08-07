@@ -6,9 +6,75 @@ import { Loading } from "../elements";
 import { EarlyAccessBadge } from "../early-access-badge";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { modelBuilderUrl } from "src/global-config";
+
+interface IframeMessage {
+  type: string;
+  data: {
+    source: string;
+    [key: string]: any;
+  };
+}
+
+interface ModelBuildCompleteMessage extends IframeMessage {
+  type: "modelBuildComplete";
+  data: {
+    source: "epanet-model-builder";
+    inpContent: string;
+    timestamp: number;
+  };
+}
+
+interface TrackUserEventMessage extends IframeMessage {
+  type: "trackUserEvent";
+  data: {
+    source: "epanet-model-builder";
+    userEvent: UserEvent;
+  };
+}
+
+const handleModelBuildComplete = (
+  message: ModelBuildCompleteMessage,
+  userTracking: ReturnType<typeof useUserTracking>,
+  checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
+  importInp: ReturnType<typeof useImportInp>,
+) => {
+  if (!message.data.inpContent) {
+    return;
+  }
+
+  const { inpContent, timestamp } = message.data;
+  const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}.inp`;
+
+  userTracking.capture({
+    name: "modelBuilder.completed",
+  });
+
+  const inpFile = new File([inpContent], filename, {
+    type: "text/plain",
+  });
+
+  checkUnsavedChanges(() => {
+    void importInp([inpFile]);
+  });
+};
+
+const handleUserEvent = (
+  message: TrackUserEventMessage,
+  userTracking: ReturnType<typeof useUserTracking>,
+) => {
+  if (!message.data.userEvent) {
+    return;
+  }
+
+  if (!message.data.userEvent.name) {
+    return;
+  }
+
+  userTracking.capture(message.data.userEvent);
+};
 
 export const ModelBuilderIframeDialog = ({
   onClose: _onClose,
@@ -25,25 +91,25 @@ export const ModelBuilderIframeDialog = ({
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       try {
-        if (
-          event.data?.type === "modelBuildComplete" &&
-          event.data?.data?.source === "epanet-model-builder" &&
-          event.data?.data?.inpContent
-        ) {
-          const { inpContent, timestamp } = event.data.data;
-          const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}.inp`;
+        const message = event.data as IframeMessage;
 
-          userTracking.capture({
-            name: "modelBuilder.completed",
-          });
+        if (!message?.type || !message?.data?.source) {
+          return;
+        }
 
-          const inpFile = new File([inpContent], filename, {
-            type: "text/plain",
-          });
+        if (message.data.source !== "epanet-model-builder") {
+          return;
+        }
 
-          checkUnsavedChanges(() => {
-            void importInp([inpFile]);
-          });
+        if (message.type === "modelBuildComplete") {
+          handleModelBuildComplete(
+            message as ModelBuildCompleteMessage,
+            userTracking,
+            checkUnsavedChanges,
+            importInp,
+          );
+        } else if (message.type === "trackUserEvent") {
+          handleUserEvent(message as TrackUserEventMessage, userTracking);
         }
       } catch (error) {
         throw error;
