@@ -7,6 +7,7 @@ import {
   SunIcon,
   GlobeIcon,
   FileTextIcon,
+  StarIcon,
 } from "@radix-ui/react-icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
@@ -93,6 +94,7 @@ export const CreateNewDropdown = () => {
               >
                 <GlobeIcon />
                 {translate("importFromGIS")}
+                <StarIcon className="w-3 h-3 ml-1" />
               </StyledItem>
             </DDContent>
           </DD.Portal>

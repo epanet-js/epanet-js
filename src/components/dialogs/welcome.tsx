@@ -24,6 +24,7 @@ import {
   GitHubLogoIcon,
   GlobeIcon,
   QuestionMarkCircledIcon,
+  StarIcon,
 } from "@radix-ui/react-icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
 import { BrandLogo } from "../menu-bar";
@@ -158,6 +159,7 @@ export const WelcomeDialog = () => {
                     >
                       <GlobeIcon className="w-4 h-4 flex-shrink-0" />
                       {translate("importFromGIS")}
+                      <StarIcon className="w-3 h-3 ml-1" />
                     </Button>
                   )}
                   <a

@@ -11,6 +11,7 @@ import {
   ResetIcon,
   CircleIcon,
   GlobeIcon,
+  StarIcon,
 } from "@radix-ui/react-icons";
 import { memo } from "react";
 import { Button } from "./elements";
@@ -165,6 +166,7 @@ export const NothingSelected = memo(function NothingSelected() {
             >
               <GlobeIcon />
               {translate("importFromGIS")}
+              <StarIcon className="w-3 h-3 ml-1" />
             </Button>
           )}
           <Button
