@@ -8,6 +8,7 @@ import {
   GlobeIcon,
   FileTextIcon,
   StarIcon,
+  ChevronDownIcon,
 } from "@radix-ui/react-icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
@@ -33,12 +34,13 @@ export const CreateNewDropdown = () => {
 
   return (
     <Tooltip.Root delayDuration={200}>
-      <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-none">
+      <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-none">
         <DD.Root>
           <Tooltip.Trigger asChild>
             <DD.Trigger asChild>
               <Button variant="quiet">
                 <FilePlusIcon />
+                <ChevronDownIcon className="w-3 h-3 text-gray-500" />
               </Button>
             </DD.Trigger>
           </Tooltip.Trigger>
