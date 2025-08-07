@@ -59,7 +59,7 @@ export const ModelBuilderIframeDialog = ({
   return (
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
       <DialogHeader title={translate("importFromGIS")} titleIcon={GlobeIcon} />
-      <div className="flex-1 flex flex-col h-full min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
             <Loading />
@@ -67,7 +67,7 @@ export const ModelBuilderIframeDialog = ({
         )}
         <iframe
           src={modelBuilderUrl}
-          className="w-full h-full min-h-[600px] border-0 rounded"
+          className="w-full flex-1 min-h-[600px] border-0 rounded"
           onLoad={() => setIsLoading(false)}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
           title={translate("importFromGIS")}

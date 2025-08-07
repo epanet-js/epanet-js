@@ -210,8 +210,10 @@ export const styledDialogContent = ({
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
       z-40
-      overflow-y-auto placemark-scrollbar
     `,
+    fillMode === "full" || size === "xl" || size === "fullscreen"
+      ? "flex flex-col"
+      : "",
     { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
       "max-w-[320px]": size === "xs",
@@ -227,7 +229,7 @@ export const styledDialogContent = ({
     size === "fullscreen"
       ? ""
       : size === "xl"
-        ? "h-full max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4"
+        ? "h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4 overflow-hidden"
         : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
