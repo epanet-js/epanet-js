@@ -3,6 +3,7 @@ import { DialogContainer, DialogHeader } from "../dialog";
 import { GlobeIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { Loading } from "../elements";
+import { EarlyAccessBadge } from "../early-access-badge";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -58,7 +59,11 @@ export const ModelBuilderIframeDialog = ({
 
   return (
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
-      <DialogHeader title={translate("importFromGIS")} titleIcon={GlobeIcon} />
+      <DialogHeader
+        title={translate("importFromGIS")}
+        titleIcon={GlobeIcon}
+        badge={<EarlyAccessBadge />}
+      />
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">

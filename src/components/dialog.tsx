@@ -105,11 +105,13 @@ export function DialogHeader({
   titleIcon: TitleIcon,
   children,
   variant = "default",
+  badge,
 }: {
   title?: string;
   titleIcon?: SlottableIcon;
   variant?: "default" | "danger" | "success" | "warning";
   children?: ReactNode;
+  badge?: ReactNode;
 }) {
   return (
     <div
@@ -125,7 +127,10 @@ export function DialogHeader({
         />
       )}
       {title && (
-        <div className="flex-auto min-w-0 break-words sm:truncate">{title}</div>
+        <div className="flex items-center gap-3 flex-auto min-w-0">
+          <span className="break-words sm:truncate">{title}</span>
+          {badge && badge}
+        </div>
       )}
       <DialogCloseX />
     </div>
