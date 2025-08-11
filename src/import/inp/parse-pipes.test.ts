@@ -324,4 +324,34 @@ describe("parse pipes", () => {
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.initialStatus).toEqual("open");
   });
+
+  it("can handle a pipe without minor loss", () => {
+    const reservoirId = "R1";
+    const junctionId = "J1";
+    const pipeId = "P1";
+    const length = 1000;
+    const diameter = 12;
+    const roughness = 120;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t100
+    [JUNCTIONS]
+    ${junctionId}\t50
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}
+
+    [COORDINATES]
+    ${reservoirId}\t0\t0
+    ${junctionId}\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.length).toEqual(length);
+    expect(pipe.diameter).toEqual(diameter);
+    expect(pipe.roughness).toEqual(roughness);
+    expect(pipe.minorLoss).toEqual(0);
+    expect(pipe.initialStatus).toEqual("open");
+  });
 });

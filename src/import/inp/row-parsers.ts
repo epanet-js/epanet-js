@@ -239,7 +239,7 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     length: parseFloat(length),
     diameter: parseFloat(diameter),
     roughness: parseFloat(roughness),
-    minorLoss: parseFloat(minorLoss),
+    minorLoss: minorLoss !== undefined ? parseFloat(minorLoss) : 0,
     initialStatus,
   });
 };
