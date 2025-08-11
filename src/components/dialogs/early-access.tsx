@@ -9,6 +9,7 @@ import { ClerkSignInButton, isAuthEnabled } from "src/auth";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { Button } from "src/components/elements";
 import { Form, Formik } from "formik";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const EarlyAccessDialog = ({
   onContinue: _onContinue,
@@ -18,6 +19,7 @@ export const EarlyAccessDialog = ({
   afterSignupDialog?: string;
 }) => {
   const { closeDialog } = useDialogState();
+  const userTracking = useUserTracking();
 
   const redirectUrl = afterSignupDialog
     ? buildAfterSignupUrl(afterSignupDialog)
@@ -42,7 +44,17 @@ export const EarlyAccessDialog = ({
                 signUpForceRedirectUrl={redirectUrl}
                 forceRedirectUrl={redirectUrl}
               >
-                <Button variant="primary">Get Early Access</Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "earlyAccess.clickedGet",
+                      source: "earlyAccessDialog",
+                    });
+                  }}
+                >
+                  Get Early Access
+                </Button>
               </ClerkSignInButton>
             </div>
           ) : (

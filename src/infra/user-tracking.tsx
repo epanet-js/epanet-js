@@ -403,6 +403,11 @@ type ImportCustomerPointsWizardCancel = {
     | "importCustomerPoints.allocation.cancel";
 };
 
+type EarlyAccessClickedGet = {
+  name: "earlyAccess.clickedGet";
+  source: "earlyAccessDialog";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -466,6 +471,7 @@ export type UserEvent =
   | ImportCustomerPointsWizardNext
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
+  | EarlyAccessClickedGet
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ExamplesOpened
