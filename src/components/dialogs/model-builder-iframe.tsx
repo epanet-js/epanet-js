@@ -52,13 +52,15 @@ const handleModelBuildComplete = (
     name: "modelBuilder.completed",
   });
 
-  const inpFile = new File([inpContent], filename, {
-    type: "text/plain",
-  });
+  setTimeout(() => {
+    const inpFile = new File([inpContent], filename, {
+      type: "text/plain",
+    });
 
-  checkUnsavedChanges(() => {
-    void importInp([inpFile]);
-  });
+    checkUnsavedChanges(() => {
+      void importInp([inpFile]);
+    });
+  }, 1000);
 };
 
 const handleUserEvent = (
