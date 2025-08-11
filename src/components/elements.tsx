@@ -209,6 +209,7 @@ export const styledDialogContent = ({
       bg-white dark:bg-gray-900
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
+      overflow-y-auto
       z-40
     `,
     fillMode === "full" || size === "xl" || size === "fullscreen"
@@ -224,13 +225,12 @@ export const styledDialogContent = ({
         size === "lg",
       "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl p-6 sm:p-8":
         size === "xl",
-      "inset-0 h-100dvh w-screen p-6 sm:p-8 overflow-y-auto":
-        size === "fullscreen",
+      "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
       : size === "xl"
-        ? "h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4 overflow-hidden"
+        ? "h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4"
         : "max-h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
