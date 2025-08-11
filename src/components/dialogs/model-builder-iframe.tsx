@@ -35,6 +35,15 @@ interface TrackUserEventMessage extends IframeMessage {
   };
 }
 
+interface OpenExternalLinkMessage extends IframeMessage {
+  type: "openExternalLink";
+  data: {
+    source: "epanet-model-builder";
+    url: string;
+    timestamp: string;
+  };
+}
+
 const handleModelBuildComplete = (
   message: ModelBuildCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
@@ -78,6 +87,14 @@ const handleUserEvent = (
   userTracking.capture(message.data.userEvent);
 };
 
+const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
+  if (!message.data.url) {
+    return;
+  }
+
+  window.open(message.data.url, "_blank", "noopener,noreferrer");
+};
+
 export const ModelBuilderIframeDialog = ({
   onClose: _onClose,
 }: {
@@ -112,6 +129,8 @@ export const ModelBuilderIframeDialog = ({
           );
         } else if (message.type === "trackUserEvent") {
           handleUserEvent(message as TrackUserEventMessage, userTracking);
+        } else if (message.type === "openExternalLink") {
+          handleOpenExternalLink(message as OpenExternalLinkMessage);
         }
       } catch (error) {
         throw error;
