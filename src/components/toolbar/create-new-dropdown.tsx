@@ -87,10 +87,6 @@ export const CreateNewDropdown = () => {
 
               <StyledItem
                 onSelect={() => {
-                  userTracking.capture({
-                    name: "gisImport.started",
-                    source: "toolbar",
-                  });
                   openModelBuilder({ source: "toolbar" });
                 }}
               >

@@ -157,10 +157,6 @@ export const NothingSelected = memo(function NothingSelected() {
             <Button
               type="button"
               onClick={() => {
-                userTracking.capture({
-                  name: "gisImport.started",
-                  source: "onboarding",
-                });
                 void openModelBuilder({ source: "onboarding" });
               }}
             >

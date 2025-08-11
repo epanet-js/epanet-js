@@ -150,10 +150,6 @@ export const WelcomeDialog = () => {
                     <Button
                       variant="quiet"
                       onClick={() => {
-                        userTracking.capture({
-                          name: "gisImport.started",
-                          source: "welcome",
-                        });
                         openModelBuilder({ source: "welcome" });
                       }}
                     >
