@@ -224,7 +224,8 @@ export const styledDialogContent = ({
         size === "lg",
       "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl p-6 sm:p-8":
         size === "xl",
-      "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
+      "inset-0 h-100dvh w-screen p-6 sm:p-8 overflow-y-auto":
+        size === "fullscreen",
     },
     size === "fullscreen"
       ? ""

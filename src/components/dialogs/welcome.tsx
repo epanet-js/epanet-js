@@ -66,20 +66,20 @@ export const WelcomeDialog = () => {
 
   return (
     <DialogContainer size={!isMdOrLarger ? "fullscreen" : "md"}>
-      <div className="w-full flex flex-col h-full justify-between">
-        <div className="flex flex-col flex-grow">
+      <div className="w-full flex flex-col min-h-full">
+        <div className="flex-grow">
           <div className="w-full flex flex-row justify-between items-center pb-4">
             <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
             {isMdOrLarger && <DialogCloseX />}
           </div>
-          <div className="flex-grow flex flex-col items-stretch flex-1 p-1 justify-between">
+          <div className="flex flex-col items-stretch p-1">
             <p className="text-gray-500 text-lg font-semibold pb-2">
               {translate("welcomeToEpanetJs")}
             </p>
             <p className="text-sm pb-4">{translate("welcomeIntro")}</p>
             {!isMdOrLarger && <SmallDeviceWarning />}
             <hr className="mb-4" />
-            <div className="flex-grow flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4  pb-3">
+            <div className="flex flex-col md:grid md:grid-cols-4 gap-3 lg:gap-4 pb-6">
               <div className="col-span-3">
                 <p className="text-gray-500 text-lg font-semibold pb-2">
                   {translate("gettingStarted")}
@@ -181,34 +181,34 @@ export const WelcomeDialog = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-around md:justify-between pb-2">
-              {isMdOrLarger && (
-                <div className="text-xs flex items-center gap-x-2">
-                  <Checkbox
-                    checked={userSettings.showWelcomeOnStart}
-                    onChange={() => {
-                      userSettings.showWelcomeOnStart
-                        ? userTracking.capture({ name: "welcome.hidden" })
-                        : userTracking.capture({ name: "welcome.enabled" });
-                      setUserSettings((prev) => ({
-                        ...prev,
-                        showWelcomeOnStart: !prev.showWelcomeOnStart,
-                      }));
-                    }}
-                  />
-                  {translate("alwaysShowAtStart")}
-                </div>
-              )}
-              <div className="flex flex-row items-center mt-auto text-xs gap-x-1">
-                <a href={termsAndConditionsUrl} target="_blank">
-                  {translate("termsAndConditions")}
-                </a>
-                <span>|</span>
-                <a href={privacyPolicyUrl} target="_blank">
-                  {translate("privacyPolicy")}
-                </a>
-              </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-around md:justify-between pb-2 mt-auto">
+          {isMdOrLarger && (
+            <div className="text-xs flex items-center gap-x-2">
+              <Checkbox
+                checked={userSettings.showWelcomeOnStart}
+                onChange={() => {
+                  userSettings.showWelcomeOnStart
+                    ? userTracking.capture({ name: "welcome.hidden" })
+                    : userTracking.capture({ name: "welcome.enabled" });
+                  setUserSettings((prev) => ({
+                    ...prev,
+                    showWelcomeOnStart: !prev.showWelcomeOnStart,
+                  }));
+                }}
+              />
+              {translate("alwaysShowAtStart")}
             </div>
+          )}
+          <div className="flex flex-row items-center text-xs gap-x-1">
+            <a href={termsAndConditionsUrl} target="_blank">
+              {translate("termsAndConditions")}
+            </a>
+            <span>|</span>
+            <a href={privacyPolicyUrl} target="_blank">
+              {translate("privacyPolicy")}
+            </a>
           </div>
         </div>
       </div>
