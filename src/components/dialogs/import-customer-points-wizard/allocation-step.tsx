@@ -89,8 +89,7 @@ export const AllocationStep: React.FC<{
 
       notify({
         variant: "success",
-        title: "Import Successful",
-        description: `Successfully imported ${importedCount} customer points`,
+        title: translate("importSuccessful"),
         Icon: CheckCircledIcon,
       });
 
@@ -109,6 +108,7 @@ export const AllocationStep: React.FC<{
     transactImport,
     userTracking,
     setError,
+    translate,
   ]);
 
   const performAllocation = useCallback(

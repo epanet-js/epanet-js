@@ -80,7 +80,7 @@ describe("importCustomerPoints", () => {
     });
 
     await userEvent.click(screen.getByRole("button", { name: /finish/i }));
-    await expectSuccessNotification(2);
+    await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
@@ -268,7 +268,7 @@ describe("importCustomerPoints", () => {
     await waitForAllocations();
 
     await userEvent.click(screen.getByRole("button", { name: /finish/i }));
-    await expectSuccessNotification(1);
+    await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(1);
@@ -457,7 +457,7 @@ describe("importCustomerPoints", () => {
     await waitForAllocations();
 
     await userEvent.click(screen.getByRole("button", { name: /finish/i }));
-    await expectSuccessNotification(2);
+    await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
@@ -755,17 +755,8 @@ const uploadFileWithParseError = async (invalidContent: string) => {
   await userEvent.upload(fileInput, file);
 };
 
-const expectSuccessNotification = async (count?: number) => {
+const expectSuccessNotification = async () => {
   await waitFor(() => {
     expect(screen.getByText(/import successful/i)).toBeInTheDocument();
   });
-  if (count !== undefined) {
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          new RegExp(`successfully imported ${count} customer points`, "i"),
-        ),
-      ).toBeInTheDocument();
-    });
-  }
 };

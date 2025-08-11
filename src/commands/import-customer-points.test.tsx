@@ -761,11 +761,7 @@ const expectSuccessNotification = async (count?: number) => {
   });
   if (count !== undefined) {
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          new RegExp(`successfully imported ${count} customer points`, "i"),
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/import successful/i)).toBeInTheDocument();
     });
   }
 };
