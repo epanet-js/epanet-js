@@ -1,6 +1,5 @@
 import {
   DownloadIcon,
-  FilePlusIcon,
   FileTextIcon,
   VercelLogoIcon,
   StretchHorizontallyIcon,
@@ -22,7 +21,6 @@ import { useSaveInp } from "src/commands/save-inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 
 export const NothingSelected = memo(function NothingSelected() {
@@ -33,7 +31,6 @@ export const NothingSelected = memo(function NothingSelected() {
   const userTracking = useUserTracking();
   const isSmOrLarger = useBreakpoint("sm");
   const openModelBuilder = useOpenModelBuilder();
-  const isModelBuildEnabled = useFeatureFlag("FLAG_MODEL_BUILD");
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
@@ -150,21 +147,19 @@ export const NothingSelected = memo(function NothingSelected() {
               void openInpFromFs({ source: "onboarding" });
             }}
           >
-            {isModelBuildEnabled ? <FileTextIcon /> : <FilePlusIcon />}
+            <FileTextIcon />
             {translate("openProject")}
           </Button>
-          {isModelBuildEnabled && (
-            <Button
-              type="button"
-              onClick={() => {
-                void openModelBuilder({ source: "onboarding" });
-              }}
-            >
-              <GlobeIcon />
-              {translate("importFromGIS")}
-              <StarIcon className="w-3 h-3 ml-1" />
-            </Button>
-          )}
+          <Button
+            type="button"
+            onClick={() => {
+              void openModelBuilder({ source: "onboarding" });
+            }}
+          >
+            <GlobeIcon />
+            {translate("importFromGIS")}
+            <StarIcon className="w-3 h-3 ml-1" />
+          </Button>
           <Button
             type="button"
             onClick={() => {

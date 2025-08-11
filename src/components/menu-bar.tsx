@@ -1,11 +1,7 @@
 import React, { memo, useRef, useState } from "react";
 import { FileInfo } from "src/components/file-info";
 import {
-  CopyIcon,
   Cross1Icon,
-  DownloadIcon,
-  FileIcon,
-  FilePlusIcon,
   GitHubLogoIcon,
   GlobeIcon,
   HamburgerMenuIcon,
@@ -31,11 +27,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
-import { useNewProject } from "src/commands/create-new-project";
-import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
-import { useSaveInp } from "src/commands/save-inp";
 import { LanguageSelector } from "./language-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -79,7 +71,6 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-  const isModelBuildOn = useFeatureFlag("FLAG_MODEL_BUILD");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -108,7 +99,6 @@ export const MenuBarPlay = memo(function MenuBar() {
               </Button>
             </a>
             {isDebugOn && <DebugDropdown />}
-            {!isModelBuildOn && <FileMenu />}
             <HelpDot />
             <LanguageSelector />
             <Divider />
@@ -166,55 +156,6 @@ export const MenuBarPlay = memo(function MenuBar() {
     </div>
   );
 });
-
-export const FileMenu = () => {
-  const translate = useTranslate();
-  const createNewProject = useNewProject();
-  const openInpFromFs = useOpenInpFromFs();
-  const saveInp = useSaveInp();
-
-  return (
-    <DD.Root>
-      <DD.Trigger asChild>
-        <Button variant="quiet">{translate("file")}</Button>
-      </DD.Trigger>
-      <DDContent side="bottom" align="end">
-        <StyledItem
-          onSelect={() => {
-            void createNewProject({ source: "menu-bar" });
-          }}
-        >
-          <FileIcon />
-          {translate("newProject")}
-        </StyledItem>
-        <StyledItem
-          onSelect={() => {
-            void openInpFromFs({ source: "toolbar" });
-          }}
-        >
-          <FilePlusIcon />
-          {translate("openProject")}
-        </StyledItem>
-        <StyledItem
-          onSelect={() => {
-            void saveInp({ source: "menu-bar" });
-          }}
-        >
-          <DownloadIcon />
-          {translate("save")}
-        </StyledItem>
-        <StyledItem
-          onSelect={() => {
-            void saveInp({ source: "menu-bar", isSaveAs: true });
-          }}
-        >
-          <CopyIcon />
-          {translate("saveAs")}
-        </StyledItem>
-      </DDContent>
-    </DD.Root>
-  );
-};
 
 export function HelpDot() {
   const translate = useTranslate();
@@ -278,11 +219,7 @@ export const SideMenu = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
-  const createNewProject = useNewProject();
-  const openInpFromFs = useOpenInpFromFs();
-  const saveInp = useSaveInp();
   const { user } = useAuth();
-  const isModelBuildOn = useFeatureFlag("FLAG_MODEL_BUILD");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -311,61 +248,6 @@ export const SideMenu = () => {
             </Button>
           </div>{" "}
           <nav>
-            {!isModelBuildOn && (
-              <>
-                <ul className="flex flex-col items-start gap-2  text-gray-200">
-                  <li>
-                    <Button
-                      variant="quiet"
-                      onClick={() => {
-                        setIsOpen(false);
-                        void createNewProject({ source: "side-menu" });
-                      }}
-                    >
-                      <FileIcon className="mr-2" />
-                      {translate("newProject")}
-                    </Button>
-                  </li>
-                  <li>
-                    <Button
-                      variant="quiet"
-                      onClick={() => {
-                        setIsOpen(false);
-                        void openInpFromFs({ source: "menu" });
-                      }}
-                    >
-                      <FilePlusIcon className="mr-2" />
-                      {translate("openProject")}
-                    </Button>
-                  </li>
-                  <li>
-                    <Button
-                      variant="quiet"
-                      onClick={() => {
-                        setIsOpen(false);
-                        void saveInp({ source: "side-menu" });
-                      }}
-                    >
-                      <DownloadIcon className="mr-2" />
-                      {translate("save")}
-                    </Button>
-                  </li>
-                  <li>
-                    <Button
-                      variant="quiet"
-                      onClick={() => {
-                        setIsOpen(false);
-                        void saveInp({ source: "side-menu", isSaveAs: true });
-                      }}
-                    >
-                      <CopyIcon className="mr-2" />
-                      {translate("saveAs")}
-                    </Button>
-                  </li>
-                </ul>
-                <hr className="my-4 border-gray-200" />
-              </>
-            )}
             <ul className="flex flex-col items-start gap-2 text-gray-200">
               <li>
                 <Button variant="quiet">
