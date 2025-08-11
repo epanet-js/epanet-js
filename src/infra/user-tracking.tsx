@@ -18,9 +18,21 @@ export const trackUserAction = (event: string, metadata: Metadata = {}) => {
   console.log(`USER_TRACKING: ${event}`, metadata);
 };
 
+const getApiHost = (): string => {
+  if (typeof window === "undefined")
+    return process.env.NEXT_PUBLIC_POSTHOG_HOST as string;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const isProxyEnabled = urlParams.get("FLAG_PH_PROXY") === "true";
+
+  return isProxyEnabled
+    ? `${window.location.origin}/ingest`
+    : (process.env.NEXT_PUBLIC_POSTHOG_HOST as string);
+};
+
 const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY as string;
 const options = {
-  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST as string,
+  api_host: getApiHost(),
 };
 
 export const isPosthogConfigured = !!apiKey;
