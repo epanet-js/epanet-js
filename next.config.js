@@ -43,12 +43,14 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: "/ingest/:path*",
-        destination: `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/:path*`,
-      },
-    ];
+    return process.env.NEXT_PUBLIC_POSTHOG_HOST !== undefined
+      ? [
+          {
+            source: "/ingest/:path*",
+            destination: `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/:path*`,
+          },
+        ]
+      : [];
   },
   skipTrailingSlashRedirect: true,
 };

@@ -22,8 +22,7 @@ const getApiHost = (): string => {
   if (typeof window === "undefined")
     return process.env.NEXT_PUBLIC_POSTHOG_HOST as string;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const isProxyEnabled = urlParams.get("FLAG_PH_PROXY") === "true";
+  const isProxyEnabled = process.env.NEXT_PUBLIC_POSTHOG_PROXY === "true";
 
   return isProxyEnabled
     ? `${window.location.origin}/ingest`
