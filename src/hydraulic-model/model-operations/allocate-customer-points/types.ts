@@ -7,5 +7,6 @@ export type AllocationRule = {
 
 export type AllocationResult = {
   allocatedCustomerPoints: CustomerPoints;
+  disconnectedCustomerPoints: CustomerPoints;
   ruleMatches: number[];
 };

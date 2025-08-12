@@ -63,6 +63,7 @@ describe("AllocationStep", () => {
       allocationResult: {
         ruleMatches: [1],
         allocatedCustomerPoints: new Map(),
+        disconnectedCustomerPoints: new Map(),
       },
       connectionCounts: { 0: 1 },
     });

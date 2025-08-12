@@ -19,6 +19,7 @@ export const allocateCustomerPoints = async (
 ): Promise<AllocationResult> => {
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<string, CustomerPoint>();
+  const disconnectedCustomerPoints = new Map<string, CustomerPoint>();
 
   const workerData = prepareWorkerData(
     hydraulicModel,
@@ -31,6 +32,7 @@ export const allocateCustomerPoints = async (
   if (totalCustomerPoints === 0) {
     return {
       allocatedCustomerPoints,
+      disconnectedCustomerPoints,
       ruleMatches,
     };
   }
@@ -44,20 +46,26 @@ export const allocateCustomerPoints = async (
     : runAllocation(workerData, allocationRules, 0);
 
   for (const result of allocationResults) {
-    if (result.ruleIndex !== -1 && result.connection) {
-      const customerPointCopy = customerPoints
-        .get(result.customerPointId)
-        ?.copy();
-      if (customerPointCopy) {
+    const customerPointCopy = customerPoints
+      .get(result.customerPointId)
+      ?.copy();
+    if (customerPointCopy) {
+      if (result.ruleIndex !== -1 && result.connection) {
         customerPointCopy.connect(result.connection);
         allocatedCustomerPoints.set(result.customerPointId, customerPointCopy);
         ruleMatches[result.ruleIndex]++;
+      } else {
+        disconnectedCustomerPoints.set(
+          result.customerPointId,
+          customerPointCopy,
+        );
       }
     }
   }
 
   return {
     allocatedCustomerPoints,
+    disconnectedCustomerPoints,
     ruleMatches,
   };
 };

@@ -50,6 +50,7 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(2);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([2]);
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
@@ -87,6 +88,7 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([1, 0]);
   });
 
@@ -122,6 +124,8 @@ describe("allocateCustomerPoints", () => {
     expect(result.allocatedCustomerPoints.size).toBe(1);
     expect(result.allocatedCustomerPoints.has("CP1")).toBe(true);
     expect(result.allocatedCustomerPoints.has("CP2")).toBe(false);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP2")).toBe(true);
     expect(result.ruleMatches).toEqual([1]);
   });
 
@@ -169,6 +173,8 @@ describe("allocateCustomerPoints", () => {
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
     expect(result.allocatedCustomerPoints.has("CP2")).toBe(false);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP2")).toBe(true);
     expect(result.ruleMatches).toEqual([1]);
   });
 
@@ -214,6 +220,7 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(2);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([1, 1]);
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
@@ -248,6 +255,7 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -270,6 +278,8 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP1")).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -302,6 +312,8 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP1")).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -370,6 +382,8 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP1")).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -443,6 +457,89 @@ describe("allocateCustomerPoints", () => {
     expect(allocatedCP1?.id).toBe(originalCustomerPoint.id);
     expect(allocatedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
   });
+
+  it("creates independent copies for disconnected customer points", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
+      .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 8,
+        coordinates: [
+          [-95.4089633, 29.701228],
+          [-95.4077939, 29.702706],
+        ],
+      })
+      .build();
+
+    const originalCustomerPoint = buildCustomerPoint("CP1", {
+      coordinates: [-95.4084, 29.7019],
+      demand: 50,
+    });
+    const customerPoints: CustomerPoints = new Map([
+      ["CP1", originalCustomerPoint],
+    ]);
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 6 },
+    ];
+
+    const result = await allocateCustomerPoints(hydraulicModel, {
+      allocationRules,
+      customerPoints,
+    });
+
+    expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+
+    const disconnectedCP1 = result.disconnectedCustomerPoints.get("CP1");
+    expect(disconnectedCP1).not.toBe(originalCustomerPoint);
+    expect(disconnectedCP1?.id).toBe(originalCustomerPoint.id);
+    expect(disconnectedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
+    expect(disconnectedCP1?.connection).toBeNull();
+    expect(originalCustomerPoint.connection).toBeNull();
+  });
+
+  it("preserves total customer points count across allocated and disconnected", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [-95.4089633, 29.701228] })
+      .aJunction("J2", { coordinates: [-95.4077939, 29.702706] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        diameter: 12,
+        coordinates: [
+          [-95.4089633, 29.701228],
+          [-95.4077939, 29.702706],
+        ],
+      })
+      .build();
+
+    const customerPoints: CustomerPoints = new Map([
+      ["CP1", buildCustomerPoint("CP1", { coordinates: [-95.4084, 29.7019] })],
+      ["CP2", buildCustomerPoint("CP2", { coordinates: [-95.4, 29.8] })],
+      ["CP3", buildCustomerPoint("CP3", { coordinates: [-95.4082, 29.7018] })],
+    ]);
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const result = await allocateCustomerPoints(hydraulicModel, {
+      allocationRules,
+      customerPoints,
+    });
+
+    const totalProcessed =
+      result.allocatedCustomerPoints.size +
+      result.disconnectedCustomerPoints.size;
+    expect(totalProcessed).toBe(customerPoints.size);
+    expect(totalProcessed).toBe(3);
+    expect(result.allocatedCustomerPoints.size).toBe(2);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has("CP2")).toBe(true);
+  });
 });
 
 describe("findNearestPipeConnectionWithWorkerData optimization", () => {
@@ -488,6 +585,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(2);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([1, 1]);
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
@@ -540,6 +638,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.size).toBe(0);
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
 
