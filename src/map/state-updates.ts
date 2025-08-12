@@ -185,6 +185,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
+  const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -307,6 +308,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
           customerPointsOverlayRef.current = overlay;
 
+          const selectionOverlay = updateCustomerPointsOverlayVisibility(
+            selectionDeckLayersRef.current,
+            mapState.currentZoom,
+          );
+          selectionDeckLayersRef.current = selectionOverlay;
+
           const ephemeralOverlay = updateCustomerPointsOverlayVisibility(
             ephemeralDeckLayersRef.current,
             mapState.currentZoom,
@@ -324,6 +331,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               : [];
 
           ephemeralDeckLayersRef.current = ephemeralOverlay;
+        }
+
+        if (hasNewSelection && isCustomerPointOn) {
+          if (mapState.selection.type === "singleCustomerPoint") {
+            const customerPoint = hydraulicModel.customerPoints.get(
+              mapState.selection.id,
+            );
+            if (customerPoint) {
+              const selectionOverlay = buildCustomerPointsHighlightOverlay(
+                [customerPoint],
+                mapState.currentZoom,
+              );
+              selectionDeckLayersRef.current = selectionOverlay;
+            }
+          } else {
+            selectionDeckLayersRef.current = [];
+          }
         }
 
         if (hasNewEphemeralState) {
@@ -349,6 +373,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (isCustomerPointOn) {
           const combinedOverlay = [
             ...customerPointsOverlayRef.current,
+            ...selectionDeckLayersRef.current,
             ...ephemeralDeckLayersRef.current,
           ];
           map.setOverlay(combinedOverlay);
