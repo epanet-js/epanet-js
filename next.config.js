@@ -57,7 +57,7 @@ const nextConfig = {
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withSentryConfig(nextConfig, {
+const sentryConfig = {
   org: "iterating",
   project: "epanet-js",
   environment: process.env.NODE_ENV,
@@ -68,4 +68,10 @@ module.exports = withSentryConfig(nextConfig, {
   hideSourceMaps: false,
   disableLogger: true,
   automaticVercelMonitors: true,
-});
+};
+
+if (process.env.NEXT_PUBLIC_SENTRY_PROXY === "true") {
+  sentryConfig.tunnelRoute = "/monitoring";
+}
+
+module.exports = withSentryConfig(nextConfig, sentryConfig);
