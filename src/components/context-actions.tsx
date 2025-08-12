@@ -2,10 +2,11 @@ import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as E from "src/components/elements";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtomValue } from "jotai";
-import { selectedFeaturesAtom } from "src/state/jotai";
+import { selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
 import * as T from "@radix-ui/react-tooltip";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
+import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
 
@@ -35,7 +36,19 @@ export function ToolbarTrigger({
 
 export default function ContextActions() {
   const translate = useTranslate();
+  const selection = useAtomValue(selectionAtom);
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+
+  if (selection.type === "singleCustomerPoint") {
+    return (
+      <div className="flex items-center">
+        <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
+          {translate("selection")} (customer point)
+        </div>
+        <CustomerPointActions as="root" />
+      </div>
+    );
+  }
 
   if (selectedWrappedFeatures.length === 0) return null;
 
