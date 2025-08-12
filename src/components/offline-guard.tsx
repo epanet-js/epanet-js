@@ -65,7 +65,7 @@ export const useOfflineStatus = () => {
     intervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(pingUrl, {
-          method: "HEAD",
+          cache: "no-cache",
         });
         if (response.ok) {
           setOnline();
