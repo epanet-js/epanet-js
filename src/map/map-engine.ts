@@ -227,6 +227,23 @@ export class MapEngine {
     this.overlay.setProps({ layers });
   }
 
+  pickOverlayObjects({
+    x,
+    y,
+    radius = 7,
+  }: {
+    x: number;
+    y: number;
+    radius?: number;
+  }) {
+    return this.overlay.pickObjects({
+      x,
+      y,
+      width: radius * 2,
+      height: radius * 2,
+    });
+  }
+
   getZoom(): number {
     return this.map.getZoom();
   }

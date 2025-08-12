@@ -17,6 +17,7 @@ import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const isMovementSignificant = (
   startPoint: mapboxgl.Point,
@@ -40,6 +41,7 @@ export function useNoneHandlers({
   hydraulicModel,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
+  const isCpManualOn = useFeatureFlag("FLAG_CP_MANUAL");
   const {
     clearSelection,
     isSelected,
@@ -75,7 +77,25 @@ export function useNoneHandlers({
     });
 
     const visibleFeatures = features.filter((f) => !f.state || !f.state.hidden);
-    setCursor(visibleFeatures.length ? "pointer" : "");
+
+    let hasClickableElement = visibleFeatures.length > 0;
+
+    if (!hasClickableElement && isCpManualOn) {
+      const pickedObjects = map.pickOverlayObjects({
+        x: point.x,
+        y: point.y,
+        radius: 7,
+      });
+
+      for (const pickInfo of pickedObjects) {
+        if (pickInfo.layer?.id === "customer-points-layer" && pickInfo.object) {
+          hasClickableElement = true;
+          break;
+        }
+      }
+    }
+
+    setCursor(hasClickableElement ? "pointer" : "");
   };
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {

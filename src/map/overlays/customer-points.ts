@@ -93,6 +93,7 @@ export const buildCustomerPointsOverlay = (
     lineWidthMaxPixels: 2,
     antialiasing: true,
     visible: isVisible,
+    pickable: true,
   });
 
   return [connectionLinesLayer, scatterLayer];
