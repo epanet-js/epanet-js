@@ -6,7 +6,7 @@ type ConnectCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;
 };
 
-export const connectCustomerPoints = (
+export const connectCustomerPointsDeprecated = (
   hydraulicModel: HydraulicModel,
   customerPoints: CustomerPoints,
   options: ConnectCustomerPointsOptions = {},

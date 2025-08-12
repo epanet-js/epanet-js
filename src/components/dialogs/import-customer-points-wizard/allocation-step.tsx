@@ -9,7 +9,9 @@ import { AllocationRulesTable } from "./allocation-rules-table";
 import { dataAtom } from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
-import { connectCustomerPoints } from "src/hydraulic-model/mutations/connect-customer-points";
+import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
+import { connectCustomerPointsDeprecated } from "src/hydraulic-model/mutations/connect-customer-points-deprecated";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { WizardState, WizardActions } from "./types";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { Unit } from "src/quantity";
@@ -35,6 +37,9 @@ export const AllocationStep: React.FC<{
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const isDisconnectedCustomersOn = useFeatureFlag(
+    "FLAG_DISCONNECTED_CUSTOMERS",
+  );
 
   const {
     parsedDataSummary,
@@ -62,17 +67,34 @@ export const AllocationStep: React.FC<{
   const handleFinish = useCallback(async () => {
     if (!allocationResult) return;
 
-    const allocatedCustomerPoints = allocationResult.allocatedCustomerPoints;
-
     setProcessing(true);
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     try {
-      const updatedHydraulicModel = connectCustomerPoints(
-        data.hydraulicModel,
-        allocatedCustomerPoints,
-        { preserveJunctionDemands: keepDemands },
-      );
+      let updatedHydraulicModel;
+
+      if (isDisconnectedCustomersOn) {
+        const customerPointsToAdd = [
+          ...allocationResult.allocatedCustomerPoints.values(),
+          ...allocationResult.disconnectedCustomerPoints.values(),
+        ];
+
+        updatedHydraulicModel = addCustomerPoints(
+          data.hydraulicModel,
+          customerPointsToAdd,
+          {
+            preserveJunctionDemands: keepDemands,
+          },
+        );
+      } else {
+        updatedHydraulicModel = connectCustomerPointsDeprecated(
+          data.hydraulicModel,
+          allocationResult.allocatedCustomerPoints,
+          {
+            preserveJunctionDemands: keepDemands,
+          },
+        );
+      }
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
@@ -109,6 +131,7 @@ export const AllocationStep: React.FC<{
     userTracking,
     setError,
     translate,
+    isDisconnectedCustomersOn,
   ]);
 
   const performAllocation = useCallback(

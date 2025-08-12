@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { connectCustomerPoints } from "./connect-customer-points";
+import { connectCustomerPointsDeprecated } from "./connect-customer-points-deprecated";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
@@ -10,7 +10,7 @@ import {
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
 
-describe("connectCustomerPoints", () => {
+describe("connectCustomerPointsDeprecated", () => {
   it("connects multiple customer points to their assigned junctions", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
@@ -52,7 +52,10 @@ describe("connectCustomerPoints", () => {
     customerPoints.set("CP1", cp1);
     customerPoints.set("CP2", cp2);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     expect(updatedModel.customerPoints.size).toBe(2);
     expect(updatedModel.customerPoints.has("CP1")).toBe(true);
@@ -74,7 +77,7 @@ describe("connectCustomerPoints", () => {
       .build();
 
     const emptyCustomerPoints = initializeCustomerPoints();
-    const updatedModel = connectCustomerPoints(
+    const updatedModel = connectCustomerPointsDeprecated(
       hydraulicModel,
       emptyCustomerPoints,
     );
@@ -98,7 +101,10 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", cpWithoutConnection);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     expect(updatedModel.customerPoints.size).toBe(0);
 
@@ -127,7 +133,10 @@ describe("connectCustomerPoints", () => {
 
     customerPoints.set("CP1", cpWithInvalidJunction);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     expect(updatedModel.customerPoints.size).toBe(0);
 
@@ -176,7 +185,10 @@ describe("connectCustomerPoints", () => {
     customerPoints.set("CP1", cp1);
     customerPoints.set("CP2", cp2);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     expect(updatedModel.customerPoints.size).toBe(2);
 
@@ -206,7 +218,10 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", cp1);
 
-    const updatedModel = connectCustomerPoints(originalModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      originalModel,
+      customerPoints,
+    );
 
     expect(originalModel.customerPoints.size).toBe(0);
     expect(
@@ -250,7 +265,10 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", newCP);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.customerPointCount).toBe(1);
@@ -277,7 +295,10 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", cp1);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints);
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+    );
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(30);
@@ -304,9 +325,13 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", cp1);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints, {
-      preserveJunctionDemands: true,
-    });
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+      {
+        preserveJunctionDemands: true,
+      },
+    );
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(45);
@@ -333,9 +358,13 @@ describe("connectCustomerPoints", () => {
     });
     customerPoints.set("CP1", cp1);
 
-    const updatedModel = connectCustomerPoints(hydraulicModel, customerPoints, {
-      preserveJunctionDemands: false,
-    });
+    const updatedModel = connectCustomerPointsDeprecated(
+      hydraulicModel,
+      customerPoints,
+      {
+        preserveJunctionDemands: false,
+      },
+    );
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(0);
