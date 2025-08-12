@@ -33,6 +33,11 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
+  const selectCustomerPoint = (customerPointId: string) => {
+    setSelection(USelection.singleCustomerPoint(customerPointId));
+    setTab(TabOption.Asset);
+  };
+
   const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
     userTracking.capture({
       name: "multiSelect.updated",
@@ -55,6 +60,7 @@ export const useSelection = (selection: Sel) => {
     isSelected,
     removeFromSelection,
     selectFeature,
+    selectCustomerPoint,
     getSelectionIds,
   };
 };
