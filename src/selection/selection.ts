@@ -1,4 +1,10 @@
-import type { Data, Sel, SelFolder, SelSingle } from "src/state/jotai";
+import type {
+  Data,
+  Sel,
+  SelFolder,
+  SelSingle,
+  SelSingleCustomerPoint,
+} from "src/state/jotai";
 import type { IFolder, IWrappedFeature } from "src/types";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";
@@ -20,6 +26,8 @@ export const USelection = {
         return SELECTION_NONE;
       case "folder":
         return selection;
+      case "singleCustomerPoint":
+        return SELECTION_NONE;
       case "multi":
       case "single": {
         const wrappedFeature = USelection.getSelectedFeatures(data)[0];
@@ -43,6 +51,7 @@ export const USelection = {
     switch (selection.type) {
       case "none":
       case "folder":
+      case "singleCustomerPoint":
         return [];
       case "single":
         return [selection.id];
@@ -66,7 +75,11 @@ export const USelection = {
   // Dangerous: this will throw if given a 'none' selection.
   // Basically an assertion method.
   asSingle(selection: Sel): SelSingle {
-    if (selection.type === "none" || selection.type === "folder") {
+    if (
+      selection.type === "none" ||
+      selection.type === "folder" ||
+      selection.type === "singleCustomerPoint"
+    ) {
       throw new Error("Given a none selection");
     }
     return selection.type === "single"
@@ -125,7 +138,8 @@ export const USelection = {
   isSelected(selection: Sel, id: IWrappedFeature["id"]): boolean {
     switch (selection.type) {
       case "none":
-      case "folder": {
+      case "folder":
+      case "singleCustomerPoint": {
         return false;
       }
       case "single": {
@@ -138,6 +152,9 @@ export const USelection = {
   },
   isFolderSelected(selection: Sel, id: IFolder["id"]): boolean {
     return selection.type === "folder" && selection.id === id;
+  },
+  isCustomerPointSelected(selection: Sel, id: string): boolean {
+    return selection.type === "singleCustomerPoint" && selection.id === id;
   },
   isVertexSelected(selection: Sel, id: string, vertexId: VertexId): boolean {
     return (
@@ -170,7 +187,8 @@ export const USelection = {
   removeFeatureFromSelection(selection: Sel, id: IWrappedFeature["id"]): Sel {
     switch (selection.type) {
       case "folder":
-      case "none": {
+      case "none":
+      case "singleCustomerPoint": {
         return selection;
       }
       case "single": {
@@ -214,6 +232,12 @@ export const USelection = {
       type: "single",
       id,
       parts: [],
+    };
+  },
+  singleCustomerPoint(id: string): SelSingleCustomerPoint {
+    return {
+      type: "singleCustomerPoint",
+      id,
     };
   },
 };

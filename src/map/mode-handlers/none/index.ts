@@ -18,6 +18,7 @@ import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 const isMovementSignificant = (
   startPoint: mapboxgl.Point,
@@ -49,6 +50,7 @@ export function useNoneHandlers({
     extendSelection,
     removeFromSelection,
     getSelectionIds,
+    selectCustomerPoint,
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
   const {
@@ -115,6 +117,26 @@ export function useNoneHandlers({
     if (!asset) return null;
 
     return asset;
+  };
+
+  const getClickedCustomerPoint = (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ): CustomerPoint | null => {
+    if (!isCpManualOn) return null;
+
+    const pickedObjects = map.pickOverlayObjects({
+      x: e.point.x,
+      y: e.point.y,
+      radius: 7,
+    });
+
+    for (const pickInfo of pickedObjects) {
+      if (pickInfo.layer?.id === "customer-points-layer" && pickInfo.object) {
+        return pickInfo.object as CustomerPoint;
+      }
+    }
+
+    return null;
   };
 
   const handlers: Handlers = {
@@ -192,6 +214,13 @@ export function useNoneHandlers({
       e.preventDefault();
 
       if (!clickedAsset) {
+        const clickedCustomerPoint = getClickedCustomerPoint(e);
+
+        if (clickedCustomerPoint) {
+          selectCustomerPoint(clickedCustomerPoint.id);
+          return;
+        }
+
         if (isShiftHeld()) return;
 
         clearSelection();

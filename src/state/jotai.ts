@@ -303,6 +303,14 @@ export interface SelMulti {
   previousIds?: readonly StringId[];
 }
 
+export interface SelSingleCustomerPoint {
+  type: "singleCustomerPoint";
+  /**
+   * The customer point's id
+   */
+  id: StringId;
+}
+
 /**
  * This is not an abbreviation, it is named Sel
  * instead of Selection for safety: otherwise
@@ -315,7 +323,8 @@ export type Sel =
   | {
       type: "none";
     }
-  | SelSingle;
+  | SelSingle
+  | SelSingleCustomerPoint;
 
 export const SELECTION_NONE: Sel = {
   type: "none",
