@@ -1,4 +1,5 @@
 import { Demands } from "src/hydraulic-model/demands";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
@@ -22,6 +23,7 @@ export interface MomentInput {
   track?: string | [string, Properties];
   putAssets: IWrappedFeatureInput[];
   putDemands?: Demands;
+  putCustomerPoints?: CustomerPoint[];
   deleteAssets: IWrappedFeature["id"][];
   skipMomentLog?: boolean;
 }

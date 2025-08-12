@@ -8,18 +8,30 @@ import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useAtomValue } from "jotai";
 import { selectionAtom, dataAtom } from "src/state/jotai";
+import { disconnectCustomers } from "src/hydraulic-model/model-operations";
+import { usePersistence } from "src/lib/persistence/context";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
   _source: ActionProps["as"],
 ): Action[] {
+  const { hydraulicModel } = useAtomValue(dataAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+
   const onConnect = useCallback(() => {
     return Promise.resolve();
   }, []);
 
   const onDisconnect = useCallback(() => {
+    if (!customerPoint) return Promise.resolve();
+
+    const moment = disconnectCustomers(hydraulicModel, {
+      customerPointIds: [customerPoint.id],
+    });
+    transact(moment);
     return Promise.resolve();
-  }, []);
+  }, [customerPoint, hydraulicModel, transact]);
 
   const connectAction = {
     label: "Connect",

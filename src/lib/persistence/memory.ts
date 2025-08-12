@@ -23,6 +23,7 @@ import { sortAts } from "src/lib/parse-stored";
 import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
@@ -90,6 +91,7 @@ export class MemPersistence implements IPersistence {
         deleteAssets: moment.deleteAssets || [],
         putAssets: moment.putAssets || [],
         putDemands: moment.putDemands,
+        putCustomerPoints: moment.putCustomerPoints,
       };
       const newStateId = nanoid();
 
@@ -129,6 +131,11 @@ export class MemPersistence implements IPersistence {
         putAssets: [],
         deleteAssets: [],
       };
+    } else if (forwardMoment.putCustomerPoints) {
+      reverseMoment = this.putCustomerPointsInner(
+        forwardMoment.putCustomerPoints,
+        ctx,
+      );
     } else {
       reverseMoment = UMoment.merge(
         fMoment(forwardMoment.note || `Reverse`),
@@ -142,6 +149,7 @@ export class MemPersistence implements IPersistence {
         return sortAts(a[1], b[1]);
       }),
     );
+
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
@@ -151,6 +159,7 @@ export class MemPersistence implements IPersistence {
         demands: forwardMoment.putDemands
           ? forwardMoment.putDemands
           : ctx.hydraulicModel.demands,
+        customerPoints: ctx.hydraulicModel.customerPoints,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
@@ -255,6 +264,28 @@ export class MemPersistence implements IPersistence {
         (inputFeature as Asset).id,
       );
       UIDMap.pushUUID(this.idMap, inputFeature.id);
+    }
+
+    return reverseMoment;
+  }
+
+  private putCustomerPointsInner(customerPoints: CustomerPoint[], ctx: Data) {
+    const reverseMoment = {
+      note: "Put customer points",
+      putCustomerPoints: [] as CustomerPoint[],
+      putAssets: [],
+      deleteAssets: [],
+    };
+
+    for (const customerPoint of customerPoints) {
+      const oldVersion = ctx.hydraulicModel.customerPoints.get(
+        customerPoint.id,
+      );
+      if (oldVersion) {
+        reverseMoment.putCustomerPoints.push(oldVersion);
+      }
+
+      ctx.hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
     }
 
     return reverseMoment;
