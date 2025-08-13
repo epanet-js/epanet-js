@@ -11,6 +11,7 @@ import { selectionAtom, dataAtom } from "src/state/jotai";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
@@ -20,20 +21,30 @@ export function useCustomerPointActions(
   const rep = usePersistence();
   const transact = rep.useTransact();
   const translate = useTranslate();
+  const userTracking = useUserTracking();
 
   const onConnect = useCallback(() => {
+    userTracking.capture({
+      name: "customerPoints.connected",
+      count: 1,
+    });
     return Promise.resolve();
-  }, []);
+  }, [userTracking]);
 
   const onDisconnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();
+
+    userTracking.capture({
+      name: "customerPoints.disconnected",
+      count: 1,
+    });
 
     const moment = disconnectCustomers(hydraulicModel, {
       customerPointIds: [customerPoint.id],
     });
     transact(moment);
     return Promise.resolve();
-  }, [customerPoint, hydraulicModel, transact]);
+  }, [customerPoint, hydraulicModel, transact, userTracking]);
 
   const connectAction = {
     label: translate("contextActions.customerPoints.connect"),

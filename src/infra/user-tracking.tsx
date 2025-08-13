@@ -407,6 +407,16 @@ type EarlyAccessClickedGet = {
   source: "earlyAccessDialog";
 };
 
+type CustomerPointsConnected = {
+  name: "customerPoints.connected";
+  count: number;
+};
+
+type CustomerPointsDisconnected = {
+  name: "customerPoints.disconnected";
+  count: number;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -471,6 +481,8 @@ export type UserEvent =
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
   | EarlyAccessClickedGet
+  | CustomerPointsConnected
+  | CustomerPointsDisconnected
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ExamplesOpened
