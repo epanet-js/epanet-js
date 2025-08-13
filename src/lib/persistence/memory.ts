@@ -131,16 +131,12 @@ export class MemPersistence implements IPersistence {
         putAssets: [],
         deleteAssets: [],
       };
-    } else if (forwardMoment.putCustomerPoints) {
-      reverseMoment = this.putCustomerPointsInner(
-        forwardMoment.putCustomerPoints,
-        ctx,
-      );
     } else {
       reverseMoment = UMoment.merge(
         fMoment(forwardMoment.note || `Reverse`),
         this.deleteAssetsInner(forwardMoment.deleteAssets, ctx),
         this.putAssetsInner(forwardMoment.putAssets, ctx),
+        this.putCustomerPointsInner(forwardMoment.putCustomerPoints || [], ctx),
       );
     }
 

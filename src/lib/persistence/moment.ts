@@ -12,6 +12,7 @@ export interface Moment {
   note?: string;
   putAssets: IWrappedFeature[];
   deleteAssets: IWrappedFeature["id"][];
+  putCustomerPoints?: CustomerPoint[];
 }
 
 // This was previously posthog properties,
@@ -57,11 +58,17 @@ class CUMoment {
       note: first.note,
       putAssets: first.putAssets.slice(),
       deleteAssets: first.deleteAssets.slice(),
+      putCustomerPoints: first.putCustomerPoints?.slice() || [],
     };
 
     for (const moment of moments.slice(1)) {
       dst.putAssets = dst.putAssets.concat(moment.putAssets);
       dst.deleteAssets = dst.deleteAssets.concat(moment.deleteAssets);
+      if (moment.putCustomerPoints) {
+        dst.putCustomerPoints = (dst.putCustomerPoints || []).concat(
+          moment.putCustomerPoints,
+        );
+      }
     }
 
     return dst;
@@ -72,7 +79,11 @@ class CUMoment {
    * Make sure to update this whenever moments get new arrays!
    */
   isEmpty(moment: Moment) {
-    return moment.putAssets.length === 0 && moment.deleteAssets.length === 0;
+    return (
+      moment.putAssets.length === 0 &&
+      moment.deleteAssets.length === 0 &&
+      (!moment.putCustomerPoints || moment.putCustomerPoints.length === 0)
+    );
   }
 }
 
