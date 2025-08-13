@@ -22,7 +22,7 @@ export interface ActionProps {
 }
 
 export function ActionItem({
-  action: { icon, label, onSelect, variant = "default" },
+  action: { icon, label, onSelect, variant = "quiet" },
   as,
   ...rest
 }: {
@@ -48,7 +48,7 @@ export function ActionItem({
           onClick={(evt) => onSelect(evt as unknown as Event)}
           asChild
         >
-          <Button variant="quiet">{icon}</Button>
+          <Button variant={variant}>{icon}</Button>
         </Tooltip.Trigger>
       </div>
       <TContent side="bottom">

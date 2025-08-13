@@ -578,6 +578,7 @@ export type B3Variant =
   | "code"
   | "quiet/mode"
   | "destructive"
+  | "danger-quiet"
   | "ultra-quiet";
 export type B3Side = "default" | "left" | "right" | "middle";
 
@@ -667,6 +668,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
     case "quiet/mode":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "destructive":
+    case "danger-quiet":
       return !disabled && `hover:bg-red-500/10 dark:hover:bg-red-500/20`;
   }
 };
@@ -676,6 +678,7 @@ const sharedText = (variant: B3Variant): ClassValue => {
     case "quiet":
     case "code":
     case "quiet/mode":
+    case "danger-quiet":
     case "default": {
       return "font-medium text-gray-700 dark:text-white";
     }
@@ -732,7 +735,8 @@ export const styledButton = ({
     size === "full-width" &&
       `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
     // Colored variants
-    {},
+    variant === "danger-quiet" &&
+      `[&>svg]:text-red-500 dark:[&>svg]:text-red-300 hover:[&>svg]:text-red-600 dark:hover:[&>svg]:text-red-400`,
   );
 
 export const styledPanelTitle = ({
