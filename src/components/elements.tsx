@@ -499,7 +499,8 @@ export const menuItemLike = ({
   clsx([
     {
       "text-black dark:text-gray-300": variant === "default",
-      "text-red-500 dark:text-red-300": variant === "destructive",
+      "text-red-500 dark:text-red-300":
+        variant === "destructive" || variant === "danger-quiet",
     },
     `cursor-pointer
     hover:bg-gray-200 dark:hover:bg-gray-700

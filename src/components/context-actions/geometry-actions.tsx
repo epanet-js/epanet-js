@@ -27,7 +27,7 @@ export function useActions(
 
   const deleteAssetsAction = {
     label: translate("delete"),
-    variant: "destructive" as B3Variant,
+    variant: "danger-quiet" as B3Variant,
     applicable: true,
     icon: <TrashIcon />,
     onSelect: onDelete,
