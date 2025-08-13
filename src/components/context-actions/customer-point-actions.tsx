@@ -10,6 +10,7 @@ import { useAtomValue } from "jotai";
 import { selectionAtom, dataAtom } from "src/state/jotai";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
+import { useTranslate } from "src/hooks/use-translate";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
@@ -18,6 +19,7 @@ export function useCustomerPointActions(
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const translate = useTranslate();
 
   const onConnect = useCallback(() => {
     return Promise.resolve();
@@ -34,14 +36,14 @@ export function useCustomerPointActions(
   }, [customerPoint, hydraulicModel, transact]);
 
   const connectAction = {
-    label: "Connect",
+    label: translate("contextActions.customerPoints.connect"),
     applicable: customerPoint?.connection === null,
     icon: <Link1Icon />,
     onSelect: onConnect,
   };
 
   const disconnectAction = {
-    label: "Disconnect",
+    label: translate("contextActions.customerPoints.disconnect"),
     applicable: customerPoint?.connection !== null,
     icon: <LinkBreak1Icon />,
     onSelect: onDisconnect,

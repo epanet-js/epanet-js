@@ -33,6 +33,7 @@
   "customerPoints": "Customer Points",
   "customers": "customers",
   "customer": "Customer",
+  "customerPoint": "Customer Point",
   "actualDemand": "Actual Demand",
   "elevation": "Elevation",
   "roughness": "Roughness",
@@ -424,7 +425,7 @@
       "title": "Import Customer Points",
       "stepsAriaLabel": "Import wizard steps",
       "dataInputStep": "Data Input",
-      "dataPreviewStep": "Data Preview", 
+      "dataPreviewStep": "Data Preview",
       "demandOptionsStep": "Demand Options",
       "allocationStepLabel": "Customers Allocation",
       "dataPreview": {
@@ -499,6 +500,13 @@
       "supportedFormats": "Supported formats:",
       "parsingFile": "Reading file...",
       "chooseFile": "Choose File"
+    }
+  },
+  "contextActions": {
+    "customerPoints": {
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "customerPointSelected": "{{1}} customer point"
     }
   }
 }
