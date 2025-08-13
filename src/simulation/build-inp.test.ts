@@ -372,7 +372,18 @@ describe("build inp", () => {
     it("includes customer demands when enabled", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .withCustomerPoint("cp1", "j1", { demand: 25 })
+        .aPipe("p1", {
+          startNodeId: "j1",
+          endNodeId: "j1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint("cp1", {
+          demand: 25,
+          connection: { pipeId: "p1", junctionId: "j1" },
+        })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });
@@ -385,7 +396,18 @@ describe("build inp", () => {
     it("does not include customer demands when disabled", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .withCustomerPoint("cp1", "j1", { demand: 25 })
+        .aPipe("p1", {
+          startNodeId: "j1",
+          endNodeId: "j1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint("cp1", {
+          demand: 25,
+          connection: { pipeId: "p1", junctionId: "j1" },
+        })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: false });
@@ -398,7 +420,18 @@ describe("build inp", () => {
     it("skips customer demands when they are zero", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .withCustomerPoint("cp1", "j1", { demand: 0 })
+        .aPipe("p1", {
+          startNodeId: "j1",
+          endNodeId: "j1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint("cp1", {
+          demand: 0,
+          connection: { pipeId: "p1", junctionId: "j1" },
+        })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });
@@ -411,8 +444,22 @@ describe("build inp", () => {
     it("handles multiple customer points on same junction", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .withCustomerPoint("cp1", "j1", { demand: 25 })
-        .withCustomerPoint("cp2", "j1", { demand: 30 })
+        .aPipe("p1", {
+          startNodeId: "j1",
+          endNodeId: "j1",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint("cp1", {
+          demand: 25,
+          connection: { pipeId: "p1", junctionId: "j1" },
+        })
+        .aCustomerPoint("cp2", {
+          demand: 30,
+          connection: { pipeId: "p1", junctionId: "j1" },
+        })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });

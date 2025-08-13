@@ -337,27 +337,6 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  withCustomerPoint(
-    id: string,
-    junctionId: string,
-    options: {
-      demand?: number;
-      coordinates?: Position;
-    } = {},
-  ) {
-    const junction = this.assets.get(junctionId);
-    if (!junction || junction.type !== "junction") {
-      throw new Error(
-        `Junction ${junctionId} must be created before assigning customer point ${id}`,
-      );
-    }
-
-    const customerPoint = buildCustomerPoint(id, options);
-    (junction as Junction).assignCustomerPoint(customerPoint);
-    this.customerPointsMap.set(id, customerPoint);
-    return this;
-  }
-
   aCustomerPoint(
     id: string,
     options: {

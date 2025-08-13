@@ -290,9 +290,9 @@ describe("prepareWorkerData", () => {
   it("can get customer point coordinates from binary data", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
-      .withCustomerPoint("CP1", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aCustomerPoint("CP1", { coordinates: [5, 10], demand: 1.5 })
       .aJunction("J2", { coordinates: [10, 0] })
-      .withCustomerPoint("CP2", "J2", { coordinates: [15, 20], demand: 2.0 })
+      .aCustomerPoint("CP2", { coordinates: [15, 20], demand: 2.0 })
       .aPipe("P1", {
         startNodeId: "J1",
         endNodeId: "J2",
@@ -333,16 +333,16 @@ describe("prepareWorkerData", () => {
   it("can get customer point IDs from binary data", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
-      .withCustomerPoint("CP1", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aCustomerPoint("CP1", { coordinates: [5, 10], demand: 1.5 })
       .aJunction("J2", { coordinates: [10, 0] })
-      .withCustomerPoint("customer-with-long-name", "J2", {
+      .aCustomerPoint("customer-with-long-name", {
         coordinates: [15, 20],
         demand: 2.0,
       })
       .aJunction("J3", { coordinates: [20, 0] })
-      .withCustomerPoint("0", "J3", { coordinates: [25, 30], demand: 3.0 })
+      .aCustomerPoint("0", { coordinates: [25, 30], demand: 3.0 })
       .aJunction("J4", { coordinates: [30, 0] })
-      .withCustomerPoint("exactly-32-character-customer-i", "J4", {
+      .aCustomerPoint("exactly-32-character-customer-i", {
         coordinates: [35, 40],
         demand: 4.0,
       })
@@ -384,11 +384,11 @@ describe("prepareWorkerData", () => {
   it("handles edge cases for customer point ID encoding", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
-      .withCustomerPoint("", "J1", { coordinates: [5, 10], demand: 1.5 })
+      .aCustomerPoint("", { coordinates: [5, 10], demand: 1.5 })
       .aJunction("J2", { coordinates: [10, 0] })
-      .withCustomerPoint("00", "J2", { coordinates: [15, 20], demand: 2.0 })
+      .aCustomerPoint("00", { coordinates: [15, 20], demand: 2.0 })
       .aJunction("J3", { coordinates: [20, 0] })
-      .withCustomerPoint("special-chars-123!@#", "J3", {
+      .aCustomerPoint("special-chars-123!@#", {
         coordinates: [25, 30],
         demand: 3.0,
       })
