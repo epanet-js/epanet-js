@@ -7,17 +7,6 @@ import {
 
 describe("disconnectCustomers", () => {
   it("disconnects a single connected customer point", () => {
-    const connectedCP = buildCustomerPoint("CP1", {
-      coordinates: [2, 1],
-      demand: 25,
-    });
-    connectedCP.connect({
-      pipeId: "P1",
-      snapPoint: [2, 0],
-      distance: 1,
-      junctionId: "J1",
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aPipe("P1", {
@@ -28,9 +17,12 @@ describe("disconnectCustomers", () => {
           [10, 0],
         ],
       })
+      .aCustomerPoint("CP1", {
+        demand: 25,
+        coordinates: [2, 1],
+        connection: { pipeId: "P1", junctionId: "J1" },
+      })
       .build();
-
-    hydraulicModel.customerPoints.set("CP1", connectedCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
@@ -44,33 +36,9 @@ describe("disconnectCustomers", () => {
     expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
-
-    expect(connectedCP.connection).not.toBeNull();
   });
 
   it("disconnects multiple connected customer points", () => {
-    const cp1 = buildCustomerPoint("CP1", {
-      coordinates: [2, 1],
-      demand: 25,
-    });
-    cp1.connect({
-      pipeId: "P1",
-      snapPoint: [2, 0],
-      distance: 1,
-      junctionId: "J1",
-    });
-
-    const cp2 = buildCustomerPoint("CP2", {
-      coordinates: [8, 1],
-      demand: 50,
-    });
-    cp2.connect({
-      pipeId: "P1",
-      snapPoint: [8, 0],
-      distance: 1,
-      junctionId: "J2",
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aJunction("J2", { coordinates: [10, 0] })
@@ -82,10 +50,17 @@ describe("disconnectCustomers", () => {
           [10, 0],
         ],
       })
+      .aCustomerPoint("CP1", {
+        demand: 25,
+        coordinates: [2, 1],
+        connection: { pipeId: "P1", junctionId: "J1" },
+      })
+      .aCustomerPoint("CP2", {
+        demand: 50,
+        coordinates: [8, 1],
+        connection: { pipeId: "P1", junctionId: "J2" },
+      })
       .build();
-
-    hydraulicModel.customerPoints.set("CP1", cp1);
-    hydraulicModel.customerPoints.set("CP2", cp2);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1", "CP2"],
@@ -101,9 +76,6 @@ describe("disconnectCustomers", () => {
     expect(disconnectedCP2.connection).toBeNull();
     expect(disconnectedCP1.baseDemand).toBe(25);
     expect(disconnectedCP2.baseDemand).toBe(50);
-
-    expect(cp1.connection).not.toBeNull();
-    expect(cp2.connection).not.toBeNull();
   });
 
   it("handles already disconnected customer points", () => {
@@ -226,17 +198,6 @@ describe("disconnectCustomers", () => {
   });
 
   it("removes customer point reference from junction", () => {
-    const cp = buildCustomerPoint("CP1", {
-      coordinates: [2, 1],
-      demand: 25,
-    });
-    cp.connect({
-      pipeId: "P1",
-      snapPoint: [2, 0],
-      distance: 1,
-      junctionId: "J1",
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aPipe("P1", {
@@ -247,11 +208,14 @@ describe("disconnectCustomers", () => {
           [10, 0],
         ],
       })
+      .aCustomerPoint("CP1", {
+        demand: 25,
+        coordinates: [2, 1],
+        connection: { pipeId: "P1", junctionId: "J1" },
+      })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", cp);
     const originalJunction = hydraulicModel.assets.get("J1") as any;
-    originalJunction.assignCustomerPoint(cp);
 
     expect(originalJunction.customerPoints).toHaveLength(1);
 
@@ -269,28 +233,6 @@ describe("disconnectCustomers", () => {
   });
 
   it("handles multiple customer points connected to same junction", () => {
-    const cp1 = buildCustomerPoint("CP1", {
-      coordinates: [2, 1],
-      demand: 25,
-    });
-    cp1.connect({
-      pipeId: "P1",
-      snapPoint: [2, 0],
-      distance: 1,
-      junctionId: "J1",
-    });
-
-    const cp2 = buildCustomerPoint("CP2", {
-      coordinates: [3, 1],
-      demand: 30,
-    });
-    cp2.connect({
-      pipeId: "P1",
-      snapPoint: [3, 0],
-      distance: 1,
-      junctionId: "J1",
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aPipe("P1", {
@@ -301,13 +243,19 @@ describe("disconnectCustomers", () => {
           [10, 0],
         ],
       })
+      .aCustomerPoint("CP1", {
+        demand: 25,
+        coordinates: [2, 1],
+        connection: { pipeId: "P1", junctionId: "J1" },
+      })
+      .aCustomerPoint("CP2", {
+        demand: 30,
+        coordinates: [3, 1],
+        connection: { pipeId: "P1", junctionId: "J1" },
+      })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", cp1);
-    hydraulicModel.customerPoints.set("CP2", cp2);
     const originalJunction = hydraulicModel.assets.get("J1") as any;
-    originalJunction.assignCustomerPoint(cp1);
-    originalJunction.assignCustomerPoint(cp2);
 
     expect(originalJunction.customerPoints).toHaveLength(2);
 

@@ -358,6 +358,56 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aCustomerPoint(
+    id: string,
+    options: {
+      demand?: number;
+      coordinates?: Position;
+      connection?: {
+        pipeId: string;
+        junctionId: string;
+        snapPoint?: Position;
+        distance?: number;
+      };
+    } = {},
+  ) {
+    const { connection, ...customerPointOptions } = options;
+    const customerPoint = buildCustomerPoint(id, customerPointOptions);
+
+    if (connection) {
+      const { pipeId, junctionId, snapPoint, distance } = connection;
+
+      const pipe = this.assets.get(pipeId);
+      if (!pipe || pipe.type !== "pipe") {
+        throw new Error(
+          `Pipe ${pipeId} must be created before connecting customer point ${id}`,
+        );
+      }
+
+      const junction = this.assets.get(junctionId);
+      if (!junction || junction.type !== "junction") {
+        throw new Error(
+          `Junction ${junctionId} must be created before connecting customer point ${id}`,
+        );
+      }
+
+      const defaultSnapPoint = snapPoint || customerPoint.coordinates;
+      const defaultDistance = distance || 1;
+
+      customerPoint.connect({
+        pipeId,
+        snapPoint: defaultSnapPoint,
+        distance: defaultDistance,
+        junctionId,
+      });
+
+      (junction as Junction).assignCustomerPoint(customerPoint);
+    }
+
+    this.customerPointsMap.set(id, customerPoint);
+    return this;
+  }
+
   build(): HydraulicModel {
     return {
       version: nanoid(),
