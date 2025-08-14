@@ -245,6 +245,14 @@ export function Hints() {
         <Hint hintId={"DRAW_TANK"} text={translate("onboardingDrawTank")} />
       );
     }
+    case Mode.CONNECT_CUSTOMER_POINTS: {
+      return (
+        <Hint
+          hintId={"CONNECT_CUSTOMER_POINTS"}
+          text={translate("onboardingConnectCustomerPoints")}
+        />
+      );
+    }
   }
 
   return null;
