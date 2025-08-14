@@ -407,13 +407,18 @@ type EarlyAccessClickedGet = {
   source: "earlyAccessDialog";
 };
 
-type CustomerPointsConnected = {
+type CustomerPointsClickedConnect = {
   name: "customerPointActions.clickedConnect";
   count: number;
 };
 
-type CustomerPointsDisconnected = {
+type CustomerPointsClickedDisconnect = {
   name: "customerPointActions.clickedDisconnect";
+  count: number;
+};
+
+type CustomerPointsConnectedCompleted = {
+  name: "customerPoints.connected";
   count: number;
 };
 
@@ -481,8 +486,9 @@ export type UserEvent =
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
   | EarlyAccessClickedGet
-  | CustomerPointsConnected
-  | CustomerPointsDisconnected
+  | CustomerPointsClickedConnect
+  | CustomerPointsClickedDisconnect
+  | CustomerPointsConnectedCompleted
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ExamplesOpened
