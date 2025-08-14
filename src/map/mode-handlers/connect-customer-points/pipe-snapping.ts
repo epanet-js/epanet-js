@@ -8,6 +8,8 @@ import nearestPointOnLine from "@turf/nearest-point-on-line";
 import { lineString, point } from "@turf/helpers";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
+type SnapStrategy = "nearest-to-point" | "cursor";
+
 type PipeSnapResult = {
   pipeId: string;
 };
@@ -69,6 +71,8 @@ export const usePipeSnapping = (
   const calculateSnapPoints = (
     customerPoints: CustomerPoint[],
     pipeId: string,
+    strategy: SnapStrategy,
+    mouseCoord: Position,
   ): Position[] => {
     const pipe = assetsMap.get(pipeId) as LinkAsset;
     if (!pipe || !pipe.isLink || pipe.type !== "pipe") return [];
@@ -78,14 +82,27 @@ export const usePipeSnapping = (
 
     const pipeLineString = lineString(pipeGeometry.coordinates);
 
-    return customerPoints.map((customerPoint) => {
-      const customerPointGeometry = point(customerPoint.coordinates);
-      const nearestPoint = nearestPointOnLine(
-        pipeLineString,
-        customerPointGeometry,
-      );
-      return nearestPoint.geometry.coordinates;
-    });
+    switch (strategy) {
+      case "cursor": {
+        const mousePoint = point(mouseCoord);
+        const cursorIntersection = nearestPointOnLine(
+          pipeLineString,
+          mousePoint,
+        );
+        const snapPoint = cursorIntersection.geometry.coordinates;
+        return customerPoints.map(() => snapPoint);
+      }
+      case "nearest-to-point": {
+        return customerPoints.map((customerPoint) => {
+          const customerPointGeometry = point(customerPoint.coordinates);
+          const nearestPoint = nearestPointOnLine(
+            pipeLineString,
+            customerPointGeometry,
+          );
+          return nearestPoint.geometry.coordinates;
+        });
+      }
+    }
   };
 
   return {

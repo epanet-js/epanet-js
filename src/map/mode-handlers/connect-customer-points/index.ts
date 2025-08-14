@@ -8,6 +8,7 @@ import { connectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
@@ -18,6 +19,7 @@ export function useConnectCustomerPointsHandlers({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const { isShiftHeld } = useKeyboardState();
   const { customerPoints, ephemeralState, setConnectState, clearConnectState } =
     useConnectCustomerPointsState();
   const { findNearestPipe, calculateSnapPoints } = usePipeSnapping(
@@ -33,9 +35,12 @@ export function useConnectCustomerPointsHandlers({
     const nearestPipe = findNearestPipe(e.point, mouseCoord);
 
     if (nearestPipe) {
+      const strategy = isShiftHeld() ? "cursor" : "nearest-to-point";
       const snapPoints = calculateSnapPoints(
         customerPoints,
         nearestPipe.pipeId,
+        strategy,
+        mouseCoord,
       );
       setConnectState({
         customerPoints,
