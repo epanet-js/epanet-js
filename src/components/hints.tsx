@@ -250,6 +250,10 @@ export function Hints() {
         <Hint
           hintId={"CONNECT_CUSTOMER_POINTS"}
           text={translate("onboardingConnectCustomerPoints")}
+          secondaryText={translate(
+            "onboardingShiftConnectCustomerPoints",
+            localizeKeybinding("shift"),
+          )}
         />
       );
     }
