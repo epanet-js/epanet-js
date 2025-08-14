@@ -1,10 +1,10 @@
 import { Point, Feature, point, lineString } from "@turf/helpers";
-import turfDistance from "@turf/distance";
 import turfBuffer from "@turf/buffer";
 import turfBbox from "@turf/bbox";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
+import { findJunctionForCustomerPoint } from "../../utilities/junction-assignment";
 
 import { CustomerPointConnection } from "../../customer-points";
 import { AllocationRule } from "./types";
@@ -218,10 +218,6 @@ const findNearestPipeConnection = (
   return null;
 };
 
-const calculateDistanceMeters = (a: Position, b: Position): number => {
-  return turfDistance(a, b, { units: "meters" });
-};
-
 const findAssignedJunctionId = (
   segmentIndex: number,
   snapPoint: Position,
@@ -231,35 +227,17 @@ const findAssignedJunctionId = (
   const startNodeIndex = getPipeStartNodeIndex(workerData.pipes, pipeIndex);
   const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
 
-  const junctionNodes = [];
+  const startNode = {
+    id: getNodeId(workerData.nodes, startNodeIndex),
+    type: getNodeType(workerData.nodes, startNodeIndex),
+    coordinates: getNodeCoordinates(workerData.nodes, startNodeIndex),
+  };
 
-  if (getNodeType(workerData.nodes, startNodeIndex) === "junction") {
-    junctionNodes.push({
-      nodeId: getNodeId(workerData.nodes, startNodeIndex),
-      coordinates: getNodeCoordinates(workerData.nodes, startNodeIndex),
-    });
-  }
+  const endNode = {
+    id: getNodeId(workerData.nodes, endNodeIndex),
+    type: getNodeType(workerData.nodes, endNodeIndex),
+    coordinates: getNodeCoordinates(workerData.nodes, endNodeIndex),
+  };
 
-  if (getNodeType(workerData.nodes, endNodeIndex) === "junction") {
-    junctionNodes.push({
-      nodeId: getNodeId(workerData.nodes, endNodeIndex),
-      coordinates: getNodeCoordinates(workerData.nodes, endNodeIndex),
-    });
-  }
-
-  if (junctionNodes.length === 0) {
-    return null;
-  }
-
-  if (junctionNodes.length === 1) {
-    return junctionNodes[0].nodeId;
-  }
-
-  const junctionDistances = junctionNodes.map((junction) => ({
-    junction,
-    distance: calculateDistanceMeters(snapPoint, junction.coordinates),
-  }));
-
-  junctionDistances.sort((a, b) => a.distance - b.distance);
-  return junctionDistances[0].junction.nodeId;
+  return findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 };
