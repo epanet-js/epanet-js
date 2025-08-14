@@ -4,7 +4,6 @@ import { Junction } from "../asset-types/junction";
 import { Asset, LinkAsset, NodeAsset } from "../asset-types";
 import { Position } from "src/types";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
-import turfDistance from "@turf/distance";
 
 type InputData = {
   customerPointIds: readonly string[];
@@ -99,15 +98,10 @@ export const connectCustomers: ModelOperation<InputData> = (
       modifiedJunctions.set(targetNodeId, targetJunctionCopy);
     }
 
-    const connectionDistance = turfDistance(snapPoint, targetNode.coordinates, {
-      units: "meters",
-    });
-
     const connectedCopy = customerPoint.copy();
     connectedCopy.connect({
       pipeId,
       snapPoint,
-      distance: connectionDistance,
       junctionId: targetNodeId,
     });
 
