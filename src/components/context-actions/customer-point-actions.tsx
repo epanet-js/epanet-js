@@ -25,7 +25,7 @@ export function useCustomerPointActions(
 
   const onConnect = useCallback(() => {
     userTracking.capture({
-      name: "customerPoints.connected",
+      name: "customerPointActions.clickedConnect",
       count: 1,
     });
     return Promise.resolve();
@@ -35,7 +35,7 @@ export function useCustomerPointActions(
     if (!customerPoint) return Promise.resolve();
 
     userTracking.capture({
-      name: "customerPoints.disconnected",
+      name: "customerPointActions.clickedDisconnect",
       count: 1,
     });
 

@@ -408,12 +408,12 @@ type EarlyAccessClickedGet = {
 };
 
 type CustomerPointsConnected = {
-  name: "customerPoints.connected";
+  name: "customerPointActions.clickedConnect";
   count: number;
 };
 
 type CustomerPointsDisconnected = {
-  name: "customerPoints.disconnected";
+  name: "customerPointActions.clickedDisconnect";
   count: number;
 };
 
