@@ -58,7 +58,6 @@ export function useCustomerPointActions(
     applicable: customerPoint?.connection !== null,
     icon: <LinkBreak1Icon />,
     onSelect: onDisconnect,
-    variant: "danger-quiet",
   };
 
   return [connectAction, disconnectAction];
