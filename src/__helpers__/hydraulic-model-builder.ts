@@ -346,7 +346,6 @@ export class HydraulicModelBuilder {
         pipeId: string;
         junctionId: string;
         snapPoint?: Position;
-        distance?: number;
       };
     } = {},
   ) {
@@ -354,7 +353,7 @@ export class HydraulicModelBuilder {
     const customerPoint = buildCustomerPoint(id, customerPointOptions);
 
     if (connection) {
-      const { pipeId, junctionId, snapPoint, distance } = connection;
+      const { pipeId, junctionId, snapPoint } = connection;
 
       const pipe = this.assets.get(pipeId);
       if (!pipe || pipe.type !== "pipe") {
@@ -371,12 +370,10 @@ export class HydraulicModelBuilder {
       }
 
       const defaultSnapPoint = snapPoint || customerPoint.coordinates;
-      const defaultDistance = distance || 1;
 
       customerPoint.connect({
         pipeId,
         snapPoint: defaultSnapPoint,
-        distance: defaultDistance,
         junctionId,
       });
 

@@ -122,7 +122,6 @@ describe("disconnectCustomers", () => {
     originalCP.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -154,7 +153,6 @@ describe("disconnectCustomers", () => {
     connectedCP.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -280,7 +278,6 @@ describe("disconnectCustomers", () => {
     cp.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -309,7 +306,6 @@ describe("disconnectCustomers", () => {
     cp.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "NON_EXISTENT",
     });
 

@@ -641,7 +641,5 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
-
-    expect(allocatedCP1?.connection?.distance).toBeLessThan(50);
   });
 });

@@ -31,7 +31,6 @@ describe("addCustomerPoints", () => {
     cp1.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -42,7 +41,6 @@ describe("addCustomerPoints", () => {
     cp2.connect({
       pipeId: "P1",
       snapPoint: [8, 0],
-      distance: 1,
       junctionId: "J2",
     });
 
@@ -124,7 +122,6 @@ describe("addCustomerPoints", () => {
     connectedCP.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -163,7 +160,6 @@ describe("addCustomerPoints", () => {
     cpWithInvalidJunction.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "FAKE_J1",
     });
 
@@ -201,7 +197,6 @@ describe("addCustomerPoints", () => {
     cp1.connect({
       pipeId: "P1",
       snapPoint: [1, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -212,7 +207,6 @@ describe("addCustomerPoints", () => {
     cp2.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
 
@@ -244,7 +238,6 @@ describe("addCustomerPoints", () => {
     cp1.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
     customerPointsToAdd.push(cp1);
@@ -288,7 +281,6 @@ describe("addCustomerPoints", () => {
     newCP.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
     customerPointsToAdd.push(newCP);
@@ -315,7 +307,6 @@ describe("addCustomerPoints", () => {
     cp1.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
     customerPointsToAdd.push(cp1);
@@ -342,7 +333,6 @@ describe("addCustomerPoints", () => {
     cp1.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
-      distance: 1,
       junctionId: "J1",
     });
     customerPointsToAdd.push(cp1);

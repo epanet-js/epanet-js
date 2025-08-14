@@ -209,7 +209,6 @@ const findNearestPipeConnection = (
         return {
           pipeId: `pipe-${pipeIndex}`,
           snapPoint,
-          distance: closestMatch.properties?.dist || 0,
           junctionId,
         };
       }
