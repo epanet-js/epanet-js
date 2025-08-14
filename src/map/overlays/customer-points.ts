@@ -1,4 +1,5 @@
-import { LineLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { LineLayer, PathLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { PathStyleExtension } from "@deck.gl/extensions";
 import {
   CustomerPoint,
   CustomerPoints,
@@ -24,7 +25,7 @@ const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
 ];
 
-export type CustomerPointsLayer = ScatterplotLayer | LineLayer;
+export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
 
 export const shouldShowOvelay = (zoom: number) => zoom >= 14;
@@ -174,19 +175,19 @@ export const buildConnectCustomerPointsPreviewOverlay = (
 
   const isVisible = shouldShowOvelay(zoom);
 
-  const previewConnectionLinesLayer = new LineLayer({
+  const previewConnectionLinesLayer = new PathLayer({
     id: "customer-connect-preview-lines-layer",
     beforeId: "imported-pipes",
     data: connectionLines,
-    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
-    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
-
+    getPath: (d: ConnectionLineData) => [d.sourcePosition, d.targetPosition],
     widthUnits: "meters",
-    getWidth: 1.2,
-    widthMinPixels: 1,
-    widthMaxPixels: 3,
-
+    getWidth: 0.8,
+    widthMinPixels: 0,
+    widthMaxPixels: 2,
     getColor: highlightFillColor,
+    getDashArray: [5, 3],
+    dashJustified: true,
+    extensions: [new PathStyleExtension({ dash: true })],
     antialiasing: true,
     visible: isVisible,
   });
