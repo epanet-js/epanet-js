@@ -6,8 +6,8 @@ import type {
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { useAtomValue } from "jotai";
-import { selectionAtom, dataAtom } from "src/state/jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { selectionAtom, dataAtom, modeAtom, Mode } from "src/state/jotai";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useTranslate } from "src/hooks/use-translate";
@@ -22,14 +22,19 @@ export function useCustomerPointActions(
   const transact = rep.useTransact();
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const setMode = useSetAtom(modeAtom);
 
   const onConnect = useCallback(() => {
+    if (!customerPoint) return Promise.resolve();
+
     userTracking.capture({
       name: "customerPointActions.clickedConnect",
       count: 1,
     });
+
+    setMode({ mode: Mode.CONNECT_CUSTOMER_POINTS });
     return Promise.resolve();
-  }, [userTracking]);
+  }, [customerPoint, userTracking, setMode]);
 
   const onDisconnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();

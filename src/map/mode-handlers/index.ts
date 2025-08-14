@@ -3,6 +3,7 @@ import { Mode } from "src/state/jotai";
 import { useNoneHandlers } from "./none";
 import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
+import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
@@ -31,6 +32,8 @@ export function useModeHandlers(handlerContext: HandlerContext) {
       ...handlerContext,
       linkType: "valve",
     }),
+    [Mode.CONNECT_CUSTOMER_POINTS]:
+      useConnectCustomerPointsHandlers(handlerContext),
   };
   return HANDLERS;
 }

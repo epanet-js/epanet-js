@@ -46,6 +46,7 @@ import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
   buildCustomerPointsHighlightOverlay,
+  buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
@@ -322,13 +323,20 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewEphemeralState && isCustomerPointOn) {
-          const ephemeralOverlay =
-            mapState.ephemeralState.type === "customerPointsHighlight"
-              ? buildCustomerPointsHighlightOverlay(
-                  mapState.ephemeralState.customerPoints,
-                  mapState.currentZoom,
-                )
-              : [];
+          let ephemeralOverlay: CustomerPointsOverlay = [];
+
+          if (mapState.ephemeralState.type === "customerPointsHighlight") {
+            ephemeralOverlay = buildCustomerPointsHighlightOverlay(
+              mapState.ephemeralState.customerPoints,
+              mapState.currentZoom,
+            );
+          } else if (mapState.ephemeralState.type === "connectCustomerPoints") {
+            ephemeralOverlay = buildConnectCustomerPointsPreviewOverlay(
+              mapState.ephemeralState.customerPoints,
+              mapState.ephemeralState.snapPoints,
+              mapState.currentZoom,
+            );
+          }
 
           ephemeralDeckLayersRef.current = ephemeralOverlay;
         }
@@ -631,6 +639,8 @@ const getMovedAssets = (
     case "drawLink":
       return noMoved;
     case "customerPointsHighlight":
+      return noMoved;
+    case "connectCustomerPoints":
       return noMoved;
     case "none":
       return noMoved;

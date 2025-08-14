@@ -9,6 +9,7 @@ import {
   IWrappedFeature,
   LayerConfigMap,
   SYMBOLIZATION_NONE,
+  Position,
 } from "src/types";
 import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
 import type { ExportOptions } from "src/types/export";
@@ -345,10 +346,18 @@ export type EphemeralCustomerPointsHighlight = {
   customerPoints: CustomerPoint[];
 };
 
+export type EphemeralConnectCustomerPoints = {
+  type: "connectCustomerPoints";
+  customerPoints: CustomerPoint[];
+  targetPipeId?: string;
+  snapPoints: Position[];
+};
+
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralMoveAssets
   | EphemeralCustomerPointsHighlight
+  | EphemeralConnectCustomerPoints
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

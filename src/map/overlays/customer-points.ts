@@ -5,6 +5,7 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { hexToArray, strokeColorFor } from "src/lib/color";
 import { colors } from "src/lib/constants";
+import { Position } from "src/types";
 
 interface ConnectionLineData {
   sourcePosition: [number, number];
@@ -148,4 +149,69 @@ export const buildCustomerPointsHighlightOverlay = (
   });
 
   return [haloLayer, highlightLayer];
+};
+
+export const buildConnectCustomerPointsPreviewOverlay = (
+  customerPoints: CustomerPoint[],
+  snapPoints: Position[],
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (customerPoints.length === 0 || snapPoints.length === 0) {
+    return [];
+  }
+
+  const connectionLines: ConnectionLineData[] = [];
+
+  for (let i = 0; i < customerPoints.length && i < snapPoints.length; i++) {
+    const customerPoint = customerPoints[i];
+    const snapPoint = snapPoints[i];
+
+    connectionLines.push({
+      sourcePosition: customerPoint.coordinates as [number, number],
+      targetPosition: snapPoint as [number, number],
+    });
+  }
+
+  const isVisible = shouldShowOvelay(zoom);
+
+  const previewConnectionLinesLayer = new LineLayer({
+    id: "customer-connect-preview-lines-layer",
+    beforeId: "imported-pipes",
+    data: connectionLines,
+    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
+    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
+
+    widthUnits: "meters",
+    getWidth: 1.2,
+    widthMinPixels: 1,
+    widthMaxPixels: 3,
+
+    getColor: highlightFillColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const highlightCustomerPointsLayer = new ScatterplotLayer({
+    id: "customer-connect-preview-points-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: customerPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 2,
+    radiusMinPixels: 1,
+    radiusMaxPixels: 5,
+
+    getFillColor: highlightFillColor,
+    stroked: true,
+    getLineColor: haloFillColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  return [previewConnectionLinesLayer, highlightCustomerPointsLayer];
 };
