@@ -29,6 +29,7 @@ import {
   ephemeralIconHighlightLayers,
   ephemeralJunctionHighlightLayers,
   ephemeralHaloLayer,
+  ephemeralPipeHighlightLayer,
 } from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
@@ -175,6 +176,7 @@ export function makeLayers({
       symbology,
     }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
+    ephemeralPipeHighlightLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",

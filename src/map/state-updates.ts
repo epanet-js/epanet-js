@@ -366,7 +366,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             lastHiddenFeatures.current,
             idMap,
           );
-          await updateEphemeralStateSource(map, mapState.ephemeralState, idMap);
+          await updateEphemeralStateSource(
+            map,
+            mapState.ephemeralState,
+            idMap,
+            assets,
+          );
         }
 
         if ((hasNewSelection && !hasNewImport) || hasNewStyles) {
@@ -404,6 +409,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel.customerPoints,
+    hydraulicModel,
     isCustomerPointOn,
   ]);
 
@@ -619,8 +625,9 @@ const updateEphemeralStateSource = withDebugInstrumentation(
     map: MapEngine,
     ephemeralState: EphemeralEditingState,
     idMap: IDMap,
+    assets: AssetsMap,
   ): Promise<void> => {
-    const features = buildEphemeralStateSource(ephemeralState, idMap);
+    const features = buildEphemeralStateSource(ephemeralState, idMap, assets);
     await map.setSource("ephemeral", features);
   },
   {

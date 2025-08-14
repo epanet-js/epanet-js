@@ -1,13 +1,18 @@
 import { IDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
-import { Asset, NodeAsset } from "src/hydraulic-model/asset-types";
-import { EphemeralEditingState } from "src/state/jotai";
+import { Asset, NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
+import { AssetsMap } from "src/hydraulic-model";
+import {
+  EphemeralEditingState,
+  EphemeralConnectCustomerPoints,
+} from "src/state/jotai";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
   _idMap: IDMap,
+  assets: AssetsMap,
 ): Feature[] => {
   if (ephemeralState.type == "drawLink") {
     return buildDrawLinkSourceData(ephemeralState);
@@ -15,6 +20,10 @@ export const buildEphemeralStateSource = (
 
   if (ephemeralState.type === "moveAssets") {
     return buildMoveAssetsSourceData(ephemeralState);
+  }
+
+  if (ephemeralState.type === "connectCustomerPoints") {
+    return buildConnectCustomerPointsSourceData(ephemeralState, assets);
   }
 
   return [];
@@ -93,6 +102,32 @@ const buildDrawLinkSourceData = (
       coordinates: linkCoordinates,
     },
   });
+
+  return features;
+};
+
+const buildConnectCustomerPointsSourceData = (
+  ephemeralState: EphemeralConnectCustomerPoints,
+  assets: AssetsMap,
+): Feature[] => {
+  const features: Feature[] = [];
+
+  if (ephemeralState.targetPipeId) {
+    const pipe = assets.get(ephemeralState.targetPipeId) as LinkAsset;
+    if (pipe && pipe.isLink) {
+      features.push({
+        type: "Feature",
+        id: `pipe-highlight-${ephemeralState.targetPipeId}`,
+        properties: {
+          pipeHighlight: true,
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: pipe.coordinates,
+        },
+      });
+    }
+  }
 
   return features;
 };

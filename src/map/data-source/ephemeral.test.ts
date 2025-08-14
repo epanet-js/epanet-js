@@ -3,21 +3,30 @@ import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { EphemeralEditingState } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
-import { LinkAsset, NodeAsset } from "src/hydraulic-model";
+import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 
 describe("build ephemeral state source", () => {
   const mockIDMap: IDMap = UIDMap.loadIdsFromPersistence([]);
+  const emptyAssets = new AssetsMap();
 
   it("returns empty array for null state", () => {
     const ephemeralState: EphemeralEditingState = { type: "none" };
-    const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
+    const features = buildEphemeralStateSource(
+      ephemeralState,
+      mockIDMap,
+      emptyAssets,
+    );
     expect(features).toEqual([]);
   });
 
   it("returns empty array for unknown state type", () => {
     const ephemeralState = { type: "unknown" } as any;
-    const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
+    const features = buildEphemeralStateSource(
+      ephemeralState,
+      mockIDMap,
+      emptyAssets,
+    );
     expect(features).toEqual([]);
   });
 
@@ -46,7 +55,11 @@ describe("build ephemeral state source", () => {
         snappingCandidate,
       };
 
-      const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
 
       expect(features).toHaveLength(3);
 
@@ -115,7 +128,11 @@ describe("build ephemeral state source", () => {
         snappingCandidate: reservoir as NodeAsset,
       };
 
-      const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
 
       const [snappingFeature, startNodeFeature] = features;
 
@@ -150,7 +167,11 @@ describe("build ephemeral state source", () => {
         targetAssets: [tankNew, junctionNew],
       };
 
-      const features = buildEphemeralStateSource(ephemeralState, mockIDMap);
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
 
       expect(features).toHaveLength(2);
 

@@ -80,3 +80,21 @@ export const ephemeralDraftLineLayer = ({
     },
   };
 };
+
+export const ephemeralPipeHighlightLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): LineLayer => {
+  return {
+    id: "ephemeral-pipe-highlight",
+    type: "line",
+    source,
+    filter: ["all", ["==", "$type", "LineString"], ["has", "pipeHighlight"]],
+    paint: {
+      "line-opacity": 1,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 5],
+      "line-color": colors.indigo500,
+    },
+  };
+};
