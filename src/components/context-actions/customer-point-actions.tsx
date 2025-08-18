@@ -6,56 +6,39 @@ import type {
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { useAtomValue, useSetAtom } from "jotai";
-import { selectionAtom, dataAtom, modeAtom, Mode } from "src/state/jotai";
-import { disconnectCustomers } from "src/hydraulic-model/model-operations";
-import { usePersistence } from "src/lib/persistence/context";
+import { useAtomValue } from "jotai";
+import { selectionAtom, dataAtom } from "src/state/jotai";
 import { useTranslate } from "src/hooks/use-translate";
-import { useUserTracking } from "src/infra/user-tracking";
+import {
+  useConnectCustomerPoints,
+  useDisconnectCustomerPoints,
+} from "src/commands/customer-point-actions";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
-  _source: ActionProps["as"],
+  source: ActionProps["as"],
 ): Action[] {
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
   const translate = useTranslate();
-  const userTracking = useUserTracking();
-  const setMode = useSetAtom(modeAtom);
+  const connectCustomerPoints = useConnectCustomerPoints();
+  const disconnectCustomerPoints = useDisconnectCustomerPoints();
 
   const isReconnecting = customerPoint?.connection !== null;
 
   const onConnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();
 
-    const eventName = isReconnecting
-      ? "customerPointActions.clickedReconnect"
-      : "customerPointActions.clickedConnect";
-
-    userTracking.capture({
-      name: eventName,
-      count: 1,
-    });
-
-    setMode({ mode: Mode.CONNECT_CUSTOMER_POINTS });
+    const eventSource = source === "context-item" ? "context-menu" : "toolbar";
+    connectCustomerPoints({ source: eventSource });
     return Promise.resolve();
-  }, [customerPoint, userTracking, setMode, isReconnecting]);
+  }, [customerPoint, connectCustomerPoints, source]);
 
   const onDisconnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();
 
-    userTracking.capture({
-      name: "customerPointActions.clickedDisconnect",
-      count: 1,
-    });
-
-    const moment = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [customerPoint.id],
-    });
-    transact(moment);
+    const eventSource = source === "context-item" ? "context-menu" : "toolbar";
+    disconnectCustomerPoints({ source: eventSource });
     return Promise.resolve();
-  }, [customerPoint, hydraulicModel, transact, userTracking]);
+  }, [customerPoint, disconnectCustomerPoints, source]);
 
   const connectAction = {
     label: isReconnecting

@@ -47,6 +47,12 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
+import {
+  connectCustomersShortcut,
+  disconnectCustomersShortcut,
+  useConnectCustomerPoints,
+  useDisconnectCustomerPoints,
+} from "src/commands/customer-point-actions";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -64,6 +70,8 @@ export const CommandShortcuts = () => {
   const selectAll = useSelectAll();
   const toggleSatellite = useToggleSatellite();
   const showSimulationSettings = useShowSimulationSettings();
+  const connectCustomerPoints = useConnectCustomerPoints();
+  const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const simulation = useAtomValue(simulationAtom);
 
   useHotkeys(
@@ -242,6 +250,26 @@ export const CommandShortcuts = () => {
     },
     [showSimulationSettings],
     `Show simulaton settings`,
+  );
+
+  useHotkeys(
+    connectCustomersShortcut,
+    (e) => {
+      e.preventDefault();
+      connectCustomerPoints({ source: "shortcut" });
+    },
+    [connectCustomerPoints],
+    "Connect/Reconnect customer points",
+  );
+
+  useHotkeys(
+    disconnectCustomersShortcut,
+    (e) => {
+      e.preventDefault();
+      disconnectCustomerPoints({ source: "shortcut" });
+    },
+    [disconnectCustomerPoints],
+    "Disconnect customer points",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
