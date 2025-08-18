@@ -6,7 +6,9 @@ import {
   StyledTooltipArrow,
   Button,
   B3Variant,
+  Keycap,
 } from "src/components/elements";
+import { localizeKeybinding } from "src/infra/i18n";
 
 export interface Action {
   onSelect: (event?: Event) => Promise<void>;
@@ -14,6 +16,7 @@ export interface Action {
   label: string;
   variant?: B3Variant;
   applicable: boolean;
+  shortcut?: string;
 }
 
 export interface ActionProps {
@@ -22,7 +25,7 @@ export interface ActionProps {
 }
 
 export function ActionItem({
-  action: { icon, label, onSelect, variant = "quiet" },
+  action: { icon, label, onSelect, variant = "quiet", shortcut },
   as,
   ...rest
 }: {
@@ -53,7 +56,12 @@ export function ActionItem({
       </div>
       <TContent side="bottom">
         <StyledTooltipArrow />
-        <div className="whitespace-nowrap">{label}</div>
+        <div className="flex gap-x-2 items-center whitespace-nowrap">
+          {label}
+          {shortcut ? (
+            <Keycap size="xs">{localizeKeybinding(shortcut)}</Keycap>
+          ) : null}
+        </div>
       </TContent>
     </Tooltip.Root>
   );

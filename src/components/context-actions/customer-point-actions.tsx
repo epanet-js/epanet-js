@@ -12,6 +12,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import {
   useConnectCustomerPoints,
   useDisconnectCustomerPoints,
+  connectCustomersShortcut,
+  disconnectCustomersShortcut,
 } from "src/commands/customer-point-actions";
 
 export function useCustomerPointActions(
@@ -47,6 +49,7 @@ export function useCustomerPointActions(
     applicable: true,
     icon: <Link1Icon />,
     onSelect: onConnect,
+    shortcut: connectCustomersShortcut,
   };
 
   const disconnectAction = {
@@ -54,6 +57,7 @@ export function useCustomerPointActions(
     applicable: customerPoint?.connection !== null,
     icon: <LinkBreak1Icon />,
     onSelect: onDisconnect,
+    shortcut: disconnectCustomersShortcut,
   };
 
   return [connectAction, disconnectAction];
