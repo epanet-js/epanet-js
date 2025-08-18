@@ -25,7 +25,7 @@ export const useConnectCustomerPointsState = () => {
 
   const setConnectState = (state: {
     customerPoints: CustomerPoint[];
-    targetPipeId: string;
+    targetPipeId?: string;
     snapPoints: Position[];
     strategy: "nearest-to-point" | "cursor";
   }) => {
@@ -34,6 +34,20 @@ export const useConnectCustomerPointsState = () => {
       ...state,
     };
     setEphemeralState(newState);
+  };
+
+  const setConnectStateWithoutTarget = () => {
+    const newState: EphemeralConnectCustomerPoints = {
+      type: "connectCustomerPoints",
+      customerPoints,
+      snapPoints: [],
+      strategy: "nearest-to-point",
+    };
+    setEphemeralState(newState);
+  };
+
+  const initializeConnectState = () => {
+    setConnectStateWithoutTarget();
   };
 
   const clearConnectState = () => {
@@ -47,6 +61,8 @@ export const useConnectCustomerPointsState = () => {
     ephemeralState:
       ephemeralState.type === "connectCustomerPoints" ? ephemeralState : null,
     setConnectState,
+    setConnectStateWithoutTarget,
+    initializeConnectState,
     clearConnectState,
   };
 };

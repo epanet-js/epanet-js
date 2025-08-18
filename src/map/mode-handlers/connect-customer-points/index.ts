@@ -1,6 +1,7 @@
 import type { HandlerContext } from "src/types";
 import { Mode, modeAtom } from "src/state/jotai";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtomValue } from "jotai";
+import { useEffect, useRef } from "react";
 import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnapping } from "./pipe-snapping";
@@ -15,18 +16,40 @@ export function useConnectCustomerPointsHandlers({
   map,
   idMap,
 }: HandlerContext): Handlers {
+  const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
-  const { customerPoints, ephemeralState, setConnectState, clearConnectState } =
-    useConnectCustomerPointsState();
+  const {
+    customerPoints,
+    ephemeralState,
+    setConnectState,
+    setConnectStateWithoutTarget,
+    initializeConnectState,
+    clearConnectState,
+  } = useConnectCustomerPointsState();
   const { findNearestPipe, calculateSnapPoints } = usePipeSnapping(
     map,
     idMap,
     hydraulicModel.assets,
   );
+
+  const hasInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      mode.mode === Mode.CONNECT_CUSTOMER_POINTS &&
+      customerPoints.length > 0 &&
+      !hasInitializedRef.current
+    ) {
+      hasInitializedRef.current = true;
+      initializeConnectState();
+    } else if (mode.mode !== Mode.CONNECT_CUSTOMER_POINTS) {
+      hasInitializedRef.current = false;
+    }
+  }, [mode.mode, customerPoints.length, initializeConnectState]);
 
   const move = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     if (customerPoints.length === 0) return;
@@ -49,7 +72,7 @@ export function useConnectCustomerPointsHandlers({
         strategy,
       });
     } else {
-      clearConnectState();
+      setConnectStateWithoutTarget();
     }
   };
 

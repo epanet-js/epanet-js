@@ -48,6 +48,9 @@ import {
   buildCustomerPointsHighlightOverlay,
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
+  StaticConnectionLayerRefs,
+  buildStaticConnectionLayerRefs,
+  buildCustomerPointsOverlayFromStaticRefs,
 } from "./overlays/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 
@@ -188,6 +191,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
+  const staticConnectionLayerRefsRef = useRef<StaticConnectionLayerRefs | null>(
+    null,
+  );
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
@@ -336,6 +342,36 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               mapState.ephemeralState.snapPoints,
               mapState.currentZoom,
             );
+
+            if (!staticConnectionLayerRefsRef.current) {
+              const hiddenIds = new Set(
+                mapState.ephemeralState.customerPoints.map((cp) => cp.id),
+              );
+              staticConnectionLayerRefsRef.current =
+                buildStaticConnectionLayerRefs(
+                  hydraulicModel.customerPoints,
+                  hiddenIds,
+                );
+            }
+
+            if (staticConnectionLayerRefsRef.current) {
+              const staticMainOverlay =
+                buildCustomerPointsOverlayFromStaticRefs(
+                  staticConnectionLayerRefsRef.current,
+                  mapState.currentZoom,
+                );
+              customerPointsOverlayRef.current = staticMainOverlay;
+            }
+          } else if (mapState.ephemeralState.type === "none") {
+            if (staticConnectionLayerRefsRef.current) {
+              staticConnectionLayerRefsRef.current = null;
+            }
+
+            const restoredMainOverlay = buildCustomerPointsOverlay(
+              hydraulicModel.customerPoints,
+              mapState.currentZoom,
+            );
+            customerPointsOverlayRef.current = restoredMainOverlay;
           }
 
           ephemeralDeckLayersRef.current = ephemeralOverlay;
@@ -408,7 +444,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     setMapLoading,
     translate,
     translateUnit,
-    hydraulicModel.customerPoints,
     hydraulicModel,
     isCustomerPointOn,
   ]);

@@ -11,6 +11,7 @@ import { Position } from "src/types";
 interface ConnectionLineData {
   sourcePosition: [number, number];
   targetPosition: [number, number];
+  customerPointId: string;
 }
 
 const fillColor = hexToArray(colors.gray500);
@@ -40,9 +41,97 @@ export const updateCustomerPointsOverlayVisibility = (
   );
 };
 
+export interface StaticConnectionLayerRefs {
+  visibleConnectionLines: ConnectionLineData[];
+  hiddenConnectionLines: ConnectionLineData[];
+  allCustomerPoints: CustomerPoint[];
+}
+
+export const buildStaticConnectionLayerRefs = (
+  customerPoints: CustomerPoints,
+  hiddenCustomerPointIds: Set<string>,
+): StaticConnectionLayerRefs => {
+  const visibleConnectionLines: ConnectionLineData[] = [];
+  const hiddenConnectionLines: ConnectionLineData[] = [];
+  const allCustomerPoints: CustomerPoint[] = [...customerPoints.values()];
+
+  for (const customerPoint of customerPoints.values()) {
+    const snapPosition = customerPoint.snapPosition;
+    if (snapPosition) {
+      const connectionLine: ConnectionLineData = {
+        sourcePosition: customerPoint.coordinates as [number, number],
+        targetPosition: snapPosition as [number, number],
+        customerPointId: customerPoint.id,
+      };
+
+      if (hiddenCustomerPointIds.has(customerPoint.id)) {
+        hiddenConnectionLines.push(connectionLine);
+      } else {
+        visibleConnectionLines.push(connectionLine);
+      }
+    }
+  }
+
+  return {
+    visibleConnectionLines,
+    hiddenConnectionLines,
+    allCustomerPoints,
+  };
+};
+
+export const buildCustomerPointsOverlayFromStaticRefs = (
+  staticRefs: StaticConnectionLayerRefs,
+  zoom: number,
+): CustomerPointsOverlay => {
+  const isVisible = shouldShowOvelay(zoom);
+
+  const connectionLinesLayer = new LineLayer({
+    id: "customer-connection-lines-layer",
+    beforeId: "imported-pipes",
+    data: staticRefs.visibleConnectionLines,
+    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
+    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
+
+    widthUnits: "meters",
+    getWidth: 0.8,
+    widthMinPixels: 0,
+    widthMaxPixels: 2,
+
+    getColor: connectionLineColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const scatterLayer = new ScatterplotLayer({
+    id: "customer-points-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: staticRefs.allCustomerPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 1.5,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 4,
+
+    getFillColor: fillColor,
+    stroked: true,
+    getLineColor: strokeColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+    pickable: true,
+  });
+
+  return [connectionLinesLayer, scatterLayer];
+};
+
 export const buildCustomerPointsOverlay = (
   customerPoints: CustomerPoints,
   zoom: number,
+  hiddenCustomerPointIds?: Set<string>,
 ): CustomerPointsOverlay => {
   const connectionLines: ConnectionLineData[] = [];
 
@@ -52,6 +141,7 @@ export const buildCustomerPointsOverlay = (
       connectionLines.push({
         sourcePosition: customerPoint.coordinates as [number, number],
         targetPosition: snapPosition as [number, number],
+        customerPointId: customerPoint.id,
       });
     }
   }
@@ -66,7 +156,8 @@ export const buildCustomerPointsOverlay = (
     getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
 
     widthUnits: "meters",
-    getWidth: 0.8,
+    getWidth: (d: ConnectionLineData) =>
+      hiddenCustomerPointIds?.has(d.customerPointId) ? 0 : 0.8,
     widthMinPixels: 0,
     widthMaxPixels: 2,
 
@@ -170,6 +261,7 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     connectionLines.push({
       sourcePosition: customerPoint.coordinates as [number, number],
       targetPosition: snapPoint as [number, number],
+      customerPointId: customerPoint.id,
     });
   }
 
@@ -182,8 +274,8 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     getPath: (d: ConnectionLineData) => [d.sourcePosition, d.targetPosition],
     widthUnits: "meters",
     getWidth: 0.8,
-    widthMinPixels: 0,
-    widthMaxPixels: 2,
+    widthMinPixels: 1,
+    widthMaxPixels: 3,
     getColor: highlightFillColor,
     getDashArray: [5, 3],
     dashJustified: true,
