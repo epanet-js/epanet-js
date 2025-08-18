@@ -79,7 +79,9 @@ describe("importCustomerPoints", () => {
       ).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -127,7 +129,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -161,7 +165,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -267,7 +273,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -331,7 +339,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -392,7 +402,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
@@ -456,7 +468,9 @@ describe("importCustomerPoints", () => {
 
     await waitForAllocations();
 
-    await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /apply changes/i }),
+    );
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);

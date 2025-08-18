@@ -18,6 +18,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence/context";
+import { Button } from "src/components/elements";
 
 export const AllocationStep: React.FC<{
   onBack: () => void;
@@ -257,6 +258,9 @@ export const AllocationStep: React.FC<{
       disabled:
         isProcessing || isAllocating || isEditingRules || !allocationResult,
       loading: isProcessing,
+      label: translate(
+        "importCustomerPoints.wizard.allocationStep.applyChanges",
+      ),
     },
   };
 
@@ -283,36 +287,39 @@ export const AllocationStep: React.FC<{
             {translate("importCustomerPoints.wizard.allocationStep.rulesTitle")}
           </h3>
           {!isEditingRules ? (
-            <button
+            <Button
               type="button"
               onClick={handleEdit}
               disabled={isAllocating}
-              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-100 border border-purple-300 rounded-md hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-100"
+              variant="primary"
+              size="sm"
             >
               {translate(
                 "importCustomerPoints.wizard.allocationStep.editButton",
               )}
-            </button>
+            </Button>
           ) : (
             <div className="flex items-center space-x-2">
-              <button
+              <Button
                 type="button"
                 onClick={handleSave}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                variant="primary"
+                size="sm"
               >
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.saveButton",
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={handleCancel}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                variant="default"
+                size="sm"
               >
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.cancelButton",
                 )}
-              </button>
+              </Button>
             </div>
           )}
         </div>

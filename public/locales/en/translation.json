@@ -492,7 +492,8 @@
           "moveDownTooltip": "Move down",
           "removeRuleTooltip": "Remove rule",
           "addRuleButton": "Add Rule"
-        }
+        },
+        "applyChanges": "Apply Changes"
       }
     },
     "dataSource": {

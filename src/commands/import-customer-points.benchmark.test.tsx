@@ -200,7 +200,7 @@ const runSingleNetworkBenchmark = async ({
   const allocationTime = performance.now() - stepStartTime;
 
   stepStartTime = performance.now();
-  await userEvent.click(screen.getByRole("button", { name: /finish/i }));
+  await userEvent.click(screen.getByRole("button", { name: /apply changes/i }));
   await expectSuccessNotification();
 
   const finishTime = performance.now() - stepStartTime;

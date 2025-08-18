@@ -15,6 +15,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";
 import { useWizardState } from "./use-wizard-state";
+import { Button } from "src/components/elements";
 
 type AllocationRulesTableProps = {
   rules: AllocationRule[];
@@ -226,16 +227,17 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
       {isEditing && (
         <div className="flex justify-center">
-          <button
+          <Button
             type="button"
             onClick={handleAddRule}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 border border-purple-300 rounded-md hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+            variant="primary"
+            size="sm"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
             {translate(
               "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
             )}
-          </button>
+          </Button>
         </div>
       )}
     </>

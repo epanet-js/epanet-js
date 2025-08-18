@@ -114,7 +114,9 @@ describe("AllocationStep", () => {
     renderWizard(store);
 
     expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /apply changes/i }),
+    ).toBeDisabled();
   });
 
   it("disables navigation and action buttons while editing rules", async () => {
@@ -137,7 +139,7 @@ describe("AllocationStep", () => {
       name: /back/i,
     });
     const finishButton = within(navigation).getByRole("button", {
-      name: /finish/i,
+      name: /apply changes/i,
     });
     expect(backButton).not.toBeDisabled();
     expect(finishButton).not.toBeDisabled();
