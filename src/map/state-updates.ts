@@ -49,7 +49,10 @@ import {
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  CustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -305,70 +308,48 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             hasNewCustomerPoints ||
             hasNewHiddenCustomerPoints)
         ) {
-          const overlay = buildCustomerPointsOverlay(
+          customerPointsOverlayRef.current = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             mapState.currentZoom,
             mapState.hiddenCustomerPoints.length > 0
               ? new Set(mapState.hiddenCustomerPoints.map((cp) => cp.id))
               : undefined,
           );
-          customerPointsOverlayRef.current = overlay;
         }
 
         if (hasNewZoom && isCustomerPointOn) {
-          const overlay = updateCustomerPointsOverlayVisibility(
-            customerPointsOverlayRef.current,
-            mapState.currentZoom,
-          );
-          customerPointsOverlayRef.current = overlay;
+          customerPointsOverlayRef.current =
+            updateCustomerPointsOverlayVisibility(
+              customerPointsOverlayRef.current,
+              mapState.currentZoom,
+            );
 
-          const selectionOverlay = updateCustomerPointsOverlayVisibility(
-            selectionDeckLayersRef.current,
-            mapState.currentZoom,
-          );
-          selectionDeckLayersRef.current = selectionOverlay;
+          selectionDeckLayersRef.current =
+            updateCustomerPointsOverlayVisibility(
+              selectionDeckLayersRef.current,
+              mapState.currentZoom,
+            );
 
-          const ephemeralOverlay = updateCustomerPointsOverlayVisibility(
-            ephemeralDeckLayersRef.current,
-            mapState.currentZoom,
-          );
-          ephemeralDeckLayersRef.current = ephemeralOverlay;
+          ephemeralDeckLayersRef.current =
+            updateCustomerPointsOverlayVisibility(
+              ephemeralDeckLayersRef.current,
+              mapState.currentZoom,
+            );
         }
 
         if (hasNewEphemeralState && isCustomerPointOn) {
-          let ephemeralOverlay: CustomerPointsOverlay = [];
-
-          if (mapState.ephemeralState.type === "customerPointsHighlight") {
-            ephemeralOverlay = buildCustomerPointsHighlightOverlay(
-              mapState.ephemeralState.customerPoints,
-              mapState.currentZoom,
-            );
-          } else if (mapState.ephemeralState.type === "connectCustomerPoints") {
-            ephemeralOverlay = buildConnectCustomerPointsPreviewOverlay(
-              mapState.ephemeralState.customerPoints,
-              mapState.ephemeralState.snapPoints,
-              mapState.currentZoom,
-            );
-          }
-
-          ephemeralDeckLayersRef.current = ephemeralOverlay;
+          ephemeralDeckLayersRef.current = buildCustomerPointsEphemeralOverlay(
+            mapState.ephemeralState,
+            mapState.currentZoom,
+          );
         }
 
         if (hasNewSelection && isCustomerPointOn) {
-          if (mapState.selection.type === "singleCustomerPoint") {
-            const customerPoint = hydraulicModel.customerPoints.get(
-              mapState.selection.id,
-            );
-            if (customerPoint) {
-              const selectionOverlay = buildCustomerPointsHighlightOverlay(
-                [customerPoint],
-                mapState.currentZoom,
-              );
-              selectionDeckLayersRef.current = selectionOverlay;
-            }
-          } else {
-            selectionDeckLayersRef.current = [];
-          }
+          selectionDeckLayersRef.current = buildCustomerPointsSelectionOverlay(
+            mapState.selection,
+            hydraulicModel.customerPoints,
+            mapState.currentZoom,
+          );
         }
 
         if (hasNewEphemeralState) {
@@ -682,4 +663,37 @@ const getHiddenCustomerPoints = (
     case "none":
       return noHiddenCustomerPoints;
   }
+};
+
+const buildCustomerPointsEphemeralOverlay = (
+  ephemeralState: EphemeralEditingState,
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (ephemeralState.type === "customerPointsHighlight") {
+    return buildCustomerPointsHighlightOverlay(
+      ephemeralState.customerPoints,
+      zoom,
+    );
+  } else if (ephemeralState.type === "connectCustomerPoints") {
+    return buildConnectCustomerPointsPreviewOverlay(
+      ephemeralState.customerPoints,
+      ephemeralState.snapPoints,
+      zoom,
+    );
+  }
+  return [];
+};
+
+const buildCustomerPointsSelectionOverlay = (
+  selection: Sel,
+  customerPoints: CustomerPoints,
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (selection.type === "singleCustomerPoint") {
+    const customerPoint = customerPoints.get(selection.id);
+    if (customerPoint) {
+      return buildCustomerPointsHighlightOverlay([customerPoint], zoom);
+    }
+  }
+  return [];
 };
