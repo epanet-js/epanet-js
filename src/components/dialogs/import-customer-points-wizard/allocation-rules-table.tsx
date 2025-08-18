@@ -230,10 +230,10 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
           <Button
             type="button"
             onClick={handleAddRule}
-            variant="primary"
+            variant="default"
             size="sm"
           >
-            <PlusIcon className="w-4 h-4 mr-2" />
+            <PlusIcon className="w-4 h-4" />
             {translate(
               "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
             )}

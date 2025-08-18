@@ -102,7 +102,7 @@ describe("AllocationStep", () => {
     expect(editButton).toBeDisabled();
   });
 
-  it("disables navigation and action buttons while allocating", () => {
+  it("disables navigation and hides action buttons while allocating", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
@@ -114,12 +114,14 @@ describe("AllocationStep", () => {
     renderWizard(store);
 
     expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
+
+    // Apply Changes button should be hidden during allocation
     expect(
-      screen.getByRole("button", { name: /apply changes/i }),
-    ).toBeDisabled();
+      screen.queryByRole("button", { name: /apply changes/i }),
+    ).not.toBeInTheDocument();
   });
 
-  it("disables navigation and action buttons while editing rules", async () => {
+  it("disables navigation and hides action buttons while editing rules", async () => {
     const user = userEvent.setup();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -138,16 +140,21 @@ describe("AllocationStep", () => {
     const backButton = within(navigation).getByRole("button", {
       name: /back/i,
     });
-    const finishButton = within(navigation).getByRole("button", {
-      name: /apply changes/i,
-    });
+
+    // Apply Changes button should be visible initially
+    expect(
+      within(navigation).getByRole("button", { name: /apply changes/i }),
+    ).toBeInTheDocument();
     expect(backButton).not.toBeDisabled();
-    expect(finishButton).not.toBeDisabled();
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
 
     expect(backButton).toBeDisabled();
-    expect(finishButton).toBeDisabled();
+
+    // Apply Changes button should be hidden during editing
+    expect(
+      within(navigation).queryByRole("button", { name: /apply changes/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows loading spinners in allocations column while allocating", () => {

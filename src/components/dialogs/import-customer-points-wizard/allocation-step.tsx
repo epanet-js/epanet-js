@@ -253,15 +253,17 @@ export const AllocationStep: React.FC<{
       onClick: onBack,
       disabled: isProcessing || isAllocating || isEditingRules,
     },
-    finishAction: {
-      onClick: handleFinish,
-      disabled:
-        isProcessing || isAllocating || isEditingRules || !allocationResult,
-      loading: isProcessing,
-      label: translate(
-        "importCustomerPoints.wizard.allocationStep.applyChanges",
-      ),
-    },
+    finishAction:
+      isEditingRules || isAllocating
+        ? undefined
+        : {
+            onClick: handleFinish,
+            disabled: isProcessing || !allocationResult,
+            loading: isProcessing,
+            label: translate(
+              "importCustomerPoints.wizard.allocationStep.applyChanges",
+            ),
+          },
   };
 
   return (
