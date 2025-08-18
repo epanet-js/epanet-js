@@ -7,9 +7,8 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 export const DemandOptionsStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
-  onCancel: () => void;
   wizardState: WizardState & WizardActions;
-}> = ({ onNext, onBack, onCancel, wizardState }) => {
+}> = ({ onNext, onBack, wizardState }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { keepDemands, setKeepDemands, error } = wizardState;
@@ -99,9 +98,6 @@ export const DemandOptionsStep: React.FC<{
       </div>
 
       <WizardActionsComponent
-        cancelAction={{
-          onClick: onCancel,
-        }}
         backAction={{
           onClick: onBack,
         }}

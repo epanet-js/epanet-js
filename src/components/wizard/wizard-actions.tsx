@@ -10,14 +10,12 @@ interface WizardAction {
 }
 
 interface WizardActionsProps {
-  cancelAction: WizardAction;
   backAction?: WizardAction;
   nextAction?: WizardAction;
   finishAction?: WizardAction;
 }
 
 export const WizardActions: React.FC<WizardActionsProps> = ({
-  cancelAction,
   backAction,
   nextAction,
   finishAction,
@@ -30,15 +28,6 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
       aria-label="wizard actions"
       className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200"
     >
-      <Button
-        onClick={cancelAction.onClick}
-        variant="default"
-        size="sm"
-        disabled={cancelAction.disabled}
-      >
-        {cancelAction.label || translate("wizard.cancel")}
-      </Button>
-
       <div className="flex space-x-3">
         {backAction && (
           <Button
@@ -50,7 +39,9 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             {backAction.label || translate("wizard.back")}
           </Button>
         )}
+      </div>
 
+      <div className="flex space-x-3">
         {nextAction && (
           <Button
             onClick={nextAction.onClick}

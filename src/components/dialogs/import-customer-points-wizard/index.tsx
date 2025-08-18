@@ -110,21 +110,17 @@ export const ImportCustomerPointsWizard: React.FC<
         title={translate("importCustomerPoints.wizard.title")}
         steps={steps}
         currentStep={wizardState.currentStep}
+        onClose={handleCancel}
       />
 
       <WizardContent>
         {wizardState.currentStep === 1 && (
-          <DataInputStep
-            onNext={handleNext}
-            onCancel={handleCancel}
-            wizardState={wizardState}
-          />
+          <DataInputStep onNext={handleNext} wizardState={wizardState} />
         )}
         {wizardState.currentStep === 2 && (
           <DataPreviewStep
             onNext={handleNext}
             onBack={handleBack}
-            onCancel={handleCancel}
             wizardState={wizardState}
           />
         )}
@@ -132,14 +128,12 @@ export const ImportCustomerPointsWizard: React.FC<
           <DemandOptionsStep
             onNext={handleNext}
             onBack={handleBack}
-            onCancel={handleCancel}
             wizardState={wizardState}
           />
         )}
         {wizardState.currentStep === 4 && (
           <AllocationStep
             onBack={handleBack}
-            onCancel={handleCancel}
             onFinish={handleFinish}
             wizardState={wizardState}
           />

@@ -13,9 +13,8 @@ import { dataAtom } from "src/state/jotai";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
-  onCancel: () => void;
   wizardState: WizardState & WizardActions;
-}> = ({ onNext, onCancel, wizardState }) => {
+}> = ({ onNext, wizardState }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
@@ -145,10 +144,6 @@ export const DataInputStep: React.FC<{
       )}
 
       <WizardActionsComponent
-        cancelAction={{
-          onClick: onCancel,
-          disabled: isLoading,
-        }}
         nextAction={{
           onClick: onNext,
           disabled: !parsedDataSummary,

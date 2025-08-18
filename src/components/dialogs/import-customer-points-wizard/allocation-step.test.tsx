@@ -113,7 +113,6 @@ describe("AllocationStep", () => {
     });
     renderWizard(store);
 
-    expect(screen.getByRole("button", { name: /cancel/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
@@ -134,22 +133,17 @@ describe("AllocationStep", () => {
     const navigation = screen.getByRole("navigation", {
       name: "wizard actions",
     });
-    const wizardCancelButton = within(navigation).getByRole("button", {
-      name: /cancel/i,
-    });
     const backButton = within(navigation).getByRole("button", {
       name: /back/i,
     });
     const finishButton = within(navigation).getByRole("button", {
       name: /finish/i,
     });
-    expect(wizardCancelButton).not.toBeDisabled();
     expect(backButton).not.toBeDisabled();
     expect(finishButton).not.toBeDisabled();
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    expect(wizardCancelButton).toBeDisabled();
     expect(backButton).toBeDisabled();
     expect(finishButton).toBeDisabled();
   });

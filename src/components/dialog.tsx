@@ -53,10 +53,12 @@ export const DialogContainer = ({
   size = "sm",
   fillMode = "full",
   children,
+  disableOutsideClick = false,
 }: {
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   children: React.ReactNode;
+  disableOutsideClick?: boolean;
 }) => {
   const { closeDialog } = useDialogState();
 
@@ -88,6 +90,9 @@ export const DialogContainer = ({
               e.preventDefault();
               e.stopPropagation();
             }}
+            onInteractOutside={
+              disableOutsideClick ? (e) => e.preventDefault() : undefined
+            }
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={size}
             fillMode={fillMode}

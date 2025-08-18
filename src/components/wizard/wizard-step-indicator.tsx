@@ -19,7 +19,7 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
     <nav
       role="navigation"
       aria-label="Import wizard steps"
-      className="flex items-center space-x-4"
+      className="flex items-center space-x-4 py-4"
     >
       {steps.map((step, index) => (
         <React.Fragment key={step.number}>

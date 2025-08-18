@@ -14,9 +14,8 @@ type TabType = "customerPoints" | "issues";
 export const DataPreviewStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
-  onCancel: () => void;
   wizardState: WizardState & WizardActions;
-}> = ({ onNext, onBack, onCancel, wizardState }) => {
+}> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
   const { parsedDataSummary, error } = wizardState;
@@ -105,9 +104,6 @@ export const DataPreviewStep: React.FC<{
       </div>
 
       <WizardActionsComponent
-        cancelAction={{
-          onClick: onCancel,
-        }}
         backAction={{
           onClick: onBack,
         }}

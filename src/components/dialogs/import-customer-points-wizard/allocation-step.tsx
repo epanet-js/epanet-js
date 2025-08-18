@@ -21,14 +21,13 @@ import { usePersistence } from "src/lib/persistence/context";
 
 export const AllocationStep: React.FC<{
   onBack: () => void;
-  onCancel: () => void;
   onFinish: () => void;
   wizardState: WizardState &
     WizardActions & {
       allocationRules: AllocationRule[];
       units: { diameter: Unit; length: Unit };
     };
-}> = ({ onBack, onCancel, onFinish, wizardState }) => {
+}> = ({ onBack, onFinish, wizardState }) => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
   const translate = useTranslate();
@@ -249,10 +248,6 @@ export const AllocationStep: React.FC<{
   const unallocatedCount = Math.max(0, totalCustomerPoints - totalAllocated);
 
   const actionProps = {
-    cancelAction: {
-      onClick: onCancel,
-      disabled: isProcessing || isAllocating || isEditingRules,
-    },
     backAction: {
       onClick: onBack,
       disabled: isProcessing || isAllocating || isEditingRules,

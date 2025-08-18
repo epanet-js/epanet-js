@@ -412,7 +412,7 @@ describe("importCustomerPoints", () => {
     await triggerCommand();
     await waitForWizardToOpen();
 
-    await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+    await userEvent.click(screen.getByRole("button", { name: /close/i }));
 
     await waitFor(() => {
       expect(screen.queryByText(/import customer/)).not.toBeInTheDocument();
