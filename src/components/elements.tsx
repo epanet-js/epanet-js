@@ -580,7 +580,8 @@ export type B3Variant =
   | "quiet/mode"
   | "destructive"
   | "danger-quiet"
-  | "ultra-quiet";
+  | "ultra-quiet"
+  | "success";
 export type B3Side = "default" | "left" | "right" | "middle";
 
 export const sharedPadding = (
@@ -647,6 +648,8 @@ export function sharedOutline(
     focus-visible:border-red-500   dark:focus-visible:border-red-300
     hover:border-red-300   dark:hover:border-red-300
   `]: variant === "destructive" && !disabled,
+
+      [`border border-green-500`]: variant === "success",
     },
   ];
 }
@@ -671,6 +674,11 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
     case "destructive":
     case "danger-quiet":
       return !disabled && `hover:bg-red-500/10 dark:hover:bg-red-500/20`;
+    case "success":
+      return [
+        `bg-green-500`,
+        !disabled && `hover:bg-green-600 dark:hover:bg-green-400 hover:shadow`,
+      ];
   }
 };
 
@@ -690,6 +698,9 @@ const sharedText = (variant: B3Variant): ClassValue => {
     }
     case "destructive": {
       return "font-medium text-red-500 dark:text-red-300";
+    }
+    case "success": {
+      return "font-medium text-white";
     }
   }
 };

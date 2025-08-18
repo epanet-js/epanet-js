@@ -37,7 +37,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
         {backAction && (
           <Button
             onClick={backAction.onClick}
-            variant="default"
+            variant="quiet"
             size="sm"
             disabled={backAction.disabled}
           >
@@ -63,7 +63,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
         {finishAction && (
           <Button
             onClick={finishAction.onClick}
-            variant="primary"
+            variant="success"
             size="sm"
             disabled={finishAction.disabled}
           >
