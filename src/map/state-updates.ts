@@ -48,9 +48,6 @@ import {
   buildCustomerPointsHighlightOverlay,
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
-  StaticConnectionLayerRefs,
-  buildStaticConnectionLayerRefs,
-  buildCustomerPointsOverlayFromStaticRefs,
 } from "./overlays/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 
@@ -191,7 +188,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
-  const staticConnectionLayerRefsRef = useRef<StaticConnectionLayerRefs | null>(
+  const filteredCustomerPointsOverlayRef = useRef<CustomerPointsOverlay | null>(
     null,
   );
   const translate = useTranslate();
@@ -315,6 +312,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
           customerPointsOverlayRef.current = overlay;
 
+          if (filteredCustomerPointsOverlayRef.current) {
+            const filteredOverlay = updateCustomerPointsOverlayVisibility(
+              filteredCustomerPointsOverlayRef.current,
+              mapState.currentZoom,
+            );
+            filteredCustomerPointsOverlayRef.current = filteredOverlay;
+            customerPointsOverlayRef.current = filteredOverlay;
+          }
+
           const selectionOverlay = updateCustomerPointsOverlayVisibility(
             selectionDeckLayersRef.current,
             mapState.currentZoom,
@@ -343,28 +349,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               mapState.currentZoom,
             );
 
-            if (!staticConnectionLayerRefsRef.current) {
-              const hiddenIds = new Set(
+            if (!filteredCustomerPointsOverlayRef.current) {
+              const excludedIds = new Set(
                 mapState.ephemeralState.customerPoints.map((cp) => cp.id),
               );
-              staticConnectionLayerRefsRef.current =
-                buildStaticConnectionLayerRefs(
-                  hydraulicModel.customerPoints,
-                  hiddenIds,
-                );
+              const filteredOverlay = buildCustomerPointsOverlay(
+                hydraulicModel.customerPoints,
+                mapState.currentZoom,
+                excludedIds,
+              );
+              filteredCustomerPointsOverlayRef.current = filteredOverlay;
             }
 
-            if (staticConnectionLayerRefsRef.current) {
-              const staticMainOverlay =
-                buildCustomerPointsOverlayFromStaticRefs(
-                  staticConnectionLayerRefsRef.current,
-                  mapState.currentZoom,
-                );
-              customerPointsOverlayRef.current = staticMainOverlay;
-            }
+            customerPointsOverlayRef.current =
+              filteredCustomerPointsOverlayRef.current;
           } else if (mapState.ephemeralState.type === "none") {
-            if (staticConnectionLayerRefsRef.current) {
-              staticConnectionLayerRefsRef.current = null;
+            if (filteredCustomerPointsOverlayRef.current) {
+              filteredCustomerPointsOverlayRef.current = null;
             }
 
             const restoredMainOverlay = buildCustomerPointsOverlay(
