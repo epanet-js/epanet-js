@@ -351,6 +351,7 @@ export type EphemeralConnectCustomerPoints = {
   customerPoints: CustomerPoint[];
   targetPipeId?: string;
   snapPoints: Position[];
+  strategy: "nearest-to-point" | "cursor";
 };
 
 export type EphemeralEditingState =

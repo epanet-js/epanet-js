@@ -46,6 +46,7 @@ export function useConnectCustomerPointsHandlers({
         customerPoints,
         targetPipeId: nearestPipe.pipeId,
         snapPoints,
+        strategy,
       });
     } else {
       clearConnectState();
@@ -71,6 +72,7 @@ export function useConnectCustomerPointsHandlers({
       userTracking.capture({
         name: "customerPoints.connected",
         count: ephemeralState.customerPoints.length,
+        strategy: ephemeralState.strategy,
       });
 
       transact(moment);

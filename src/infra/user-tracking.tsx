@@ -420,6 +420,7 @@ type CustomerPointsClickedDisconnect = {
 type CustomerPointsConnectedCompleted = {
   name: "customerPoints.connected";
   count: number;
+  strategy: "nearest-to-point" | "cursor";
 };
 
 export type UserEvent =

@@ -27,6 +27,7 @@ export const useConnectCustomerPointsState = () => {
     customerPoints: CustomerPoint[];
     targetPipeId: string;
     snapPoints: Position[];
+    strategy: "nearest-to-point" | "cursor";
   }) => {
     const newState: EphemeralConnectCustomerPoints = {
       type: "connectCustomerPoints",
