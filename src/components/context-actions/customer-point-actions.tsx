@@ -24,17 +24,23 @@ export function useCustomerPointActions(
   const userTracking = useUserTracking();
   const setMode = useSetAtom(modeAtom);
 
+  const isReconnecting = customerPoint?.connection !== null;
+
   const onConnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();
 
+    const eventName = isReconnecting
+      ? "customerPointActions.clickedReconnect"
+      : "customerPointActions.clickedConnect";
+
     userTracking.capture({
-      name: "customerPointActions.clickedConnect",
+      name: eventName,
       count: 1,
     });
 
     setMode({ mode: Mode.CONNECT_CUSTOMER_POINTS });
     return Promise.resolve();
-  }, [customerPoint, userTracking, setMode]);
+  }, [customerPoint, userTracking, setMode, isReconnecting]);
 
   const onDisconnect = useCallback(() => {
     if (!customerPoint) return Promise.resolve();
@@ -52,8 +58,10 @@ export function useCustomerPointActions(
   }, [customerPoint, hydraulicModel, transact, userTracking]);
 
   const connectAction = {
-    label: translate("contextActions.customerPoints.connect"),
-    applicable: customerPoint?.connection === null,
+    label: isReconnecting
+      ? translate("contextActions.customerPoints.reconnect")
+      : translate("contextActions.customerPoints.connect"),
+    applicable: true,
     icon: <Link1Icon />,
     onSelect: onConnect,
   };

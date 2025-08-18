@@ -508,6 +508,7 @@
   "contextActions": {
     "customerPoints": {
       "connect": "Connect",
+      "reconnect": "Reconnect",
       "disconnect": "Disconnect",
       "customerPointSelected": "{{1}} customer point"
     }

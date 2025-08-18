@@ -412,6 +412,11 @@ type CustomerPointsClickedConnect = {
   count: number;
 };
 
+type CustomerPointsClickedReconnect = {
+  name: "customerPointActions.clickedReconnect";
+  count: number;
+};
+
 type CustomerPointsClickedDisconnect = {
   name: "customerPointActions.clickedDisconnect";
   count: number;
@@ -488,6 +493,7 @@ export type UserEvent =
   | ImportCustomerPointsWizardCancel
   | EarlyAccessClickedGet
   | CustomerPointsClickedConnect
+  | CustomerPointsClickedReconnect
   | CustomerPointsClickedDisconnect
   | CustomerPointsConnectedCompleted
   | ModelBuilderOpened
