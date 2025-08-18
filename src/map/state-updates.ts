@@ -49,6 +49,7 @@ import {
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
@@ -78,6 +79,7 @@ type MapState = {
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
+  hiddenCustomerPoints: CustomerPoint[];
   isOffline: boolean;
   customerPointsMeta: { count: number; keysHash: string };
   currentZoom: number;
@@ -97,6 +99,7 @@ const nullMapState: MapState = {
   simulation: initialSimulationState,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
+  hiddenCustomerPoints: [],
   isOffline: false,
   customerPointsMeta: { count: 0, keysHash: "" },
   currentZoom: DEFAULT_ZOOM,
@@ -125,6 +128,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
   const movedAssetIds = getMovedAssets(ephemeralState);
+  const hiddenCustomerPoints = getHiddenCustomerPoints(ephemeralState);
   const isOffline = get(offlineAtom);
 
   return {
@@ -137,6 +141,7 @@ const mapStateAtom = atom<MapState>((get) => {
     simulation,
     selectedAssetIds,
     movedAssetIds,
+    hiddenCustomerPoints,
     isOffline,
     customerPointsMeta,
     currentZoom,
@@ -155,6 +160,7 @@ const detectChanges = (
   hasNewSimulation: boolean;
   hasNewSymbology: boolean;
   hasNewCustomerPoints: boolean;
+  hasNewHiddenCustomerPoints: boolean;
   hasNewZoom: boolean;
 } => {
   return {
@@ -168,6 +174,8 @@ const detectChanges = (
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
     hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
+    hasNewHiddenCustomerPoints:
+      state.hiddenCustomerPoints !== prev.hiddenCustomerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
   };
 };
@@ -188,9 +196,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
-  const filteredCustomerPointsOverlayRef = useRef<CustomerPointsOverlay | null>(
-    null,
-  );
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
@@ -213,6 +218,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSymbology,
       hasNewSimulation,
       hasNewCustomerPoints,
+      hasNewHiddenCustomerPoints,
       hasNewZoom,
     } = changes;
 
@@ -296,11 +302,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           (hasNewImport ||
             hasNewEditions ||
             hasNewStyles ||
-            hasNewCustomerPoints)
+            hasNewCustomerPoints ||
+            hasNewHiddenCustomerPoints)
         ) {
           const overlay = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             mapState.currentZoom,
+            mapState.hiddenCustomerPoints.length > 0
+              ? new Set(mapState.hiddenCustomerPoints.map((cp) => cp.id))
+              : undefined,
           );
           customerPointsOverlayRef.current = overlay;
         }
@@ -311,15 +321,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.currentZoom,
           );
           customerPointsOverlayRef.current = overlay;
-
-          if (filteredCustomerPointsOverlayRef.current) {
-            const filteredOverlay = updateCustomerPointsOverlayVisibility(
-              filteredCustomerPointsOverlayRef.current,
-              mapState.currentZoom,
-            );
-            filteredCustomerPointsOverlayRef.current = filteredOverlay;
-            customerPointsOverlayRef.current = filteredOverlay;
-          }
 
           const selectionOverlay = updateCustomerPointsOverlayVisibility(
             selectionDeckLayersRef.current,
@@ -348,31 +349,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               mapState.ephemeralState.snapPoints,
               mapState.currentZoom,
             );
-
-            if (!filteredCustomerPointsOverlayRef.current) {
-              const excludedIds = new Set(
-                mapState.ephemeralState.customerPoints.map((cp) => cp.id),
-              );
-              const filteredOverlay = buildCustomerPointsOverlay(
-                hydraulicModel.customerPoints,
-                mapState.currentZoom,
-                excludedIds,
-              );
-              filteredCustomerPointsOverlayRef.current = filteredOverlay;
-            }
-
-            customerPointsOverlayRef.current =
-              filteredCustomerPointsOverlayRef.current;
-          } else if (mapState.ephemeralState.type === "none") {
-            if (filteredCustomerPointsOverlayRef.current) {
-              filteredCustomerPointsOverlayRef.current = null;
-            }
-
-            const restoredMainOverlay = buildCustomerPointsOverlay(
-              hydraulicModel.customerPoints,
-              mapState.currentZoom,
-            );
-            customerPointsOverlayRef.current = restoredMainOverlay;
           }
 
           ephemeralDeckLayersRef.current = ephemeralOverlay;
@@ -687,5 +663,23 @@ const getMovedAssets = (
       return noMoved;
     case "none":
       return noMoved;
+  }
+};
+
+const noHiddenCustomerPoints: CustomerPoint[] = [];
+const getHiddenCustomerPoints = (
+  ephemeralState: EphemeralEditingState,
+): CustomerPoint[] => {
+  switch (ephemeralState.type) {
+    case "connectCustomerPoints":
+      return ephemeralState.customerPoints;
+    case "customerPointsHighlight":
+      return noHiddenCustomerPoints;
+    case "drawLink":
+      return noHiddenCustomerPoints;
+    case "moveAssets":
+      return noHiddenCustomerPoints;
+    case "none":
+      return noHiddenCustomerPoints;
   }
 };
