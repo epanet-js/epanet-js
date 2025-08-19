@@ -15,11 +15,7 @@ export const useConnectCustomerPoints = () => {
   const setMode = useSetAtom(modeAtom);
 
   const connectCustomerPoints = useCallback(
-    ({
-      source: _source,
-    }: {
-      source: "shortcut" | "toolbar" | "context-menu";
-    }) => {
+    ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
       if (selection.type !== "singleCustomerPoint") return;
 
       const customerPoint = data.hydraulicModel.customerPoints.get(
@@ -29,12 +25,13 @@ export const useConnectCustomerPoints = () => {
 
       const isReconnecting = customerPoint.connection !== null;
       const eventName = isReconnecting
-        ? "customerPointActions.clickedReconnect"
-        : "customerPointActions.clickedConnect";
+        ? "customerPointActions.reconnectStarted"
+        : "customerPointActions.connectStarted";
 
       userTracking.capture({
         name: eventName,
         count: 1,
+        source,
       });
 
       setMode({ mode: Mode.CONNECT_CUSTOMER_POINTS });
@@ -53,11 +50,7 @@ export const useDisconnectCustomerPoints = () => {
   const userTracking = useUserTracking();
 
   const disconnectCustomerPoints = useCallback(
-    ({
-      source: _source,
-    }: {
-      source: "shortcut" | "toolbar" | "context-menu";
-    }) => {
+    ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
       if (selection.type !== "singleCustomerPoint") return;
 
       const customerPoint = data.hydraulicModel.customerPoints.get(
@@ -66,8 +59,9 @@ export const useDisconnectCustomerPoints = () => {
       if (!customerPoint) return;
 
       userTracking.capture({
-        name: "customerPointActions.clickedDisconnect",
+        name: "customerPointActions.disconnected",
         count: 1,
+        source,
       });
 
       const moment = disconnectCustomers(data.hydraulicModel, {
