@@ -4,6 +4,7 @@ import { getCheckoutUrlParams } from "src/hooks/use-checkout";
 import { RocketIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { EMBEDDED_MIN_HEIGHT } from "src/embedded";
 
 type IframeUpgradeDialogProps = {
   onClose: () => void;
@@ -11,14 +12,18 @@ type IframeUpgradeDialogProps = {
 
 export const IframeUpgradeDialog = ({ onClose }: IframeUpgradeDialogProps) => {
   const translate = useTranslate();
-  const [iframeHeight, setIframeHeight] = useState<string>("auto");
+  const [iframeHeight, setIframeHeight] = useState<string>(
+    `${EMBEDDED_MIN_HEIGHT}px`,
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data === "close") {
         onClose();
       } else if (event.data.type === "iframeHeight" && event.data.height) {
-        setIframeHeight(`${event.data.height}px`);
+        if (event.data.height > EMBEDDED_MIN_HEIGHT) {
+          setIframeHeight(`${event.data.height}px`);
+        }
       }
     };
 
@@ -44,7 +49,7 @@ export const IframeUpgradeDialog = ({ onClose }: IframeUpgradeDialogProps) => {
           src={iframeUrl}
           className="w-full border-0"
           title="Upgrade Account"
-          style={{ height: iframeHeight }}
+          style={{ height: iframeHeight, transition: "height 0.3s ease" }}
         />
       </div>
     </DialogContainer>

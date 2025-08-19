@@ -9,6 +9,7 @@ import { ErrorBoundary } from "@sentry/nextjs";
 import { FallbackError } from "src/components/fallback-error";
 import { FeatureFlagsProvider } from "src/hooks/use-feature-flags";
 import { Loading } from "src/components/elements";
+import { EMBEDDED_MIN_HEIGHT } from "src/embedded";
 
 const UserTrackingProvider = dynamic(
   () => import("src/infra/user-tracking").then((m) => m.UserTrackingProvider),
@@ -57,7 +58,10 @@ export default function UpgradePage() {
     <div
       ref={contentRef}
       className="w-full mx-auto py-1"
-      style={{ overflowY: "hidden" }}
+      style={{
+        overflowY: "hidden",
+        minHeight: `${EMBEDDED_MIN_HEIGHT}px`,
+      }}
     >
       <ErrorBoundary fallback={FallbackError}>
         <QueryClientProvider client={queryClient}>

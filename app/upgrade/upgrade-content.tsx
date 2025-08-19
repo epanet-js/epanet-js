@@ -29,6 +29,7 @@ import {
 } from "src/hooks/use-checkout";
 import { canUpgrade } from "src/user-plan";
 import { signUpUrl } from "src/global-config";
+import { EMBEDDED_MIN_HEIGHT } from "src/embedded";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -53,7 +54,13 @@ const prices = {
 };
 
 const LoadingContent = () => (
-  <div className="flex items-center justify-center" style={{ height: "500px" }}>
+  <div
+    className="flex items-center justify-center w-full"
+    style={{
+      height: `${EMBEDDED_MIN_HEIGHT}px`,
+      minHeight: `${EMBEDDED_MIN_HEIGHT}px`,
+    }}
+  >
     <Loading />
   </div>
 );
@@ -74,7 +81,6 @@ export const StandaloneUpgradeContent = () => {
     if (isSignedIn) {
       void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
       closeDialog();
-      // Return loading state with same dimensions to prevent bouncing
       return <LoadingContent />;
     } else {
       return (
