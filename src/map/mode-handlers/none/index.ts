@@ -42,7 +42,7 @@ export function useNoneHandlers({
   hydraulicModel,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
-  const isCpManualOn = useFeatureFlag("FLAG_CP_MANUAL");
+  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
   const {
     clearSelection,
     isSelected,
@@ -82,7 +82,7 @@ export function useNoneHandlers({
 
     let hasClickableElement = visibleFeatures.length > 0;
 
-    if (!hasClickableElement && isCpManualOn) {
+    if (!hasClickableElement && isCustomerPointOn) {
       const pickedObjects = map.pickOverlayObjects({
         x: point.x,
         y: point.y,
@@ -122,7 +122,7 @@ export function useNoneHandlers({
   const getClickedCustomerPoint = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
   ): CustomerPoint | null => {
-    if (!isCpManualOn) return null;
+    if (!isCustomerPointOn) return null;
 
     const pickedObjects = map.pickOverlayObjects({
       x: e.point.x,
