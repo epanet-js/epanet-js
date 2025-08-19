@@ -35,7 +35,7 @@ export default function UpgradePage() {
           <AuthProvider>
             <UserTrackingProvider>
               <FeatureFlagsProvider>
-                <div className="max-w-4xl mx-auto p-6">
+                <div className="mx-auto p-6">
                   <Suspense fallback={<Loading />}>
                     <StandaloneUpgradeContent />
                   </Suspense>
