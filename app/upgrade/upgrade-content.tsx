@@ -1,4 +1,4 @@
-import { LoadingDialog } from "src/components/dialog";
+import { Loading } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   CheckIcon,
@@ -52,13 +52,19 @@ const prices = {
   },
 };
 
+const LoadingContent = () => (
+  <div className="flex items-center justify-center" style={{ height: "500px" }}>
+    <Loading />
+  </div>
+);
+
 export const StandaloneUpgradeContent = () => {
   const { isLoaded: isAuthLoaded, isSignedIn, user } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
 
   const checkoutParams = getCheckoutUrlParams();
 
-  if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
+  if (isLoadingCheckout || !isAuthLoaded) return <LoadingContent />;
 
   if (!canUpgrade(user.plan)) {
     return <ChangesFromSupportDialog />;
@@ -67,7 +73,9 @@ export const StandaloneUpgradeContent = () => {
   if (checkoutParams.enabled) {
     if (isSignedIn) {
       void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
-      return <LoadingDialog />;
+      closeDialog();
+      // Return loading state with same dimensions to prevent bouncing
+      return <LoadingContent />;
     } else {
       return (
         <RedirectToSignIn
