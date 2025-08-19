@@ -260,9 +260,11 @@ export const AllocationStep: React.FC<{
             onClick: handleFinish,
             disabled: isProcessing || !allocationResult,
             loading: isProcessing,
-            label: translate(
-              "importCustomerPoints.wizard.allocationStep.applyChanges",
-            ),
+            label: isProcessing
+              ? translate("wizard.processing")
+              : translate(
+                  "importCustomerPoints.wizard.allocationStep.applyChanges",
+                ),
           },
   };
 
@@ -355,16 +357,6 @@ export const AllocationStep: React.FC<{
         </div>
       )}
 
-      {isProcessing && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-          <span className="ml-2 text-sm text-gray-600">
-            {translate(
-              "importCustomerPoints.wizard.allocationStep.processingMessage",
-            )}
-          </span>
-        </div>
-      )}
       <WizardActionsComponent {...actionProps} />
     </div>
   );

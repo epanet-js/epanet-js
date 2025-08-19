@@ -3,6 +3,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CheckIcon,
+  UpdateIcon,
 } from "@radix-ui/react-icons";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -67,7 +68,11 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={finishAction.disabled}
           >
-            <CheckIcon className="w-4 h-4" />
+            {finishAction.loading ? (
+              <UpdateIcon className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckIcon className="w-4 h-4" />
+            )}
             {finishAction.loading
               ? finishAction.label || translate("wizard.processing")
               : finishAction.label || translate("wizard.finish")}
