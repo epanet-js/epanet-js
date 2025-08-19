@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as T from "@radix-ui/react-tooltip";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { AuthProvider } from "src/auth";
 import dynamic from "next/dynamic";
 import { ErrorBoundary } from "@sentry/nextjs";
@@ -28,23 +28,52 @@ const StandaloneUpgradeContent = dynamic(
 const queryClient = new QueryClient();
 
 export default function UpgradePage() {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      const height = contentRef.current?.scrollHeight;
+      if (height && window.parent) {
+        window.parent.postMessage(
+          { type: "iframeHeight", height: height },
+          "*",
+        );
+      }
+    });
+
+    observer.observe(contentRef.current);
+
+    const height = contentRef.current?.scrollHeight;
+    if (height && window.parent) {
+      window.parent.postMessage({ type: "iframeHeight", height: height }, "*");
+    }
+
+    return () => observer.disconnect();
+  }, [contentRef.current]);
+
   return (
-    <ErrorBoundary fallback={FallbackError}>
-      <QueryClientProvider client={queryClient}>
-        <T.Provider>
-          <AuthProvider>
-            <UserTrackingProvider>
-              <FeatureFlagsProvider>
-                <div className="mx-auto p-6">
+    <div
+      ref={contentRef}
+      className="w-full mx-auto py-1"
+      style={{ overflowY: "hidden" }}
+    >
+      <ErrorBoundary fallback={FallbackError}>
+        <QueryClientProvider client={queryClient}>
+          <T.Provider>
+            <AuthProvider>
+              <UserTrackingProvider>
+                <FeatureFlagsProvider>
                   <Suspense fallback={<Loading />}>
                     <StandaloneUpgradeContent />
                   </Suspense>
-                </div>
-              </FeatureFlagsProvider>
-            </UserTrackingProvider>
-          </AuthProvider>
-        </T.Provider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+                </FeatureFlagsProvider>
+              </UserTrackingProvider>
+            </AuthProvider>
+          </T.Provider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </div>
   );
 }

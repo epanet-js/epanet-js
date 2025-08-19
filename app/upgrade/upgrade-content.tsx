@@ -32,6 +32,12 @@ import { signUpUrl } from "src/global-config";
 
 type UsageOption = "commercial" | "non-commercial";
 
+const closeDialog = () => {
+  if (window.parent !== window) {
+    window.parent.postMessage("close", "*");
+  }
+};
+
 const prices = {
   pro: {
     monthly: "$95",
@@ -88,7 +94,9 @@ const ChangesFromSupportDialog = () => {
       <p className="mt-2 text-gray-600 dark:text-gray-300">
         {translate("planChangesFromSupportExplain")}
       </p>
-      <Button className="mt-6">{translate("understood")}</Button>
+      <Button className="mt-6" onClick={closeDialog}>
+        {translate("understood")}
+      </Button>
     </div>
   );
 };
