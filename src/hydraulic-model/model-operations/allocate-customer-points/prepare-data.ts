@@ -26,12 +26,13 @@ const ENUM_TO_NODE_TYPE = {
   2: "tank" as const,
 } as const;
 
+export type BinaryData = ArrayBuffer | SharedArrayBuffer;
 export interface RunData {
-  flatbushIndex: SharedArrayBuffer;
-  segments: SharedArrayBuffer;
-  pipes: SharedArrayBuffer;
-  nodes: SharedArrayBuffer;
-  customerPoints: SharedArrayBuffer;
+  flatbushIndex: BinaryData;
+  segments: BinaryData;
+  pipes: BinaryData;
+  nodes: BinaryData;
+  customerPoints: BinaryData;
 }
 
 const BUFFER_HEADER_SIZE = 8;
@@ -59,7 +60,7 @@ const getCoordinatesOffset = (index: number): number => {
 };
 
 export const getSegmentCoordinates = (
-  segments: SharedArrayBuffer,
+  segments: BinaryData,
   index: number,
 ): Position[] => {
   const view = new DataView(segments);
@@ -78,7 +79,7 @@ export const getSegmentCoordinates = (
 };
 
 export const getSegmentPipeIndex = (
-  segments: SharedArrayBuffer,
+  segments: BinaryData,
   index: number,
 ): number => {
   const view = new DataView(segments);
@@ -86,17 +87,14 @@ export const getSegmentPipeIndex = (
   return view.getUint32(offset, true);
 };
 
-export const getPipeDiameter = (
-  pipes: SharedArrayBuffer,
-  index: number,
-): number => {
+export const getPipeDiameter = (pipes: BinaryData, index: number): number => {
   const view = new DataView(pipes);
   const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
   return view.getFloat64(offset, true);
 };
 
 export const getPipeStartNodeIndex = (
-  pipes: SharedArrayBuffer,
+  pipes: BinaryData,
   index: number,
 ): number => {
   const view = new DataView(pipes);
@@ -105,7 +103,7 @@ export const getPipeStartNodeIndex = (
 };
 
 export const getPipeEndNodeIndex = (
-  pipes: SharedArrayBuffer,
+  pipes: BinaryData,
   index: number,
 ): number => {
   const view = new DataView(pipes);
@@ -115,7 +113,7 @@ export const getPipeEndNodeIndex = (
 };
 
 export const getNodeCoordinates = (
-  nodes: SharedArrayBuffer,
+  nodes: BinaryData,
   index: number,
 ): Position => {
   const view = new DataView(nodes);
@@ -127,10 +125,7 @@ export const getNodeCoordinates = (
   return [lng, lat];
 };
 
-export const getNodeType = (
-  nodes: SharedArrayBuffer,
-  index: number,
-): NodeType => {
+export const getNodeType = (nodes: BinaryData, index: number): NodeType => {
   const view = new DataView(nodes);
   const offset =
     BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE + 2 * FLOAT64_SIZE;
@@ -138,7 +133,7 @@ export const getNodeType = (
   return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
 };
 
-export const getNodeId = (nodes: SharedArrayBuffer, index: number): string => {
+export const getNodeId = (nodes: BinaryData, index: number): string => {
   const offset =
     BUFFER_HEADER_SIZE +
     index * NODE_BINARY_SIZE +
@@ -153,7 +148,7 @@ export const getNodeId = (nodes: SharedArrayBuffer, index: number): string => {
 };
 
 export const getCustomerPointCoordinates = (
-  customerPoints: SharedArrayBuffer,
+  customerPoints: BinaryData,
   index: number,
 ): Position => {
   const view = new DataView(customerPoints);
@@ -169,7 +164,7 @@ export const getCustomerPointCoordinates = (
 };
 
 export const getCustomerPointId = (
-  customerPoints: SharedArrayBuffer,
+  customerPoints: BinaryData,
   index: number,
 ): string => {
   const offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
@@ -190,24 +185,35 @@ export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
   _allocationRules: AllocationRule[],
   customerPoints: CustomerPoint[],
+  bufferType: "shared" | "array" = "array",
 ): RunData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
     generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
 
   const customerPointsCount = customerPoints.length;
 
+  const BufferConstructor =
+    bufferType === "shared" ? SharedArrayBuffer : ArrayBuffer;
+
   const segmentsBuilder = new SegmentsBinaryBuilder(
     pipeSegmentsCount,
     pipesIndex,
+    bufferType,
   );
   const pipesBuilder = new PipesBinaryBuilder(
     pipesCount,
     pipesIndex,
     nodesIndex,
+    bufferType,
   );
-  const nodesBuilder = new NodesBinaryBuilder(nodesCount, nodesIndex);
+  const nodesBuilder = new NodesBinaryBuilder(
+    nodesCount,
+    nodesIndex,
+    bufferType,
+  );
   const customerPointsBuilder = new CustomerPointsBinaryBuilder(
     customerPointsCount,
+    bufferType,
   );
 
   // Flatbush requires at least 1 item, so we use a placeholder when no segments exist
@@ -216,7 +222,7 @@ export const prepareWorkerData = (
     segmentsForIndex,
     FLATBUSH_NODE_SIZE,
     Float64Array,
-    SharedArrayBuffer,
+    BufferConstructor,
   );
 
   for (const asset of hydraulicModel.assets.values()) {
@@ -263,7 +269,7 @@ export const prepareWorkerData = (
   spatialIndex.finish();
 
   return {
-    flatbushIndex: spatialIndex.data as SharedArrayBuffer,
+    flatbushIndex: spatialIndex.data as BinaryData,
     segments: segmentsBuilder.build(),
     pipes: pipesBuilder.build(),
     nodes: nodesBuilder.build(),
@@ -272,16 +278,20 @@ export const prepareWorkerData = (
 };
 
 class SegmentsBinaryBuilder {
-  private buffer: SharedArrayBuffer;
+  private buffer: BinaryData;
   private view: DataView;
   private segmentIndex: number = 0;
 
   constructor(
     segmentCount: number,
     private pipesIndex: Map<string, number>,
+    private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + segmentCount * SEGMENT_BINARY_SIZE;
-    this.buffer = new SharedArrayBuffer(totalSize);
+    this.buffer =
+      this.bufferType === "shared"
+        ? new SharedArrayBuffer(totalSize)
+        : new ArrayBuffer(totalSize);
     this.view = new DataView(this.buffer);
 
     let offset = 0;
@@ -307,22 +317,26 @@ class SegmentsBinaryBuilder {
     this.segmentIndex++;
   }
 
-  build(): SharedArrayBuffer {
+  build(): BinaryData {
     return this.buffer;
   }
 }
 
 class PipesBinaryBuilder {
-  private buffer: SharedArrayBuffer;
+  private buffer: BinaryData;
   private view: DataView;
 
   constructor(
     pipeCount: number,
     private pipesIndex: Map<string, number>,
     private nodesIndex: Map<string, number>,
+    private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + pipeCount * PIPE_BINARY_SIZE;
-    this.buffer = new SharedArrayBuffer(totalSize);
+    this.buffer =
+      this.bufferType === "shared"
+        ? new SharedArrayBuffer(totalSize)
+        : new ArrayBuffer(totalSize);
     this.view = new DataView(this.buffer);
 
     let offset = 0;
@@ -350,21 +364,25 @@ class PipesBinaryBuilder {
     this.view.setUint32(offset, endNodeIndex, true);
   }
 
-  build(): SharedArrayBuffer {
+  build(): BinaryData {
     return this.buffer;
   }
 }
 
 class NodesBinaryBuilder {
-  private buffer: SharedArrayBuffer;
+  private buffer: BinaryData;
   private view: DataView;
 
   constructor(
     nodeCount: number,
     private nodesIndex: Map<string, number>,
+    private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + nodeCount * NODE_BINARY_SIZE;
-    this.buffer = new SharedArrayBuffer(totalSize);
+    this.buffer =
+      this.bufferType === "shared"
+        ? new SharedArrayBuffer(totalSize)
+        : new ArrayBuffer(totalSize);
     this.view = new DataView(this.buffer);
 
     let offset = 0;
@@ -397,19 +415,25 @@ class NodesBinaryBuilder {
     uint8View.set(paddedId);
   }
 
-  build(): SharedArrayBuffer {
+  build(): BinaryData {
     return this.buffer;
   }
 }
 
 class CustomerPointsBinaryBuilder {
-  private buffer: SharedArrayBuffer;
+  private buffer: BinaryData;
   private view: DataView;
 
-  constructor(customerPointCount: number) {
+  constructor(
+    customerPointCount: number,
+    private bufferType: "shared" | "array" = "array",
+  ) {
     const totalSize =
       BUFFER_HEADER_SIZE + customerPointCount * CUSTOMER_POINT_BINARY_SIZE;
-    this.buffer = new SharedArrayBuffer(totalSize);
+    this.buffer =
+      this.bufferType === "shared"
+        ? new SharedArrayBuffer(totalSize)
+        : new ArrayBuffer(totalSize);
     this.view = new DataView(this.buffer);
 
     let offset = 0;
@@ -445,7 +469,7 @@ class CustomerPointsBinaryBuilder {
     this.view.setFloat64(offset, coordinates[1], true);
   }
 
-  build(): SharedArrayBuffer {
+  build(): BinaryData {
     return this.buffer;
   }
 }
