@@ -172,12 +172,13 @@ export function useNoneHandlers({
 
       const newCoordinates = getMapCoord(e);
       const noElevation = 0;
-      const { putAssets } = moveNode(hydraulicModel, {
+      const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates,
         newElevation: noElevation,
+        updateCustomerPoints: isCustomerPointOn,
       });
-      putAssets && updateMove(putAssets);
+      putAssets && updateMove(putAssets, putCustomerPoints);
     },
     up: async (e) => {
       e.preventDefault();

@@ -659,7 +659,7 @@ const getHiddenCustomerPoints = (
     case "drawLink":
       return noHiddenCustomerPoints;
     case "moveAssets":
-      return noHiddenCustomerPoints;
+      return ephemeralState.affectedCustomerPoints || [];
     case "none":
       return noHiddenCustomerPoints;
   }
@@ -679,6 +679,20 @@ const buildCustomerPointsEphemeralOverlay = (
       ephemeralState.customerPoints,
       ephemeralState.snapPoints,
       zoom,
+      "highlight",
+    );
+  } else if (
+    ephemeralState.type === "moveAssets" &&
+    ephemeralState.affectedCustomerPoints
+  ) {
+    const snapPoints = ephemeralState.affectedCustomerPoints
+      .filter((cp) => cp.connection?.snapPoint)
+      .map((cp) => cp.connection!.snapPoint);
+    return buildConnectCustomerPointsPreviewOverlay(
+      ephemeralState.affectedCustomerPoints,
+      snapPoints,
+      zoom,
+      "quiet",
     );
   }
   return [];

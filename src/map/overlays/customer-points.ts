@@ -166,6 +166,7 @@ export const buildConnectCustomerPointsPreviewOverlay = (
   customerPoints: CustomerPoint[],
   snapPoints: Position[],
   zoom: number,
+  mode: "highlight" | "quiet" = "highlight",
 ): CustomerPointsOverlay => {
   if (customerPoints.length === 0 || snapPoints.length === 0) {
     return [];
@@ -186,6 +187,13 @@ export const buildConnectCustomerPointsPreviewOverlay = (
 
   const isVisible = shouldShowOvelay(zoom);
 
+  const isQuietMode = mode === "quiet";
+  const lineColor = isQuietMode ? connectionLineColor : highlightFillColor;
+  const pointFillColor = isQuietMode ? fillColor : highlightFillColor;
+  const pointStrokeColor = isQuietMode ? strokeColor : haloFillColor;
+  const pointRadius = isQuietMode ? 1.5 : 2;
+  const pointMaxRadius = isQuietMode ? 4 : 5;
+
   const previewConnectionLinesLayer = new PathLayer({
     id: "customer-connect-preview-lines-layer",
     beforeId: "imported-pipes",
@@ -195,7 +203,7 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     getWidth: 0.8,
     widthMinPixels: 1,
     widthMaxPixels: 3,
-    getColor: highlightFillColor,
+    getColor: lineColor,
     getDashArray: [5, 3],
     dashJustified: true,
     extensions: [new PathStyleExtension({ dash: true })],
@@ -210,13 +218,13 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
 
     radiusUnits: "meters",
-    getRadius: 2,
+    getRadius: pointRadius,
     radiusMinPixels: 1,
-    radiusMaxPixels: 5,
+    radiusMaxPixels: pointMaxRadius,
 
-    getFillColor: highlightFillColor,
+    getFillColor: pointFillColor,
     stroked: true,
-    getLineColor: haloFillColor,
+    getLineColor: pointStrokeColor,
     getLineWidth: 1,
     lineWidthUnits: "pixels",
     lineWidthMinPixels: 1,
