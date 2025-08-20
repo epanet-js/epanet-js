@@ -18,6 +18,7 @@ const getInitialLocale = (): Locale => {
   const code = allSupportedLanguages.find(
     (code) => language === code || language.startsWith(`${code}-`),
   );
+
   return code || "en";
 };
 

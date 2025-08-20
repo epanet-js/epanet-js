@@ -4,9 +4,10 @@ export const symbols = {
   pt: { decimals: ",", groups: "." },
   fr: { decimals: ",", groups: "" },
   nl: { decimals: ",", groups: "." },
+  ja: { decimals: ".", groups: "," },
 };
 
-export type Locale = "en" | "es" | "pt" | "fr" | "nl";
+export type Locale = "en" | "es" | "pt" | "fr" | "nl" | "ja";
 
 export const languageConfig: Array<{
   code: Locale;
@@ -18,6 +19,7 @@ export const languageConfig: Array<{
   { code: "pt", name: "Português (BR)", experimental: true },
   { code: "fr", name: "Français (FR)", experimental: true },
   { code: "nl", name: "Nederlands (NL)", experimental: true },
+  { code: "ja", name: "日本語 (JP)", experimental: true },
 ];
 
 export const stableLanguages: Locale[] = languageConfig
