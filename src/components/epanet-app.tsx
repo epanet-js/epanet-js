@@ -44,6 +44,8 @@ import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
+import { useAppReady } from "src/hooks/use-app-ready";
+import { AppLoader } from "./app-loader";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -58,6 +60,7 @@ const persistentTransformAtom = atom<Transform>({
 });
 
 export function EpanetApp() {
+  const { isReady, progress } = useAppReady();
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const userTracking = useUserTracking();
@@ -115,6 +118,10 @@ export function EpanetApp() {
       },
     ],
   ]);
+
+  if (!isReady) {
+    return <AppLoader progress={progress} />;
+  }
 
   return (
     <main className="h-dvh flex flex-col bg-white dark:bg-gray-800">

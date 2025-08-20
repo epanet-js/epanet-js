@@ -1,7 +1,9 @@
 import { usePostHog } from "posthog-js/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
+
+const FeatureFlagsReadyContext = createContext<boolean>(false);
 
 const FeatureFlagsPostHogProvider = ({
   children,
@@ -10,17 +12,25 @@ const FeatureFlagsPostHogProvider = ({
 }) => {
   const posthog = usePostHog();
   const [flagsVersion, setFlagsVersion] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (posthog) {
       posthog.onFeatureFlags((flagsEnabled) => {
         setFlagsContext(flagsEnabled);
         setFlagsVersion((prev) => prev + 1);
+        if (!isReady) {
+          setIsReady(true);
+        }
       });
     }
-  }, [posthog]);
+  }, [posthog, isReady]);
 
-  return <div key={`flags-${flagsVersion}`}>{children}</div>;
+  return (
+    <FeatureFlagsReadyContext.Provider value={isReady}>
+      <div key={`flags-${flagsVersion}`}>{children}</div>
+    </FeatureFlagsReadyContext.Provider>
+  );
 };
 
 const FeatureFlagsUrlProvider = ({
@@ -28,12 +38,19 @@ const FeatureFlagsUrlProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     const flagsEnabled = getEnabledFlagsFromUrl();
     setFlagsContext(flagsEnabled);
+    setIsReady(true);
   }, []);
 
-  return children as JSX.Element;
+  return (
+    <FeatureFlagsReadyContext.Provider value={isReady}>
+      {children as JSX.Element}
+    </FeatureFlagsReadyContext.Provider>
+  );
 };
 
 export const FeatureFlagsProvider = isPosthogConfigured
@@ -79,4 +96,8 @@ const getEnabledFlagsFromUrl = (): string[] => {
   }
 
   return enabledFlags;
+};
+
+export const useFeatureFlagsReady = (): boolean => {
+  return useContext(FeatureFlagsReadyContext);
 };
