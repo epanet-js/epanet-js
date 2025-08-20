@@ -4,6 +4,7 @@ import * as useFeatureFlags from "src/hooks/use-feature-flags";
 
 vi.mock("src/hooks/use-feature-flags", () => ({
   useFeatureFlag: vi.fn(),
+  useFeatureFlagsReady: vi.fn(() => true),
 }));
 
 export const stubFeatureOn = (name: string) => {
