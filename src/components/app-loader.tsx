@@ -21,7 +21,7 @@ export const AppLoader = ({ progress }: AppLoaderProps) => {
         <div className="w-full">
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className="bg-purple-400 h-2 rounded-full transition-all duration-300 ease-out"
+              className="bg-purple-400 h-2 rounded-full transition-all duration-2000 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

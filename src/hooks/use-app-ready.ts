@@ -14,7 +14,6 @@ const hasLoadFlag = (): boolean => {
 type LoadingStep = {
   id: string;
   isComplete: boolean;
-  weight: number;
 };
 
 type AppReadyState = {
@@ -29,12 +28,18 @@ export const useAppReady = (): AppReadyState => {
   const { isI18nReady } = useLocale();
   const featureFlagsReady = useFeatureFlagsReady();
   const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [showOptimisticProgress, setShowOptimisticProgress] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       setHasTimedOut(true);
     }, MAX_LOADING_TIME);
+
+    setTimeout(() => {
+      setShowOptimisticProgress(true);
+    }, 100);
 
     return () => {
       if (timeoutRef.current) {
@@ -47,26 +52,31 @@ export const useAppReady = (): AppReadyState => {
     {
       id: "auth",
       isComplete: authLoaded || hasTimedOut,
-      weight: 0.2,
     },
     {
       id: "featureFlags",
       isComplete: featureFlagsReady || hasTimedOut,
-      weight: 0.3,
     },
     {
       id: "i18n",
       isComplete: isI18nReady || hasTimedOut,
-      weight: 0.5,
     },
   ];
 
-  const progress = steps.reduce((total, step) => {
-    return total + (step.isComplete ? step.weight * 100 : 0);
-  }, 0);
-
   const systemsReady = steps.every((step) => step.isComplete);
-  const isReady = hasLoadFlag() ? systemsReady : true;
+
+  useEffect(() => {
+    if (systemsReady || hasTimedOut) {
+      setTimeout(() => {
+        setShowComplete(true);
+      }, 500);
+    }
+  }, [systemsReady, hasTimedOut]);
+
+  const isReady = hasLoadFlag() ? showComplete : true;
+
+  const progress =
+    systemsReady || hasTimedOut ? 100 : showOptimisticProgress ? 85 : 0;
 
   useEffect(() => {
     if (systemsReady && timeoutRef.current) {
@@ -76,7 +86,7 @@ export const useAppReady = (): AppReadyState => {
 
   return {
     isReady,
-    progress: Math.round(progress),
+    progress,
     steps,
     hasTimedOut,
   };
