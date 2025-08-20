@@ -15,7 +15,6 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -31,18 +30,6 @@ const UpgradeDialog = dynamic<{
   onClose: () => void;
 }>(
   () => import("src/components/dialogs/upgrade").then((r) => r.UpgradeDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const IframeUpgradeDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/iframe-upgrade").then(
-      (r) => r.IframeUpgradeDialog,
-    ),
   {
     loading: () => <LoadingDialog />,
   },
@@ -221,7 +208,6 @@ const EarlyAccessDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
-  const isIframeUpgradeOn = useFeatureFlag("FLAG_UPGRADE_IFRAME");
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -288,11 +274,7 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "upgrade") {
-    return isIframeUpgradeOn ? (
-      <IframeUpgradeDialog onClose={onClose} />
-    ) : (
-      <UpgradeDialog onClose={onClose} />
-    );
+    return <UpgradeDialog onClose={onClose} />;
   }
 
   const content = match(dialog)
