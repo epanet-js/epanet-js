@@ -1,9 +1,11 @@
 import { CustomerPoint } from "../customer-points";
 import { ModelOperation } from "../model-operation";
 import { Junction } from "../asset-types/junction";
+import { Pipe } from "../asset-types/pipe";
 import { Asset, LinkAsset, NodeAsset } from "../asset-types";
 import { Position } from "src/types";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
+import { AssetsMap } from "../hydraulic-model";
 
 type InputData = {
   customerPointIds: readonly string[];
@@ -39,6 +41,7 @@ export const connectCustomers: ModelOperation<InputData> = (
 
   const connectedCustomerPoints: CustomerPoint[] = [];
   const modifiedJunctions = new Map<string, Junction>();
+  const modifiedPipes = new Map<string, Pipe>();
 
   for (let i = 0; i < customerPointIds.length; i++) {
     const customerPointId = customerPointIds[i];
@@ -72,32 +75,6 @@ export const connectCustomers: ModelOperation<InputData> = (
       );
     }
 
-    const targetNode = assets.get(targetNodeId) as Junction;
-
-    if (customerPoint.connection?.junctionId) {
-      const oldJunctionId = customerPoint.connection.junctionId;
-      const oldJunction = assets.get(oldJunctionId) as Junction;
-
-      if (oldJunction && oldJunctionId !== targetNodeId) {
-        let oldJunctionCopy: Junction;
-        if (modifiedJunctions.has(oldJunctionId)) {
-          oldJunctionCopy = modifiedJunctions.get(oldJunctionId)!;
-        } else {
-          oldJunctionCopy = oldJunction.copy();
-          modifiedJunctions.set(oldJunctionId, oldJunctionCopy);
-        }
-        oldJunctionCopy.removeCustomerPoint(customerPoint.id);
-      }
-    }
-
-    let targetJunctionCopy: Junction;
-    if (modifiedJunctions.has(targetNodeId)) {
-      targetJunctionCopy = modifiedJunctions.get(targetNodeId)!;
-    } else {
-      targetJunctionCopy = targetNode.copy();
-      modifiedJunctions.set(targetNodeId, targetJunctionCopy);
-    }
-
     const connectedCopy = customerPoint.copy();
     connectedCopy.connect({
       pipeId,
@@ -105,15 +82,108 @@ export const connectCustomers: ModelOperation<InputData> = (
       junctionId: targetNodeId,
     });
 
-    targetJunctionCopy.assignCustomerPoint(connectedCopy.id);
+    removePreviousConnections(
+      customerPoint,
+      assets,
+      modifiedJunctions,
+      modifiedPipes,
+    );
+
+    updateConnections(
+      customerPoint,
+      connectedCopy,
+      targetNodeId,
+      pipeId,
+      pipe as Pipe,
+      assets,
+      modifiedJunctions,
+      modifiedPipes,
+    );
+
     connectedCustomerPoints.push(connectedCopy);
   }
 
-  const putAssets: Asset[] = Array.from(modifiedJunctions.values());
+  const putAssets: Asset[] = [
+    ...Array.from(modifiedJunctions.values()),
+    ...Array.from(modifiedPipes.values()),
+  ];
 
   return {
     note: "Connect customers",
     putCustomerPoints: connectedCustomerPoints,
     ...(putAssets.length > 0 && { putAssets }),
   };
+};
+
+const removePreviousConnections = (
+  customerPoint: CustomerPoint,
+  assets: AssetsMap,
+  modifiedJunctions: Map<string, Junction>,
+  modifiedPipes: Map<string, Pipe>,
+): void => {
+  if (customerPoint.connection?.junctionId) {
+    const junctionId = customerPoint.connection.junctionId;
+    const originalJunction = assets.get(junctionId) as Junction;
+
+    if (originalJunction) {
+      let junctionCopy: Junction;
+      if (modifiedJunctions.has(junctionId)) {
+        junctionCopy = modifiedJunctions.get(junctionId)!;
+      } else {
+        junctionCopy = originalJunction.copy();
+        modifiedJunctions.set(junctionId, junctionCopy);
+      }
+
+      junctionCopy.removeCustomerPoint(customerPoint.id);
+    }
+  }
+
+  if (customerPoint.connection?.pipeId) {
+    const pipeId = customerPoint.connection.pipeId;
+    const originalPipe = assets.get(pipeId) as Pipe;
+
+    if (originalPipe) {
+      let pipeCopy: Pipe;
+      if (modifiedPipes.has(pipeId)) {
+        pipeCopy = modifiedPipes.get(pipeId)!;
+      } else {
+        pipeCopy = originalPipe.copy();
+        modifiedPipes.set(pipeId, pipeCopy);
+      }
+
+      pipeCopy.removeCustomerPoint(customerPoint.id);
+    }
+  }
+};
+
+const updateConnections = (
+  customerPoint: CustomerPoint,
+  connectedCopy: CustomerPoint,
+  targetNodeId: string,
+  pipeId: string,
+  pipe: Pipe,
+  assets: AssetsMap,
+  modifiedJunctions: Map<string, Junction>,
+  modifiedPipes: Map<string, Pipe>,
+): void => {
+  let junctionCopy: Junction;
+  if (!modifiedJunctions.has(targetNodeId)) {
+    const targetNode = assets.get(targetNodeId) as Junction;
+    junctionCopy = targetNode.copy();
+    modifiedJunctions.set(targetNodeId, junctionCopy);
+  } else {
+    junctionCopy = modifiedJunctions.get(targetNodeId)!;
+  }
+
+  junctionCopy.assignCustomerPoint(customerPoint.id);
+
+  let pipeCopy: Pipe;
+  if (!modifiedPipes.has(pipeId)) {
+    pipeCopy = pipe.copy();
+    modifiedPipes.set(pipeId, pipeCopy);
+  } else {
+    pipeCopy = modifiedPipes.get(pipeId)!;
+  }
+
+  pipeCopy.assignCustomerPoint(customerPoint.id);
 };

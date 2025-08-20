@@ -38,9 +38,9 @@ describe("connectCustomers", () => {
     expect(connectedCP.connection!.snapPoint).toEqual([2, 0]);
 
     expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(1);
-    const updatedJunction = putAssets![0];
-    expect(updatedJunction.id).toBe("J1");
+    expect(putAssets!.length).toBe(2);
+    const updatedJunction = putAssets!.find((asset) => asset.id === "J1");
+    expect(updatedJunction!.id).toBe("J1");
   });
 
   it("connects multiple customer points to same pipe", () => {
@@ -84,7 +84,7 @@ describe("connectCustomers", () => {
     expect(connectedCP2.connection!.junctionId).toBe("J2");
 
     expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2); // Both junctions modified
+    expect(putAssets!.length).toBe(3); // Both junctions + pipe modified
     expect(result.note).toBe("Connect customers");
   });
 
@@ -130,7 +130,7 @@ describe("connectCustomers", () => {
     expect(connectedCP.connection!.junctionId).toBe("J2");
 
     expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2); // J1 (removed) and J2 (added)
+    expect(putAssets!.length).toBe(4); // J1 (removed), J2 (added), P1 (old), P2 (new)
 
     const oldJunction = putAssets!.find((a) => a.id === "J1");
     const newJunction = putAssets!.find((a) => a.id === "J2");
@@ -298,7 +298,7 @@ describe("connectCustomers", () => {
     });
 
     expect(putCustomerPoints!.length).toBe(2);
-    expect(putAssets!.length).toBe(1); // Only J1 modified
+    expect(putAssets!.length).toBe(2); // J1 and P1 modified
 
     const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
     const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
@@ -306,7 +306,7 @@ describe("connectCustomers", () => {
     expect(connectedCP1.connection!.junctionId).toBe("J1");
     expect(connectedCP2.connection!.junctionId).toBe("J1");
 
-    const updatedJunction = putAssets![0];
-    expect(updatedJunction.id).toBe("J1");
+    const updatedJunction = putAssets!.find((asset) => asset.id === "J1");
+    expect(updatedJunction!.id).toBe("J1");
   });
 });

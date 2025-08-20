@@ -14,6 +14,7 @@ import {
   AssetId,
   HeadlossFormula,
   Junction,
+  Pipe,
 } from "src/hydraulic-model";
 import {
   PumpBuildData,
@@ -378,6 +379,7 @@ export class HydraulicModelBuilder {
       });
 
       (junction as Junction).assignCustomerPoint(customerPoint.id);
+      (pipe as Pipe).assignCustomerPoint(customerPoint.id);
     }
 
     this.customerPointsMap.set(id, customerPoint);

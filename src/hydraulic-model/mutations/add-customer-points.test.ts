@@ -9,6 +9,7 @@ import {
   CustomerPoint,
   getCustomerPoints,
 } from "src/hydraulic-model/customer-points";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 describe("addCustomerPoints", () => {
   it("connects multiple customer points to their assigned junctions", () => {
@@ -394,5 +395,64 @@ describe("addCustomerPoints", () => {
     expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
       35,
     );
+  });
+
+  it("connects customer points to their assigned pipes", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const customerPointsToAdd: CustomerPoint[] = [];
+
+    const cp1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 25,
+    });
+    cp1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      junctionId: "J1",
+    });
+
+    const cp2 = buildCustomerPoint("CP2", {
+      coordinates: [8, 1],
+      demand: 50,
+    });
+    cp2.connect({
+      pipeId: "P1",
+      snapPoint: [8, 0],
+      junctionId: "J2",
+    });
+
+    customerPointsToAdd.push(cp1);
+    customerPointsToAdd.push(cp2);
+
+    const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
+
+    expect(updatedModel.customerPoints.size).toBe(2);
+
+    const updatedPipe = updatedModel.assets.get("P1") as Pipe;
+    expect(updatedPipe.customerPointCount).toBe(2);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedPipe.customerPointIds,
+      ),
+    ).toContain(cp1);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedPipe.customerPointIds,
+      ),
+    ).toContain(cp2);
   });
 });

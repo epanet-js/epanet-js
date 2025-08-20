@@ -40,6 +40,7 @@ export type PipeSimulation = {
 
 export class Pipe extends Link<PipeProperties> {
   private simulation: PipeSimulation | null = null;
+  private attachedCustomerPointIdsSet: Set<string> = new Set();
 
   get diameter() {
     return this.properties.diameter;
@@ -107,8 +108,24 @@ export class Pipe extends Link<PipeProperties> {
     return this.units[quantity];
   }
 
+  get customerPointIds(): string[] {
+    return Array.from(this.attachedCustomerPointIdsSet);
+  }
+
+  get customerPointCount(): number {
+    return this.attachedCustomerPointIdsSet.size;
+  }
+
+  assignCustomerPoint(customerPointId: string): void {
+    this.attachedCustomerPointIdsSet.add(customerPointId);
+  }
+
+  removeCustomerPoint(customerPointId: string): void {
+    this.attachedCustomerPointIdsSet.delete(customerPointId);
+  }
+
   copy() {
-    return new Pipe(
+    const newPipe = new Pipe(
       this.id,
       [...this.coordinates],
       {
@@ -116,5 +133,11 @@ export class Pipe extends Link<PipeProperties> {
       },
       this.units,
     );
+
+    this.attachedCustomerPointIdsSet.forEach((id) => {
+      newPipe.assignCustomerPoint(id);
+    });
+
+    return newPipe;
   }
 }
