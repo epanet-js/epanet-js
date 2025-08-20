@@ -8,12 +8,12 @@ export const AppLoader = ({ progress }: AppLoaderProps) => {
   return (
     <div className="h-dvh flex items-center justify-center bg-white dark:bg-gray-800">
       <div className="text-center max-w-md mx-auto px-6">
-        <div className="mx-auto rounded-lg flex items-center justify-center mb-6">
-          <SiteIcon className="text-center w-8 h-8" />
+        <div className="mx-auto rounded-lg flex items-center justify-center mb-6 scale-[2]">
+          <SiteIcon />
         </div>
 
         <div>
-          <h1 className="text-2xl text-gray-500 dark:text-white pb-4">
+          <h1 className="text-xl text-gray-500 dark:text-white pb-4">
             epanet-js
           </h1>
         </div>
