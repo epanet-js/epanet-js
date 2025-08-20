@@ -1,5 +1,8 @@
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  getCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 
 type AddCustomerPointsOptions = {
@@ -34,8 +37,12 @@ export const addCustomerPoints = (
     let junctionCopy: Junction;
     if (!modifiedJunctions.has(junctionId)) {
       junctionCopy = originalJunction.copy();
-      junctionCopy.customerPoints.forEach((existingCustomerPoint) => {
-        junctionCopy.removeCustomerPoint(existingCustomerPoint);
+      const existingCustomerPoints = getCustomerPoints(
+        hydraulicModel.customerPoints,
+        junctionCopy.customerPointIds,
+      );
+      existingCustomerPoints.forEach((existingCustomerPoint) => {
+        junctionCopy.removeCustomerPoint(existingCustomerPoint.id);
       });
       if (!preserveJunctionDemands) {
         junctionCopy.setBaseDemand(0);
@@ -46,7 +53,7 @@ export const addCustomerPoints = (
       junctionCopy = updatedAssets.get(junctionId) as Junction;
     }
 
-    junctionCopy.assignCustomerPoint(customerPoint);
+    junctionCopy.assignCustomerPoint(customerPoint.id);
   }
 
   return {

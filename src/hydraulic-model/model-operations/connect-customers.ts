@@ -86,7 +86,7 @@ export const connectCustomers: ModelOperation<InputData> = (
           oldJunctionCopy = oldJunction.copy();
           modifiedJunctions.set(oldJunctionId, oldJunctionCopy);
         }
-        oldJunctionCopy.removeCustomerPoint(customerPoint);
+        oldJunctionCopy.removeCustomerPoint(customerPoint.id);
       }
     }
 
@@ -105,7 +105,7 @@ export const connectCustomers: ModelOperation<InputData> = (
       junctionId: targetNodeId,
     });
 
-    targetJunctionCopy.assignCustomerPoint(connectedCopy);
+    targetJunctionCopy.assignCustomerPoint(connectedCopy.id);
     connectedCustomerPoints.push(connectedCopy);
   }
 

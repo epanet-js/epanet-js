@@ -9,7 +9,9 @@ import {
   NodeAsset,
   Pipe,
   Pump,
+  HydraulicModel,
 } from "src/hydraulic-model";
+import { getCustomerPoints } from "src/hydraulic-model/customer-points";
 import { PanelDetails } from "src/components/panel-details";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -166,6 +168,7 @@ const AssetEditorInner = ({
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
+          hydraulicModel={hydraulicModel}
         />
       );
     case "pipe":
@@ -634,10 +637,12 @@ const JunctionEditor = ({
   junction,
   quantitiesMetadata,
   onPropertyChange,
+  hydraulicModel,
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
+  hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -702,9 +707,14 @@ const JunctionEditor = ({
                   }
                 >
                   <CustomerDemandField
-                    totalDemand={junction.totalCustomerDemand}
+                    totalDemand={junction.getTotalCustomerDemand(
+                      hydraulicModel.customerPoints,
+                    )}
                     customerCount={junction.customerPointCount}
-                    customerPoints={junction.customerPoints}
+                    customerPoints={getCustomerPoints(
+                      hydraulicModel.customerPoints,
+                      junction.customerPointIds,
+                    )}
                     aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
                     customerUnit={quantitiesMetadata.getUnit(
                       "customerDemandPerDay",

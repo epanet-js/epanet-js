@@ -4,6 +4,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
+import { getCustomerPoints } from "src/hydraulic-model/customer-points";
 
 describe("disconnectCustomers", () => {
   it("disconnects a single connected customer point", () => {
@@ -215,7 +216,12 @@ describe("disconnectCustomers", () => {
 
     const originalJunction = hydraulicModel.assets.get("J1") as any;
 
-    expect(originalJunction.customerPoints).toHaveLength(1);
+    expect(
+      getCustomerPoints(
+        hydraulicModel.customerPoints,
+        originalJunction.customerPointIds,
+      ),
+    ).toHaveLength(1);
 
     const { putAssets } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
@@ -226,8 +232,13 @@ describe("disconnectCustomers", () => {
 
     const updatedJunction = putAssets![0] as any;
     expect(updatedJunction.id).toBe("J1");
-    expect(updatedJunction.customerPoints).toHaveLength(0);
-    expect(originalJunction.customerPoints).toHaveLength(1);
+    expect(updatedJunction.customerPointCount).toBe(0);
+    expect(
+      getCustomerPoints(
+        hydraulicModel.customerPoints,
+        originalJunction.customerPointIds,
+      ),
+    ).toHaveLength(1);
   });
 
   it("handles multiple customer points connected to same junction", () => {
@@ -255,7 +266,12 @@ describe("disconnectCustomers", () => {
 
     const originalJunction = hydraulicModel.assets.get("J1") as any;
 
-    expect(originalJunction.customerPoints).toHaveLength(2);
+    expect(
+      getCustomerPoints(
+        hydraulicModel.customerPoints,
+        originalJunction.customerPointIds,
+      ),
+    ).toHaveLength(2);
 
     const { putAssets } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1", "CP2"],
@@ -266,8 +282,13 @@ describe("disconnectCustomers", () => {
 
     const updatedJunction = putAssets![0] as any;
     expect(updatedJunction.id).toBe("J1");
-    expect(updatedJunction.customerPoints).toHaveLength(0);
-    expect(originalJunction.customerPoints).toHaveLength(2);
+    expect(updatedJunction.customerPointCount).toBe(0);
+    expect(
+      getCustomerPoints(
+        hydraulicModel.customerPoints,
+        originalJunction.customerPointIds,
+      ),
+    ).toHaveLength(2);
   });
 
   it("handles customer points with no junction connection", () => {

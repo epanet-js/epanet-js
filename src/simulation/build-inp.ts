@@ -8,6 +8,7 @@ import {
   Pump,
   Tank,
 } from "src/hydraulic-model";
+import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { captureError } from "src/infra/error-tracking";
@@ -191,6 +192,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.customerDemands,
           asset as Junction,
+          hydraulicModel.customerPoints,
         );
       }
 
@@ -301,6 +303,7 @@ const appendJunction = (
   geolocation: boolean,
   customerDemands: boolean,
   junction: Junction,
+  customerPoints: CustomerPoints,
 ) => {
   const junctionId = idMap.nodeId(junction);
 
@@ -308,7 +311,7 @@ const appendJunction = (
   sections.demands.push([junctionId, junction.baseDemand].join("\t"));
 
   if (customerDemands) {
-    const totalCustomerDemand = junction.totalCustomerDemand;
+    const totalCustomerDemand = junction.getTotalCustomerDemand(customerPoints);
     if (totalCustomerDemand > 0) {
       sections.demands.push([junctionId, totalCustomerDemand].join("\t"));
     }

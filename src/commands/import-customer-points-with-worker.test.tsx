@@ -349,7 +349,9 @@ describe("importCustomerPoints", () => {
 
     expect(junction.baseDemand).toBe(30);
     expect(junction.customerPointCount).toBe(1);
-    expect(junction.totalCustomerDemand).toBeCloseTo(0.000231, 6);
+    expect(
+      junction.getTotalCustomerDemand(hydraulicModel.customerPoints),
+    ).toBeCloseTo(0.000231, 6);
   });
 
   it("replaces existing demands when replace option is selected", async () => {
@@ -412,7 +414,9 @@ describe("importCustomerPoints", () => {
 
     expect(junction.baseDemand).toBe(0);
     expect(junction.customerPointCount).toBe(1);
-    expect(junction.totalCustomerDemand).toBeCloseTo(0.000289, 6);
+    expect(
+      junction.getTotalCustomerDemand(hydraulicModel.customerPoints),
+    ).toBeCloseTo(0.000289, 6);
   });
 
   it("closes wizard when cancel is clicked", async () => {

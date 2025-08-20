@@ -377,7 +377,7 @@ export class HydraulicModelBuilder {
         junctionId,
       });
 
-      (junction as Junction).assignCustomerPoint(customerPoint);
+      (junction as Junction).assignCustomerPoint(customerPoint.id);
     }
 
     this.customerPointsMap.set(id, customerPoint);

@@ -494,8 +494,11 @@ describe("AssetEditor", () => {
           demand: 30,
         });
 
-        junction.assignCustomerPoint(customerPoint1);
-        junction.assignCustomerPoint(customerPoint2);
+        junction.assignCustomerPoint(customerPoint1.id);
+        junction.assignCustomerPoint(customerPoint2.id);
+
+        hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+        hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
 
         const store = setInitialState({
           hydraulicModel,
@@ -542,8 +545,11 @@ describe("AssetEditor", () => {
           demand: 30,
         });
 
-        junction.assignCustomerPoint(customerPoint1);
-        junction.assignCustomerPoint(customerPoint2);
+        junction.assignCustomerPoint(customerPoint1.id);
+        junction.assignCustomerPoint(customerPoint2.id);
+
+        hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+        hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
 
         const store = setInitialState({
           hydraulicModel,

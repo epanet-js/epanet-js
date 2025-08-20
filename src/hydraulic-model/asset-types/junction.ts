@@ -1,5 +1,5 @@
 import { Node, NodeProperties } from "./node";
-import { CustomerPoint } from "../customer-points";
+import { CustomerPoint, CustomerPoints } from "../customer-points";
 
 export type JunctionProperties = {
   type: "junction";
@@ -21,7 +21,7 @@ export type JunctionSimulation = {
 
 export class Junction extends Node<JunctionProperties> {
   private simulation: JunctionSimulation | null = null;
-  private assignedCustomerPoints: Set<CustomerPoint> = new Set();
+  private assignedCustomerPointIds: Set<string> = new Set();
 
   get baseDemand() {
     return this.properties.baseDemand;
@@ -57,24 +57,27 @@ export class Junction extends Node<JunctionProperties> {
     return this.units[key];
   }
 
-  get customerPoints(): CustomerPoint[] {
-    return Array.from(this.assignedCustomerPoints);
+  get customerPointIds(): string[] {
+    return Array.from(this.assignedCustomerPointIds);
   }
 
   get customerPointCount(): number {
-    return this.assignedCustomerPoints.size;
+    return this.assignedCustomerPointIds.size;
   }
 
-  assignCustomerPoint(customerPoint: CustomerPoint): void {
-    this.assignedCustomerPoints.add(customerPoint);
+  assignCustomerPoint(customerPointId: string): void {
+    this.assignedCustomerPointIds.add(customerPointId);
   }
 
-  removeCustomerPoint(customerPoint: CustomerPoint): void {
-    this.assignedCustomerPoints.delete(customerPoint);
+  removeCustomerPoint(customerPointId: string): void {
+    this.assignedCustomerPointIds.delete(customerPointId);
   }
 
-  get totalCustomerDemand(): number {
-    return this.customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
+  getTotalCustomerDemand(customerPoints: CustomerPoints): number {
+    return Array.from(this.assignedCustomerPointIds)
+      .map((id) => customerPoints.get(id))
+      .filter((cp): cp is CustomerPoint => cp !== undefined)
+      .reduce((sum, cp) => sum + cp.baseDemand, 0);
   }
 
   copy() {
@@ -85,8 +88,8 @@ export class Junction extends Node<JunctionProperties> {
       this.units,
     );
 
-    this.assignedCustomerPoints.forEach((cp) => {
-      newJunction.assignCustomerPoint(cp);
+    this.assignedCustomerPointIds.forEach((id) => {
+      newJunction.assignCustomerPoint(id);
     });
 
     return newJunction;

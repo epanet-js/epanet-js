@@ -82,3 +82,12 @@ export type CustomerPoints = Map<string, CustomerPoint>;
 export const initializeCustomerPoints = (): CustomerPoints => {
   return new Map<string, CustomerPoint>();
 };
+
+export const getCustomerPoints = (
+  customerPoints: CustomerPoints,
+  ids: string[],
+): CustomerPoint[] => {
+  return ids
+    .map((id) => customerPoints.get(id))
+    .filter((cp): cp is CustomerPoint => cp !== undefined);
+};

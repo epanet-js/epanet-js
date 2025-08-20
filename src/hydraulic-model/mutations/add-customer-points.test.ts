@@ -5,7 +5,10 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  getCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 
 describe("addCustomerPoints", () => {
   it("connects multiple customer points to their assigned junctions", () => {
@@ -57,10 +60,20 @@ describe("addCustomerPoints", () => {
     const updatedJ2 = updatedModel.assets.get("J2") as Junction;
 
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.customerPoints).toContain(cp1);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ1.customerPointIds,
+      ),
+    ).toContain(cp1);
 
     expect(updatedJ2.customerPointCount).toBe(1);
-    expect(updatedJ2.customerPoints).toContain(cp2);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ2.customerPointIds,
+      ),
+    ).toContain(cp2);
   });
 
   it("handles empty customer points gracefully", () => {
@@ -141,8 +154,12 @@ describe("addCustomerPoints", () => {
 
     const junction = updatedModel.assets.get("J1") as Junction;
     expect(junction.customerPointCount).toBe(1);
-    expect(junction.customerPoints).toContain(connectedCP);
-    expect(junction.customerPoints).not.toContain(disconnectedCP);
+    expect(
+      getCustomerPoints(updatedModel.customerPoints, junction.customerPointIds),
+    ).toContain(connectedCP);
+    expect(
+      getCustomerPoints(updatedModel.customerPoints, junction.customerPointIds),
+    ).not.toContain(disconnectedCP);
   });
 
   it("skips customer points with invalid junction references", () => {
@@ -219,9 +236,21 @@ describe("addCustomerPoints", () => {
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.customerPointCount).toBe(2);
-    expect(updatedJ1.customerPoints).toContain(cp1);
-    expect(updatedJ1.customerPoints).toContain(cp2);
-    expect(updatedJ1.totalCustomerDemand).toBe(55);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ1.customerPointIds,
+      ),
+    ).toContain(cp1);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ1.customerPointIds,
+      ),
+    ).toContain(cp2);
+    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
+      55,
+    );
   });
 
   it("maintains immutability by returning a new hydraulic model", () => {
@@ -261,17 +290,18 @@ describe("addCustomerPoints", () => {
   it("clears existing customer points from junctions before adding new ones", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aCustomerPoint("EXISTING", {
+        coordinates: [1, 1],
+        demand: 10,
+        connection: {
+          pipeId: "P1",
+          junctionId: "J1",
+          snapPoint: [1, 0],
+        },
+      })
       .build();
-
-    const junction1 = hydraulicModel.assets.get("J1") as Junction;
-
-    const existingCP = buildCustomerPoint("EXISTING", {
-      coordinates: [1, 1],
-      demand: 10,
-    });
-    junction1.assignCustomerPoint(existingCP);
-
-    expect(junction1.customerPointCount).toBe(1);
 
     const customerPointsToAdd: CustomerPoint[] = [];
     const newCP = buildCustomerPoint("CP1", {
@@ -285,12 +315,23 @@ describe("addCustomerPoints", () => {
     });
     customerPointsToAdd.push(newCP);
 
+    const existingCP = hydraulicModel.customerPoints.get("EXISTING")!;
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.customerPoints).toContain(newCP);
-    expect(updatedJ1.customerPoints).not.toContain(existingCP);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ1.customerPointIds,
+      ),
+    ).toContain(newCP);
+    expect(
+      getCustomerPoints(
+        updatedModel.customerPoints,
+        updatedJ1.customerPointIds,
+      ),
+    ).not.toContain(existingCP);
   });
 
   it("preserves junction base demands by default", () => {
@@ -316,7 +357,9 @@ describe("addCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(30);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.totalCustomerDemand).toBe(25);
+    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
+      25,
+    );
   });
 
   it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
@@ -348,6 +391,8 @@ describe("addCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(0);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.totalCustomerDemand).toBe(35);
+    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
+      35,
+    );
   });
 });

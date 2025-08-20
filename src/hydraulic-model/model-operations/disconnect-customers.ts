@@ -36,7 +36,7 @@ export const disconnectCustomers: ModelOperation<InputData> = (
           modifiedJunctions.set(junctionId, junctionCopy);
         }
 
-        junctionCopy.removeCustomerPoint(customerPoint);
+        junctionCopy.removeCustomerPoint(customerPoint.id);
       }
     }
   }
