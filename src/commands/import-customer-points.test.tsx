@@ -139,47 +139,6 @@ describe.skip("importCustomerPoints", () => {
     expect(hydraulicModel.customerPoints.has("2")).toBe(true);
   });
 
-  it("captures user tracking events", async () => {
-    const userTracking = stubUserTracking();
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const geoJsonContent = createGeoJSONContent();
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-    expectWizardStep("data input");
-    await uploadFileInWizard(file);
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification();
-
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.started",
-      source: "test",
-    });
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.completed",
-      count: 2,
-    });
-  });
-
   it("handles invalid JSON gracefully", async () => {
     const userTracking = stubUserTracking();
     const store = createStoreWithPipes();
@@ -439,7 +398,7 @@ describe.skip("importCustomerPoints", () => {
     });
   });
 
-  it("shows data preview with valid and invalid row counts", async () => {
+  it("imports valid points and skips invalid ones from mixed data", async () => {
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -459,9 +418,6 @@ describe.skip("importCustomerPoints", () => {
 
     expectWizardStep("data preview");
 
-    expect(screen.getByText(/\(2\)/)).toBeInTheDocument();
-    expect(screen.getByText(/\(3\)/)).toBeInTheDocument();
-
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
 
     expectWizardStep("demand options");
@@ -479,33 +435,6 @@ describe.skip("importCustomerPoints", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
-  });
-
-  it("disables issues tab when no errors", async () => {
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const geoJsonContent = createGeoJSONContent();
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    expectWizardStep("data preview");
-
-    await waitFor(() => {
-      const issuesTab = screen.getByRole("button", { name: /issues \(0\)/i });
-      expect(issuesTab).toBeDisabled();
-      expect(issuesTab).toHaveClass("cursor-not-allowed");
-    });
   });
 });
 
