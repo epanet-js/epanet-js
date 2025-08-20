@@ -54,7 +54,7 @@ describe("allocateCustomerPoints", () => {
     expect(result.ruleMatches).toEqual([2]);
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
-    expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
+    expect(allocatedCP1?.connection?.pipeId).toBe("P1");
     expect(allocatedCP1?.connection?.junctionId).toBe("J1");
   });
 
@@ -171,7 +171,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
-    expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
+    expect(allocatedCP1?.connection?.pipeId).toBe("P1");
     expect(result.allocatedCustomerPoints.has("CP2")).toBe(false);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
     expect(result.disconnectedCustomerPoints.has("CP2")).toBe(true);
@@ -225,8 +225,8 @@ describe("allocateCustomerPoints", () => {
 
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     const allocatedCP2 = result.allocatedCustomerPoints.get("CP2");
-    expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
-    expect(allocatedCP2?.connection?.pipeId).toBe("pipe-1");
+    expect(allocatedCP1?.connection?.pipeId).toBe("P1");
+    expect(allocatedCP2?.connection?.pipeId).toBe("P2");
   });
 
   it("handles empty customer points", async () => {
@@ -591,10 +591,10 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
     const allocatedCP2 = result.allocatedCustomerPoints.get("CP2");
 
-    expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
+    expect(allocatedCP1?.connection?.pipeId).toBe("P1");
     expect(allocatedCP1?.connection?.junctionId).toBeTruthy();
 
-    expect(allocatedCP2?.connection?.pipeId).toBe("pipe-1");
+    expect(allocatedCP2?.connection?.pipeId).toBe("P2");
     expect(allocatedCP2?.connection?.junctionId).toBeTruthy();
   });
 
@@ -640,6 +640,6 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(result.allocatedCustomerPoints.size).toBe(1);
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     const allocatedCP1 = result.allocatedCustomerPoints.get("CP1");
-    expect(allocatedCP1?.connection?.pipeId).toBe("pipe-0");
+    expect(allocatedCP1?.connection?.pipeId).toBe("P1");
   });
 });

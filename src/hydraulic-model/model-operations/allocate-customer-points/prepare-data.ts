@@ -37,7 +37,8 @@ export interface RunData {
 
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
-const PIPE_BINARY_SIZE = 16;
+const PIPE_BINARY_SIZE = 48;
+const PIPE_ID_MAX_LENGTH = 32;
 const NODE_BINARY_SIZE = 52;
 const NODE_ID_MAX_LENGTH = 32;
 const CUSTOMER_POINT_BINARY_SIZE = 48;
@@ -87,9 +88,18 @@ export const getSegmentPipeIndex = (
   return view.getUint32(offset, true);
 };
 
-export const getPipeDiameter = (pipes: BinaryData, index: number): number => {
+export const getPipeId = (pipes: BinaryData, index: number): string => {
   const view = new DataView(pipes);
   const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
+  const uint8View = new Uint8Array(view.buffer, offset, PIPE_ID_MAX_LENGTH);
+  const decoder = new TextDecoder();
+  return decoder.decode(uint8View).replace(/\0+$/, "");
+};
+
+export const getPipeDiameter = (pipes: BinaryData, index: number): number => {
+  const view = new DataView(pipes);
+  const offset =
+    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + PIPE_ID_MAX_LENGTH;
   return view.getFloat64(offset, true);
 };
 
@@ -98,7 +108,11 @@ export const getPipeStartNodeIndex = (
   index: number,
 ): number => {
   const view = new DataView(pipes);
-  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE;
+  const offset =
+    BUFFER_HEADER_SIZE +
+    index * PIPE_BINARY_SIZE +
+    PIPE_ID_MAX_LENGTH +
+    FLOAT64_SIZE;
   return view.getUint32(offset, true);
 };
 
@@ -108,7 +122,11 @@ export const getPipeEndNodeIndex = (
 ): number => {
   const view = new DataView(pipes);
   const offset =
-    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + FLOAT64_SIZE + UINT32_SIZE;
+    BUFFER_HEADER_SIZE +
+    index * PIPE_BINARY_SIZE +
+    PIPE_ID_MAX_LENGTH +
+    FLOAT64_SIZE +
+    UINT32_SIZE;
   return view.getUint32(offset, true);
 };
 
@@ -356,6 +374,20 @@ class PipesBinaryBuilder {
     const endNodeIndex = this.nodesIndex.get(endNodeId)!;
 
     let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
+
+    // Store pipe ID
+    const encoder = new TextEncoder();
+    const idBytes = encoder.encode(pipeId.slice(0, PIPE_ID_MAX_LENGTH));
+    const paddedId = new Uint8Array(PIPE_ID_MAX_LENGTH);
+    paddedId.set(idBytes);
+
+    const uint8View = new Uint8Array(
+      this.view.buffer,
+      offset,
+      PIPE_ID_MAX_LENGTH,
+    );
+    uint8View.set(paddedId);
+    offset += PIPE_ID_MAX_LENGTH;
 
     this.view.setFloat64(offset, diameter, true);
     offset += FLOAT64_SIZE;

@@ -12,6 +12,7 @@ import {
   RunData,
   getSegmentCoordinates,
   getSegmentPipeIndex,
+  getPipeId,
   getPipeDiameter,
   getPipeStartNodeIndex,
   getPipeEndNodeIndex,
@@ -206,8 +207,9 @@ const findNearestPipeConnection = (
           workerData.segments,
           closestSegmentIndex,
         );
+        const pipeId = getPipeId(workerData.pipes, pipeIndex);
         return {
-          pipeId: `pipe-${pipeIndex}`,
+          pipeId,
           snapPoint,
           junctionId,
         };
