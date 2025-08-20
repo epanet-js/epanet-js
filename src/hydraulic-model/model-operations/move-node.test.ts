@@ -77,11 +77,11 @@ describe("moveNode", () => {
       });
       customerPoint.connect({
         pipeId: pipe.id,
-        snapPoint: [20, 10], // Original snap point
+        snapPoint: [20, 10],
       });
       hydraulicModel.customerPoints.set("CP1", customerPoint);
 
-      const newCoordinates = [10, 20]; // Move J1 up
+      const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
         nodeId: "J1",
         newCoordinates,
@@ -89,7 +89,7 @@ describe("moveNode", () => {
         updateCustomerPoints: true,
       });
 
-      expect(putAssets!.length).toEqual(2); // node + pipe
+      expect(putAssets!.length).toEqual(2);
       expect(putCustomerPoints).toBeDefined();
       expect(putCustomerPoints!.length).toEqual(1);
 
@@ -136,8 +136,6 @@ describe("moveNode", () => {
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
         .build();
 
-      // Don't assign any customer points to the pipe
-
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         nodeId: "J1",
         newCoordinates: [15, 20],
@@ -146,48 +144,6 @@ describe("moveNode", () => {
       });
 
       expect(putCustomerPoints).toBeUndefined();
-    });
-
-    it("works with imported customer points that have proper connection data", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [10, 10])
-        .aNode("J2", [30, 10])
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .build();
-
-      const pipe = Array.from(hydraulicModel.assets.values()).find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      pipe?.assignCustomerPoint("CP1");
-
-      // Simulate imported customer point with proper connection data (like from allocation)
-      const customerPoint = new CustomerPoint("CP1", [20, 15], {
-        baseDemand: 1,
-      });
-      customerPoint.connect({
-        pipeId: pipe.id, // Real pipe ID (not "pipe-0")
-        snapPoint: [20, 10],
-        junctionId: "J1",
-      });
-      hydraulicModel.customerPoints.set("CP1", customerPoint);
-
-      const newCoordinates = [10, 20]; // Move J1 up
-      const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
-        newCoordinates,
-        newElevation: 10,
-        updateCustomerPoints: true,
-      });
-
-      expect(putAssets!.length).toEqual(2); // node + pipe
-      expect(putCustomerPoints).toBeDefined();
-      expect(putCustomerPoints!.length).toEqual(1);
-
-      const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.id).toEqual("CP1");
-      expect(updatedCustomerPoint.connection!.pipeId).toEqual(pipe.id);
-      expect(updatedCustomerPoint.connection!.snapPoint).not.toEqual([20, 10]);
-      // The snap point should be updated due to pipe geometry change
     });
   });
 });

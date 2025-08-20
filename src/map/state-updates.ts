@@ -378,8 +378,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (isCustomerPointOn) {
+          const isMovingAssets = mapState.ephemeralState.type === "moveAssets";
           const combinedOverlay = [
-            ...customerPointsOverlayRef.current,
+            ...(isMovingAssets ? [] : customerPointsOverlayRef.current),
             ...selectionDeckLayersRef.current,
             ...ephemeralDeckLayersRef.current,
           ];
@@ -659,7 +660,7 @@ const getHiddenCustomerPoints = (
     case "drawLink":
       return noHiddenCustomerPoints;
     case "moveAssets":
-      return ephemeralState.affectedCustomerPoints || [];
+      return noHiddenCustomerPoints;
     case "none":
       return noHiddenCustomerPoints;
   }
@@ -680,19 +681,6 @@ const buildCustomerPointsEphemeralOverlay = (
       ephemeralState.snapPoints,
       zoom,
       "highlight",
-    );
-  } else if (
-    ephemeralState.type === "moveAssets" &&
-    ephemeralState.affectedCustomerPoints
-  ) {
-    const snapPoints = ephemeralState.affectedCustomerPoints
-      .filter((cp) => cp.connection?.snapPoint)
-      .map((cp) => cp.connection!.snapPoint);
-    return buildConnectCustomerPointsPreviewOverlay(
-      ephemeralState.affectedCustomerPoints,
-      snapPoints,
-      zoom,
-      "quiet",
     );
   }
   return [];

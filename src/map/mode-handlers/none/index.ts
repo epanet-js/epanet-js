@@ -172,13 +172,12 @@ export function useNoneHandlers({
 
       const newCoordinates = getMapCoord(e);
       const noElevation = 0;
-      const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+      const { putAssets } = moveNode(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates,
         newElevation: noElevation,
-        updateCustomerPoints: isCustomerPointOn,
       });
-      putAssets && updateMove(putAssets, putCustomerPoints);
+      putAssets && updateMove(putAssets);
     },
     up: async (e) => {
       e.preventDefault();
@@ -202,7 +201,7 @@ export function useNoneHandlers({
           nodeId: assetId,
           newCoordinates,
           newElevation: await fetchElevation(e.lngLat),
-          updateCustomerPoints: true,
+          updateCustomerPoints: isCustomerPointOn,
         });
         transact(moment);
         clearSelection();

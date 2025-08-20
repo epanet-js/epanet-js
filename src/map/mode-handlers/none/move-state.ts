@@ -3,14 +3,12 @@ import { useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import { Asset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 export type EphemeralMoveAssets = {
   type: "moveAssets";
   oldAssets: Asset[];
   targetAssets: Asset[];
   startPoint?: mapboxgl.Point;
-  affectedCustomerPoints?: CustomerPoint[];
 };
 
 const nullPoint = new mapboxgl.Point(0, 0);
@@ -28,10 +26,7 @@ export const useMoveState = () => {
     });
   };
 
-  const updateMove = (
-    targetAssets: Asset[],
-    affectedCustomerPoints?: CustomerPoint[],
-  ) => {
+  const updateMove = (targetAssets: Asset[]) => {
     if (isCommittingRef.current) return;
 
     setEphemeralState((prev: EphemeralEditingState) => {
@@ -41,7 +36,6 @@ export const useMoveState = () => {
           startPoint: nullPoint,
           targetAssets,
           oldAssets: targetAssets,
-          affectedCustomerPoints,
         } as EphemeralMoveAssets;
       }
 
@@ -49,7 +43,6 @@ export const useMoveState = () => {
         ...prev,
         targetAssets,
         oldAssets: prev.oldAssets.length > 0 ? prev.oldAssets : targetAssets,
-        affectedCustomerPoints,
       };
     });
   };
