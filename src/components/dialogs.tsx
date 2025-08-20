@@ -15,6 +15,7 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
+import { WelcomeDialog } from "src/components/dialogs/welcome";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -95,13 +96,6 @@ const SimulationReportDialog = dynamic(
     import("src/components/dialogs/simulation-report").then(
       (r) => r.SimulationReportDialog,
     ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const WelcomeDialog = dynamic(
-  () => import("src/components/dialogs/welcome").then((r) => r.WelcomeDialog),
   {
     loading: () => <LoadingDialog />,
   },
