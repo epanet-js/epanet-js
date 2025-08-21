@@ -63,9 +63,7 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {
-      setIsI18nReady(false);
       await setUserLocale(newLocale);
-      setIsI18nReady(true);
     },
     [setUserLocale],
   );
