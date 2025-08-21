@@ -3,12 +3,6 @@ import { useLocale } from "src/hooks/use-locale";
 import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
 import { useEffect, useRef, useState } from "react";
 
-const hasLoadFlag = (): boolean => {
-  if (typeof window === "undefined") return false;
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("FLAG_LOAD") === "true";
-};
-
 type LoadingStep = {
   id: string;
   isComplete: boolean;
@@ -42,7 +36,6 @@ export const useAppReady = (): AppReadyState => {
   ];
 
   const systemsReady = steps.every((step) => step.isComplete);
-  const isReady = hasLoadFlag() ? systemsReady : true;
   const isLoading = useRef<boolean>(false);
 
   useEffect(() => {
@@ -67,12 +60,12 @@ export const useAppReady = (): AppReadyState => {
     };
 
     animateProgress(0);
-  }, [isReady]);
+  }, [systemsReady]);
 
   const displayProgress = Math.min(progress, 100);
 
   return {
-    isReady: !isLoading.current && isReady,
+    isReady: !isLoading.current && systemsReady,
     progress: displayProgress,
     steps,
   };
