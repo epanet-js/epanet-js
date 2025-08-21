@@ -3,6 +3,8 @@ import { useEffect, useState, createContext, useContext } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 
+const FEATURE_FLAGS_TIMEOUT_MS = 5000;
+
 const FeatureFlagsReadyContext = createContext<boolean>(false);
 
 const FeatureFlagsPostHogProvider = ({
@@ -16,13 +18,30 @@ const FeatureFlagsPostHogProvider = ({
 
   useEffect(() => {
     if (posthog) {
-      posthog.onFeatureFlags((flagsEnabled) => {
-        setFlagsContext(flagsEnabled);
-        setFlagsVersion((prev) => prev + 1);
-        if (!isReady) {
-          setIsReady(true);
-        }
+      const featureFlagsPromise = new Promise<string[]>((resolve) => {
+        posthog.onFeatureFlags((flagsEnabled) => {
+          resolve(flagsEnabled);
+        });
       });
+
+      const timeoutPromise = new Promise<string[]>((resolve) => {
+        setTimeout(() => resolve([]), FEATURE_FLAGS_TIMEOUT_MS);
+      });
+
+      Promise.race([featureFlagsPromise, timeoutPromise])
+        .then((flagsEnabled) => {
+          setFlagsContext(flagsEnabled);
+          setFlagsVersion((prev) => prev + 1);
+          if (!isReady) {
+            setIsReady(true);
+          }
+        })
+        .catch(() => {
+          setFlagsContext([]);
+          if (!isReady) {
+            setIsReady(true);
+          }
+        });
     }
   }, [posthog, isReady]);
 
