@@ -19,12 +19,6 @@ export const useLocale = () => {
     locale === "ja" && !isJapaneseOn && featureFlagsReady ? "en" : locale;
 
   useEffect(() => {
-    if (locale === "ja" && !isJapaneseOn && featureFlagsReady) {
-      void setUserLocale("en");
-    }
-  }, [locale, isJapaneseOn, featureFlagsReady, setUserLocale]);
-
-  useEffect(() => {
     setIsI18nReady(false);
     const syncLanguage = async () => {
       if (i18n.language !== effectiveLocale) {
