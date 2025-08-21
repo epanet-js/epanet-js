@@ -6,7 +6,6 @@ import { Dialogs } from "src/components/dialogs";
 import { Store } from "src/state/jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import Notifications from "src/components/notifications";
-import { LocaleProvider } from "src/hooks/use-locale";
 
 export const CommandContainer = ({
   store,
@@ -19,13 +18,11 @@ export const CommandContainer = ({
   return (
     <QueryClientProvider client={new QueryClient()}>
       <JotaiProvider store={store}>
-        <LocaleProvider>
-          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-            <Dialogs></Dialogs>
-            <Notifications duration={1} successDuration={1} />
-            {children}
-          </PersistenceContext.Provider>
-        </LocaleProvider>
+        <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
+          <Dialogs></Dialogs>
+          <Notifications duration={1} successDuration={1} />
+          {children}
+        </PersistenceContext.Provider>
       </JotaiProvider>
     </QueryClientProvider>
   );

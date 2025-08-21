@@ -23,7 +23,11 @@ export default defineConfig({
       interopDefault: true,
     },
     globals: true,
-    setupFiles: ["./test/setup.ts", "./src/__helpers__/feature-flags.ts"],
+    setupFiles: [
+      "./test/setup.ts",
+      "./src/__helpers__/feature-flags.ts",
+      "./src/__helpers__/locale.ts",
+    ],
     coverage: {
       reporter: ["text", "json", "html"],
     },
