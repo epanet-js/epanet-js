@@ -1,6 +1,7 @@
 import { useAuth } from "src/auth";
 import { useLocale } from "src/hooks/use-locale";
 import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
+import { useEffect, useRef, useState } from "react";
 
 const hasLoadFlag = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -23,6 +24,7 @@ export const useAppReady = (): AppReadyState => {
   const { isLoaded: authLoaded } = useAuth();
   const { isI18nReady } = useLocale();
   const featureFlagsReady = useFeatureFlagsReady();
+  const [progress, setProgress] = useState(0);
 
   const steps: LoadingStep[] = [
     {
@@ -41,12 +43,37 @@ export const useAppReady = (): AppReadyState => {
 
   const systemsReady = steps.every((step) => step.isComplete);
   const isReady = hasLoadFlag() ? systemsReady : true;
-  const completedSteps = steps.filter((step) => step.isComplete).length;
-  const progress = Math.round((completedSteps / steps.length) * 100);
+  const isLoading = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (isLoading.current) return;
+
+    isLoading.current = true;
+
+    setProgress(0);
+
+    const animateProgress = async (nextProgress: number) => {
+      setProgress(nextProgress);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      if (nextProgress < 100) {
+        animateProgress(Math.min(100, nextProgress + 20));
+      } else {
+        setTimeout(() => {
+          setProgress(0);
+          isLoading.current = false;
+        }, 100);
+      }
+    };
+
+    animateProgress(0);
+  }, [isReady]);
+
+  const displayProgress = Math.min(progress, 100);
 
   return {
-    isReady,
-    progress,
+    isReady: !isLoading.current && isReady,
+    progress: displayProgress,
     steps,
   };
 };
