@@ -2,21 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Locale } from "src/infra/i18n/locale";
 import { useUserSettings } from "src/hooks/use-user-settings";
-import {
-  useFeatureFlag,
-  useFeatureFlagsReady,
-} from "src/hooks/use-feature-flags";
 import "src/infra/i18n/i18next-config";
 
 export const useLocale = () => {
   const { locale, setLocale: setUserLocale } = useUserSettings();
   const { i18n } = useTranslation();
   const [isI18nReady, setIsI18nReady] = useState(false);
-  const isJapaneseOn = useFeatureFlag("FLAG_JAPANESE");
-  const featureFlagsReady = useFeatureFlagsReady();
 
-  const effectiveLocale =
-    locale === "ja" && !isJapaneseOn && featureFlagsReady ? "en" : locale;
+  const effectiveLocale = locale;
 
   useEffect(() => {
     setIsI18nReady(false);
