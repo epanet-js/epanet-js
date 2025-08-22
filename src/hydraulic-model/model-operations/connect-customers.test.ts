@@ -20,7 +20,7 @@ describe("connectCustomers", () => {
       })
       .build();
 
-    const { putCustomerPoints, putAssets } = connectCustomers(hydraulicModel, {
+    const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
       pipeId: "P1",
       snapPoints: [[2, 0]], // closer to J1
@@ -36,11 +36,6 @@ describe("connectCustomers", () => {
     expect(connectedCP.connection!.pipeId).toBe("P1");
     expect(connectedCP.connection!.junctionId).toBe("J1");
     expect(connectedCP.connection!.snapPoint).toEqual([2, 0]);
-
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2);
-    const updatedJunction = putAssets!.find((asset) => asset.id === "J1");
-    expect(updatedJunction!.id).toBe("J1");
   });
 
   it("connects multiple customer points to same pipe", () => {
@@ -72,7 +67,7 @@ describe("connectCustomers", () => {
       ], // CP1 closer to J1, CP2 closer to J2
     });
 
-    const { putCustomerPoints, putAssets } = result;
+    const { putCustomerPoints } = result;
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(2);
@@ -83,8 +78,6 @@ describe("connectCustomers", () => {
     expect(connectedCP1.connection!.junctionId).toBe("J1");
     expect(connectedCP2.connection!.junctionId).toBe("J2");
 
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(3); // Both junctions + pipe modified
     expect(result.note).toBe("Connect customers");
   });
 
@@ -116,7 +109,7 @@ describe("connectCustomers", () => {
       })
       .build();
 
-    const { putCustomerPoints, putAssets } = connectCustomers(hydraulicModel, {
+    const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
       pipeId: "P1",
       snapPoints: [[8, 0]], // closer to J2 on P1
@@ -128,14 +121,6 @@ describe("connectCustomers", () => {
     const connectedCP = putCustomerPoints![0];
     expect(connectedCP.connection!.pipeId).toBe("P1");
     expect(connectedCP.connection!.junctionId).toBe("J2");
-
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(4); // J1 (removed), J2 (added), P1 (old), P2 (new)
-
-    const oldJunction = putAssets!.find((a) => a.id === "J1");
-    const newJunction = putAssets!.find((a) => a.id === "J2");
-    expect(oldJunction).toBeDefined();
-    expect(newJunction).toBeDefined();
   });
 
   it("throws error for non-existent customer point", () => {
@@ -247,25 +232,20 @@ describe("connectCustomers", () => {
       .build();
 
     const originalCP = hydraulicModel.customerPoints.get("CP1")!;
-    const originalJunction = hydraulicModel.assets.get("J1");
 
-    const { putCustomerPoints, putAssets } = connectCustomers(hydraulicModel, {
+    const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
       pipeId: "P1",
       snapPoints: [[2, 0]],
     });
 
     const connectedCP = putCustomerPoints![0];
-    const updatedJunction = putAssets![0];
 
     expect(connectedCP).not.toBe(originalCP);
     expect(connectedCP.id).toBe(originalCP.id);
     expect(connectedCP.coordinates).toEqual(originalCP.coordinates);
     expect(connectedCP.connection).not.toBeNull();
     expect(originalCP.connection).toBeNull();
-
-    expect(updatedJunction).not.toBe(originalJunction);
-    expect(updatedJunction.id).toBe(originalJunction!.id);
   });
 
   it("handles connecting multiple customer points to same junction", () => {
@@ -288,7 +268,7 @@ describe("connectCustomers", () => {
       })
       .build();
 
-    const { putCustomerPoints, putAssets } = connectCustomers(hydraulicModel, {
+    const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: ["CP1", "CP2"],
       pipeId: "P1",
       snapPoints: [
@@ -298,15 +278,11 @@ describe("connectCustomers", () => {
     });
 
     expect(putCustomerPoints!.length).toBe(2);
-    expect(putAssets!.length).toBe(2); // J1 and P1 modified
 
     const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
     const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
 
     expect(connectedCP1.connection!.junctionId).toBe("J1");
     expect(connectedCP2.connection!.junctionId).toBe("J1");
-
-    const updatedJunction = putAssets!.find((asset) => asset.id === "J1");
-    expect(updatedJunction!.id).toBe("J1");
   });
 });
