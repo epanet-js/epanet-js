@@ -11,7 +11,6 @@ import {
   Pump,
   HydraulicModel,
 } from "src/hydraulic-model";
-import { getCustomerPoints } from "src/hydraulic-model/customer-points";
 import { PanelDetails } from "src/components/panel-details";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -647,28 +646,14 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointsEnabled = useFeatureFlag("FLAG_CUSTOMER_POINT");
-  const isLookupEnabled = useFeatureFlag("FLAG_LOOKUP");
 
   const customerPoints = useMemo(() => {
     if (!isCustomerPointsEnabled) return [];
 
-    if (isLookupEnabled) {
-      const connectedCustomerPoints =
-        hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
-      return connectedCustomerPoints ? Array.from(connectedCustomerPoints) : [];
-    } else {
-      return getCustomerPoints(
-        hydraulicModel.customerPoints,
-        junction.customerPointIds,
-      );
-    }
-  }, [
-    isCustomerPointsEnabled,
-    isLookupEnabled,
-    junction.id,
-    junction.customerPointIds,
-    hydraulicModel,
-  ]);
+    const connectedCustomerPoints =
+      hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
+    return connectedCustomerPoints ? Array.from(connectedCustomerPoints) : [];
+  }, [isCustomerPointsEnabled, junction.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;
   const totalDemand = customerPoints.reduce(

@@ -1,11 +1,8 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
-import {
-  HydraulicModelBuilder,
-  buildCustomerPoint,
-} from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id-mapper";
@@ -481,24 +478,27 @@ describe("AssetEditor", () => {
             label: "MY_JUNCTION",
             baseDemand: 50,
           })
+          .aJunction("J2", { coordinates: [10, 0] })
+          .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
+          .aCustomerPoint("CP1", {
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: "P1",
+              junctionId: junctionId,
+              snapPoint: [1, 2],
+            },
+          })
+          .aCustomerPoint("CP2", {
+            coordinates: [3, 4],
+            demand: 30,
+            connection: {
+              pipeId: "P1",
+              junctionId: junctionId,
+              snapPoint: [3, 4],
+            },
+          })
           .build();
-
-        // Add customer points to the junction
-        const junction = hydraulicModel.assets.get(junctionId) as Junction;
-        const customerPoint1 = buildCustomerPoint("CP1", {
-          coordinates: [1, 2],
-          demand: 25,
-        });
-        const customerPoint2 = buildCustomerPoint("CP2", {
-          coordinates: [3, 4],
-          demand: 30,
-        });
-
-        junction.assignCustomerPoint(customerPoint1.id);
-        junction.assignCustomerPoint(customerPoint2.id);
-
-        hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
-        hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
 
         const store = setInitialState({
           hydraulicModel,
@@ -532,24 +532,27 @@ describe("AssetEditor", () => {
             label: "MY_JUNCTION",
             baseDemand: 50,
           })
+          .aJunction("J2", { coordinates: [10, 0] })
+          .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
+          .aCustomerPoint("CP1", {
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: "P1",
+              junctionId: junctionId,
+              snapPoint: [1, 2],
+            },
+          })
+          .aCustomerPoint("CP2", {
+            coordinates: [3, 4],
+            demand: 30,
+            connection: {
+              pipeId: "P1",
+              junctionId: junctionId,
+              snapPoint: [3, 4],
+            },
+          })
           .build();
-
-        // Add customer points to the junction
-        const junction = hydraulicModel.assets.get(junctionId) as Junction;
-        const customerPoint1 = buildCustomerPoint("CP1", {
-          coordinates: [1, 2],
-          demand: 25,
-        });
-        const customerPoint2 = buildCustomerPoint("CP2", {
-          coordinates: [3, 4],
-          demand: 30,
-        });
-
-        junction.assignCustomerPoint(customerPoint1.id);
-        junction.assignCustomerPoint(customerPoint2.id);
-
-        hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
-        hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
 
         const store = setInitialState({
           hydraulicModel,

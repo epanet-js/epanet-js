@@ -388,11 +388,19 @@ export class HydraulicModelBuilder {
   }
 
   build(): HydraulicModel {
+    const lookup = new CustomerPointsLookup();
+
+    for (const customerPoint of this.customerPointsMap.values()) {
+      if (customerPoint.connection) {
+        lookup.addConnection(customerPoint);
+      }
+    }
+
     return {
       version: nanoid(),
       assets: this.assets,
       customerPoints: this.customerPointsMap,
-      customerPointsLookup: new CustomerPointsLookup(),
+      customerPointsLookup: lookup,
       assetBuilder: this.assetBuilder,
       labelManager: this.labelManager,
       topology: this.topology,
