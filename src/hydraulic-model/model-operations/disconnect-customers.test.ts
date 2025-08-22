@@ -4,8 +4,6 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { getCustomerPoints } from "src/hydraulic-model/customer-points";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 describe("disconnectCustomers", () => {
   it("disconnects a single connected customer point", () => {
@@ -197,7 +195,7 @@ describe("disconnectCustomers", () => {
     expect(result.note).toBe("Disconnect customers");
   });
 
-  it("removes customer point reference from junction", () => {
+  it("removes customer point reference from lookup", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aPipe("P1", {
@@ -215,33 +213,28 @@ describe("disconnectCustomers", () => {
       })
       .build();
 
-    const originalJunction = hydraulicModel.assets.get("J1") as any;
+    hydraulicModel.customerPointsLookup.addConnection(
+      hydraulicModel.customerPoints.get("CP1")!,
+    );
 
     expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        originalJunction.customerPointIds,
-      ),
+      hydraulicModel.customerPointsLookup.getCustomerPoints("J1"),
+    ).toHaveLength(1);
+    expect(
+      hydraulicModel.customerPointsLookup.getCustomerPoints("P1"),
     ).toHaveLength(1);
 
     const { putAssets } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
     });
 
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2);
-
-    const updatedJunction = putAssets!.find(
-      (asset) => asset.id === "J1",
-    ) as any;
-    expect(updatedJunction.id).toBe("J1");
-    expect(updatedJunction.customerPointCount).toBe(0);
-    expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        originalJunction.customerPointIds,
-      ),
-    ).toHaveLength(1);
+    expect(putAssets).toBeUndefined();
+    expect(hydraulicModel.customerPointsLookup.hasConnections("J1")).toBe(
+      false,
+    );
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(
+      false,
+    );
   });
 
   it("handles multiple customer points connected to same junction", () => {
@@ -267,33 +260,28 @@ describe("disconnectCustomers", () => {
       })
       .build();
 
-    const originalJunction = hydraulicModel.assets.get("J1") as any;
+    hydraulicModel.customerPointsLookup.addConnection(
+      hydraulicModel.customerPoints.get("CP1")!,
+    );
+    hydraulicModel.customerPointsLookup.addConnection(
+      hydraulicModel.customerPoints.get("CP2")!,
+    );
 
     expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        originalJunction.customerPointIds,
-      ),
+      hydraulicModel.customerPointsLookup.getCustomerPoints("J1"),
     ).toHaveLength(2);
 
     const { putAssets } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1", "CP2"],
     });
 
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2);
-
-    const updatedJunction = putAssets!.find(
-      (asset) => asset.id === "J1",
-    ) as any;
-    expect(updatedJunction.id).toBe("J1");
-    expect(updatedJunction.customerPointCount).toBe(0);
-    expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        originalJunction.customerPointIds,
-      ),
-    ).toHaveLength(2);
+    expect(putAssets).toBeUndefined();
+    expect(hydraulicModel.customerPointsLookup.hasConnections("J1")).toBe(
+      false,
+    );
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(
+      false,
+    );
   });
 
   it("handles customer points with no junction connection", () => {
@@ -311,6 +299,12 @@ describe("disconnectCustomers", () => {
       .build();
 
     hydraulicModel.customerPoints.set("CP1", cp);
+    hydraulicModel.customerPointsLookup.addConnection(cp);
+
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(true);
+    expect(hydraulicModel.customerPointsLookup.hasConnections("J1")).toBe(
+      false,
+    );
 
     const { putAssets, putCustomerPoints } = disconnectCustomers(
       hydraulicModel,
@@ -322,6 +316,9 @@ describe("disconnectCustomers", () => {
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
     expect(putAssets).toBeUndefined();
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(
+      false,
+    );
   });
 
   it("handles customer point with non-existent junction", () => {
@@ -340,6 +337,12 @@ describe("disconnectCustomers", () => {
       .build();
 
     hydraulicModel.customerPoints.set("CP1", cp);
+    hydraulicModel.customerPointsLookup.addConnection(cp);
+
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(true);
+    expect(
+      hydraulicModel.customerPointsLookup.hasConnections("NON_EXISTENT"),
+    ).toBe(true);
 
     const { putAssets, putCustomerPoints } = disconnectCustomers(
       hydraulicModel,
@@ -351,9 +354,15 @@ describe("disconnectCustomers", () => {
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
     expect(putAssets).toBeUndefined();
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(
+      false,
+    );
+    expect(
+      hydraulicModel.customerPointsLookup.hasConnections("NON_EXISTENT"),
+    ).toBe(false);
   });
 
-  it("removes customer point reference from pipe", () => {
+  it("removes customer point reference from pipe lookup", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0] })
       .aPipe("P1", {
@@ -371,30 +380,21 @@ describe("disconnectCustomers", () => {
       })
       .build();
 
-    const originalPipe = hydraulicModel.assets.get("P1") as Pipe;
+    hydraulicModel.customerPointsLookup.addConnection(
+      hydraulicModel.customerPoints.get("CP1")!,
+    );
 
     expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        originalPipe.customerPointIds,
-      ),
+      hydraulicModel.customerPointsLookup.getCustomerPoints("P1"),
     ).toHaveLength(1);
 
     const { putAssets } = disconnectCustomers(hydraulicModel, {
       customerPointIds: ["CP1"],
     });
 
-    expect(putAssets).toBeDefined();
-    expect(putAssets!.length).toBe(2);
-
-    const updatedPipe = putAssets!.find((asset) => asset.id === "P1") as Pipe;
-    expect(updatedPipe).toBeDefined();
-    expect(updatedPipe.customerPointCount).toBe(0);
-    expect(
-      getCustomerPoints(
-        hydraulicModel.customerPoints,
-        updatedPipe.customerPointIds,
-      ),
-    ).toHaveLength(0);
+    expect(putAssets).toBeUndefined();
+    expect(hydraulicModel.customerPointsLookup.hasConnections("P1")).toBe(
+      false,
+    );
   });
 });
