@@ -1,5 +1,5 @@
 import { Node, NodeProperties } from "./node";
-import { CustomerPoint, CustomerPoints } from "../customer-points";
+import { CustomerPointsLookup } from "../customer-points-lookup";
 
 export type JunctionProperties = {
   type: "junction";
@@ -73,11 +73,16 @@ export class Junction extends Node<JunctionProperties> {
     this.assignedCustomerPointIds.delete(customerPointId);
   }
 
-  getTotalCustomerDemand(customerPoints: CustomerPoints): number {
-    return Array.from(this.assignedCustomerPointIds)
-      .map((id) => customerPoints.get(id))
-      .filter((cp): cp is CustomerPoint => cp !== undefined)
-      .reduce((sum, cp) => sum + cp.baseDemand, 0);
+  getTotalCustomerDemand(customerPointsLookup: CustomerPointsLookup): number {
+    const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
+      this.id,
+    );
+    if (!connectedCustomerPoints) return 0;
+
+    return Array.from(connectedCustomerPoints).reduce(
+      (sum, cp) => sum + cp.baseDemand,
+      0,
+    );
   }
 
   copy() {

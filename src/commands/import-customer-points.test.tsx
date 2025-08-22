@@ -309,7 +309,7 @@ describe.skip("importCustomerPoints", () => {
     expect(junction.baseDemand).toBe(30);
     expect(junction.customerPointCount).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(hydraulicModel.customerPoints),
+      junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
     ).toBeCloseTo(0.000231, 6);
   });
 
@@ -374,7 +374,7 @@ describe.skip("importCustomerPoints", () => {
     expect(junction.baseDemand).toBe(0);
     expect(junction.customerPointCount).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(hydraulicModel.customerPoints),
+      junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
     ).toBeCloseTo(0.000289, 6);
   });
 

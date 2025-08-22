@@ -251,9 +251,9 @@ describe("addCustomerPoints", () => {
         updatedJ1.customerPointIds,
       ),
     ).toContain(cp2);
-    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
-      55,
-    );
+    expect(
+      updatedJ1.getTotalCustomerDemand(updatedModel.customerPointsLookup),
+    ).toBe(55);
   });
 
   it("maintains immutability by returning a new hydraulic model", () => {
@@ -360,9 +360,9 @@ describe("addCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(30);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
-      25,
-    );
+    expect(
+      updatedJ1.getTotalCustomerDemand(updatedModel.customerPointsLookup),
+    ).toBe(25);
   });
 
   it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
@@ -394,9 +394,9 @@ describe("addCustomerPoints", () => {
     const updatedJ1 = updatedModel.assets.get("J1") as Junction;
     expect(updatedJ1.baseDemand).toBe(0);
     expect(updatedJ1.customerPointCount).toBe(1);
-    expect(updatedJ1.getTotalCustomerDemand(updatedModel.customerPoints)).toBe(
-      35,
-    );
+    expect(
+      updatedJ1.getTotalCustomerDemand(updatedModel.customerPointsLookup),
+    ).toBe(35);
   });
 
   it("connects customer points to their assigned pipes", () => {
