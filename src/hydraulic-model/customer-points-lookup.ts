@@ -58,4 +58,18 @@ export class CustomerPointsLookup {
   clear(): void {
     this.lookup.clear();
   }
+
+  copy(): CustomerPointsLookup {
+    const newLookup = new CustomerPointsLookup();
+    for (const [, customerPointsSet] of this.lookup.entries()) {
+      for (const customerPoint of customerPointsSet) {
+        newLookup.addConnection(customerPoint);
+      }
+    }
+    return newLookup;
+  }
+
+  entries(): IterableIterator<[string, Set<CustomerPoint>]> {
+    return this.lookup.entries();
+  }
 }

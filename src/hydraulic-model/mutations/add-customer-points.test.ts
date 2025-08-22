@@ -111,6 +111,8 @@ describe("addCustomerPoints", () => {
 
     const junction = updatedModel.assets.get("J1") as Junction;
     expect(junction.customerPointCount).toBe(0);
+
+    expect(updatedModel.customerPointsLookup.hasConnections("J1")).toBe(false);
   });
 
   it("handles mixed connected and disconnected customer points", () => {
@@ -454,5 +456,57 @@ describe("addCustomerPoints", () => {
         updatedPipe.customerPointIds,
       ),
     ).toContain(cp2);
+  });
+
+  it("populates customer points lookup when adding connected customer points", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const cp1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 100,
+    });
+    cp1.connect({ pipeId: "P1", snapPoint: [2, 0], junctionId: "J1" });
+
+    const cp2 = buildCustomerPoint("CP2", {
+      coordinates: [8, 1],
+      demand: 150,
+    });
+    cp2.connect({ pipeId: "P1", snapPoint: [8, 0], junctionId: "J2" });
+
+    const updatedModel = addCustomerPoints(hydraulicModel, [cp1, cp2]);
+
+    const j1CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J1");
+    const j2CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J2");
+    const p1CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("P1");
+
+    expect(j1CustomerPoints).toBeDefined();
+    expect(j2CustomerPoints).toBeDefined();
+    expect(p1CustomerPoints).toBeDefined();
+
+    expect(Array.from(j1CustomerPoints!)).toHaveLength(1);
+    expect(Array.from(j1CustomerPoints!)[0]?.id).toBe("CP1");
+
+    expect(Array.from(j2CustomerPoints!)).toHaveLength(1);
+    expect(Array.from(j2CustomerPoints!)[0]?.id).toBe("CP2");
+
+    expect(Array.from(p1CustomerPoints!)).toHaveLength(2);
+
+    const p1CustomerPointIds = Array.from(p1CustomerPoints!).map((cp) => cp.id);
+    expect(p1CustomerPointIds).toContain("CP1");
+    expect(p1CustomerPointIds).toContain("CP2");
   });
 });

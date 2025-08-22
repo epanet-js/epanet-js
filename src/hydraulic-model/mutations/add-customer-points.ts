@@ -18,12 +18,17 @@ export const addCustomerPoints = (
   const { preserveJunctionDemands = true } = options;
   const updatedAssets = new Map(hydraulicModel.assets);
   const updatedCustomerPoints = new Map(hydraulicModel.customerPoints);
+  const updatedLookup = hydraulicModel.customerPointsLookup.copy();
 
   const modifiedJunctions = new Set<string>();
   const modifiedPipes = new Set<string>();
 
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
+
+    if (customerPoint.connection) {
+      updatedLookup.addConnection(customerPoint);
+    }
 
     if (!customerPoint.connection || !customerPoint.connection.junctionId) {
       continue;
@@ -49,6 +54,7 @@ export const addCustomerPoints = (
     ...hydraulicModel,
     version: hydraulicModel.version,
     customerPoints: updatedCustomerPoints,
+    customerPointsLookup: updatedLookup,
     assets: updatedAssets,
   };
 };
