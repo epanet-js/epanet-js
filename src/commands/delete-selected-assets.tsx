@@ -6,6 +6,7 @@ import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
 import { USelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
@@ -15,6 +16,7 @@ export const useDeleteSelectedAssets = () => {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const deleteSelectedAssets = useCallback(
     ({ source }: { source: AssetDeleted["source"] }) => {
@@ -39,11 +41,19 @@ export const useDeleteSelectedAssets = () => {
 
       const moment = deleteAssets(hydraulicModel, {
         assetIds,
+        shouldUpdateCustomerPoints: isCustomerPointOn,
       });
 
       transact(moment);
     },
-    [hydraulicModel, selection, transact, setSelection, userTracking],
+    [
+      hydraulicModel,
+      selection,
+      transact,
+      setSelection,
+      userTracking,
+      isCustomerPointOn,
+    ],
   );
 
   return deleteSelectedAssets;
