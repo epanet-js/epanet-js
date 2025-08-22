@@ -21,7 +21,6 @@ export type JunctionSimulation = {
 
 export class Junction extends Node<JunctionProperties> {
   private simulation: JunctionSimulation | null = null;
-  private assignedCustomerPointIds: Set<string> = new Set();
 
   get baseDemand() {
     return this.properties.baseDemand;
@@ -57,22 +56,6 @@ export class Junction extends Node<JunctionProperties> {
     return this.units[key];
   }
 
-  get customerPointIds(): string[] {
-    return Array.from(this.assignedCustomerPointIds);
-  }
-
-  get customerPointCount(): number {
-    return this.assignedCustomerPointIds.size;
-  }
-
-  assignCustomerPoint(customerPointId: string): void {
-    this.assignedCustomerPointIds.add(customerPointId);
-  }
-
-  removeCustomerPoint(customerPointId: string): void {
-    this.assignedCustomerPointIds.delete(customerPointId);
-  }
-
   getTotalCustomerDemand(customerPointsLookup: CustomerPointsLookup): number {
     const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
       this.id,
@@ -92,10 +75,6 @@ export class Junction extends Node<JunctionProperties> {
       { ...this.properties },
       this.units,
     );
-
-    this.assignedCustomerPointIds.forEach((id) => {
-      newJunction.assignCustomerPoint(id);
-    });
 
     return newJunction;
   }

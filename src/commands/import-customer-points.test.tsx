@@ -307,7 +307,10 @@ describe.skip("importCustomerPoints", () => {
     const junction = hydraulicModel.assets.get("J1") as Junction;
 
     expect(junction.baseDemand).toBe(30);
-    expect(junction.customerPointCount).toBe(1);
+
+    const junctionCustomerPoints =
+      hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+    expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
     ).toBeCloseTo(0.000231, 6);
@@ -372,7 +375,10 @@ describe.skip("importCustomerPoints", () => {
     const junction = hydraulicModel.assets.get("J1") as Junction;
 
     expect(junction.baseDemand).toBe(0);
-    expect(junction.customerPointCount).toBe(1);
+
+    const junctionCustomerPoints =
+      hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+    expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
     ).toBeCloseTo(0.000289, 6);

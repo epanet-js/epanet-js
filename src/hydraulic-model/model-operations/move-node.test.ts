@@ -3,8 +3,6 @@ import { moveNode } from "./move-node";
 
 import { NodeAsset, LinkAsset } from "../asset-types";
 import { HydraulicModelBuilder } from "../../__helpers__/hydraulic-model-builder";
-import { CustomerPoint } from "../customer-points";
-import { Pipe } from "../asset-types/pipe";
 
 describe("moveNode", () => {
   it("updates the coordinates of a node", () => {
@@ -63,21 +61,16 @@ describe("moveNode", () => {
         .aNode("J1", [10, 10])
         .aNode("J2", [30, 10])
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aCustomerPoint("CP1", {
+          coordinates: [20, 15],
+          demand: 1,
+          connection: {
+            pipeId: "P1",
+            snapPoint: [20, 10],
+            junctionId: "J1",
+          },
+        })
         .build();
-
-      const pipe = Array.from(hydraulicModel.assets.values()).find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      pipe?.assignCustomerPoint("CP1");
-
-      const customerPoint = new CustomerPoint("CP1", [20, 15], {
-        baseDemand: 1,
-      });
-      customerPoint.connect({
-        pipeId: pipe.id,
-        snapPoint: [20, 10],
-      });
-      hydraulicModel.customerPoints.set("CP1", customerPoint);
 
       const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
@@ -101,21 +94,16 @@ describe("moveNode", () => {
         .aNode("J1", [10, 10])
         .aNode("J2", [30, 10])
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aCustomerPoint("CP1", {
+          coordinates: [20, 15],
+          demand: 1,
+          connection: {
+            pipeId: "P1",
+            snapPoint: [20, 10],
+            junctionId: "J1",
+          },
+        })
         .build();
-
-      const pipe = Array.from(hydraulicModel.assets.values()).find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      pipe?.assignCustomerPoint("CP1");
-
-      const customerPoint = new CustomerPoint("CP1", [20, 15], {
-        baseDemand: 1,
-      });
-      customerPoint.connect({
-        pipeId: pipe.id,
-        snapPoint: [20, 10],
-      });
-      hydraulicModel.customerPoints.set("CP1", customerPoint);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         nodeId: "J1",

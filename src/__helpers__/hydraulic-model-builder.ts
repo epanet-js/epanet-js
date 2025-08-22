@@ -13,8 +13,6 @@ import {
   NodeAsset,
   AssetId,
   HeadlossFormula,
-  Junction,
-  Pipe,
 } from "src/hydraulic-model";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
@@ -378,9 +376,6 @@ export class HydraulicModelBuilder {
         snapPoint: defaultSnapPoint,
         junctionId,
       });
-
-      (junction as Junction).assignCustomerPoint(customerPoint.id);
-      (pipe as Pipe).assignCustomerPoint(customerPoint.id);
     }
 
     this.customerPointsMap.set(id, customerPoint);

@@ -74,9 +74,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(0);
-
-    const junction = updatedModel.assets.get("J1") as Junction;
-    expect(junction.customerPointCount).toBe(0);
+    expect(updatedModel.customerPointsLookup.hasConnections("J1")).toBe(false);
   });
 
   it("adds disconnected customer points to model but does not assign them to junctions", () => {
@@ -253,9 +251,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(originalModel, customerPointsToAdd);
 
     expect(originalModel.customerPoints.size).toBe(0);
-    expect(
-      (originalModel.assets.get("J1") as Junction).customerPointCount,
-    ).toBe(0);
+    expect(originalModel.customerPointsLookup.hasConnections("J1")).toBe(false);
 
     expect(updatedModel.customerPoints.size).toBe(1);
     expect(updatedModel.customerPointsLookup.hasConnections("J1")).toBe(true);

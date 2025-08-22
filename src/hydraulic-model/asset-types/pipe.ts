@@ -108,22 +108,6 @@ export class Pipe extends Link<PipeProperties> {
     return this.units[quantity];
   }
 
-  get customerPointIds(): string[] {
-    return Array.from(this.attachedCustomerPointIdsSet);
-  }
-
-  get customerPointCount(): number {
-    return this.attachedCustomerPointIdsSet.size;
-  }
-
-  assignCustomerPoint(customerPointId: string): void {
-    this.attachedCustomerPointIdsSet.add(customerPointId);
-  }
-
-  removeCustomerPoint(customerPointId: string): void {
-    this.attachedCustomerPointIdsSet.delete(customerPointId);
-  }
-
   copy() {
     const newPipe = new Pipe(
       this.id,
@@ -133,10 +117,6 @@ export class Pipe extends Link<PipeProperties> {
       },
       this.units,
     );
-
-    this.attachedCustomerPointIdsSet.forEach((id) => {
-      newPipe.assignCustomerPoint(id);
-    });
 
     return newPipe;
   }

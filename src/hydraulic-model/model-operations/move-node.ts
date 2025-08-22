@@ -16,7 +16,7 @@ type InputData = {
 };
 
 export const moveNode: ModelOperation<InputData> = (
-  { assets, topology, customerPoints },
+  { assets, topology, customerPointsLookup },
   { nodeId, newCoordinates, newElevation, shouldUpdateCustomerPoints = false },
 ) => {
   const node = getNode(assets, nodeId) as NodeAsset;
@@ -41,10 +41,12 @@ export const moveNode: ModelOperation<InputData> = (
       const [startNode, endNode] = pipeCopy.connections.map(
         (nodeId) => assets.get(nodeId) as NodeAsset,
       );
-      const customerPointIds = pipeCopy.customerPointIds;
-      const customerPointsConnectedToPipe = customerPointIds.map(
-        (id) => customerPoints.get(id) as CustomerPoint,
+      const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
+        pipeCopy.id,
       );
+      const customerPointsConnectedToPipe = connectedCustomerPoints
+        ? Array.from(connectedCustomerPoints)
+        : [];
 
       for (const customerPoint of customerPointsConnectedToPipe) {
         const customerPointCopy = customerPoint.copyDisconnected();
