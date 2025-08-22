@@ -39,7 +39,10 @@ export const moveNode: ModelOperation<InputData> = (
     if (linkCopy.type === "pipe" && shouldUpdateCustomerPoints) {
       const pipeCopy = linkCopy as Pipe;
       const [startNode, endNode] = pipeCopy.connections.map(
-        (nodeId) => assets.get(nodeId) as NodeAsset,
+        (connectedNodeId) =>
+          connectedNodeId === nodeId
+            ? updatedNode
+            : (assets.get(connectedNodeId) as NodeAsset),
       );
       const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
         pipeCopy.id,
@@ -52,16 +55,8 @@ export const moveNode: ModelOperation<InputData> = (
         const customerPointCopy = customerPoint.copyDisconnected();
         const snapPoint = findNearestSnappingPoint(pipeCopy, customerPointCopy);
         const junctionId = findJunctionForCustomerPoint(
-          {
-            id: startNode.id,
-            type: startNode.type,
-            coordinates: startNode.coordinates,
-          },
-          {
-            id: endNode.id,
-            type: endNode.type,
-            coordinates: endNode.coordinates,
-          },
+          startNode,
+          endNode,
           snapPoint,
         );
 

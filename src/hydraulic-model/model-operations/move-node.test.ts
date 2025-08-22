@@ -218,5 +218,35 @@ describe("moveNode", () => {
       expect(updatedCP1.connection!.junctionId).toEqual("J2");
       expect(updatedCP2.connection!.junctionId).toEqual("J2");
     });
+
+    it("assigns customer to correct junction after moving node with updated coordinates", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [-122.415, 37.7749] })
+        .aJunction("J2", { coordinates: [-122.41, 37.7749] })
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aCustomerPoint("CP1", {
+          coordinates: [-122.414, 37.775],
+          demand: 10,
+          connection: {
+            pipeId: "P1",
+            junctionId: "J1",
+            snapPoint: [-122.414, 37.7749],
+          },
+        })
+        .build();
+
+      const { putCustomerPoints } = moveNode(hydraulicModel, {
+        nodeId: "J1",
+        newCoordinates: [-122.405, 37.7749],
+        newElevation: 10,
+        shouldUpdateCustomerPoints: true,
+      });
+
+      expect(putCustomerPoints).toBeDefined();
+      expect(putCustomerPoints!.length).toEqual(1);
+
+      const updatedCustomerPoint = putCustomerPoints![0];
+      expect(updatedCustomerPoint.connection!.junctionId).toEqual("J2");
+    });
   });
 });
