@@ -246,7 +246,7 @@ export const styledDialogContent = ({
     {
       "max-w-[320px]": size === "xs",
       "max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
-      "max-w-full md:max-w-screen-md lg:max-w-screen-lg p-6 sm:p-8":
+      "max-w-full md:max-w-screen-md lg:max-w-screen-md p-6 sm:p-8":
         size === "md",
       "max-w-full lg:max-w-screen-lg lg:max-w-screen-lg p-6 sm:p-8":
         size === "lg",

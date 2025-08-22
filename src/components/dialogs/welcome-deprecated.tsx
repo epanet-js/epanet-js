@@ -65,7 +65,7 @@ export const WelcomeDialogDeprecated = () => {
   const demoModels = getDemoModels(translate);
 
   return (
-    <DialogContainer size={!isMdOrLarger ? "fullscreen" : "md"}>
+    <DialogContainer size={!isMdOrLarger ? "fullscreen" : "lg"}>
       <div className="w-full flex flex-col h-full">
         <div className="flex-shrink-0 w-full flex flex-row justify-between items-center pb-4">
           <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
