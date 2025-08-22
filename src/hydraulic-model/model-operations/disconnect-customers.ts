@@ -23,7 +23,7 @@ export const disconnectCustomers: ModelOperation<InputData> = (
       throw new Error(`Customer point with id ${id} not found`);
     }
 
-    const disconnectedCopy = customerPoint.copy();
+    const disconnectedCopy = customerPoint.copyDisconnected();
     disconnectedCustomerPoints.push(disconnectedCopy);
 
     handleJunctionDisconnection(

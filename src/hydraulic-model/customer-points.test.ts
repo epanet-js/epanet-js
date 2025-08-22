@@ -27,7 +27,7 @@ describe("CustomerPoint", () => {
       demand: 50,
     });
 
-    const copiedPoint = originalPoint.copy();
+    const copiedPoint = originalPoint.copyDisconnected();
 
     expect(copiedPoint.id).toBe(originalPoint.id);
     expect(copiedPoint.coordinates).toEqual(originalPoint.coordinates);
@@ -54,7 +54,7 @@ describe("CustomerPoint", () => {
     };
 
     originalPoint.connect(connection);
-    const copiedPoint = originalPoint.copy();
+    const copiedPoint = originalPoint.copyDisconnected();
 
     expect(originalPoint.connection).not.toBeNull();
     expect(copiedPoint.connection).toBeNull();

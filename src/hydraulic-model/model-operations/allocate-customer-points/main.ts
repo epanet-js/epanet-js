@@ -52,7 +52,7 @@ export const allocateCustomerPoints = async (
   for (const result of allocationResults) {
     const customerPointCopy = customerPoints
       .get(result.customerPointId)
-      ?.copy();
+      ?.copyDisconnected();
     if (customerPointCopy) {
       if (result.ruleIndex !== -1 && result.connection) {
         customerPointCopy.connect(result.connection);

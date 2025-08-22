@@ -58,7 +58,7 @@ export class CustomerPoint {
     this.connectionData = connection;
   }
 
-  copy(): CustomerPoint {
+  copyDisconnected(): CustomerPoint {
     return new CustomerPoint(this.id, [...this.coordinates], {
       baseDemand: this.baseDemand,
     });
@@ -77,7 +77,7 @@ export const validateCustomerPoint = (data: any): data is CustomerPoint => {
   );
 };
 
-export type CustomerPoints = Map<string, CustomerPoint>;
+export class CustomerPoints extends Map<string, CustomerPoint> {}
 
 export const initializeCustomerPoints = (): CustomerPoints => {
   return new Map<string, CustomerPoint>();

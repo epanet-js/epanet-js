@@ -75,7 +75,7 @@ export const connectCustomers: ModelOperation<InputData> = (
       );
     }
 
-    const connectedCopy = customerPoint.copy();
+    const connectedCopy = customerPoint.copyDisconnected();
     connectedCopy.connect({
       pipeId,
       snapPoint,

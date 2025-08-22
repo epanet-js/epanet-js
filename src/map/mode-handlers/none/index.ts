@@ -201,7 +201,7 @@ export function useNoneHandlers({
           nodeId: assetId,
           newCoordinates,
           newElevation: await fetchElevation(e.lngLat),
-          updateCustomerPoints: isCustomerPointOn,
+          shouldUpdateCustomerPoints: isCustomerPointOn,
         });
         transact(moment);
         clearSelection();
