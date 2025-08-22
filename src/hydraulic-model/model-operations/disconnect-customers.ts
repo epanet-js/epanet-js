@@ -6,7 +6,7 @@ type InputData = {
 };
 
 export const disconnectCustomers: ModelOperation<InputData> = (
-  { customerPoints, customerPointsLookup },
+  { customerPoints },
   { customerPointIds },
 ) => {
   const disconnectedCustomerPoints: CustomerPoint[] = [];
@@ -19,9 +19,6 @@ export const disconnectCustomers: ModelOperation<InputData> = (
 
     const disconnectedCopy = customerPoint.copyDisconnected();
     disconnectedCustomerPoints.push(disconnectedCopy);
-
-    customerPointsLookup.removeConnection(customerPoint);
-    customerPointsLookup.addConnection(disconnectedCopy);
   }
 
   return {
