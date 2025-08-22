@@ -1,10 +1,6 @@
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model/hydraulic-model";
-import {
-  CustomerPoint,
-  getCustomerPoints,
-} from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 type AddCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;
@@ -21,7 +17,6 @@ export const addCustomerPoints = (
   const updatedLookup = hydraulicModel.customerPointsLookup.copy();
 
   const modifiedJunctions = new Set<string>();
-  const modifiedPipes = new Set<string>();
 
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
@@ -34,20 +29,14 @@ export const addCustomerPoints = (
       continue;
     }
 
-    updateJunctionConnection(
-      customerPoint,
-      hydraulicModel,
-      updatedAssets,
-      modifiedJunctions,
-      preserveJunctionDemands,
-    );
-
-    updatePipeConnection(
-      customerPoint,
-      hydraulicModel,
-      updatedAssets,
-      modifiedPipes,
-    );
+    if (!preserveJunctionDemands) {
+      removeJunctionDemands(
+        customerPoint,
+        hydraulicModel,
+        updatedAssets,
+        modifiedJunctions,
+      );
+    }
   }
 
   return {
@@ -59,12 +48,11 @@ export const addCustomerPoints = (
   };
 };
 
-const updateJunctionConnection = (
+const removeJunctionDemands = (
   customerPoint: CustomerPoint,
   hydraulicModel: HydraulicModel,
   updatedAssets: AssetsMap,
   modifiedJunctions: Set<string>,
-  preserveJunctionDemands: boolean,
 ): void => {
   const junctionId = customerPoint.connection!.junctionId!;
   const originalJunction = hydraulicModel.assets.get(junctionId) as Junction;
@@ -73,52 +61,10 @@ const updateJunctionConnection = (
     return;
   }
 
-  let junctionCopy: Junction;
   if (!modifiedJunctions.has(junctionId)) {
-    junctionCopy = originalJunction.copy();
-    const existingCustomerPoints = getCustomerPoints(
-      hydraulicModel.customerPoints,
-      junctionCopy.customerPointIds,
-    );
-    existingCustomerPoints.forEach((existingCustomerPoint) => {
-      junctionCopy.removeCustomerPoint(existingCustomerPoint.id);
-    });
-    if (!preserveJunctionDemands) {
-      junctionCopy.setBaseDemand(0);
-    }
+    const junctionCopy = originalJunction.copy();
+    junctionCopy.setBaseDemand(0);
     updatedAssets.set(junctionId, junctionCopy);
     modifiedJunctions.add(junctionId);
-  } else {
-    junctionCopy = updatedAssets.get(junctionId) as Junction;
   }
-
-  junctionCopy.assignCustomerPoint(customerPoint.id);
-};
-
-const updatePipeConnection = (
-  customerPoint: CustomerPoint,
-  hydraulicModel: HydraulicModel,
-  updatedAssets: AssetsMap,
-  modifiedPipes: Set<string>,
-): void => {
-  const pipeId = customerPoint.connection?.pipeId;
-  if (!pipeId) {
-    return;
-  }
-
-  const originalPipe = hydraulicModel.assets.get(pipeId) as Pipe;
-  if (!originalPipe) {
-    return;
-  }
-
-  let pipeCopy: Pipe;
-  if (!modifiedPipes.has(pipeId)) {
-    pipeCopy = originalPipe.copy();
-    updatedAssets.set(pipeId, pipeCopy);
-    modifiedPipes.add(pipeId);
-  } else {
-    pipeCopy = updatedAssets.get(pipeId) as Pipe;
-  }
-
-  pipeCopy.assignCustomerPoint(customerPoint.id);
 };
