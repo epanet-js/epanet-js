@@ -647,6 +647,34 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointsEnabled = useFeatureFlag("FLAG_CUSTOMER_POINT");
+  const isLookupEnabled = useFeatureFlag("FLAG_LOOKUP");
+
+  const customerPoints = useMemo(() => {
+    if (!isCustomerPointsEnabled) return [];
+
+    if (isLookupEnabled) {
+      const connectedCustomerPoints =
+        hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
+      return connectedCustomerPoints ? Array.from(connectedCustomerPoints) : [];
+    } else {
+      return getCustomerPoints(
+        hydraulicModel.customerPoints,
+        junction.customerPointIds,
+      );
+    }
+  }, [
+    isCustomerPointsEnabled,
+    isLookupEnabled,
+    junction.id,
+    junction.customerPointIds,
+    hydraulicModel,
+  ]);
+
+  const customerCount = customerPoints.length;
+  const totalDemand = customerPoints.reduce(
+    (sum, cp) => sum + cp.baseDemand,
+    0,
+  );
 
   const baseDemandUnit = quantitiesMetadata.getUnit("baseDemand");
   const baseDemandLabel = isCustomerPointsEnabled
@@ -698,7 +726,7 @@ const JunctionEditor = ({
                   />
                 </div>
               </PropertyRow>
-              {isCustomerPointsEnabled && junction.customerPointCount > 0 && (
+              {isCustomerPointsEnabled && customerCount > 0 && (
                 <PropertyRow
                   label={
                     quantitiesMetadata.getUnit("baseDemand")
@@ -707,14 +735,9 @@ const JunctionEditor = ({
                   }
                 >
                   <CustomerDemandField
-                    totalDemand={junction.getTotalCustomerDemand(
-                      hydraulicModel.customerPoints,
-                    )}
-                    customerCount={junction.customerPointCount}
-                    customerPoints={getCustomerPoints(
-                      hydraulicModel.customerPoints,
-                      junction.customerPointIds,
-                    )}
+                    totalDemand={totalDemand}
+                    customerCount={customerCount}
+                    customerPoints={customerPoints}
                     aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
                     customerUnit={quantitiesMetadata.getUnit(
                       "customerDemandPerDay",
