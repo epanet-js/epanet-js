@@ -16,6 +16,7 @@ import {
   Junction,
   Pipe,
 } from "src/hydraulic-model";
+import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
   PumpBuildData,
   TankBuildData,
@@ -391,6 +392,7 @@ export class HydraulicModelBuilder {
       version: nanoid(),
       assets: this.assets,
       customerPoints: this.customerPointsMap,
+      customerPointsLookup: new CustomerPointsLookup(),
       assetBuilder: this.assetBuilder,
       labelManager: this.labelManager,
       topology: this.topology,

@@ -8,11 +8,13 @@ import { IdGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, nullDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
+import { CustomerPointsLookup } from "./customer-points-lookup";
 
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
   customerPoints: CustomerPoints;
+  customerPointsLookup: CustomerPointsLookup;
   assetBuilder: AssetBuilder;
   topology: Topology;
   units: UnitsSpec;
@@ -39,6 +41,7 @@ export const initializeHydraulicModel = ({
     version: nanoid(),
     assets: new Map(),
     customerPoints: initializeCustomerPoints(),
+    customerPointsLookup: new CustomerPointsLookup(),
     assetBuilder: new AssetBuilder(
       units,
       defaults,

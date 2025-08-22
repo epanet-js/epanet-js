@@ -156,6 +156,7 @@ export class MemPersistence implements IPersistence {
           ? forwardMoment.putDemands
           : ctx.hydraulicModel.demands,
         customerPoints: ctx.hydraulicModel.customerPoints,
+        customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
@@ -273,13 +274,19 @@ export class MemPersistence implements IPersistence {
       deleteAssets: [],
     };
 
+    const lookup = ctx.hydraulicModel.customerPointsLookup;
+
     for (const customerPoint of customerPoints) {
       const oldVersion = ctx.hydraulicModel.customerPoints.get(
         customerPoint.id,
       );
       if (oldVersion) {
         reverseMoment.putCustomerPoints.push(oldVersion);
+
+        lookup.removeConnection(oldVersion);
       }
+
+      lookup.addConnection(customerPoint);
 
       ctx.hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
     }
