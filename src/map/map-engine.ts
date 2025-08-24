@@ -11,8 +11,9 @@ import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
 import type { MapHandlers, MoveEvent } from "./types";
+import { getUserLocation } from "src/lib/user-location";
 
-export const DEFAULT_ZOOM = 15.5;
+export const DEFAULT_ZOOM = 12;
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -45,8 +46,14 @@ export class MapEngine {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
   }) {
+    const userLocation = getUserLocation();
     const defaultStart = {
-      center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
+      center: userLocation
+        ? ([
+            userLocation.longitude,
+            userLocation.latitude,
+          ] as mapboxgl.LngLatLike)
+        : ([-4.3800042, 55.914314] as mapboxgl.LngLatLike),
       zoom: DEFAULT_ZOOM,
     };
 

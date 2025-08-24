@@ -1,10 +1,20 @@
 import "src/styles/globals.css";
+import { headers } from "next/headers";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = headers();
+  const latitude = headersList.get("x-vercel-ip-latitude");
+  const longitude = headersList.get("x-vercel-ip-longitude");
+
+  const userLocation =
+    latitude && longitude
+      ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) }
+      : null;
+
   return (
     <html lang="en" className="notranslate" translate="no">
       <head>
@@ -18,7 +28,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body data-user-location={JSON.stringify(userLocation)}>{children}</body>
     </html>
   );
 }
