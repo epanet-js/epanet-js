@@ -19,8 +19,10 @@ import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapContext } from "src/map/map-context";
+import type { MapEngine } from "src/map";
 import { useContext, useRef, useState } from "react";
 import { env } from "src/lib/env-client";
 
@@ -28,6 +30,14 @@ type LocationData = {
   name: string;
   coordinates: [number, number];
   bbox: [number, number, number, number];
+};
+
+type MapboxFeature = {
+  bbox: [number, number, number, number];
+  center: [number, number];
+  place_name: string;
+  text: string;
+  [key: string]: any;
 };
 
 type SubmitProps = {
@@ -145,12 +155,12 @@ const LocationSearchSelector = ({
 }: {
   selected?: LocationData;
   onChange: (location: LocationData) => void;
-  map: any;
+  map: MapEngine | null;
 }) => {
   const translate = useTranslate();
   const isLocationSearchOn = useFeatureFlag("FLAG_NEW_PROJECT_LOCATION");
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<MapboxFeature[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -173,7 +183,7 @@ const LocationSearchSelector = ({
         setSuggestions(data.features || []);
       }
     } catch (error) {
-      console.error("Error searching locations:", error);
+      captureError(error as Error);
       setSuggestions([]);
     } finally {
       setIsLoading(false);
@@ -184,10 +194,10 @@ const LocationSearchSelector = ({
     const value = e.target.value;
     setSearchTerm(value);
     setShowSuggestions(true);
-    searchLocations(value);
+    void searchLocations(value);
   };
 
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: MapboxFeature) => {
     const bbox = suggestion.bbox;
     const coordinates = suggestion.center;
 
