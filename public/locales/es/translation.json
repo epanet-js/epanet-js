@@ -184,6 +184,8 @@
   "onlyOneInp": "Múltiples INPs",
   "onlyOneInpExplain": "Solo se soporta un archivo INP a la vez.\nSe usará el primero.",
   "headlossFormula": "Fórmula de pérdida de carga",
+  "location": "Ubicación",
+  "searchLocation": "Buscar una ubicación...",
   "headlossShort": "Pérd. Carga",
   "headloss": "Pérdida de Carga",
   "autoLengths": "Auto Longitudes",

@@ -219,6 +219,7 @@ type NewModelCompleted = {
   name: "newModel.completed";
   units: keyof Presets;
   headlossFormula: HeadlossFormula;
+  location: string;
 };
 
 type ModelSaved = {
