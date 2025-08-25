@@ -1,6 +1,7 @@
 import { AssetId, Asset, Pipe } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
+import { CustomerPointsLookup } from "../customer-points-lookup";
 
 type InputData = {
   assetIds: readonly AssetId[];
@@ -51,7 +52,7 @@ export const deleteAssets: ModelOperation<InputData> = (
 const addCustomerPointsToDisconnect = (
   asset: Asset | undefined,
   disconnectedCustomerPoints: Map<string, CustomerPoint>,
-  customerPointsLookup: any,
+  customerPointsLookup: CustomerPointsLookup,
 ) => {
   if (!asset || asset.type !== "pipe") return;
 
