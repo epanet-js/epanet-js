@@ -74,16 +74,6 @@ export const WelcomeDialog = () => {
         <div className="absolute top-3 right-3">
           {isMdOrLarger && <DialogCloseX />}
         </div>
-        {isExperimental && (
-          <div className="mb-4">
-            <Message
-              variant="info"
-              title={translate("startNotificationLanguageTitle")}
-            >
-              {translate("startNotificationLanguageDescription")}
-            </Message>
-          </div>
-        )}
         <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
           <div className="col-span-1 flex flex-col justify-center gap-6">
             <div className="grid gap-2 justify-center justify-items-center">
@@ -169,6 +159,16 @@ export const WelcomeDialog = () => {
             </div>
           </div>
         </div>
+        {isExperimental && (
+          <div className="mb-6">
+            <Message
+              variant="info"
+              title={translate("startNotificationLanguageTitle")}
+            >
+              {translate("startNotificationLanguageDescription")}
+            </Message>
+          </div>
+        )}
         <div className="flex items-center justify-around md:justify-between mt-auto">
           {isMdOrLarger && (
             <div className="text-xs flex items-center gap-x-2">
