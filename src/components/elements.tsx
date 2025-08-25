@@ -348,8 +348,8 @@ export const styledDialogContent = ({
     size === "fullscreen"
       ? ""
       : size === "xl"
-        ? "h-[90vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4"
-        : "max-h-[100vh] left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2 rounded sm:align-middle p-4",
+        ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle p-4"
+        : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle p-4",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
 
