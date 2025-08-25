@@ -73,7 +73,7 @@ export const DeprecatedBrandLogo = ({
 export const BrandLogo = () => {
   return (
     <span className="pl-1" title="Home">
-      <LogoIconAndWordmarkIcon size={100} />
+      <LogoIconAndWordmarkIcon size={98} />
       <span className="sr-only">epanet-js</span>
     </span>
   );
