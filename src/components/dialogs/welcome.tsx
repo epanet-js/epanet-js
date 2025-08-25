@@ -150,7 +150,7 @@ export const WelcomeDialog = () => {
           </div>
           <div className="md:col-span-2">
             <h2 className="pb-2 font-bold text-gray-500">
-              {translate("Demo networks")}
+              {translate("demoNetworksTitle")}
             </h2>
             <div className="grid grid-cols-2 gap-6">
               {demoModels.map((demoModel, i) => (
