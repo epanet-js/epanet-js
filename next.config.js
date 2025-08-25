@@ -25,6 +25,7 @@ const nextConfig = {
     config.resolve.fallback = { ...config.resolve.fallback, fs: false };
     return config;
   },
+  /* eslint-disable require-await */
   async rewrites() {
     return process.env.NEXT_PUBLIC_POSTHOG_HOST !== undefined
       ? [
