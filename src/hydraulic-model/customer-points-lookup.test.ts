@@ -77,7 +77,7 @@ describe("CustomerPointsLookup", () => {
 
     lookup.addConnection(cp1);
 
-    expect(lookup.getCustomerPoints("pipe1")).toBeUndefined();
+    expect(lookup.getCustomerPoints("pipe1")).toEqual(new Set());
     expect(lookup.hasConnections("pipe1")).toBe(false);
   });
 
@@ -120,6 +120,6 @@ describe("CustomerPointsLookup", () => {
 
     lookup.clear();
     expect(lookup.hasConnections("pipe1")).toBe(false);
-    expect(lookup.getCustomerPoints("pipe1")).toBeUndefined();
+    expect(lookup.getCustomerPoints("pipe1")).toEqual(new Set());
   });
 });

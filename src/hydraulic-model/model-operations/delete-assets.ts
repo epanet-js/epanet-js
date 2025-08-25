@@ -59,12 +59,10 @@ const addCustomerPointsToDisconnect = (
   const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
     pipe.id,
   );
-  if (connectedCustomerPoints) {
-    for (const customerPoint of connectedCustomerPoints) {
-      if (!disconnectedCustomerPoints.has(customerPoint.id)) {
-        const disconnectedCopy = customerPoint.copyDisconnected();
-        disconnectedCustomerPoints.set(customerPoint.id, disconnectedCopy);
-      }
+  for (const customerPoint of connectedCustomerPoints) {
+    if (!disconnectedCustomerPoints.has(customerPoint.id)) {
+      const disconnectedCopy = customerPoint.copyDisconnected();
+      disconnectedCustomerPoints.set(customerPoint.id, disconnectedCopy);
     }
   }
 };

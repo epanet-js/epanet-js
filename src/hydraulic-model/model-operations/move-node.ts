@@ -47,9 +47,7 @@ export const moveNode: ModelOperation<InputData> = (
       const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
         pipeCopy.id,
       );
-      const customerPointsConnectedToPipe = connectedCustomerPoints
-        ? Array.from(connectedCustomerPoints)
-        : [];
+      const customerPointsConnectedToPipe = Array.from(connectedCustomerPoints);
 
       for (const customerPoint of customerPointsConnectedToPipe) {
         const customerPointCopy = customerPoint.copyDisconnected();

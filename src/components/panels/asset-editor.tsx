@@ -652,7 +652,7 @@ const JunctionEditor = ({
 
     const connectedCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
-    return connectedCustomerPoints ? Array.from(connectedCustomerPoints) : [];
+    return Array.from(connectedCustomerPoints);
   }, [isCustomerPointsEnabled, junction.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;

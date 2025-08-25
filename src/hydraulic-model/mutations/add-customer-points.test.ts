@@ -58,11 +58,9 @@ describe("addCustomerPoints", () => {
     const j2CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J2");
 
-    expect(j1CustomerPoints).toBeDefined();
-    expect(Array.from(j1CustomerPoints!)).toContain(cp1);
+    expect(Array.from(j1CustomerPoints)).toContain(cp1);
 
-    expect(j2CustomerPoints).toBeDefined();
-    expect(Array.from(j2CustomerPoints!)).toContain(cp2);
+    expect(Array.from(j2CustomerPoints)).toContain(cp2);
   });
 
   it("handles empty customer points gracefully", () => {
@@ -140,9 +138,8 @@ describe("addCustomerPoints", () => {
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J1");
-    expect(j1CustomerPoints).toBeDefined();
-    expect(Array.from(j1CustomerPoints!)).toContain(connectedCP);
-    expect(Array.from(j1CustomerPoints!)).not.toContain(disconnectedCP);
+    expect(Array.from(j1CustomerPoints)).toContain(connectedCP);
+    expect(Array.from(j1CustomerPoints)).not.toContain(disconnectedCP);
   });
 
   it("skips customer points with invalid junction references", () => {
@@ -218,11 +215,10 @@ describe("addCustomerPoints", () => {
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J1");
-    expect(j1CustomerPoints).toBeDefined();
-    expect(Array.from(j1CustomerPoints!)).toContain(cp1);
-    expect(Array.from(j1CustomerPoints!)).toContain(cp2);
+    expect(Array.from(j1CustomerPoints)).toContain(cp1);
+    expect(Array.from(j1CustomerPoints)).toContain(cp2);
 
-    const j1CustomerPointsArray = Array.from(j1CustomerPoints!);
+    const j1CustomerPointsArray = Array.from(j1CustomerPoints);
     const totalDemand = j1CustomerPointsArray.reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
@@ -293,9 +289,8 @@ describe("addCustomerPoints", () => {
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J1");
-    expect(j1CustomerPoints).toBeDefined();
-    expect(Array.from(j1CustomerPoints!)).toContain(newCP);
-    expect(Array.from(j1CustomerPoints!)).toContain(existingCP);
+    expect(Array.from(j1CustomerPoints)).toContain(newCP);
+    expect(Array.from(j1CustomerPoints)).toContain(existingCP);
   });
 
   it("preserves junction base demands by default", () => {
@@ -323,8 +318,7 @@ describe("addCustomerPoints", () => {
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J1");
-    expect(j1CustomerPoints).toBeDefined();
-    const totalCustomerDemand = Array.from(j1CustomerPoints!).reduce(
+    const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
     );
@@ -362,8 +356,7 @@ describe("addCustomerPoints", () => {
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("J1");
-    expect(j1CustomerPoints).toBeDefined();
-    const totalCustomerDemand = Array.from(j1CustomerPoints!).reduce(
+    const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
     );
@@ -415,9 +408,8 @@ describe("addCustomerPoints", () => {
 
     const p1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("P1");
-    expect(p1CustomerPoints).toBeDefined();
-    expect(Array.from(p1CustomerPoints!)).toContain(cp1);
-    expect(Array.from(p1CustomerPoints!)).toContain(cp2);
+    expect(Array.from(p1CustomerPoints)).toContain(cp1);
+    expect(Array.from(p1CustomerPoints)).toContain(cp2);
   });
 
   it("populates customer points lookup when adding connected customer points", () => {
@@ -455,19 +447,15 @@ describe("addCustomerPoints", () => {
     const p1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints("P1");
 
-    expect(j1CustomerPoints).toBeDefined();
-    expect(j2CustomerPoints).toBeDefined();
-    expect(p1CustomerPoints).toBeDefined();
+    expect(Array.from(j1CustomerPoints)).toHaveLength(1);
+    expect(Array.from(j1CustomerPoints)[0]?.id).toBe("CP1");
 
-    expect(Array.from(j1CustomerPoints!)).toHaveLength(1);
-    expect(Array.from(j1CustomerPoints!)[0]?.id).toBe("CP1");
+    expect(Array.from(j2CustomerPoints)).toHaveLength(1);
+    expect(Array.from(j2CustomerPoints)[0]?.id).toBe("CP2");
 
-    expect(Array.from(j2CustomerPoints!)).toHaveLength(1);
-    expect(Array.from(j2CustomerPoints!)[0]?.id).toBe("CP2");
+    expect(Array.from(p1CustomerPoints)).toHaveLength(2);
 
-    expect(Array.from(p1CustomerPoints!)).toHaveLength(2);
-
-    const p1CustomerPointIds = Array.from(p1CustomerPoints!).map((cp) => cp.id);
+    const p1CustomerPointIds = Array.from(p1CustomerPoints).map((cp) => cp.id);
     expect(p1CustomerPointIds).toContain("CP1");
     expect(p1CustomerPointIds).toContain("CP2");
   });

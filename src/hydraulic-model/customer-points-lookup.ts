@@ -47,8 +47,8 @@ export class CustomerPointsLookup {
     }
   }
 
-  getCustomerPoints(assetId: string): Set<CustomerPoint> | undefined {
-    return this.lookup.get(assetId);
+  getCustomerPoints(assetId: string): Set<CustomerPoint> {
+    return this.lookup.get(assetId) || new Set();
   }
 
   hasConnections(assetId: string): boolean {

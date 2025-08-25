@@ -60,7 +60,6 @@ export class Junction extends Node<JunctionProperties> {
     const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
       this.id,
     );
-    if (!connectedCustomerPoints) return 0;
 
     return Array.from(connectedCustomerPoints).reduce(
       (sum, cp) => sum + cp.baseDemand,
