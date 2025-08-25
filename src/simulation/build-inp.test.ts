@@ -438,7 +438,9 @@ describe("build inp", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("j1\t50");
-      expect(inp).not.toContain("j1\t0");
+
+      const demandsSection = inp.match(/\[DEMANDS\]([\s\S]*?)\n\n/)?.[1] || "";
+      expect(demandsSection).not.toContain("j1\t0");
     });
 
     it("handles multiple customer points on same junction", () => {
@@ -467,6 +469,79 @@ describe("build inp", () => {
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("j1\t50");
       expect(inp).toContain("j1\t55");
+    });
+  });
+
+  describe("customer points", () => {
+    it("includes customer points section when customer points exist", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10, coordinates: [1, 2] })
+        .aJunction("j2", { elevation: 20, coordinates: [3, 4] })
+        .aPipe("p1", {
+          startNodeId: "j1",
+          endNodeId: "j2",
+        })
+        .aCustomerPoint("cp1", {
+          demand: 2.5,
+          coordinates: [1.5, 2.5],
+          connection: {
+            pipeId: "p1",
+            junctionId: "j1",
+            snapPoint: [1.2, 2.2],
+          },
+        })
+        .aCustomerPoint("cp2", {
+          demand: 1.8,
+          coordinates: [5, 6],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerPoints: true });
+
+      expect(inp).toContain(";[CUSTOMERS]");
+      expect(inp).toContain(
+        ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
+      );
+      expect(inp).toContain(";cp1\t1.5\t2.5\t2.5\tp1\tj1\t1.2\t2.2");
+      expect(inp).toContain(";cp2\t5\t6\t1.8\t\t\t\t");
+    });
+
+    it("does not include customer points section when no customer points exist", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerPoints: true });
+
+      expect(inp).not.toContain(";[CUSTOMERS]");
+    });
+
+    it("does not include customer points section when customerPoints option is disabled", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10 })
+        .aCustomerPoint("cp1", {
+          demand: 2.5,
+          coordinates: [1.5, 2.5],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { customerPoints: false });
+
+      expect(inp).not.toContain(";[CUSTOMERS]");
+    });
+
+    it("does not include customer points section by default", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("j1", { elevation: 10 })
+        .aCustomerPoint("cp1", {
+          demand: 2.5,
+          coordinates: [1.5, 2.5],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).not.toContain(";[CUSTOMERS]");
     });
   });
 });

@@ -8,6 +8,7 @@ import {
   Pump,
   Tank,
 } from "src/hydraulic-model";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
@@ -122,6 +123,7 @@ type InpSections = {
   backdrop: string[];
   coordinates: string[];
   vertices: string[];
+  customers: string[];
 };
 
 type BuildOptions = {
@@ -129,6 +131,7 @@ type BuildOptions = {
   madeBy?: boolean;
   labelIds?: boolean;
   customerDemands?: boolean;
+  customerPoints?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -138,6 +141,7 @@ export const buildInp = withDebugInstrumentation(
       madeBy: false,
       labelIds: false,
       customerDemands: false,
+      customerPoints: false,
     };
     const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -174,6 +178,10 @@ export const buildInp = withDebugInstrumentation(
       backdrop: ["[BACKDROP]", "Units\tDEGREES"],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
+      customers: [
+        ";[CUSTOMERS]",
+        ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
+      ],
     };
 
     for (const asset of hydraulicModel.assets.values()) {
@@ -227,6 +235,15 @@ export const buildInp = withDebugInstrumentation(
       }
     }
 
+    if (opts.customerPoints) {
+      for (const customerPoint of hydraulicModel.customerPoints.values()) {
+        appendCustomerPoint(sections, customerPoint);
+      }
+    }
+
+    const includeCustomerPoints =
+      opts.customerPoints && hydraulicModel.customerPoints.size > 0;
+
     let content = [
       sections.junctions.join("\n"),
       sections.reservoirs.join("\n"),
@@ -243,6 +260,7 @@ export const buildInp = withDebugInstrumentation(
       opts.geolocation && sections.backdrop.join("\n"),
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),
+      includeCustomerPoints && sections.customers.join("\n"),
       "[END]",
     ]
       .filter((f) => !!f)
@@ -482,4 +500,35 @@ const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
 
 const kindFor = (valve: Valve): EpanetValveType => {
   return valve.kind.toUpperCase() as EpanetValveType;
+};
+
+const appendCustomerPoint = (
+  sections: InpSections,
+  customerPoint: CustomerPoint,
+) => {
+  const connection = customerPoint.connection;
+  const [x, y] = customerPoint.coordinates;
+  const baseDemand = customerPoint.baseDemand;
+
+  if (connection) {
+    const [snapX, snapY] = connection.snapPoint;
+    const junctionId = connection.junctionId || "";
+    sections.customers.push(
+      ";" +
+        [
+          customerPoint.id,
+          x,
+          y,
+          baseDemand,
+          connection.pipeId,
+          junctionId,
+          snapX,
+          snapY,
+        ].join("\t"),
+    );
+  } else {
+    sections.customers.push(
+      ";" + [customerPoint.id, x, y, baseDemand, "", "", "", ""].join("\t"),
+    );
+  }
 };
