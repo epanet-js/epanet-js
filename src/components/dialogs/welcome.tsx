@@ -5,6 +5,7 @@ import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
+import { getLocale, languageConfig } from "src/infra/i18n/locale";
 import {
   helpCenterUrl,
   landingPageUrl,
@@ -13,7 +14,6 @@ import {
   termsAndConditionsUrl,
 } from "src/global-config";
 import { Checkbox } from "../form/Checkbox";
-import { Button, LogoIcon, LogoWordmark } from "../elements";
 import { Button, LogoIcon, LogoWordmarkIcon } from "../elements";
 import {
   ArrowRightIcon,
@@ -62,20 +62,35 @@ export const WelcomeDialog = () => {
   const isMdOrLarger = useBreakpoint("md");
   const demoModels = getDemoModels(translate);
 
+  const currentLocale = getLocale();
+  const currentLanguage = languageConfig.find(
+    (lang) => lang.code === currentLocale,
+  );
+  const isExperimental = currentLanguage?.experimental ?? false;
+
   return (
     <DialogContainer size="md">
       <div className="w-full flex flex-col h-full">
         <div className="absolute top-3 right-3">
           {isMdOrLarger && <DialogCloseX />}
         </div>
-        {!isMdOrLarger && <SmallDeviceWarning />}
+        {isExperimental && (
+          <div className="mb-4">
+            <Message
+              variant="info"
+              title={translate("startNotificationLanguageTitle")}
+            >
+              {translate("startNotificationLanguageDescription")}
+            </Message>
+          </div>
+        )}
         <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
           <div className="col-span-1 flex flex-col justify-center gap-6">
             <div className="grid gap-2 justify-center justify-items-center">
               <LogoIcon size={40} />
-              <LogoWordmark size={88} />
               <LogoWordmarkIcon size={88} />
             </div>
+            {!isMdOrLarger && <SmallDeviceWarning />}
             <div className="flex items-start flex-col gap-2">
               {isMdOrLarger && (
                 <Button

@@ -174,6 +174,7 @@
   "mgdDescription": "US Customary with flows expressed in Mgal/d",
   "imgdDescription": "US Customary with flows expressed in IMgal/d",
   "afdDescription": "US Customary with flows expressed in acft/d",
+  "startNotificationLanguageDescription": "We thought you might enjoy using epanet-js in your language. It's currently in beta, and it might not be fully accurate. You can switch languages at any time.",
   "newProject": "New Project",
   "create": "Create",
   "createNew": "Create New...",
