@@ -14,6 +14,7 @@ import {
 } from "src/global-config";
 import { Checkbox } from "../form/Checkbox";
 import { Button, LogoIcon, LogoWordmark } from "../elements";
+import { Button, LogoIcon, LogoWordmarkIcon } from "../elements";
 import {
   ArrowRightIcon,
   FileIcon,
@@ -73,6 +74,7 @@ export const WelcomeDialog = () => {
             <div className="grid gap-2 justify-center justify-items-center">
               <LogoIcon size={40} />
               <LogoWordmark size={88} />
+              <LogoWordmarkIcon size={88} />
             </div>
             <div className="flex items-start flex-col gap-2">
               {isMdOrLarger && (
