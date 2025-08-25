@@ -5,7 +5,8 @@ import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
-import { getLocale, languageConfig } from "src/infra/i18n/locale";
+import { languageConfig } from "src/infra/i18n/locale";
+import { useLocale, LocaleProvider } from "src/hooks/use-locale";
 import {
   helpCenterUrl,
   landingPageUrl,
@@ -62,142 +63,142 @@ export const WelcomeDialog = () => {
   const isMdOrLarger = useBreakpoint("md");
   const demoModels = getDemoModels(translate);
 
-  const currentLocale = getLocale();
+  const currentLocale = useLocale();
   const currentLanguage = languageConfig.find(
-    (lang) => lang.code === currentLocale,
+    (lang) => lang.code === currentLocale.locale,
   );
   const isExperimental = currentLanguage?.experimental ?? false;
 
   return (
     <DialogContainer size="md">
-      <div className="w-full flex flex-col h-full">
-        <div className="absolute top-3 right-3">
+      <LocaleProvider>
+        <div className="w-full flex flex-col h-full">
           {isMdOrLarger && <DialogCloseX />}
-        </div>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
-          <div className="col-span-1 flex flex-col justify-center gap-6">
-            <div className="grid gap-2 justify-center justify-items-center">
-              <LogoIcon size={40} />
-              <LogoWordmarkIcon size={88} />
-            </div>
-            {!isMdOrLarger && <SmallDeviceWarning />}
-            <div className="flex items-start flex-col gap-2">
-              {isMdOrLarger && (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
+            <div className="col-span-1 flex flex-col justify-center gap-6">
+              <div className="grid gap-2 justify-center justify-items-center">
+                <LogoIcon size={40} />
+                <LogoWordmarkIcon size={88} />
+              </div>
+              {!isMdOrLarger && <SmallDeviceWarning />}
+              <div className="flex items-start flex-col gap-2">
+                {isMdOrLarger && (
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      void createNew({ source: "welcome" });
+                    }}
+                  >
+                    <FileIcon className="w-4 h-4 flex-shrink-0" />
+                    {translate("startBlankProject")}
+                  </Button>
+                )}
                 <Button
                   variant="quiet"
                   onClick={() => {
-                    void createNew({ source: "welcome" });
+                    void openInpFromFs({ source: "welcome" });
                   }}
                 >
-                  <FileIcon className="w-4 h-4 flex-shrink-0" />
-                  {translate("startBlankProject")}
+                  <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+                  {translate("openProject")}
                 </Button>
-              )}
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  void openInpFromFs({ source: "welcome" });
-                }}
-              >
-                <FileTextIcon className="w-4 h-4 flex-shrink-0" />
-                {translate("openProject")}
-              </Button>
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  openModelBuilder({ source: "welcome" });
-                }}
-              >
-                <GlobeIcon className="w-4 h-4 flex-shrink-0" />
-                {translate("importFromGIS")}
-                <StarIcon className="w-3 h-3 ml-1" />
-              </Button>
-            </div>
-            <div className="flex items-start flex-col gap-2">
-              <a
-                href={helpCenterUrl}
-                target="_blank"
-                onClick={() => {
-                  userTracking.capture({
-                    name: "helpCenter.visited",
-                    source: "welcome",
-                  });
-                }}
-              >
-                <Button variant="quiet">
-                  <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
-                  {translate("helpCenter")}
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    openModelBuilder({ source: "welcome" });
+                  }}
+                >
+                  <GlobeIcon className="w-4 h-4 flex-shrink-0" />
+                  {translate("importFromGIS")}
+                  <StarIcon className="w-3 h-3 ml-1" />
                 </Button>
-              </a>
-              <p className="text-sm">
+              </div>
+              <div className="flex items-start flex-col gap-2">
                 <a
-                  href={quickStartTutorialUrl}
+                  href={helpCenterUrl}
                   target="_blank"
                   onClick={() => {
                     userTracking.capture({
-                      name: "quickStart.visited",
+                      name: "helpCenter.visited",
                       source: "welcome",
                     });
                   }}
                 >
-                  <Button variant="primary">
-                    <ArrowRightIcon />
-                    {translate("quickStartTutorial")}
+                  <Button variant="quiet">
+                    <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
+                    {translate("helpCenter")}
                   </Button>
                 </a>
-              </p>
+                <p className="text-sm">
+                  <a
+                    href={quickStartTutorialUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "quickStart.visited",
+                        source: "welcome",
+                      });
+                    }}
+                  >
+                    <Button variant="primary">
+                      <ArrowRightIcon />
+                      {translate("quickStartTutorial")}
+                    </Button>
+                  </a>
+                </p>
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <h2 className="pb-2 font-bold text-gray-500">
+                {translate("demoNetworksTitle")}
+              </h2>
+              <div className="grid grid-cols-2 gap-6">
+                {demoModels.map((demoModel, i) => (
+                  <DemoNetworkCard key={i} demoNetwork={demoModel} />
+                ))}
+              </div>
             </div>
           </div>
-          <div className="md:col-span-2">
-            <h2 className="pb-2 font-bold text-gray-500">
-              {translate("demoNetworksTitle")}
-            </h2>
-            <div className="grid grid-cols-2 gap-6">
-              {demoModels.map((demoModel, i) => (
-                <DemoNetworkCard key={i} demoNetwork={demoModel} />
-              ))}
-            </div>
-          </div>
-        </div>
-        {isExperimental && (
-          <div className="mb-6">
-            <Message
-              variant="info"
-              title={translate("startNotificationLanguageTitle")}
-            >
-              {translate("startNotificationLanguageDescription")}
-            </Message>
-          </div>
-        )}
-        <div className="flex items-center justify-around md:justify-between mt-auto">
-          {isMdOrLarger && (
-            <div className="text-xs flex items-center gap-x-2">
-              <Checkbox
-                checked={userSettings.showWelcomeOnStart}
-                onChange={() => {
-                  userSettings.showWelcomeOnStart
-                    ? userTracking.capture({ name: "welcome.hidden" })
-                    : userTracking.capture({ name: "welcome.enabled" });
-                  setUserSettings((prev) => ({
-                    ...prev,
-                    showWelcomeOnStart: !prev.showWelcomeOnStart,
-                  }));
-                }}
-              />
-              {translate("alwaysShowAtStart")}
+          {isExperimental && (
+            <div className="mb-6">
+              <Message
+                variant="info"
+                title={translate("startNotificationLanguageTitle")}
+              >
+                {translate("startNotificationLanguageDescription")}
+              </Message>
             </div>
           )}
-          <div className="flex flex-row items-center text-xs gap-x-1">
-            <a href={termsAndConditionsUrl} target="_blank">
-              {translate("termsAndConditions")}
-            </a>
-            <span>|</span>
-            <a href={privacyPolicyUrl} target="_blank">
-              {translate("privacyPolicy")}
-            </a>
+          <div className="flex items-center justify-around md:justify-between mt-auto">
+            {isMdOrLarger && (
+              <div className="text-xs flex items-center gap-x-2">
+                <Checkbox
+                  checked={userSettings.showWelcomeOnStart}
+                  onChange={() => {
+                    userSettings.showWelcomeOnStart
+                      ? userTracking.capture({ name: "welcome.hidden" })
+                      : userTracking.capture({ name: "welcome.enabled" });
+                    setUserSettings((prev) => ({
+                      ...prev,
+                      showWelcomeOnStart: !prev.showWelcomeOnStart,
+                    }));
+                  }}
+                />
+                {translate("alwaysShowAtStart")}
+              </div>
+            )}
+            <div className="flex flex-row items-center text-xs gap-x-1">
+              <a href={termsAndConditionsUrl} target="_blank">
+                {translate("termsAndConditions")}
+              </a>
+              <span>|</span>
+              <a href={privacyPolicyUrl} target="_blank">
+                {translate("privacyPolicy")}
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </LocaleProvider>
     </DialogContainer>
   );
 };
