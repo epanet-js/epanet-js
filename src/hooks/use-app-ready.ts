@@ -50,7 +50,7 @@ export const useAppReady = (): AppReadyState => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (nextProgress < 100) {
-        animateProgress(Math.min(100, nextProgress + 20));
+        void animateProgress(Math.min(100, nextProgress + 20));
       } else {
         setTimeout(() => {
           setProgress(0);
@@ -59,7 +59,7 @@ export const useAppReady = (): AppReadyState => {
       }
     };
 
-    animateProgress(0);
+    void animateProgress(0);
   }, [systemsReady]);
 
   const displayProgress = Math.min(progress, 100);
