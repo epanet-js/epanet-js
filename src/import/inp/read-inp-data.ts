@@ -68,7 +68,20 @@ export const readInpData = (
   for (const row of rows) {
     const trimmedRow = row.trim();
 
-    if (isLineComment(trimmedRow) || isEmpty(trimmedRow)) continue;
+    if (isEmpty(trimmedRow)) continue;
+
+    if (isLineComment(trimmedRow)) {
+      if (options?.customerPoints && trimmedRow === ";[CUSTOMERS]") {
+        section = "CUSTOMERS_COMMENTED";
+        continue;
+      }
+      if (section === "CUSTOMERS_COMMENTED" && trimmedRow.startsWith(";")) {
+        parseCommentedCustomerPoint(trimmedRow, inpData);
+        continue;
+      }
+      continue;
+    }
+
     if (isEnd(trimmedRow)) {
       section = null;
       continue;
@@ -122,4 +135,33 @@ const detectNewSectionName = (
     return trimmedRow;
   }
   return sectionName;
+};
+
+const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
+  const line = trimmedRow.substring(1);
+  if (line.startsWith("Id\t") || line.startsWith("[CUSTOMERS]")) return;
+
+  const parts = line.split("\t");
+  if (parts.length < 4) return;
+
+  const [
+    id,
+    x,
+    y,
+    demand,
+    pipeId = "",
+    junctionId = "",
+    snapX = "",
+    snapY = "",
+  ] = parts;
+
+  inpData.customerPoints.push({
+    id,
+    coordinates: [parseFloat(x), parseFloat(y)],
+    baseDemand: parseFloat(demand),
+    pipeId: pipeId || undefined,
+    junctionId: junctionId || undefined,
+    snapPoint:
+      snapX && snapY ? [parseFloat(snapX), parseFloat(snapY)] : undefined,
+  });
 };

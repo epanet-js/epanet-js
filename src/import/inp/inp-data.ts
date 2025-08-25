@@ -62,6 +62,15 @@ export type ValveData = {
   minorLoss: number;
 };
 
+export type CustomerPointData = {
+  id: string;
+  coordinates: [number, number];
+  baseDemand: number;
+  pipeId?: string;
+  junctionId?: string;
+  snapPoint?: [number, number];
+};
+
 export type InpData = {
   junctions: JunctionData[];
   reservoirs: ReservoirData[];
@@ -69,6 +78,7 @@ export type InpData = {
   pipes: PipeData[];
   pumps: PumpData[];
   valves: ValveData[];
+  customerPoints: CustomerPointData[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
   demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
@@ -127,6 +137,7 @@ export const nullInpData = (): InpData => {
     pipes: [],
     pumps: [],
     valves: [],
+    customerPoints: [],
     coordinates: new ItemData(),
     vertices: new ItemData(),
     demands: new ItemData(),

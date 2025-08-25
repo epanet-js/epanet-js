@@ -471,4 +471,129 @@ describe("Parse inp", () => {
     const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
     expect(valve).toBeUndefined();
   });
+
+  describe("customer points parsing", () => {
+    it("parses customer points when feature flag is enabled", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      J2	20
+      
+      [PIPES]
+      P1	J1	J2	100	300	130	0	Open
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
+      ;CP2	5	6	1.8			
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: true });
+
+      expect(hydraulicModel.customerPoints.size).toBe(2);
+
+      const cp1 = hydraulicModel.customerPoints.get("CP1");
+      expect(cp1).toBeDefined();
+      expect(cp1?.coordinates).toEqual([1.5, 2.5]);
+      expect(cp1?.baseDemand).toBe(2.5);
+      expect(cp1?.connection?.pipeId).toBe("P1");
+      expect(cp1?.connection?.junctionId).toBe("J1");
+      expect(cp1?.connection?.snapPoint).toEqual([1.2, 2.2]);
+
+      const cp2 = hydraulicModel.customerPoints.get("CP2");
+      expect(cp2).toBeDefined();
+      expect(cp2?.coordinates).toEqual([5, 6]);
+      expect(cp2?.baseDemand).toBe(1.8);
+      expect(cp2?.connection).toBeNull();
+    });
+
+    it("ignores customer points when feature flag is disabled", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: false });
+
+      expect(hydraulicModel.customerPoints.size).toBe(0);
+    });
+
+    it("ignores customer points by default", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp);
+
+      expect(hydraulicModel.customerPoints.size).toBe(0);
+    });
+
+    it("handles empty customer points section", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: true });
+
+      expect(hydraulicModel.customerPoints.size).toBe(0);
+    });
+
+    it("skips malformed customer point lines", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
+      ;INVALID_LINE_MISSING_DATA
+      ;CP2	5	6	1.8
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: true });
+
+      expect(hydraulicModel.customerPoints.size).toBe(2);
+      expect(hydraulicModel.customerPoints.has("CP1")).toBe(true);
+      expect(hydraulicModel.customerPoints.has("CP2")).toBe(true);
+    });
+
+    it("integrates customer points with lookup system", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1	10
+      
+      [PIPES]
+      P1	J1	J1	100	300	130	0	Open
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: true });
+
+      const connectedToP1 =
+        hydraulicModel.customerPointsLookup.getCustomerPoints("P1");
+      const connectedToJ1 =
+        hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+
+      expect(connectedToP1.size).toBe(1);
+      expect(connectedToJ1.size).toBe(1);
+      expect([...connectedToP1][0].id).toBe("CP1");
+      expect([...connectedToJ1][0].id).toBe("CP1");
+    });
+  });
 });

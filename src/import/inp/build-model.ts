@@ -1,4 +1,5 @@
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
   InpData,
   ItemData,
@@ -70,6 +71,25 @@ export const buildModel = (
 
   for (const pipeData of inpData.pipes) {
     addPipe(hydraulicModel, pipeData, { inpData, issues, nodeIds, options });
+  }
+
+  for (const customerPointData of inpData.customerPoints) {
+    const customerPoint = new CustomerPoint(
+      customerPointData.id,
+      customerPointData.coordinates,
+      { baseDemand: customerPointData.baseDemand },
+    );
+
+    if (customerPointData.pipeId && customerPointData.snapPoint) {
+      customerPoint.connect({
+        pipeId: customerPointData.pipeId,
+        junctionId: customerPointData.junctionId,
+        snapPoint: customerPointData.snapPoint,
+      });
+      hydraulicModel.customerPointsLookup.addConnection(customerPoint);
+    }
+
+    hydraulicModel.customerPoints.set(customerPointData.id, customerPoint);
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };
