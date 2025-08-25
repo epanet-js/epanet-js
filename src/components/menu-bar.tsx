@@ -1,5 +1,6 @@
 import React, { memo, useRef, useState } from "react";
 import { FileInfo } from "src/components/file-info";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Cross1Icon,
   GitHubLogoIcon,
@@ -11,7 +12,13 @@ import {
   SunIcon,
 } from "@radix-ui/react-icons";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { Button, SiteIcon, DDContent, StyledItem } from "./elements";
+import {
+  Button,
+  SiteIcon,
+  DDContent,
+  StyledItem,
+  LogoIconAndWordmarkIcon,
+} from "./elements";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
@@ -33,7 +40,7 @@ export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
 }
 
-export const BrandLogo = ({
+export const DeprecatedBrandLogo = ({
   variant = "light",
   textSize = "md",
   iconSize = "8",
@@ -63,6 +70,15 @@ export const BrandLogo = ({
   );
 };
 
+export const BrandLogo = () => {
+  return (
+    <span className="pl-1" title="Home">
+      <LogoIconAndWordmarkIcon size={100} />
+      <span className="sr-only">epanet-js</span>
+    </span>
+  );
+};
+
 export const MenuBarPlay = memo(function MenuBar() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -79,7 +95,11 @@ export const MenuBarPlay = memo(function MenuBar() {
           className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
           onClick={() => showWelcome({ source: "menu" })}
         >
-          <BrandLogo />
+          {useFeatureFlag("FLAG_NEW_LOGO") ? (
+            <BrandLogo />
+          ) : (
+            <DeprecatedBrandLogo />
+          )}
         </div>
         {isSmOrLarger && <FileInfo />}
       </div>
@@ -242,7 +262,11 @@ export const SideMenu = () => {
       >
         <div className="p-6">
           <div className="flex items-center justify-between pb-6">
-            <BrandLogo />
+            {useFeatureFlag("FLAG_NEW_LOGO") ? (
+              <BrandLogo />
+            ) : (
+              <DeprecatedBrandLogo />
+            )}
             <Button variant="quiet" onClick={toggleMenu}>
               <Cross1Icon />
             </Button>

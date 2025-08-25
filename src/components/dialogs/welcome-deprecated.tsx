@@ -25,7 +25,7 @@ import {
   StarIcon,
 } from "@radix-ui/react-icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
-import { BrandLogo } from "../menu-bar";
+import { DeprecatedBrandLogo } from "../menu-bar";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
@@ -68,7 +68,7 @@ export const WelcomeDialogDeprecated = () => {
     <DialogContainer size={!isMdOrLarger ? "fullscreen" : "lg"}>
       <div className="w-full flex flex-col h-full">
         <div className="flex-shrink-0 w-full flex flex-row justify-between items-center pb-4">
-          <BrandLogo textSize="2xl" iconSize="12" gapX="1" />
+          <DeprecatedBrandLogo textSize="2xl" iconSize="12" gapX="1" />
           {isMdOrLarger && <DialogCloseX />}
         </div>
         <div className="flex-grow flex flex-col items-stretch p-1 min-h-0">

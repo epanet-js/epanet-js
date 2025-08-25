@@ -389,3 +389,7 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background-image: url('/images/basemaps/streets-thumbnail.png');
   background-size: cover;
 }
+
+.logo-text {
+  fill: oklch(55.1% 0.027 264.364);
+}
