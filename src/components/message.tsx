@@ -6,7 +6,7 @@ export const Message = ({
   title,
   children,
 }: {
-  variant: "success" | "warning" | "error";
+  variant: "success" | "warning" | "error" | "info";
   title: string;
   size?: "auto" | "sm" | "md";
   children: React.ReactNode;
@@ -24,6 +24,7 @@ export const Message = ({
           "bg-green-50 border-green-200": variant === "success",
           "bg-orange-50 border-orange-200": variant === "warning",
           "bg-red-50 border-red-200": variant === "error",
+          "bg-blue-50 border-blue-200": variant === "info",
         },
       )}
     >
@@ -33,6 +34,7 @@ export const Message = ({
             "text-green-700": variant === "success",
             "text-orange-700": variant === "warning",
             "text-red-700": variant === "error",
+            "text-blue-700": variant === "info",
           })}
         >
           {title}
@@ -42,6 +44,7 @@ export const Message = ({
             "text-green-600": variant === "success",
             "text-orange-600": variant === "warning",
             "text-red-600": variant === "error",
+            "text-blue-600": variant === "info",
           })}
         >
           {children}
