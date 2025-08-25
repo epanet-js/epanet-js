@@ -125,7 +125,7 @@ export const WelcomeDialogDeprecated = () => {
                     }}
                   >
                     <FileIcon className="w-4 h-4 flex-shrink-0" />
-                    {translate("startBlankProject")}
+                    {translate("deprecatedStartBlankProject")}
                   </Button>
                 )}
                 <Button
@@ -144,7 +144,7 @@ export const WelcomeDialogDeprecated = () => {
                   }}
                 >
                   <GlobeIcon className="w-4 h-4 flex-shrink-0" />
-                  {translate("importFromGIS")}
+                  {translate("deprecatedImportFromGIS")}
                   <StarIcon className="w-3 h-3 ml-1" />
                 </Button>
                 <a
