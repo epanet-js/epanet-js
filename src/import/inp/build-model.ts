@@ -83,7 +83,7 @@ export const buildModel = (
   }
 
   for (const customerPointData of inpData.customerPoints) {
-    const customerPoint = new CustomerPoint(
+    const customerPoint = CustomerPoint.build(
       customerPointData.id,
       customerPointData.coordinates,
       { baseDemand: customerPointData.baseDemand },

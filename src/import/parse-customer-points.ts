@@ -138,7 +138,7 @@ const processGeoJSONFeature = (
       demandTargetUnit,
     );
 
-    const customerPoint = new CustomerPoint(
+    const customerPoint = CustomerPoint.build(
       currentId.toString(),
       [coordinates[0], coordinates[1]] as Position,
       { baseDemand: demandInTargetUnit },

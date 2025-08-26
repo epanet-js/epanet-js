@@ -103,7 +103,7 @@ export const buildCustomerPoint = (
   } = {},
 ) => {
   const { demand = 0, coordinates = [0, 0] } = options;
-  return new CustomerPoint(id, coordinates, { baseDemand: demand });
+  return CustomerPoint.build(id, coordinates, { baseDemand: demand });
 };
 
 export class HydraulicModelBuilder {

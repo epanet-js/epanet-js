@@ -1,5 +1,6 @@
 import { Unit } from "src/quantity";
 import { Position } from "geojson";
+import { roundCoordinates } from "src/lib/geometry";
 
 export type AllocationRule = {
   maxDistance: number;
@@ -40,6 +41,14 @@ export class CustomerPoint {
     this.id = id;
     this.coordinates = coordinates;
     this.properties = properties;
+  }
+
+  static build(
+    id: string,
+    coordinates: Position,
+    properties: { baseDemand: number },
+  ): CustomerPoint {
+    return new CustomerPoint(id, roundCoordinates(coordinates), properties);
   }
 
   get baseDemand() {
