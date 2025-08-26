@@ -73,7 +73,11 @@ export const WelcomeDialog = () => {
     <DialogContainer size="md">
       <LocaleProvider>
         <div className="w-full flex flex-col h-full">
-          {isMdOrLarger && <DialogCloseX />}
+          {isMdOrLarger && (
+            <div className="flex justify-end">
+              <DialogCloseX />
+            </div>
+          )}
           <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
             <div className="col-span-1 flex flex-col justify-center gap-6">
               <div className="grid gap-2 justify-center justify-items-center">

@@ -310,13 +310,13 @@ export const styledDialogContent = ({
 }) =>
   clsx(
     `
-      fixed inline-block
+      fixed z-40
+      overflow-y-auto
+      p-6 sm:p-8
       text-left
       bg-white dark:bg-gray-900
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
-      overflow-y-auto
-      z-40
     `,
     fillMode === "full" || size === "xl" || size === "fullscreen"
       ? "flex flex-col"
@@ -325,19 +325,16 @@ export const styledDialogContent = ({
     {
       "max-w-[320px]": size === "xs",
       "max-w-[90vw] sm:max-w-screen-sm": size === "sm" && !widthClasses,
-      "max-w-full md:max-w-screen-md lg:max-w-screen-md p-6 sm:p-8":
-        size === "md",
-      "max-w-full lg:max-w-screen-lg lg:max-w-screen-lg p-6 sm:p-8":
-        size === "lg",
-      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl p-6 sm:p-8":
-        size === "xl",
-      "inset-0 h-100dvh w-screen p-6 sm:p-8": size === "fullscreen",
+      "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
+      "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
+      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xl",
+      "inset-0 h-100dvh w-screen": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
       : size === "xl"
-        ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle p-4"
-        : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle p-4",
+        ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle"
+        : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
   );
 
@@ -667,7 +664,7 @@ export const StyledPopoverCross = () => (
   text-gray-500 dark:text-gray-300
   hover:text-black dark:hover:text-white"
   >
-    <Cross1Icon className="w-3 h-3" />
+    <Cross1Icon />
   </Popover.Close>
 );
 

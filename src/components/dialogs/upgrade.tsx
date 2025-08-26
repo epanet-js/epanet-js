@@ -138,7 +138,7 @@ const PlansDialog = () => {
         title={translate("upgradeYourAccount")}
         titleIcon={RocketIcon}
       />
-      <div className="block py-4 gap-4 flex flex-col flex-wrap md:flex-row items-start md:items-center justify-between">
+      <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">
         <div className="flex items-center gap-2">
           <div className="text-sm text-gray-700 dark:text-gray-300">
             {translate("for")}:

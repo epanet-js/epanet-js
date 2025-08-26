@@ -14,7 +14,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
 }) => {
   return (
     <DialogContainer size="lg" disableOutsideClick={true}>
-      <div className="p-6" onDragOver={onDragOver} onDrop={onDrop}>
+      <div onDragOver={onDragOver} onDrop={onDrop}>
         {children}
       </div>
     </DialogContainer>

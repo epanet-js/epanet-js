@@ -32,9 +32,11 @@ export const UnexpectedErrorDialog = ({
       />
       <Formik onSubmit={handleSubmit} initialValues={{}}>
         <Form>
-          <p className="text-sm text-gray">
-            {translate("somethingWentWrongMessage")}
-          </p>
+          <div className="pl-7">
+            <p className="text-sm text-gray">
+              {translate("somethingWentWrongMessage")}
+            </p>
+          </div>
           <SimpleDialogActions
             autoFocusSubmit={true}
             action={onRetry ? translate("tryAgain") : translate("understood")}

@@ -43,7 +43,7 @@ export const useDialogState = () => {
 
 export const LoadingDialog = () => {
   return (
-    <DialogContainer>
+    <DialogContainer size="xs">
       <Loading />
     </DialogContainer>
   );
@@ -128,7 +128,7 @@ export function DialogHeader({
       {children && children}
       {TitleIcon && (
         <TitleIcon
-          className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : variant === "warning" ? "text-yellow-500" : ""}`}
+          className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : variant === "warning" ? "text-yellow-500" : ""}`}
         />
       )}
       {title && (
@@ -137,7 +137,9 @@ export function DialogHeader({
           {badge && badge}
         </div>
       )}
-      <DialogCloseX />
+      <div className="self-start">
+        <DialogCloseX />
+      </div>
     </div>
   );
 }
@@ -224,10 +226,10 @@ export function SimpleDialogActions({
     <div
       className={clsx(
         variant === "xs" ? "pt-2" : "pt-6",
-        "pb-1 relative",
+        "relative",
         fullWidthSubmit
           ? "flex items-stretch justify-stretch"
-          : `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
+          : `flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
       )}
     >
       {action ? (
