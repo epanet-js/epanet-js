@@ -78,8 +78,8 @@ export const WelcomeDialog = () => {
               <DialogCloseX />
             </div>
           )}
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 items-center gap-3 pt-4 pb-8">
-            <div className="col-span-1 flex flex-col justify-center gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 pb-8">
+            <div className="col-span-1 md:w-max flex flex-col justify-center gap-6 pl-6">
               <div className="grid gap-2 justify-center justify-items-center">
                 <LogoIcon size={40} />
                 <LogoWordmarkIcon size={88} />
@@ -173,7 +173,7 @@ export const WelcomeDialog = () => {
               </Message>
             </div>
           )}
-          <div className="flex items-center justify-around md:justify-between mt-auto">
+          <div className="flex pt-4 items-center justify-around md:justify-between mt-auto">
             {isMdOrLarger && (
               <div className="text-xs flex items-center gap-x-2">
                 <Checkbox
