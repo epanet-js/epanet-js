@@ -534,6 +534,7 @@ const appendCustomerPoint = (
     const junction = hydraulicModel.assets.get(
       connection.junctionId,
     ) as Junction;
+    const pipe = hydraulicModel.assets.get(connection.pipeId) as LinkAsset;
     sections.customers.push(
       ";" +
         [
@@ -541,7 +542,7 @@ const appendCustomerPoint = (
           x,
           y,
           baseDemand,
-          connection.pipeId,
+          idMap.linkId(pipe),
           idMap.nodeId(junction),
           snapX,
           snapY,

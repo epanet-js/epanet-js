@@ -500,9 +500,11 @@ describe("Parse inp", () => {
       expect(cp1).toBeDefined();
       expect(cp1?.coordinates).toEqual([1.5, 2.5]);
       expect(cp1?.baseDemand).toBe(2.5);
-      expect(cp1?.connection?.pipeId).toBe("P1");
+      const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      expect(pipe).toBeDefined();
       expect(junction).toBeDefined();
+      expect(cp1?.connection?.pipeId).toBe(pipe.id);
       expect(cp1?.connection?.junctionId).toBe(junction.id);
       expect(cp1?.connection?.snapPoint).toEqual([1.2, 2.2]);
 
@@ -595,9 +597,10 @@ describe("Parse inp", () => {
       const { hydraulicModel } = parseInp(inp, { customerPoints: true });
 
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
 
       const connectedToP1 =
-        hydraulicModel.customerPointsLookup.getCustomerPoints("P1");
+        hydraulicModel.customerPointsLookup.getCustomerPoints(pipe.id);
       const connectedToJ1 =
         hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
 

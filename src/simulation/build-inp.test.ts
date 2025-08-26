@@ -548,9 +548,10 @@ describe("build inp", () => {
       });
 
       expect(inp).toContain(
-        ";cp1\t1.5\t2.5\t2.5\tpipe-uuid-789\tJunction-A\t1.2\t2.2",
+        ";cp1\t1.5\t2.5\t2.5\tPipe-1\tJunction-A\t1.2\t2.2",
       );
       expect(inp).not.toContain("junction-uuid-123");
+      expect(inp).not.toContain("pipe-uuid-789");
     });
 
     it("does not include customer points section when no customer points exist", () => {

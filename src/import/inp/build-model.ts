@@ -26,6 +26,7 @@ export const buildModel = (
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
   const nodeIds = new ItemData<string>();
+  const linkIds = new ItemData<string>();
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
@@ -58,6 +59,7 @@ export const buildModel = (
       inpData,
       issues,
       nodeIds,
+      linkIds,
     });
   }
 
@@ -66,11 +68,18 @@ export const buildModel = (
       inpData,
       issues,
       nodeIds,
+      linkIds,
     });
   }
 
   for (const pipeData of inpData.pipes) {
-    addPipe(hydraulicModel, pipeData, { inpData, issues, nodeIds, options });
+    addPipe(hydraulicModel, pipeData, {
+      inpData,
+      issues,
+      nodeIds,
+      linkIds,
+      options,
+    });
   }
 
   for (const customerPointData of inpData.customerPoints) {
@@ -86,9 +95,10 @@ export const buildModel = (
       customerPointData.junctionId
     ) {
       const junctionId = nodeIds.get(customerPointData.junctionId);
-      if (junctionId) {
+      const pipeId = linkIds.get(customerPointData.pipeId);
+      if (junctionId && pipeId) {
         customerPoint.connect({
-          pipeId: customerPointData.pipeId,
+          pipeId,
           junctionId,
           snapPoint: customerPointData.snapPoint,
         });
@@ -197,10 +207,12 @@ const addPump = (
     inpData,
     issues,
     nodeIds,
+    linkIds,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<string>;
+    linkIds: ItemData<string>;
   },
 ) => {
   const linkProperties = getLinkProperties(inpData, issues, nodeIds, pumpData);
@@ -266,6 +278,7 @@ const addPump = (
   });
   hydraulicModel.assets.set(pump.id, pump);
   hydraulicModel.topology.addLink(pump.id, connections[0], connections[1]);
+  linkIds.set(pumpData.id, pump.id);
 };
 
 const addValve = (
@@ -275,10 +288,12 @@ const addValve = (
     inpData,
     issues,
     nodeIds,
+    linkIds,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<string>;
+    linkIds: ItemData<string>;
   },
 ) => {
   const linkProperties = getLinkProperties(inpData, issues, nodeIds, valveData);
@@ -303,6 +318,7 @@ const addValve = (
   });
   hydraulicModel.assets.set(valve.id, valve);
   hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
+  linkIds.set(valveData.id, valve.id);
 };
 
 const addPipe = (
@@ -312,11 +328,13 @@ const addPipe = (
     inpData,
     issues,
     nodeIds,
+    linkIds,
     options: _options,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<string>;
+    linkIds: ItemData<string>;
     options?: ParseInpOptions;
   },
 ) => {
@@ -347,6 +365,7 @@ const addPipe = (
   });
   hydraulicModel.assets.set(pipe.id, pipe);
   hydraulicModel.topology.addLink(pipe.id, connections[0], connections[1]);
+  linkIds.set(pipeData.id, pipe.id);
 };
 
 const getLinkProperties = (
