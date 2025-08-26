@@ -179,7 +179,7 @@ export function useNoneHandlers({
       });
       putAssets && updateMove(putAssets);
     },
-    up: async (e) => {
+    up: (e) => {
       e.preventDefault();
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
@@ -197,15 +197,22 @@ export function useNoneHandlers({
 
       if (significant) {
         startCommit();
-        const moment = moveNode(hydraulicModel, {
-          nodeId: assetId,
-          newCoordinates,
-          newElevation: await fetchElevation(e.lngLat),
-          shouldUpdateCustomerPoints: isCustomerPointOn,
-        });
-        transact(moment);
-        clearSelection();
-        finishCommit();
+        fetchElevation(e.lngLat)
+          .then((newElevation) => {
+            const moment = moveNode(hydraulicModel, {
+              nodeId: assetId,
+              newCoordinates,
+              newElevation,
+              shouldUpdateCustomerPoints: isCustomerPointOn,
+            });
+            transact(moment);
+            clearSelection();
+            finishCommit();
+          })
+          .catch(() => {
+            clearSelection();
+            finishCommit();
+          });
       } else {
         resetMove();
       }
