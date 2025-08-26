@@ -390,7 +390,9 @@ describe("build inp", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("j1\t50");
-      expect(inp).toContain("j1\t25");
+      expect(inp).toContain("j1\t25\tepanetjs_customers");
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("epanetjs_customers\t1");
     });
 
     it("does not include customer demands when disabled", () => {
@@ -415,6 +417,8 @@ describe("build inp", () => {
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("j1\t50");
       expect(inp).not.toContain("j1\t25");
+      expect(inp).not.toContain("[PATTERNS]");
+      expect(inp).not.toContain("epanetjs_customers");
     });
 
     it("skips customer demands when they are zero", () => {
@@ -441,6 +445,8 @@ describe("build inp", () => {
 
       const demandsSection = inp.match(/\[DEMANDS\]([\s\S]*?)\n\n/)?.[1] || "";
       expect(demandsSection).not.toContain("j1\t0");
+      expect(inp).not.toContain("[PATTERNS]");
+      expect(inp).not.toContain("epanetjs_customers");
     });
 
     it("handles multiple customer points on same junction", () => {
@@ -468,7 +474,9 @@ describe("build inp", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("j1\t50");
-      expect(inp).toContain("j1\t55");
+      expect(inp).toContain("j1\t55\tepanetjs_customers");
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("epanetjs_customers\t1");
     });
   });
 

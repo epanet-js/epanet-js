@@ -34,6 +34,7 @@ export type EpanetUnitSystem =
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
+const defaultCustomersPatternId = "epanetjs_customers";
 
 const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   const flowUnit = units.flow;
@@ -119,6 +120,7 @@ type InpSections = {
   report: string[];
   status: string[];
   curves: string[];
+  patterns: string[];
   options: string[];
   backdrop: string[];
   coordinates: string[];
@@ -148,6 +150,7 @@ export const buildInp = withDebugInstrumentation(
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const oneStep = 0;
+    let customerDemandPatternUsed = false;
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
@@ -166,6 +169,7 @@ export const buildInp = withDebugInstrumentation(
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
       status: ["[STATUS]", ";Id\tStatus"],
       curves: ["[CURVES]", ";Id\tX\tY"],
+      patterns: ["[PATTERNS]", ";Id\tMultiplier"],
       options: [
         "[OPTIONS]",
         "Quality\tNONE",
@@ -194,7 +198,7 @@ export const buildInp = withDebugInstrumentation(
       }
 
       if (asset.type === "junction") {
-        appendJunction(
+        const patternUsed = appendJunction(
           sections,
           idMap,
           opts.geolocation,
@@ -202,6 +206,7 @@ export const buildInp = withDebugInstrumentation(
           asset as Junction,
           hydraulicModel.customerPointsLookup,
         );
+        customerDemandPatternUsed = customerDemandPatternUsed || patternUsed;
       }
 
       if (asset.type === "pipe") {
@@ -241,6 +246,10 @@ export const buildInp = withDebugInstrumentation(
       }
     }
 
+    if (customerDemandPatternUsed) {
+      sections.patterns.push([defaultCustomersPatternId, "1"].join("\t"));
+    }
+
     const includeCustomerPoints =
       opts.customerPoints && hydraulicModel.customerPoints.size > 0;
 
@@ -254,6 +263,7 @@ export const buildInp = withDebugInstrumentation(
       sections.demands.join("\n"),
       sections.status.join("\n"),
       sections.curves.join("\n"),
+      customerDemandPatternUsed && sections.patterns.join("\n"),
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
@@ -322,23 +332,29 @@ const appendJunction = (
   customerDemands: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
-) => {
+): boolean => {
   const junctionId = idMap.nodeId(junction);
 
   sections.junctions.push([junctionId, junction.elevation].join("\t"));
   sections.demands.push([junctionId, junction.baseDemand].join("\t"));
 
+  let patternUsed = false;
   if (customerDemands) {
     const totalCustomerDemand =
       junction.getTotalCustomerDemand(customerPointsLookup);
     if (totalCustomerDemand > 0) {
-      sections.demands.push([junctionId, totalCustomerDemand].join("\t"));
+      sections.demands.push(
+        [junctionId, totalCustomerDemand, defaultCustomersPatternId].join("\t"),
+      );
+      patternUsed = true;
     }
   }
 
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, junction);
   }
+
+  return patternUsed;
 };
 
 const appendPipe = (
