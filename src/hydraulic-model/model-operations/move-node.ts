@@ -5,8 +5,8 @@ import { ModelOperation } from "../model-operation";
 import { CustomerPoint, CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
-import turfNearestPointOnLine from "@turf/nearest-point-on-line";
 import { lineString, point } from "@turf/helpers";
+import { findNearestPointOnLine } from "src/lib/geometry";
 
 type InputData = {
   nodeId: AssetId;
@@ -106,9 +106,6 @@ const findNearestSnappingPoint = (
   const pipeLineString = lineString(pipe.coordinates);
   const customerPointGeometry = point(customerPoint.coordinates);
 
-  const nearestPoint = turfNearestPointOnLine(
-    pipeLineString,
-    customerPointGeometry,
-  );
-  return nearestPoint.geometry.coordinates;
+  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry);
+  return result.coordinates;
 };

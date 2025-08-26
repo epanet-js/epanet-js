@@ -26,6 +26,7 @@ import { Maybe, Nothing, Just } from "purify-ts/Maybe";
 import { Left, Right } from "purify-ts/Either";
 import { ConvertError } from "./errors";
 import { EMPTY_ARRAY } from "./constants";
+import turfNearestPointOnLine from "@turf/nearest-point-on-line";
 
 export function bbox4SimpleCenter(extent: BBox4): Pos2 {
   return [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2];
@@ -327,6 +328,27 @@ export function e6bbox(bbox: BBox4 | BBox, e = 6) {
 
 export function e6position(position: Position, e = 6): Position {
   return position.map((value) => e6(value, e));
+}
+
+export function roundCoordinates(coordinates: Position): Position {
+  return e6position(coordinates, 6);
+}
+
+export function findNearestPointOnLine(
+  line: LineString | Feature,
+  point: Point | Feature,
+  options?: { units?: string },
+  precision: number = 6,
+): { coordinates: Position; distance: number | null } {
+  const result = turfNearestPointOnLine(
+    line as any,
+    point as any,
+    options as any,
+  );
+  return {
+    coordinates: e6position(result.geometry.coordinates, precision),
+    distance: result.properties?.dist ?? null,
+  };
 }
 
 function truncate3(geometry: MultiPolygon, e = 6): MultiPolygon {

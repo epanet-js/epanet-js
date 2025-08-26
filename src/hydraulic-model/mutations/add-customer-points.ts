@@ -54,7 +54,7 @@ const removeJunctionDemands = (
   updatedAssets: AssetsMap,
   modifiedJunctions: Set<string>,
 ): void => {
-  const junctionId = customerPoint.connection!.junctionId!;
+  const junctionId = customerPoint.connection!.junctionId;
   const originalJunction = hydraulicModel.assets.get(junctionId) as Junction;
 
   if (!originalJunction) {

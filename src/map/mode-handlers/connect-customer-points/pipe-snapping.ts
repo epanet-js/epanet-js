@@ -4,9 +4,9 @@ import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
-import nearestPointOnLine from "@turf/nearest-point-on-line";
 import { lineString, point } from "@turf/helpers";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { findNearestPointOnLine } from "src/lib/geometry";
 
 type SnapStrategy = "nearest-to-point" | "cursor";
 
@@ -50,9 +50,9 @@ export const usePipeSnapping = (
 
       const pipeLineString = lineString(pipeGeometry.coordinates);
       const mousePoint = point(mouseCoord);
-      const nearestPoint = nearestPointOnLine(pipeLineString, mousePoint);
+      const result = findNearestPointOnLine(pipeLineString, mousePoint);
 
-      const distance = nearestPoint.properties.dist ?? Number.MAX_VALUE;
+      const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {
         closestPipe = {
           pipeId: uuid,
@@ -85,21 +85,18 @@ export const usePipeSnapping = (
     switch (strategy) {
       case "cursor": {
         const mousePoint = point(mouseCoord);
-        const cursorIntersection = nearestPointOnLine(
-          pipeLineString,
-          mousePoint,
-        );
-        const snapPoint = cursorIntersection.geometry.coordinates;
+        const result = findNearestPointOnLine(pipeLineString, mousePoint);
+        const snapPoint = result.coordinates;
         return customerPoints.map(() => snapPoint);
       }
       case "nearest-to-point": {
         return customerPoints.map((customerPoint) => {
           const customerPointGeometry = point(customerPoint.coordinates);
-          const nearestPoint = nearestPointOnLine(
+          const result = findNearestPointOnLine(
             pipeLineString,
             customerPointGeometry,
           );
-          return nearestPoint.geometry.coordinates;
+          return result.coordinates;
         });
       }
     }

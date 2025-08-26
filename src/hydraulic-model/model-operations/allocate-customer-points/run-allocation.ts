@@ -1,10 +1,10 @@
 import { Point, Feature, point, lineString } from "@turf/helpers";
 import turfBuffer from "@turf/buffer";
 import turfBbox from "@turf/bbox";
-import nearestPointOnLine from "@turf/nearest-point-on-line";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
 import { findJunctionForCustomerPoint } from "../../utilities/junction-assignment";
+import { findNearestPointOnLine } from "src/lib/geometry";
 
 import { CustomerPointConnection } from "../../customer-points";
 import { AllocationRule } from "./types";
@@ -138,7 +138,9 @@ const findNearestPipeConnection = (
   maxDiameter: number,
   { spatialIndex, workerData }: { spatialIndex: Flatbush; workerData: RunData },
 ): CustomerPointConnection | null => {
-  let closestMatch: Feature<Point> | null = null;
+  let closestMatch: { coordinates: Position; distance: number | null } | null =
+    null;
+  let closestDistance: number | null = null;
   let closestSegmentIndex: number | null = null;
 
   const processedSegmentIds = new Set<number>();
@@ -166,7 +168,7 @@ const findNearestPipeConnection = (
       );
       const segmentFeature = lineString(segmentCoordinates);
 
-      const pointOnLine = nearestPointOnLine(
+      const result = findNearestPointOnLine(
         segmentFeature,
         customerPointFeature,
         {
@@ -174,7 +176,7 @@ const findNearestPipeConnection = (
         },
       );
 
-      const distance = pointOnLine.properties?.dist;
+      const distance = result.distance;
       if (
         distance == null ||
         distance > maxDistance ||
@@ -185,17 +187,18 @@ const findNearestPipeConnection = (
 
       if (
         !closestMatch ||
-        (closestMatch.properties?.dist != null &&
-          distance < closestMatch.properties.dist)
+        (distance != null &&
+          (closestDistance == null || distance < closestDistance))
       ) {
-        closestMatch = pointOnLine;
+        closestMatch = result;
+        closestDistance = distance;
         closestSegmentIndex = segmentIndex;
       }
       processedSegmentIds.add(segmentIndex);
     }
 
     if (closestMatch && closestSegmentIndex !== null) {
-      const snapPoint = closestMatch.geometry.coordinates as Position;
+      const snapPoint = closestMatch.coordinates;
       const junctionId = findAssignedJunctionId(
         closestSegmentIndex,
         snapPoint,
