@@ -85,11 +85,14 @@ export const buildModel = (
       customerPointData.snapPoint &&
       customerPointData.junctionId
     ) {
-      customerPoint.connect({
-        pipeId: customerPointData.pipeId,
-        junctionId: customerPointData.junctionId,
-        snapPoint: customerPointData.snapPoint,
-      });
+      const junctionId = nodeIds.get(customerPointData.junctionId);
+      if (junctionId) {
+        customerPoint.connect({
+          pipeId: customerPointData.pipeId,
+          junctionId,
+          snapPoint: customerPointData.snapPoint,
+        });
+      }
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
     }
 

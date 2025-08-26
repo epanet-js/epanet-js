@@ -242,7 +242,7 @@ export const buildInp = withDebugInstrumentation(
 
     if (opts.customerPoints) {
       for (const customerPoint of hydraulicModel.customerPoints.values()) {
-        appendCustomerPoint(sections, customerPoint);
+        appendCustomerPoint(sections, idMap, hydraulicModel, customerPoint);
       }
     }
 
@@ -520,6 +520,8 @@ const kindFor = (valve: Valve): EpanetValveType => {
 
 const appendCustomerPoint = (
   sections: InpSections,
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
   customerPoint: CustomerPoint,
 ) => {
   const connection = customerPoint.connection;
@@ -528,7 +530,10 @@ const appendCustomerPoint = (
 
   if (connection) {
     const [snapX, snapY] = connection.snapPoint;
-    const junctionId = connection.junctionId || "";
+
+    const junction = hydraulicModel.assets.get(
+      connection.junctionId,
+    ) as Junction;
     sections.customers.push(
       ";" +
         [
@@ -537,7 +542,7 @@ const appendCustomerPoint = (
           y,
           baseDemand,
           connection.pipeId,
-          junctionId,
+          idMap.nodeId(junction),
           snapX,
           snapY,
         ].join("\t"),

@@ -514,6 +514,45 @@ describe("build inp", () => {
       expect(inp).toContain(";cp2\t5\t6\t1.8\t\t\t\t");
     });
 
+    it("uses junction labels instead of IDs when labelIds is true", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("junction-uuid-123", {
+          elevation: 10,
+          coordinates: [1, 2],
+          label: "Junction-A",
+        })
+        .aJunction("junction-uuid-456", {
+          elevation: 20,
+          coordinates: [3, 4],
+          label: "Junction-B",
+        })
+        .aPipe("pipe-uuid-789", {
+          startNodeId: "junction-uuid-123",
+          endNodeId: "junction-uuid-456",
+          label: "Pipe-1",
+        })
+        .aCustomerPoint("cp1", {
+          demand: 2.5,
+          coordinates: [1.5, 2.5],
+          connection: {
+            pipeId: "pipe-uuid-789",
+            junctionId: "junction-uuid-123",
+            snapPoint: [1.2, 2.2],
+          },
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        customerPoints: true,
+        labelIds: true,
+      });
+
+      expect(inp).toContain(
+        ";cp1\t1.5\t2.5\t2.5\tpipe-uuid-789\tJunction-A\t1.2\t2.2",
+      );
+      expect(inp).not.toContain("junction-uuid-123");
+    });
+
     it("does not include customer points section when no customer points exist", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction("j1", { elevation: 10 })

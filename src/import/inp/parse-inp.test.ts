@@ -482,6 +482,10 @@ describe("Parse inp", () => {
       [PIPES]
       P1	J1	J2	100	300	130	0	Open
       
+      [COORDINATES]
+      J1	1	2
+      J2	3	4
+      
       ;[CUSTOMERS]
       ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
       ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
@@ -497,7 +501,9 @@ describe("Parse inp", () => {
       expect(cp1?.coordinates).toEqual([1.5, 2.5]);
       expect(cp1?.baseDemand).toBe(2.5);
       expect(cp1?.connection?.pipeId).toBe("P1");
-      expect(cp1?.connection?.junctionId).toBe("J1");
+      const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      expect(junction).toBeDefined();
+      expect(cp1?.connection?.junctionId).toBe(junction.id);
       expect(cp1?.connection?.snapPoint).toEqual([1.2, 2.2]);
 
       const cp2 = hydraulicModel.customerPoints.get("CP2");
@@ -578,6 +584,9 @@ describe("Parse inp", () => {
       [PIPES]
       P1	J1	J1	100	300	130	0	Open
       
+      [COORDINATES]
+      J1	1	2
+      
       ;[CUSTOMERS]
       ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
       ;CP1	1.5	2.5	2.5	P1	J1	1.2	2.2
@@ -585,15 +594,49 @@ describe("Parse inp", () => {
 
       const { hydraulicModel } = parseInp(inp, { customerPoints: true });
 
+      const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
       const connectedToP1 =
         hydraulicModel.customerPointsLookup.getCustomerPoints("P1");
       const connectedToJ1 =
-        hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+        hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
 
       expect(connectedToP1.size).toBe(1);
       expect(connectedToJ1.size).toBe(1);
       expect([...connectedToP1][0].id).toBe("CP1");
       expect([...connectedToJ1][0].id).toBe("CP1");
+    });
+
+    it("resolves junction labels to actual junction IDs", () => {
+      const inp = `
+      [JUNCTIONS]
+      Junction-A	10
+      Junction-B	20
+      
+      [PIPES]
+      Pipe-1	Junction-A	Junction-B	100	300	130	0	Open
+      
+      [COORDINATES]
+      Junction-A	1	2
+      Junction-B	3	4
+      
+      ;[CUSTOMERS]
+      ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+      ;CP1	1.5	2.5	2.5	Pipe-1	Junction-A	1.2	2.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { customerPoints: true });
+
+      const cp1 = hydraulicModel.customerPoints.get("CP1");
+      expect(cp1).toBeDefined();
+      expect(cp1?.connection).toBeDefined();
+
+      const junction = getByLabel(
+        hydraulicModel.assets,
+        "Junction-A",
+      ) as Junction;
+      expect(junction).toBeDefined();
+      expect(cp1?.connection?.junctionId).toBe(junction.id);
     });
   });
 });
