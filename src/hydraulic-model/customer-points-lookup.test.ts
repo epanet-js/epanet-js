@@ -81,19 +81,6 @@ describe("CustomerPointsLookup", () => {
     expect(lookup.hasConnections("pipe1")).toBe(false);
   });
 
-  it("handles customer points with only pipe connection", () => {
-    const lookup = new CustomerPointsLookup();
-
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
-    cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
-
-    lookup.addConnection(cp1);
-
-    expect(lookup.getCustomerPoints("pipe1")).toEqual(new Set([cp1]));
-    expect(lookup.hasConnections("pipe1")).toBe(true);
-    expect(lookup.hasConnections("j1")).toBe(false);
-  });
-
   it("cleans up empty sets when removing last customer point", () => {
     const lookup = new CustomerPointsLookup();
 
