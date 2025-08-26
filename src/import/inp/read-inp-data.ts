@@ -155,13 +155,22 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
     snapY = "",
   ] = parts;
 
-  inpData.customerPoints.push({
-    id,
-    coordinates: [parseFloat(x), parseFloat(y)],
-    baseDemand: parseFloat(demand),
-    pipeId: pipeId || undefined,
-    junctionId: junctionId || undefined,
-    snapPoint:
-      snapX && snapY ? [parseFloat(snapX), parseFloat(snapY)] : undefined,
-  });
+  const hasConnection = pipeId && junctionId && snapX && snapY;
+
+  if (hasConnection) {
+    inpData.customerPoints.push({
+      id,
+      coordinates: [parseFloat(x), parseFloat(y)],
+      baseDemand: parseFloat(demand),
+      pipeId,
+      junctionId,
+      snapPoint: [parseFloat(snapX), parseFloat(snapY)],
+    });
+  } else {
+    inpData.customerPoints.push({
+      id,
+      coordinates: [parseFloat(x), parseFloat(y)],
+      baseDemand: parseFloat(demand),
+    });
+  }
 };

@@ -203,6 +203,7 @@ describe("disconnectCustomers", () => {
     cp.connect({
       pipeId: "P1",
       snapPoint: [2, 0],
+      junctionId: "J1",
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()

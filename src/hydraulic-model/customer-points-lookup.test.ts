@@ -85,7 +85,7 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
-    cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1] });
+    cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
     lookup.addConnection(cp1);
 

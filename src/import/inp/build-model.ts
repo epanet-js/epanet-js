@@ -80,7 +80,11 @@ export const buildModel = (
       { baseDemand: customerPointData.baseDemand },
     );
 
-    if (customerPointData.pipeId && customerPointData.snapPoint) {
+    if (
+      customerPointData.pipeId &&
+      customerPointData.snapPoint &&
+      customerPointData.junctionId
+    ) {
       customerPoint.connect({
         pipeId: customerPointData.pipeId,
         junctionId: customerPointData.junctionId,

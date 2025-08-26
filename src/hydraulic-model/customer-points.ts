@@ -23,7 +23,7 @@ export const getDefaultAllocationRules = (units: {
 export interface CustomerPointConnection {
   pipeId: string;
   snapPoint: Position;
-  junctionId?: string;
+  junctionId: string;
 }
 
 export class CustomerPoint {

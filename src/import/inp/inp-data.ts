@@ -62,14 +62,23 @@ export type ValveData = {
   minorLoss: number;
 };
 
-export type CustomerPointData = {
-  id: string;
-  coordinates: [number, number];
-  baseDemand: number;
-  pipeId?: string;
-  junctionId?: string;
-  snapPoint?: [number, number];
-};
+export type CustomerPointData =
+  | {
+      id: string;
+      coordinates: [number, number];
+      baseDemand: number;
+      pipeId: string;
+      junctionId: string;
+      snapPoint: [number, number];
+    }
+  | {
+      id: string;
+      coordinates: [number, number];
+      baseDemand: number;
+      pipeId?: undefined;
+      junctionId?: undefined;
+      snapPoint?: undefined;
+    };
 
 export type InpData = {
   junctions: JunctionData[];
