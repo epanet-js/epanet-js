@@ -53,6 +53,7 @@ export const useSaveInp = ({
             geolocation: true,
             madeBy: true,
             labelIds: true,
+            customerDemands: isCustomerPointOn,
             customerPoints: isCustomerPointOn,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });

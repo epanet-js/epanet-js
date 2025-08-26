@@ -34,7 +34,7 @@ export type EpanetUnitSystem =
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
-const defaultCustomersPatternId = "epanetjs_customers";
+export const defaultCustomersPatternId = "epanetjs_customers";
 
 const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   const flowUnit = units.flow;

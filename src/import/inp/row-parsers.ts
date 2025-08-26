@@ -2,6 +2,7 @@ import {
   EpanetUnitSystem,
   defaultAccuracy,
   defaultUnbalanced,
+  defaultCustomersPatternId,
 } from "src/simulation/build-inp";
 import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
@@ -246,6 +247,11 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+
+  if (patternId === defaultCustomersPatternId) {
+    return;
+  }
+
   const demands = inpData.demands.get(nodeId) || [];
   demands.push({
     baseDemand: parseFloat(baseDemand),
