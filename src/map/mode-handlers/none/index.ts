@@ -20,6 +20,8 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
+const stateUpdateTime = 16;
+
 const isMovementSignificant = (
   startPoint: mapboxgl.Point,
   endPoint: mapboxgl.Point,
@@ -198,20 +200,21 @@ export function useNoneHandlers({
       if (significant) {
         startCommit();
         fetchElevation(e.lngLat)
-          .then((newElevation) => {
+          .then((newElevationOrFallback) => {
             const moment = moveNode(hydraulicModel, {
               nodeId: assetId,
               newCoordinates,
-              newElevation,
+              newElevation: newElevationOrFallback,
               shouldUpdateCustomerPoints: isCustomerPointOn,
             });
             transact(moment);
             clearSelection();
-            finishCommit();
+            resetMove();
+            setTimeout(finishCommit, stateUpdateTime);
           })
           .catch(() => {
-            clearSelection();
-            finishCommit();
+            resetMove();
+            setTimeout(finishCommit, stateUpdateTime);
           });
       } else {
         resetMove();

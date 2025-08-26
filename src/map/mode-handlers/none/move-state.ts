@@ -57,7 +57,6 @@ export const useMoveState = () => {
 
   const finishCommit = () => {
     isCommittingRef.current = false;
-    resetMove();
   };
 
   const isCommitting = isCommittingRef.current;
