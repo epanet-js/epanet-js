@@ -25,7 +25,7 @@ const createConfig = () => ({
   backend: {
     loadPath: (lngs: string[], _namespaces: string[]) => {
       const lng = lngs[0];
-      if (lng !== "en" && lng !== "es") {
+      if (lng !== "en") {
         return `https://epanet-js.github.io/epanet-js-locales/locales/${lng}/translation.json`;
       }
       return `/locales/${lng}/translation.json`;
