@@ -79,7 +79,7 @@ export const WelcomeDialog = () => {
             </div>
           )}
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 pb-8">
-            <div className="col-span-1 md:w-max flex flex-col justify-center gap-6 pl-6">
+            <div className="col-span-1 md:w-max flex flex-col justify-center gap-6 mx-auto">
               <div className="grid gap-2 justify-center justify-items-center">
                 <LogoIcon size={40} />
                 <LogoWordmarkIcon size={88} />
