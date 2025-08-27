@@ -161,7 +161,7 @@ export const Toolbar = () => {
         readOnlyHotkey={runSimulationShortcut}
       >
         {isLucideIconsOn ? (
-          <Zap size={16} />
+          <Zap size={16} className="stroke-yellow-600" />
         ) : (
           <LightningBoltIcon className="text-yellow-600" />
         )}
