@@ -682,6 +682,7 @@ export type B3Variant =
   | "code"
   | "quiet/mode"
   | "destructive"
+  | "danger"
   | "danger-quiet"
   | "ultra-quiet"
   | "success";
@@ -725,7 +726,13 @@ export function sharedOutline(
   `,
     disabled
       ? ""
-      : `focus-visible:ring-1
+      : variant === "danger"
+        ? `focus-visible:ring-1
+    focus-visible:ring-offset-1
+    focus-visible:ring-red-500
+    dark:focus-visible:ring-red-500
+    dark:focus-visible:ring-offset-gray-900`
+        : `focus-visible:ring-1
     focus-visible:ring-offset-1
     focus-visible:ring-purple-500
     dark:focus-visible:ring-purple-500
@@ -753,6 +760,7 @@ export function sharedOutline(
   `]: variant === "destructive" && !disabled,
 
       [`border border-green-500`]: variant === "success",
+      [`border border-red-500`]: variant === "danger",
     },
   ];
 }
@@ -782,6 +790,11 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
         `bg-green-500`,
         !disabled && `hover:bg-green-600 dark:hover:bg-green-400 hover:shadow`,
       ];
+    case "danger":
+      return [
+        `bg-red-500`,
+        !disabled && `hover:bg-red-600 dark:hover:bg-red-400 hover:shadow`,
+      ];
   }
 };
 
@@ -803,6 +816,9 @@ const sharedText = (variant: B3Variant): ClassValue => {
       return "font-medium text-red-500 dark:text-red-300";
     }
     case "success": {
+      return "font-medium text-white";
+    }
+    case "danger": {
       return "font-medium text-white";
     }
   }

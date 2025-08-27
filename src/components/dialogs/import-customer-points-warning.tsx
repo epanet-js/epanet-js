@@ -45,7 +45,7 @@ export const ImportCustomerPointsWarningDialog = ({
       <DialogButtons>
         <Button
           type="submit"
-          variant="destructive"
+          variant="danger"
           aria-label={translate("importCustomerPointsWarning.deleteAndImport")}
           onClick={handleProceed}
         >
