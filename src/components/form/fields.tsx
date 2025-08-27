@@ -11,17 +11,19 @@ export const InlineField = ({
   children,
 }: {
   name: string;
-  layout?: "fixed-label" | "half-split";
+  layout?: "fixed-label" | "half-split" | "label-flex-none";
   align?: "start" | "center";
   children: React.ReactNode;
 }) => {
   const labelClasses = clsx("text-sm text-gray-500", {
     "max-w-[67px] w-full flex-shrink-0": layout === "fixed-label",
     "w-1/2": layout === "half-split",
+    "flex-none": layout === "label-flex-none",
   });
   const inputWrapperClasses = clsx({
     "flex-1": layout === "fixed-label",
     "w-1/2": layout === "half-split",
+    "w-3/4": layout === "label-flex-none",
   });
 
   return (

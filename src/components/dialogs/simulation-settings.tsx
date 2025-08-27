@@ -53,26 +53,28 @@ export const SimulationSettingsDialog = () => {
       >
         {({ values, setFieldValue }) => (
           <Form>
-            <FieldList>
-              <InlineField
-                layout="half-split"
-                name={translate("demandMultiplier")}
-              >
-                <NumericField
-                  label={translate("demandMultiplier")}
-                  displayValue={localizeDecimal(values.demandMultiplier)}
-                  positiveOnly={true}
-                  isNullable={false}
-                  onChangeValue={(newValue) =>
-                    setFieldValue("demandMultiplier", newValue)
-                  }
-                />
-              </InlineField>
-            </FieldList>
-            <SimpleDialogActions
-              onClose={closeDialog}
-              action={translate("save")}
-            />
+            <div className="pl-6">
+              <FieldList>
+                <InlineField
+                  layout="label-flex-none"
+                  name={translate("demandMultiplier")}
+                >
+                  <NumericField
+                    label={translate("demandMultiplier")}
+                    displayValue={localizeDecimal(values.demandMultiplier)}
+                    positiveOnly={true}
+                    isNullable={false}
+                    onChangeValue={(newValue) =>
+                      setFieldValue("demandMultiplier", newValue)
+                    }
+                  />
+                </InlineField>
+              </FieldList>
+              <SimpleDialogActions
+                onClose={closeDialog}
+                action={translate("save")}
+              />
+            </div>
           </Form>
         )}
       </Formik>
