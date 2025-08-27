@@ -2,6 +2,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { DialogHeader, DialogButtons } from "src/components/dialog";
 import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const ImportCustomerPointsWarningDialog = ({
   onContinue,
@@ -11,6 +12,7 @@ export const ImportCustomerPointsWarningDialog = ({
   onClose: () => void;
 }) => {
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   const handleProceed = () => {
     userTracking.capture({
@@ -30,29 +32,31 @@ export const ImportCustomerPointsWarningDialog = ({
   return (
     <>
       <DialogHeader
-        title="Import Customer Points"
+        title={translate("importCustomerPoints.label")}
         titleIcon={ExclamationTriangleIcon}
         variant="danger"
       />
       <div className="text-sm">
-        <p>
-          This will <strong>permanently delete</strong> all existing customer
-          points and replace them with the points from your new import.
+        <p>{translate("importCustomerPointsWarning.explain")}</p>
+        <p className="mt-2">
+          {translate("importCustomerPointsWarning.question")}
         </p>
-        <p className="mt-2">Are you sure you want to proceed?</p>
       </div>
       <DialogButtons>
         <Button
           type="submit"
-          autoFocus
           variant="destructive"
-          aria-label="Delete and Import"
+          aria-label={translate("importCustomerPointsWarning.deleteAndImport")}
           onClick={handleProceed}
         >
-          Delete and Import
+          {translate("importCustomerPointsWarning.deleteAndImport")}
         </Button>
-        <Button variant="default" onClick={handleCancel}>
-          Cancel
+        <Button
+          variant="default"
+          aria-label={translate("cancel")}
+          onClick={handleCancel}
+        >
+          {translate("cancel")}
         </Button>
       </DialogButtons>
     </>

@@ -513,6 +513,11 @@
       "chooseFile": "Choose File"
     }
   },
+  "importCustomerPointsWarning": {
+    "explain": "Your current customer points will be permanently deleted and replaced with the points from your new import.",
+    "question": "Are you sure you want to proceed?",
+    "deleteAndImport": "Delete and Import"
+  },
   "contextActions": {
     "customerPoints": {
       "connect": "Connect",
