@@ -57,6 +57,11 @@ export type ImportCustomerPointsWizardState = {
   type: "importCustomerPointsWizard";
 };
 
+export type ImportCustomerPointsWarningDialogState = {
+  type: "importCustomerPointsWarning";
+  onContinue: () => void;
+};
+
 export type UnexpectedErrorDialogState = {
   type: "unexpectedError";
   onRetry?: () => void;
@@ -90,6 +95,7 @@ export type DialogState =
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
+  | ImportCustomerPointsWarningDialogState
   | UnexpectedErrorDialogState
   | ModelBuilderIframeDialogState
   | EarlyAccessDialogState

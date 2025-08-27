@@ -442,6 +442,46 @@ describe.skip("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
   });
+
+  describe("warning dialog behavior", () => {
+    it("shows warning when existing customer points exist", async () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aJunction("J1", { coordinates: [0, 0] })
+          .aCustomerPoint("EXISTING", {
+            coordinates: [5, 5],
+            demand: 100,
+          })
+          .build(),
+      });
+
+      renderComponent({ store });
+
+      await triggerCommand();
+
+      expect(screen.getByText(/permanently delete/)).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Delete and Import/ }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Cancel" }),
+      ).toBeInTheDocument();
+    });
+
+    it("opens wizard directly when no existing customer points", async () => {
+      const store = createStoreWithPipes();
+
+      renderComponent({ store });
+
+      await triggerCommand();
+
+      expect(screen.queryByText(/permanently delete/)).not.toBeInTheDocument();
+      await waitForWizardToOpen();
+      expect(
+        screen.getByRole("navigation", { name: /import wizard steps/i }),
+      ).toBeInTheDocument();
+    });
+  });
 });
 
 const triggerCommand = async () => {

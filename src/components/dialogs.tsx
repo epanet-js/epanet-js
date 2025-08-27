@@ -201,6 +201,19 @@ const EarlyAccessDialog = dynamic<{
   },
 );
 
+const ImportCustomerPointsWarningDialog = dynamic<{
+  onContinue: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/import-customer-points-warning").then(
+      (r) => r.ImportCustomerPointsWarningDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -285,6 +298,12 @@ export const Dialogs = memo(function Dialogs() {
       <EarlyAccessDialog
         onContinue={onContinue}
         afterSignupDialog={afterSignupDialog}
+      />
+    ))
+    .with({ type: "importCustomerPointsWarning" }, ({ onContinue }) => (
+      <ImportCustomerPointsWarningDialog
+        onContinue={onContinue}
+        onClose={onClose}
       />
     ))
     .with({ type: "openInp" }, (modal) => (

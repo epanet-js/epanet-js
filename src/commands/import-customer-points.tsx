@@ -1,10 +1,11 @@
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
+import { useSetAtom, useAtomValue } from "jotai";
+import { dialogAtom, dataAtom } from "src/state/jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const useImportCustomerPoints = () => {
   const setDialogState = useSetAtom(dialogAtom);
+  const data = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
 
   const importCustomerPoints = useCallback(
@@ -14,11 +15,25 @@ export const useImportCustomerPoints = () => {
         source,
       });
 
-      setDialogState({
-        type: "importCustomerPointsWizard",
-      });
+      const hasExistingCustomerPoints =
+        data.hydraulicModel.customerPoints.size > 0;
+
+      if (hasExistingCustomerPoints) {
+        setDialogState({
+          type: "importCustomerPointsWarning",
+          onContinue: () => {
+            setDialogState({
+              type: "importCustomerPointsWizard",
+            });
+          },
+        });
+      } else {
+        setDialogState({
+          type: "importCustomerPointsWizard",
+        });
+      }
     },
-    [setDialogState, userTracking],
+    [setDialogState, userTracking, data.hydraulicModel.customerPoints.size],
   );
 
   return importCustomerPoints;

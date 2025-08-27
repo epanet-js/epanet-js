@@ -403,6 +403,14 @@ type ImportCustomerPointsWizardCancel = {
     | "importCustomerPoints.allocation.cancel";
 };
 
+type ImportCustomerPointsWarningDialogProceed = {
+  name: "importCustomerPoints.warningDialog.proceed";
+};
+
+type ImportCustomerPointsWarningDialogCancel = {
+  name: "importCustomerPoints.warningDialog.cancel";
+};
+
 type EarlyAccessClickedGet = {
   name: "earlyAccess.clickedGet";
   source: "earlyAccessDialog";
@@ -495,6 +503,8 @@ export type UserEvent =
   | ImportCustomerPointsWizardNext
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
+  | ImportCustomerPointsWarningDialogProceed
+  | ImportCustomerPointsWarningDialogCancel
   | EarlyAccessClickedGet
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted

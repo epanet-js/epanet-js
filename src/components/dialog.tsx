@@ -184,9 +184,11 @@ export const AckDialogAction = ({
 
 export const DialogButtons = ({
   variant = "md",
+  align = "right",
   children,
 }: {
   variant?: "md" | "xs";
+  align?: "left" | "right";
   children: React.ReactNode;
 }) => {
   return (
@@ -194,7 +196,9 @@ export const DialogButtons = ({
       className={clsx(
         variant === "xs" ? "pt-2" : "pt-6",
         "pb-1 relative",
-        `pb-1 flex flex-col sm:items-center sm:flex-row space-y-2 sm:space-y-0 sm:gap-x-3`,
+        align === "right"
+          ? "pb-1 flex flex-col sm:items-center sm:flex-row-reverse sm:justify-start space-y-2 sm:space-y-0 sm:gap-x-3"
+          : "pb-1 flex flex-col sm:items-center sm:flex-row space-y-2 sm:space-y-0 sm:gap-x-3",
       )}
     >
       {children}
