@@ -10,6 +10,15 @@ import {
   StarIcon,
   ChevronDownIcon,
 } from "@radix-ui/react-icons";
+import {
+  ChevronDown,
+  File,
+  FilePlus,
+  FileSpreadsheet,
+  Globe,
+  Star,
+  Sun,
+} from "lucide-react";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -23,6 +32,7 @@ import {
   TContent,
   StyledTooltipArrow,
 } from "../elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const CreateNewDropdown = () => {
   const createNewProject = useNewProject();
@@ -31,6 +41,7 @@ export const CreateNewDropdown = () => {
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -39,8 +50,17 @@ export const CreateNewDropdown = () => {
           <Tooltip.Trigger asChild>
             <DD.Trigger asChild>
               <Button variant="quiet">
-                <FilePlusIcon />
-                <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+                {isLucideIconsOn ? (
+                  <>
+                    <FilePlus size={16} />
+                    <ChevronDown size={12} />
+                  </>
+                ) : (
+                  <>
+                    <FilePlusIcon />
+                    <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+                  </>
+                )}
               </Button>
             </DD.Trigger>
           </Tooltip.Trigger>
@@ -55,7 +75,7 @@ export const CreateNewDropdown = () => {
                   void createNewProject({ source: "toolbar" });
                 }}
               >
-                <FileIcon />
+                {isLucideIconsOn ? <File size={16} /> : <FileIcon />}
                 {translate("startBlankProject")}
               </StyledItem>
 
@@ -68,7 +88,7 @@ export const CreateNewDropdown = () => {
                   showWelcome({ source: "toolbar" });
                 }}
               >
-                <SunIcon />
+                {isLucideIconsOn ? <Sun size={16} /> : <SunIcon />}
                 {translate("startFromExample")}
               </StyledItem>
 
@@ -81,7 +101,11 @@ export const CreateNewDropdown = () => {
                   void openInpFromFs({ source: "toolbar" });
                 }}
               >
-                <FileTextIcon />
+                {isLucideIconsOn ? (
+                  <FileSpreadsheet size={16} />
+                ) : (
+                  <FileTextIcon />
+                )}
                 {translate("openINP")}
               </StyledItem>
 
@@ -90,9 +114,13 @@ export const CreateNewDropdown = () => {
                   openModelBuilder({ source: "toolbar" });
                 }}
               >
-                <GlobeIcon />
+                {isLucideIconsOn ? <Globe size={16} /> : <GlobeIcon />}
                 {translate("importFromGIS")}
-                <StarIcon className="w-3 h-3 ml-1" />
+                {isLucideIconsOn ? (
+                  <Star size={12} />
+                ) : (
+                  <StarIcon className="w-3 h-3 ml-1" />
+                )}
               </StyledItem>
             </DDContent>
           </DD.Portal>

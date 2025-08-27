@@ -15,7 +15,7 @@ import {
   termsAndConditionsUrl,
 } from "src/global-config";
 import { Checkbox } from "../form/Checkbox";
-import { Button, LogoIcon, LogoWordmarkIcon } from "../elements";
+import { Button, LogoIconAndWordmarkIcon } from "../elements";
 import {
   ArrowRightIcon,
   FileIcon,
@@ -24,10 +24,19 @@ import {
   QuestionMarkCircledIcon,
   StarIcon,
 } from "@radix-ui/react-icons";
+import {
+  ArrowRight,
+  File,
+  FileSpreadsheet,
+  Globe,
+  HelpCircle,
+  Star,
+} from "lucide-react";
 import { DialogCloseX, DialogContainer } from "../dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type DemoModel = {
   name: string;
@@ -68,6 +77,7 @@ export const WelcomeDialog = () => {
     (lang) => lang.code === currentLocale.locale,
   );
   const isExperimental = currentLanguage?.experimental ?? false;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DialogContainer size="md">
@@ -79,10 +89,9 @@ export const WelcomeDialog = () => {
             </div>
           )}
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 pb-8">
-            <div className="col-span-1 md:w-max flex flex-col justify-center gap-6 mx-auto">
-              <div className="grid gap-2 justify-center justify-items-center">
-                <LogoIcon size={40} />
-                <LogoWordmarkIcon size={88} />
+            <div className="col-span-1 md:w-max flex flex-col gap-6">
+              <div className="pl-1">
+                <LogoIconAndWordmarkIcon size={147} />
               </div>
               {!isMdOrLarger && <SmallDeviceWarning />}
               <div className="flex items-start flex-col gap-2">
@@ -93,7 +102,12 @@ export const WelcomeDialog = () => {
                       void createNew({ source: "welcome" });
                     }}
                   >
-                    <FileIcon className="w-4 h-4 flex-shrink-0" />
+                    {isLucideIconsOn ? (
+                      <File size={16} />
+                    ) : (
+                      <FileIcon className="w-4 h-4 flex-shrink-0" />
+                    )}
+
                     {translate("startBlankProject")}
                   </Button>
                 )}
@@ -103,7 +117,11 @@ export const WelcomeDialog = () => {
                     void openInpFromFs({ source: "welcome" });
                   }}
                 >
-                  <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+                  {isLucideIconsOn ? (
+                    <FileSpreadsheet size={16} />
+                  ) : (
+                    <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+                  )}
                   {translate("openProject")}
                 </Button>
                 <Button
@@ -112,9 +130,17 @@ export const WelcomeDialog = () => {
                     openModelBuilder({ source: "welcome" });
                   }}
                 >
-                  <GlobeIcon className="w-4 h-4 flex-shrink-0" />
+                  {isLucideIconsOn ? (
+                    <Globe size={16} />
+                  ) : (
+                    <GlobeIcon className="w-4 h-4 flex-shrink-0" />
+                  )}
                   {translate("importFromGIS")}
-                  <StarIcon className="w-3 h-3 ml-1" />
+                  {isLucideIconsOn ? (
+                    <Star size={12} />
+                  ) : (
+                    <StarIcon className="w-3 h-3 ml-1" />
+                  )}
                 </Button>
               </div>
               <div className="flex items-start flex-col gap-2">
@@ -129,7 +155,11 @@ export const WelcomeDialog = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
+                    {isLucideIconsOn ? (
+                      <HelpCircle size={16} />
+                    ) : (
+                      <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
+                    )}
                     {translate("helpCenter")}
                   </Button>
                 </a>
@@ -145,7 +175,11 @@ export const WelcomeDialog = () => {
                     }}
                   >
                     <Button variant="primary">
-                      <ArrowRightIcon />
+                      {isLucideIconsOn ? (
+                        <ArrowRight size={16} />
+                      ) : (
+                        <ArrowRightIcon />
+                      )}
                       {translate("quickStartTutorial")}
                     </Button>
                   </a>
@@ -153,7 +187,7 @@ export const WelcomeDialog = () => {
               </div>
             </div>
             <div className="md:col-span-2">
-              <h2 className="pb-2 font-bold text-gray-500">
+              <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
                 {translate("demoNetworksTitle")}
               </h2>
               <div className="grid grid-cols-2 gap-6">

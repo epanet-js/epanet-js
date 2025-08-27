@@ -22,6 +22,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { X } from "lucide-react";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -145,6 +147,7 @@ export function DialogHeader({
 }
 
 export const DialogCloseX = () => {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Dialog.Close
       aria-label="Close"
@@ -152,7 +155,7 @@ export const DialogCloseX = () => {
                   focus:bg-gray-200 dark:focus:bg-black
                   hover:text-black dark:hover:text-white"
     >
-      <Cross1Icon />
+      {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
     </Dialog.Close>
   );
 };

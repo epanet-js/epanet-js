@@ -7,26 +7,23 @@ export const PumpIcon = React.forwardRef<
   <svg
     ref={ref}
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 -0.8 35.232498 35.232498"
+    viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
     {...props}
   >
-    <g transform="translate(-79.236495,-225.92998)">
+    <g>
       <circle
-        cx="96.852745"
-        cy="242.74623"
-        r="16.58"
-        stroke="currentColor"
-        strokeWidth="2.0725"
+        cx="12"
+        cy="12"
+        r="10"
         fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
       />
       <path
-        d="M -68.8105,-199.49597 C -69.549008,-199.73664 -77.42937,-237.47192 -76.851686,-237.99115 C -76.274002,-238.51038 -39.08712,-226.71733 -38.926296,-225.95743 C -38.765473,-225.19753 -67.072992,-199.75529 -67.8115,-199.99597 Z"
-        transform="matrix(0.29824635,0.25051777,-0.27138933,0.27530931,55.330342,319.49486)"
         fill={triangleFillColor}
-        stroke="currentColor"
-        strokeWidth="4.6476"
+        d="M10.883 7.508a.998.998 0 0 1 1.734 0l4.021 6.994A.999.999 0 0 1 15.771 16H7.729a1 1 0 0 1-.867-1.498l4.021-6.994Z"
       />
     </g>
   </svg>

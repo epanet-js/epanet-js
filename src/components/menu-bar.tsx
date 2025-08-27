@@ -35,6 +35,15 @@ import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { LanguageSelector } from "./language-selector";
+import {
+  Globe,
+  HelpCircle,
+  Keyboard,
+  Menu,
+  PackageOpen,
+  Sun,
+  X,
+} from "lucide-react";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -87,6 +96,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -114,7 +124,11 @@ export const MenuBarPlay = memo(function MenuBar() {
               }}
             >
               <Button variant="quiet">
-                <GitHubLogoIcon />
+                {isLucideIconsOn ? (
+                  <PackageOpen size={16} />
+                ) : (
+                  <GitHubLogoIcon />
+                )}
                 {translate("openSource")}
               </Button>
             </a>
@@ -182,6 +196,7 @@ export function HelpDot() {
   const showWelcome = useShowWelcome();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DD.Root>
@@ -194,7 +209,7 @@ export function HelpDot() {
             showWelcome({ source: "menu" });
           }}
         >
-          <SunIcon />
+          {isLucideIconsOn ? <Sun size={16} /> : <SunIcon />}
           {translate("welcomePage")}
         </StyledItem>
         <a
@@ -208,7 +223,12 @@ export function HelpDot() {
           }}
         >
           <StyledItem>
-            <QuestionMarkCircledIcon /> {translate("helpCenter")}
+            {isLucideIconsOn ? (
+              <HelpCircle size={16} />
+            ) : (
+              <QuestionMarkCircledIcon />
+            )}
+            {translate("helpCenter")}
           </StyledItem>
         </a>
         <StyledItem
@@ -220,7 +240,7 @@ export function HelpDot() {
             showShortcuts();
           }}
         >
-          <KeyboardIcon />
+          {isLucideIconsOn ? <Keyboard size={16} /> : <KeyboardIcon />}
           {translate("keyboardShortcuts")}
         </StyledItem>
       </DDContent>
@@ -240,6 +260,7 @@ export const SideMenu = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -249,7 +270,7 @@ export const SideMenu = () => {
     <div className="relative">
       <div className="flex justify-end md:hidden">
         <Button variant="quiet" onClick={toggleMenu}>
-          <HamburgerMenuIcon />
+          {isLucideIconsOn ? <Menu size={16} /> : <HamburgerMenuIcon />}
         </Button>
       </div>
 
@@ -268,14 +289,19 @@ export const SideMenu = () => {
               <DeprecatedBrandLogo />
             )}
             <Button variant="quiet" onClick={toggleMenu}>
-              <Cross1Icon />
+              {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
             </Button>
           </div>{" "}
           <nav>
             <ul className="flex flex-col items-start gap-2 text-gray-200">
               <li>
                 <Button variant="quiet">
-                  <GlobeIcon className="mr-2" />
+                  {isLucideIconsOn ? (
+                    <Globe size={16} />
+                  ) : (
+                    <GlobeIcon className="mr-2" />
+                  )}
+
                   <LanguageSelector align="start" padding={false} asChild />
                 </Button>
               </li>
@@ -295,7 +321,12 @@ export const SideMenu = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    <GitHubLogoIcon className="mr-2" />
+                    {isLucideIconsOn ? (
+                      <PackageOpen size={16} />
+                    ) : (
+                      <GitHubLogoIcon className="mr-2" />
+                    )}
+
                     {translate("openSource")}
                   </Button>
                 </a>
@@ -313,7 +344,11 @@ export const SideMenu = () => {
                     showWelcome({ source: "menu" });
                   }}
                 >
-                  <SunIcon className="mr-2" />
+                  {isLucideIconsOn ? (
+                    <Sun size={16} />
+                  ) : (
+                    <SunIcon className="mr-2" />
+                  )}
                   {translate("welcomePage")}
                 </Button>
               </li>
@@ -331,7 +366,11 @@ export const SideMenu = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    <QuestionMarkCircledIcon className="mr-2" />{" "}
+                    {isLucideIconsOn ? (
+                      <HelpCircle size={16} />
+                    ) : (
+                      <QuestionMarkCircledIcon className="mr-2" />
+                    )}
                     {translate("helpCenter")}
                   </Button>
                 </a>

@@ -22,6 +22,20 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  Circle,
+  Download,
+  FileSpreadsheet,
+  Globe,
+  Grid2X2,
+  Keyboard,
+  MousePointer2,
+  Triangle,
+  Undo2,
+  Zap,
+} from "lucide-react";
+import { PipeIcon } from "src/custom-icons/pipe-icon";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
@@ -31,6 +45,7 @@ export const NothingSelected = memo(function NothingSelected() {
   const userTracking = useUserTracking();
   const isSmOrLarger = useBreakpoint("sm");
   const openModelBuilder = useOpenModelBuilder();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
@@ -44,7 +59,7 @@ export const NothingSelected = memo(function NothingSelected() {
         }}
       >
         <div className="pt-1">
-          <CursorArrowIcon />
+          {isLucideIconsOn ? <MousePointer2 size={16} /> : <CursorArrowIcon />}
         </div>
         <div>{translate("onboardingSelectAsset")}</div>
       </div>
@@ -60,15 +75,19 @@ export const NothingSelected = memo(function NothingSelected() {
             }}
           >
             <div className="pt-1">
-              <VercelLogoIcon />
+              {isLucideIconsOn ? <Triangle size={16} /> : <VercelLogoIcon />}
             </div>
             <div>{translate("onboardingDrawReservoir")}</div>
             <div className="pt-1">
-              <CircleIcon />
+              {isLucideIconsOn ? <Circle size={16} /> : <CircleIcon />}
             </div>
             <div>{translate("onboardingDrawJunctions")}</div>
             <div className="pt-1">
-              <StretchHorizontallyIcon />
+              {isLucideIconsOn ? (
+                <PipeIcon width={16} height={16} />
+              ) : (
+                <StretchHorizontallyIcon />
+              )}
             </div>
             <div>{translate("onboardingDrawPipe")}</div>
           </div>
@@ -86,11 +105,11 @@ export const NothingSelected = memo(function NothingSelected() {
         }}
       >
         <div className="pt-1">
-          <LightningBoltIcon />
+          {isLucideIconsOn ? <Zap size={16} /> : <LightningBoltIcon />}
         </div>
         <div>{translate("onboardingRunSimulation")}</div>
         <div className="pt-1">
-          <AspectRatioIcon />
+          {isLucideIconsOn ? <Grid2X2 size={16} /> : <AspectRatioIcon />}
         </div>
         <div>{translate("onboardingMap")}</div>
       </div>
@@ -108,7 +127,7 @@ export const NothingSelected = memo(function NothingSelected() {
             }}
           >
             <div className="pt-1">
-              <KeyboardIcon />
+              {isLucideIconsOn ? <Keyboard size={16} /> : <KeyboardIcon />}
             </div>
             <a
               href="#"
@@ -124,7 +143,7 @@ export const NothingSelected = memo(function NothingSelected() {
               {translate("keyboardShortcuts")}
             </a>
             <div className="pt-1">
-              <ResetIcon />
+              {isLucideIconsOn ? <Undo2 size={16} /> : <ResetIcon />}
             </div>
             <div>
               {translate(
@@ -147,7 +166,7 @@ export const NothingSelected = memo(function NothingSelected() {
               void openInpFromFs({ source: "onboarding" });
             }}
           >
-            <FileTextIcon />
+            {isLucideIconsOn ? <FileSpreadsheet size={16} /> : <FileTextIcon />}
             {translate("openProject")}
           </Button>
           <Button
@@ -156,7 +175,7 @@ export const NothingSelected = memo(function NothingSelected() {
               void openModelBuilder({ source: "onboarding" });
             }}
           >
-            <GlobeIcon />
+            {isLucideIconsOn ? <Globe size={16} /> : <GlobeIcon />}
             {translate("importFromGIS")}
             <StarIcon className="w-3 h-3 ml-1" />
           </Button>
@@ -166,7 +185,7 @@ export const NothingSelected = memo(function NothingSelected() {
               void saveInp({ source: "onboarding" });
             }}
           >
-            <DownloadIcon />
+            {isLucideIconsOn ? <Download size={16} /> : <DownloadIcon />}
             {translate("save")}
           </Button>
         </div>

@@ -146,6 +146,7 @@
     "jotai-xstate": "^0.3.0",
     "js-quantities": "^1.8.0",
     "lodash": "^4.17.21",
+    "lucide-react": "^0.542.0",
     "mapbox-gl": "^3.4.0",
     "memoize-one": "^6.0.0",
     "mousetrap": "^1.6.5",

@@ -10,6 +10,8 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import { Scan, Trash } from "lucide-react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -18,6 +20,7 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -29,12 +32,12 @@ export function useActions(
     label: translate("delete"),
     variant: "danger-quiet" as B3Variant,
     applicable: true,
-    icon: <TrashIcon />,
+    icon: isLucideIconsOn ? <Trash size={16} /> : <TrashIcon />,
     onSelect: onDelete,
   };
 
   const zoomToAction = {
-    icon: <Crosshair1Icon />,
+    icon: isLucideIconsOn ? <Scan size={16} /> : <Crosshair1Icon />,
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doAddInnerRing() {
