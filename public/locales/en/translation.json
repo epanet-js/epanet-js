@@ -48,7 +48,7 @@
   "open": "Open",
   "closed": "Closed (closed)",
   "pipe.open": "Open",
-  "pipe.closed": "Closed (pipe.closed)",
+  "pipe.closed": "Closed",
   "pipe.cv": "Check Valve",
   "pump.on": "On",
   "pump.off": "Off",
