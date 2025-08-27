@@ -82,7 +82,7 @@ export const Toolbar = () => {
       }
       {isCustomerPointOn && (
         <MenuAction
-          label="Import Customer Points"
+          label={translate("importCustomerPoints.label")}
           role="button"
           onClick={() => {
             void importCustomerPoints({ source: "toolbar" });

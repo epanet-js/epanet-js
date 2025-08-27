@@ -430,6 +430,7 @@
     "processing": "Processing..."
   },
   "importCustomerPoints": {
+    "label": "Import Customer Points",
     "wizard": {
       "title": "Import Customer Points",
       "stepsAriaLabel": "Import wizard steps",
