@@ -76,6 +76,7 @@ export const AllocationStep: React.FC<{
         customerPointsToAdd,
         {
           preserveJunctionDemands: keepDemands,
+          overrideExisting: true,
         },
       );
 

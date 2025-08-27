@@ -459,4 +459,129 @@ describe("addCustomerPoints", () => {
     expect(p1CustomerPointIds).toContain("CP1");
     expect(p1CustomerPointIds).toContain("CP2");
   });
+
+  it("overrides existing customer points when overrideExisting is true", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aCustomerPoint("EXISTING1", {
+        coordinates: [1, 1],
+        demand: 10,
+        connection: {
+          pipeId: "P1",
+          junctionId: "J1",
+          snapPoint: [1, 0],
+        },
+      })
+      .aCustomerPoint("EXISTING2", {
+        coordinates: [9, 1],
+        demand: 20,
+        connection: {
+          pipeId: "P1",
+          junctionId: "J2",
+          snapPoint: [9, 0],
+        },
+      })
+      .build();
+
+    expect(hydraulicModel.customerPoints.size).toBe(2);
+
+    const newCP = buildCustomerPoint("NEW1", {
+      coordinates: [5, 1],
+      demand: 100,
+    });
+    newCP.connect({
+      pipeId: "P1",
+      snapPoint: [5, 0],
+      junctionId: "J1",
+    });
+
+    const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
+      overrideExisting: true,
+    });
+
+    expect(updatedModel.customerPoints.size).toBe(1);
+    expect(updatedModel.customerPoints.has("NEW1")).toBe(true);
+    expect(updatedModel.customerPoints.has("EXISTING1")).toBe(false);
+    expect(updatedModel.customerPoints.has("EXISTING2")).toBe(false);
+
+    const j1CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J1");
+    const j2CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J2");
+
+    expect(Array.from(j1CustomerPoints)).toHaveLength(1);
+    expect(Array.from(j1CustomerPoints)[0]?.id).toBe("NEW1");
+    expect(Array.from(j2CustomerPoints)).toHaveLength(0);
+  });
+
+  it("preserves existing customer points when overrideExisting is false", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aCustomerPoint("EXISTING", {
+        coordinates: [1, 1],
+        demand: 10,
+        connection: {
+          pipeId: "P1",
+          junctionId: "J1",
+          snapPoint: [1, 0],
+        },
+      })
+      .build();
+
+    const newCP = buildCustomerPoint("NEW1", {
+      coordinates: [5, 1],
+      demand: 100,
+    });
+    newCP.connect({
+      pipeId: "P1",
+      snapPoint: [5, 0],
+      junctionId: "J2",
+    });
+
+    const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
+      overrideExisting: false,
+    });
+
+    expect(updatedModel.customerPoints.size).toBe(2);
+    expect(updatedModel.customerPoints.has("EXISTING")).toBe(true);
+    expect(updatedModel.customerPoints.has("NEW1")).toBe(true);
+
+    const j1CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J1");
+    const j2CustomerPoints =
+      updatedModel.customerPointsLookup.getCustomerPoints("J2");
+
+    expect(Array.from(j1CustomerPoints)).toHaveLength(1);
+    expect(Array.from(j2CustomerPoints)).toHaveLength(1);
+  });
+
+  it("clears customer points lookup when overrideExisting is true", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction("J2", { coordinates: [10, 0] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aCustomerPoint("EXISTING", {
+        coordinates: [1, 1],
+        demand: 10,
+        connection: {
+          pipeId: "P1",
+          junctionId: "J1",
+          snapPoint: [1, 0],
+        },
+      })
+      .build();
+
+    expect(hydraulicModel.customerPointsLookup.hasConnections("J1")).toBe(true);
+
+    const updatedModel = addCustomerPoints(hydraulicModel, [], {
+      overrideExisting: true,
+    });
+
+    expect(updatedModel.customerPoints.size).toBe(0);
+    expect(updatedModel.customerPointsLookup.hasConnections("J1")).toBe(false);
+  });
 });

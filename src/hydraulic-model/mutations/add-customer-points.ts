@@ -1,9 +1,11 @@
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 
 type AddCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;
+  overrideExisting?: boolean;
 };
 
 export const addCustomerPoints = (
@@ -11,10 +13,14 @@ export const addCustomerPoints = (
   customerPointsToAdd: CustomerPoint[],
   options: AddCustomerPointsOptions = {},
 ): HydraulicModel => {
-  const { preserveJunctionDemands = true } = options;
+  const { preserveJunctionDemands = true, overrideExisting = false } = options;
   const updatedAssets = new Map(hydraulicModel.assets);
-  const updatedCustomerPoints = new Map(hydraulicModel.customerPoints);
-  const updatedLookup = hydraulicModel.customerPointsLookup.copy();
+  const updatedCustomerPoints = overrideExisting
+    ? new Map()
+    : new Map(hydraulicModel.customerPoints);
+  const updatedLookup = overrideExisting
+    ? new CustomerPointsLookup()
+    : hydraulicModel.customerPointsLookup.copy();
 
   const modifiedJunctions = new Set<string>();
 
