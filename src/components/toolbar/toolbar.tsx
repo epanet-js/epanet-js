@@ -3,8 +3,8 @@ import MenuAction from "../menu-action";
 import {
   Copy,
   Download,
-  FileSpreadsheet,
   FileText,
+  HousePlus,
   Redo2,
   Settings,
   Undo2,
@@ -99,7 +99,7 @@ export const Toolbar = () => {
             void importCustomerPoints({ source: "toolbar" });
           }}
         >
-          {isLucideIconsOn ? <FileSpreadsheet size={16} /> : <FileTextIcon />}
+          {isLucideIconsOn ? <HousePlus size={16} /> : <FileTextIcon />}
         </MenuAction>
       )}
       <Divider />
