@@ -19,6 +19,7 @@ import {
   StyledItem,
   LogoIconAndWordmarkIcon,
 } from "./elements";
+import { GithubIcon } from "src/custom-icons/github-icon";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
@@ -35,15 +36,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { LanguageSelector } from "./language-selector";
-import {
-  Globe,
-  HelpCircle,
-  Keyboard,
-  Menu,
-  PackageOpen,
-  Sun,
-  X,
-} from "lucide-react";
+import { Globe, HelpCircle, Keyboard, Menu, Sun, X } from "lucide-react";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -125,7 +118,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             >
               <Button variant="quiet">
                 {isLucideIconsOn ? (
-                  <PackageOpen size={16} />
+                  <GithubIcon width={16} height={16} />
                 ) : (
                   <GitHubLogoIcon />
                 )}
@@ -322,7 +315,7 @@ export const SideMenu = () => {
                 >
                   <Button variant="quiet">
                     {isLucideIconsOn ? (
-                      <PackageOpen size={16} />
+                      <GithubIcon width={16} height={16} />
                     ) : (
                       <GitHubLogoIcon className="mr-2" />
                     )}
