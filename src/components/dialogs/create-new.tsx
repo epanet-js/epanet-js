@@ -15,15 +15,18 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "../form/selector";
+import {
+  SearchableSelector,
+  type SearchableSelectorOption,
+} from "../form/searchable-selector";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
-import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapContext } from "src/map/map-context";
-import type { MapEngine } from "src/map";
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useCallback } from "react";
+import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
 
 type LocationData = {
@@ -38,6 +41,15 @@ type MapboxFeature = {
   place_name: string;
   text: string;
   [key: string]: any;
+};
+
+type MapboxResponse = {
+  features?: MapboxFeature[];
+  [key: string]: any;
+};
+
+type LocationOption = SearchableSelectorOption & {
+  data: LocationData;
 };
 
 type SubmitProps = {
@@ -76,43 +88,42 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
     };
   }
 
-  const handleSumbit = ({
-    unitsSpec,
-    headlossFormula,
-    location,
-  }: SubmitProps) => {
-    const quantities = new Quantities(presets[unitsSpec]);
-    const modelMetadata = { quantities };
-    const hydraulicModel = initializeHydraulicModel({
-      units: quantities.units,
-      defaults: quantities.defaults,
-      headlossFormula,
-    });
-    transactImport(hydraulicModel, modelMetadata, "Untitled");
-    userTracking.capture({
-      name: "newModel.completed",
-      units: unitsSpec,
-      headlossFormula,
-      location: location?.name || "",
-    });
-    setFileInfo(null);
-    onClose();
-  };
+  const handleSubmit = useCallback(
+    ({ unitsSpec, headlossFormula, location }: SubmitProps) => {
+      const quantities = new Quantities(presets[unitsSpec]);
+      const modelMetadata = { quantities };
+      const hydraulicModel = initializeHydraulicModel({
+        units: quantities.units,
+        defaults: quantities.defaults,
+        headlossFormula,
+      });
+      transactImport(hydraulicModel, modelMetadata, "Untitled");
+      userTracking.capture({
+        name: "newModel.completed",
+        units: unitsSpec,
+        headlossFormula,
+        location: location?.name || "",
+      });
+      setFileInfo(null);
+      onClose();
+    },
+    [transactImport, userTracking, setFileInfo, onClose],
+  );
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (map && originalMapStateRef.current) {
       map.map.fitBounds(originalMapStateRef.current.bounds, {
         animate: false,
       });
     }
     onClose();
-  };
+  }, [map, onClose]);
 
   return (
     <>
       <DialogHeader title={translate("newProject")} titleIcon={FileIcon} />
       <Formik
-        onSubmit={handleSumbit}
+        onSubmit={handleSubmit}
         initialValues={
           {
             unitsSpec: "LPS",
@@ -123,11 +134,12 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       >
         {({ values, setFieldValue }) => (
           <Form>
-            <LocationSearchSelector
-              selected={values.location}
-              onChange={(location) => setFieldValue("location", location)}
-              map={map}
-            />
+            {isLocationSearchOn && (
+              <LocationSearchSelector
+                selected={values.location}
+                onChange={(location) => setFieldValue("location", location)}
+              />
+            )}
             <UnitsSystemSelector
               selected={values.unitsSpec}
               onChange={(specId) => setFieldValue("unitsSpec", specId)}
@@ -150,117 +162,102 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
 };
 
 const LocationSearchSelector = ({
+  selected,
   onChange,
-  map,
 }: {
   selected?: LocationData;
   onChange: (location: LocationData) => void;
-  map: MapEngine | null;
 }) => {
   const translate = useTranslate();
-  const isLocationSearchOn = useFeatureFlag("FLAG_NEW_PROJECT_LOCATION");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<MapboxFeature[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const map = useContext(MapContext);
 
-  const searchLocations = async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          query,
-        )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuggestions(data.features || []);
+  const searchLocations = useCallback(
+    async (query: string): Promise<LocationOption[]> => {
+      if (!query.trim() || query.length < 2) {
+        return [];
       }
-    } catch (error) {
-      captureError(error as Error);
-      setSuggestions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setShowSuggestions(true);
-    void searchLocations(value);
-  };
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            query,
+          )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
+        );
 
-  const handleSuggestionClick = (suggestion: MapboxFeature) => {
-    const bbox = suggestion.bbox;
-    const coordinates = suggestion.center;
+        if (response.ok) {
+          const data: MapboxResponse = await response.json();
+          const features = data.features || [];
 
-    if (map && bbox && coordinates) {
-      map.map.fitBounds(bbox, {
-        padding: 50,
-        animate: false,
-      });
+          return features
+            .filter(isValidMapboxFeature)
+            .map((feature: MapboxFeature) => ({
+              id: feature.place_name || feature.text,
+              label: feature.place_name || feature.text,
+              data: {
+                name: feature.place_name || feature.text,
+                coordinates: feature.center as [number, number],
+                bbox: feature.bbox as [number, number, number, number],
+              },
+            }));
+        }
+      } catch (error) {
+        captureError(error as Error);
+      }
+      return [];
+    },
+    [],
+  );
 
-      onChange({
-        name: suggestion.place_name || suggestion.text,
-        coordinates: coordinates,
-        bbox: bbox,
-      });
-    }
+  const handleLocationChange = useCallback(
+    (option: LocationOption) => {
+      const locationData = option.data;
 
-    setSearchTerm(suggestion.place_name || suggestion.text);
-    setShowSuggestions(false);
-    setSuggestions([]);
-  };
-
-  const handleInputBlur = () => {
-    setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  if (!isLocationSearchOn) return null;
+      if (map && locationData.bbox && locationData.coordinates) {
+        map.map.fitBounds(locationData.bbox, {
+          padding: 50,
+          animate: false,
+        });
+      }
+    },
+    [map],
+  );
 
   return (
-    <label className="block pt-2 space-y-2 pb-3">
-      <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-        {translate("location")}
-      </div>
-      <div className="relative">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleInputChange}
-          onBlur={handleInputBlur}
-          onFocus={() => setShowSuggestions(true)}
-          placeholder={translate("searchLocation")}
-          className="flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between w-full min-w-[90px] border rounded-sm border-gray-200 justify-between px-2 py-2 text-sm pl-min-2 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
-        />
-        {isLoading && (
-          <div className="absolute right-3 top-2.5">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
-          </div>
-        )}
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border text-sm rounded-md shadow-md max-h-60 overflow-auto">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40 cursor-pointer w-full text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <span>{suggestion.place_name || suggestion.text}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </label>
+    <SearchableSelector
+      selected={
+        selected
+          ? {
+              id: selected.name,
+              label: selected.name,
+              data: selected,
+            }
+          : undefined
+      }
+      onChange={(option) => {
+        onChange(option.data);
+        void handleLocationChange(option);
+      }}
+      onSearch={searchLocations}
+      placeholder={translate("searchLocation")}
+      label={translate("location")}
+    />
+  );
+};
+
+const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
+  if (!feature || typeof feature !== "object") {
+    return false;
+  }
+
+  const obj = feature as Record<string, unknown>;
+
+  return (
+    "center" in obj &&
+    "bbox" in obj &&
+    Array.isArray(obj.center) &&
+    Array.isArray(obj.bbox) &&
+    ("place_name" in obj || "text" in obj) &&
+    (typeof obj.place_name === "string" || typeof obj.text === "string")
   );
 };
 
