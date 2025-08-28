@@ -296,7 +296,6 @@
   "cloudStorage": "Cloud storage",
   "pointInTimeRestore": "Point in time restore - {{1}} days",
   "demandsAnalysis": "Demands analysis",
-  "liveDataCompare": "Live data comparision",
   "monthShort": "mo",
   "year": "year",
   "upgradeTo": "Upgrade to {{1}}",

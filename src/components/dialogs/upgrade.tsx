@@ -301,11 +301,6 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
-            {
-              feature: translate("liveDataCompare"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
           ]}
         />
       </div>
@@ -431,11 +426,6 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             },
             {
               feature: translate("demandsAnalysis"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("liveDataCompare"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
