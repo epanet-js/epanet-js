@@ -121,11 +121,16 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         {({ values, setFieldValue }) => (
           <Form>
             {isLocationSearchOn && (
-              <LocationSearchSelector
-                selected={values.location}
-                onChange={(location) => setFieldValue("location", location)}
-              />
+              <>
+                <LocationSearchSelector
+                  selected={values.location}
+                  onChange={(location) => setFieldValue("location", location)}
+                />
+
+                <hr className="my-2" />
+              </>
             )}
+
             <UnitsSystemSelector
               selected={values.unitsSpec}
               onChange={(specId) => setFieldValue("unitsSpec", specId)}
