@@ -323,7 +323,7 @@ export const styledDialogContent = ({
       : "",
     { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
-      "sm:max-w-[320px]": size === "xs",
+      "sm:max-w-[360px]": size === "xs",
       "sm:max-w-screen-sm": size === "sm" && !widthClasses,
       "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
       "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
