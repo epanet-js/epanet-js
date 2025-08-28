@@ -317,7 +317,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoom && isCustomerPointOn) {
+        if ((hasNewZoom || hasNewSelection) && isCustomerPointOn) {
           customerPointsOverlayRef.current =
             updateCustomerPointsOverlayVisibility(
               customerPointsOverlayRef.current,
@@ -660,6 +660,7 @@ const getHiddenCustomerPoints = (
     case "drawLink":
       return noHiddenCustomerPoints;
     case "moveAssets":
+      //all overlay is hidden
       return noHiddenCustomerPoints;
     case "none":
       return noHiddenCustomerPoints;
