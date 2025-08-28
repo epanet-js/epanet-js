@@ -88,12 +88,14 @@ export const WelcomeDialog = () => {
               <DialogCloseX />
             </div>
           )}
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 pb-8">
+          <div className="grid sm:grid-cols-3 gap-3 pb-8">
             <div className="col-span-1 md:w-max flex flex-col gap-6">
               <div className="pl-1">
                 <LogoIconAndWordmarkIcon size={147} />
               </div>
-              {!isMdOrLarger && <SmallDeviceWarning />}
+              <div className="sm:hidden">
+                <SmallDeviceWarning />
+              </div>
               <div className="flex items-start flex-col gap-2">
                 {isMdOrLarger && (
                   <Button
@@ -186,7 +188,7 @@ export const WelcomeDialog = () => {
                 </p>
               </div>
             </div>
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2">
               <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
                 {translate("demoNetworksTitle")}
               </h2>
@@ -196,6 +198,9 @@ export const WelcomeDialog = () => {
                 ))}
               </div>
             </div>
+          </div>
+          <div className="hidden sm:max-md:block mb-2">
+            <SmallDeviceWarning />
           </div>
           {isExperimental && (
             <div className="mb-6">
