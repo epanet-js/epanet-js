@@ -135,7 +135,9 @@ export function DialogHeader({
       )}
       {title && (
         <div className="flex items-center gap-3 flex-auto min-w-0">
-          <span className="break-words sm:truncate">{title}</span>
+          <h1 className="text-xl font-semibold text-gray-900 break-words sm:truncate">
+            {title}
+          </h1>
           {badge && badge}
         </div>
       )}
