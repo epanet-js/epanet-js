@@ -248,6 +248,17 @@ export class MapEngine {
     return this.map.getZoom();
   }
 
+  getBounds(): mapboxgl.LngLatBounds {
+    return this.map.getBounds();
+  }
+
+  setBounds(
+    bounds: mapboxgl.LngLatBounds,
+    options?: { animate?: boolean },
+  ): void {
+    this.map.fitBounds(bounds, options);
+  }
+
   queryRenderedFeatures(
     pointOrBox: Parameters<MapboxMap["queryRenderedFeatures"]>[0],
     options: Parameters<MapboxMap["queryRenderedFeatures"]>[1],

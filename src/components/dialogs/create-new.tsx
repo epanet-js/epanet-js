@@ -1,6 +1,7 @@
 import { FileIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { Form, Formik } from "formik";
+import mapboxgl from "mapbox-gl";
 import { SimpleDialogActions } from "src/components/dialog";
 import {
   Presets,
@@ -67,25 +68,10 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const map = useContext(MapContext);
   const isLocationSearchOn = useFeatureFlag("FLAG_NEW_PROJECT_LOCATION");
 
-  const originalMapStateRef = useRef<{
-    center: [number, number];
-    zoom: number;
-    bounds: [number, number, number, number];
-  } | null>(null);
+  const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
   if (map && isLocationSearchOn && !originalMapStateRef.current) {
-    const center = map.map.getCenter().toArray();
-    const bounds = map.map.getBounds().toArray();
-    originalMapStateRef.current = {
-      center: [center[0], center[1]] as [number, number],
-      zoom: map.map.getZoom(),
-      bounds: [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]] as [
-        number,
-        number,
-        number,
-        number,
-      ],
-    };
+    originalMapStateRef.current = map.getBounds();
   }
 
   const handleSubmit = useCallback(
@@ -112,7 +98,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
 
   const handleCancel = useCallback(() => {
     if (map && originalMapStateRef.current) {
-      map.map.fitBounds(originalMapStateRef.current.bounds, {
+      map.setBounds(originalMapStateRef.current, {
         animate: false,
       });
     }
