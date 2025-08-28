@@ -378,9 +378,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (isCustomerPointOn) {
-          const isMovingAssets = mapState.ephemeralState.type === "moveAssets";
+          const shouldHideCustomerPointsOverlay =
+            mapState.ephemeralState.type === "moveAssets" &&
+            mapState.ephemeralState.targetAssets.length > 0;
           const combinedOverlay = [
-            ...(isMovingAssets ? [] : customerPointsOverlayRef.current),
+            ...(shouldHideCustomerPointsOverlay
+              ? []
+              : customerPointsOverlayRef.current),
             ...selectionDeckLayersRef.current,
             ...ephemeralDeckLayersRef.current,
           ];
