@@ -85,6 +85,9 @@ export const POINT_COLORS_SELECTED = colors.fuchsia500;
 export const LINE_COLORS_SELECTED = colors.fuchsia500;
 export const LINE_COLORS_SELECTED_RGB = hexToArray("#D6409F");
 
+export const CUSTOMER_POINT_COLORS_SELECTED = colors.fuchsia500;
+export const CUSTOMER_POINT_COLORS_SELECTED_HALO = colors.fuchsia300;
+
 // Note, this is also in the database schema.
 // If changing it here, it may need to be changed there too.
 export const UNTITLED = "Untitled";

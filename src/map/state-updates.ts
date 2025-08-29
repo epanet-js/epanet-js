@@ -46,6 +46,7 @@ import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
   buildCustomerPointsHighlightOverlay,
+  buildCustomerPointsSelectionOverlay,
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
@@ -345,11 +346,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewSelection && isCustomerPointOn) {
-          selectionDeckLayersRef.current = buildCustomerPointsSelectionOverlay(
-            mapState.selection,
-            hydraulicModel.customerPoints,
-            mapState.currentZoom,
-          );
+          selectionDeckLayersRef.current =
+            buildSelectionOverlayForCustomerPoints(
+              mapState.selection,
+              hydraulicModel.customerPoints,
+              mapState.currentZoom,
+            );
         }
 
         if (hasNewEphemeralState) {
@@ -691,7 +693,7 @@ const buildCustomerPointsEphemeralOverlay = (
   return [];
 };
 
-const buildCustomerPointsSelectionOverlay = (
+const buildSelectionOverlayForCustomerPoints = (
   selection: Sel,
   customerPoints: CustomerPoints,
   zoom: number,
@@ -699,7 +701,7 @@ const buildCustomerPointsSelectionOverlay = (
   if (selection.type === "singleCustomerPoint") {
     const customerPoint = customerPoints.get(selection.id);
     if (customerPoint) {
-      return buildCustomerPointsHighlightOverlay([customerPoint], zoom);
+      return buildCustomerPointsSelectionOverlay([customerPoint], zoom);
     }
   }
   return [];

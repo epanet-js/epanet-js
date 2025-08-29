@@ -5,7 +5,11 @@ import {
   CustomerPoints,
 } from "src/hydraulic-model/customer-points";
 import { hexToArray, strokeColorFor } from "src/lib/color";
-import { colors } from "src/lib/constants";
+import {
+  colors,
+  CUSTOMER_POINT_COLORS_SELECTED,
+  CUSTOMER_POINT_COLORS_SELECTED_HALO,
+} from "src/lib/constants";
 import { Position } from "src/types";
 
 interface ConnectionLineData {
@@ -25,6 +29,12 @@ const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
   number,
 ];
+
+const selectionFillColor = hexToArray(CUSTOMER_POINT_COLORS_SELECTED);
+const selectionHaloFillColor = hexToArray(
+  CUSTOMER_POINT_COLORS_SELECTED_HALO,
+  0.8,
+) as [number, number, number, number];
 
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
@@ -160,6 +170,57 @@ export const buildCustomerPointsHighlightOverlay = (
   });
 
   return [haloLayer, highlightLayer];
+};
+
+export const buildCustomerPointsSelectionOverlay = (
+  selectedPoints: CustomerPoint[],
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (selectedPoints.length === 0) {
+    return [];
+  }
+
+  const isVisible = shouldShowOvelay(zoom);
+
+  const haloLayer = new ScatterplotLayer({
+    id: "customer-points-selection-halo-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: selectedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 3,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 6,
+
+    getFillColor: selectionHaloFillColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const selectionLayer = new ScatterplotLayer({
+    id: "customer-points-selection-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: selectedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 1.5,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 4,
+
+    getFillColor: selectionFillColor,
+    stroked: true,
+    getLineColor: selectionHaloFillColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  return [haloLayer, selectionLayer];
 };
 
 export const buildConnectCustomerPointsPreviewOverlay = (
