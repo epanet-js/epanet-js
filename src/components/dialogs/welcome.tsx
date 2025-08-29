@@ -82,7 +82,7 @@ export const WelcomeDialog = () => {
   return (
     <DialogContainer size="md">
       <LocaleProvider>
-        <div className="w-full flex flex-col h-full">
+        <div className="w-full flex flex-col">
           {isMdOrLarger && (
             <div className="flex justify-end">
               <DialogCloseX />
