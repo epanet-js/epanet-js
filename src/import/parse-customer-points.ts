@@ -127,6 +127,15 @@ const processGeoJSONFeature = (
     };
   }
 
+  const [lng, lat] = coordinates;
+  if (!isValidWGS84Coordinates(lng, lat)) {
+    issues.addSkippedInvalidCoordinates(feature);
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
+  }
+
   try {
     const demandInSourceUnit =
       typeof feature.properties?.demand === "number"
@@ -152,4 +161,8 @@ const processGeoJSONFeature = (
       nextId: currentId,
     };
   }
+};
+
+const isValidWGS84Coordinates = (lng: number, lat: number): boolean => {
+  return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
 };

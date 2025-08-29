@@ -6,6 +6,8 @@ import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
+import { parseCustomerPoints } from "src/import/parse-customer-points";
+import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -221,6 +223,44 @@ describe("DataInputStep", () => {
         fileName: "customer-data.csv",
       });
     });
+
+    it("handles coordinates outside WGS84 range", () => {
+      const fileContent = createInvalidWGS84CoordinatesGeoJSON();
+      const issues = new CustomerPointsIssuesAccumulator();
+      const validCustomerPoints = [];
+      let totalCount = 0;
+
+      const demandImportUnit = "l/d";
+      const demandTargetUnit = "l/s";
+
+      for (const customerPoint of parseCustomerPoints(
+        fileContent,
+        issues,
+        demandImportUnit,
+        demandTargetUnit,
+        1,
+      )) {
+        totalCount++;
+        if (customerPoint) {
+          validCustomerPoints.push(customerPoint);
+        }
+      }
+
+      expect(validCustomerPoints).toHaveLength(1);
+      expect(totalCount).toBe(3);
+
+      const parsedIssues = issues.buildResult();
+      expect(parsedIssues).toBeDefined();
+      expect(parsedIssues!.skippedInvalidCoordinates).toHaveLength(2);
+
+      const invalidFeatures = parsedIssues!.skippedInvalidCoordinates!;
+      expect((invalidFeatures[0].geometry as any).coordinates).toEqual([
+        200, 95,
+      ]);
+      expect((invalidFeatures[1].geometry as any).coordinates).toEqual([
+        -200, -95,
+      ]);
+    });
   });
 });
 
@@ -277,6 +317,46 @@ const createNoValidPointsGeoJSON = () =>
         properties: {
           name: "Not a point",
           demand: 25.5,
+        },
+      },
+    ],
+  });
+
+const createInvalidWGS84CoordinatesGeoJSON = () =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.001, 0.001],
+        },
+        properties: {
+          name: "Valid Customer A",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [200, 95],
+        },
+        properties: {
+          name: "Invalid coordinates 1",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [-200, -95],
+        },
+        properties: {
+          name: "Invalid coordinates 2",
+          demand: 30.0,
         },
       },
     ],
