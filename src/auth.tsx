@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ClerkProvider,
   SignedIn as ClerkSignedIn,
@@ -16,6 +16,8 @@ import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
 export { ClerkSignInButton, ClerkSignUpButton };
 import { Plan } from "./user-plan";
+
+const AUTH_TIMEOUT_MS = 5000;
 
 export const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -69,6 +71,46 @@ const useAuthWithClerk: UseAuthHook = () => {
   return { isSignedIn, isLoaded, userId, user, signOut };
 };
 
+const useAuthWithTimeout: UseAuthHook = () => {
+  const authData = useAuthWithClerk();
+  const [isLoadedWithTimeout, setIsLoadedWithTimeout] = useState(false);
+
+  useEffect(() => {
+    if (authData.isLoaded) {
+      setIsLoadedWithTimeout(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    const intervalId = setInterval(() => {
+      if (isMounted && authData.isLoaded) {
+        setIsLoadedWithTimeout(true);
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
+      }
+    }, 100);
+
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setIsLoadedWithTimeout(true);
+        clearInterval(intervalId);
+      }
+    }, AUTH_TIMEOUT_MS);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [authData.isLoaded]);
+
+  return {
+    ...authData,
+    isLoaded: isLoadedWithTimeout,
+  };
+};
+
 const useAuthNull: UseAuthHook = () => {
   return {
     isLoaded: true,
@@ -79,7 +121,7 @@ const useAuthNull: UseAuthHook = () => {
   };
 };
 
-export const useAuth = isAuthEnabled ? useAuthWithClerk : useAuthNull;
+export const useAuth = isAuthEnabled ? useAuthWithTimeout : useAuthNull;
 
 export const SignedIn = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthEnabled) return null;

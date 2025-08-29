@@ -65,8 +65,7 @@ export const useAppReady = (): AppReadyState => {
   const displayProgress = Math.min(progress, 100);
 
   return {
-    //isReady: !isLoading.current && systemsReady,
-    isReady: true,
+    isReady: !isLoading.current && systemsReady,
     progress: displayProgress,
     steps,
   };
