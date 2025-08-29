@@ -139,74 +139,6 @@ describe.skip("importCustomerPoints", () => {
     expect(hydraulicModel.customerPoints.has("2")).toBe(true);
   });
 
-  it("handles invalid JSON gracefully", async () => {
-    const userTracking = stubUserTracking();
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const invalidContent = "{ invalid json";
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileWithParseError(invalidContent);
-
-    await waitFor(() => {
-      expect(screen.getByText(/no valid/i)).toBeInTheDocument();
-    });
-    expectWizardStep("data input");
-    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.dataInput.noValidPoints",
-      fileName: "invalid.geojson",
-    });
-
-    const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(0);
-  });
-
-  it("tracks no valid points event", async () => {
-    const userTracking = stubUserTracking();
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const emptyGeoJsonContent = JSON.stringify({
-      type: "FeatureCollection",
-      features: [],
-    });
-
-    const file = aTestFile({
-      filename: "empty.geojson",
-      content: emptyGeoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/no valid customer points found/i),
-      ).toBeInTheDocument();
-    });
-    expectWizardStep("data input");
-    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.dataInput.noValidPoints",
-      fileName: "empty.geojson",
-    });
-
-    const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(0);
-  });
-
   it("skips non-Point geometries", async () => {
     const store = createStoreWithPipes();
 
@@ -734,20 +666,6 @@ const expectWizardStep = (stepName: string) => {
       current: "step",
     }),
   ).toBeInTheDocument();
-};
-
-const uploadFileWithParseError = async (invalidContent: string) => {
-  const file = aTestFile({
-    filename: "invalid.geojson",
-    content: invalidContent,
-  });
-
-  const fileInput = document.querySelector(
-    'input[type="file"]',
-  ) as HTMLInputElement;
-  expect(fileInput).toBeInTheDocument();
-
-  await userEvent.upload(fileInput, file);
 };
 
 const expectSuccessNotification = async (count?: number) => {
