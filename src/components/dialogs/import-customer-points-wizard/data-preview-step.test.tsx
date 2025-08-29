@@ -6,6 +6,7 @@ import {
   setWizardState,
   createValidParsedDataSummary,
   createParsedDataSummaryWithIssues,
+  createParsedDataSummaryWithInvalidDemands,
 } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
@@ -89,5 +90,26 @@ describe("DataPreviewStep", () => {
 
     expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
     expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
+  });
+
+  it("displays invalid demands in issues tab", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      parsedDataSummary: createParsedDataSummaryWithInvalidDemands(),
+    });
+
+    renderWizard(store);
+
+    expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
+
+    const issuesTab = screen.getByText(/Issues \(2\)/);
+    await user.click(issuesTab);
+
+    expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
   });
 });

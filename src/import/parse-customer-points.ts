@@ -136,12 +136,25 @@ const processGeoJSONFeature = (
     };
   }
 
-  try {
-    const demandInSourceUnit =
-      typeof feature.properties?.demand === "number"
-        ? feature.properties.demand
-        : 0;
+  const demandValue = feature.properties?.demand;
+  if (demandValue === null || demandValue === undefined) {
+    issues.addSkippedInvalidDemand(feature);
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
+  }
 
+  const demandInSourceUnit = Number(demandValue);
+  if (isNaN(demandInSourceUnit)) {
+    issues.addSkippedInvalidDemand(feature);
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
+  }
+
+  try {
     const demandInTargetUnit = convertTo(
       { value: demandInSourceUnit, unit: demandImportUnit },
       demandTargetUnit,

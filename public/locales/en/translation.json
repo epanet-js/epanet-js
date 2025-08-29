@@ -457,6 +457,7 @@
         "issues": {
           "nonPointGeometries": "Non-point geometries ({{1}})",
           "invalidCoordinates": "Invalid coordinates ({{1}})",
+          "invalidDemands": "Invalid demands ({{1}})",
           "invalidJsonLines": "Invalid JSON lines ({{1}})",
           "creationFailures": "Creation failures ({{1}})",
           "noValidJunction": "No valid junction ({{1}})",

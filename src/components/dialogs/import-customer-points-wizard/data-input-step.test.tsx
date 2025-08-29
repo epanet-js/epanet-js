@@ -261,6 +261,36 @@ describe("DataInputStep", () => {
         -200, -95,
       ]);
     });
+
+    it("handles invalid demand values", () => {
+      const fileContent = createInvalidDemandsGeoJSON();
+      const issues = new CustomerPointsIssuesAccumulator();
+      const validCustomerPoints = [];
+      let totalCount = 0;
+
+      const demandImportUnit = "l/d";
+      const demandTargetUnit = "l/s";
+
+      for (const customerPoint of parseCustomerPoints(
+        fileContent,
+        issues,
+        demandImportUnit,
+        demandTargetUnit,
+        1,
+      )) {
+        totalCount++;
+        if (customerPoint) {
+          validCustomerPoints.push(customerPoint);
+        }
+      }
+
+      expect(validCustomerPoints).toHaveLength(1);
+      expect(totalCount).toBe(4);
+
+      const parsedIssues = issues.buildResult();
+      expect(parsedIssues).toBeDefined();
+      expect(parsedIssues!.skippedInvalidDemands).toHaveLength(3);
+    });
   });
 });
 
@@ -357,6 +387,56 @@ const createInvalidWGS84CoordinatesGeoJSON = () =>
         properties: {
           name: "Invalid coordinates 2",
           demand: 30.0,
+        },
+      },
+    ],
+  });
+
+const createInvalidDemandsGeoJSON = () =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.001, 0.001],
+        },
+        properties: {
+          name: "Valid Customer",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.002, 0.002],
+        },
+        properties: {
+          name: "String demand",
+          demand: "invalid",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.003, 0.003],
+        },
+        properties: {
+          name: "Null demand",
+          demand: null,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.004, 0.004],
+        },
+        properties: {
+          name: "No demand property",
         },
       },
     ],

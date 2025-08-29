@@ -127,7 +127,8 @@ const getTotalErrorCount = (
   return (
     (issues.skippedNonPointFeatures?.length || 0) +
     (issues.skippedInvalidCoordinates?.length || 0) +
-    (issues.skippedCreationFailures?.length || 0)
+    (issues.skippedCreationFailures?.length || 0) +
+    (issues.skippedInvalidDemands?.length || 0)
   );
 };
 
@@ -256,6 +257,15 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
               issues.skippedInvalidCoordinates.length.toString(),
             )}
             features={issues.skippedInvalidCoordinates}
+          />
+        )}
+        {issues?.skippedInvalidDemands && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.invalidDemands",
+              issues.skippedInvalidDemands.length.toString(),
+            )}
+            features={issues.skippedInvalidDemands}
           />
         )}
         {issues?.skippedCreationFailures && (

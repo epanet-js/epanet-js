@@ -3,6 +3,7 @@ import { Feature } from "geojson";
 export type CustomerPointsParserIssues = {
   skippedNonPointFeatures?: Feature[];
   skippedInvalidCoordinates?: Feature[];
+  skippedInvalidDemands?: Feature[];
   skippedCreationFailures?: Feature[];
 };
 
@@ -25,6 +26,13 @@ export class CustomerPointsIssuesAccumulator {
       this.issues.skippedInvalidCoordinates = [];
     }
     this.issues.skippedInvalidCoordinates.push(feature);
+  }
+
+  addSkippedInvalidDemand(feature: Feature) {
+    if (!this.issues.skippedInvalidDemands) {
+      this.issues.skippedInvalidDemands = [];
+    }
+    this.issues.skippedInvalidDemands.push(feature);
   }
 
   addSkippedCreationFailure(feature: Feature) {

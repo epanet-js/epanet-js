@@ -96,3 +96,43 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
     demandImportUnit: "l/d",
   };
 };
+
+export const createParsedDataSummaryWithInvalidDemands =
+  (): ParsedDataSummary => {
+    return {
+      validCustomerPoints: [
+        buildCustomerPoint("1", {
+          coordinates: [0.001, 0.001],
+          demand: 25.5,
+        }),
+      ],
+      issues: {
+        skippedInvalidDemands: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [0.002, 0.002],
+            },
+            properties: {
+              name: "String demand",
+              demand: "invalid",
+            },
+          },
+          {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [0.003, 0.003],
+            },
+            properties: {
+              name: "Null demand",
+              demand: null,
+            },
+          },
+        ],
+      },
+      totalCount: 3,
+      demandImportUnit: "l/d",
+    };
+  };
