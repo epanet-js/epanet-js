@@ -367,6 +367,11 @@ type ImportCustomerPointsDataInputParseError = {
   fileName: string;
 };
 
+type ImportCustomerPointsDataInputUnsupportedFormat = {
+  name: "importCustomerPoints.dataInput.unsupportedFormat";
+  fileName: string;
+};
+
 type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   name: "importCustomerPoints.dataInput.customerPointsLoaded";
   validCount: number;
@@ -498,6 +503,7 @@ export type UserEvent =
   | ImportCustomerPointsCanceled
   | ImportCustomerPointsDataInputNoValidPoints
   | ImportCustomerPointsDataInputParseError
+  | ImportCustomerPointsDataInputUnsupportedFormat
   | ImportCustomerPointsDataInputCustomerPointsLoaded
   | ImportCustomerPointsDemandAllocationSelected
   | ImportCustomerPointsWizardNext

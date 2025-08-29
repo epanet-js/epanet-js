@@ -5,6 +5,7 @@ import { UploadIcon } from "@radix-ui/react-icons";
 
 interface DropZoneProps {
   onFileDrop: (file: File) => void;
+  onFileRejected?: (file: File, reason: string) => void;
   accept?: string;
   disabled?: boolean;
   supportedFormats?: string;
@@ -14,6 +15,7 @@ interface DropZoneProps {
 
 export const DropZone: React.FC<DropZoneProps> = ({
   onFileDrop,
+  onFileRejected,
   accept,
   disabled = false,
   supportedFormats,
@@ -25,6 +27,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
   const { dragState, dropZoneProps, inputProps } = useDropZone({
     onFileDrop,
+    onFileRejected,
     accept,
     disabled,
   });

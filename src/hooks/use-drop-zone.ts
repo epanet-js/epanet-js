@@ -5,6 +5,7 @@ type DragState = "idle" | "dragging" | "over";
 
 interface UseDropZoneOptions {
   onFileDrop: (file: File) => void;
+  onFileRejected?: (file: File, reason: string) => void;
   accept?: string;
   disabled?: boolean;
   multiple?: boolean;
@@ -18,6 +19,7 @@ interface UseDropZoneReturn {
 
 export const useDropZone = ({
   onFileDrop,
+  onFileRejected,
   accept,
   disabled = false,
   multiple = false,
@@ -73,6 +75,7 @@ export const useDropZone = ({
           const file = files[0] as File;
 
           if (accept && !isFileAccepted(file, accept)) {
+            onFileRejected?.(file, "format");
             return;
           }
 
@@ -80,7 +83,7 @@ export const useDropZone = ({
         }
       } catch (error) {}
     },
-    [disabled, accept, onFileDrop],
+    [disabled, accept, onFileDrop, onFileRejected],
   );
 
   const handleFileInputChange = useCallback(
@@ -88,10 +91,14 @@ export const useDropZone = ({
       if (disabled) return;
       const file = e.target.files?.[0];
       if (file) {
+        if (accept && !isFileAccepted(file, accept)) {
+          onFileRejected?.(file, "format");
+          return;
+        }
         onFileDrop(file);
       }
     },
-    [disabled, onFileDrop],
+    [disabled, onFileDrop, accept, onFileRejected],
   );
 
   const handleClick = useCallback(

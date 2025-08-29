@@ -507,6 +507,7 @@
       "title": "Add from File",
       "noValidPointsError": "No valid customer points found in the selected file.",
       "parseFileError": "Failed to parse file",
+      "fileFormatNotSupported": "File format not supported",
       "supportedFormats": "Supported formats:",
       "parsingFile": "Reading file...",
       "chooseFile": "Choose File"

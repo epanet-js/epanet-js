@@ -181,6 +181,46 @@ describe("DataInputStep", () => {
         fileName: "no-points.geojson",
       });
     });
+
+    it("handles unsupported file formats (CSV)", async () => {
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const file = aTestFile({
+        filename: "customer-data.csv",
+        content: "name,lat,lng,demand\nCustomer A,0.001,0.001,25.5",
+      });
+
+      await uploadInvalidFile(file);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/file format not supported/i),
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByRole("tab", {
+          name: /data input/i,
+          current: "step",
+        }),
+      ).toBeInTheDocument();
+
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.unsupportedFormat",
+        fileName: "customer-data.csv",
+      });
+    });
   });
 });
 
@@ -252,4 +292,21 @@ const uploadFileInStep = async (file: File) => {
   expect(fileInput).toBeInTheDocument();
 
   await userEvent.upload(fileInput, file);
+};
+
+const uploadInvalidFile = async (file: File) => {
+  const dropZone = screen.getByTestId("customer-points-drop-zone");
+  await userEvent.click(dropZone);
+
+  const fileInput = document.querySelector(
+    'input[type="file"]',
+  ) as HTMLInputElement;
+  expect(fileInput).toBeInTheDocument();
+
+  Object.defineProperty(fileInput, "files", {
+    value: [file],
+    writable: false,
+  });
+
+  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 };

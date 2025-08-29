@@ -30,6 +30,19 @@ export const DataInputStep: React.FC<{
     parsedDataSummary,
   } = wizardState;
 
+  const handleFileRejected = useCallback(
+    (file: File, _reason: string) => {
+      userTracking.capture({
+        name: "importCustomerPoints.dataInput.unsupportedFormat",
+        fileName: file.name,
+      });
+      setError(
+        translate("importCustomerPoints.dataSource.fileFormatNotSupported"),
+      );
+    },
+    [userTracking, setError, translate],
+  );
+
   const handleFileProcess = useCallback(
     async (file: File) => {
       setSelectedFile(file);
@@ -126,6 +139,7 @@ export const DataInputStep: React.FC<{
       <div className="space-y-4">
         <DropZone
           onFileDrop={handleFileProcess}
+          onFileRejected={handleFileRejected}
           accept=".geojson,.geojsonl"
           disabled={isLoading}
           supportedFormats="GeoJSON (.geojson), GeoJSONL (.geojsonl)"
