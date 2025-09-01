@@ -8,6 +8,8 @@ import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
+import { Link2Off } from "lucide-react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useOpenInpFromUrl = () => {
   const translate = useTranslate();
@@ -15,20 +17,22 @@ export const useOpenInpFromUrl = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const importInp = useImportInp();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleDownloadError = useCallback(() => {
     notify({
-      Icon: LinkBreak1Icon,
+      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
       variant: "error",
       title: translate("downloadFailed"),
       description: translate("checkConnectionAndTry"),
       size: "md",
+      isLucideIconsOn: isLucideIconsOn,
     });
     userTracking.capture({
       name: "downloadError.seen",
     });
     setDialogState({ type: "welcome" });
-  }, [setDialogState, userTracking, translate]);
+  }, [setDialogState, userTracking, translate, isLucideIconsOn]);
 
   const openInpFromUrl = useCallback(
     async (url: string) => {

@@ -18,6 +18,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
+import { TriangleAlert } from "lucide-react";
 
 export const inpExtension = ".inp";
 
@@ -30,6 +31,7 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -51,7 +53,8 @@ export const useImportInp = () => {
           size: "md",
           title: translate("onlyOneInp"),
           description: translate("onlyOneInpExplain"),
-          Icon: ExclamationTriangleIcon,
+          Icon: isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon,
+          isLucideIconsOn: isLucideIconsOn,
         });
       }
 
@@ -116,6 +119,7 @@ export const useImportInp = () => {
       userTracking,
       translate,
       isCustomerPointOn,
+      isLucideIconsOn,
     ],
   );
 

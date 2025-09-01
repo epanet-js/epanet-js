@@ -40,6 +40,7 @@ export const useOfflineStatus = () => {
       id: onlineToastId,
       position: "bottom-right",
       size: "sm",
+      isLucideIconsOn: isLucideIconsOn,
     });
   }, [setOfflineAtom, translate, isLucideIconsOn]);
 
@@ -59,6 +60,7 @@ export const useOfflineStatus = () => {
       id: offlineToastId,
       position: "bottom-right",
       size: "sm",
+      isLucideIconsOn: isLucideIconsOn,
     });
   }, [setOfflineAtom, translate, isLucideIconsOn]);
 

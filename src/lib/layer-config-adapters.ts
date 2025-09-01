@@ -8,11 +8,12 @@ import { Link2Off } from "lucide-react";
 const warnOffline = (translate: (key: string) => string) =>
   notify({
     variant: "warning",
-    Icon: LinkBreak1Icon,
+    Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
     title: translate("mapOfflineMode"),
     description: translate("mapOfflineModeExplain"),
     size: "md",
     id: "map-offline-mode",
+    isLucideIconsOn: isLucideIconsOn,
   });
 
 export async function addMapboxStyle(
@@ -117,6 +118,7 @@ export async function addTileJSONStyle(
       title: translate("failedToLoad"),
       description: translate("failedToLoadTileJSON"),
       size: "md",
+      isLucideIconsOn: isLucideIconsOn,
     });
   }
   return style;

@@ -149,6 +149,7 @@ export const RangeColorRuleEditor = ({
       description: translate("fixRangeToApply"),
       id: "symbology",
       size: "md",
+      isLucideIconsOn: isLucideIconsOn,
     });
   };
 

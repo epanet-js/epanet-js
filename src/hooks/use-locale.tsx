@@ -35,6 +35,7 @@ const changeLanguageWithTimeout = async (
         variant: "error",
         title: "Error",
         Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+        isLucideIconsOn: isLucideIconsOn,
       });
     },
   );

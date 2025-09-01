@@ -35,6 +35,7 @@ export const useCheckout = () => {
         title: translate("somethingWentWrong"),
         description: translate("tryAgainOrSupport"),
         Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+        isLucideIconsOn: isLucideIconsOn,
       });
     }
   };
