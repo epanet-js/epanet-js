@@ -408,7 +408,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       <div className="space-y-2">
         <div className="flex items-center">
           {isLucideIconsOn ? (
-            <CircleCheck className="text-green-500 mr-2" />
+            <CircleCheck size={16} className="text-green-500 mr-2" />
           ) : (
             <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
           )}
@@ -423,7 +423,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         {unallocatedCount > 0 && (
           <div className="flex items-center">
             {isLucideIconsOn ? (
-              <TriangleAlert className="text-orange-500 mr-2" />
+              <TriangleAlert size={16} className="text-orange-500 mr-2" />
             ) : (
               <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
             )}

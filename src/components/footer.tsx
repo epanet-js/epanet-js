@@ -103,9 +103,9 @@ const CollapsedPopover = ({
       <Popover.Trigger asChild>
         <Button variant="quiet">
           {isLucideIconsOn ? (
-            <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
-          ) : (
             <ChevronsLeft size={16} className="text-gray-500" />
+          ) : (
+            <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
           )}
         </Button>
       </Popover.Trigger>

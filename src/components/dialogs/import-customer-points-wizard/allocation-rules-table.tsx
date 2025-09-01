@@ -176,6 +176,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                       <div className="flex justify-center">
                         {isLucideIconsOn ? (
                           <RefreshCw
+                            size={16}
                             className="animate-spin text-gray-500"
                             data-testid="allocation-loading"
                           />
@@ -204,7 +205,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <ChevronUp />
+                          <ChevronUp size={16} />
                         ) : (
                           <ChevronUpIcon className="w-4 h-4" />
                         )}
@@ -219,7 +220,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <ChevronDown />
+                          <ChevronDown size={16} />
                         ) : (
                           <ChevronDownIcon className="w-4 h-4" />
                         )}
@@ -234,7 +235,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <Trash />
+                          <Trash size={16} />
                         ) : (
                           <TrashIcon className="w-4 h-4" />
                         )}
@@ -256,7 +257,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
             variant="default"
             size="sm"
           >
-            {isLucideIconsOn ? <Plus /> : <PlusIcon className="w-4 h-4" />}
+            {isLucideIconsOn ? (
+              <Plus size={16} />
+            ) : (
+              <PlusIcon className="w-4 h-4" />
+            )}
             {translate(
               "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
             )}
