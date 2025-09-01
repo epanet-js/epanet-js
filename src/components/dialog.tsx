@@ -23,7 +23,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -231,6 +231,7 @@ export function SimpleDialogActions({
 }) {
   const translate = useTranslate();
   const { isSubmitting } = useFormikContext();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div
       className={clsx(
@@ -267,13 +268,24 @@ export function SimpleDialogActions({
           {translate("cancel")}
         </Button>
       ) : null}
-      <SymbolIcon
-        className={clsx(
-          "animate-spin transition-opacity",
-          isSubmitting ? "opacity-50" : "opacity-0",
-          fullWidthSubmit && "absolute top-8 right-2.5 text-white",
-        )}
-      />
+      {isLucideIconsOn ? (
+        <RefreshCw
+          size={16}
+          className={clsx(
+            "animate-spin transition-opacity",
+            isSubmitting ? "opacity-50" : "opacity-0",
+            fullWidthSubmit && "absolute top-8 right-2.5 text-white",
+          )}
+        />
+      ) : (
+        <SymbolIcon
+          className={clsx(
+            "animate-spin transition-opacity",
+            isSubmitting ? "opacity-50" : "opacity-0",
+            fullWidthSubmit && "absolute top-8 right-2.5 text-white",
+          )}
+        />
+      )}
     </div>
   );
 }

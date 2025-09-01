@@ -15,7 +15,6 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
-import { WelcomeDialog } from "src/components/dialogs/welcome";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -274,7 +273,7 @@ export const Dialogs = memo(function Dialogs() {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
-    return <WelcomeDialog />;
+    return <LoadingDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;

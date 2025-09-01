@@ -193,7 +193,7 @@ export function Loading({
       )}
     >
       {isLucideIconsOn ? (
-        <RefreshCw className="ml-2" />
+        <RefreshCw className="animate-spin" />
       ) : (
         <SymbolIcon className="animate-spin" />
       )}
