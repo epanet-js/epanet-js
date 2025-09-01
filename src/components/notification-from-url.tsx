@@ -11,6 +11,7 @@ type NotificationData = {
   description?: string;
   Icon?: React.ElementType;
   size?: "auto" | "sm" | "md";
+  isLucideIconsOn: boolean;
 };
 
 type SupportedTypes = "checkoutSuccess";
@@ -26,6 +27,7 @@ export const NotificationFromUrl = () => {
       description: translate("upgradeSuccessfulExplain"),
       Icon: isLucideIconsOn ? Check : CheckIcon,
       size: "md",
+      isLucideIconsOn: isLucideIconsOn,
     },
   };
 
