@@ -22,11 +22,17 @@ export const parseInp = (
 } => {
   const issues = new IssuesAccumulator();
   const isMadeByApp = validateChecksum(inp);
-  const { inpData, stats } = readInpData(inp, issues, options);
+
+  const safeOptions: ParseInpOptions = {
+    ...options,
+    customerPoints: isMadeByApp ? options?.customerPoints : false,
+  };
+
+  const { inpData, stats } = readInpData(inp, issues, safeOptions);
   const { hydraulicModel, modelMetadata } = buildModel(
     inpData,
     issues,
-    options,
+    safeOptions,
   );
   return {
     isMadeByApp,
