@@ -42,6 +42,25 @@ export class CustomerPointsIssuesAccumulator {
     this.issues.skippedCreationFailures.push(feature);
   }
 
+  count(): number {
+    let totalIssues = 0;
+
+    if (this.issues.skippedNonPointFeatures) {
+      totalIssues += this.issues.skippedNonPointFeatures.length;
+    }
+    if (this.issues.skippedInvalidCoordinates) {
+      totalIssues += this.issues.skippedInvalidCoordinates.length;
+    }
+    if (this.issues.skippedInvalidDemands) {
+      totalIssues += this.issues.skippedInvalidDemands.length;
+    }
+    if (this.issues.skippedCreationFailures) {
+      totalIssues += this.issues.skippedCreationFailures.length;
+    }
+
+    return totalIssues;
+  }
+
   buildResult(): CustomerPointsParserIssues | null {
     if (Object.keys(this.issues).length === 0) return null;
 

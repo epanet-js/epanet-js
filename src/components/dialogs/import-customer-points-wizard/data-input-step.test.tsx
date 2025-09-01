@@ -64,6 +64,7 @@ describe("DataInputStep", () => {
         name: "importCustomerPoints.dataInput.customerPointsLoaded",
         validCount: 2,
         totalCount: 2,
+        issuesCount: 0,
         fileName: "customer-points.geojson",
       });
     });
@@ -100,6 +101,7 @@ describe("DataInputStep", () => {
         name: "importCustomerPoints.dataInput.customerPointsLoaded",
         validCount: 2,
         totalCount: 2,
+        issuesCount: 0,
         fileName: "customer-points.geojsonl",
       });
     });

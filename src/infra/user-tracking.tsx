@@ -391,6 +391,7 @@ type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   name: "importCustomerPoints.dataInput.customerPointsLoaded";
   validCount: number;
   totalCount: number;
+  issuesCount: number;
   fileName: string;
 };
 

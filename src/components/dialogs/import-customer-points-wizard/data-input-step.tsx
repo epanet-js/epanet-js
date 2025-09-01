@@ -95,6 +95,7 @@ export const DataInputStep: React.FC<{
         userTracking.capture({
           name: "importCustomerPoints.dataInput.customerPointsLoaded",
           validCount: validCustomerPoints.length,
+          issuesCount: issues.count(),
           totalCount,
           fileName: file.name,
         });
