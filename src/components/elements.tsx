@@ -782,7 +782,7 @@ export function sharedOutline(
   `]: variant === "destructive" && !disabled,
 
       [`border border-green-500`]: variant === "success",
-      [`border border-red-500`]: variant === "danger",
+      [`border border-red-700`]: variant === "danger",
     },
   ];
 }
@@ -806,7 +806,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "destructive":
     case "danger-quiet":
-      return !disabled && `hover:bg-red-500/10 dark:hover:bg-red-500/20`;
+      return !disabled && `hover:bg-red-600/10 dark:hover:bg-red-400/20`;
     case "success":
       return [
         `bg-green-500`,
@@ -814,7 +814,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
       ];
     case "danger":
       return [
-        `bg-red-500`,
+        `bg-red-700`,
         !disabled && `hover:bg-red-600 dark:hover:bg-red-400 hover:shadow`,
       ];
   }
