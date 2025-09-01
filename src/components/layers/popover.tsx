@@ -63,6 +63,7 @@ import {
   Plus,
   Settings,
   Trash,
+  TriangleAlert,
 } from "lucide-react";
 
 type Mode =
