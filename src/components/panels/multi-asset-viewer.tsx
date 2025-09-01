@@ -23,6 +23,8 @@ import {
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { SquareStack } from "lucide-react";
 
 export default function MultiAssetViewer({
   selectedFeatures,
@@ -127,6 +129,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   const [isOpen, setOpen] = useState(false);
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
     event,
@@ -175,7 +178,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
           dark:text-white bg-transparent
           flex overflow-hidden"
         >
-          <CardStackIcon />
+          {isLucideIconsOn ? <SquareStack size={16} /> : <CardStackIcon />}
           {pluralize(translate, "value", value.size)}
         </P.Trigger>
         <P.Portal>

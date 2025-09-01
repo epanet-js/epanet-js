@@ -36,7 +36,15 @@ import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { LanguageSelector } from "./language-selector";
-import { Globe, HelpCircle, Keyboard, Menu, Sun, X } from "lucide-react";
+import {
+  Globe,
+  HelpCircle,
+  Keyboard,
+  Menu,
+  Rocket,
+  Sun,
+  X,
+} from "lucide-react";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -144,7 +152,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                   setDialogState({ type: "upgrade" });
                 }}
               >
-                <RocketIcon />
+                {isLucideIconsOn ? <Rocket size={16} /> : <RocketIcon />}
                 {translate("upgrade")}
               </Button>
             )}
@@ -389,7 +397,7 @@ export const SideMenu = () => {
                         setDialogState({ type: "upgrade" });
                       }}
                     >
-                      <RocketIcon />
+                      {isLucideIconsOn ? <Rocket size={16} /> : <RocketIcon />}
                       {translate("upgrade")}
                     </Button>
                   </li>

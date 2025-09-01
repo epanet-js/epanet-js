@@ -3,6 +3,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik } from "formik";
 import { SimpleDialogActions } from "src/components/dialog";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { TriangleAlert } from "lucide-react";
 
 export const AlertInpOutputDialog = ({
   onContinue,
@@ -12,6 +14,7 @@ export const AlertInpOutputDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Formik
       onSubmit={() => {
@@ -23,7 +26,7 @@ export const AlertInpOutputDialog = ({
       <Form>
         <DialogHeader
           title={translate("alertInpOutput")}
-          titleIcon={ExclamationTriangleIcon}
+          titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
           variant="warning"
         />
         <div className="text-sm">

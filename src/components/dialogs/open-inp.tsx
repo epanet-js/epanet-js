@@ -16,6 +16,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleX } from "lucide-react";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -36,6 +38,7 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const importInp = useCallback(async () => {
     try {
@@ -98,7 +101,7 @@ export function OpenInpDialog({
       <>
         <DialogHeader
           title={translate("error")}
-          titleIcon={CrossCircledIcon}
+          titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
           variant="danger"
         />
         <div className="text-sm">

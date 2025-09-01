@@ -29,6 +29,7 @@ import { MapContext } from "src/map/map-context";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
+import { File } from "lucide-react";
 
 type LocationData = {
   name: string;
@@ -105,9 +106,14 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
     onClose();
   }, [map, onClose]);
 
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   return (
     <>
-      <DialogHeader title={translate("newProject")} titleIcon={FileIcon} />
+      <DialogHeader
+        title={translate("newProject")}
+        titleIcon={isLucideIconsOn ? File : FileIcon}
+      />
       <Formik
         onSubmit={handleSubmit}
         initialValues={

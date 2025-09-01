@@ -10,7 +10,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
-import { Scan, Trash } from "lucide-react";
+import { Crosshair, Trash } from "lucide-react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
@@ -37,7 +37,7 @@ export function useActions(
   };
 
   const zoomToAction = {
-    icon: isLucideIconsOn ? <Scan size={16} /> : <Crosshair1Icon />,
+    icon: isLucideIconsOn ? <Crosshair size={16} /> : <Crosshair1Icon />,
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doAddInnerRing() {

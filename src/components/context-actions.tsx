@@ -9,6 +9,8 @@ import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ChevronDown } from "lucide-react";
 
 export function ToolbarTrigger({
   children,
@@ -16,6 +18,7 @@ export function ToolbarTrigger({
 }: {
   children: React.ReactNode;
 } & React.ComponentProps<typeof T.Trigger>) {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div
       className="h-10 w-12 p-1
@@ -26,7 +29,11 @@ export function ToolbarTrigger({
         <DD.Trigger asChild>
           <E.Button variant="quiet">
             {children}
-            <CaretDownIcon className="w-3 h-3" />
+            {!isLucideIconsOn ? (
+              <ChevronDown size={16} />
+            ) : (
+              <CaretDownIcon className="w-3 h-3" />
+            )}
           </E.Button>
         </DD.Trigger>
       </T.Trigger>

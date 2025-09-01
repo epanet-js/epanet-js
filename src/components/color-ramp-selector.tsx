@@ -26,6 +26,8 @@ import {
   NodeSymbology,
 } from "src/map/symbology/symbology-types";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ChevronDown, RefreshCw } from "lucide-react";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
@@ -131,6 +133,7 @@ export const ColorRampSelector = ({
   );
 
   const contentStyles = `bg-white w-[--radix-select-trigger-width] border text-sm rounded-sm shadow-md z-50`;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <Select.Root>
@@ -150,7 +153,7 @@ export const ColorRampSelector = ({
           }}
         ></span>
         <span className="px-1">
-          <ChevronDownIcon />
+          {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
         </span>
       </Select.Trigger>
       <Select.Content position="popper" className={contentStyles}>
@@ -178,7 +181,11 @@ export const ColorRampSelector = ({
                 size="full-width"
                 onClick={reverseRampColors}
               >
-                <UpdateIcon className="-rotate-90" />{" "}
+                {isLucideIconsOn ? (
+                  <RefreshCw size={16} />
+                ) : (
+                  <UpdateIcon className="-rotate-90" />
+                )}
                 {translate("reverseColors")}
               </Button>
             </div>

@@ -2,6 +2,8 @@ import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { notify } from "./notifications";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Check } from "lucide-react";
 
 type NotificationData = {
   variant: "success" | "warning" | "error";
@@ -15,13 +17,14 @@ type SupportedTypes = "checkoutSuccess";
 
 export const NotificationFromUrl = () => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const notificationData: Record<SupportedTypes, NotificationData> = {
     checkoutSuccess: {
       variant: "success",
       title: translate("upgradeSuccessful"),
       description: translate("upgradeSuccessfulExplain"),
-      Icon: CheckIcon,
+      Icon: isLucideIconsOn ? Check : CheckIcon,
       size: "md",
     },
   };

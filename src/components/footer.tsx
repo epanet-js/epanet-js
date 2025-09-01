@@ -14,6 +14,15 @@ import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { HydraulicModel } from "src/hydraulic-model";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  ChevronsLeft,
+  Circle,
+  CircleCheck,
+  CircleX,
+  History,
+  TriangleAlert,
+} from "lucide-react";
 
 export const Footer = () => {
   const translate = useTranslate();
@@ -88,11 +97,16 @@ const CollapsedPopover = ({
   const translate = useTranslate();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
         <Button variant="quiet">
-          <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
+          {isLucideIconsOn ? (
+            <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronsLeft size={16} className="text-gray-500" />
+          )}
         </Button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -133,59 +147,60 @@ const buildSimulationStatusStyles = (
   simulation: SimulationState,
   hydraulicModel: HydraulicModel,
   translate: (key: string, ...variables: string[]) => string,
+  isLucideIconsOn: boolean,
 ) => {
   switch (simulation.status) {
     case "idle":
       return {
-        Icon: CircleIcon,
+        Icon: isLucideIconsOn ? Circle : CircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationReadyToRun"),
       };
     case "running":
       return {
-        Icon: CircleIcon,
+        Icon: isLucideIconsOn ? Circle : CircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationRunning"),
       };
     case "success":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: CountdownTimerIcon,
+          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: CheckCircledIcon,
+        Icon: isLucideIconsOn ? CircleCheck : CheckCircledIcon,
         colorClass: "text-green-500",
         text: translate("simulationSuccess"),
       };
     case "failure":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: CountdownTimerIcon,
+          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: CrossCircledIcon,
+        Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
         colorClass: "text-red-500",
         text: translate("simulationFailure"),
       };
     case "warning":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: CountdownTimerIcon,
+          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: ExclamationTriangleIcon,
+        Icon: isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon,
         colorClass: "text-yellow-600",
         text: translate("simulationWarning"),
       };
@@ -196,18 +211,24 @@ export const SimulationStatusText = () => {
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,
     hydraulicModel,
     translate,
+    isLucideIconsOn,
   );
 
   return (
     <div
       className={`flex flex-row items-center space-x-2 text-sm ${colorClass}`}
     >
-      <Icon className="w-4 h-4 mx-1" />
+      {isLucideIconsOn ? (
+        <Icon size={16} className="mr-1" />
+      ) : (
+        <Icon className="w-4 h-4 mx-1" />
+      )}
       {text}
     </div>
   );

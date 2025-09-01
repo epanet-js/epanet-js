@@ -1,8 +1,10 @@
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
 import clsx from "clsx";
+import { Check, ChevronDown } from "lucide-react";
 import React from "react";
 import { KeyboardEventHandler, useMemo, useState } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const defaultStyleOptions: StyleOptions = {
   border: true,
@@ -48,6 +50,8 @@ export const SelectorLikeButton = React.forwardRef<
       return triggerStylesFor(styleOptions);
     }, [styleOptions]);
 
+    const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
     return (
       <button
         ref={forwardedRef} // Forward the ref here
@@ -58,7 +62,7 @@ export const SelectorLikeButton = React.forwardRef<
       >
         {children}
         <div className="px-1">
-          <ChevronDownIcon />
+          {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
         </div>
       </button>
     );
@@ -96,6 +100,7 @@ export const Selector = <T extends string>({
     () => ({ ...defaultStyleOptions, ...styleOptions }),
     [styleOptions],
   );
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   const [isOpen, setOpen] = useState(false);
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -142,7 +147,7 @@ export const Selector = <T extends string>({
             {selectedOption ? selectedOption.label : ""}
           </Select.Value>
           <Select.Icon className="px-1">
-            <ChevronDownIcon />
+            {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
           </Select.Icon>
         </Select.Trigger>
 
@@ -170,7 +175,11 @@ export const Selector = <T extends string>({
                     {option.description ? option.description : option.label}
                   </Select.ItemText>
                   <Select.ItemIndicator className="ml-auto">
-                    <CheckIcon className="text-purple-700" />
+                    {isLucideIconsOn ? (
+                      <Check size={16} className="text-purple-700" />
+                    ) : (
+                      <CheckIcon className="text-purple-700" />
+                    )}
                   </Select.ItemIndicator>
                 </Select.Item>
               ))}

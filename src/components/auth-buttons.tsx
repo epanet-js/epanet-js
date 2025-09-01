@@ -7,6 +7,8 @@ import { Button, B3Size } from "./elements";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { isAuthEnabled } from "src/auth";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { User } from "lucide-react";
 
 export const SignInButton = ({
   onClick,
@@ -49,6 +51,7 @@ export const SignUpButton = ({
   autoFocus?: boolean;
 }) => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (!isAuthEnabled) return null;
 
@@ -60,7 +63,8 @@ export const SignUpButton = ({
         onClick={onClick}
         autoFocus={autoFocus}
       >
-        <PersonIcon /> {translate("register")}
+        {isLucideIconsOn ? <User size={16} /> : <PersonIcon />}{" "}
+        {translate("register")}
       </Button>
     </ClerkSignUpButton>
   );

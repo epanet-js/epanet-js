@@ -3,11 +3,14 @@ import { useAtomValue } from "jotai";
 import { mapLoadingAtom } from "./state";
 import { useRef } from "react";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { RotateCw } from "lucide-react";
 
 export const MapLoading = () => {
   const translate = useTranslate();
   const mapLoading = useAtomValue(mapLoadingAtom);
   const ref = useRef();
+  const useLucideIcons = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const opacityClass = mapLoading ? "opacity-100" : "opacity-0";
   const isHidden = !mapLoading;
@@ -27,7 +30,11 @@ export const MapLoading = () => {
             ${opacityClass}
             pointer-events-none`}
       >
-        <ReloadIcon className="animate-spin" />
+        {useLucideIcons ? (
+          <RotateCw size={16} className="animate-spin" />
+        ) : (
+          <ReloadIcon className="animate-spin" />
+        )}
         {translate("loading")}
       </div>
     </div>

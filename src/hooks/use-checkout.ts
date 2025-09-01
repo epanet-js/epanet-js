@@ -5,6 +5,8 @@ import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/user-plan";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleX } from "lucide-react";
 
 const stripeSDK = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
@@ -17,6 +19,7 @@ const checkoutLoadingAtom = atom<boolean>(false);
 export const useCheckout = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
     clearCheckoutParams();
@@ -31,7 +34,7 @@ export const useCheckout = () => {
         variant: "error",
         title: translate("somethingWentWrong"),
         description: translate("tryAgainOrSupport"),
-        Icon: CrossCircledIcon,
+        Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
       });
     }
   };

@@ -3,16 +3,23 @@ import { Button } from "./elements";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { supportEmail } from "src/global-config";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleX } from "lucide-react";
 
 export const FallbackError = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 text-white p-6">
       <div className="bg-white text-gray-900 rounded-lg p-4 shadow-lg w-full max-w-lg">
         <span className="flex items-center gap-x-2 text-xl text-black mb-4">
-          <CrossCircledIcon className="w-6 h-6 text-red-500" />
+          {isLucideIconsOn ? (
+            <CircleX size={16} />
+          ) : (
+            <CrossCircledIcon className="w-6 h-6 text-red-500" />
+          )}
           {translate("oopsSomethingWrong")}
         </span>
 

@@ -7,6 +7,8 @@ import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Check, TriangleAlert } from "lucide-react";
 
 export const LanguageSelector = ({
   align = "end",
@@ -30,6 +32,8 @@ export const LanguageSelector = ({
     });
     void setLocale(newLocale);
   };
+
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DD.Root
@@ -59,14 +63,23 @@ export const LanguageSelector = ({
                   <div className="flex items-center w-full gap-2">
                     <div className="flex items-center gap-2 flex-1">
                       <span>{language.name}</span>
-                      {language.experimental && (
-                        <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
-                      )}
+                      {language.experimental &&
+                        (isLucideIconsOn ? (
+                          <TriangleAlert
+                            size={16}
+                            className="text-orange-500"
+                          />
+                        ) : (
+                          <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
+                        ))}
                     </div>
                     <div className="w-4 h-4 flex items-center justify-center">
-                      {locale === language.code && (
-                        <CheckIcon className="w-4 h-4 text-purple-700" />
-                      )}
+                      {locale === language.code &&
+                        (isLucideIconsOn ? (
+                          <Check size={16} className="text-purple-700" />
+                        ) : (
+                          <CheckIcon className="w-4 h-4 text-purple-700" />
+                        ))}
                     </div>
                   </div>
                 </StyledItem>

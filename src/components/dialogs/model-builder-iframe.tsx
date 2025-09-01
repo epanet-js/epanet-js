@@ -9,6 +9,8 @@ import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { modelBuilderUrl } from "src/global-config";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Globe } from "lucide-react";
 
 interface IframeMessage {
   type: string;
@@ -143,12 +145,12 @@ export const ModelBuilderIframeDialog = ({
       window.removeEventListener("message", handleMessage);
     };
   }, [importInp, checkUnsavedChanges, userTracking]);
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
       <DialogHeader
         title={translate("importFromGIS")}
-        titleIcon={GlobeIcon}
+        titleIcon={isLucideIconsOn ? Globe : GlobeIcon}
         badge={<EarlyAccessBadge />}
       />
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">

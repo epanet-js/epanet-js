@@ -19,6 +19,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence/context";
 import { Button } from "src/components/elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleCheck, TriangleAlert } from "lucide-react";
 
 export const AllocationStep: React.FC<{
   onBack: () => void;
@@ -35,6 +37,7 @@ export const AllocationStep: React.FC<{
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const {
     parsedDataSummary,
@@ -96,7 +99,8 @@ export const AllocationStep: React.FC<{
       notify({
         variant: "success",
         title: translate("importSuccessful"),
-        Icon: CheckCircledIcon,
+        Icon: isLucideIconsOn ? CircleCheck : CheckCircledIcon,
+        isLucideIconsOn: isLucideIconsOn,
       });
 
       onFinish?.();
@@ -115,6 +119,7 @@ export const AllocationStep: React.FC<{
     userTracking,
     setError,
     translate,
+    isLucideIconsOn,
   ]);
 
   const performAllocation = useCallback(
@@ -377,6 +382,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   totalCustomerPoints,
 }) => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (!isVisible) {
     return null;
@@ -401,7 +407,11 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       </h4>
       <div className="space-y-2">
         <div className="flex items-center">
-          <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
+          {isLucideIconsOn ? (
+            <CircleCheck className="text-green-500 mr-2" />
+          ) : (
+            <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
+          )}
           <span className="text-sm text-gray-700">
             {translate(
               "importCustomerPoints.wizard.allocationStep.allocatedPoints",
@@ -412,7 +422,11 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         </div>
         {unallocatedCount > 0 && (
           <div className="flex items-center">
-            <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
+            {isLucideIconsOn ? (
+              <TriangleAlert className="text-orange-500 mr-2" />
+            ) : (
+              <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
+            )}
             <span className="text-sm text-orange-700">
               {translate(
                 "importCustomerPoints.wizard.allocationStep.unallocatedPoints",

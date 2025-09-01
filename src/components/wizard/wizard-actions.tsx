@@ -7,6 +7,8 @@ import {
 } from "@radix-ui/react-icons";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Check, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 interface WizardAction {
   onClick: () => void;
@@ -27,6 +29,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
   finishAction,
 }) => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div
@@ -42,7 +45,11 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={backAction.disabled}
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            {isLucideIconsOn ? (
+              <ChevronLeft size={16} />
+            ) : (
+              <ChevronLeftIcon className="w-4 h-4" />
+            )}
             {backAction.label || translate("wizard.back")}
           </Button>
         )}
@@ -57,7 +64,11 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             disabled={nextAction.disabled}
           >
             {nextAction.label || translate("wizard.next")}
-            <ChevronRightIcon className="w-4 h-4" />
+            {isLucideIconsOn ? (
+              <ChevronRight size={16} />
+            ) : (
+              <ChevronRightIcon className="w-4 h-4" />
+            )}
           </Button>
         )}
 
@@ -69,7 +80,13 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             disabled={finishAction.disabled}
           >
             {finishAction.loading ? (
-              <UpdateIcon className="w-4 h-4 animate-spin" />
+              isLucideIconsOn ? (
+                <RefreshCw size={16} className="w-4 h-4 animate-spin" />
+              ) : (
+                <UpdateIcon className="w-4 h-4 animate-spin" />
+              )
+            ) : isLucideIconsOn ? (
+              <Check size={16} />
             ) : (
               <CheckIcon className="w-4 h-4" />
             )}

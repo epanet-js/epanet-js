@@ -3,6 +3,8 @@ import { DialogHeader, DialogButtons } from "src/components/dialog";
 import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { TriangleAlert } from "lucide-react";
 
 export const ImportCustomerPointsWarningDialog = ({
   onContinue,
@@ -29,11 +31,13 @@ export const ImportCustomerPointsWarningDialog = ({
     onClose();
   };
 
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   return (
     <>
       <DialogHeader
         title={translate("importCustomerPoints.label")}
-        titleIcon={ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
         variant="danger"
       />
       <div className="text-sm">

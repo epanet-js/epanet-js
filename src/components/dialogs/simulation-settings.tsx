@@ -13,6 +13,8 @@ import { usePersistence } from "src/lib/persistence/context";
 import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
 import { FieldList, InlineField } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Settings } from "lucide-react";
 
 export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
@@ -41,11 +43,12 @@ export const SimulationSettingsDialog = () => {
     [hydraulicModel, transact, closeDialog, userTracking],
   );
 
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="xs">
       <DialogHeader
         title={translate("simulationSettings")}
-        titleIcon={GearIcon}
+        titleIcon={isLucideIconsOn ? Settings : GearIcon}
       />
       <Formik
         onSubmit={handleSumbit}

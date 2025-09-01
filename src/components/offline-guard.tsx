@@ -5,6 +5,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
 import { pingUrl } from "src/global-config";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Link2, Link2Off } from "lucide-react";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
@@ -15,6 +17,7 @@ export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const setOfflineAtom = useSetAtom(offlineAtom);
   const isOfflineRef = useRef<boolean>(false);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const cancelConnectivityCheck = useCallback(() => {
     if (!intervalRef.current) return;
@@ -31,14 +34,14 @@ export const useOfflineStatus = () => {
     notify({
       variant: "success",
       title: translate("connectionRestored"),
-      Icon: Link1Icon,
+      Icon: isLucideIconsOn ? Link2 : Link1Icon,
       dismissable: false,
       duration: 3000,
       id: onlineToastId,
       position: "bottom-right",
       size: "sm",
     });
-  }, [setOfflineAtom, translate]);
+  }, [setOfflineAtom, translate, isLucideIconsOn]);
 
   const setOffline = useCallback(() => {
     if (isOfflineRef.current) return;
@@ -48,7 +51,7 @@ export const useOfflineStatus = () => {
     hideNotification(onlineToastId);
     notify({
       variant: "warning",
-      Icon: LinkBreak1Icon,
+      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
       title: translate("noInternet"),
       description: translate("noInternetExplain"),
       duration: Infinity,
@@ -57,7 +60,7 @@ export const useOfflineStatus = () => {
       position: "bottom-right",
       size: "sm",
     });
-  }, [setOfflineAtom, translate]);
+  }, [setOfflineAtom, translate, isLucideIconsOn]);
 
   const startConnectivityCheck = useCallback(() => {
     if (intervalRef.current) return;

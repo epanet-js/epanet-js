@@ -1,11 +1,11 @@
 import { useTranslate } from "src/hooks/use-translate";
 import MenuAction from "../menu-action";
 import {
-  Copy,
-  Download,
   FileText,
   HousePlus,
   Redo2,
+  Save,
+  SaveAll,
   Settings,
   Undo2,
   Zap,
@@ -77,7 +77,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveShortcut}
           >
-            {isLucideIconsOn ? <Download size={16} /> : <DownloadIcon />}
+            {isLucideIconsOn ? <Save size={16} /> : <DownloadIcon />}
           </MenuAction>
           <MenuAction
             label={translate("saveAs")}
@@ -87,7 +87,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveAsShortcut}
           >
-            {isLucideIconsOn ? <Copy size={16} /> : <CopyIcon />}
+            {isLucideIconsOn ? <SaveAll size={16} /> : <CopyIcon />}
           </MenuAction>
         </>
       }

@@ -12,11 +12,14 @@ import {
 } from "src/components/elements";
 import React, { useMemo } from "react";
 import { usePersistence } from "src/lib/persistence/context";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
 function UndoList() {
   const rep = usePersistence();
   const historyControl = rep.useHistoryControl();
   const momentLog = useAtomValue(momentLogAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const MomentsList = useMemo(() => {
     const List = [];
@@ -30,7 +33,11 @@ function UndoList() {
             }
           }}
         >
-          <ArrowRightIcon className="opacity-0" />
+          {isLucideIconsOn ? (
+            <ArrowRight size={16} />
+          ) : (
+            <ArrowRightIcon className="opacity-0" />
+          )}
           {moment.note || ""}
         </StyledItem>,
       );
@@ -45,12 +52,13 @@ function UndoList() {
         );
     }
     return List;
-  }, [momentLog, historyControl]);
+  }, [momentLog, historyControl, isLucideIconsOn]);
 
   return <DDSubContent>{MomentsList}</DDSubContent>;
 }
 
 export function DebugDropdown() {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div className="flex items-center">
       <DD.Root>
@@ -63,7 +71,11 @@ export function DebugDropdown() {
               <DDSubTriggerItem>
                 Undo history
                 <div className="flex-auto" />
-                <CaretRightIcon />
+                {isLucideIconsOn ? (
+                  <ChevronRight size={16} />
+                ) : (
+                  <CaretRightIcon />
+                )}
               </DDSubTriggerItem>
               <UndoList />
             </DD.Sub>

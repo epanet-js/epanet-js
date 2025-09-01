@@ -2,6 +2,8 @@ import { Field, ErrorMessage } from "formik";
 import { InlineError } from "./inline-error";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { styledSelect } from "./elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleX } from "lucide-react";
 
 // Only INP format is supported for EPANET-JS
 const FILE_TYPES = [{ id: "inp", label: "INP" }];
@@ -25,6 +27,7 @@ export function SelectFileTypeField({ name }: { name: string }) {
 
 export function SelectFileType() {
   const name = "type";
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <>
@@ -37,7 +40,11 @@ export function SelectFileType() {
             rel="noreferrer"
             href="https://epanet.org"
           >
-            <QuestionMarkCircledIcon className="mr-1 inline-block" />
+            {isLucideIconsOn ? (
+              <CircleX size={16} />
+            ) : (
+              <QuestionMarkCircledIcon className="mr-1 inline-block" />
+            )}
             Help
           </a>
         </div>

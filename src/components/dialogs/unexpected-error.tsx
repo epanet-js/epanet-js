@@ -3,6 +3,8 @@ import { DialogContainer, DialogHeader, SimpleDialogActions } from "../dialog";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Form, Formik } from "formik";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CircleX } from "lucide-react";
 
 export const UnexpectedErrorDialog = ({
   modal,
@@ -22,12 +24,12 @@ export const UnexpectedErrorDialog = ({
       onClose();
     }
   };
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="sm">
       <DialogHeader
         title={translate("somethingWentWrong")}
-        titleIcon={CrossCircledIcon}
+        titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
         variant="danger"
       />
       <Formik onSubmit={handleSubmit} initialValues={{}}>

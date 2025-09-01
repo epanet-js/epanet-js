@@ -16,6 +16,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";
 import { useWizardState } from "./use-wizard-state";
 import { Button } from "src/components/elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ChevronDown, ChevronUp, Plus, RefreshCw, Trash } from "lucide-react";
 
 type AllocationRulesTableProps = {
   rules: AllocationRule[];
@@ -39,6 +41,8 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
     const newRule: AllocationRule = { ...defaultAllocationRules[0] };
     onChange([...rules, newRule]);
   }, [rules, onChange]);
+
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleRemoveRule = useCallback(
     (index: number) => {
@@ -170,10 +174,17 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {isAllocating ? (
                       <div className="flex justify-center">
-                        <SymbolIcon
-                          className="animate-spin w-4 h-4 text-gray-500"
-                          data-testid="allocation-loading"
-                        />
+                        {isLucideIconsOn ? (
+                          <RefreshCw
+                            className="animate-spin text-gray-500"
+                            data-testid="allocation-loading"
+                          />
+                        ) : (
+                          <SymbolIcon
+                            className="animate-spin w-4 h-4 text-gray-500"
+                            data-testid="allocation-loading"
+                          />
+                        )}
                       </div>
                     ) : (
                       localizeDecimal(allocationCounts[index])
@@ -192,7 +203,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                           "importCustomerPoints.wizard.allocationStep.table.moveUpTooltip",
                         )}
                       >
-                        <ChevronUpIcon className="w-4 h-4" />
+                        {isLucideIconsOn ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronUpIcon className="w-4 h-4" />
+                        )}
                       </button>
                       <button
                         type="button"
@@ -203,7 +218,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                           "importCustomerPoints.wizard.allocationStep.table.moveDownTooltip",
                         )}
                       >
-                        <ChevronDownIcon className="w-4 h-4" />
+                        {isLucideIconsOn ? (
+                          <ChevronDown />
+                        ) : (
+                          <ChevronDownIcon className="w-4 h-4" />
+                        )}
                       </button>
                       <button
                         type="button"
@@ -214,7 +233,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                           "importCustomerPoints.wizard.allocationStep.table.removeRuleTooltip",
                         )}
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        {isLucideIconsOn ? (
+                          <Trash />
+                        ) : (
+                          <TrashIcon className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </td>
@@ -233,7 +256,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
             variant="default"
             size="sm"
           >
-            <PlusIcon className="w-4 h-4" />
+            {isLucideIconsOn ? <Plus /> : <PlusIcon className="w-4 h-4" />}
             {translate(
               "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
             )}

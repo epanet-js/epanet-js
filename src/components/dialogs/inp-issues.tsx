@@ -20,6 +20,15 @@ import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  CircleX,
+  Globe,
+  TriangleAlert,
+} from "lucide-react";
 
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
@@ -40,12 +49,12 @@ export const GeocodingNotSupportedDialog = ({
     });
     window.open(projectionConverterUrl);
   };
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("geocodingNotSupported")}
-        titleIcon={ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
         variant="warning"
       />
       <div className="text-sm">
@@ -98,12 +107,12 @@ export const MissingCoordinatesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "missingCoordinatesError" });
   };
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("missingCoordinates")}
-        titleIcon={CrossCircledIcon}
+        titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
         variant="danger"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -139,12 +148,12 @@ export const InpIssuesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "inpIssues" });
   };
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("inpNotFullySupported")}
-        titleIcon={ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
         variant="warning"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -172,6 +181,7 @@ export const InpIssuesDialog = ({
 export const ProjectionCTA = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <p className="pb-3">{translate("checkoutProjectionTool")}</p>
@@ -187,7 +197,7 @@ export const ProjectionCTA = () => {
             window.open(projectionConverterUrl);
           }}
         >
-          <GlobeIcon />
+          {isLucideIconsOn ? <Globe /> : <GlobeIcon />}
           EPANET Projection Converter
         </Button>
       </p>
@@ -202,6 +212,7 @@ export const SubscribeCTA = ({
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <p className="pb-3">{translate("newFeaturesEveryDay")}</p>
@@ -217,7 +228,7 @@ export const SubscribeCTA = ({
             window.open(newsletterUrl);
           }}
         >
-          <BellIcon />
+          {isLucideIconsOn ? <Bell size={16} /> : <BellIcon />}
           {translate("subscribeForUpdates")}
         </Button>
       </p>
@@ -230,6 +241,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
   const maxDisplayed = 4;
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div className="pb-4">
       <Button
@@ -245,7 +257,17 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
         }}
         className="cursor-pointer text-md inline-flex items-center"
       >
-        {isExpaned ? <TriangleDownIcon /> : <TriangleRightIcon />}
+        {isExpaned ? (
+          isLucideIconsOn ? (
+            <ChevronDown size={16} />
+          ) : (
+            <TriangleDownIcon />
+          )
+        ) : isLucideIconsOn ? (
+          <ChevronRight size={16} />
+        ) : (
+          <TriangleRightIcon />
+        )}
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
@@ -283,6 +305,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="pb-4">
@@ -299,7 +322,17 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         }}
         className="cursor-pointer text-md inline-flex items-center"
       >
-        {isExpaned ? <TriangleDownIcon /> : <TriangleRightIcon />}
+        {isExpaned ? (
+          isLucideIconsOn ? (
+            <ChevronDown size={16} />
+          ) : (
+            <TriangleDownIcon />
+          )
+        ) : isLucideIconsOn ? (
+          <ChevronRight size={16} />
+        ) : (
+          <TriangleRightIcon />
+        )}
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (

@@ -3,6 +3,7 @@ import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { Link2Off } from "lucide-react";
 
 const warnOffline = (translate: (key: string) => string) =>
   notify({
@@ -85,6 +86,7 @@ export async function addTileJSONStyle(
   layer: ILayerConfig,
   id: number,
   translate: (key: string) => string,
+  isLucideIconsOn: boolean,
 ) {
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
@@ -111,7 +113,7 @@ export async function addTileJSONStyle(
   } catch (e) {
     notify({
       variant: "error",
-      Icon: LinkBreak1Icon,
+      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
       title: translate("failedToLoad"),
       description: translate("failedToLoadTileJSON"),
       size: "md",

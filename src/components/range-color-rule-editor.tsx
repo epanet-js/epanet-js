@@ -38,6 +38,7 @@ import { useSymbologyState } from "src/state/symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 import { notify } from "./notifications";
+import { CircleX, Plus, RefreshCw, Trash } from "lucide-react";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -130,6 +131,8 @@ export const RangeColorRuleEditor = ({
     onChange(newColorRule);
   };
 
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   const showError = (error: ErrorType, newColorRule: RangeColorRule) => {
     userTracking.capture({
       name: "colorRange.rangeError.seen",
@@ -141,7 +144,7 @@ export const RangeColorRuleEditor = ({
     setError(error);
     notify({
       variant: "error",
-      Icon: CrossCircledIcon,
+      Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
       title: translate("invalidRange"),
       description: translate("fixRangeToApply"),
       id: "symbology",
@@ -342,7 +345,7 @@ export const RangeColorRuleEditor = ({
               size="full-width"
               onClick={handleRegenerate}
             >
-              <UpdateIcon />
+              {isLucideIconsOn ? <RefreshCw size={16} /> : <UpdateIcon />}
               {translate("regenerate")}
             </Button>
           </div>
@@ -376,6 +379,7 @@ const IntervalsEditor = ({
   const translate = useTranslate();
   const canAddMore = numIntervals < maxIntervals;
   const canDelete = numIntervals > minIntervals;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="w-full flex flex-row gap-2 items-start dark:text-white">
@@ -409,7 +413,8 @@ const IntervalsEditor = ({
             onClick={onPrepend}
             aria-label={translate("addBreak")}
           >
-            <PlusIcon /> {translate("addBreak")}
+            {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}{" "}
+            {translate("addBreak")}
           </Button>
         </div>
         {breaks.map((breakValue, i) => {
@@ -438,7 +443,11 @@ const IntervalsEditor = ({
                     aria-label={`${translate("delete")} ${i}`}
                     onClick={() => onDelete(i)}
                   >
-                    <TrashIcon className="opacity-60" />
+                    {isLucideIconsOn ? (
+                      <Trash size={16} />
+                    ) : (
+                      <TrashIcon className="opacity-60" />
+                    )}
                   </Button>
                 </div>
               ) : null}
@@ -455,7 +464,8 @@ const IntervalsEditor = ({
             onClick={onAppend}
             aria-label={translate("addBreak")}
           >
-            <PlusIcon /> {translate("addBreak")}
+            {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}{" "}
+            {translate("addBreak")}
           </Button>
         </div>
       </div>

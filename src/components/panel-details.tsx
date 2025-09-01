@@ -5,6 +5,8 @@ import { CaretDownIcon, CaretRightIcon } from "@radix-ui/react-icons";
 import React from "react";
 import { useAtom } from "jotai";
 import { PanelAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 export function PanelDetails({
   children,
@@ -46,12 +48,19 @@ export function PanelDetailsCollapsible({
   atom: PanelAtom;
 }>) {
   const [open, setOpen] = useAtom(atom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <C.Root open={open} onOpenChange={setOpen}>
       <C.Trigger className={styledPanelTitle({ interactive: true })}>
         <span>{title}</span>
         {open ? (
-          <CaretDownIcon className="w-3 h-3" />
+          isLucideIconsOn ? (
+            <ChevronDown size={16} />
+          ) : (
+            <CaretDownIcon className="w-3 h-3" />
+          )
+        ) : isLucideIconsOn ? (
+          <ChevronRight size={16} />
         ) : (
           <CaretRightIcon className="w-3 h-3" />
         )}{" "}

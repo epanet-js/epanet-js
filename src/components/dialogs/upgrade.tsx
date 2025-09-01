@@ -36,6 +36,8 @@ import {
 } from "src/hooks/use-checkout";
 import { canUpgrade } from "src/user-plan";
 import { signUpUrl } from "src/global-config";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Check, Info, Rocket, TriangleAlert, X } from "lucide-react";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -87,12 +89,13 @@ export const UpgradeDialog = () => {
 const ChangesFromSupportDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="sm">
       <DialogHeader
         variant="warning"
         title={translate("planChangesFromSupport")}
-        titleIcon={ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
       />
       <p className="text text-sm">
         {translate("planChangesFromSupportExplain")}
@@ -132,11 +135,14 @@ const PlansDialog = () => {
       ? setPaymentType("monthly")
       : setPaymentType("yearly");
   };
+
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   return (
     <DialogContainer size="lg">
       <DialogHeader
         title={translate("upgradeYourAccount")}
-        titleIcon={RocketIcon}
+        titleIcon={isLucideIconsOn ? Rocket : RocketIcon}
       />
       <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">
         <div className="flex items-center gap-2">
@@ -192,6 +198,7 @@ const PlansDialog = () => {
 
 const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6">
@@ -205,27 +212,27 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("free.webBasedEpanet"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.backgroundMap"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.elevations"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.noLimits"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.communitySupport"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -237,7 +244,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
           className="default-pointer bg-gray-300 text-gray-700"
           disabled={true}
         >
-          <CheckIcon className="h-5 w-5" />
+          {isLucideIconsOn ? <Check /> : <CheckIcon className="h-5 w-5" />}
           {translate("currentPlan")}
         </Button>
       </div>
@@ -248,6 +255,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.personal.yearly;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -266,12 +274,12 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("professionalSupport"),
-              Icon: Cross1Icon,
+              Icon: isLucideIconsOn ? X : Cross1Icon,
               iconColor: "text-red-500",
             },
             {
               feature: translate("customMapLayers"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -283,22 +291,22 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("scenarios"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("cloudStorage"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "30"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("demandsAnalysis"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -376,6 +384,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -394,12 +403,12 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("professionalSupport"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("customMapLayers"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -411,22 +420,22 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("scenarios"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("cloudStorage"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "30"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("demandsAnalysis"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -444,6 +453,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.teams[paymentType];
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
@@ -464,27 +474,27 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("prioritySupport"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("teamStorage"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "90"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("sharingModels"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("volumeDiscounts"),
-              Icon: CheckIcon,
+              Icon: isLucideIconsOn ? Check : CheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -586,11 +596,16 @@ const NonCommercialHint = () => {
 };
 
 const InfoTooltip = ({ text }: { text: string }) => {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Tooltip.Root delayDuration={100}>
       <Tooltip.Trigger asChild>
         <button className="p-1 rounded-full hover:bg-gray-200">
-          <InfoCircledIcon className="w-5 h-5 text-gray-500" />
+          {isLucideIconsOn ? (
+            <Info className="w-5 h-5 text-gray-500" />
+          ) : (
+            <InfoCircledIcon className="w-5 h-5 text-gray-500" />
+          )}
         </button>
       </Tooltip.Trigger>
       <Tooltip.Portal>

@@ -5,6 +5,8 @@ import { replaceIdWithLabels } from "src/simulation/report";
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom, simulationAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { FileText } from "lucide-react";
 
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
@@ -33,12 +35,12 @@ export const SimulationReportDialog = () => {
       );
     });
   }, [simulation, hydraulicModel]);
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="lg" fillMode="auto">
       <DialogHeader
         title={translate("simulationReport")}
-        titleIcon={FileTextIcon}
+        titleIcon={isLucideIconsOn ? FileText : FileTextIcon}
       />
 
       <div className="p-4 overflow-auto border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">

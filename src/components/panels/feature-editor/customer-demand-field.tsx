@@ -9,6 +9,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Unit } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { CustomerPointsPopover } from "./customer-points-popover";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { SquareStack } from "lucide-react";
 
 interface CustomerDemandFieldProps {
   totalDemand: number;
@@ -28,6 +30,7 @@ export const CustomerDemandField = ({
   const [isOpen, setIsOpen] = useState(false);
   const translate = useTranslate();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleClose = () => {
     setEphemeralState({ type: "none" });
@@ -79,7 +82,11 @@ export const CustomerDemandField = ({
           dark:text-white bg-transparent
           flex overflow-hidden items-center"
         >
-          <CardStackIcon className="flex-shrink-0" />
+          {isLucideIconsOn ? (
+            <SquareStack size={16} className="flex-shrink-0" />
+          ) : (
+            <CardStackIcon className="flex-shrink-0" />
+          )}
           <span className="flex-auto truncate">
             {localizeDecimal(totalDemand)} ({customerCount}{" "}
             {translate("customers")})

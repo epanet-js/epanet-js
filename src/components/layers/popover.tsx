@@ -55,6 +55,15 @@ import { useTranslate } from "src/hooks/use-translate";
 import { limits } from "src/user-plan";
 import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  Plus,
+  Settings,
+  Trash,
+} from "lucide-react";
 
 type Mode =
   | "custom"
@@ -132,6 +141,7 @@ const MapboxStyleSkeleton = z.object({
 function BackButton({ to }: { to: Mode }) {
   const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <E.Button
       type="button"
@@ -140,7 +150,7 @@ function BackButton({ to }: { to: Mode }) {
         setMode(to);
       }}
     >
-      <CaretLeftIcon />
+      {isLucideIconsOn ? <ChevronLeft size={16} /> : <CaretLeftIcon />}
       {translate("back")}
     </E.Button>
   );
@@ -456,6 +466,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const { user } = useAuth();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const canAddCustomLayers = useMemo(() => {
     return limits.canAddCustomLayers(user.plan);
@@ -494,7 +505,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
             userTracking.capture({ name: "addCustomLayer.clicked" });
           }}
         >
-          <PlusIcon />
+          {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}
           {translate("addCustom")}
         </E.Button>
       </P.Trigger>
@@ -837,6 +848,7 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
   const isRaster = layerConfig.name.includes("Satellite");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const editPopover = (
     <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
@@ -845,7 +857,7 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          <GearIcon />
+          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -882,6 +894,7 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <button
@@ -893,14 +906,14 @@ const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         });
       }}
     >
-      <TrashIcon />
+      {isLucideIconsOn ? <Trash size={16} /> : <TrashIcon />}
     </button>
   );
 };
 
 const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
-
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   const editPopover = (
     <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
       <P.Trigger asChild>
@@ -908,7 +921,7 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          <GearIcon />
+          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -940,6 +953,7 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
     retry: false,
   });
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const editPopover = (
     <P.Root open={isEditing} onOpenChange={(val) => setEditing(val)}>
@@ -948,7 +962,7 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          <GearIcon />
+          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -966,7 +980,14 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       {isError ? (
         <T.Root delayDuration={0}>
           <T.Trigger>
-            <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
+            {isLucideIconsOn ? (
+              <TriangleAlert
+                size={16}
+                className="text-red-500 dark:text-red-300"
+              />
+            ) : (
+              <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
+            )}
           </T.Trigger>
           <E.TContent>This TileJSON source failed to load</E.TContent>
         </T.Root>
@@ -1009,6 +1030,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div
@@ -1022,7 +1044,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
         {...attributes}
         {...listeners}
       >
-        <DragHandleDots2Icon />
+        {isLucideIconsOn ? <GripVertical size={16} /> : <DragHandleDots2Icon />}
       </div>
       {layerConfig.type === "MAPBOX" && layerConfig.isBasemap && (
         <BaseMapItem layerConfig={layerConfig} />
@@ -1145,6 +1167,7 @@ const LayerTypeButton = ({
   onModeChange: (mode: Mode, type: string) => void;
   onUpgrade: () => void;
 }) => {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <E.Button
       className="flex items-center justify-between "
@@ -1158,7 +1181,11 @@ const LayerTypeButton = ({
     >
       {children}
       {needsUpgrade && <UpgradeTag />}
-      {!needsUpgrade && <CaretRightIcon />}
+      {!needsUpgrade && isLucideIconsOn ? (
+        <ChevronRight size={16} />
+      ) : (
+        <CaretRightIcon />
+      )}
     </E.Button>
   );
 };

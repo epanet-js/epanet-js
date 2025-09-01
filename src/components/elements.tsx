@@ -25,12 +25,28 @@ import {
 import { SUPPORT_EMAIL } from "src/lib/constants";
 import { Portal } from "@radix-ui/react-portal";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  CircleQuestionMark,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Type,
+  X,
+} from "lucide-react";
+import { TypeOffIcon } from "src/custom-icons/type-off-icon";
 
 export function Hint({ children }: { children: React.ReactNode }) {
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   return (
     <Tooltip.Root delayDuration={0}>
       <Tooltip.Trigger className="dark:text-white align-middle">
-        <QuestionMarkCircledIcon />
+        {isLucideIconsOn ? (
+          <CircleQuestionMark size={16} />
+        ) : (
+          <QuestionMarkCircledIcon />
+        )}
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <TContent>
@@ -165,6 +181,7 @@ export function Loading({
 }) {
   const translate = useTranslate();
   const loadingText = text || translate("loading");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div
       className={clsx(
@@ -175,7 +192,11 @@ export function Loading({
         `text-gray-500 flex items-center justify-center`,
       )}
     >
-      <SymbolIcon className="animate-spin" />
+      {isLucideIconsOn ? (
+        <RefreshCw className="ml-2" />
+      ) : (
+        <SymbolIcon className="animate-spin" />
+      )}
       <span className="ml-2">{loadingText}</span>
     </div>
   );
@@ -388,8 +409,9 @@ export const StyledDialogClose = () => (
   <Dialog.Close
     aria-label="Close"
     className="absolute top-4 right-4 text-gray-500"
+    style={{ outline: "2px solid red" }}
   >
-    <Cross1Icon />
+    {useFeatureFlag("FLAG_LUCIDE_ICONS") ? <X /> : <Cross1Icon />}
   </Dialog.Close>
 );
 
@@ -478,7 +500,7 @@ export const StyledPopoverArrow = () => (
 
 export const StyledPopoverClose = () => (
   <Popover.Close asChild>
-    <Cross1Icon />
+    {useFeatureFlag("FLAG_LUCIDE_ICONS") ? <X /> : <Cross1Icon />}
   </Popover.Close>
 );
 
@@ -664,7 +686,7 @@ export const StyledPopoverCross = () => (
   text-gray-500 dark:text-gray-300
   hover:text-black dark:hover:text-white"
   >
-    <Cross1Icon />
+    {useFeatureFlag("FLAG_LUCIDE_ICONS") ? <X /> : <Cross1Icon />}
   </Popover.Close>
 );
 
@@ -1082,8 +1104,30 @@ export const VisibilityToggleIcon = ({
 }: {
   visibility: boolean;
 }) => {
-  return visibility ? <EyeOpenIcon /> : <EyeNoneIcon />;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+  return visibility ? (
+    isLucideIconsOn ? (
+      <Eye size={16} />
+    ) : (
+      <EyeOpenIcon />
+    )
+  ) : isLucideIconsOn ? (
+    <EyeOff size={16} />
+  ) : (
+    <EyeNoneIcon />
+  );
 };
 export const LabelToggleIcon = ({ visibility }: { visibility: boolean }) => {
-  return visibility ? <TextIcon /> : <TextNoneIcon />;
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+  return visibility ? (
+    isLucideIconsOn ? (
+      <Type size={16} />
+    ) : (
+      <TextIcon />
+    )
+  ) : isLucideIconsOn ? (
+    <TypeOffIcon width={16} height={16} />
+  ) : (
+    <TextNoneIcon />
+  );
 };

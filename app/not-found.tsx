@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
-import { HomeIcon } from "@radix-ui/react-icons";
 import { formatTitle } from "src/lib/utils";
+import { House } from "lucide-react";
 
 export default function Page404() {
   return (
@@ -18,7 +18,7 @@ export default function Page404() {
               href="/"
               className="inline-flex items-center gap-x-2 underline"
             >
-              <HomeIcon />
+              <House />
               Back to home
             </Link>
           </div>

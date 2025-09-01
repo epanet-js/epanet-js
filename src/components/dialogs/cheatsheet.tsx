@@ -7,6 +7,7 @@ import { KeyboardIcon } from "@radix-ui/react-icons";
 import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Keyboard } from "lucide-react";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -37,12 +38,13 @@ export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
   const BINDINGS = getBindings(translate);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <>
       <DialogHeader
         title={translate("keyboardShortcuts")}
-        titleIcon={KeyboardIcon}
+        titleIcon={isLucideIconsOn ? Keyboard : KeyboardIcon}
       />
       <div
         className="grid gap-x-3 gap-y-2 pb-1"

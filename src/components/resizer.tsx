@@ -13,6 +13,8 @@ import { TContent } from "src/components/elements";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useMediaQuery } from "react-responsive";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const MIN_MAP_WIDTH = 80;
 
@@ -217,6 +219,8 @@ function PanelToggle({ side }: { side: Side }) {
     });
   };
 
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
+
   return (
     <T.Root>
       <T.Trigger
@@ -235,7 +239,17 @@ function PanelToggle({ side }: { side: Side }) {
         `,
         )}
       >
-        {side === "right" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        {side === "right" ? (
+          isLucideIconsOn ? (
+            <ChevronLeft size={16} />
+          ) : (
+            <ChevronLeftIcon />
+          )
+        ) : isLucideIconsOn ? (
+          <ChevronRight size={16} />
+        ) : (
+          <ChevronRightIcon />
+        )}
       </T.Trigger>
       <T.Portal>
         <TContent>

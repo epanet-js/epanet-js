@@ -9,7 +9,9 @@ import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { TriangleDownIcon, TriangleRightIcon } from "@radix-ui/react-icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import clsx from "clsx";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -43,6 +45,7 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
   const isSmOrLarger = useBreakpoint("sm");
 
   const [isExpanded, setExpanded] = useState(isSmOrLarger);
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <LegendContainer>
@@ -62,7 +65,17 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
         <div className="flex w-full items-center justify-between">
           <div className="text-xs text-wrap select-none">{title}</div>
           <span className="flex-shrink-0">
-            {isExpanded ? <TriangleDownIcon /> : <TriangleRightIcon />}
+            {isExpanded ? (
+              isLucideIconsOn ? (
+                <ChevronDown size={16} />
+              ) : (
+                <TriangleDownIcon />
+              )
+            ) : isLucideIconsOn ? (
+              <ChevronRight size={16} />
+            ) : (
+              <TriangleRightIcon />
+            )}
           </span>
         </div>
         {isExpanded && <LegendRamp colorRule={symbology} />}

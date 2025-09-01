@@ -10,6 +10,8 @@ import {
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import * as P from "@radix-ui/react-popover";
 import Modes from "src/components/modes";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { TriangleAlert } from "lucide-react";
 
 export const FeatureEditorNullGeometry = memo(
   function FeatureEditorNullGeometryInner({
@@ -17,12 +19,16 @@ export const FeatureEditorNullGeometry = memo(
   }: {
     wrappedFeature: IWrappedFeature;
   }) {
+    const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
     if (wrappedFeature.feature.geometry) return null;
-
     return (
       <PanelDetailsCollapsible title="Null geometry" atom={panelNullOpen}>
         <TextWell size="xs">
-          <ExclamationTriangleIcon className="inline-block w-3 h-3 mr-1" />
+          {isLucideIconsOn ? (
+            <TriangleAlert size={16} className="inline-block w-3 h-3 mr-1" />
+          ) : (
+            <ExclamationTriangleIcon className="inline-block w-3 h-3 mr-1" />
+          )}
           This feature has no geometry information.
         </TextWell>
         <div className="pt-2">

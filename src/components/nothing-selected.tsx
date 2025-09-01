@@ -25,12 +25,13 @@ import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Circle,
-  Download,
   FileSpreadsheet,
   Globe,
   Grid2X2,
   Keyboard,
   MousePointer2,
+  Save,
+  Star,
   Triangle,
   Undo2,
   Zap,
@@ -177,7 +178,11 @@ export const NothingSelected = memo(function NothingSelected() {
           >
             {isLucideIconsOn ? <Globe size={16} /> : <GlobeIcon />}
             {translate("importFromGIS")}
-            <StarIcon className="w-3 h-3 ml-1" />
+            {isLucideIconsOn ? (
+              <Star size={12} className="ml-1" />
+            ) : (
+              <StarIcon className="w-3 h-3 ml-1" />
+            )}
           </Button>
           <Button
             type="button"
@@ -185,7 +190,7 @@ export const NothingSelected = memo(function NothingSelected() {
               void saveInp({ source: "onboarding" });
             }}
           >
-            {isLucideIconsOn ? <Download size={16} /> : <DownloadIcon />}
+            {isLucideIconsOn ? <Save size={16} /> : <DownloadIcon />}
             {translate("save")}
           </Button>
         </div>
