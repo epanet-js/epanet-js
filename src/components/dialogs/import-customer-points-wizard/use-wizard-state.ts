@@ -66,8 +66,6 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
       ...prev,
       selectedFile: file,
       error: null,
-      parsedDataSummary: null,
-      parsedCustomerPoints: null,
     }));
   };
 
@@ -79,14 +77,21 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, parsedDataSummary: summary }));
   };
 
+  const resetWizardData = () => {
+    setWizardState((prev) => ({
+      ...prev,
+      parsedDataSummary: null,
+      parsedCustomerPoints: null,
+      error: null,
+    }));
+  };
+
   const setError = (error: string | null) => {
     setWizardState((prev) => ({
       ...prev,
       error,
       isLoading: false,
       isProcessing: false,
-      parsedDataSummary: null,
-      parsedCustomerPoints: null,
     }));
   };
 
@@ -150,6 +155,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setSelectedFile,
     setParsedCustomerPoints,
     setParsedDataSummary,
+    resetWizardData,
     setError,
     setLoading,
     setProcessing,

@@ -27,6 +27,7 @@ export const DataInputStep: React.FC<{
     setLoading,
     setError,
     setParsedDataSummary,
+    resetWizardData,
     parsedDataSummary,
   } = wizardState;
 
@@ -45,9 +46,9 @@ export const DataInputStep: React.FC<{
 
   const handleFileProcess = useCallback(
     async (file: File) => {
+      resetWizardData();
       setSelectedFile(file);
       setLoading(true);
-      setError(null);
 
       try {
         const text = await file.text();
@@ -109,6 +110,7 @@ export const DataInputStep: React.FC<{
       }
     },
     [
+      resetWizardData,
       setSelectedFile,
       setLoading,
       setError,

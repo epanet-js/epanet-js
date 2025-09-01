@@ -39,6 +39,7 @@ export type WizardActions = {
   setSelectedFile: (file: File | null) => void;
   setParsedCustomerPoints: (points: CustomerPoint[] | null) => void;
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
+  resetWizardData: () => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   setProcessing: (processing: boolean) => void;
