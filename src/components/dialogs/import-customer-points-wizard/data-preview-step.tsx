@@ -248,6 +248,13 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
   return (
     <div className="space-y-4">
       <div className="space-y-4">
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800">
+            {translate(
+              "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
+            )}
+          </p>
+        </div>
         {issues?.skippedNonPointFeatures && (
           <IssueSection
             title={translate(
@@ -284,13 +291,6 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
             features={issues.skippedCreationFailures}
           />
         )}
-      </div>
-      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-        <p className="text-sm text-yellow-800">
-          {translate(
-            "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
-          )}
-        </p>
       </div>
     </div>
   );
