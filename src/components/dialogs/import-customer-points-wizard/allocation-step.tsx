@@ -209,11 +209,21 @@ export const AllocationStep: React.FC<{
   );
 
   const handleEdit = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.editStarted",
+      rulesCount: allocationRules.length,
+    });
+
     setTempRules([...allocationRules]);
     setIsEditingRules(true);
-  }, [allocationRules, setIsEditingRules]);
+  }, [allocationRules, setIsEditingRules, userTracking]);
 
   const handleSave = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.saved",
+      rulesCount: tempRules.length,
+    });
+
     setAllocationRules(tempRules);
     setIsEditingRules(false);
     setTempRules([]);
@@ -227,12 +237,17 @@ export const AllocationStep: React.FC<{
     setIsEditingRules,
     shouldTriggerAllocation,
     performAllocation,
+    userTracking,
   ]);
 
   const handleCancel = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.editCanceled",
+    });
+
     setTempRules([]);
     setIsEditingRules(false);
-  }, [setIsEditingRules]);
+  }, [setIsEditingRules, userTracking]);
 
   const handleRulesChange = useCallback((newRules: AllocationRule[]) => {
     setTempRules(newRules);

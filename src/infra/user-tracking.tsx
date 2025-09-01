@@ -358,6 +358,20 @@ type ImportCustomerPointsCanceled = {
   name: "importCustomerPoints.canceled";
 };
 
+type ImportCustomerPointsAllocationRulesEditStarted = {
+  name: "importCustomerPoints.allocationRules.editStarted";
+  rulesCount: number;
+};
+
+type ImportCustomerPointsAllocationRulesSaved = {
+  name: "importCustomerPoints.allocationRules.saved";
+  rulesCount: number;
+};
+
+type ImportCustomerPointsAllocationRulesEditCanceled = {
+  name: "importCustomerPoints.allocationRules.editCanceled";
+};
+
 type ImportCustomerPointsDataInputNoValidPoints = {
   name: "importCustomerPoints.dataInput.noValidPoints";
   fileName: string;
@@ -502,6 +516,9 @@ export type UserEvent =
   | ImportCustomerPointsStarted
   | ImportCustomerPointsCompleted
   | ImportCustomerPointsCanceled
+  | ImportCustomerPointsAllocationRulesEditStarted
+  | ImportCustomerPointsAllocationRulesSaved
+  | ImportCustomerPointsAllocationRulesEditCanceled
   | ImportCustomerPointsDataInputNoValidPoints
   | ImportCustomerPointsDataInputParseError
   | ImportCustomerPointsDataInputUnsupportedFormat
