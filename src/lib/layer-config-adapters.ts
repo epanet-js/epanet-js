@@ -5,7 +5,10 @@ import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { Link2Off } from "lucide-react";
 
-const warnOffline = (translate: (key: string) => string) =>
+const warnOffline = (
+  translate: (key: string) => string,
+  isLucideIconsOn: boolean,
+) =>
   notify({
     variant: "warning",
     Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
@@ -20,6 +23,7 @@ export async function addMapboxStyle(
   base: mapboxgl.Style,
   layer: ILayerConfig,
   translate: (key: string) => string,
+  isLucideIconsOn: boolean,
 ): Promise<mapboxgl.Style> {
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
@@ -38,7 +42,7 @@ export async function addMapboxStyle(
       return res.json();
     })
     .catch(() => {
-      warnOffline(translate);
+      warnOffline(translate, isLucideIconsOn);
       return {
         version: 8,
         name: "Empty",

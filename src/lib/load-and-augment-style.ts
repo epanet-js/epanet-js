@@ -95,7 +95,7 @@ export default async function loadAndAugmentStyle({
     id++;
     switch (layer.type) {
       case "MAPBOX": {
-        style = await addMapboxStyle(style, layer, translate);
+        style = await addMapboxStyle(style, layer, translate, isLucideIconsOn);
         break;
       }
       case "XYZ": {

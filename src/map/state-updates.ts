@@ -203,6 +203,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
+  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -241,7 +242,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(map, mapState.stylesConfig, translate);
+          await updateLayerStyles(
+            map,
+            mapState.stylesConfig,
+            translate,
+            isLucideIconsOn,
+          );
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -411,6 +417,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translateUnit,
     hydraulicModel,
     isCustomerPointOn,
+    isLucideIconsOn,
   ]);
 
   doUpdates();
@@ -429,10 +436,12 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
+    isLucideIconsOn: boolean,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
+      isLucideIconsOn,
     });
     await map.setStyle(style);
   },
