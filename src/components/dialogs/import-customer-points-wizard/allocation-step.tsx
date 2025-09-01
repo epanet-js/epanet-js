@@ -94,6 +94,7 @@ export const AllocationStep: React.FC<{
       userTracking.capture({
         name: "importCustomerPoints.completed",
         count: importedCount,
+        rulesCount: allocationRules.length,
       });
 
       notify({
@@ -120,6 +121,7 @@ export const AllocationStep: React.FC<{
     setError,
     translate,
     isLucideIconsOn,
+    allocationRules.length,
   ]);
 
   const performAllocation = useCallback(

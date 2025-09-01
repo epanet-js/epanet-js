@@ -351,6 +351,7 @@ type ImportCustomerPointsStarted = {
 type ImportCustomerPointsCompleted = {
   name: "importCustomerPoints.completed";
   count: number;
+  rulesCount: number;
 };
 
 type ImportCustomerPointsCanceled = {
