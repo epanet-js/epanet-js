@@ -62,7 +62,13 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   };
 
   const setSelectedFile = (file: File | null) => {
-    setWizardState((prev) => ({ ...prev, selectedFile: file, error: null }));
+    setWizardState((prev) => ({
+      ...prev,
+      selectedFile: file,
+      error: null,
+      parsedDataSummary: null,
+      parsedCustomerPoints: null,
+    }));
   };
 
   const setParsedCustomerPoints = (points: CustomerPoint[] | null) => {
@@ -79,6 +85,8 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
       error,
       isLoading: false,
       isProcessing: false,
+      parsedDataSummary: null,
+      parsedCustomerPoints: null,
     }));
   };
 

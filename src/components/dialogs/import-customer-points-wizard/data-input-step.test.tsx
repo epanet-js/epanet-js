@@ -286,6 +286,68 @@ describe("DataInputStep", () => {
       expect(parsedIssues!.skippedInvalidDemands).toHaveLength(3);
     });
   });
+
+  describe("wizard state contamination", () => {
+    it("clears previous import data when new import has no valid points", async () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const validFile = aTestFile({
+        filename: "valid.geojson",
+        content: createValidGeoJSON(),
+      });
+
+      await uploadFileInStep(validFile);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("button", { name: /back/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", {
+            name: /data input/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
+      });
+
+      const emptyFile = aTestFile({
+        filename: "empty.geojson",
+        content: createNoValidPointsGeoJSON(),
+      });
+
+      await uploadFileInStep(emptyFile);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+    });
+  });
 });
 
 const createValidGeoJSON = () =>
