@@ -16,7 +16,7 @@ import {
   disconnectCustomersShortcut,
 } from "src/commands/customer-point-actions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Link2, Link2Off } from "lucide-react";
+import { ConnectIcon, DisconnectIcon } from "src/icons";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
@@ -51,7 +51,7 @@ export function useCustomerPointActions(
       ? translate("contextActions.customerPoints.reconnect")
       : translate("contextActions.customerPoints.connect"),
     applicable: true,
-    icon: isLucideIconsOn ? <Link2 size={16} /> : <Link1Icon />,
+    icon: isLucideIconsOn ? <ConnectIcon /> : <Link1Icon />,
     onSelect: onConnect,
     shortcut: connectCustomersShortcut,
   };
@@ -59,7 +59,7 @@ export function useCustomerPointActions(
   const disconnectAction = {
     label: translate("contextActions.customerPoints.disconnect"),
     applicable: customerPoint?.connection !== null,
-    icon: isLucideIconsOn ? <Link2Off size={16} /> : <LinkBreak1Icon />,
+    icon: isLucideIconsOn ? <DisconnectIcon /> : <LinkBreak1Icon />,
     onSelect: onDisconnect,
     shortcut: disconnectCustomersShortcut,
   };
