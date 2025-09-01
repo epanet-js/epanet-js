@@ -6,6 +6,7 @@ import { CustomerPointsParserIssues } from "src/import/parse-customer-points-iss
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { WizardState, WizardActions, ParsedDataSummary } from "./types";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 
@@ -14,7 +15,7 @@ type TabType = "customerPoints" | "issues";
 export const DataPreviewStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
-  wizardState: WizardState & WizardActions;
+  wizardState: WizardState & WizardActions & { units: UnitsSpec };
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
   const { parsedDataSummary, error } = wizardState;
@@ -96,6 +97,7 @@ export const DataPreviewStep: React.FC<{
                 customerPoints={validCustomerPoints}
                 maxPreviewRows={MAX_PREVIEW_ROWS}
                 parsedDataSummary={parsedDataSummary}
+                wizardState={wizardState}
               />
             </div>
           )}
@@ -138,16 +140,19 @@ type CustomerPointsTableProps = {
   customerPoints: CustomerPoint[];
   maxPreviewRows: number;
   parsedDataSummary: ParsedDataSummary;
+  wizardState: WizardState & WizardActions & { units: UnitsSpec };
 };
 
 const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   customerPoints,
   maxPreviewRows,
-  parsedDataSummary,
+  parsedDataSummary: _,
+  wizardState,
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const demandUnit = parsedDataSummary?.demandImportUnit || "l/d";
+  const customerDemandUnit = wizardState.units.customerDemand;
+  const customerDemandPerDayUnit = wizardState.units.customerDemandPerDay;
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
@@ -183,7 +188,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {`${translate(
                 "importCustomerPoints.wizard.dataPreview.table.demand",
-              )} (${translateUnit(demandUnit)})`}
+              )} (${translateUnit(customerDemandPerDayUnit)})`}
             </th>
           </tr>
         </thead>
@@ -203,8 +208,8 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
               <td className="px-3 py-2 border-b">
                 {localizeDecimal(
                   convertTo(
-                    { value: point.baseDemand, unit: "l/s" },
-                    demandUnit,
+                    { value: point.baseDemand, unit: customerDemandUnit },
+                    customerDemandPerDayUnit,
                   ),
                 )}
               </td>

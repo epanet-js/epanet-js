@@ -6,7 +6,7 @@ import {
   getDefaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
 import { dataAtom } from "src/state/jotai";
-import { Unit } from "src/quantity";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import {
   WizardState,
   WizardActions,
@@ -36,7 +36,7 @@ export const wizardStateAtom = atom<WizardState>(initialState);
 
 export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   allocationRules: AllocationRule[];
-  units: { diameter: Unit; length: Unit };
+  units: UnitsSpec;
 } & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
   const data = useAtomValue(dataAtom);

@@ -19,7 +19,7 @@ const itemSize = 32;
 
 export const CustomerPointsPopover = ({
   customerPoints,
-  aggregateUnit: _,
+  aggregateUnit,
   customerUnit,
   onClose,
 }: CustomerPointsPopoverProps) => {
@@ -91,7 +91,7 @@ export const CustomerPointsPopover = ({
             const customerPoint = customerPoints[virtualRow.index];
             const demandValue = localizeDecimal(
               convertTo(
-                { value: customerPoint.baseDemand, unit: "l/s" },
+                { value: customerPoint.baseDemand, unit: aggregateUnit },
                 customerUnit,
               ),
             );
