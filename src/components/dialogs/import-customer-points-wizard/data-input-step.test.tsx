@@ -126,15 +126,13 @@ describe("DataInputStep", () => {
       await uploadFileInStep(file);
 
       await waitFor(() => {
-        expect(screen.getByText(/no valid customer/i)).toBeInTheDocument();
+        expect(
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
       });
-
-      expect(
-        screen.getByRole("tab", {
-          name: /data input/i,
-          current: "step",
-        }),
-      ).toBeInTheDocument();
 
       expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
 
@@ -165,23 +163,19 @@ describe("DataInputStep", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/no valid customer points found/i),
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
         ).toBeInTheDocument();
       });
-
-      expect(
-        screen.getByRole("tab", {
-          name: /data input/i,
-          current: "step",
-        }),
-      ).toBeInTheDocument();
-
-      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
 
       expect(userTracking.capture).toHaveBeenCalledWith({
         name: "importCustomerPoints.dataInput.noValidPoints",
         fileName: "no-points.geojson",
       });
+
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     });
 
     it("handles unsupported file formats (CSV)", async () => {

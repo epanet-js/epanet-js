@@ -86,10 +86,6 @@ export const DataInputStep: React.FC<{
             name: "importCustomerPoints.dataInput.noValidPoints",
             fileName: file.name,
           });
-          setError(
-            translate("importCustomerPoints.dataSource.noValidPointsError"),
-          );
-          return;
         }
 
         setParsedDataSummary(parsedDataSummary);

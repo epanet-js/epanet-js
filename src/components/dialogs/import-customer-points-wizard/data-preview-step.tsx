@@ -17,8 +17,13 @@ export const DataPreviewStep: React.FC<{
   wizardState: WizardState & WizardActions;
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
-  const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
   const { parsedDataSummary, error } = wizardState;
+
+  const hasValidPoints =
+    (parsedDataSummary?.validCustomerPoints.length || 0) > 0;
+  const [activeTab, setActiveTab] = useState<TabType>(
+    hasValidPoints ? "customerPoints" : "issues",
+  );
 
   if (!parsedDataSummary) {
     return (
@@ -107,13 +112,10 @@ export const DataPreviewStep: React.FC<{
         backAction={{
           onClick: onBack,
         }}
-        nextAction={
-          parsedDataSummary
-            ? {
-                onClick: onNext,
-              }
-            : undefined
-        }
+        nextAction={{
+          onClick: onNext,
+          disabled: validCount === 0,
+        }}
       />
     </div>
   );
