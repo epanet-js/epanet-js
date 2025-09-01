@@ -145,6 +145,14 @@ const processGeoJSONFeature = (
     };
   }
 
+  if (typeof demandValue === "boolean") {
+    issues.addSkippedInvalidDemand(feature);
+    return {
+      customerPoint: null,
+      nextId: currentId,
+    };
+  }
+
   const demandInSourceUnit = Number(demandValue);
   if (isNaN(demandInSourceUnit)) {
     issues.addSkippedInvalidDemand(feature);

@@ -279,11 +279,11 @@ describe("DataInputStep", () => {
       }
 
       expect(validCustomerPoints).toHaveLength(1);
-      expect(totalCount).toBe(4);
+      expect(totalCount).toBe(6);
 
       const parsedIssues = issues.buildResult();
       expect(parsedIssues).toBeDefined();
-      expect(parsedIssues!.skippedInvalidDemands).toHaveLength(3);
+      expect(parsedIssues!.skippedInvalidDemands).toHaveLength(5);
     });
   });
 
@@ -493,6 +493,28 @@ const createInvalidDemandsGeoJSON = () =>
         },
         properties: {
           name: "No demand property",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.005, 0.005],
+        },
+        properties: {
+          name: "Boolean true demand",
+          demand: true,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.006, 0.006],
+        },
+        properties: {
+          name: "Boolean false demand",
+          demand: false,
         },
       },
     ],
