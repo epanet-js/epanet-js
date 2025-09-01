@@ -41,7 +41,7 @@ export const DemandOptionsStep: React.FC<{
               onChange={() => {
                 setKeepDemands(false);
                 userTracking.capture({
-                  name: "importCustomerPoints.demandAllocationSelected",
+                  name: "importCustomerPoints.demandOptions.selected",
                   option: "replace",
                 });
               }}
@@ -75,7 +75,7 @@ export const DemandOptionsStep: React.FC<{
               onChange={() => {
                 setKeepDemands(true);
                 userTracking.capture({
-                  name: "importCustomerPoints.demandAllocationSelected",
+                  name: "importCustomerPoints.demandOptions.selected",
                   option: "addOnTop",
                 });
               }}

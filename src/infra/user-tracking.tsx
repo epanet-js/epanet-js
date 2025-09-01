@@ -395,8 +395,8 @@ type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   fileName: string;
 };
 
-type ImportCustomerPointsDemandAllocationSelected = {
-  name: "importCustomerPoints.demandAllocationSelected";
+type ImportCustomerPointsDemandOptionsSelected = {
+  name: "importCustomerPoints.demandOptions.selected";
   option: "replace" | "addOnTop";
 };
 
@@ -524,7 +524,7 @@ export type UserEvent =
   | ImportCustomerPointsDataInputParseError
   | ImportCustomerPointsDataInputUnsupportedFormat
   | ImportCustomerPointsDataInputCustomerPointsLoaded
-  | ImportCustomerPointsDemandAllocationSelected
+  | ImportCustomerPointsDemandOptionsSelected
   | ImportCustomerPointsWizardNext
   | ImportCustomerPointsWizardBack
   | ImportCustomerPointsWizardCancel
