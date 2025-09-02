@@ -25,34 +25,52 @@ const commentIdentifier = ";";
 
 type SectionParsers = Record<string, RowParser>;
 
-const buildSectionParsers = (): SectionParsers => ({
-  "[TITLE]": ignore,
-  "[CURVES]": parseCurve,
-  "[QUALITY]": unsupported,
-  "[OPTIONS]": parseOption,
-  "[BACKDROP]": ignore,
-  "[JUNCTIONS]": parseJunction,
-  "[PATTERNS]": parsePattern,
-  "[REACTIONS]": unsupported,
-  "[TIMES]": parseTimeSetting,
-  "[COORDINATES]": parsePosition,
-  "[RESERVOIRS]": parseReservoir,
-  "[ENERGY]": unsupported,
-  "[SOURCES]": unsupported,
-  "[REPORT]": ignore,
-  "[VERTICES]": parseVertex,
-  "[TANKS]": parseTank,
-  "[STATUS]": parseStatus,
-  "[MIXING]": unsupported,
-  "[LABELS]": unsupported,
-  "[PIPES]": parsePipe,
-  "[CONTROLS]": unsupported,
-  "[PUMPS]": parsePump,
-  "[RULES]": unsupported,
-  "[VALVES]": parseValve,
-  "[DEMANDS]": parseDemand,
-  "[EMITTERS]": unsupported,
-});
+type SectionParserDefinition = {
+  names: string[];
+  parser: RowParser;
+};
+
+const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
+  { names: ["TITLE"], parser: ignore },
+  { names: ["CURVES", "CURVE"], parser: parseCurve },
+  { names: ["QUALITY"], parser: unsupported },
+  { names: ["OPTIONS"], parser: parseOption },
+  { names: ["BACKDROP"], parser: ignore },
+  { names: ["JUNCTIONS", "JUNCTION"], parser: parseJunction },
+  { names: ["PATTERNS", "PATTERN"], parser: parsePattern },
+  { names: ["REACTIONS"], parser: unsupported },
+  { names: ["TIMES"], parser: parseTimeSetting },
+  { names: ["COORDINATES", "COORDINATE"], parser: parsePosition },
+  { names: ["RESERVOIRS", "RESERVOIR"], parser: parseReservoir },
+  { names: ["ENERGY"], parser: unsupported },
+  { names: ["SOURCES"], parser: unsupported },
+  { names: ["REPORT"], parser: ignore },
+  { names: ["VERTICES", "VERTEX"], parser: parseVertex },
+  { names: ["TANKS", "TANK"], parser: parseTank },
+  { names: ["STATUS"], parser: parseStatus },
+  { names: ["MIXING"], parser: unsupported },
+  { names: ["LABELS"], parser: unsupported },
+  { names: ["PIPES", "PIPE"], parser: parsePipe },
+  { names: ["CONTROLS"], parser: unsupported },
+  { names: ["PUMPS", "PUMP"], parser: parsePump },
+  { names: ["RULES"], parser: unsupported },
+  { names: ["VALVES", "VALVE"], parser: parseValve },
+  { names: ["DEMANDS", "DEMAND"], parser: parseDemand },
+  { names: ["EMITTERS"], parser: unsupported },
+];
+
+const buildSectionParsers = (): SectionParsers => {
+  const definitions = buildSectionParserDefinitions();
+  const result: SectionParsers = {};
+
+  definitions.forEach(({ names, parser }) => {
+    names.forEach((name) => {
+      result[`[${name}]`] = parser;
+    });
+  });
+
+  return result;
+};
 
 export const readInpData = (
   inp: string,

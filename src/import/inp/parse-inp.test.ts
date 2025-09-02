@@ -471,4 +471,48 @@ describe("Parse inp", () => {
     const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
     expect(valve).toBeUndefined();
   });
+
+  it("supports singular section names", () => {
+    const junctionId = "J1";
+    const pipeId = "P1";
+    const reservoirId = "R1";
+
+    const inp = `
+    [JUNCTION]
+    ${junctionId} 100
+
+    [PIPE]
+    ${pipeId} ${reservoirId} ${junctionId} 10 10 10 10 Open
+
+    [RESERVOIR]
+    ${reservoirId} 200
+
+    [COORDINATE]
+    ${junctionId} 1 1
+    ${reservoirId} 2 2
+
+    [DEMAND]
+    ${junctionId} 0.5
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    expect(hydraulicModel.assets.size).toEqual(3);
+
+    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    expect(junction).toBeDefined();
+    expect(junction.elevation).toEqual(100);
+    expect(junction.baseDemand).toEqual(0.5);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe).toBeDefined();
+    expect(pipe.length).toEqual(10);
+
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      reservoirId,
+    ) as Reservoir;
+    expect(reservoir).toBeDefined();
+    expect(reservoir.head).toEqual(200);
+  });
 });
