@@ -56,10 +56,24 @@ import {
   Zap,
 } from "lucide-react";
 
-type IconProps = LucideProps;
+type IconSize = "s" | "m" | "l";
+
+type IconProps = Omit<LucideProps, "size"> & {
+  size?: IconSize;
+};
+
+const sizeMap = {
+  s: 12,
+  m: 16,
+  l: 24,
+};
 
 const icon = (Icon: LucideIcon): React.FC<IconProps> => {
-  return (props) => <Icon size={16} {...props} />;
+  return ({ size = "m", ...props }) => {
+    const lucideSize = sizeMap[size];
+
+    return <Icon size={lucideSize} {...props} />;
+  };
 };
 
 export const HelpIcon = icon(CircleQuestionMark);

@@ -180,7 +180,7 @@ export const NothingSelected = memo(function NothingSelected() {
             {isLucideIconsOn ? <GlobeIcon /> : <DeprecatedGlobeIcon />}
             {translate("importFromGIS")}
             {isLucideIconsOn ? (
-              <EarlyAccessIcon size={12} className="ml-1" />
+              <EarlyAccessIcon size="s" className="ml-1" />
             ) : (
               <StarIcon className="w-3 h-3 ml-1" />
             )}

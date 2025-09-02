@@ -54,7 +54,7 @@ export const CreateNewDropdown = () => {
                 {isLucideIconsOn ? (
                   <>
                     <FileAddIcon />
-                    <ChevronDownIcon size={12} />
+                    <ChevronDownIcon size="s" />
                   </>
                 ) : (
                   <>
@@ -114,7 +114,7 @@ export const CreateNewDropdown = () => {
                 {isLucideIconsOn ? <GlobeIcon /> : <DeprecatedGlobeIcon />}
                 {translate("importFromGIS")}
                 {isLucideIconsOn ? (
-                  <EarlyAccessIcon size={12} />
+                  <EarlyAccessIcon size="s" />
                 ) : (
                   <StarIcon className="w-3 h-3 ml-1" />
                 )}
