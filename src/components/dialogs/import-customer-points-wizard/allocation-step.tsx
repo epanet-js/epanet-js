@@ -94,6 +94,8 @@ export const AllocationStep: React.FC<{
       userTracking.capture({
         name: "importCustomerPoints.completed",
         count: importedCount,
+        allocatedCount: allocationResult.allocatedCustomerPoints.size,
+        disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
         rulesCount: allocationRules.length,
       });
 
@@ -222,6 +224,8 @@ export const AllocationStep: React.FC<{
     userTracking.capture({
       name: "importCustomerPoints.allocationRules.saved",
       rulesCount: tempRules.length,
+      allocatedCount: allocationResult?.allocatedCustomerPoints.size || 0,
+      disconnectedCount: allocationResult?.disconnectedCustomerPoints.size || 0,
     });
 
     setAllocationRules(tempRules);
@@ -238,6 +242,7 @@ export const AllocationStep: React.FC<{
     shouldTriggerAllocation,
     performAllocation,
     userTracking,
+    allocationResult,
   ]);
 
   const handleCancel = useCallback(() => {

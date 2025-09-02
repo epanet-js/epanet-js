@@ -352,6 +352,8 @@ type ImportCustomerPointsCompleted = {
   name: "importCustomerPoints.completed";
   count: number;
   rulesCount: number;
+  allocatedCount: number;
+  disconnectedCount: number;
 };
 
 type ImportCustomerPointsCanceled = {
@@ -366,6 +368,8 @@ type ImportCustomerPointsAllocationRulesEditStarted = {
 type ImportCustomerPointsAllocationRulesSaved = {
   name: "importCustomerPoints.allocationRules.saved";
   rulesCount: number;
+  allocatedCount: number;
+  disconnectedCount: number;
 };
 
 type ImportCustomerPointsAllocationRulesEditCanceled = {
