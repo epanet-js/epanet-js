@@ -18,7 +18,6 @@ import {
   StyledItem,
   LogoIconAndWordmarkIcon,
 } from "./elements";
-import { GithubIcon } from "src/icons/custom-icons/github-icon";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
@@ -43,6 +42,7 @@ import {
   UpgradeIcon,
   NewFromExampleIcon,
   CloseIcon,
+  GithubIcon,
 } from "src/icons";
 
 export function MenuBarFallback() {

@@ -133,3 +133,9 @@ export const VisibilityOffIcon = icon(EyeOff);
 export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
+
+export { CustomGithubIcon as GithubIcon } from "./custom-icons/github-icon";
+export { CustomPipeIcon as PipeIcon } from "./custom-icons/pipe-icon";
+export { CustomPumpIcon as PumpIcon } from "./custom-icons/pump-icon";
+export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
+export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";

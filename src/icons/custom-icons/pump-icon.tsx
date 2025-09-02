@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CustomIconProps, IconSize } from "../index";
 
-export const PumpIcon = React.forwardRef<
+export const CustomPumpIcon = React.forwardRef<
   SVGSVGElement,
   CustomIconProps & { triangleFillColor?: string }
 >(
@@ -40,4 +40,4 @@ export const PumpIcon = React.forwardRef<
   },
 );
 
-PumpIcon.displayName = "PumpIcon";
+CustomPumpIcon.displayName = "CustomPumpIcon";

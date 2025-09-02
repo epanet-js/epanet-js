@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CustomIconProps, IconSize } from "../index";
 
-export const PipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
+export const CustomPipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
   ({ size: rawSize = "m", ...props }, ref) => {
     const size = IconSize[rawSize];
     return (
@@ -20,4 +20,4 @@ export const PipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
   },
 );
 
-PipeIcon.displayName = "PipeIcon";
+CustomPipeIcon.displayName = "CustomPipeIcon";
