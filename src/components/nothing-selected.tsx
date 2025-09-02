@@ -85,11 +85,7 @@ export const NothingSelected = memo(function NothingSelected() {
             </div>
             <div>{translate("onboardingDrawJunctions")}</div>
             <div className="pt-1">
-              {isLucideIconsOn ? (
-                <PipeIcon width={16} height={16} />
-              ) : (
-                <StretchHorizontallyIcon />
-              )}
+              {isLucideIconsOn ? <PipeIcon /> : <StretchHorizontallyIcon />}
             </div>
             <div>{translate("onboardingDrawPipe")}</div>
           </div>

@@ -56,23 +56,26 @@ import {
   Zap,
 } from "lucide-react";
 
-type IconSize = "s" | "m" | "l";
+export enum IconSize {
+  s = 12,
+  m = 16,
+  l = 20,
+  xl = 24,
+}
 
-type IconProps = Omit<LucideProps, "size"> & {
-  size?: IconSize;
+export type CustomIconProps = Omit<React.SVGProps<SVGSVGElement>, "size"> & {
+  size?: keyof typeof IconSize;
 };
 
-const sizeMap = {
-  s: 12,
-  m: 16,
-  l: 24,
+type IconProps = Omit<LucideProps, "size"> & {
+  size?: keyof typeof IconSize;
 };
 
 const icon = (Icon: LucideIcon): React.FC<IconProps> => {
-  return ({ size = "m", ...props }) => {
-    const lucideSize = sizeMap[size];
+  return ({ size: rawSize = "m", ...props }) => {
+    const size = IconSize[rawSize];
 
-    return <Icon size={lucideSize} {...props} />;
+    return <Icon size={size} {...props} />;
   };
 };
 

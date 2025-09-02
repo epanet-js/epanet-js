@@ -1067,7 +1067,7 @@ export const LabelToggleIcon = ({ visibility }: { visibility: boolean }) => {
       <TextIcon />
     )
   ) : isLucideIconsOn ? (
-    <TypeOffIcon width={16} height={16} />
+    <TypeOffIcon />
   ) : (
     <TextNoneIcon />
   );

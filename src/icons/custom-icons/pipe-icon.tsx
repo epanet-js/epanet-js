@@ -1,18 +1,23 @@
 import * as React from "react";
+import { CustomIconProps, IconSize } from "../index";
 
-export const PipeIcon = React.forwardRef<
-  SVGSVGElement,
-  React.SVGProps<SVGSVGElement> & { triangleFillColor?: string }
->(({ ...props }, ref) => (
-  <svg
-    ref={ref}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    {...props}
-  >
-    <path d="M4 15v6a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v6h16V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v18a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1v-6H4Z" />
-  </svg>
-));
+export const PipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
+  ({ size: rawSize = "m", ...props }, ref) => {
+    const size = IconSize[rawSize];
+    return (
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width={size}
+        height={size}
+        {...props}
+      >
+        <path d="M4 15v6a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v6h16V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v18a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1v-6H4Z" />
+      </svg>
+    );
+  },
+);
 
 PipeIcon.displayName = "PipeIcon";

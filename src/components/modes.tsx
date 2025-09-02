@@ -51,17 +51,17 @@ const MODE_OPTIONS = [
   {
     mode: Mode.DRAW_PIPE,
     hotkey: "5",
-    Icon: () => <PipeIcon width={16} height={16} />,
+    Icon: () => <PipeIcon />,
   },
   {
     mode: Mode.DRAW_PUMP,
     hotkey: "6",
-    Icon: () => <PumpIcon width={16} height={16} />,
+    Icon: () => <PumpIcon />,
   },
   {
     mode: Mode.DRAW_VALVE,
     hotkey: "7",
-    Icon: () => <ValveIcon width={16} height={16} />,
+    Icon: () => <ValveIcon />,
   },
 ] as const;
 

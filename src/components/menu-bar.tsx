@@ -90,11 +90,7 @@ export const MenuBarPlay = memo(function MenuBar() {
               }}
             >
               <Button variant="quiet">
-                {isLucideIconsOn ? (
-                  <GithubIcon width={16} height={16} />
-                ) : (
-                  <GitHubLogoIcon />
-                )}
+                {isLucideIconsOn ? <GithubIcon /> : <GitHubLogoIcon />}
                 {translate("openSource")}
               </Button>
             </a>
@@ -280,7 +276,7 @@ export const SideMenu = () => {
                 >
                   <Button variant="quiet">
                     {isLucideIconsOn ? (
-                      <GithubIcon width={16} height={16} />
+                      <GithubIcon />
                     ) : (
                       <GitHubLogoIcon className="mr-2" />
                     )}
