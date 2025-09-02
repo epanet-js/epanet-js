@@ -24,7 +24,7 @@ import {
 import { Asset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { SquareStack } from "lucide-react";
+import { MultipleAssetsIcon } from "src/icons";
 
 export default function MultiAssetViewer({
   selectedFeatures,
@@ -178,7 +178,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
           dark:text-white bg-transparent
           flex overflow-hidden"
         >
-          {isLucideIconsOn ? <SquareStack size={16} /> : <CardStackIcon />}
+          {isLucideIconsOn ? <MultipleAssetsIcon /> : <CardStackIcon />}
           {pluralize(translate, "value", value.size)}
         </P.Trigger>
         <P.Portal>

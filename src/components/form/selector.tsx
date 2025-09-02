@@ -1,7 +1,10 @@
-import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import {
+  CheckIcon as DeprecatedCheckIcon,
+  ChevronDownIcon as DeprecatedChevronDown,
+} from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
 import clsx from "clsx";
-import { Check, ChevronDown } from "lucide-react";
+import { CheckIcon, ChevronDownIcon } from "src/icons";
 import React from "react";
 import { KeyboardEventHandler, useMemo, useState } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -62,7 +65,7 @@ export const SelectorLikeButton = React.forwardRef<
       >
         {children}
         <div className="px-1">
-          {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
+          {isLucideIconsOn ? <ChevronDownIcon /> : <DeprecatedChevronDown />}
         </div>
       </button>
     );
@@ -147,7 +150,7 @@ export const Selector = <T extends string>({
             {selectedOption ? selectedOption.label : ""}
           </Select.Value>
           <Select.Icon className="px-1">
-            {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
+            {isLucideIconsOn ? <ChevronDownIcon /> : <DeprecatedChevronDown />}
           </Select.Icon>
         </Select.Trigger>
 
@@ -176,9 +179,9 @@ export const Selector = <T extends string>({
                   </Select.ItemText>
                   <Select.ItemIndicator className="ml-auto">
                     {isLucideIconsOn ? (
-                      <Check size={16} className="text-purple-700" />
-                    ) : (
                       <CheckIcon className="text-purple-700" />
+                    ) : (
+                      <DeprecatedCheckIcon className="text-purple-700" />
                     )}
                   </Select.ItemIndicator>
                 </Select.Item>

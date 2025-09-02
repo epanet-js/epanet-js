@@ -6,8 +6,8 @@ import {
 import {
   PlusIcon,
   TrashIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
+  ChevronUpIcon as DeprecatedChevronUpIcon,
+  ChevronDownIcon as DeprecatedChevronDownIcon,
   SymbolIcon,
 } from "@radix-ui/react-icons";
 import { NumericField } from "src/components/form/numeric-field";
@@ -17,7 +17,13 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useWizardState } from "./use-wizard-state";
 import { Button } from "src/components/elements";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ChevronDown, ChevronUp, Plus, RefreshCw, Trash } from "lucide-react";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  AddIcon,
+  DeleteIcon,
+  RefreshIcon,
+} from "src/icons";
 
 type AllocationRulesTableProps = {
   rules: AllocationRule[];
@@ -175,8 +181,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                     {isAllocating ? (
                       <div className="flex justify-center">
                         {isLucideIconsOn ? (
-                          <RefreshCw
-                            size={16}
+                          <RefreshIcon
                             className="animate-spin text-gray-500"
                             data-testid="allocation-loading"
                           />
@@ -205,9 +210,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <ChevronUp size={16} />
+                          <ChevronUpIcon />
                         ) : (
-                          <ChevronUpIcon className="w-4 h-4" />
+                          <DeprecatedChevronUpIcon className="w-4 h-4" />
                         )}
                       </button>
                       <button
@@ -220,9 +225,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <ChevronDown size={16} />
+                          <ChevronDownIcon />
                         ) : (
-                          <ChevronDownIcon className="w-4 h-4" />
+                          <DeprecatedChevronDownIcon className="w-4 h-4" />
                         )}
                       </button>
                       <button
@@ -235,7 +240,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         )}
                       >
                         {isLucideIconsOn ? (
-                          <Trash size={16} />
+                          <DeleteIcon />
                         ) : (
                           <TrashIcon className="w-4 h-4" />
                         )}
@@ -257,11 +262,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
             variant="default"
             size="sm"
           >
-            {isLucideIconsOn ? (
-              <Plus size={16} />
-            ) : (
-              <PlusIcon className="w-4 h-4" />
-            )}
+            {isLucideIconsOn ? <AddIcon /> : <PlusIcon className="w-4 h-4" />}
             {translate(
               "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
             )}

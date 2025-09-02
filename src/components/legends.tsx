@@ -11,7 +11,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { TriangleDownIcon, TriangleRightIcon } from "@radix-ui/react-icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import clsx from "clsx";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -67,12 +67,12 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
           <span className="flex-shrink-0">
             {isExpanded ? (
               isLucideIconsOn ? (
-                <ChevronDown size={16} />
+                <ChevronDownIcon />
               ) : (
                 <TriangleDownIcon />
               )
             ) : isLucideIconsOn ? (
-              <ChevronRight size={16} />
+              <ChevronRightIcon />
             ) : (
               <TriangleRightIcon />
             )}

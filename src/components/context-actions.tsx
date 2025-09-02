@@ -10,7 +10,7 @@ import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "src/icons";
 
 export function ToolbarTrigger({
   children,
@@ -30,7 +30,7 @@ export function ToolbarTrigger({
           <E.Button variant="quiet">
             {children}
             {!isLucideIconsOn ? (
-              <ChevronDown size={16} />
+              <ChevronDownIcon />
             ) : (
               <CaretDownIcon className="w-3 h-3" />
             )}

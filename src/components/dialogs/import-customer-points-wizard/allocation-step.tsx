@@ -20,7 +20,7 @@ import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence/context";
 import { Button } from "src/components/elements";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { SuccessIcon, WarningIcon } from "src/icons";
 
 export const AllocationStep: React.FC<{
   onBack: () => void;
@@ -100,7 +100,7 @@ export const AllocationStep: React.FC<{
       notify({
         variant: "success",
         title: translate("importSuccessful"),
-        Icon: isLucideIconsOn ? CircleCheck : CheckCircledIcon,
+        Icon: isLucideIconsOn ? SuccessIcon : CheckCircledIcon,
         isLucideIconsOn: isLucideIconsOn,
       });
 
@@ -425,7 +425,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       <div className="space-y-2">
         <div className="flex items-center">
           {isLucideIconsOn ? (
-            <CircleCheck size={16} className="text-green-500 mr-2" />
+            <SuccessIcon className="text-green-500 mr-2" />
           ) : (
             <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
           )}
@@ -440,7 +440,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         {unallocatedCount > 0 && (
           <div className="flex items-center">
             {isLucideIconsOn ? (
-              <TriangleAlert size={16} className="text-orange-500 mr-2" />
+              <WarningIcon className="text-orange-500 mr-2" />
             ) : (
               <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
             )}

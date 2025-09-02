@@ -2,23 +2,24 @@ import React from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import {
-  FileIcon,
+  FileIcon as DeprecatedFileIcon,
   FilePlusIcon,
   SunIcon,
-  GlobeIcon,
+  GlobeIcon as DeprecatedGlobeIcon,
   FileTextIcon,
   StarIcon,
-  ChevronDownIcon,
+  ChevronDownIcon as DeprecatedChevronDownIcon,
 } from "@radix-ui/react-icons";
+
 import {
-  ChevronDown,
-  File,
-  FilePlus,
-  FileSpreadsheet,
-  Globe,
-  Star,
-  Sun,
-} from "lucide-react";
+  ChevronDownIcon,
+  FileIcon,
+  FileAddIcon,
+  FileSpreadsheetIcon,
+  GlobeIcon,
+  EarlyAccessIcon,
+  NewFromExampleIcon,
+} from "src/icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -52,13 +53,13 @@ export const CreateNewDropdown = () => {
               <Button variant="quiet">
                 {isLucideIconsOn ? (
                   <>
-                    <FilePlus size={16} />
-                    <ChevronDown size={12} />
+                    <FileAddIcon />
+                    <ChevronDownIcon size={12} />
                   </>
                 ) : (
                   <>
                     <FilePlusIcon />
-                    <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+                    <DeprecatedChevronDownIcon className="w-3 h-3 text-gray-500" />
                   </>
                 )}
               </Button>
@@ -75,7 +76,7 @@ export const CreateNewDropdown = () => {
                   void createNewProject({ source: "toolbar" });
                 }}
               >
-                {isLucideIconsOn ? <File size={16} /> : <FileIcon />}
+                {isLucideIconsOn ? <FileIcon /> : <DeprecatedFileIcon />}
                 {translate("startBlankProject")}
               </StyledItem>
 
@@ -88,7 +89,7 @@ export const CreateNewDropdown = () => {
                   showWelcome({ source: "toolbar" });
                 }}
               >
-                {isLucideIconsOn ? <Sun size={16} /> : <SunIcon />}
+                {isLucideIconsOn ? <NewFromExampleIcon /> : <SunIcon />}
                 {translate("startFromExample")}
               </StyledItem>
 
@@ -101,11 +102,7 @@ export const CreateNewDropdown = () => {
                   void openInpFromFs({ source: "toolbar" });
                 }}
               >
-                {isLucideIconsOn ? (
-                  <FileSpreadsheet size={16} />
-                ) : (
-                  <FileTextIcon />
-                )}
+                {isLucideIconsOn ? <FileSpreadsheetIcon /> : <FileTextIcon />}
                 {translate("openINP")}
               </StyledItem>
 
@@ -114,10 +111,10 @@ export const CreateNewDropdown = () => {
                   openModelBuilder({ source: "toolbar" });
                 }}
               >
-                {isLucideIconsOn ? <Globe size={16} /> : <GlobeIcon />}
+                {isLucideIconsOn ? <GlobeIcon /> : <DeprecatedGlobeIcon />}
                 {translate("importFromGIS")}
                 {isLucideIconsOn ? (
-                  <Star size={12} />
+                  <EarlyAccessIcon size={12} />
                 ) : (
                   <StarIcon className="w-3 h-3 ml-1" />
                 )}

@@ -5,7 +5,7 @@ import { Button } from "../elements";
 import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleQuestionMark } from "lucide-react";
+import { HelpIcon } from "src/icons";
 
 export const UnsavedChangesDialog = ({
   onContinue,
@@ -35,9 +35,7 @@ export const UnsavedChangesDialog = ({
     <>
       <DialogHeader
         title={translate("unsavedChanges")}
-        titleIcon={
-          isLucideIconsOn ? CircleQuestionMark : QuestionMarkCircledIcon
-        }
+        titleIcon={isLucideIconsOn ? HelpIcon : QuestionMarkCircledIcon}
       />
       <div className="text-sm">
         <p>{translate("unsavedChangesQuestion")}</p>

@@ -1,5 +1,5 @@
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { Info } from "lucide-react";
+import { InfoIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 /**
@@ -14,7 +14,7 @@ export function InlineError({ children }: React.PropsWithChildren<unknown>) {
       className="pt-1 text-sm flex items-start gap-x-1 text-red-700 dark:text-red-300"
     >
       {isLucideIconsOn ? (
-        <Info size={16} style={{ marginTop: 2 }} />
+        <InfoIcon style={{ marginTop: 2 }} />
       ) : (
         <InfoCircledIcon className="flex-shrink-0" style={{ marginTop: 2 }} />
       )}

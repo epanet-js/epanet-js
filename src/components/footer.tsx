@@ -1,6 +1,6 @@
 import {
   CheckCircledIcon,
-  CircleIcon,
+  CircleIcon as DeprecatedCircleIcon,
   CountdownTimerIcon,
   CrossCircledIcon,
   DoubleArrowLeftIcon,
@@ -15,14 +15,15 @@ import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { HydraulicModel } from "src/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
 import {
-  ChevronsLeft,
-  Circle,
-  CircleCheck,
-  CircleX,
-  History,
-  TriangleAlert,
-} from "lucide-react";
+  ErrorIcon,
+  SuccessIcon,
+  WarningIcon,
+  ChevronsLeftIcon,
+  CircleIcon,
+  OutdatedSimulationIcon,
+} from "src/icons";
 
 export const Footer = () => {
   const translate = useTranslate();
@@ -103,7 +104,7 @@ const CollapsedPopover = ({
       <Popover.Trigger asChild>
         <Button variant="quiet">
           {isLucideIconsOn ? (
-            <ChevronsLeft size={16} className="text-gray-500" />
+            <ChevronsLeftIcon className="text-gray-500" />
           ) : (
             <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
           )}
@@ -152,55 +153,55 @@ const buildSimulationStatusStyles = (
   switch (simulation.status) {
     case "idle":
       return {
-        Icon: isLucideIconsOn ? Circle : CircleIcon,
+        Icon: isLucideIconsOn ? CircleIcon : DeprecatedCircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationReadyToRun"),
       };
     case "running":
       return {
-        Icon: isLucideIconsOn ? Circle : CircleIcon,
+        Icon: isLucideIconsOn ? CircleIcon : DeprecatedCircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationRunning"),
       };
     case "success":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
+          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? CircleCheck : CheckCircledIcon,
+        Icon: isLucideIconsOn ? SuccessIcon : CheckCircledIcon,
         colorClass: "text-green-500",
         text: translate("simulationSuccess"),
       };
     case "failure":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
+          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
         colorClass: "text-red-500",
         text: translate("simulationFailure"),
       };
     case "warning":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? History : CountdownTimerIcon,
+          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon,
+        Icon: isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon,
         colorClass: "text-yellow-600",
         text: translate("simulationWarning"),
       };
@@ -225,7 +226,7 @@ export const SimulationStatusText = () => {
       className={`flex flex-row items-center space-x-2 text-sm ${colorClass}`}
     >
       {isLucideIconsOn ? (
-        <Icon size={16} className="mr-1" />
+        <Icon className="mr-1" />
       ) : (
         <Icon className="w-4 h-4 mx-1" />
       )}

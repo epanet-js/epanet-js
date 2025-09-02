@@ -11,7 +11,7 @@ import { Button } from "src/components/elements";
 import { Form, Formik } from "formik";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Star } from "lucide-react";
+import { EarlyAccessIcon } from "src/icons";
 
 export const EarlyAccessDialog = ({
   onContinue: _onContinue,
@@ -30,7 +30,7 @@ export const EarlyAccessDialog = ({
   return (
     <DialogContainer size="sm">
       <DialogHeader
-        titleIcon={isLucideIconsOn ? Star : StarIcon}
+        titleIcon={isLucideIconsOn ? EarlyAccessIcon : StarIcon}
         title="Early Access Feature"
       />
       <Formik onSubmit={() => {}} initialValues={{}}>

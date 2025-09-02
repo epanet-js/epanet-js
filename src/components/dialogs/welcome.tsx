@@ -17,21 +17,21 @@ import {
 import { Checkbox } from "../form/Checkbox";
 import { Button, LogoIconAndWordmarkIcon } from "../elements";
 import {
-  ArrowRightIcon,
-  FileIcon,
+  ArrowRightIcon as DeprecatedArrowRightIcon,
+  FileIcon as DeprecatedFileIcon,
   FileTextIcon,
-  GlobeIcon,
+  GlobeIcon as DeprecatedGlobeIcon,
   QuestionMarkCircledIcon,
   StarIcon,
 } from "@radix-ui/react-icons";
 import {
-  ArrowRight,
-  File,
-  FileSpreadsheet,
-  Globe,
-  HelpCircle,
-  Star,
-} from "lucide-react";
+  ArrowRightIcon,
+  FileIcon,
+  FileSpreadsheetIcon,
+  GlobeIcon,
+  HelpIcon,
+  EarlyAccessIcon,
+} from "src/icons";
 import { DialogCloseX, DialogContainer } from "../dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
@@ -105,9 +105,9 @@ export const WelcomeDialog = () => {
                     }}
                   >
                     {isLucideIconsOn ? (
-                      <File size={16} />
+                      <FileIcon />
                     ) : (
-                      <FileIcon className="w-4 h-4 flex-shrink-0" />
+                      <DeprecatedFileIcon className="w-4 h-4 flex-shrink-0" />
                     )}
 
                     {translate("startBlankProject")}
@@ -120,7 +120,7 @@ export const WelcomeDialog = () => {
                   }}
                 >
                   {isLucideIconsOn ? (
-                    <FileSpreadsheet size={16} />
+                    <FileSpreadsheetIcon />
                   ) : (
                     <FileTextIcon className="w-4 h-4 flex-shrink-0" />
                   )}
@@ -133,13 +133,13 @@ export const WelcomeDialog = () => {
                   }}
                 >
                   {isLucideIconsOn ? (
-                    <Globe size={16} />
+                    <GlobeIcon />
                   ) : (
-                    <GlobeIcon className="w-4 h-4 flex-shrink-0" />
+                    <DeprecatedGlobeIcon className="w-4 h-4 flex-shrink-0" />
                   )}
                   {translate("importFromGIS")}
                   {isLucideIconsOn ? (
-                    <Star size={12} />
+                    <EarlyAccessIcon />
                   ) : (
                     <StarIcon className="w-3 h-3 ml-1" />
                   )}
@@ -158,7 +158,7 @@ export const WelcomeDialog = () => {
                 >
                   <Button variant="quiet">
                     {isLucideIconsOn ? (
-                      <HelpCircle size={16} />
+                      <HelpIcon />
                     ) : (
                       <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
                     )}
@@ -178,9 +178,9 @@ export const WelcomeDialog = () => {
                   >
                     <Button variant="primary">
                       {isLucideIconsOn ? (
-                        <ArrowRight size={16} />
-                      ) : (
                         <ArrowRightIcon />
+                      ) : (
+                        <DeprecatedArrowRightIcon />
                       )}
                       {translate("quickStartTutorial")}
                     </Button>

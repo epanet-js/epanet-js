@@ -18,7 +18,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
-import { TriangleAlert } from "lucide-react";
+import { WarningIcon } from "src/icons";
 
 export const inpExtension = ".inp";
 
@@ -53,7 +53,7 @@ export const useImportInp = () => {
           size: "md",
           title: translate("onlyOneInp"),
           description: translate("onlyOneInpExplain"),
-          Icon: isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon,
+          Icon: isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon,
           isLucideIconsOn: isLucideIconsOn,
         });
       }

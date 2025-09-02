@@ -9,7 +9,7 @@ import {
   BellIcon,
   CrossCircledIcon,
   ExclamationTriangleIcon,
-  GlobeIcon,
+  GlobeIcon as DeprecatedGlobeIcon,
   TriangleDownIcon,
   TriangleRightIcon,
 } from "@radix-ui/react-icons";
@@ -21,14 +21,15 @@ import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
 import {
-  Bell,
-  ChevronDown,
-  ChevronRight,
-  CircleX,
-  Globe,
-  TriangleAlert,
-} from "lucide-react";
+  ChevronDownIcon,
+  ChevronRightIcon,
+  GlobeIcon,
+  ErrorIcon,
+  WarningIcon,
+  SubscribeIcon,
+} from "src/icons";
 
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
@@ -54,7 +55,7 @@ export const GeocodingNotSupportedDialog = ({
     <>
       <DialogHeader
         title={translate("geocodingNotSupported")}
-        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
         variant="warning"
       />
       <div className="text-sm">
@@ -112,7 +113,7 @@ export const MissingCoordinatesDialog = ({
     <>
       <DialogHeader
         title={translate("missingCoordinates")}
-        titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
+        titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
         variant="danger"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -153,7 +154,7 @@ export const InpIssuesDialog = ({
     <>
       <DialogHeader
         title={translate("inpNotFullySupported")}
-        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
         variant="warning"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -197,7 +198,7 @@ export const ProjectionCTA = () => {
             window.open(projectionConverterUrl);
           }}
         >
-          {isLucideIconsOn ? <Globe /> : <GlobeIcon />}
+          {isLucideIconsOn ? <GlobeIcon /> : <DeprecatedGlobeIcon />}
           EPANET Projection Converter
         </Button>
       </p>
@@ -228,7 +229,7 @@ export const SubscribeCTA = ({
             window.open(newsletterUrl);
           }}
         >
-          {isLucideIconsOn ? <Bell size={16} /> : <BellIcon />}
+          {isLucideIconsOn ? <SubscribeIcon /> : <BellIcon />}
           {translate("subscribeForUpdates")}
         </Button>
       </p>
@@ -259,12 +260,12 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
       >
         {isExpaned ? (
           isLucideIconsOn ? (
-            <ChevronDown size={16} />
+            <ChevronDownIcon />
           ) : (
             <TriangleDownIcon />
           )
         ) : isLucideIconsOn ? (
-          <ChevronRight size={16} />
+          <ChevronRightIcon />
         ) : (
           <TriangleRightIcon />
         )}
@@ -324,12 +325,12 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
       >
         {isExpaned ? (
           isLucideIconsOn ? (
-            <ChevronDown size={16} />
+            <ChevronDownIcon />
           ) : (
             <TriangleDownIcon />
           )
         ) : isLucideIconsOn ? (
-          <ChevronRight size={16} />
+          <ChevronRightIcon />
         ) : (
           <TriangleRightIcon />
         )}

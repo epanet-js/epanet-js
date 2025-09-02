@@ -4,7 +4,7 @@ import { Form, Formik } from "formik";
 import { SimpleDialogActions } from "src/components/dialog";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { TriangleAlert } from "lucide-react";
+import { WarningIcon } from "src/icons";
 
 export const AlertInpOutputDialog = ({
   onContinue,
@@ -26,7 +26,7 @@ export const AlertInpOutputDialog = ({
       <Form>
         <DialogHeader
           title={translate("alertInpOutput")}
-          titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+          titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
           variant="warning"
         />
         <div className="text-sm">

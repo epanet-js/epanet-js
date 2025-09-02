@@ -7,7 +7,7 @@ import {
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import {
-  CheckIcon,
+  CheckIcon as DeprecatedCheckIcon,
   Cross1Icon,
   ExclamationTriangleIcon,
   InfoCircledIcon,
@@ -37,7 +37,13 @@ import {
 import { canUpgrade } from "src/user-plan";
 import { signUpUrl } from "src/global-config";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Check, Info, Rocket, TriangleAlert, X } from "lucide-react";
+import {
+  CheckIcon,
+  InfoIcon,
+  CloseIcon,
+  WarningIcon,
+  UpgradeIcon,
+} from "src/icons";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -95,7 +101,7 @@ const ChangesFromSupportDialog = () => {
       <DialogHeader
         variant="warning"
         title={translate("planChangesFromSupport")}
-        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
       />
       <p className="text text-sm">
         {translate("planChangesFromSupportExplain")}
@@ -142,7 +148,7 @@ const PlansDialog = () => {
     <DialogContainer size="lg">
       <DialogHeader
         title={translate("upgradeYourAccount")}
-        titleIcon={isLucideIconsOn ? Rocket : RocketIcon}
+        titleIcon={isLucideIconsOn ? UpgradeIcon : RocketIcon}
       />
       <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">
         <div className="flex items-center gap-2">
@@ -212,27 +218,27 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("free.webBasedEpanet"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.backgroundMap"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.elevations"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.noLimits"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("free.communitySupport"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -244,7 +250,11 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
           className="default-pointer bg-gray-300 text-gray-700"
           disabled={true}
         >
-          {isLucideIconsOn ? <Check /> : <CheckIcon className="h-5 w-5" />}
+          {isLucideIconsOn ? (
+            <CheckIcon />
+          ) : (
+            <DeprecatedCheckIcon className="h-5 w-5" />
+          )}
           {translate("currentPlan")}
         </Button>
       </div>
@@ -274,12 +284,12 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("professionalSupport"),
-              Icon: isLucideIconsOn ? X : Cross1Icon,
+              Icon: isLucideIconsOn ? CloseIcon : Cross1Icon,
               iconColor: "text-red-500",
             },
             {
               feature: translate("customMapLayers"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -291,22 +301,22 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("scenarios"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("cloudStorage"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "30"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("demandsAnalysis"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -403,12 +413,12 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("professionalSupport"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
             {
               feature: translate("customMapLayers"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-green-500",
             },
           ]}
@@ -420,22 +430,22 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("scenarios"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("cloudStorage"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "30"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("demandsAnalysis"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -474,27 +484,27 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           items={[
             {
               feature: translate("prioritySupport"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("teamStorage"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("pointInTimeRestore", "90"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("sharingModels"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
             {
               feature: translate("volumeDiscounts"),
-              Icon: isLucideIconsOn ? Check : CheckIcon,
+              Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
               iconColor: "text-gray-400",
             },
           ]}
@@ -602,7 +612,7 @@ const InfoTooltip = ({ text }: { text: string }) => {
       <Tooltip.Trigger asChild>
         <button className="p-1 rounded-full hover:bg-gray-200">
           {isLucideIconsOn ? (
-            <Info className="w-5 h-5 text-gray-500" />
+            <InfoIcon className="w-5 h-5 text-gray-500" />
           ) : (
             <InfoCircledIcon className="w-5 h-5 text-gray-500" />
           )}

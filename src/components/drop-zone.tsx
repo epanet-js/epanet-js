@@ -1,9 +1,9 @@
 import React, { useCallback, useRef } from "react";
 import { useDropZone } from "src/hooks/use-drop-zone";
 import { useTranslate } from "src/hooks/use-translate";
-import { UploadIcon } from "@radix-ui/react-icons";
+import { UploadIcon as DeprecatedUploadIcon } from "@radix-ui/react-icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Upload } from "lucide-react";
+import { UploadIcon } from "src/icons";
 
 interface DropZoneProps {
   onFileDrop: (file: File) => void;
@@ -65,13 +65,13 @@ export const DropZone: React.FC<DropZoneProps> = ({
         `}
         >
           {isLucideIconsOn ? (
-            <Upload
+            <UploadIcon
               className={`h-8 w-8 ${
                 dragState === "over" ? "text-purple-600" : "text-gray-400"
               }`}
             />
           ) : (
-            <UploadIcon
+            <DeprecatedUploadIcon
               className={
                 dragState === "over" ? "text-purple-600" : "text-gray-400"
               }

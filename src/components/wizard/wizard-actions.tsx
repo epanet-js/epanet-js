@@ -1,14 +1,19 @@
 import React from "react";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CheckIcon,
+  ChevronLeftIcon as DeprecatedChevronLeftIcon,
+  ChevronRightIcon as DeprecatedChevronRightIcon,
+  CheckIcon as DeprecatedCheckIcon,
   UpdateIcon,
 } from "@radix-ui/react-icons";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Check, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  RefreshIcon,
+} from "src/icons";
 
 interface WizardAction {
   onClick: () => void;
@@ -46,9 +51,9 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             disabled={backAction.disabled}
           >
             {isLucideIconsOn ? (
-              <ChevronLeft size={16} />
+              <ChevronLeftIcon />
             ) : (
-              <ChevronLeftIcon className="w-4 h-4" />
+              <DeprecatedChevronLeftIcon className="w-4 h-4" />
             )}
             {backAction.label || translate("wizard.back")}
           </Button>
@@ -65,9 +70,9 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
           >
             {nextAction.label || translate("wizard.next")}
             {isLucideIconsOn ? (
-              <ChevronRight size={16} />
+              <ChevronRightIcon />
             ) : (
-              <ChevronRightIcon className="w-4 h-4" />
+              <DeprecatedChevronRightIcon className="w-4 h-4" />
             )}
           </Button>
         )}
@@ -81,14 +86,14 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
           >
             {finishAction.loading ? (
               isLucideIconsOn ? (
-                <RefreshCw size={16} className="w-4 h-4 animate-spin" />
+                <RefreshIcon className="w-4 h-4 animate-spin" />
               ) : (
                 <UpdateIcon className="w-4 h-4 animate-spin" />
               )
             ) : isLucideIconsOn ? (
-              <Check size={16} />
+              <CheckIcon />
             ) : (
-              <CheckIcon className="w-4 h-4" />
+              <DeprecatedCheckIcon className="w-4 h-4" />
             )}
             {finishAction.loading
               ? finishAction.label || translate("wizard.processing")

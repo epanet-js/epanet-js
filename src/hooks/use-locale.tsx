@@ -14,7 +14,7 @@ import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 
 const I18N_TIMEOUT_MS = 10000;
 
@@ -34,7 +34,7 @@ const changeLanguageWithTimeout = async (
       notify({
         variant: "error",
         title: "Error",
-        Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
         isLucideIconsOn: isLucideIconsOn,
       });
     },

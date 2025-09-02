@@ -6,7 +6,7 @@ import React from "react";
 import { useAtom } from "jotai";
 import { PanelAtom } from "src/state/jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 export function PanelDetails({
   children,
@@ -55,12 +55,12 @@ export function PanelDetailsCollapsible({
         <span>{title}</span>
         {open ? (
           isLucideIconsOn ? (
-            <ChevronDown size={16} />
+            <ChevronDownIcon />
           ) : (
             <CaretDownIcon className="w-3 h-3" />
           )
         ) : isLucideIconsOn ? (
-          <ChevronRight size={16} />
+          <ChevronRightIcon />
         ) : (
           <CaretRightIcon className="w-3 h-3" />
         )}{" "}

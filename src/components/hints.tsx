@@ -1,5 +1,5 @@
 import { Cross1Icon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { Info, X } from "lucide-react";
+import { CloseIcon, InfoIcon } from "src/icons";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
@@ -49,7 +49,7 @@ function Hint({
       )}
     >
       {isLucideIconsOn ? (
-        <Info size={16} />
+        <InfoIcon />
       ) : (
         <InfoCircledIcon className="shrink-0 w-5 h-5" />
       )}
@@ -69,7 +69,7 @@ function Hint({
             });
           }}
         >
-          <X size={16} />
+          <CloseIcon />
         </button>
       ) : (
         <button

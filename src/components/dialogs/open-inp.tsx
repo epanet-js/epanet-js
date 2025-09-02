@@ -17,7 +17,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -101,7 +101,7 @@ export function OpenInpDialog({
       <>
         <DialogHeader
           title={translate("error")}
-          titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
+          titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
           variant="danger"
         />
         <div className="text-sm">

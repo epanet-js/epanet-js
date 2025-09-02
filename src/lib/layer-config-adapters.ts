@@ -3,7 +3,7 @@ import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { notify } from "src/components/notifications";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
-import { Link2Off } from "lucide-react";
+import { DisconnectIcon } from "src/icons";
 
 const warnOffline = (
   translate: (key: string) => string,
@@ -11,7 +11,7 @@ const warnOffline = (
 ) =>
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
+    Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
     title: translate("mapOfflineMode"),
     description: translate("mapOfflineModeExplain"),
     size: "md",
@@ -118,7 +118,7 @@ export async function addTileJSONStyle(
   } catch (e) {
     notify({
       variant: "error",
-      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
+      Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
       title: translate("failedToLoad"),
       description: translate("failedToLoadTileJSON"),
       size: "md",

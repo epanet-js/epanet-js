@@ -1,4 +1,4 @@
-import { FileIcon } from "@radix-ui/react-icons";
+import { FileIcon as DeprecatedFileIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
@@ -29,7 +29,7 @@ import { MapContext } from "src/map/map-context";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
-import { File } from "lucide-react";
+import { FileIcon } from "src/icons";
 
 type LocationData = {
   name: string;
@@ -112,7 +112,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
     <>
       <DialogHeader
         title={translate("newProject")}
-        titleIcon={isLucideIconsOn ? File : FileIcon}
+        titleIcon={isLucideIconsOn ? FileIcon : DeprecatedFileIcon}
       />
       <Formik
         onSubmit={handleSubmit}

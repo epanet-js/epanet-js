@@ -1,12 +1,12 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogContainer, DialogHeader } from "../dialog";
-import { FileTextIcon } from "@radix-ui/react-icons";
+import { FileTextIcon as DeprecatedFileTextIcon } from "@radix-ui/react-icons";
 import { replaceIdWithLabels } from "src/simulation/report";
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { FileText } from "lucide-react";
+import { FileTextIcon } from "src/icons";
 
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
@@ -40,7 +40,7 @@ export const SimulationReportDialog = () => {
     <DialogContainer size="lg" fillMode="auto">
       <DialogHeader
         title={translate("simulationReport")}
-        titleIcon={isLucideIconsOn ? FileText : FileTextIcon}
+        titleIcon={isLucideIconsOn ? FileTextIcon : DeprecatedFileTextIcon}
       />
 
       <div className="p-4 overflow-auto border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">

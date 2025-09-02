@@ -2,7 +2,7 @@ import React from "react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { WizardStepIndicator, type Step } from "./wizard-step-indicator";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { X } from "lucide-react";
+import { CloseIcon } from "src/icons";
 
 interface WizardHeaderProps {
   title: string;
@@ -30,7 +30,7 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
                       focus:bg-gray-200 dark:focus:bg-black
                       hover:text-black dark:hover:text-white"
           >
-            {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
+            {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
           </button>
         )}
       </div>

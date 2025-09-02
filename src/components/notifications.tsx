@@ -1,6 +1,6 @@
 import { Cross1Icon } from "@radix-ui/react-icons";
 import clsx from "clsx";
-import { X } from "lucide-react";
+import { CloseIcon } from "src/icons";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function Notifications({
@@ -131,7 +131,7 @@ export const notify = ({
             className="ml-4 p-1 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
           >
             <span className="sr-only">Dismiss</span>
-            {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
+            {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
           </button>
         )}
       </div>

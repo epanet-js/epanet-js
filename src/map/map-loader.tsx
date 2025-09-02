@@ -4,7 +4,7 @@ import { mapLoadingAtom } from "./state";
 import { useRef } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { RotateCw } from "lucide-react";
+import { RefreshIcon } from "src/icons";
 
 export const MapLoading = () => {
   const translate = useTranslate();
@@ -31,7 +31,7 @@ export const MapLoading = () => {
             pointer-events-none`}
       >
         {useLucideIcons ? (
-          <RotateCw size={16} className="animate-spin" />
+          <RefreshIcon className="animate-spin" />
         ) : (
           <ReloadIcon className="animate-spin" />
         )}

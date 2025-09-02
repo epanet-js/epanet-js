@@ -7,7 +7,7 @@ import { SimpleDialogActions } from "src/components/dialog";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { Form, Formik } from "formik";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 export type OnNext = (arg0: ConvertResult | null) => void;
 
 export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
@@ -18,7 +18,7 @@ export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
     <>
       <DialogHeader
         title={translate("failedToOpenModel")}
-        titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
+        titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
         variant="danger"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>

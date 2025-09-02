@@ -8,7 +8,7 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { isAuthEnabled } from "src/auth";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { User } from "lucide-react";
+import { UserIcon } from "src/icons";
 
 export const SignInButton = ({
   onClick,
@@ -63,7 +63,7 @@ export const SignUpButton = ({
         onClick={onClick}
         autoFocus={autoFocus}
       >
-        {isLucideIconsOn ? <User size={16} /> : <PersonIcon />}{" "}
+        {isLucideIconsOn ? <UserIcon /> : <PersonIcon />}{" "}
         {translate("register")}
       </Button>
     </ClerkSignUpButton>

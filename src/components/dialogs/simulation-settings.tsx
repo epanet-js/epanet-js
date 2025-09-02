@@ -14,7 +14,7 @@ import { changeDemands } from "src/hydraulic-model/model-operations/change-deman
 import { FieldList, InlineField } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Settings } from "lucide-react";
+import { SettingsIcon } from "src/icons";
 
 export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
@@ -48,7 +48,7 @@ export const SimulationSettingsDialog = () => {
     <DialogContainer size="xs">
       <DialogHeader
         title={translate("simulationSettings")}
-        titleIcon={isLucideIconsOn ? Settings : GearIcon}
+        titleIcon={isLucideIconsOn ? SettingsIcon : GearIcon}
       />
       <Formik
         onSubmit={handleSumbit}

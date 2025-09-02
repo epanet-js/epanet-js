@@ -4,7 +4,7 @@ import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { TriangleAlert } from "lucide-react";
+import { WarningIcon } from "src/icons";
 
 export const ImportCustomerPointsWarningDialog = ({
   onContinue,
@@ -37,7 +37,7 @@ export const ImportCustomerPointsWarningDialog = ({
     <>
       <DialogHeader
         title={translate("importCustomerPoints.label")}
-        titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
         variant="danger"
       />
       <div className="text-sm">

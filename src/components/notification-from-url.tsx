@@ -1,9 +1,9 @@
-import { CheckIcon } from "@radix-ui/react-icons";
+import { CheckIcon as DeprecatedCheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { notify } from "./notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Check } from "lucide-react";
+import { CheckIcon } from "src/icons";
 
 type NotificationData = {
   variant: "success" | "warning" | "error";
@@ -25,7 +25,7 @@ export const NotificationFromUrl = () => {
       variant: "success",
       title: translate("upgradeSuccessful"),
       description: translate("upgradeSuccessfulExplain"),
-      Icon: isLucideIconsOn ? Check : CheckIcon,
+      Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
       size: "md",
       isLucideIconsOn: isLucideIconsOn,
     },

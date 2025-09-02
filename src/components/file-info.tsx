@@ -1,4 +1,7 @@
-import { DotFilledIcon, FileIcon } from "@radix-ui/react-icons";
+import {
+  DotFilledIcon,
+  FileIcon as DeprecatedFileIcon,
+} from "@radix-ui/react-icons";
 import {
   fileInfoAtom,
   fileInfoMachineAtom,
@@ -9,7 +12,7 @@ import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Dot, File } from "lucide-react";
+import { UnsavedChangesIcon, FileIcon } from "src/icons";
 
 export function FileInfo() {
   const fileInfo = useAtomValue(fileInfoAtom);
@@ -24,9 +27,9 @@ export function FileInfo() {
       <div className="pl-3 flex-initial hidden sm:flex items-center gap-x-1">
         <Popover.Anchor>
           {isLucideIconsOn ? (
-            <File size={16} />
+            <FileIcon />
           ) : (
-            <FileIcon className="w-3 h-3" />
+            <DeprecatedFileIcon className="w-3 h-3" />
           )}
         </Popover.Anchor>
         <div
@@ -37,7 +40,7 @@ export function FileInfo() {
         </div>
         {hasUnsavedChanges ? (
           isLucideIconsOn ? (
-            <Dot size={16} />
+            <UnsavedChangesIcon />
           ) : (
             <DotFilledIcon />
           )

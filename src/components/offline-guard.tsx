@@ -6,7 +6,7 @@ import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
 import { pingUrl } from "src/global-config";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Link2, Link2Off } from "lucide-react";
+import { ConnectIcon, DisconnectIcon } from "src/icons";
 
 const offlineToastId = "offline-toast";
 const onlineToastId = "online-toast";
@@ -34,7 +34,7 @@ export const useOfflineStatus = () => {
     notify({
       variant: "success",
       title: translate("connectionRestored"),
-      Icon: isLucideIconsOn ? Link2 : Link1Icon,
+      Icon: isLucideIconsOn ? ConnectIcon : Link1Icon,
       dismissable: false,
       duration: 3000,
       id: onlineToastId,
@@ -52,7 +52,7 @@ export const useOfflineStatus = () => {
     hideNotification(onlineToastId);
     notify({
       variant: "warning",
-      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
+      Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
       title: translate("noInternet"),
       description: translate("noInternetExplain"),
       duration: Infinity,

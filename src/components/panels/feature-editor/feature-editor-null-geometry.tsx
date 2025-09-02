@@ -11,7 +11,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import * as P from "@radix-ui/react-popover";
 import Modes from "src/components/modes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { TriangleAlert } from "lucide-react";
+import { WarningIcon } from "src/icons";
 
 export const FeatureEditorNullGeometry = memo(
   function FeatureEditorNullGeometryInner({
@@ -25,7 +25,7 @@ export const FeatureEditorNullGeometry = memo(
       <PanelDetailsCollapsible title="Null geometry" atom={panelNullOpen}>
         <TextWell size="xs">
           {isLucideIconsOn ? (
-            <TriangleAlert size={16} className="inline-block w-3 h-3 mr-1" />
+            <WarningIcon className="inline-block w-3 h-3 mr-1" />
           ) : (
             <ExclamationTriangleIcon className="inline-block w-3 h-3 mr-1" />
           )}

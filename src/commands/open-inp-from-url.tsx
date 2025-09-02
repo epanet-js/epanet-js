@@ -8,7 +8,7 @@ import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { notify } from "src/components/notifications";
-import { Link2Off } from "lucide-react";
+import { DisconnectIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useOpenInpFromUrl = () => {
@@ -21,7 +21,7 @@ export const useOpenInpFromUrl = () => {
 
   const handleDownloadError = useCallback(() => {
     notify({
-      Icon: isLucideIconsOn ? Link2Off : LinkBreak1Icon,
+      Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
       variant: "error",
       title: translate("downloadFailed"),
       description: translate("checkConnectionAndTry"),

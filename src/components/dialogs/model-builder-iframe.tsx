@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DialogContainer, DialogHeader } from "../dialog";
-import { GlobeIcon } from "@radix-ui/react-icons";
+import { GlobeIcon as DeprecatedGlobeIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { Loading } from "../elements";
 import { EarlyAccessBadge } from "../early-access-badge";
@@ -10,7 +10,7 @@ import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { modelBuilderUrl } from "src/global-config";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Globe } from "lucide-react";
+import { GlobeIcon } from "src/icons";
 
 interface IframeMessage {
   type: string;
@@ -150,7 +150,7 @@ export const ModelBuilderIframeDialog = ({
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
       <DialogHeader
         title={translate("importFromGIS")}
-        titleIcon={isLucideIconsOn ? Globe : GlobeIcon}
+        titleIcon={isLucideIconsOn ? GlobeIcon : DeprecatedGlobeIcon}
         badge={<EarlyAccessBadge />}
       />
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">

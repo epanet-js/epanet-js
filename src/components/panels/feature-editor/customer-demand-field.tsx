@@ -10,7 +10,7 @@ import { Unit } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { CustomerPointsPopover } from "./customer-points-popover";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { SquareStack } from "lucide-react";
+import { MultipleAssetsIcon } from "src/icons";
 
 interface CustomerDemandFieldProps {
   totalDemand: number;
@@ -83,7 +83,7 @@ export const CustomerDemandField = ({
           flex overflow-hidden items-center"
         >
           {isLucideIconsOn ? (
-            <SquareStack size={16} className="flex-shrink-0" />
+            <MultipleAssetsIcon className="flex-shrink-0" />
           ) : (
             <CardStackIcon className="flex-shrink-0" />
           )}

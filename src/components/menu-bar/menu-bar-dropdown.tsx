@@ -1,7 +1,10 @@
 import { momentLogAtom } from "src/state/jotai";
 import { useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { CaretRightIcon, ArrowRightIcon } from "@radix-ui/react-icons";
+import {
+  CaretRightIcon,
+  ArrowRightIcon as DeprecatedArrowRightIcon,
+} from "@radix-ui/react-icons";
 import {
   styledButton,
   DDContent,
@@ -13,7 +16,7 @@ import {
 import React, { useMemo } from "react";
 import { usePersistence } from "src/lib/persistence/context";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRightIcon, ChevronRightIcon } from "src/icons";
 
 function UndoList() {
   const rep = usePersistence();
@@ -34,9 +37,9 @@ function UndoList() {
           }}
         >
           {isLucideIconsOn ? (
-            <ArrowRight size={16} />
+            <ArrowRightIcon />
           ) : (
-            <ArrowRightIcon className="opacity-0" />
+            <DeprecatedArrowRightIcon className="opacity-0" />
           )}
           {moment.note || ""}
         </StyledItem>,
@@ -45,7 +48,11 @@ function UndoList() {
         List.push(
           <DDLabel key="current-state">
             <div className="flex items-center gap-x-2">
-              <ArrowRightIcon />
+              {isLucideIconsOn ? (
+                <ArrowRightIcon />
+              ) : (
+                <DeprecatedArrowRightIcon />
+              )}
               Current state
             </div>
           </DDLabel>,
@@ -71,11 +78,7 @@ export function DebugDropdown() {
               <DDSubTriggerItem>
                 Undo history
                 <div className="flex-auto" />
-                {isLucideIconsOn ? (
-                  <ChevronRight size={16} />
-                ) : (
-                  <CaretRightIcon />
-                )}
+                {isLucideIconsOn ? <ChevronRightIcon /> : <CaretRightIcon />}
               </DDSubTriggerItem>
               <UndoList />
             </DD.Sub>

@@ -1,5 +1,60 @@
-import { Link2Off, LucideIcon, LucideProps } from "lucide-react";
-import { Link2 } from "lucide-react";
+import {
+  LucideProps,
+  LucideIcon,
+  ArrowRight,
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronsLeft,
+  Circle,
+  CircleCheck,
+  CircleQuestionMark,
+  CircleSlash2,
+  CircleX,
+  Crosshair,
+  Dot,
+  Eye,
+  EyeOff,
+  File,
+  FilePlus,
+  FileSpreadsheet,
+  FileText,
+  Globe,
+  Grid2X2,
+  GripVertical,
+  History,
+  House,
+  HousePlus,
+  Info,
+  Keyboard,
+  Link2,
+  Link2Off,
+  Menu,
+  MousePointer2,
+  Plus,
+  RectangleHorizontal,
+  Redo2,
+  RefreshCw,
+  Rocket,
+  Save,
+  SaveAll,
+  Settings,
+  SquareStack,
+  Star,
+  Sun,
+  Trash,
+  Triangle,
+  TriangleAlert,
+  Type,
+  Undo2,
+  Upload,
+  User,
+  X,
+  Zap,
+} from "lucide-react";
 
 type IconProps = LucideProps;
 
@@ -7,5 +62,57 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
   return (props) => <Icon size={16} {...props} />;
 };
 
+export const HelpIcon = icon(CircleQuestionMark);
+export const InfoIcon = icon(Info);
+export const SuccessIcon = icon(CircleCheck);
+export const WarningIcon = icon(TriangleAlert);
+export const ErrorIcon = icon(CircleX);
+export const UserIcon = icon(User);
+export const RefreshIcon = icon(RefreshCw);
+export const ArrowRightIcon = icon(ArrowRight);
+export const ChevronUpIcon = icon(ChevronUp);
+export const ChevronRightIcon = icon(ChevronRight);
+export const ChevronDownIcon = icon(ChevronDown);
+export const ChevronLeftIcon = icon(ChevronLeft);
+export const ChevronsLeftIcon = icon(ChevronsLeft);
+export const CloseIcon = icon(X);
+export const UploadIcon = icon(Upload);
+export const EarlyAccessIcon = icon(Star);
+export const LabelsIcon = icon(Type);
+export const CheckIcon = icon(Check);
+export const KeyboardIcon = icon(Keyboard);
+export const FileIcon = icon(File);
+export const FileAddIcon = icon(FilePlus);
+export const FileTextIcon = icon(FileText);
+export const FileSpreadsheetIcon = icon(FileSpreadsheet);
+export const DeleteIcon = icon(Trash);
+export const ZoomToIcon = icon(Crosshair);
+export const GlobeIcon = icon(Globe);
+export const SettingsIcon = icon(Settings);
+export const UpgradeIcon = icon(Rocket);
+export const CircleIcon = icon(Circle);
+export const MenuIcon = icon(Menu);
+export const NewFromExampleIcon = icon(Sun);
+export const AddIcon = icon(Plus);
+export const UndoIcon = icon(Undo2);
+export const RedoIcon = icon(Redo2);
+export const UnsavedChangesIcon = icon(Dot);
+export const SaveIcon = icon(Save);
+export const SaveAllIcon = icon(SaveAll);
+export const OutdatedSimulationIcon = icon(History);
+export const RunSimulationIcon = icon(Zap);
+export const ImportCustomerPointsIcon = icon(HousePlus);
+export const UnavailableIcon = icon(CircleSlash2);
+export const MultipleAssetsIcon = icon(SquareStack);
+export const JunctionIcon = icon(Circle);
+export const ReservoirIcon = icon(Triangle);
+export const TankIcon = icon(RectangleHorizontal);
+export const MouseCursorDefaultIcon = icon(MousePointer2);
+export const SubscribeIcon = icon(Bell);
+export const Draggable = icon(GripVertical);
+export const TabsIcon = icon(Grid2X2);
+export const VisibilityOnIcon = icon(Eye);
+export const VisibilityOffIcon = icon(EyeOff);
 export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
+export const HouseIcon = icon(House);

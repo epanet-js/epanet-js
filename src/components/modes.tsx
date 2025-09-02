@@ -13,15 +13,16 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { PumpIcon } from "src/custom-icons/pump-icon";
 import { ValveIcon } from "src/custom-icons/valve-icon";
-import { TankIcon } from "src/custom-icons/tank-icon";
+import { TankIcon as DeprecatedTankIcon } from "src/custom-icons/tank-icon";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
 import {
-  Circle,
-  MousePointer2,
-  RectangleHorizontal,
-  Triangle,
-} from "lucide-react";
+  JunctionIcon,
+  ReservoirIcon,
+  TankIcon,
+  MouseCursorDefaultIcon,
+} from "src/icons";
 import { PipeIcon } from "src/custom-icons/pipe-icon";
 import { DeprecatedPumpIcon } from "src/custom-icons/deprecated-pump-icon";
 import { DeprecatedValveIcon } from "src/custom-icons/deprecated-valve-icon";
@@ -30,22 +31,22 @@ const MODE_OPTIONS = [
   {
     mode: Mode.NONE,
     hotkey: "1",
-    Icon: () => <MousePointer2 size={16} />,
+    Icon: () => <MouseCursorDefaultIcon />,
   },
   {
     mode: Mode.DRAW_JUNCTION,
     hotkey: "2",
-    Icon: () => <Circle size={16} />,
+    Icon: () => <JunctionIcon />,
   },
   {
     mode: Mode.DRAW_RESERVOIR,
     hotkey: "3",
-    Icon: () => <Triangle size={16} />,
+    Icon: () => <ReservoirIcon />,
   },
   {
     mode: Mode.DRAW_TANK,
     hotkey: "4",
-    Icon: () => <RectangleHorizontal size={16} />,
+    Icon: () => <TankIcon />,
   },
   {
     mode: Mode.DRAW_PIPE,
@@ -83,7 +84,7 @@ const DEPRECATED_MODE_OPTIONS = [
   {
     mode: Mode.DRAW_TANK,
     hotkey: "4",
-    Icon: () => <TankIcon width={15} height={15} />,
+    Icon: () => <DeprecatedTankIcon width={15} height={15} />,
   },
   {
     mode: Mode.DRAW_PIPE,

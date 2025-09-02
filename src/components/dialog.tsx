@@ -23,7 +23,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { RefreshCw, X } from "lucide-react";
+import { CloseIcon, RefreshIcon } from "src/icons";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -157,7 +157,7 @@ export const DialogCloseX = () => {
                   focus:bg-gray-200 dark:focus:bg-black
                   hover:text-black dark:hover:text-white"
     >
-      {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
+      {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
     </Dialog.Close>
   );
 };
@@ -269,8 +269,7 @@ export function SimpleDialogActions({
         </Button>
       ) : null}
       {isLucideIconsOn ? (
-        <RefreshCw
-          size={16}
+        <RefreshIcon
           className={clsx(
             "animate-spin transition-opacity",
             isSubmitting ? "opacity-50" : "opacity-0",

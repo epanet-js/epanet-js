@@ -3,7 +3,7 @@ import { InlineError } from "./inline-error";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { styledSelect } from "./elements";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 
 // Only INP format is supported for EPANET-JS
 const FILE_TYPES = [{ id: "inp", label: "INP" }];
@@ -41,7 +41,7 @@ export function SelectFileType() {
             href="https://epanet.org"
           >
             {isLucideIconsOn ? (
-              <CircleX size={16} />
+              <ErrorIcon />
             ) : (
               <QuestionMarkCircledIcon className="mr-1 inline-block" />
             )}

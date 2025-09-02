@@ -3,11 +3,11 @@ import { Keycap } from "src/components/elements";
 import React, { Fragment } from "react";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
-import { KeyboardIcon } from "@radix-ui/react-icons";
+import { KeyboardIcon as DeprecatedKeyboardIcon } from "@radix-ui/react-icons";
 import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Keyboard } from "lucide-react";
+import { KeyboardIcon } from "src/icons";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -44,7 +44,7 @@ export function CheatsheetDialog() {
     <>
       <DialogHeader
         title={translate("keyboardShortcuts")}
-        titleIcon={isLucideIconsOn ? Keyboard : KeyboardIcon}
+        titleIcon={isLucideIconsOn ? KeyboardIcon : DeprecatedKeyboardIcon}
       />
       <div
         className="grid gap-x-3 gap-y-2 pb-1"

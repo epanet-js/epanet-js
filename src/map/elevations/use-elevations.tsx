@@ -12,7 +12,7 @@ import { offlineAtom } from "src/state/offline";
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleSlash2 } from "lucide-react";
+import { UnavailableIcon } from "src/icons";
 
 export const useElevations = (unit: Unit) => {
   const translate = useTranslate();
@@ -63,7 +63,7 @@ const notifyOfflineElevation = (
 ) => {
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? CircleSlash2 : ValueNoneIcon,
+    Icon: isLucideIconsOn ? UnavailableIcon : ValueNoneIcon,
     title: translate("failedToFetchElevation"),
     description: translate("failedToFetchElevationExplain"),
     id: "elevations-failed-to-fetch",
@@ -77,7 +77,7 @@ const notifyTileNotAvailable = (
 ) => {
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? CircleSlash2 : ValueNoneIcon,
+    Icon: isLucideIconsOn ? UnavailableIcon : ValueNoneIcon,
     title: translate("elevationNotAvailable"),
     description: translate("elevationNotAvailableExplain"),
     id: "elevations-not-found",

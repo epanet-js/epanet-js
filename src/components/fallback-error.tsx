@@ -4,7 +4,7 @@ import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { supportEmail } from "src/global-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 
 export const FallbackError = () => {
   const translate = useTranslate();
@@ -16,7 +16,7 @@ export const FallbackError = () => {
       <div className="bg-white text-gray-900 rounded-lg p-4 shadow-lg w-full max-w-lg">
         <span className="flex items-center gap-x-2 text-xl text-black mb-4">
           {isLucideIconsOn ? (
-            <CircleX size={16} />
+            <ErrorIcon />
           ) : (
             <CrossCircledIcon className="w-6 h-6 text-red-500" />
           )}

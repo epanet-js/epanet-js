@@ -1,19 +1,19 @@
 import { useTranslate } from "src/hooks/use-translate";
 import MenuAction from "../menu-action";
 import {
-  FileText,
-  HousePlus,
-  Redo2,
-  Save,
-  SaveAll,
-  Settings,
-  Undo2,
-  Zap,
-} from "lucide-react";
+  FileTextIcon,
+  UndoIcon,
+  RedoIcon,
+  SettingsIcon,
+  SaveIcon,
+  SaveAllIcon,
+  RunSimulationIcon,
+  ImportCustomerPointsIcon,
+} from "src/icons";
 import {
   CopyIcon,
   DownloadIcon,
-  FileTextIcon,
+  FileTextIcon as DeprecatedFileTextIcon,
   GearIcon,
   LightningBoltIcon,
   ResetIcon,
@@ -77,7 +77,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveShortcut}
           >
-            {isLucideIconsOn ? <Save size={16} /> : <DownloadIcon />}
+            {isLucideIconsOn ? <SaveIcon /> : <DownloadIcon />}
           </MenuAction>
           <MenuAction
             label={translate("saveAs")}
@@ -87,7 +87,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveAsShortcut}
           >
-            {isLucideIconsOn ? <SaveAll size={16} /> : <CopyIcon />}
+            {isLucideIconsOn ? <SaveAllIcon /> : <CopyIcon />}
           </MenuAction>
         </>
       }
@@ -99,7 +99,11 @@ export const Toolbar = () => {
             void importCustomerPoints({ source: "toolbar" });
           }}
         >
-          {isLucideIconsOn ? <HousePlus size={16} /> : <FileTextIcon />}
+          {isLucideIconsOn ? (
+            <ImportCustomerPointsIcon />
+          ) : (
+            <DeprecatedFileTextIcon />
+          )}
         </MenuAction>
       )}
       <Divider />
@@ -118,7 +122,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={"ctrl+z"}
           >
-            {isLucideIconsOn ? <Undo2 size={16} /> : <ResetIcon />}
+            {isLucideIconsOn ? <UndoIcon /> : <ResetIcon />}
           </MenuAction>
           <MenuAction
             label={translate("redo")}
@@ -133,7 +137,7 @@ export const Toolbar = () => {
             readOnlyHotkey={"ctrl+y"}
           >
             {isLucideIconsOn ? (
-              <Redo2 size={16} />
+              <RedoIcon />
             ) : (
               <ResetIcon className="scale-x-[-1]" />
             )}
@@ -161,7 +165,7 @@ export const Toolbar = () => {
         readOnlyHotkey={runSimulationShortcut}
       >
         {isLucideIconsOn ? (
-          <Zap size={16} className="stroke-yellow-600" />
+          <RunSimulationIcon className="stroke-yellow-600" />
         ) : (
           <LightningBoltIcon className="text-yellow-600" />
         )}
@@ -172,7 +176,7 @@ export const Toolbar = () => {
         onClick={() => showSimulationSettings({ source: "toolbar" })}
         readOnlyHotkey={showSimulationSettingsShortcut}
       >
-        {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
+        {isLucideIconsOn ? <SettingsIcon /> : <GearIcon />}
       </MenuAction>
       <MenuAction
         label={translate("viewReport")}
@@ -183,7 +187,7 @@ export const Toolbar = () => {
         readOnlyHotkey={"alt+r"}
         disabled={simulation.status === "idle"}
       >
-        {isLucideIconsOn ? <FileText size={16} /> : <FileTextIcon />}
+        {isLucideIconsOn ? <FileTextIcon /> : <DeprecatedFileTextIcon />}
       </MenuAction>
       <Divider />
       {isMdOrLarger && (

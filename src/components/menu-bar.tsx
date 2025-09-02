@@ -4,9 +4,9 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Cross1Icon,
   GitHubLogoIcon,
-  GlobeIcon,
+  GlobeIcon as DeprecatedGlobeIcon,
   HamburgerMenuIcon,
-  KeyboardIcon,
+  KeyboardIcon as DeprecatedKeyboardIcon,
   QuestionMarkCircledIcon,
   RocketIcon,
   SunIcon,
@@ -34,15 +34,16 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LanguageSelector } from "./language-selector";
+
 import {
-  Globe,
-  HelpCircle,
-  Keyboard,
-  Menu,
-  Rocket,
-  Sun,
-  X,
-} from "lucide-react";
+  GlobeIcon,
+  HelpIcon,
+  KeyboardIcon,
+  MenuIcon,
+  UpgradeIcon,
+  NewFromExampleIcon,
+  CloseIcon,
+} from "src/icons";
 
 export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
@@ -116,7 +117,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                   setDialogState({ type: "upgrade" });
                 }}
               >
-                {isLucideIconsOn ? <Rocket size={16} /> : <RocketIcon />}
+                {isLucideIconsOn ? <UpgradeIcon /> : <RocketIcon />}
                 {translate("upgrade")}
               </Button>
             )}
@@ -174,7 +175,7 @@ export function HelpDot() {
             showWelcome({ source: "menu" });
           }}
         >
-          {isLucideIconsOn ? <Sun size={16} /> : <SunIcon />}
+          {isLucideIconsOn ? <NewFromExampleIcon /> : <SunIcon />}
           {translate("welcomePage")}
         </StyledItem>
         <a
@@ -188,11 +189,7 @@ export function HelpDot() {
           }}
         >
           <StyledItem>
-            {isLucideIconsOn ? (
-              <HelpCircle size={16} />
-            ) : (
-              <QuestionMarkCircledIcon />
-            )}
+            {isLucideIconsOn ? <HelpIcon /> : <QuestionMarkCircledIcon />}
             {translate("helpCenter")}
           </StyledItem>
         </a>
@@ -205,7 +202,7 @@ export function HelpDot() {
             showShortcuts();
           }}
         >
-          {isLucideIconsOn ? <Keyboard size={16} /> : <KeyboardIcon />}
+          {isLucideIconsOn ? <KeyboardIcon /> : <DeprecatedKeyboardIcon />}
           {translate("keyboardShortcuts")}
         </StyledItem>
       </DDContent>
@@ -235,7 +232,7 @@ export const SideMenu = () => {
     <div className="relative">
       <div className="flex justify-end md:hidden">
         <Button variant="quiet" onClick={toggleMenu}>
-          {isLucideIconsOn ? <Menu size={16} /> : <HamburgerMenuIcon />}
+          {isLucideIconsOn ? <MenuIcon /> : <HamburgerMenuIcon />}
         </Button>
       </div>
 
@@ -250,7 +247,7 @@ export const SideMenu = () => {
           <div className="flex items-center justify-between pb-6">
             <HeaderLogo />
             <Button variant="quiet" onClick={toggleMenu}>
-              {isLucideIconsOn ? <X size={16} /> : <Cross1Icon />}
+              {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
             </Button>
           </div>{" "}
           <nav>
@@ -258,9 +255,9 @@ export const SideMenu = () => {
               <li>
                 <Button variant="quiet">
                   {isLucideIconsOn ? (
-                    <Globe size={16} />
+                    <GlobeIcon />
                   ) : (
-                    <GlobeIcon className="mr-2" />
+                    <DeprecatedGlobeIcon className="mr-2" />
                   )}
 
                   <LanguageSelector align="start" padding={false} asChild />
@@ -306,7 +303,7 @@ export const SideMenu = () => {
                   }}
                 >
                   {isLucideIconsOn ? (
-                    <Sun size={16} />
+                    <NewFromExampleIcon />
                   ) : (
                     <SunIcon className="mr-2" />
                   )}
@@ -328,7 +325,7 @@ export const SideMenu = () => {
                 >
                   <Button variant="quiet">
                     {isLucideIconsOn ? (
-                      <HelpCircle size={16} />
+                      <HelpIcon />
                     ) : (
                       <QuestionMarkCircledIcon className="mr-2" />
                     )}
@@ -357,7 +354,7 @@ export const SideMenu = () => {
                         setDialogState({ type: "upgrade" });
                       }}
                     >
-                      {isLucideIconsOn ? <Rocket size={16} /> : <RocketIcon />}
+                      {isLucideIconsOn ? <UpgradeIcon /> : <RocketIcon />}
                       {translate("upgrade")}
                     </Button>
                   </li>

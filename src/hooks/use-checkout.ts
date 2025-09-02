@@ -6,7 +6,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/user-plan";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleX } from "lucide-react";
+import { ErrorIcon } from "src/icons";
 
 const stripeSDK = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
@@ -34,7 +34,7 @@ export const useCheckout = () => {
         variant: "error",
         title: translate("somethingWentWrong"),
         description: translate("tryAgainOrSupport"),
-        Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
         isLucideIconsOn: isLucideIconsOn,
       });
     }

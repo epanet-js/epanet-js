@@ -38,7 +38,7 @@ import { useSymbologyState } from "src/state/symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 import { notify } from "./notifications";
-import { CircleX, Plus, RefreshCw, Trash } from "lucide-react";
+import { ErrorIcon, AddIcon, DeleteIcon, RefreshIcon } from "src/icons";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -144,7 +144,7 @@ export const RangeColorRuleEditor = ({
     setError(error);
     notify({
       variant: "error",
-      Icon: isLucideIconsOn ? CircleX : CrossCircledIcon,
+      Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
       title: translate("invalidRange"),
       description: translate("fixRangeToApply"),
       id: "symbology",
@@ -346,7 +346,7 @@ export const RangeColorRuleEditor = ({
               size="full-width"
               onClick={handleRegenerate}
             >
-              {isLucideIconsOn ? <RefreshCw size={16} /> : <UpdateIcon />}
+              {isLucideIconsOn ? <RefreshIcon /> : <UpdateIcon />}
               {translate("regenerate")}
             </Button>
           </div>
@@ -414,7 +414,7 @@ const IntervalsEditor = ({
             onClick={onPrepend}
             aria-label={translate("addBreak")}
           >
-            {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}{" "}
+            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}{" "}
             {translate("addBreak")}
           </Button>
         </div>
@@ -445,7 +445,7 @@ const IntervalsEditor = ({
                     onClick={() => onDelete(i)}
                   >
                     {isLucideIconsOn ? (
-                      <Trash size={16} />
+                      <DeleteIcon />
                     ) : (
                       <TrashIcon className="opacity-60" />
                     )}
@@ -465,7 +465,7 @@ const IntervalsEditor = ({
             onClick={onAppend}
             aria-label={translate("addBreak")}
           >
-            {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}{" "}
+            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}{" "}
             {translate("addBreak")}
           </Button>
         </div>

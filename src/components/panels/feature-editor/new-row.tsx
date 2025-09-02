@@ -3,7 +3,7 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { styledPropertyInput, styledTd } from "src/components/elements";
 import { coordPropsAttr } from "./property-row/value";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Plus } from "lucide-react";
+import { AddIcon } from "src/icons";
 
 export function NewRow({
   onCommit,
@@ -81,7 +81,7 @@ export function NewRow({
             className="text-gray-500 focus:text-gray-700 hover:text-black
               dark:hover:text-white dark:focus:text-white p-1"
           >
-            {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}
+            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}
           </button>
         </div>
       </td>

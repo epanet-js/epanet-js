@@ -8,7 +8,10 @@ import {
 } from "src/lib/colorbrewer";
 import * as Select from "@radix-ui/react-select";
 import { linearGradient } from "src/lib/color";
-import { ChevronDownIcon, UpdateIcon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon as DeprecatedChevronDownIcon,
+  UpdateIcon,
+} from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import find from "lodash/find";
@@ -27,7 +30,7 @@ import {
 } from "src/map/symbology/symbology-types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ChevronDown, RefreshCw } from "lucide-react";
+import { ChevronDownIcon, RefreshIcon } from "src/icons";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
@@ -153,7 +156,11 @@ export const ColorRampSelector = ({
           }}
         ></span>
         <span className="px-1">
-          {isLucideIconsOn ? <ChevronDown size={16} /> : <ChevronDownIcon />}
+          {isLucideIconsOn ? (
+            <ChevronDownIcon />
+          ) : (
+            <DeprecatedChevronDownIcon />
+          )}
         </span>
       </Select.Trigger>
       <Select.Content position="popper" className={contentStyles}>
@@ -182,7 +189,7 @@ export const ColorRampSelector = ({
                 onClick={reverseRampColors}
               >
                 {isLucideIconsOn ? (
-                  <RefreshCw size={16} />
+                  <RefreshIcon />
                 ) : (
                   <UpdateIcon className="-rotate-90" />
                 )}

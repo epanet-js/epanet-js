@@ -3,12 +3,15 @@ import { Locale, languageConfig } from "src/infra/i18n/locale";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, DDContent, StyledItem } from "./elements";
-import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  CheckIcon as DeprecatedCheckIcon,
+  ExclamationTriangleIcon,
+} from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Check, TriangleAlert } from "lucide-react";
+import { CheckIcon, WarningIcon } from "src/icons";
 
 export const LanguageSelector = ({
   align = "end",
@@ -65,10 +68,7 @@ export const LanguageSelector = ({
                       <span>{language.name}</span>
                       {language.experimental &&
                         (isLucideIconsOn ? (
-                          <TriangleAlert
-                            size={16}
-                            className="text-orange-500"
-                          />
+                          <WarningIcon className="text-orange-500" />
                         ) : (
                           <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
                         ))}
@@ -76,9 +76,9 @@ export const LanguageSelector = ({
                     <div className="w-4 h-4 flex items-center justify-center">
                       {locale === language.code &&
                         (isLucideIconsOn ? (
-                          <Check size={16} className="text-purple-700" />
+                          <CheckIcon className="text-purple-700" />
                         ) : (
-                          <CheckIcon className="w-4 h-4 text-purple-700" />
+                          <DeprecatedCheckIcon className="w-4 h-4 text-purple-700" />
                         ))}
                     </div>
                   </div>

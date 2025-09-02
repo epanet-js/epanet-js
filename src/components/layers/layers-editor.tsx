@@ -57,14 +57,14 @@ import { useAuth } from "src/auth";
 import { zTileJSON } from "src/lib/tile-json";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
-  ChevronLeft,
-  ChevronRight,
-  GripVertical,
-  Plus,
-  Settings,
-  Trash,
-  TriangleAlert,
-} from "lucide-react";
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Draggable,
+  AddIcon,
+  SettingsIcon,
+  DeleteIcon,
+  WarningIcon,
+} from "src/icons";
 
 type Mode =
   | "custom"
@@ -151,7 +151,7 @@ function BackButton({ to }: { to: Mode }) {
         setMode(to);
       }}
     >
-      {isLucideIconsOn ? <ChevronLeft size={16} /> : <CaretLeftIcon />}
+      {isLucideIconsOn ? <ChevronLeftIcon /> : <CaretLeftIcon />}
       {translate("back")}
     </E.Button>
   );
@@ -508,7 +508,7 @@ export function AddLayer() {
             userTracking.capture({ name: "addCustomLayer.clicked" });
           }}
         >
-          {isLucideIconsOn ? <Plus size={16} /> : <PlusIcon />}
+          {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}
           {translate("addCustom")}
         </E.Button>
       </P.Trigger>
@@ -860,7 +860,7 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
+          {isLucideIconsOn ? <SettingsIcon /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -909,7 +909,7 @@ const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         });
       }}
     >
-      {isLucideIconsOn ? <Trash size={16} /> : <TrashIcon />}
+      {isLucideIconsOn ? <DeleteIcon /> : <TrashIcon />}
     </button>
   );
 };
@@ -925,7 +925,7 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
+          {isLucideIconsOn ? <SettingsIcon /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -967,7 +967,7 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           className={"opacity-30 hover:opacity-100 select-none"}
           title="Edit"
         >
-          {isLucideIconsOn ? <Settings size={16} /> : <GearIcon />}
+          {isLucideIconsOn ? <SettingsIcon /> : <GearIcon />}
         </button>
       </P.Trigger>
       <E.StyledPopoverContent>
@@ -986,10 +986,7 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         <T.Root delayDuration={0}>
           <T.Trigger>
             {isLucideIconsOn ? (
-              <TriangleAlert
-                size={16}
-                className="text-red-500 dark:text-red-300"
-              />
+              <WarningIcon className="text-red-500 dark:text-red-300" />
             ) : (
               <ExclamationTriangleIcon className="text-red-500 dark:text-red-300" />
             )}
@@ -1050,7 +1047,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
         {...attributes}
         {...listeners}
       >
-        {isLucideIconsOn ? <GripVertical size={16} /> : <DragHandleDots2Icon />}
+        {isLucideIconsOn ? <Draggable /> : <DragHandleDots2Icon />}
       </div>
       {layerConfig.type === "MAPBOX" && layerConfig.isBasemap && (
         <BaseMapItem layerConfig={layerConfig} />
@@ -1168,7 +1165,7 @@ const LayerTypeButton = ({
       {children}
       {needsUpgrade && <UpgradeTag />}
       {!needsUpgrade && isLucideIconsOn ? (
-        <ChevronRight size={16} />
+        <ChevronRightIcon />
       ) : (
         <CaretRightIcon />
       )}

@@ -14,7 +14,7 @@ import {
 } from "@radix-ui/react-icons";
 import { Form, Formik } from "formik";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CircleCheck, CircleX, TriangleAlert } from "lucide-react";
+import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
 
 export const SimulationSummaryDialog = ({
   modal,
@@ -36,7 +36,7 @@ export const SimulationSummaryDialog = ({
       <DialogContainer size="sm">
         <DialogHeader
           title={translate("simulationWarning")}
-          titleIcon={isLucideIconsOn ? TriangleAlert : ExclamationTriangleIcon}
+          titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
           variant="warning"
         />
         <Formik onSubmit={handleOpenReport} initialValues={{}}>
@@ -61,7 +61,7 @@ export const SimulationSummaryDialog = ({
       <DialogContainer size="sm">
         <DialogHeader
           title={translate("simulationFailure")}
-          titleIcon={isLucideIconsOn ? CircleX : CrossCircledIcon}
+          titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
           variant="danger"
         />
         <Formik onSubmit={handleOpenReport} initialValues={{}}>
@@ -86,7 +86,7 @@ export const SimulationSummaryDialog = ({
       <DialogContainer size="sm">
         <DialogHeader
           title={translate("simulationSuccess")}
-          titleIcon={isLucideIconsOn ? CircleCheck : CheckCircledIcon}
+          titleIcon={isLucideIconsOn ? SuccessIcon : CheckCircledIcon}
           variant="success"
         />
         <Formik onSubmit={() => onClose()} initialValues={{}}>
