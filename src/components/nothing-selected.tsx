@@ -37,7 +37,7 @@ import {
   RunSimulationIcon,
   JunctionIcon,
 } from "src/icons";
-import { PipeIcon } from "src/custom-icons/pipe-icon";
+import { PipeIcon } from "src/icons/custom-icons/pipe-icon";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();

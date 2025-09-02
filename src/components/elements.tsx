@@ -25,7 +25,7 @@ import { SUPPORT_EMAIL } from "src/lib/constants";
 import { Portal } from "@radix-ui/react-portal";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { TypeOffIcon } from "src/custom-icons/type-off-icon";
+import { TypeOffIcon } from "src/icons/custom-icons/type-off-icon";
 import {
   CloseIcon,
   HelpIcon,

@@ -11,9 +11,9 @@ import { useAtomValue } from "jotai";
 import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
-import { PumpIcon } from "src/custom-icons/pump-icon";
-import { ValveIcon } from "src/custom-icons/valve-icon";
-import { TankIcon as DeprecatedTankIcon } from "src/custom-icons/tank-icon";
+import { PumpIcon } from "src/icons/custom-icons/pump-icon";
+import { ValveIcon } from "src/icons/custom-icons/valve-icon";
+import { TankIcon as DeprecatedTankIcon } from "src/icons/custom-icons/tank-icon";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -23,9 +23,9 @@ import {
   TankIcon,
   MouseCursorDefaultIcon,
 } from "src/icons";
-import { PipeIcon } from "src/custom-icons/pipe-icon";
-import { DeprecatedPumpIcon } from "src/custom-icons/deprecated-pump-icon";
-import { DeprecatedValveIcon } from "src/custom-icons/deprecated-valve-icon";
+import { PipeIcon } from "src/icons/custom-icons/pipe-icon";
+import { DeprecatedPumpIcon } from "src/icons/custom-icons/deprecated-pump-icon";
+import { DeprecatedValveIcon } from "src/icons/custom-icons/deprecated-valve-icon";
 
 const MODE_OPTIONS = [
   {
