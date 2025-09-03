@@ -30,7 +30,7 @@ const nextConfig = {
     return process.env.NEXT_PUBLIC_POSTHOG_HOST !== undefined
       ? [
           {
-            source: "/ingest/:path*",
+            source: "/i/:path*",
             destination: `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/:path*`,
           },
         ]

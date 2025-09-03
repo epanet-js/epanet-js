@@ -25,7 +25,7 @@ const getApiHost = (): string => {
   const isProxyEnabled = process.env.NEXT_PUBLIC_POSTHOG_PROXY === "true";
 
   return isProxyEnabled
-    ? `${window.location.origin}/ingest`
+    ? `${window.location.origin}/i`
     : (process.env.NEXT_PUBLIC_POSTHOG_HOST as string);
 };
 
