@@ -115,7 +115,7 @@ export const WelcomeDialog = () => {
                 >
                   <GlobeIcon />
                   {translate("importFromGIS")}
-                  <EarlyAccessIcon />
+                  <EarlyAccessIcon size="s" />
                 </Button>
               </div>
               <div className="flex items-start flex-col gap-2">
