@@ -201,7 +201,6 @@ const GPMSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     customerDemand: "gal/min",
-    customerDemandPerDay: "gal/d",
     ...allFlowUnits("gal/min"),
   },
 };
@@ -213,7 +212,6 @@ const CFSSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     customerDemand: "ft^3/s",
-    customerDemandPerDay: "ft^3/d",
     ...allFlowUnits("ft^3/s"),
   },
 };
@@ -225,7 +223,6 @@ const MGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     customerDemand: "Mgal/d",
-    customerDemandPerDay: "Mgal/d",
     ...allFlowUnits("Mgal/d"),
   },
 };
@@ -238,7 +235,6 @@ const IMGDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     customerDemand: "IMgal/d",
-    customerDemandPerDay: "IMgal/d",
     ...allFlowUnits("IMgal/d"),
   },
 };
@@ -251,7 +247,6 @@ const AFDSpec: AssetQuantitiesSpec = {
   units: {
     ...usCustomarySpec.units,
     customerDemand: "acft/d",
-    customerDemandPerDay: "acft/d",
     ...allFlowUnits("acft/d"),
   },
 };
@@ -264,7 +259,6 @@ const LPSSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     customerDemand: "l/s",
-    customerDemandPerDay: "l/d",
     ...allFlowUnits("l/s"),
   },
 };
@@ -276,7 +270,6 @@ const LPMSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     customerDemand: "l/min",
-    customerDemandPerDay: "l/d",
     ...allFlowUnits("l/min"),
   },
 };
@@ -288,7 +281,6 @@ const MLDSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     customerDemand: "Ml/d",
-    customerDemandPerDay: "Ml/d",
     ...allFlowUnits("Ml/d"),
   },
 };
@@ -300,7 +292,6 @@ const CMHSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     customerDemand: "m^3/h",
-    customerDemandPerDay: "m^3/d",
     ...allFlowUnits("m^3/h"),
   },
 };
@@ -312,7 +303,6 @@ const CMDSpec: AssetQuantitiesSpec = {
   units: {
     ...metricSpec.units,
     customerDemand: "m^3/d",
-    customerDemandPerDay: "m^3/d",
     ...allFlowUnits("m^3/d"),
   },
 };
