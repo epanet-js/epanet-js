@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
 const tunnel =
-  process.env.NEXT_PUBLIC_SENTRY_PROXY === "true" ? "/monitoring" : undefined;
+  process.env.NEXT_PUBLIC_SENTRY_PROXY === "true" ? "/m" : undefined;
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

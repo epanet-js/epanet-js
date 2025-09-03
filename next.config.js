@@ -55,7 +55,7 @@ const sentryConfig = {
 };
 
 if (process.env.NEXT_PUBLIC_SENTRY_PROXY === "true") {
-  sentryConfig.tunnelRoute = "/monitoring";
+  sentryConfig.tunnelRoute = "/m";
 }
 
 module.exports = withSentryConfig(nextConfig, sentryConfig);
