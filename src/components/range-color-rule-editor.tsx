@@ -1,9 +1,3 @@
-import {
-  CrossCircledIcon,
-  PlusIcon,
-  TrashIcon,
-  UpdateIcon,
-} from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
@@ -131,8 +125,6 @@ export const RangeColorRuleEditor = ({
     onChange(newColorRule);
   };
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
-
   const showError = (error: ErrorType, newColorRule: RangeColorRule) => {
     userTracking.capture({
       name: "colorRange.rangeError.seen",
@@ -144,12 +136,11 @@ export const RangeColorRuleEditor = ({
     setError(error);
     notify({
       variant: "error",
-      Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
+      Icon: ErrorIcon,
       title: translate("invalidRange"),
       description: translate("fixRangeToApply"),
       id: "symbology",
       size: "md",
-      isLucideIconsOn: isLucideIconsOn,
     });
   };
 
@@ -346,7 +337,7 @@ export const RangeColorRuleEditor = ({
               size="full-width"
               onClick={handleRegenerate}
             >
-              {isLucideIconsOn ? <RefreshIcon /> : <UpdateIcon />}
+              <RefreshIcon />
               {translate("regenerate")}
             </Button>
           </div>
@@ -380,7 +371,6 @@ const IntervalsEditor = ({
   const translate = useTranslate();
   const canAddMore = numIntervals < maxIntervals;
   const canDelete = numIntervals > minIntervals;
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="w-full flex flex-row gap-2 items-start dark:text-white">
@@ -414,8 +404,7 @@ const IntervalsEditor = ({
             onClick={onPrepend}
             aria-label={translate("addBreak")}
           >
-            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}{" "}
-            {translate("addBreak")}
+            <AddIcon /> {translate("addBreak")}
           </Button>
         </div>
         {breaks.map((breakValue, i) => {
@@ -444,11 +433,7 @@ const IntervalsEditor = ({
                     aria-label={`${translate("delete")} ${i}`}
                     onClick={() => onDelete(i)}
                   >
-                    {isLucideIconsOn ? (
-                      <DeleteIcon />
-                    ) : (
-                      <TrashIcon className="opacity-60" />
-                    )}
+                    <DeleteIcon />
                   </Button>
                 </div>
               ) : null}
@@ -465,8 +450,7 @@ const IntervalsEditor = ({
             onClick={onAppend}
             aria-label={translate("addBreak")}
           >
-            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}{" "}
-            {translate("addBreak")}
+            <AddIcon /> {translate("addBreak")}
           </Button>
         </div>
       </div>

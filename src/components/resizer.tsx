@@ -10,13 +10,8 @@ import {
 } from "src/state/jotai";
 import { useMove } from "@react-aria/interactions";
 import { TContent } from "src/components/elements";
-import {
-  ChevronLeftIcon as DeprecatedChevronLeftIcon,
-  ChevronRightIcon as DeprecatedChevronRightIcon,
-} from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useMediaQuery } from "react-responsive";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
 
 const MIN_MAP_WIDTH = 80;
@@ -222,8 +217,6 @@ function PanelToggle({ side }: { side: Side }) {
     });
   };
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
-
   return (
     <T.Root>
       <T.Trigger
@@ -242,17 +235,7 @@ function PanelToggle({ side }: { side: Side }) {
         `,
         )}
       >
-        {side === "right" ? (
-          isLucideIconsOn ? (
-            <ChevronLeftIcon />
-          ) : (
-            <DeprecatedChevronLeftIcon />
-          )
-        ) : isLucideIconsOn ? (
-          <ChevronRightIcon />
-        ) : (
-          <DeprecatedChevronRightIcon />
-        )}
+        {side === "right" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
       </T.Trigger>
       <T.Portal>
         <TContent>

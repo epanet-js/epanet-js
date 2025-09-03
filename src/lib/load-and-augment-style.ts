@@ -80,13 +80,11 @@ export default async function loadAndAugmentStyle({
   symbology,
   previewProperty,
   translate,
-  isLucideIconsOn,
 }: {
   layerConfigs: LayerConfigMap;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
   translate: (key: string) => string;
-  isLucideIconsOn: boolean;
 }): Promise<Style> {
   let style = getEmptyStyle();
   let id = 0;
@@ -95,7 +93,7 @@ export default async function loadAndAugmentStyle({
     id++;
     switch (layer.type) {
       case "MAPBOX": {
-        style = await addMapboxStyle(style, layer, translate, isLucideIconsOn);
+        style = await addMapboxStyle(style, layer, translate);
         break;
       }
       case "XYZ": {
@@ -103,13 +101,7 @@ export default async function loadAndAugmentStyle({
         break;
       }
       case "TILEJSON": {
-        style = await addTileJSONStyle(
-          style,
-          layer,
-          id,
-          translate,
-          isLucideIconsOn,
-        );
+        style = await addTileJSONStyle(style, layer, id, translate);
         break;
       }
     }

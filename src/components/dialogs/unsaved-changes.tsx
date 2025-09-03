@@ -1,10 +1,8 @@
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "../elements";
 import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { HelpIcon } from "src/icons";
 
 export const UnsavedChangesDialog = ({
@@ -29,14 +27,10 @@ export const UnsavedChangesDialog = ({
     onClose();
     onContinue();
   };
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <>
-      <DialogHeader
-        title={translate("unsavedChanges")}
-        titleIcon={isLucideIconsOn ? HelpIcon : QuestionMarkCircledIcon}
-      />
+      <DialogHeader title={translate("unsavedChanges")} titleIcon={HelpIcon} />
       <div className="text-sm">
         <p>{translate("unsavedChangesQuestion")}</p>
       </div>

@@ -1,4 +1,3 @@
-import { FileIcon as DeprecatedFileIcon } from "@radix-ui/react-icons";
 import { DialogHeader } from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
@@ -106,14 +105,9 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
     onClose();
   }, [map, onClose]);
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
-
   return (
     <>
-      <DialogHeader
-        title={translate("newProject")}
-        titleIcon={isLucideIconsOn ? FileIcon : DeprecatedFileIcon}
-      />
+      <DialogHeader title={translate("newProject")} titleIcon={FileIcon} />
       <Formik
         onSubmit={handleSubmit}
         initialValues={

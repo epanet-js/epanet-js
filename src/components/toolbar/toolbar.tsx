@@ -10,14 +10,6 @@ import {
   RunSimulationIcon,
   ImportCustomerPointsIcon,
 } from "src/icons";
-import {
-  CopyIcon,
-  DownloadIcon,
-  FileTextIcon as DeprecatedFileTextIcon,
-  GearIcon,
-  LightningBoltIcon,
-  ResetIcon,
-} from "@radix-ui/react-icons";
 import Modes from "../modes";
 import ContextActions from "../context-actions";
 import { useAtomValue } from "jotai";
@@ -55,7 +47,6 @@ export const Toolbar = () => {
   const { undo, redo } = useHistoryControl();
 
   const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const simulation = useAtomValue(simulationAtom);
 
@@ -77,7 +68,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveShortcut}
           >
-            {isLucideIconsOn ? <SaveIcon /> : <DownloadIcon />}
+            <SaveIcon />
           </MenuAction>
           <MenuAction
             label={translate("saveAs")}
@@ -87,7 +78,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={saveAsShortcut}
           >
-            {isLucideIconsOn ? <SaveAllIcon /> : <CopyIcon />}
+            <SaveAllIcon />
           </MenuAction>
         </>
       }
@@ -99,11 +90,7 @@ export const Toolbar = () => {
             void importCustomerPoints({ source: "toolbar" });
           }}
         >
-          {isLucideIconsOn ? (
-            <ImportCustomerPointsIcon />
-          ) : (
-            <DeprecatedFileTextIcon />
-          )}
+          <ImportCustomerPointsIcon />
         </MenuAction>
       )}
       <Divider />
@@ -122,7 +109,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={"ctrl+z"}
           >
-            {isLucideIconsOn ? <UndoIcon /> : <ResetIcon />}
+            <UndoIcon />
           </MenuAction>
           <MenuAction
             label={translate("redo")}
@@ -136,11 +123,7 @@ export const Toolbar = () => {
             }}
             readOnlyHotkey={"ctrl+y"}
           >
-            {isLucideIconsOn ? (
-              <RedoIcon />
-            ) : (
-              <ResetIcon className="scale-x-[-1]" />
-            )}
+            <RedoIcon />
           </MenuAction>
           <Divider />
         </>
@@ -164,11 +147,7 @@ export const Toolbar = () => {
         expanded={true}
         readOnlyHotkey={runSimulationShortcut}
       >
-        {isLucideIconsOn ? (
-          <RunSimulationIcon className="stroke-yellow-600" />
-        ) : (
-          <LightningBoltIcon className="text-yellow-600" />
-        )}
+        <RunSimulationIcon className="stroke-yellow-600" />
       </MenuAction>
       <MenuAction
         label={translate("simulationSettings")}
@@ -176,7 +155,7 @@ export const Toolbar = () => {
         onClick={() => showSimulationSettings({ source: "toolbar" })}
         readOnlyHotkey={showSimulationSettingsShortcut}
       >
-        {isLucideIconsOn ? <SettingsIcon /> : <GearIcon />}
+        <SettingsIcon />
       </MenuAction>
       <MenuAction
         label={translate("viewReport")}
@@ -187,7 +166,7 @@ export const Toolbar = () => {
         readOnlyHotkey={"alt+r"}
         disabled={simulation.status === "idle"}
       >
-        {isLucideIconsOn ? <FileTextIcon /> : <DeprecatedFileTextIcon />}
+        <FileTextIcon />
       </MenuAction>
       <Divider />
       {isMdOrLarger && (

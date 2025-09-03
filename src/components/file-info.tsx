@@ -1,8 +1,4 @@
 import {
-  DotFilledIcon,
-  FileIcon as DeprecatedFileIcon,
-} from "@radix-ui/react-icons";
-import {
   fileInfoAtom,
   fileInfoMachineAtom,
   hasUnsavedChangesAtom,
@@ -11,14 +7,12 @@ import { useAtom, useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
 
 export function FileInfo() {
   const fileInfo = useAtomValue(fileInfoAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
   const [state] = useAtom(fileInfoMachineAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (!fileInfo) return <div></div>;
 
@@ -26,11 +20,7 @@ export function FileInfo() {
     <Popover.Root open={state.matches("visible")}>
       <div className="pl-3 flex-initial hidden sm:flex items-center gap-x-1">
         <Popover.Anchor>
-          {isLucideIconsOn ? (
-            <FileIcon />
-          ) : (
-            <DeprecatedFileIcon className="w-3 h-3" />
-          )}
+          <FileIcon />
         </Popover.Anchor>
         <div
           className="text-xs font-mono whitespace-nowrap truncate"
@@ -38,15 +28,7 @@ export function FileInfo() {
         >
           {truncate(fileInfo.name, 50)}{" "}
         </div>
-        {hasUnsavedChanges ? (
-          isLucideIconsOn ? (
-            <UnsavedChangesIcon />
-          ) : (
-            <DotFilledIcon />
-          )
-        ) : (
-          ""
-        )}
+        {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
       </div>
       <StyledPopoverContent size="xs">
         <StyledPopoverArrow />

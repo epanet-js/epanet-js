@@ -1,11 +1,9 @@
-import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useRef } from "react";
 import { hideNotification, notify } from "./notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useSetAtom } from "jotai";
 import { offlineAtom } from "src/state/offline";
 import { pingUrl } from "src/global-config";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ConnectIcon, DisconnectIcon } from "src/icons";
 
 const offlineToastId = "offline-toast";
@@ -17,7 +15,6 @@ export const useOfflineStatus = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const setOfflineAtom = useSetAtom(offlineAtom);
   const isOfflineRef = useRef<boolean>(false);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const cancelConnectivityCheck = useCallback(() => {
     if (!intervalRef.current) return;
@@ -34,15 +31,14 @@ export const useOfflineStatus = () => {
     notify({
       variant: "success",
       title: translate("connectionRestored"),
-      Icon: isLucideIconsOn ? ConnectIcon : Link1Icon,
+      Icon: ConnectIcon,
       dismissable: false,
       duration: 3000,
       id: onlineToastId,
       position: "bottom-right",
       size: "sm",
-      isLucideIconsOn: isLucideIconsOn,
     });
-  }, [setOfflineAtom, translate, isLucideIconsOn]);
+  }, [setOfflineAtom, translate]);
 
   const setOffline = useCallback(() => {
     if (isOfflineRef.current) return;
@@ -52,7 +48,7 @@ export const useOfflineStatus = () => {
     hideNotification(onlineToastId);
     notify({
       variant: "warning",
-      Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
+      Icon: DisconnectIcon,
       title: translate("noInternet"),
       description: translate("noInternetExplain"),
       duration: Infinity,
@@ -60,9 +56,8 @@ export const useOfflineStatus = () => {
       id: offlineToastId,
       position: "bottom-right",
       size: "sm",
-      isLucideIconsOn: isLucideIconsOn,
     });
-  }, [setOfflineAtom, translate, isLucideIconsOn]);
+  }, [setOfflineAtom, translate]);
 
   const startConnectivityCheck = useCallback(() => {
     if (intervalRef.current) return;

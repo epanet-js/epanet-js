@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
-import { PlusIcon } from "@radix-ui/react-icons";
 import { styledPropertyInput, styledTd } from "src/components/elements";
 import { coordPropsAttr } from "./property-row/value";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { AddIcon } from "src/icons";
 
 export function NewRow({
@@ -15,7 +13,6 @@ export function NewRow({
   const [newKey, setNewKey] = useState<string>("");
   const [newValue, setNewValue] = useState<string>("");
   const keyRef = useRef<HTMLInputElement | null>(null);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   function commit(newKey: string, newValue: string) {
     onCommit(newKey, newValue);
@@ -81,7 +78,7 @@ export function NewRow({
             className="text-gray-500 focus:text-gray-700 hover:text-black
               dark:hover:text-white dark:focus:text-white p-1"
           >
-            {isLucideIconsOn ? <AddIcon /> : <PlusIcon />}
+            <AddIcon />
           </button>
         </div>
       </td>

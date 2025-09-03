@@ -6,7 +6,6 @@ import {
   type RefAttributes,
 } from "react";
 import type { IconProps } from "@radix-ui/react-icons/dist/types";
-import { Cross1Icon } from "@radix-ui/react-icons";
 import { useFormikContext } from "formik";
 import clsx from "clsx";
 import {
@@ -16,13 +15,11 @@ import {
   StyledDialogContent,
   StyledDialogOverlay,
 } from "src/components/elements";
-import { SymbolIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CloseIcon, RefreshIcon } from "src/icons";
 
 type SlottableIcon =
@@ -149,7 +146,6 @@ export function DialogHeader({
 }
 
 export const DialogCloseX = () => {
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Dialog.Close
       aria-label="Close"
@@ -157,7 +153,7 @@ export const DialogCloseX = () => {
                   focus:bg-gray-200 dark:focus:bg-black
                   hover:text-black dark:hover:text-white"
     >
-      {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
+      <CloseIcon />
     </Dialog.Close>
   );
 };
@@ -231,7 +227,6 @@ export function SimpleDialogActions({
 }) {
   const translate = useTranslate();
   const { isSubmitting } = useFormikContext();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div
       className={clsx(
@@ -268,23 +263,13 @@ export function SimpleDialogActions({
           {translate("cancel")}
         </Button>
       ) : null}
-      {isLucideIconsOn ? (
-        <RefreshIcon
-          className={clsx(
-            "animate-spin transition-opacity",
-            isSubmitting ? "opacity-50" : "opacity-0",
-            fullWidthSubmit && "absolute top-8 right-2.5 text-white",
-          )}
-        />
-      ) : (
-        <SymbolIcon
-          className={clsx(
-            "animate-spin transition-opacity",
-            isSubmitting ? "opacity-50" : "opacity-0",
-            fullWidthSubmit && "absolute top-8 right-2.5 text-white",
-          )}
-        />
-      )}
+      <RefreshIcon
+        className={clsx(
+          "animate-spin transition-opacity",
+          isSubmitting ? "opacity-50" : "opacity-0",
+          fullWidthSubmit && "absolute top-8 right-2.5 text-white",
+        )}
+      />
     </div>
   );
 }

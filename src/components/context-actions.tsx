@@ -1,4 +1,3 @@
-import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as E from "src/components/elements";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtomValue } from "jotai";
@@ -9,7 +8,6 @@ import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ChevronDownIcon } from "src/icons";
 
 export function ToolbarTrigger({
@@ -18,7 +16,6 @@ export function ToolbarTrigger({
 }: {
   children: React.ReactNode;
 } & React.ComponentProps<typeof T.Trigger>) {
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div
       className="h-10 w-12 p-1
@@ -29,11 +26,7 @@ export function ToolbarTrigger({
         <DD.Trigger asChild>
           <E.Button variant="quiet">
             {children}
-            {!isLucideIconsOn ? (
-              <ChevronDownIcon />
-            ) : (
-              <CaretDownIcon className="w-3 h-3" />
-            )}
+            <ChevronDownIcon />
           </E.Button>
         </DD.Trigger>
       </T.Trigger>

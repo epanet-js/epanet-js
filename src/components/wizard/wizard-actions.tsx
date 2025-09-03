@@ -1,13 +1,6 @@
 import React from "react";
-import {
-  ChevronLeftIcon as DeprecatedChevronLeftIcon,
-  ChevronRightIcon as DeprecatedChevronRightIcon,
-  CheckIcon as DeprecatedCheckIcon,
-  UpdateIcon,
-} from "@radix-ui/react-icons";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CheckIcon,
   ChevronLeftIcon,
@@ -34,7 +27,6 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
   finishAction,
 }) => {
   const translate = useTranslate();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div
@@ -50,11 +42,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             size="sm"
             disabled={backAction.disabled}
           >
-            {isLucideIconsOn ? (
-              <ChevronLeftIcon />
-            ) : (
-              <DeprecatedChevronLeftIcon className="w-4 h-4" />
-            )}
+            <ChevronLeftIcon />
             {backAction.label || translate("wizard.back")}
           </Button>
         )}
@@ -69,11 +57,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             disabled={nextAction.disabled}
           >
             {nextAction.label || translate("wizard.next")}
-            {isLucideIconsOn ? (
-              <ChevronRightIcon />
-            ) : (
-              <DeprecatedChevronRightIcon className="w-4 h-4" />
-            )}
+            <ChevronRightIcon />
           </Button>
         )}
 
@@ -85,15 +69,9 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
             disabled={finishAction.disabled}
           >
             {finishAction.loading ? (
-              isLucideIconsOn ? (
-                <RefreshIcon className="w-4 h-4 animate-spin" />
-              ) : (
-                <UpdateIcon className="w-4 h-4 animate-spin" />
-              )
-            ) : isLucideIconsOn ? (
-              <CheckIcon />
+              <RefreshIcon className="animate-spin" />
             ) : (
-              <DeprecatedCheckIcon className="w-4 h-4" />
+              <CheckIcon />
             )}
             {finishAction.loading
               ? finishAction.label || translate("wizard.processing")

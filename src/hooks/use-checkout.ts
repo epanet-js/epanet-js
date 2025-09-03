@@ -1,11 +1,9 @@
-import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { loadStripe } from "@stripe/stripe-js";
 import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/user-plan";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 const stripeSDK = loadStripe(
@@ -19,7 +17,6 @@ const checkoutLoadingAtom = atom<boolean>(false);
 export const useCheckout = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
     clearCheckoutParams();
@@ -34,8 +31,7 @@ export const useCheckout = () => {
         variant: "error",
         title: translate("somethingWentWrong"),
         description: translate("tryAgainOrSupport"),
-        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
-        isLucideIconsOn: isLucideIconsOn,
+        Icon: ErrorIcon,
       });
     }
   };

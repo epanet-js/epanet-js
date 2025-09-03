@@ -2,28 +2,22 @@ import { ILayerConfig } from "src/types";
 import { getMapboxLayerURL, getTileJSON } from "src/lib/utils";
 import mapboxgl, { RasterLayer } from "mapbox-gl";
 import { notify } from "src/components/notifications";
-import { LinkBreak1Icon } from "@radix-ui/react-icons";
 import { DisconnectIcon } from "src/icons";
 
-const warnOffline = (
-  translate: (key: string) => string,
-  isLucideIconsOn: boolean,
-) =>
+const warnOffline = (translate: (key: string) => string) =>
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
+    Icon: DisconnectIcon,
     title: translate("mapOfflineMode"),
     description: translate("mapOfflineModeExplain"),
     size: "md",
     id: "map-offline-mode",
-    isLucideIconsOn: isLucideIconsOn,
   });
 
 export async function addMapboxStyle(
   base: mapboxgl.Style,
   layer: ILayerConfig,
   translate: (key: string) => string,
-  isLucideIconsOn: boolean,
 ): Promise<mapboxgl.Style> {
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
@@ -42,7 +36,7 @@ export async function addMapboxStyle(
       return res.json();
     })
     .catch(() => {
-      warnOffline(translate, isLucideIconsOn);
+      warnOffline(translate);
       return {
         version: 8,
         name: "Empty",
@@ -91,7 +85,6 @@ export async function addTileJSONStyle(
   layer: ILayerConfig,
   id: number,
   translate: (key: string) => string,
-  isLucideIconsOn: boolean,
 ) {
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
@@ -118,11 +111,10 @@ export async function addTileJSONStyle(
   } catch (e) {
     notify({
       variant: "error",
-      Icon: isLucideIconsOn ? DisconnectIcon : LinkBreak1Icon,
+      Icon: DisconnectIcon,
       title: translate("failedToLoad"),
       description: translate("failedToLoadTileJSON"),
       size: "md",
-      isLucideIconsOn: isLucideIconsOn,
     });
   }
   return style;

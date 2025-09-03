@@ -10,7 +10,6 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import * as P from "@radix-ui/react-popover";
 import { PropertyRowValue } from "./feature-editor/property-row/value";
 import { PropertyRow } from "./feature-editor/property-row";
-import { CardStackIcon } from "@radix-ui/react-icons";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { JsonValue } from "type-fest";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -23,7 +22,6 @@ import {
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MultipleAssetsIcon } from "src/icons";
 
 export default function MultiAssetViewer({
@@ -129,7 +127,6 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   const [isOpen, setOpen] = useState(false);
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
     event,
@@ -178,7 +175,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
           dark:text-white bg-transparent
           flex overflow-hidden"
         >
-          {isLucideIconsOn ? <MultipleAssetsIcon /> : <CardStackIcon />}
+          <MultipleAssetsIcon />
           {pluralize(translate, "value", value.size)}
         </P.Trigger>
         <P.Portal>

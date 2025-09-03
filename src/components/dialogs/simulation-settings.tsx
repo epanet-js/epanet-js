@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 
-import { GearIcon } from "@radix-ui/react-icons";
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik } from "formik";
@@ -13,7 +12,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { changeDemands } from "src/hydraulic-model/model-operations/change-demands";
 import { FieldList, InlineField } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SettingsIcon } from "src/icons";
 
 export const SimulationSettingsDialog = () => {
@@ -43,12 +41,11 @@ export const SimulationSettingsDialog = () => {
     [hydraulicModel, transact, closeDialog, userTracking],
   );
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="xs">
       <DialogHeader
         title={translate("simulationSettings")}
-        titleIcon={isLucideIconsOn ? SettingsIcon : GearIcon}
+        titleIcon={SettingsIcon}
       />
       <Formik
         onSubmit={handleSumbit}

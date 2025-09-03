@@ -3,14 +3,9 @@ import { Locale, languageConfig } from "src/infra/i18n/locale";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, DDContent, StyledItem } from "./elements";
-import {
-  CheckIcon as DeprecatedCheckIcon,
-  ExclamationTriangleIcon,
-} from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CheckIcon, WarningIcon } from "src/icons";
 
 export const LanguageSelector = ({
@@ -35,8 +30,6 @@ export const LanguageSelector = ({
     });
     void setLocale(newLocale);
   };
-
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DD.Root
@@ -66,20 +59,14 @@ export const LanguageSelector = ({
                   <div className="flex items-center w-full gap-2">
                     <div className="flex items-center gap-2 flex-1">
                       <span>{language.name}</span>
-                      {language.experimental &&
-                        (isLucideIconsOn ? (
-                          <WarningIcon className="text-orange-500" />
-                        ) : (
-                          <ExclamationTriangleIcon className="w-3 h-3 text-orange-500" />
-                        ))}
+                      {language.experimental && (
+                        <WarningIcon className="text-orange-500" />
+                      )}
                     </div>
                     <div className="w-4 h-4 flex items-center justify-center">
-                      {locale === language.code &&
-                        (isLucideIconsOn ? (
-                          <CheckIcon className="text-purple-700" />
-                        ) : (
-                          <DeprecatedCheckIcon className="w-4 h-4 text-purple-700" />
-                        ))}
+                      {locale === language.code && (
+                        <CheckIcon className="text-purple-700" />
+                      )}
                     </div>
                   </div>
                 </StyledItem>

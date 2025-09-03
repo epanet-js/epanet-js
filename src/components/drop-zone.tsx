@@ -1,8 +1,6 @@
 import React, { useCallback, useRef } from "react";
 import { useDropZone } from "src/hooks/use-drop-zone";
 import { useTranslate } from "src/hooks/use-translate";
-import { UploadIcon as DeprecatedUploadIcon } from "@radix-ui/react-icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { UploadIcon } from "src/icons";
 
 interface DropZoneProps {
@@ -26,8 +24,6 @@ export const DropZone: React.FC<DropZoneProps> = ({
 }) => {
   const translate = useTranslate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const { dragState, dropZoneProps, inputProps } = useDropZone({
     onFileDrop,
@@ -64,19 +60,11 @@ export const DropZone: React.FC<DropZoneProps> = ({
           ${dragState === "over" ? "bg-purple-200" : "bg-gray-200"}
         `}
         >
-          {isLucideIconsOn ? (
-            <UploadIcon
-              className={`h-8 w-8 ${
-                dragState === "over" ? "text-purple-600" : "text-gray-400"
-              }`}
-            />
-          ) : (
-            <DeprecatedUploadIcon
-              className={
-                dragState === "over" ? "text-purple-600" : "text-gray-400"
-              }
-            />
-          )}
+          <UploadIcon
+            className={`h-8 w-8 ${
+              dragState === "over" ? "text-purple-600" : "text-gray-400"
+            }`}
+          />
         </div>
 
         <div className="text-center">

@@ -1,11 +1,3 @@
-import {
-  CheckCircledIcon,
-  CircleIcon as DeprecatedCircleIcon,
-  CountdownTimerIcon,
-  CrossCircledIcon,
-  DoubleArrowLeftIcon,
-  ExclamationTriangleIcon,
-} from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useTranslate } from "src/hooks/use-translate";
@@ -14,7 +6,6 @@ import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { HydraulicModel } from "src/hydraulic-model";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ErrorIcon,
@@ -98,16 +89,11 @@ const CollapsedPopover = ({
   const translate = useTranslate();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
         <Button variant="quiet">
-          {isLucideIconsOn ? (
-            <ChevronsLeftIcon className="text-gray-500" />
-          ) : (
-            <DoubleArrowLeftIcon className="w-4 h-4 text-gray-500" />
-          )}
+          <ChevronsLeftIcon className="text-gray-500" />
         </Button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -148,60 +134,59 @@ const buildSimulationStatusStyles = (
   simulation: SimulationState,
   hydraulicModel: HydraulicModel,
   translate: (key: string, ...variables: string[]) => string,
-  isLucideIconsOn: boolean,
 ) => {
   switch (simulation.status) {
     case "idle":
       return {
-        Icon: isLucideIconsOn ? CircleIcon : DeprecatedCircleIcon,
+        Icon: CircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationReadyToRun"),
       };
     case "running":
       return {
-        Icon: isLucideIconsOn ? CircleIcon : DeprecatedCircleIcon,
+        Icon: CircleIcon,
         colorClass: "text-gray-500",
         text: translate("simulationRunning"),
       };
     case "success":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
+          Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? SuccessIcon : CheckCircledIcon,
+        Icon: SuccessIcon,
         colorClass: "text-green-500",
         text: translate("simulationSuccess"),
       };
     case "failure":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
+          Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
+        Icon: ErrorIcon,
         colorClass: "text-red-500",
         text: translate("simulationFailure"),
       };
     case "warning":
       if (hydraulicModel.version !== simulation.modelVersion) {
         return {
-          Icon: isLucideIconsOn ? OutdatedSimulationIcon : CountdownTimerIcon,
+          Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
-        Icon: isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon,
+        Icon: WarningIcon,
         colorClass: "text-yellow-600",
         text: translate("simulationWarning"),
       };
@@ -212,24 +197,18 @@ export const SimulationStatusText = () => {
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,
     hydraulicModel,
     translate,
-    isLucideIconsOn,
   );
 
   return (
     <div
       className={`flex flex-row items-center space-x-2 text-sm ${colorClass}`}
     >
-      {isLucideIconsOn ? (
-        <Icon className="mr-1" />
-      ) : (
-        <Icon className="w-4 h-4 mx-1" />
-      )}
+      <Icon className="mr-1" />
       {text}
     </div>
   );

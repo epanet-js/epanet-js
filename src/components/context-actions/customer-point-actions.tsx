@@ -1,4 +1,3 @@
-import { Link1Icon, LinkBreak1Icon } from "@radix-ui/react-icons";
 import type {
   Action,
   ActionProps,
@@ -15,7 +14,6 @@ import {
   connectCustomersShortcut,
   disconnectCustomersShortcut,
 } from "src/commands/customer-point-actions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ConnectIcon, DisconnectIcon } from "src/icons";
 
 export function useCustomerPointActions(
@@ -44,14 +42,12 @@ export function useCustomerPointActions(
     return Promise.resolve();
   }, [customerPoint, disconnectCustomerPoints, source]);
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
-
   const connectAction = {
     label: isReconnecting
       ? translate("contextActions.customerPoints.reconnect")
       : translate("contextActions.customerPoints.connect"),
     applicable: true,
-    icon: isLucideIconsOn ? <ConnectIcon /> : <Link1Icon />,
+    icon: <ConnectIcon />,
     onSelect: onConnect,
     shortcut: connectCustomersShortcut,
   };
@@ -59,7 +55,7 @@ export function useCustomerPointActions(
   const disconnectAction = {
     label: translate("contextActions.customerPoints.disconnect"),
     applicable: customerPoint?.connection !== null,
-    icon: isLucideIconsOn ? <DisconnectIcon /> : <LinkBreak1Icon />,
+    icon: <DisconnectIcon />,
     onSelect: onDisconnect,
     shortcut: disconnectCustomersShortcut,
   };

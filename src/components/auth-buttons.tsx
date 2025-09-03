@@ -4,10 +4,8 @@ import {
   SignUpButton as ClerkSignUpButton,
 } from "@clerk/nextjs";
 import { Button, B3Size } from "./elements";
-import { PersonIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { isAuthEnabled } from "src/auth";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { UserIcon } from "src/icons";
 
 export const SignInButton = ({
@@ -51,7 +49,6 @@ export const SignUpButton = ({
   autoFocus?: boolean;
 }) => {
   const translate = useTranslate();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (!isAuthEnabled) return null;
 
@@ -63,8 +60,7 @@ export const SignUpButton = ({
         onClick={onClick}
         autoFocus={autoFocus}
       >
-        {isLucideIconsOn ? <UserIcon /> : <PersonIcon />}{" "}
-        {translate("register")}
+        <UserIcon /> {translate("register")}
       </Button>
     </ClerkSignUpButton>
   );

@@ -1,6 +1,5 @@
 import React, { useState, KeyboardEventHandler } from "react";
 import * as P from "@radix-ui/react-popover";
-import { CardStackIcon } from "@radix-ui/react-icons";
 import { useSetAtom } from "jotai";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -9,7 +8,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Unit } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { CustomerPointsPopover } from "./customer-points-popover";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MultipleAssetsIcon } from "src/icons";
 
 interface CustomerDemandFieldProps {
@@ -30,7 +28,6 @@ export const CustomerDemandField = ({
   const [isOpen, setIsOpen] = useState(false);
   const translate = useTranslate();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const handleClose = () => {
     setEphemeralState({ type: "none" });
@@ -82,11 +79,7 @@ export const CustomerDemandField = ({
           dark:text-white bg-transparent
           flex overflow-hidden items-center"
         >
-          {isLucideIconsOn ? (
-            <MultipleAssetsIcon className="flex-shrink-0" />
-          ) : (
-            <CardStackIcon className="flex-shrink-0" />
-          )}
+          <MultipleAssetsIcon className="flex-shrink-0" />
           <span className="flex-auto truncate">
             {localizeDecimal(totalDemand)} ({customerCount}{" "}
             {translate("customers")})

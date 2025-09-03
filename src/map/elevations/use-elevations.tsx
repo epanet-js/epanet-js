@@ -6,18 +6,15 @@ import {
   prefetchElevationsTile,
 } from "./elevations";
 import { notify } from "src/components/notifications";
-import { ValueNoneIcon } from "@radix-ui/react-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { offlineAtom } from "src/state/offline";
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { UnavailableIcon } from "src/icons";
 
 export const useElevations = (unit: Unit) => {
   const translate = useTranslate();
   const isOffline = useAtomValue(offlineAtom);
-  const isLucideIconsOn = useFeatureFlag("lucidIcons");
   const prefetchTile = useCallback(
     (lngLat: LngLat) => {
       if (isOffline) return;
@@ -30,7 +27,7 @@ export const useElevations = (unit: Unit) => {
   const fetchElevation = useCallback(
     async (lngLat: LngLat) => {
       if (isOffline) {
-        notifyOfflineElevation(translate, isLucideIconsOn);
+        notifyOfflineElevation(translate);
         return fallbackElevation;
       }
 
@@ -42,45 +39,37 @@ export const useElevations = (unit: Unit) => {
         });
       } catch (error) {
         if ((error as Error).message.includes("Failed to fetch")) {
-          notifyOfflineElevation(translate, isLucideIconsOn);
+          notifyOfflineElevation(translate);
         }
         if ((error as Error).message.includes("Tile not found")) {
-          notifyTileNotAvailable(translate, isLucideIconsOn);
+          notifyTileNotAvailable(translate);
         }
         elevation = fallbackElevation;
       }
       return elevation;
     },
-    [isOffline, unit, translate, isLucideIconsOn],
+    [isOffline, unit, translate],
   );
 
   return { fetchElevation, prefetchTile };
 };
 
-const notifyOfflineElevation = (
-  translate: ReturnType<typeof useTranslate>,
-  isLucideIconsOn: boolean,
-) => {
+const notifyOfflineElevation = (translate: ReturnType<typeof useTranslate>) => {
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? UnavailableIcon : ValueNoneIcon,
+    Icon: UnavailableIcon,
     title: translate("failedToFetchElevation"),
     description: translate("failedToFetchElevationExplain"),
     id: "elevations-failed-to-fetch",
-    isLucideIconsOn: isLucideIconsOn,
   });
 };
 
-const notifyTileNotAvailable = (
-  translate: ReturnType<typeof useTranslate>,
-  isLucideIconsOn: boolean,
-) => {
+const notifyTileNotAvailable = (translate: ReturnType<typeof useTranslate>) => {
   notify({
     variant: "warning",
-    Icon: isLucideIconsOn ? UnavailableIcon : ValueNoneIcon,
+    Icon: UnavailableIcon,
     title: translate("elevationNotAvailable"),
     description: translate("elevationNotAvailableExplain"),
     id: "elevations-not-found",
-    isLucideIconsOn: isLucideIconsOn,
   });
 };

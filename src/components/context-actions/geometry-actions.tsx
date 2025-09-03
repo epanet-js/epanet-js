@@ -1,4 +1,3 @@
-import { TrashIcon, Crosshair1Icon } from "@radix-ui/react-icons";
 import type {
   Action,
   ActionProps,
@@ -11,7 +10,6 @@ import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, ZoomToIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -20,7 +18,6 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -32,12 +29,12 @@ export function useActions(
     label: translate("delete"),
     variant: "danger-quiet" as B3Variant,
     applicable: true,
-    icon: isLucideIconsOn ? <DeleteIcon /> : <TrashIcon />,
+    icon: <DeleteIcon />,
     onSelect: onDelete,
   };
 
   const zoomToAction = {
-    icon: isLucideIconsOn ? <ZoomToIcon /> : <Crosshair1Icon />,
+    icon: <ZoomToIcon />,
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doAddInnerRing() {

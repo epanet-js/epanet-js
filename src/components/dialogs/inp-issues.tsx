@@ -5,14 +5,7 @@ import {
   SimpleDialogButtons,
 } from "src/components/dialog";
 import { Trans } from "react-i18next";
-import {
-  BellIcon,
-  CrossCircledIcon,
-  ExclamationTriangleIcon,
-  GlobeIcon as DeprecatedGlobeIcon,
-  TriangleDownIcon,
-  TriangleRightIcon,
-} from "@radix-ui/react-icons";
+
 import { Button } from "../elements";
 import { useState } from "react";
 import { Form, Formik } from "formik";
@@ -20,7 +13,6 @@ import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ChevronDownIcon,
@@ -50,12 +42,11 @@ export const GeocodingNotSupportedDialog = ({
     });
     window.open(projectionConverterUrl);
   };
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("geocodingNotSupported")}
-        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
+        titleIcon={WarningIcon}
         variant="warning"
       />
       <div className="text-sm">
@@ -108,12 +99,11 @@ export const MissingCoordinatesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "missingCoordinatesError" });
   };
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("missingCoordinates")}
-        titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
+        titleIcon={ErrorIcon}
         variant="danger"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -149,12 +139,11 @@ export const InpIssuesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "inpIssues" });
   };
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <DialogHeader
         title={translate("inpNotFullySupported")}
-        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
+        titleIcon={WarningIcon}
         variant="warning"
       />
       <Formik onSubmit={() => onClose()} initialValues={{}}>
@@ -182,7 +171,6 @@ export const InpIssuesDialog = ({
 export const ProjectionCTA = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <p className="pb-3">{translate("checkoutProjectionTool")}</p>
@@ -198,7 +186,7 @@ export const ProjectionCTA = () => {
             window.open(projectionConverterUrl);
           }}
         >
-          {isLucideIconsOn ? <GlobeIcon /> : <DeprecatedGlobeIcon />}
+          <GlobeIcon />
           EPANET Projection Converter
         </Button>
       </p>
@@ -213,7 +201,6 @@ export const SubscribeCTA = ({
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <>
       <p className="pb-3">{translate("newFeaturesEveryDay")}</p>
@@ -229,7 +216,7 @@ export const SubscribeCTA = ({
             window.open(newsletterUrl);
           }}
         >
-          {isLucideIconsOn ? <SubscribeIcon /> : <BellIcon />}
+          <SubscribeIcon />
           {translate("subscribeForUpdates")}
         </Button>
       </p>
@@ -242,7 +229,6 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
   const maxDisplayed = 4;
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div className="pb-4">
       <Button
@@ -258,17 +244,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
         }}
         className="cursor-pointer text-md inline-flex items-center"
       >
-        {isExpaned ? (
-          isLucideIconsOn ? (
-            <ChevronDownIcon />
-          ) : (
-            <TriangleDownIcon />
-          )
-        ) : isLucideIconsOn ? (
-          <ChevronRightIcon />
-        ) : (
-          <TriangleRightIcon />
-        )}
+        {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
@@ -306,7 +282,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="pb-4">
@@ -323,17 +298,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         }}
         className="cursor-pointer text-md inline-flex items-center"
       >
-        {isExpaned ? (
-          isLucideIconsOn ? (
-            <ChevronDownIcon />
-          ) : (
-            <TriangleDownIcon />
-          )
-        ) : isLucideIconsOn ? (
-          <ChevronRightIcon />
-        ) : (
-          <TriangleRightIcon />
-        )}
+        {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (

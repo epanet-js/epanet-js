@@ -17,14 +17,6 @@ import {
 import { Checkbox } from "../form/Checkbox";
 import { Button, LogoIconAndWordmarkIcon } from "../elements";
 import {
-  ArrowRightIcon as DeprecatedArrowRightIcon,
-  FileIcon as DeprecatedFileIcon,
-  FileTextIcon,
-  GlobeIcon as DeprecatedGlobeIcon,
-  QuestionMarkCircledIcon,
-  StarIcon,
-} from "@radix-ui/react-icons";
-import {
   ArrowRightIcon,
   FileIcon,
   FileSpreadsheetIcon,
@@ -36,7 +28,6 @@ import { DialogCloseX, DialogContainer } from "../dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type DemoModel = {
   name: string;
@@ -77,7 +68,6 @@ export const WelcomeDialog = () => {
     (lang) => lang.code === currentLocale.locale,
   );
   const isExperimental = currentLanguage?.experimental ?? false;
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DialogContainer size="md">
@@ -104,12 +94,7 @@ export const WelcomeDialog = () => {
                       void createNew({ source: "welcome" });
                     }}
                   >
-                    {isLucideIconsOn ? (
-                      <FileIcon />
-                    ) : (
-                      <DeprecatedFileIcon className="w-4 h-4 flex-shrink-0" />
-                    )}
-
+                    <FileIcon />
                     {translate("startBlankProject")}
                   </Button>
                 )}
@@ -119,11 +104,7 @@ export const WelcomeDialog = () => {
                     void openInpFromFs({ source: "welcome" });
                   }}
                 >
-                  {isLucideIconsOn ? (
-                    <FileSpreadsheetIcon />
-                  ) : (
-                    <FileTextIcon className="w-4 h-4 flex-shrink-0" />
-                  )}
+                  <FileSpreadsheetIcon />
                   {translate("openProject")}
                 </Button>
                 <Button
@@ -132,17 +113,9 @@ export const WelcomeDialog = () => {
                     openModelBuilder({ source: "welcome" });
                   }}
                 >
-                  {isLucideIconsOn ? (
-                    <GlobeIcon />
-                  ) : (
-                    <DeprecatedGlobeIcon className="w-4 h-4 flex-shrink-0" />
-                  )}
+                  <GlobeIcon />
                   {translate("importFromGIS")}
-                  {isLucideIconsOn ? (
-                    <EarlyAccessIcon />
-                  ) : (
-                    <StarIcon className="w-3 h-3 ml-1" />
-                  )}
+                  <EarlyAccessIcon />
                 </Button>
               </div>
               <div className="flex items-start flex-col gap-2">
@@ -157,11 +130,7 @@ export const WelcomeDialog = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    {isLucideIconsOn ? (
-                      <HelpIcon />
-                    ) : (
-                      <QuestionMarkCircledIcon className="w-4 h-4 flex-shrink-0" />
-                    )}
+                    <HelpIcon />
                     {translate("helpCenter")}
                   </Button>
                 </a>
@@ -177,11 +146,7 @@ export const WelcomeDialog = () => {
                     }}
                   >
                     <Button variant="primary">
-                      {isLucideIconsOn ? (
-                        <ArrowRightIcon />
-                      ) : (
-                        <DeprecatedArrowRightIcon />
-                      )}
+                      <ArrowRightIcon />
                       {translate("quickStartTutorial")}
                     </Button>
                   </a>

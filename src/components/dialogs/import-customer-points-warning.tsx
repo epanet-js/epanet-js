@@ -1,9 +1,7 @@
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { DialogHeader, DialogButtons } from "src/components/dialog";
 import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { WarningIcon } from "src/icons";
 
 export const ImportCustomerPointsWarningDialog = ({
@@ -31,13 +29,11 @@ export const ImportCustomerPointsWarningDialog = ({
     onClose();
   };
 
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
-
   return (
     <>
       <DialogHeader
         title={translate("importCustomerPoints.label")}
-        titleIcon={isLucideIconsOn ? WarningIcon : ExclamationTriangleIcon}
+        titleIcon={WarningIcon}
         variant="danger"
       />
       <div className="text-sm">

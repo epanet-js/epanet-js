@@ -7,7 +7,6 @@ import { MapContext } from "src/map";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { useTranslate } from "src/hooks/use-translate";
 import { OpenInpDialogState, dialogAtom } from "src/state/dialog";
-import { CrossCircledIcon } from "@radix-ui/react-icons";
 
 import { AckDialogAction } from "src/components/dialog";
 import { Loading } from "../elements";
@@ -16,7 +15,6 @@ import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
@@ -38,7 +36,6 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const importInp = useCallback(async () => {
     try {
@@ -101,7 +98,7 @@ export function OpenInpDialog({
       <>
         <DialogHeader
           title={translate("error")}
-          titleIcon={isLucideIconsOn ? ErrorIcon : CrossCircledIcon}
+          titleIcon={ErrorIcon}
           variant="danger"
         />
         <div className="text-sm">

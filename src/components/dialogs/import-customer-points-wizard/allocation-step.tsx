@@ -1,10 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { AllocationRule } from "src/hydraulic-model/customer-points";
-import {
-  CheckCircledIcon,
-  ExclamationTriangleIcon,
-} from "@radix-ui/react-icons";
+
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { dataAtom } from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
@@ -19,7 +16,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence/context";
 import { Button } from "src/components/elements";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SuccessIcon, WarningIcon } from "src/icons";
 
 export const AllocationStep: React.FC<{
@@ -37,7 +33,6 @@ export const AllocationStep: React.FC<{
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const {
     parsedDataSummary,
@@ -102,8 +97,7 @@ export const AllocationStep: React.FC<{
       notify({
         variant: "success",
         title: translate("importSuccessful"),
-        Icon: isLucideIconsOn ? SuccessIcon : CheckCircledIcon,
-        isLucideIconsOn: isLucideIconsOn,
+        Icon: SuccessIcon,
       });
 
       onFinish?.();
@@ -122,7 +116,6 @@ export const AllocationStep: React.FC<{
     userTracking,
     setError,
     translate,
-    isLucideIconsOn,
     allocationRules.length,
   ]);
 
@@ -404,7 +397,6 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   totalCustomerPoints,
 }) => {
   const translate = useTranslate();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (!isVisible) {
     return null;
@@ -429,11 +421,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       </h4>
       <div className="space-y-2">
         <div className="flex items-center">
-          {isLucideIconsOn ? (
-            <SuccessIcon className="text-green-500 mr-2" />
-          ) : (
-            <CheckCircledIcon className="w-4 h-4 text-green-500 mr-2" />
-          )}
+          <SuccessIcon className="text-green-500 mr-2" />
           <span className="text-sm text-gray-700">
             {translate(
               "importCustomerPoints.wizard.allocationStep.allocatedPoints",
@@ -444,11 +432,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         </div>
         {unallocatedCount > 0 && (
           <div className="flex items-center">
-            {isLucideIconsOn ? (
-              <WarningIcon className="text-orange-500 mr-2" />
-            ) : (
-              <ExclamationTriangleIcon className="w-4 h-4 text-orange-500 mr-2" />
-            )}
+            <WarningIcon className="text-orange-500 mr-2" />
             <span className="text-sm text-orange-700">
               {translate(
                 "importCustomerPoints.wizard.allocationStep.unallocatedPoints",

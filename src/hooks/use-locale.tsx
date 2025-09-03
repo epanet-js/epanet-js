@@ -12,8 +12,6 @@ import { useUserSettings } from "src/hooks/use-user-settings";
 import "src/infra/i18n/i18next-config";
 import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
-import { CrossCircledIcon } from "@radix-ui/react-icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 const I18N_TIMEOUT_MS = 10000;
@@ -21,7 +19,6 @@ const I18N_TIMEOUT_MS = 10000;
 const changeLanguageWithTimeout = async (
   i18n: i18n,
   locale: Locale,
-  isLucideIconsOn: boolean,
 ): Promise<void> => {
   const changeLanguagePromise = i18n.changeLanguage(locale).then(() => {});
   const timeoutPromise = new Promise<void>((resolve) => {
@@ -34,8 +31,7 @@ const changeLanguageWithTimeout = async (
       notify({
         variant: "error",
         title: "Error",
-        Icon: isLucideIconsOn ? ErrorIcon : CrossCircledIcon,
-        isLucideIconsOn: isLucideIconsOn,
+        Icon: ErrorIcon,
       });
     },
   );
@@ -53,18 +49,17 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
   const { locale, setLocale: setUserLocale } = useUserSettings();
   const { i18n } = useI18NextTranslation();
   const [isI18nReady, setIsI18nReady] = useState(false);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   useEffect(() => {
     setIsI18nReady(false);
     const syncLanguage = async () => {
       if (i18n.language !== locale) {
-        await changeLanguageWithTimeout(i18n, locale, isLucideIconsOn);
+        await changeLanguageWithTimeout(i18n, locale);
       }
       setIsI18nReady(true);
     };
     void syncLanguage();
-  }, [locale, i18n, isLucideIconsOn]);
+  }, [locale, i18n]);
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {

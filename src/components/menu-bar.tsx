@@ -1,16 +1,5 @@
 import React, { memo, useRef, useState } from "react";
 import { FileInfo } from "src/components/file-info";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  Cross1Icon,
-  GitHubLogoIcon,
-  GlobeIcon as DeprecatedGlobeIcon,
-  HamburgerMenuIcon,
-  KeyboardIcon as DeprecatedKeyboardIcon,
-  QuestionMarkCircledIcon,
-  RocketIcon,
-  SunIcon,
-} from "@radix-ui/react-icons";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import {
   Button,
@@ -66,7 +55,6 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -90,7 +78,7 @@ export const MenuBarPlay = memo(function MenuBar() {
               }}
             >
               <Button variant="quiet">
-                {isLucideIconsOn ? <GithubIcon /> : <GitHubLogoIcon />}
+                <GithubIcon />
                 {translate("openSource")}
               </Button>
             </a>
@@ -113,7 +101,7 @@ export const MenuBarPlay = memo(function MenuBar() {
                   setDialogState({ type: "upgrade" });
                 }}
               >
-                {isLucideIconsOn ? <UpgradeIcon /> : <RocketIcon />}
+                <UpgradeIcon />
                 {translate("upgrade")}
               </Button>
             )}
@@ -158,7 +146,6 @@ export function HelpDot() {
   const showWelcome = useShowWelcome();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <DD.Root>
@@ -171,7 +158,7 @@ export function HelpDot() {
             showWelcome({ source: "menu" });
           }}
         >
-          {isLucideIconsOn ? <NewFromExampleIcon /> : <SunIcon />}
+          <NewFromExampleIcon />
           {translate("welcomePage")}
         </StyledItem>
         <a
@@ -185,7 +172,7 @@ export function HelpDot() {
           }}
         >
           <StyledItem>
-            {isLucideIconsOn ? <HelpIcon /> : <QuestionMarkCircledIcon />}
+            <HelpIcon />
             {translate("helpCenter")}
           </StyledItem>
         </a>
@@ -198,7 +185,7 @@ export function HelpDot() {
             showShortcuts();
           }}
         >
-          {isLucideIconsOn ? <KeyboardIcon /> : <DeprecatedKeyboardIcon />}
+          <KeyboardIcon />
           {translate("keyboardShortcuts")}
         </StyledItem>
       </DDContent>
@@ -218,7 +205,6 @@ export const SideMenu = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -228,7 +214,7 @@ export const SideMenu = () => {
     <div className="relative">
       <div className="flex justify-end md:hidden">
         <Button variant="quiet" onClick={toggleMenu}>
-          {isLucideIconsOn ? <MenuIcon /> : <HamburgerMenuIcon />}
+          <MenuIcon />
         </Button>
       </div>
 
@@ -243,19 +229,14 @@ export const SideMenu = () => {
           <div className="flex items-center justify-between pb-6">
             <HeaderLogo />
             <Button variant="quiet" onClick={toggleMenu}>
-              {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
+              <CloseIcon />
             </Button>
           </div>{" "}
           <nav>
             <ul className="flex flex-col items-start gap-2 text-gray-200">
               <li>
                 <Button variant="quiet">
-                  {isLucideIconsOn ? (
-                    <GlobeIcon />
-                  ) : (
-                    <DeprecatedGlobeIcon className="mr-2" />
-                  )}
-
+                  <GlobeIcon />
                   <LanguageSelector align="start" padding={false} asChild />
                 </Button>
               </li>
@@ -275,12 +256,7 @@ export const SideMenu = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    {isLucideIconsOn ? (
-                      <GithubIcon />
-                    ) : (
-                      <GitHubLogoIcon className="mr-2" />
-                    )}
-
+                    <GithubIcon />
                     {translate("openSource")}
                   </Button>
                 </a>
@@ -298,11 +274,7 @@ export const SideMenu = () => {
                     showWelcome({ source: "menu" });
                   }}
                 >
-                  {isLucideIconsOn ? (
-                    <NewFromExampleIcon />
-                  ) : (
-                    <SunIcon className="mr-2" />
-                  )}
+                  <NewFromExampleIcon />
                   {translate("welcomePage")}
                 </Button>
               </li>
@@ -320,11 +292,7 @@ export const SideMenu = () => {
                   }}
                 >
                   <Button variant="quiet">
-                    {isLucideIconsOn ? (
-                      <HelpIcon />
-                    ) : (
-                      <QuestionMarkCircledIcon className="mr-2" />
-                    )}
+                    <HelpIcon />
                     {translate("helpCenter")}
                   </Button>
                 </a>
@@ -350,7 +318,7 @@ export const SideMenu = () => {
                         setDialogState({ type: "upgrade" });
                       }}
                     >
-                      {isLucideIconsOn ? <UpgradeIcon /> : <RocketIcon />}
+                      <UpgradeIcon />
                       {translate("upgrade")}
                     </Button>
                   </li>

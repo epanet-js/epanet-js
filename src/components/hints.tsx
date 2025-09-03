@@ -1,4 +1,3 @@
-import { Cross1Icon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { CloseIcon, InfoIcon } from "src/icons";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
@@ -15,7 +14,6 @@ import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/symbology";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const tipLike = `
     bg-white dark:bg-gray-900
@@ -34,7 +32,6 @@ function Hint({
   secondaryText?: string;
 }) {
   const [hideHints, setHideHints] = useAtom(hideHintsAtom);
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   if (hideHints.includes(hintId)) {
     return null;
@@ -44,15 +41,11 @@ function Hint({
     <div
       className={clsx(
         "absolute max-w-[600px] top-2 left-3 text-sm flex gap-x-2  dark:text-white rounded-md",
-        isLucideIconsOn ? "p-2 items-center" : "items-start pl-2 pr-1 py-2",
+        "p-2 items-center",
         tipLike,
       )}
     >
-      {isLucideIconsOn ? (
-        <InfoIcon />
-      ) : (
-        <InfoCircledIcon className="shrink-0 w-5 h-5" />
-      )}
+      <InfoIcon />
       {!!secondaryText && (
         <div>
           <div>{text}</div>
@@ -60,29 +53,15 @@ function Hint({
         </div>
       )}
       {!secondaryText && <div>{text}</div>}
-
-      {isLucideIconsOn ? (
-        <button
-          onClick={() => {
-            setHideHints((hints) => {
-              return hints.concat(hintId);
-            });
-          }}
-        >
-          <CloseIcon />
-        </button>
-      ) : (
-        <button
-          className="px-1 py-1"
-          onClick={() => {
-            setHideHints((hints) => {
-              return hints.concat(hintId);
-            });
-          }}
-        >
-          <Cross1Icon className="w-3 h-3 shrink-0" />
-        </button>
-      )}
+      <button
+        onClick={() => {
+          setHideHints((hints) => {
+            return hints.concat(hintId);
+          });
+        }}
+      >
+        <CloseIcon />
+      </button>
     </div>
   );
 }

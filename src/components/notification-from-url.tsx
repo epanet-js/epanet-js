@@ -1,8 +1,6 @@
-import { CheckIcon as DeprecatedCheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { notify } from "./notifications";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CheckIcon } from "src/icons";
 
 type NotificationData = {
@@ -11,23 +9,20 @@ type NotificationData = {
   description?: string;
   Icon?: React.ElementType;
   size?: "auto" | "sm" | "md";
-  isLucideIconsOn: boolean;
 };
 
 type SupportedTypes = "checkoutSuccess";
 
 export const NotificationFromUrl = () => {
   const translate = useTranslate();
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   const notificationData: Record<SupportedTypes, NotificationData> = {
     checkoutSuccess: {
       variant: "success",
       title: translate("upgradeSuccessful"),
       description: translate("upgradeSuccessfulExplain"),
-      Icon: isLucideIconsOn ? CheckIcon : DeprecatedCheckIcon,
+      Icon: CheckIcon,
       size: "md",
-      isLucideIconsOn: isLucideIconsOn,
     },
   };
 

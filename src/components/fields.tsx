@@ -1,8 +1,6 @@
 import { Field, ErrorMessage } from "formik";
 import { InlineError } from "./inline-error";
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { styledSelect } from "./elements";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 // Only INP format is supported for EPANET-JS
@@ -27,7 +25,6 @@ export function SelectFileTypeField({ name }: { name: string }) {
 
 export function SelectFileType() {
   const name = "type";
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
 
   return (
     <>
@@ -40,11 +37,7 @@ export function SelectFileType() {
             rel="noreferrer"
             href="https://epanet.org"
           >
-            {isLucideIconsOn ? (
-              <ErrorIcon />
-            ) : (
-              <QuestionMarkCircledIcon className="mr-1 inline-block" />
-            )}
+            <ErrorIcon />
             Help
           </a>
         </div>

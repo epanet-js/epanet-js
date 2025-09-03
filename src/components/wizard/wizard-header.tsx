@@ -1,7 +1,5 @@
 import React from "react";
-import { Cross1Icon } from "@radix-ui/react-icons";
 import { WizardStepIndicator, type Step } from "./wizard-step-indicator";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CloseIcon } from "src/icons";
 
 interface WizardHeaderProps {
@@ -17,7 +15,6 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
   currentStep,
   onClose,
 }) => {
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -30,7 +27,7 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
                       focus:bg-gray-200 dark:focus:bg-black
                       hover:text-black dark:hover:text-white"
           >
-            {isLucideIconsOn ? <CloseIcon /> : <Cross1Icon />}
+            <CloseIcon />
           </button>
         )}
       </div>

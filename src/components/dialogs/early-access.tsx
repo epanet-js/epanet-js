@@ -1,4 +1,3 @@
-import { StarIcon } from "@radix-ui/react-icons";
 import {
   DialogContainer,
   DialogHeader,
@@ -10,7 +9,6 @@ import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { Button } from "src/components/elements";
 import { Form, Formik } from "formik";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { EarlyAccessIcon } from "src/icons";
 
 export const EarlyAccessDialog = ({
@@ -26,13 +24,9 @@ export const EarlyAccessDialog = ({
   const redirectUrl = afterSignupDialog
     ? buildAfterSignupUrl(afterSignupDialog)
     : undefined;
-  const isLucideIconsOn = useFeatureFlag("FLAG_LUCIDE_ICONS");
   return (
     <DialogContainer size="sm">
-      <DialogHeader
-        titleIcon={isLucideIconsOn ? EarlyAccessIcon : StarIcon}
-        title="Early Access Feature"
-      />
+      <DialogHeader titleIcon={EarlyAccessIcon} title="Early Access Feature" />
       <Formik onSubmit={() => {}} initialValues={{}}>
         <Form>
           <p className="text-sm text-gray">
