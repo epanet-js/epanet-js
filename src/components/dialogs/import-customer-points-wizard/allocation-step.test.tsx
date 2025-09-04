@@ -190,6 +190,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
       totalCount: 2,
       demandImportUnit: "l/d",
     },
+    inputData: null,
     isLoading: false,
     error: null,
     isProcessing: false,

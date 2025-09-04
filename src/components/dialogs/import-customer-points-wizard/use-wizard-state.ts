@@ -12,6 +12,7 @@ import {
   WizardActions,
   WizardStep,
   ParsedDataSummary,
+  InputData,
 } from "./types";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
@@ -20,6 +21,7 @@ const initialState: WizardState = {
   selectedFile: null,
   parsedCustomerPoints: null,
   parsedDataSummary: null,
+  inputData: null,
   isLoading: false,
   error: null,
   isProcessing: false,
@@ -77,11 +79,16 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, parsedDataSummary: summary }));
   };
 
+  const setInputData = (data: InputData | null) => {
+    setWizardState((prev) => ({ ...prev, inputData: data }));
+  };
+
   const resetWizardData = () => {
     setWizardState((prev) => ({
       ...prev,
       parsedDataSummary: null,
       parsedCustomerPoints: null,
+      inputData: null,
       error: null,
     }));
   };
@@ -155,6 +162,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setSelectedFile,
     setParsedCustomerPoints,
     setParsedDataSummary,
+    setInputData,
     resetWizardData,
     setError,
     setLoading,

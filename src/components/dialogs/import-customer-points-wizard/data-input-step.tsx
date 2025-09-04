@@ -1,15 +1,58 @@
 import React, { useCallback } from "react";
+import { Feature } from "geojson";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { ParsedDataSummary, WizardState, WizardActions } from "./types";
+import {
+  ParsedDataSummary,
+  WizardState,
+  WizardActions,
+  InputData,
+} from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DropZone } from "src/components/drop-zone";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
+
+const extractInputData = (fileContent: string): InputData => {
+  const trimmedContent = fileContent.trim();
+  const features: Feature[] = [];
+  const properties = new Set<string>();
+
+  if (trimmedContent.startsWith("{")) {
+    const geoJson = JSON.parse(fileContent);
+    if (geoJson.type === "FeatureCollection" && geoJson.features) {
+      for (const feature of geoJson.features) {
+        features.push(feature);
+        if (feature.properties) {
+          Object.keys(feature.properties).forEach((key) => properties.add(key));
+        }
+      }
+    }
+  } else {
+    const lines = trimmedContent.split("\n").filter((line) => line.trim());
+    for (const line of lines) {
+      try {
+        const json = JSON.parse(line);
+        if (json.type === "metadata") {
+          continue;
+        }
+        if (json.type === "Feature") {
+          features.push(json);
+          if (json.properties) {
+            Object.keys(json.properties).forEach((key) => properties.add(key));
+          }
+        }
+      } catch (error) {}
+    }
+  }
+
+  return { properties, features };
+};
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
@@ -18,6 +61,7 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
+  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
 
   const {
     selectedFile,
@@ -27,8 +71,10 @@ export const DataInputStep: React.FC<{
     setLoading,
     setError,
     setParsedDataSummary,
+    setInputData,
     resetWizardData,
     parsedDataSummary,
+    inputData,
   } = wizardState;
 
   const handleFileRejected = useCallback(
@@ -52,55 +98,71 @@ export const DataInputStep: React.FC<{
 
       try {
         const text = await file.text();
-        const issues = new CustomerPointsIssuesAccumulator();
-        const validCustomerPoints: CustomerPoint[] = [];
-        let totalCount = 0;
 
-        const demandImportUnit = modelMetadata.quantities.getUnit(
-          "customerDemandPerDay",
-        );
-        const demandTargetUnit =
-          modelMetadata.quantities.getUnit("customerDemand");
+        if (isDataMappingOn) {
+          const inputData = extractInputData(text);
+          setInputData(inputData);
+          setLoading(false);
 
-        for (const customerPoint of parseCustomerPoints(
-          text,
-          issues,
-          demandImportUnit,
-          demandTargetUnit,
-          1,
-        )) {
-          totalCount++;
-          if (customerPoint) {
-            validCustomerPoints.push(customerPoint);
-          }
-        }
-
-        const parsedDataSummary: ParsedDataSummary = {
-          validCustomerPoints,
-          issues: issues.buildResult(),
-          totalCount,
-          demandImportUnit,
-        };
-
-        if (validCustomerPoints.length === 0) {
           userTracking.capture({
-            name: "importCustomerPoints.dataInput.noValidPoints",
+            name: "importCustomerPoints.dataInput.next",
+            fileName: file.name,
+            propertiesCount: inputData.properties.size,
+            featuresCount: inputData.features.length,
+          });
+
+          onNext();
+        } else {
+          const issues = new CustomerPointsIssuesAccumulator();
+          const validCustomerPoints: CustomerPoint[] = [];
+          let totalCount = 0;
+
+          const demandImportUnit = modelMetadata.quantities.getUnit(
+            "customerDemandPerDay",
+          );
+          const demandTargetUnit =
+            modelMetadata.quantities.getUnit("customerDemand");
+
+          for (const customerPoint of parseCustomerPoints(
+            text,
+            issues,
+            demandImportUnit,
+            demandTargetUnit,
+            1,
+          )) {
+            totalCount++;
+            if (customerPoint) {
+              validCustomerPoints.push(customerPoint);
+            }
+          }
+
+          const parsedDataSummary: ParsedDataSummary = {
+            validCustomerPoints,
+            issues: issues.buildResult(),
+            totalCount,
+            demandImportUnit,
+          };
+
+          if (validCustomerPoints.length === 0) {
+            userTracking.capture({
+              name: "importCustomerPoints.dataInput.noValidPoints",
+              fileName: file.name,
+            });
+          }
+
+          setParsedDataSummary(parsedDataSummary);
+          setLoading(false);
+
+          userTracking.capture({
+            name: "importCustomerPoints.dataInput.customerPointsLoaded",
+            validCount: validCustomerPoints.length,
+            issuesCount: issues.count(),
+            totalCount,
             fileName: file.name,
           });
+
+          onNext();
         }
-
-        setParsedDataSummary(parsedDataSummary);
-        setLoading(false);
-
-        userTracking.capture({
-          name: "importCustomerPoints.dataInput.customerPointsLoaded",
-          validCount: validCustomerPoints.length,
-          issuesCount: issues.count(),
-          totalCount,
-          fileName: file.name,
-        });
-
-        onNext();
       } catch (error) {
         userTracking.capture({
           name: "importCustomerPoints.dataInput.parseError",
@@ -116,6 +178,8 @@ export const DataInputStep: React.FC<{
       setLoading,
       setError,
       setParsedDataSummary,
+      setInputData,
+      isDataMappingOn,
       onNext,
       userTracking,
       translate,
@@ -159,7 +223,7 @@ export const DataInputStep: React.FC<{
       <WizardActionsComponent
         nextAction={{
           onClick: onNext,
-          disabled: !parsedDataSummary,
+          disabled: isDataMappingOn ? !inputData : !parsedDataSummary,
         }}
       />
     </div>

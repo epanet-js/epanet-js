@@ -13,6 +13,7 @@ export const setWizardState = (
     selectedFile: null,
     parsedCustomerPoints: null,
     parsedDataSummary: null,
+    inputData: null,
     isLoading: false,
     error: null,
     isProcessing: false,

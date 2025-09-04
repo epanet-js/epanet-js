@@ -8,10 +8,12 @@ import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 import { parseCustomerPoints } from "src/import/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("DataInputStep", () => {
   beforeEach(() => {
     stubUserTracking();
+    stubFeatureOff("FLAG_DATA_MAPPING");
   });
 
   describe("initial render", () => {
@@ -317,6 +319,50 @@ describe("DataInputStep", () => {
       expect(parsedIssues).toBeDefined();
       expect(parsedIssues!.skippedInvalidDemands).toHaveLength(5);
     });
+
+    it("extracts raw data when DATA_MAPPING flag is enabled", async () => {
+      stubFeatureOn("FLAG_DATA_MAPPING");
+
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const file = aTestFile({
+        filename: "mixed-features.geojson",
+        content: createMixedFeaturesGeoJSON(),
+      });
+
+      await uploadFileInStep(file);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.next",
+        fileName: "mixed-features.geojson",
+        propertiesCount: 3,
+        featuresCount: 3,
+      });
+
+      expect(userTracking.capture).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.customerPointsLoaded",
+        }),
+      );
+    });
   });
 
   describe("wizard state contamination", () => {
@@ -595,6 +641,57 @@ const createInvalidDemandsGeoJSON = () =>
         properties: {
           name: "Boolean false demand",
           demand: false,
+        },
+      },
+    ],
+  });
+
+const createMixedFeaturesGeoJSON = () =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.001, 0.001],
+        },
+        properties: {
+          name: "Customer A",
+          demand: 25.5,
+          category: "residential",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [0.001, 0.001],
+            [0.002, 0.002],
+          ],
+        },
+        properties: {
+          name: "Pipeline",
+          demand: 100,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0.001, 0.001],
+              [0.002, 0.002],
+              [0.003, 0.001],
+              [0.001, 0.001],
+            ],
+          ],
+        },
+        properties: {
+          name: "Service Area",
+          category: "commercial",
         },
       },
     ],

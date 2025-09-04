@@ -398,6 +398,12 @@ type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   issuesCount: number;
   fileName: string;
 };
+type ImportCustomerPointsDataInputSchemaExtracted = {
+  name: "importCustomerPoints.dataInput.next";
+  fileName: string;
+  propertiesCount: number;
+  featuresCount: number;
+};
 
 type ImportCustomerPointsDemandOptionsSelected = {
   name: "importCustomerPoints.demandOptions.selected";
@@ -528,6 +534,7 @@ export type UserEvent =
   | ImportCustomerPointsDataInputParseError
   | ImportCustomerPointsDataInputUnsupportedFormat
   | ImportCustomerPointsDataInputCustomerPointsLoaded
+  | ImportCustomerPointsDataInputSchemaExtracted
   | ImportCustomerPointsDemandOptionsSelected
   | ImportCustomerPointsWizardNext
   | ImportCustomerPointsWizardBack

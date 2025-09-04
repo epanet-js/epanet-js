@@ -1,3 +1,4 @@
+import { Feature } from "geojson";
 import {
   AllocationRule,
   CustomerPoint,
@@ -15,11 +16,17 @@ export type ParsedDataSummary = {
   demandImportUnit: Unit;
 };
 
+export type InputData = {
+  properties: Set<string>;
+  features: Feature[];
+};
+
 export type WizardState = {
   currentStep: WizardStep;
   selectedFile: File | null;
   parsedCustomerPoints: CustomerPoint[] | null;
   parsedDataSummary: ParsedDataSummary | null;
+  inputData: InputData | null;
   isLoading: boolean;
   error: string | null;
   isProcessing: boolean;
@@ -39,6 +46,7 @@ export type WizardActions = {
   setSelectedFile: (file: File | null) => void;
   setParsedCustomerPoints: (points: CustomerPoint[] | null) => void;
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
+  setInputData: (data: InputData | null) => void;
   resetWizardData: () => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
