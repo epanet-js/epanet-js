@@ -405,6 +405,31 @@ type ImportCustomerPointsDataInputSchemaExtracted = {
   featuresCount: number;
 };
 
+type ImportCustomerPointsDataInputFileLoaded = {
+  name: "importCustomerPoints.dataInput.fileLoaded";
+  fileName: string;
+  propertiesCount: number;
+  featuresCount: number;
+};
+
+type ImportCustomerPointsDataMappingNoValidPoints = {
+  name: "importCustomerPoints.dataMapping.noValidPoints";
+  fileName: string;
+};
+
+type ImportCustomerPointsDataMappingParseError = {
+  name: "importCustomerPoints.dataMapping.parseError";
+  fileName: string;
+};
+
+type ImportCustomerPointsDataMappingCustomerPointsLoaded = {
+  name: "importCustomerPoints.dataMapping.customerPointsLoaded";
+  validCount: number;
+  totalCount: number;
+  issuesCount: number;
+  fileName: string;
+};
+
 type ImportCustomerPointsDemandOptionsSelected = {
   name: "importCustomerPoints.demandOptions.selected";
   option: "replace" | "addOnTop";
@@ -535,6 +560,10 @@ export type UserEvent =
   | ImportCustomerPointsDataInputUnsupportedFormat
   | ImportCustomerPointsDataInputCustomerPointsLoaded
   | ImportCustomerPointsDataInputSchemaExtracted
+  | ImportCustomerPointsDataInputFileLoaded
+  | ImportCustomerPointsDataMappingNoValidPoints
+  | ImportCustomerPointsDataMappingParseError
+  | ImportCustomerPointsDataMappingCustomerPointsLoaded
   | ImportCustomerPointsDemandOptionsSelected
   | ImportCustomerPointsWizardNext
   | ImportCustomerPointsWizardBack

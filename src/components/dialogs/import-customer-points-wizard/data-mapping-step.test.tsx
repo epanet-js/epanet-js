@@ -121,6 +121,56 @@ describe("DataMappingStep", () => {
     expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
   });
 
+  it("shows demand property selector when FLAG_DATA_MAPPING is enabled and inputData exists", () => {
+    stubFeatureOn("FLAG_DATA_MAPPING");
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    setWizardState(store, {
+      selectedFile: new File(["test"], "test.geojson", {
+        type: "application/json",
+      }),
+      inputData: {
+        properties: new Set(["name", "demand", "flow"]),
+        features: [
+          {
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [0.001, 0.001],
+            },
+            properties: {
+              name: "Point1",
+              demand: 25.5,
+              flow: 10.0,
+            },
+          },
+        ],
+      },
+    });
+
+    renderWizard(store);
+
+    expect(screen.getByText("Demand Property")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Select which property in your data represents customer demand values.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+
+    const selectElement = screen.getByRole("combobox");
+    expect(selectElement).toHaveDisplayValue("demand");
+
+    const options = screen.getAllByRole("option");
+    expect(options).toHaveLength(3);
+    expect(screen.getByRole("option", { name: "name" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "demand" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "flow" })).toBeInTheDocument();
+  });
+
   describe.skip("when FLAG_DATA_MAPPING is enabled", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_DATA_MAPPING");

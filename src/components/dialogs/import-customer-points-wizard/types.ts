@@ -27,6 +27,7 @@ export type WizardState = {
   parsedCustomerPoints: CustomerPoint[] | null;
   parsedDataSummary: ParsedDataSummary | null;
   inputData: InputData | null;
+  selectedDemandProperty: string;
   isLoading: boolean;
   error: string | null;
   isProcessing: boolean;
@@ -47,6 +48,7 @@ export type WizardActions = {
   setParsedCustomerPoints: (points: CustomerPoint[] | null) => void;
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
   setInputData: (data: InputData | null) => void;
+  setSelectedDemandProperty: (property: string) => void;
   resetWizardData: () => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;

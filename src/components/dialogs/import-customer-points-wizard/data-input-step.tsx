@@ -105,7 +105,7 @@ export const DataInputStep: React.FC<{
           setLoading(false);
 
           userTracking.capture({
-            name: "importCustomerPoints.dataInput.next",
+            name: "importCustomerPoints.dataInput.fileLoaded",
             fileName: file.name,
             propertiesCount: inputData.properties.size,
             featuresCount: inputData.features.length,

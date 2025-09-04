@@ -351,7 +351,7 @@ describe("DataInputStep", () => {
       });
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.next",
+        name: "importCustomerPoints.dataInput.fileLoaded",
         fileName: "mixed-features.geojson",
         propertiesCount: 3,
         featuresCount: 3,

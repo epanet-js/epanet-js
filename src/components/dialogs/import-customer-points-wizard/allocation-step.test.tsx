@@ -191,6 +191,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
       demandImportUnit: "l/d",
     },
     inputData: null,
+    selectedDemandProperty: "demand",
     isLoading: false,
     error: null,
     isProcessing: false,

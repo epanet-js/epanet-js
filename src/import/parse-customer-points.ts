@@ -9,6 +9,7 @@ export function* parseCustomerPoints(
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
   startingId: number = 1,
+  demandPropertyName: string = "demand",
 ): Generator<CustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
@@ -22,6 +23,7 @@ export function* parseCustomerPoints(
           demandImportUnit,
           demandTargetUnit,
           startingId,
+          demandPropertyName,
         );
         return;
       }
@@ -34,6 +36,7 @@ export function* parseCustomerPoints(
     demandImportUnit,
     demandTargetUnit,
     startingId,
+    demandPropertyName,
   );
 }
 
@@ -43,6 +46,7 @@ function* parseGeoJSONFeatures(
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
   startingId: number = 1,
+  demandPropertyName: string = "demand",
 ): Generator<CustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
@@ -57,6 +61,7 @@ function* parseGeoJSONFeatures(
       issues,
       demandImportUnit,
       demandTargetUnit,
+      demandPropertyName,
     );
     yield result.customerPoint;
     currentId = result.nextId;
@@ -69,6 +74,7 @@ function* parseGeoJSONLFeatures(
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
   startingId: number = 1,
+  demandPropertyName: string = "demand",
 ): Generator<CustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
   let currentId = startingId;
@@ -88,6 +94,7 @@ function* parseGeoJSONLFeatures(
           issues,
           demandImportUnit,
           demandTargetUnit,
+          demandPropertyName,
         );
         yield result.customerPoint;
         currentId = result.nextId;
@@ -109,6 +116,7 @@ const processGeoJSONFeature = (
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
+  demandPropertyName: string = "demand",
 ): ProcessFeatureResult => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
@@ -140,7 +148,7 @@ const processGeoJSONFeature = (
     };
   }
 
-  const demandValue = feature.properties?.demand;
+  const demandValue = feature.properties?.[demandPropertyName];
   if (demandValue === null || demandValue === undefined) {
     issues.addSkippedInvalidDemand(feature);
     return {

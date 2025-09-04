@@ -13,7 +13,12 @@ import {
 } from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { WizardState, WizardActions, ParsedDataSummary } from "./types";
+import {
+  WizardState,
+  WizardActions,
+  ParsedDataSummary,
+  InputData,
+} from "./types";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
@@ -36,92 +41,101 @@ export const DataMappingStep: React.FC<{
     error,
     inputData,
     selectedFile,
+    selectedDemandProperty,
     setLoading,
     setError,
     setParsedDataSummary,
+    setSelectedDemandProperty,
     isLoading,
   } = wizardState;
 
-  const parseInputDataToCustomerPoints = useCallback(() => {
-    if (!inputData || !selectedFile) return;
+  const parseInputDataToCustomerPoints = useCallback(
+    (inputData: InputData, demandPropertyName: string) => {
+      setLoading(true);
+      setError(null);
 
-    setLoading(true);
-    setError(null);
+      try {
+        const issues = new CustomerPointsIssuesAccumulator();
+        const validCustomerPoints: CustomerPoint[] = [];
+        let totalCount = 0;
 
-    try {
-      const issues = new CustomerPointsIssuesAccumulator();
-      const validCustomerPoints: CustomerPoint[] = [];
-      let totalCount = 0;
+        const demandImportUnit = modelMetadata.quantities.getUnit(
+          "customerDemandPerDay",
+        );
+        const demandTargetUnit =
+          modelMetadata.quantities.getUnit("customerDemand");
 
-      const demandImportUnit = modelMetadata.quantities.getUnit(
-        "customerDemandPerDay",
-      );
-      const demandTargetUnit =
-        modelMetadata.quantities.getUnit("customerDemand");
-
-      const fileContent = JSON.stringify({
-        type: "FeatureCollection",
-        features: inputData.features,
-      });
-
-      for (const customerPoint of parseCustomerPoints(
-        fileContent,
-        issues,
-        demandImportUnit,
-        demandTargetUnit,
-        1,
-      )) {
-        totalCount++;
-        if (customerPoint) {
-          validCustomerPoints.push(customerPoint);
-        }
-      }
-
-      const parsedDataSummary: ParsedDataSummary = {
-        validCustomerPoints,
-        issues: issues.buildResult(),
-        totalCount,
-        demandImportUnit,
-      };
-
-      if (validCustomerPoints.length === 0) {
-        userTracking.capture({
-          name: "importCustomerPoints.dataInput.noValidPoints",
-          fileName: selectedFile.name,
+        const fileContent = JSON.stringify({
+          type: "FeatureCollection",
+          features: inputData.features,
         });
+
+        for (const customerPoint of parseCustomerPoints(
+          fileContent,
+          issues,
+          demandImportUnit,
+          demandTargetUnit,
+          1,
+          demandPropertyName,
+        )) {
+          totalCount++;
+          if (customerPoint) {
+            validCustomerPoints.push(customerPoint);
+          }
+        }
+
+        const parsedDataSummary: ParsedDataSummary = {
+          validCustomerPoints,
+          issues: issues.buildResult(),
+          totalCount,
+          demandImportUnit,
+        };
+
+        if (validCustomerPoints.length === 0) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataMapping.noValidPoints",
+            fileName: selectedFile!.name,
+          });
+        }
+
+        setParsedDataSummary(parsedDataSummary);
+        setLoading(false);
+
+        userTracking.capture({
+          name: "importCustomerPoints.dataMapping.customerPointsLoaded",
+          validCount: validCustomerPoints.length,
+          issuesCount: issues.count(),
+          totalCount,
+          fileName: selectedFile!.name,
+        });
+      } catch (error) {
+        userTracking.capture({
+          name: "importCustomerPoints.dataMapping.parseError",
+          fileName: selectedFile!.name,
+        });
+        setError(translate("importCustomerPoints.dataSource.parseFileError"));
       }
-
-      setParsedDataSummary(parsedDataSummary);
-      setLoading(false);
-
-      userTracking.capture({
-        name: "importCustomerPoints.dataInput.customerPointsLoaded",
-        validCount: validCustomerPoints.length,
-        issuesCount: issues.count(),
-        totalCount,
-        fileName: selectedFile.name,
-      });
-    } catch (error) {
-      userTracking.capture({
-        name: "importCustomerPoints.dataInput.parseError",
-        fileName: selectedFile.name,
-      });
-      setError(translate("importCustomerPoints.dataSource.parseFileError"));
-    }
-  }, [
-    inputData,
-    selectedFile,
-    setLoading,
-    setError,
-    setParsedDataSummary,
-    modelMetadata.quantities,
-    userTracking,
-    translate,
-  ]);
+    },
+    [
+      setLoading,
+      setError,
+      setParsedDataSummary,
+      modelMetadata.quantities,
+      userTracking,
+      translate,
+      selectedFile,
+    ],
+  );
 
   useEffect(() => {
-    if (isDataMappingOn && inputData && !parsedDataSummary && !isLoading) {
-      parseInputDataToCustomerPoints();
+    if (
+      isDataMappingOn &&
+      inputData &&
+      !parsedDataSummary &&
+      !isLoading &&
+      selectedDemandProperty
+    ) {
+      parseInputDataToCustomerPoints(inputData, selectedDemandProperty);
     }
   }, [
     isDataMappingOn,
@@ -129,7 +143,25 @@ export const DataMappingStep: React.FC<{
     parsedDataSummary,
     isLoading,
     parseInputDataToCustomerPoints,
+    selectedDemandProperty,
   ]);
+
+  const handleDemandPropertyChange = useCallback(
+    (property: string) => {
+      setSelectedDemandProperty(property);
+      if (parsedDataSummary) {
+        setParsedDataSummary(null);
+        parseInputDataToCustomerPoints(inputData as InputData, property);
+      }
+    },
+    [
+      setSelectedDemandProperty,
+      parsedDataSummary,
+      setParsedDataSummary,
+      parseInputDataToCustomerPoints,
+      inputData,
+    ],
+  );
 
   const hasValidPoints =
     (parsedDataSummary?.validCustomerPoints.length || 0) > 0;
@@ -163,11 +195,22 @@ export const DataMappingStep: React.FC<{
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
-        <p className="text-gray-600">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
-          )}
-        </p>
+
+        {isDataMappingOn && inputData && (
+          <DemandPropertySelector
+            availableProperties={Array.from(inputData.properties)}
+            selectedProperty={selectedDemandProperty}
+            onSelectProperty={handleDemandPropertyChange}
+          />
+        )}
+
+        {(!isDataMappingOn || !inputData) && (
+          <p className="text-gray-600">
+            {translate(
+              "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
+            )}
+          </p>
+        )}
       </div>
     );
   }
@@ -183,6 +226,14 @@ export const DataMappingStep: React.FC<{
       <h2 className="text-lg font-semibold">
         {translate("importCustomerPoints.wizard.dataMapping.title")}
       </h2>
+
+      {isDataMappingOn && inputData && (
+        <DemandPropertySelector
+          availableProperties={Array.from(inputData.properties)}
+          selectedProperty={selectedDemandProperty}
+          onSelectProperty={handleDemandPropertyChange}
+        />
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -490,6 +541,47 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+type DemandPropertySelectorProps = {
+  availableProperties: string[];
+  selectedProperty: string;
+  onSelectProperty: (property: string) => void;
+};
+
+const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
+  availableProperties,
+  selectedProperty,
+  onSelectProperty,
+}) => {
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-blue-900 mb-1">
+            Demand Property
+          </label>
+          <p className="text-sm text-blue-700 mb-3">
+            Select which property in your data represents customer demand
+            values.
+          </p>
+        </div>
+        <div>
+          <select
+            value={selectedProperty}
+            onChange={(e) => onSelectProperty(e.target.value)}
+            className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+          >
+            {availableProperties.map((property) => (
+              <option key={property} value={property}>
+                {property}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
     </div>
   );
 };
