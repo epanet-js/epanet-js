@@ -141,103 +141,19 @@ export const DataMappingStepNew: React.FC<{
 
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
 
-  if (!parsedDataSummary) {
-    if (inputData && isLoading) {
-      return (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">
-            {translate("importCustomerPoints.wizard.dataMapping.title")}
-          </h2>
-          <div className="space-y-8">
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-3">
-                Attributes Mapping
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Map the properties from your GIS data to the customer point
-                attributes
-              </p>
-              <DemandPropertySelector
-                availableProperties={Array.from(inputData.properties)}
-                selectedProperty={selectedDemandProperty}
-                onSelectProperty={handleDemandPropertyChange}
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-3 text-gray-600">
-                  Parsing customer points...
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          {translate("importCustomerPoints.wizard.dataMapping.title")}
-        </h2>
-
-        {inputData && (
-          <div className="space-y-8">
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-3">
-                Attributes Mapping
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Map the properties from your GIS data to the customer point
-                attributes
-              </p>
-              <DemandPropertySelector
-                availableProperties={Array.from(inputData.properties)}
-                selectedProperty={selectedDemandProperty}
-                onSelectProperty={handleDemandPropertyChange}
-              />
-            </div>
-            {selectedDemandProperty && (
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-2">
-                  Data Preview
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Select a demand property to preview the data.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!inputData && (
-          <p className="text-gray-600">
-            {translate(
-              "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
-            )}
-          </p>
-        )}
-
-        <WizardActionsComponent
-          backAction={{
-            onClick: onBack,
-            disabled: isLoading,
-          }}
-          nextAction={{
-            onClick: onNext,
-            disabled: isLoading || !selectedDemandProperty,
-          }}
-        />
-      </div>
-    );
-  }
-
-  const { validCustomerPoints, issues } = parsedDataSummary;
-  const validCount = validCustomerPoints.length;
-  const errorCount = getTotalErrorCount(issues);
-
+  const showAttributesMapping = !!inputData;
+  const showLoading = inputData && isLoading && !parsedDataSummary;
+  const showDataPreview =
+    parsedDataSummary && parsedDataSummary.validCustomerPoints.length > 0;
+  const showNoDataMessage = !inputData;
+  const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
+  const errorCount = getTotalErrorCount(parsedDataSummary?.issues || null);
   const MAX_PREVIEW_ROWS = 15;
+
+  const isNextDisabled =
+    isLoading ||
+    !selectedDemandProperty ||
+    (parsedDataSummary ? validCount === 0 : false);
 
   return (
     <div className="space-y-4">
@@ -245,7 +161,7 @@ export const DataMappingStepNew: React.FC<{
         {translate("importCustomerPoints.wizard.dataMapping.title")}
       </h2>
 
-      {inputData && (
+      {showAttributesMapping && (
         <div className="space-y-8">
           <div>
             <h3 className="text-md font-medium text-gray-900 mb-3">
@@ -261,12 +177,45 @@ export const DataMappingStepNew: React.FC<{
               onSelectProperty={handleDemandPropertyChange}
             />
           </div>
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-2">
-              Data Preview
-            </h4>
-          </div>
+
+          {showLoading && (
+            <div>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span className="ml-3 text-gray-600">
+                  Parsing customer points...
+                </span>
+              </div>
+            </div>
+          )}
+
+          {showDataPreview && (
+            <div>
+              <h4 className="text-md font-medium text-gray-900 mb-2">
+                Data Preview
+              </h4>
+            </div>
+          )}
+
+          {selectedDemandProperty && !parsedDataSummary && !showLoading && (
+            <div>
+              <h4 className="text-md font-medium text-gray-900 mb-2">
+                Data Preview
+              </h4>
+              <p className="text-sm text-gray-600">
+                Select a demand property to preview the data.
+              </p>
+            </div>
+          )}
         </div>
+      )}
+
+      {showNoDataMessage && (
+        <p className="text-gray-600">
+          {translate(
+            "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
+          )}
+        </p>
       )}
 
       {error && (
@@ -275,56 +224,58 @@ export const DataMappingStepNew: React.FC<{
         </div>
       )}
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "customerPoints"
-                ? "bg-green-50 text-green-700 border-b-2 border-green-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-            onClick={() => setActiveTab("customerPoints")}
-          >
-            {translate(
-              "importCustomerPoints.wizard.dataMapping.customerPoints",
-            )}{" "}
-            ({localizeDecimal(validCount, { decimals: 0 })})
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              errorCount === 0
-                ? "text-gray-300 cursor-not-allowed"
-                : activeTab === "issues"
-                  ? "bg-red-50 text-red-700 border-b-2 border-red-500"
+      {showDataPreview && (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="flex border-b border-gray-200">
+            <button
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "customerPoints"
+                  ? "bg-green-50 text-green-700 border-b-2 border-green-500"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-            onClick={() => errorCount > 0 && setActiveTab("issues")}
-            disabled={errorCount === 0}
-          >
-            {translate("importCustomerPoints.wizard.dataMapping.issuesTab")} (
-            {localizeDecimal(errorCount, { decimals: 0 })})
-          </button>
-        </div>
+              }`}
+              onClick={() => setActiveTab("customerPoints")}
+            >
+              {translate(
+                "importCustomerPoints.wizard.dataMapping.customerPoints",
+              )}{" "}
+              ({localizeDecimal(validCount, { decimals: 0 })})
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                errorCount === 0
+                  ? "text-gray-300 cursor-not-allowed"
+                  : activeTab === "issues"
+                    ? "bg-red-50 text-red-700 border-b-2 border-red-500"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => errorCount > 0 && setActiveTab("issues")}
+              disabled={errorCount === 0}
+            >
+              {translate("importCustomerPoints.wizard.dataMapping.issuesTab")} (
+              {localizeDecimal(errorCount, { decimals: 0 })})
+            </button>
+          </div>
 
-        <div className="h-80 overflow-y-auto">
-          {activeTab === "customerPoints" && (
-            <div className="p-4">
-              <CustomerPointsTable
-                customerPoints={validCustomerPoints}
-                maxPreviewRows={MAX_PREVIEW_ROWS}
-                parsedDataSummary={parsedDataSummary}
-                wizardState={wizardState}
-              />
-            </div>
-          )}
+          <div className="h-80 overflow-y-auto">
+            {activeTab === "customerPoints" && (
+              <div className="p-4">
+                <CustomerPointsTable
+                  customerPoints={parsedDataSummary.validCustomerPoints}
+                  maxPreviewRows={MAX_PREVIEW_ROWS}
+                  parsedDataSummary={parsedDataSummary}
+                  wizardState={wizardState}
+                />
+              </div>
+            )}
 
-          {activeTab === "issues" && (
-            <div className="p-4">
-              <IssuesSummary issues={issues} />
-            </div>
-          )}
+            {activeTab === "issues" && (
+              <div className="p-4">
+                <IssuesSummary issues={parsedDataSummary.issues} />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <WizardActionsComponent
         backAction={{
@@ -333,7 +284,7 @@ export const DataMappingStepNew: React.FC<{
         }}
         nextAction={{
           onClick: onNext,
-          disabled: validCount === 0 || isLoading || !selectedDemandProperty,
+          disabled: isNextDisabled,
         }}
       />
     </div>
