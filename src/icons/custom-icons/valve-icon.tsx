@@ -1,9 +1,9 @@
 import * as React from "react";
-import { CustomIconProps, IconSize } from "../index";
+import { CustomIconProps, getPixels } from "../index";
 
 export const CustomValveIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
-  ({ size: rawSize = "m", ...props }, ref) => {
-    const size = IconSize[rawSize];
+  ({ size: rawSize = "md", ...props }, ref) => {
+    const size = getPixels(rawSize);
     return (
       <svg
         ref={ref}

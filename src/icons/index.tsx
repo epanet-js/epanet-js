@@ -56,26 +56,34 @@ import {
   Zap,
 } from "lucide-react";
 
-export enum IconSize {
-  s = 12,
-  m = 16,
-  l = 20,
-  xl = 24,
-}
+export const iconSizes = {
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 24,
+} as const;
+
+export type IconSizeKey = keyof typeof iconSizes;
 
 export type CustomIconProps = Omit<React.SVGProps<SVGSVGElement>, "size"> & {
-  size?: keyof typeof IconSize;
+  size?: IconSizeKey | number;
 };
 
 type IconProps = Omit<LucideProps, "size"> & {
-  size?: keyof typeof IconSize;
+  size?: IconSizeKey | number;
+};
+
+export const getPixels = (rawSize: IconSizeKey | number) => {
+  if (typeof rawSize === "number") return rawSize;
+
+  return iconSizes[rawSize];
 };
 
 const icon = (Icon: LucideIcon): React.FC<IconProps> => {
-  return ({ size: rawSize = "m", ...props }) => {
-    const size = IconSize[rawSize];
+  return ({ size: rawSize = "md", ...props }) => {
+    const pixels = getPixels(rawSize);
 
-    return <Icon size={size} {...props} />;
+    return <Icon size={pixels} {...props} />;
   };
 };
 

@@ -1,15 +1,15 @@
 import * as React from "react";
-import { CustomIconProps, IconSize } from "../index";
+import { CustomIconProps, getPixels } from "../index";
 
 export const CustomPumpIcon = React.forwardRef<
   SVGSVGElement,
   CustomIconProps & { triangleFillColor?: string }
 >(
   (
-    { size: rawSize = "m", triangleFillColor = "currentColor", ...props },
+    { size: rawSize = "md", triangleFillColor = "currentColor", ...props },
     ref,
   ) => {
-    const size = IconSize[rawSize];
+    const size = getPixels(rawSize);
     return (
       <svg
         ref={ref}
