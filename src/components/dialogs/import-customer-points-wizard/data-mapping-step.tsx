@@ -197,11 +197,27 @@ export const DataMappingStep: React.FC<{
         </h2>
 
         {isDataMappingOn && inputData && (
-          <DemandPropertySelector
-            availableProperties={Array.from(inputData.properties)}
-            selectedProperty={selectedDemandProperty}
-            onSelectProperty={handleDemandPropertyChange}
-          />
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-md font-medium text-gray-900 mb-3">
+                Attributes Mapping
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Map the properties from your GIS data to the customer point
+                attributes
+              </p>
+              <DemandPropertySelector
+                availableProperties={Array.from(inputData.properties)}
+                selectedProperty={selectedDemandProperty}
+                onSelectProperty={handleDemandPropertyChange}
+              />
+            </div>
+            <div>
+              <h4 className="text-md font-medium text-gray-900 mb-2">
+                Data Preview
+              </h4>
+            </div>
+          </div>
         )}
 
         {(!isDataMappingOn || !inputData) && (
@@ -228,11 +244,27 @@ export const DataMappingStep: React.FC<{
       </h2>
 
       {isDataMappingOn && inputData && (
-        <DemandPropertySelector
-          availableProperties={Array.from(inputData.properties)}
-          selectedProperty={selectedDemandProperty}
-          onSelectProperty={handleDemandPropertyChange}
-        />
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-md font-medium text-gray-900 mb-3">
+              Attributes Mapping
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Map the properties from your GIS data to the customer point
+              attributes
+            </p>
+            <DemandPropertySelector
+              availableProperties={Array.from(inputData.properties)}
+              selectedProperty={selectedDemandProperty}
+              onSelectProperty={handleDemandPropertyChange}
+            />
+          </div>
+          <div>
+            <h4 className="text-md font-medium text-gray-900 mb-2">
+              Data Preview
+            </h4>
+          </div>
+        </div>
       )}
 
       {error && (
@@ -557,31 +589,21 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
   onSelectProperty,
 }) => {
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-blue-900 mb-1">
-            Demand Property
-          </label>
-          <p className="text-sm text-blue-700 mb-3">
-            Select which property in your data represents customer demand
-            values.
-          </p>
-        </div>
-        <div>
-          <select
-            value={selectedProperty}
-            onChange={(e) => onSelectProperty(e.target.value)}
-            className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
-          >
-            {availableProperties.map((property) => (
-              <option key={property} value={property}>
-                {property}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Demand
+      </label>
+      <select
+        value={selectedProperty}
+        onChange={(e) => onSelectProperty(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+      >
+        {availableProperties.map((property) => (
+          <option key={property} value={property}>
+            {property}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };
