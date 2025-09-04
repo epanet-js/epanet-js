@@ -14,7 +14,7 @@ export const setWizardState = (
     parsedCustomerPoints: null,
     parsedDataSummary: null,
     inputData: null,
-    selectedDemandProperty: "demand",
+    selectedDemandProperty: null,
     isLoading: false,
     error: null,
     isProcessing: false,

@@ -22,7 +22,7 @@ const initialState: WizardState = {
   parsedCustomerPoints: null,
   parsedDataSummary: null,
   inputData: null,
-  selectedDemandProperty: "demand",
+  selectedDemandProperty: null,
   isLoading: false,
   error: null,
   isProcessing: false,
@@ -84,7 +84,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, inputData: data }));
   };
 
-  const setSelectedDemandProperty = (property: string) => {
+  const setSelectedDemandProperty = (property: string | null) => {
     setWizardState((prev) => ({ ...prev, selectedDemandProperty: property }));
   };
 
@@ -94,7 +94,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
       parsedDataSummary: null,
       parsedCustomerPoints: null,
       inputData: null,
-      selectedDemandProperty: "demand",
+      selectedDemandProperty: null,
       error: null,
     }));
   };

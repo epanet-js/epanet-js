@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -127,36 +127,14 @@ export const DataMappingStep: React.FC<{
     ],
   );
 
-  useEffect(() => {
-    if (
-      isDataMappingOn &&
-      inputData &&
-      !parsedDataSummary &&
-      !isLoading &&
-      selectedDemandProperty
-    ) {
-      parseInputDataToCustomerPoints(inputData, selectedDemandProperty);
-    }
-  }, [
-    isDataMappingOn,
-    inputData,
-    parsedDataSummary,
-    isLoading,
-    parseInputDataToCustomerPoints,
-    selectedDemandProperty,
-  ]);
-
   const handleDemandPropertyChange = useCallback(
     (property: string) => {
       setSelectedDemandProperty(property);
-      if (parsedDataSummary) {
-        setParsedDataSummary(null);
-        parseInputDataToCustomerPoints(inputData as InputData, property);
-      }
+      setParsedDataSummary(null);
+      parseInputDataToCustomerPoints(inputData as InputData, property);
     },
     [
       setSelectedDemandProperty,
-      parsedDataSummary,
       setParsedDataSummary,
       parseInputDataToCustomerPoints,
       inputData,
@@ -180,11 +158,22 @@ export const DataMappingStep: React.FC<{
           <h2 className="text-lg font-semibold">
             {translate("importCustomerPoints.wizard.dataMapping.title")}
           </h2>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-600">
-              Parsing customer points...
-            </span>
+          <div className="space-y-8">
+            <div>
+              <DemandPropertySelector
+                availableProperties={Array.from(inputData.properties)}
+                selectedProperty={selectedDemandProperty}
+                onSelectProperty={handleDemandPropertyChange}
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span className="ml-3 text-gray-600">
+                  Parsing customer points...
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -199,24 +188,22 @@ export const DataMappingStep: React.FC<{
         {isDataMappingOn && inputData && (
           <div className="space-y-8">
             <div>
-              <h3 className="text-md font-medium text-gray-900 mb-3">
-                Attributes Mapping
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Map the properties from your GIS data to the customer point
-                attributes
-              </p>
               <DemandPropertySelector
                 availableProperties={Array.from(inputData.properties)}
                 selectedProperty={selectedDemandProperty}
                 onSelectProperty={handleDemandPropertyChange}
               />
             </div>
-            <div>
-              <h4 className="text-md font-medium text-gray-900 mb-2">
-                Data Preview
-              </h4>
-            </div>
+            {selectedDemandProperty && (
+              <div>
+                <h4 className="text-md font-medium text-gray-900 mb-2">
+                  Data Preview
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Select a demand property to preview the data.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -227,6 +214,17 @@ export const DataMappingStep: React.FC<{
             )}
           </p>
         )}
+
+        <WizardActionsComponent
+          backAction={{
+            onClick: onBack,
+            disabled: isLoading,
+          }}
+          nextAction={{
+            onClick: onNext,
+            disabled: isLoading || !selectedDemandProperty,
+          }}
+        />
       </div>
     );
   }
@@ -246,13 +244,6 @@ export const DataMappingStep: React.FC<{
       {isDataMappingOn && inputData && (
         <div className="space-y-8">
           <div>
-            <h3 className="text-md font-medium text-gray-900 mb-3">
-              Attributes Mapping
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Map the properties from your GIS data to the customer point
-              attributes
-            </p>
             <DemandPropertySelector
               availableProperties={Array.from(inputData.properties)}
               selectedProperty={selectedDemandProperty}
@@ -331,7 +322,7 @@ export const DataMappingStep: React.FC<{
         }}
         nextAction={{
           onClick: onNext,
-          disabled: validCount === 0 || isLoading,
+          disabled: validCount === 0 || isLoading || !selectedDemandProperty,
         }}
       />
     </div>
@@ -579,7 +570,7 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
 
 type DemandPropertySelectorProps = {
   availableProperties: string[];
-  selectedProperty: string;
+  selectedProperty: string | null;
   onSelectProperty: (property: string) => void;
 };
 
@@ -594,10 +585,13 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
         Demand
       </label>
       <select
-        value={selectedProperty}
-        onChange={(e) => onSelectProperty(e.target.value)}
+        value={selectedProperty || ""}
+        onChange={(e) => e.target.value && onSelectProperty(e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
       >
+        <option value="" disabled>
+          Select demand property...
+        </option>
         {availableProperties.map((property) => (
           <option key={property} value={property}>
             {property}
