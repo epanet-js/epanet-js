@@ -15,7 +15,6 @@ import {
   CircleSlash2,
   CircleX,
   Crosshair,
-  Dot,
   Eye,
   EyeOff,
   File,
@@ -121,7 +120,6 @@ export const NewFromExampleIcon = icon(Sun);
 export const AddIcon = icon(Plus);
 export const UndoIcon = icon(Undo2);
 export const RedoIcon = icon(Redo2);
-export const UnsavedChangesIcon = icon(Dot);
 export const SaveIcon = icon(Save);
 export const SaveAllIcon = icon(SaveAll);
 export const OutdatedSimulationIcon = icon(History);
@@ -142,6 +140,7 @@ export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
 
+export { CustomUnsavedChangesIcon as UnsavedChangesIcon } from "./custom-icons/unsaved-changes-icon";
 export { CustomGithubIcon as GithubIcon } from "./custom-icons/github-icon";
 export { CustomPipeIcon as PipeIcon } from "./custom-icons/pipe-icon";
 export { CustomPumpIcon as PumpIcon } from "./custom-icons/pump-icon";
