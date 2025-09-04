@@ -110,8 +110,12 @@ const processGeoJSONFeature = (
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
 ): ProcessFeatureResult => {
-  if (feature.geometry.type !== "Point") {
-    issues.addSkippedNonPoint(feature);
+  if (!feature.geometry || feature.geometry.type !== "Point") {
+    if (!feature.geometry) {
+      issues.addSkippedMissingCoordinates(feature);
+    } else {
+      issues.addSkippedNonPoint(feature);
+    }
     return {
       customerPoint: null,
       nextId: currentId,
@@ -120,7 +124,7 @@ const processGeoJSONFeature = (
 
   const coordinates = feature.geometry.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length < 2) {
-    issues.addSkippedInvalidCoordinates(feature);
+    issues.addSkippedMissingCoordinates(feature);
     return {
       customerPoint: null,
       nextId: currentId,
@@ -129,7 +133,7 @@ const processGeoJSONFeature = (
 
   const [lng, lat] = coordinates;
   if (!isValidWGS84Coordinates(lng, lat)) {
-    issues.addSkippedInvalidCoordinates(feature);
+    issues.addSkippedInvalidProjection(feature);
     return {
       customerPoint: null,
       nextId: currentId,

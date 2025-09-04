@@ -247,15 +247,45 @@ describe("DataInputStep", () => {
 
       const parsedIssues = issues.buildResult();
       expect(parsedIssues).toBeDefined();
-      expect(parsedIssues!.skippedInvalidCoordinates).toHaveLength(2);
+      expect(parsedIssues!.skippedInvalidProjection).toHaveLength(2);
 
-      const invalidFeatures = parsedIssues!.skippedInvalidCoordinates!;
+      const invalidFeatures = parsedIssues!.skippedInvalidProjection!;
       expect((invalidFeatures[0].geometry as any).coordinates).toEqual([
         200, 95,
       ]);
       expect((invalidFeatures[1].geometry as any).coordinates).toEqual([
         -200, -95,
       ]);
+    });
+
+    it("handles missing coordinates", () => {
+      const fileContent = createMissingCoordinatesGeoJSON();
+      const issues = new CustomerPointsIssuesAccumulator();
+      const validCustomerPoints = [];
+      let totalCount = 0;
+
+      const demandImportUnit = "l/d";
+      const demandTargetUnit = "l/s";
+
+      for (const customerPoint of parseCustomerPoints(
+        fileContent,
+        issues,
+        demandImportUnit,
+        demandTargetUnit,
+        1,
+      )) {
+        totalCount++;
+        if (customerPoint) {
+          validCustomerPoints.push(customerPoint);
+        }
+      }
+
+      expect(validCustomerPoints).toHaveLength(1);
+      expect(totalCount).toBe(4);
+
+      const parsedIssues = issues.buildResult();
+      expect(parsedIssues).toBeDefined();
+      expect(parsedIssues!.skippedMissingCoordinates).toHaveLength(3);
     });
 
     it("handles invalid demand values", () => {
@@ -445,6 +475,54 @@ const createInvalidWGS84CoordinatesGeoJSON = () =>
         properties: {
           name: "Invalid coordinates 2",
           demand: 30.0,
+        },
+      },
+    ],
+  });
+
+const createMissingCoordinatesGeoJSON = () =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.001, 0.001],
+        },
+        properties: {
+          name: "Valid Customer",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [],
+        },
+        properties: {
+          name: "Empty coordinates array",
+          demand: 25.5,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0.001],
+        },
+        properties: {
+          name: "Single coordinate",
+          demand: 30.0,
+        },
+      },
+      {
+        type: "Feature",
+        geometry: null,
+        properties: {
+          name: "Null geometry",
+          demand: 15.0,
         },
       },
     ],

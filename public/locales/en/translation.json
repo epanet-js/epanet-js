@@ -457,6 +457,8 @@
         "issues": {
           "nonPointGeometries": "Non-point geometries ({{1}})",
           "invalidCoordinates": "Invalid coordinates ({{1}})",
+          "missingCoordinates": "Coordinates missing ({{1}})",
+          "invalidProjection": "Invalid projection - expected WGS84/EPSG:4326 ({{1}})",
           "invalidDemands": "Invalid demands ({{1}})",
           "invalidJsonLines": "Invalid JSON lines ({{1}})",
           "creationFailures": "Creation failures ({{1}})",

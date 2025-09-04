@@ -3,6 +3,8 @@ import { Feature } from "geojson";
 export type CustomerPointsParserIssues = {
   skippedNonPointFeatures?: Feature[];
   skippedInvalidCoordinates?: Feature[];
+  skippedMissingCoordinates?: Feature[];
+  skippedInvalidProjection?: Feature[];
   skippedInvalidDemands?: Feature[];
   skippedCreationFailures?: Feature[];
 };
@@ -28,6 +30,20 @@ export class CustomerPointsIssuesAccumulator {
     this.issues.skippedInvalidCoordinates.push(feature);
   }
 
+  addSkippedMissingCoordinates(feature: Feature) {
+    if (!this.issues.skippedMissingCoordinates) {
+      this.issues.skippedMissingCoordinates = [];
+    }
+    this.issues.skippedMissingCoordinates.push(feature);
+  }
+
+  addSkippedInvalidProjection(feature: Feature) {
+    if (!this.issues.skippedInvalidProjection) {
+      this.issues.skippedInvalidProjection = [];
+    }
+    this.issues.skippedInvalidProjection.push(feature);
+  }
+
   addSkippedInvalidDemand(feature: Feature) {
     if (!this.issues.skippedInvalidDemands) {
       this.issues.skippedInvalidDemands = [];
@@ -50,6 +66,12 @@ export class CustomerPointsIssuesAccumulator {
     }
     if (this.issues.skippedInvalidCoordinates) {
       totalIssues += this.issues.skippedInvalidCoordinates.length;
+    }
+    if (this.issues.skippedMissingCoordinates) {
+      totalIssues += this.issues.skippedMissingCoordinates.length;
+    }
+    if (this.issues.skippedInvalidProjection) {
+      totalIssues += this.issues.skippedInvalidProjection.length;
     }
     if (this.issues.skippedInvalidDemands) {
       totalIssues += this.issues.skippedInvalidDemands.length;

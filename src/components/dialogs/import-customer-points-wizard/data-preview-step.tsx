@@ -9,6 +9,7 @@ import { WizardState, WizardActions, ParsedDataSummary } from "./types";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
+import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 type TabType = "customerPoints" | "issues";
 
@@ -131,6 +132,8 @@ const getTotalErrorCount = (
   return (
     (issues.skippedNonPointFeatures?.length || 0) +
     (issues.skippedInvalidCoordinates?.length || 0) +
+    (issues.skippedMissingCoordinates?.length || 0) +
+    (issues.skippedInvalidProjection?.length || 0) +
     (issues.skippedCreationFailures?.length || 0) +
     (issues.skippedInvalidDemands?.length || 0)
   );
@@ -273,6 +276,24 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
             features={issues.skippedInvalidCoordinates}
           />
         )}
+        {issues?.skippedMissingCoordinates && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.missingCoordinates",
+              issues.skippedMissingCoordinates.length.toString(),
+            )}
+            features={issues.skippedMissingCoordinates}
+          />
+        )}
+        {issues?.skippedInvalidProjection && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataPreview.issues.invalidProjection",
+              issues.skippedInvalidProjection.length.toString(),
+            )}
+            features={issues.skippedInvalidProjection}
+          />
+        )}
         {issues?.skippedInvalidDemands && (
           <IssueSection
             title={translate(
@@ -312,7 +333,9 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <span>{title}</span>
-        <span className="text-xs text-gray-500">{isExpanded ? "−" : "+"}</span>
+        <span className="text-sm text-gray-500">
+          {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        </span>
       </button>
       {isExpanded && (
         <div className="border-t border-gray-200 p-3 bg-gray-50">
