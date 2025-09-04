@@ -426,6 +426,100 @@ describe("DataInputStep", () => {
       expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     });
   });
+
+  describe("FLAG_DATA_MAPPING error handling", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_DATA_MAPPING");
+    });
+
+    it("shows parse error and stays on current step when JSON parsing fails", async () => {
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const invalidFile = aTestFile({
+        filename: "invalid.geojson",
+        content: createInvalidJSON(),
+      });
+
+      await uploadFileInStep(invalidFile);
+
+      await waitFor(() => {
+        expect(screen.getByText(/failed to parse file/i)).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.parseError",
+        fileName: "invalid.geojson",
+      });
+
+      expect(
+        screen.getByRole("tab", {
+          name: /data input/i,
+          current: "step",
+        }),
+      ).toBeInTheDocument();
+
+      expect(userTracking.capture).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+        }),
+      );
+    });
+
+    it("shows no valid points error and stays on current step when no features extracted", async () => {
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const emptyFile = aTestFile({
+        filename: "empty.geojson",
+        content: createEmptyFeaturesGeoJSON(),
+      });
+
+      await uploadFileInStep(emptyFile);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            /no valid customer points found in the selected file/i,
+          ),
+        ).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.noValidPoints",
+        fileName: "empty.geojson",
+      });
+
+      expect(
+        screen.getByRole("tab", {
+          name: /data input/i,
+          current: "step",
+        }),
+      ).toBeInTheDocument();
+
+      expect(userTracking.capture).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+        }),
+      );
+    });
+  });
 });
 
 const createValidGeoJSON = () =>
@@ -464,6 +558,12 @@ const createValidGeoJSONL = () =>
   ].join("\n");
 
 const createInvalidJSON = () => "{ invalid json";
+
+const createEmptyFeaturesGeoJSON = () =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [],
+  });
 
 const createNoValidPointsGeoJSON = () =>
   JSON.stringify({

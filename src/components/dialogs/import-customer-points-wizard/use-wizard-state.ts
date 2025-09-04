@@ -109,7 +109,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   };
 
   const setLoading = (loading: boolean) => {
-    setWizardState((prev) => ({ ...prev, isLoading: loading, error: null }));
+    setWizardState((prev) => ({ ...prev, isLoading: loading }));
   };
 
   const setProcessing = (processing: boolean) => {

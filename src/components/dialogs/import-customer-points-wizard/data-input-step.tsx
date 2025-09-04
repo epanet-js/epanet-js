@@ -100,18 +100,44 @@ export const DataInputStep: React.FC<{
         const text = await file.text();
 
         if (isDataMappingOn) {
-          const inputData = extractInputData(text);
-          setInputData(inputData);
-          setLoading(false);
+          try {
+            const inputData = extractInputData(text);
 
-          userTracking.capture({
-            name: "importCustomerPoints.dataInput.fileLoaded",
-            fileName: file.name,
-            propertiesCount: inputData.properties.size,
-            featuresCount: inputData.features.length,
-          });
+            if (inputData.features.length === 0) {
+              userTracking.capture({
+                name: "importCustomerPoints.dataInput.noValidPoints",
+                fileName: file.name,
+              });
+              setError(
+                translate("importCustomerPoints.dataSource.noValidPointsError"),
+              );
+              setLoading(false);
+              return;
+            }
 
-          onNext();
+            setInputData(inputData);
+            setLoading(false);
+
+            userTracking.capture({
+              name: "importCustomerPoints.dataInput.fileLoaded",
+              fileName: file.name,
+              propertiesCount: inputData.properties.size,
+              featuresCount: inputData.features.length,
+            });
+
+            onNext();
+          } catch (error) {
+            userTracking.capture({
+              name: "importCustomerPoints.dataInput.parseError",
+              fileName: file.name,
+            });
+            captureError(error as Error);
+            setError(
+              translate("importCustomerPoints.dataSource.parseFileError"),
+            );
+            setLoading(false);
+            return;
+          }
         } else {
           const issues = new CustomerPointsIssuesAccumulator();
           const validCustomerPoints: CustomerPoint[] = [];
