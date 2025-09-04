@@ -16,200 +16,212 @@ import { aTestFile } from "src/__helpers__/file";
 describe("DataMappingStep", () => {
   beforeEach(() => {
     stubUserTracking();
-    stubFeatureOff("FLAG_DATA_MAPPING");
   });
 
-  it("displays customer points tab with correct styling", () => {
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
+  describe("when FLAG_DATA_MAPPING is disabled (deprecated version)", () => {
+    beforeEach(() => {
+      stubFeatureOff("FLAG_DATA_MAPPING");
     });
 
-    setWizardState(store, {
-      parsedDataSummary: createValidParsedDataSummary(),
-      selectedDemandProperty: "demand",
+    it("displays customer points tab with correct styling", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        parsedDataSummary: createValidParsedDataSummary(),
+        selectedDemandProperty: "demand",
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText("Import Customer Points")).toBeInTheDocument();
+
+      const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
+      expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
+
+      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
     });
 
-    renderWizard(store);
+    it("disables and styles issues tab when no issues exist", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
 
-    expect(screen.getByText("Import Customer Points")).toBeInTheDocument();
+      setWizardState(store, {
+        parsedDataSummary: createValidParsedDataSummary(),
+        selectedDemandProperty: "demand",
+      });
 
-    const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
-    expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
+      renderWizard(store);
 
-    expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
-    expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+      const issuesTab = screen.getByText(/Issues \(0\)/);
+      expect(issuesTab).toHaveClass("cursor-not-allowed");
+      expect(issuesTab).toHaveClass("text-gray-300");
+
+      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+    });
+
+    it("enables issues tab and allows switching when issues exist", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        parsedDataSummary: createParsedDataSummaryWithIssues(),
+        selectedDemandProperty: "demand",
+      });
+
+      renderWizard(store);
+
+      const issuesTab = screen.getByText(/Issues \(2\)/);
+      expect(issuesTab).not.toHaveClass("cursor-not-allowed");
+
+      const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
+      expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
+
+      await user.click(issuesTab);
+
+      expect(issuesTab).toHaveClass("bg-red-50", "text-red-700");
+      expect(customerPointsTab).not.toHaveClass(
+        "bg-green-50",
+        "text-green-700",
+      );
+
+      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+    });
+
+    it("displays correct counts in tab labels", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        parsedDataSummary: createParsedDataSummaryWithIssues(),
+        selectedDemandProperty: "demand",
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
+    });
+
+    it("displays invalid demands in issues tab", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        parsedDataSummary: createParsedDataSummaryWithInvalidDemands(),
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
+
+      const issuesTab = screen.getByText(/Issues \(2\)/);
+      await user.click(issuesTab);
+
+      expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
+    });
   });
 
-  it("disables and styles issues tab when no issues exist", () => {
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
+  describe("when FLAG_DATA_MAPPING is enabled (new version)", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_DATA_MAPPING");
     });
 
-    setWizardState(store, {
-      parsedDataSummary: createValidParsedDataSummary(),
-      selectedDemandProperty: "demand",
-    });
+    it("shows demand property selector when FLAG_DATA_MAPPING is enabled and inputData exists", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
 
-    renderWizard(store);
-
-    const issuesTab = screen.getByText(/Issues \(0\)/);
-    expect(issuesTab).toHaveClass("cursor-not-allowed");
-    expect(issuesTab).toHaveClass("text-gray-300");
-
-    expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
-    expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
-  });
-
-  it("enables issues tab and allows switching when issues exist", async () => {
-    const user = userEvent.setup();
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
-
-    setWizardState(store, {
-      parsedDataSummary: createParsedDataSummaryWithIssues(),
-      selectedDemandProperty: "demand",
-    });
-
-    renderWizard(store);
-
-    const issuesTab = screen.getByText(/Issues \(2\)/);
-    expect(issuesTab).not.toHaveClass("cursor-not-allowed");
-
-    const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
-    expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
-
-    await user.click(issuesTab);
-
-    expect(issuesTab).toHaveClass("bg-red-50", "text-red-700");
-    expect(customerPointsTab).not.toHaveClass("bg-green-50", "text-green-700");
-
-    expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
-    expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
-  });
-
-  it("displays correct counts in tab labels", () => {
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
-
-    setWizardState(store, {
-      parsedDataSummary: createParsedDataSummaryWithIssues(),
-      selectedDemandProperty: "demand",
-    });
-
-    renderWizard(store);
-
-    expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
-  });
-
-  it("displays invalid demands in issues tab", async () => {
-    const user = userEvent.setup();
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
-
-    setWizardState(store, {
-      parsedDataSummary: createParsedDataSummaryWithInvalidDemands(),
-    });
-
-    renderWizard(store);
-
-    expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
-
-    const issuesTab = screen.getByText(/Issues \(2\)/);
-    await user.click(issuesTab);
-
-    expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
-  });
-
-  it("shows demand property selector when FLAG_DATA_MAPPING is enabled and inputData exists", () => {
-    stubFeatureOn("FLAG_DATA_MAPPING");
-
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
-
-    setWizardState(store, {
-      selectedFile: new File(["test"], "test.geojson", {
-        type: "application/json",
-      }),
-      inputData: {
-        properties: new Set(["name", "demand", "flow"]),
-        features: [
-          {
-            type: "Feature" as const,
-            geometry: {
-              type: "Point" as const,
-              coordinates: [0.001, 0.001],
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["name", "demand", "flow"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: {
+                name: "Point1",
+                demand: 25.5,
+                flow: 10.0,
+              },
             },
-            properties: {
-              name: "Point1",
-              demand: 25.5,
-              flow: 10.0,
-            },
-          },
-        ],
-      },
+          ],
+        },
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText("Demand")).toBeInTheDocument();
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+
+      const selectElement = screen.getByRole("combobox");
+      expect(selectElement).toHaveDisplayValue("Select demand property...");
+
+      const options = screen.getAllByRole("option");
+      expect(options).toHaveLength(4);
+      expect(
+        screen.getByRole("option", { name: "Select demand property..." }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "name" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "demand" }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "flow" })).toBeInTheDocument();
     });
 
-    renderWizard(store);
+    it("disables next button when no demand property is selected", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
 
-    expect(screen.getByText("Demand")).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["name", "demand", "flow"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: {
+                name: "Point1",
+                demand: 25.5,
+              },
+            },
+          ],
+        },
+        selectedDemandProperty: null,
+      });
 
-    const selectElement = screen.getByRole("combobox");
-    expect(selectElement).toHaveDisplayValue("Select demand property...");
+      renderWizard(store);
 
-    const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(4);
-    expect(
-      screen.getByRole("option", { name: "Select demand property..." }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "name" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "demand" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "flow" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+    });
   });
 
-  it("disables next button when no demand property is selected", () => {
-    stubFeatureOn("FLAG_DATA_MAPPING");
-
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().build(),
-    });
-
-    setWizardState(store, {
-      selectedFile: new File(["test"], "test.geojson", {
-        type: "application/json",
-      }),
-      inputData: {
-        properties: new Set(["name", "demand", "flow"]),
-        features: [
-          {
-            type: "Feature" as const,
-            geometry: {
-              type: "Point" as const,
-              coordinates: [0.001, 0.001],
-            },
-            properties: {
-              name: "Point1",
-              demand: 25.5,
-            },
-          },
-        ],
-      },
-      selectedDemandProperty: null,
-    });
-
-    renderWizard(store);
-
-    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
-  });
-
-  describe.skip("when FLAG_DATA_MAPPING is enabled", () => {
+  describe.skip("Legacy tests - when FLAG_DATA_MAPPING is enabled", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_DATA_MAPPING");
     });
