@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
+import { parseCustomerPoints } from "src/import/parse-customer-points";
+import {
+  CustomerPointsIssuesAccumulator,
+  CustomerPointsParserIssues,
+} from "src/import/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { WizardState, WizardActions, ParsedDataSummary } from "./types";
@@ -19,15 +27,137 @@ export const DataMappingStep: React.FC<{
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
-  const { parsedDataSummary, error } = wizardState;
+  const userTracking = useUserTracking();
+  const { modelMetadata } = useAtomValue(dataAtom);
+  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
+
+  const {
+    parsedDataSummary,
+    error,
+    inputData,
+    selectedFile,
+    setLoading,
+    setError,
+    setParsedDataSummary,
+    isLoading,
+  } = wizardState;
+
+  const parseInputDataToCustomerPoints = useCallback(() => {
+    if (!inputData || !selectedFile) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const issues = new CustomerPointsIssuesAccumulator();
+      const validCustomerPoints: CustomerPoint[] = [];
+      let totalCount = 0;
+
+      const demandImportUnit = modelMetadata.quantities.getUnit(
+        "customerDemandPerDay",
+      );
+      const demandTargetUnit =
+        modelMetadata.quantities.getUnit("customerDemand");
+
+      const fileContent = JSON.stringify({
+        type: "FeatureCollection",
+        features: inputData.features,
+      });
+
+      for (const customerPoint of parseCustomerPoints(
+        fileContent,
+        issues,
+        demandImportUnit,
+        demandTargetUnit,
+        1,
+      )) {
+        totalCount++;
+        if (customerPoint) {
+          validCustomerPoints.push(customerPoint);
+        }
+      }
+
+      const parsedDataSummary: ParsedDataSummary = {
+        validCustomerPoints,
+        issues: issues.buildResult(),
+        totalCount,
+        demandImportUnit,
+      };
+
+      if (validCustomerPoints.length === 0) {
+        userTracking.capture({
+          name: "importCustomerPoints.dataInput.noValidPoints",
+          fileName: selectedFile.name,
+        });
+      }
+
+      setParsedDataSummary(parsedDataSummary);
+      setLoading(false);
+
+      userTracking.capture({
+        name: "importCustomerPoints.dataInput.customerPointsLoaded",
+        validCount: validCustomerPoints.length,
+        issuesCount: issues.count(),
+        totalCount,
+        fileName: selectedFile.name,
+      });
+    } catch (error) {
+      userTracking.capture({
+        name: "importCustomerPoints.dataInput.parseError",
+        fileName: selectedFile.name,
+      });
+      setError(translate("importCustomerPoints.dataSource.parseFileError"));
+    }
+  }, [
+    inputData,
+    selectedFile,
+    setLoading,
+    setError,
+    setParsedDataSummary,
+    modelMetadata.quantities,
+    userTracking,
+    translate,
+  ]);
+
+  useEffect(() => {
+    if (isDataMappingOn && inputData && !parsedDataSummary && !isLoading) {
+      parseInputDataToCustomerPoints();
+    }
+  }, [
+    isDataMappingOn,
+    inputData,
+    parsedDataSummary,
+    isLoading,
+    parseInputDataToCustomerPoints,
+  ]);
 
   const hasValidPoints =
     (parsedDataSummary?.validCustomerPoints.length || 0) > 0;
   const [activeTab, setActiveTab] = useState<TabType>(
-    hasValidPoints ? "customerPoints" : "issues",
+    isDataMappingOn
+      ? "customerPoints"
+      : hasValidPoints
+        ? "customerPoints"
+        : "issues",
   );
 
   if (!parsedDataSummary) {
+    if (isDataMappingOn && inputData && isLoading) {
+      return (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">
+            {translate("importCustomerPoints.wizard.dataMapping.title")}
+          </h2>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className="ml-3 text-gray-600">
+              Parsing customer points...
+            </span>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">
@@ -114,10 +244,11 @@ export const DataMappingStep: React.FC<{
       <WizardActionsComponent
         backAction={{
           onClick: onBack,
+          disabled: isLoading,
         }}
         nextAction={{
           onClick: onNext,
-          disabled: validCount === 0,
+          disabled: validCount === 0 || isLoading,
         }}
       />
     </div>

@@ -2,6 +2,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
 import {
   setWizardState,
   createValidParsedDataSummary,
@@ -9,8 +11,14 @@ import {
   createParsedDataSummaryWithInvalidDemands,
 } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
+import { aTestFile } from "src/__helpers__/file";
 
 describe("DataMappingStep", () => {
+  beforeEach(() => {
+    stubUserTracking();
+    stubFeatureOff("FLAG_DATA_MAPPING");
+  });
+
   it("displays customer points tab with correct styling", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -111,5 +119,83 @@ describe("DataMappingStep", () => {
     await user.click(issuesTab);
 
     expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
+  });
+
+  describe.skip("when FLAG_DATA_MAPPING is enabled", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_DATA_MAPPING");
+    });
+
+    it("shows loading state when parsing inputData", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      const inputData = {
+        properties: new Set(["name", "demand"]),
+        features: [
+          {
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [0.001, 0.001],
+            },
+            properties: {
+              name: "Point1",
+              demand: 25.5,
+            },
+          },
+        ],
+      };
+
+      setWizardState(store, {
+        currentStep: 2,
+        inputData,
+        selectedFile: aTestFile({ filename: "test.geojson", content: "" }),
+        parsedDataSummary: null,
+        isLoading: true,
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText("Data Mapping")).toBeInTheDocument();
+      expect(screen.getByText(/Parsing customer points/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
+    });
+
+    it("shows customer points when parsedDataSummary is available", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 2,
+        parsedDataSummary: createValidParsedDataSummary(),
+        isLoading: false,
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText(/Customer Points/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+    });
+
+    it("handles case when no inputData is available", () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 2,
+        inputData: null,
+        parsedDataSummary: null,
+      });
+
+      renderWizard(store);
+
+      expect(screen.getByText("Data Mapping")).toBeInTheDocument();
+      expect(screen.getByText(/No valid customer points/)).toBeInTheDocument();
+    });
   });
 });
