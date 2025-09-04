@@ -13,7 +13,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 type TabType = "customerPoints" | "issues";
 
-export const DataPreviewStep: React.FC<{
+export const DataMappingStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
@@ -31,11 +31,11 @@ export const DataPreviewStep: React.FC<{
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">
-          {translate("importCustomerPoints.wizard.dataPreview.title")}
+          {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
         <p className="text-gray-600">
           {translate(
-            "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
+            "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
           )}
         </p>
       </div>
@@ -51,7 +51,7 @@ export const DataPreviewStep: React.FC<{
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">
-        {translate("importCustomerPoints.wizard.dataPreview.title")}
+        {translate("importCustomerPoints.wizard.dataMapping.title")}
       </h2>
 
       {error && (
@@ -71,7 +71,7 @@ export const DataPreviewStep: React.FC<{
             onClick={() => setActiveTab("customerPoints")}
           >
             {translate(
-              "importCustomerPoints.wizard.dataPreview.customerPoints",
+              "importCustomerPoints.wizard.dataMapping.customerPoints",
             )}{" "}
             ({localizeDecimal(validCount, { decimals: 0 })})
           </button>
@@ -86,7 +86,7 @@ export const DataPreviewStep: React.FC<{
             onClick={() => errorCount > 0 && setActiveTab("issues")}
             disabled={errorCount === 0}
           >
-            {translate("importCustomerPoints.wizard.dataPreview.issuesTab")} (
+            {translate("importCustomerPoints.wizard.dataMapping.issuesTab")} (
             {localizeDecimal(errorCount, { decimals: 0 })})
           </button>
         </div>
@@ -164,7 +164,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
     return (
       <p className="text-gray-500 text-sm">
         {translate(
-          "importCustomerPoints.wizard.dataPreview.messages.noValidCustomerPoints",
+          "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
         )}
       </p>
     );
@@ -176,21 +176,21 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate("importCustomerPoints.wizard.dataPreview.table.id")}
+              {translate("importCustomerPoints.wizard.dataMapping.table.id")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate(
-                "importCustomerPoints.wizard.dataPreview.table.latitude",
+                "importCustomerPoints.wizard.dataMapping.table.latitude",
               )}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500  tracking-wider border-b">
               {translate(
-                "importCustomerPoints.wizard.dataPreview.table.longitude",
+                "importCustomerPoints.wizard.dataMapping.table.longitude",
               )}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {`${translate(
-                "importCustomerPoints.wizard.dataPreview.table.demand",
+                "importCustomerPoints.wizard.dataMapping.table.demand",
               )} (${translateUnit(customerDemandPerDayUnit)})`}
             </th>
           </tr>
@@ -223,7 +223,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
       {validHasMore && (
         <p className="text-sm text-gray-500 text-center pt-2">
           {translate(
-            "importCustomerPoints.wizard.dataPreview.messages.andXMore",
+            "importCustomerPoints.wizard.dataMapping.messages.andXMore",
             localizeDecimal(validCount - maxPreviewRows, { decimals: 0 }),
           )}
         </p>
@@ -243,7 +243,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
   if (errorCount === 0) {
     return (
       <p className="text-gray-500 text-sm">
-        {translate("importCustomerPoints.wizard.dataPreview.messages.noErrors")}
+        {translate("importCustomerPoints.wizard.dataMapping.messages.noErrors")}
       </p>
     );
   }
@@ -254,14 +254,14 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
             {translate(
-              "importCustomerPoints.wizard.dataPreview.messages.skippedRowsWarning",
+              "importCustomerPoints.wizard.dataMapping.messages.skippedRowsWarning",
             )}
           </p>
         </div>
         {issues?.skippedNonPointFeatures && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.nonPointGeometries",
+              "importCustomerPoints.wizard.dataMapping.issues.nonPointGeometries",
               issues.skippedNonPointFeatures.length.toString(),
             )}
             features={issues.skippedNonPointFeatures}
@@ -270,7 +270,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         {issues?.skippedInvalidCoordinates && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.invalidCoordinates",
+              "importCustomerPoints.wizard.dataMapping.issues.invalidCoordinates",
               issues.skippedInvalidCoordinates.length.toString(),
             )}
             features={issues.skippedInvalidCoordinates}
@@ -279,7 +279,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         {issues?.skippedMissingCoordinates && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.missingCoordinates",
+              "importCustomerPoints.wizard.dataMapping.issues.missingCoordinates",
               issues.skippedMissingCoordinates.length.toString(),
             )}
             features={issues.skippedMissingCoordinates}
@@ -288,7 +288,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         {issues?.skippedInvalidProjection && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.invalidProjection",
+              "importCustomerPoints.wizard.dataMapping.issues.invalidProjection",
               issues.skippedInvalidProjection.length.toString(),
             )}
             features={issues.skippedInvalidProjection}
@@ -297,7 +297,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         {issues?.skippedInvalidDemands && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.invalidDemands",
+              "importCustomerPoints.wizard.dataMapping.issues.invalidDemands",
               issues.skippedInvalidDemands.length.toString(),
             )}
             features={issues.skippedInvalidDemands}
@@ -306,7 +306,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         {issues?.skippedCreationFailures && (
           <IssueSection
             title={translate(
-              "importCustomerPoints.wizard.dataPreview.issues.creationFailures",
+              "importCustomerPoints.wizard.dataMapping.issues.creationFailures",
               issues.skippedCreationFailures.length.toString(),
             )}
             features={issues.skippedCreationFailures}
@@ -351,7 +351,7 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
             {features.length > 3 && (
               <p className="text-xs text-gray-500 text-center pt-2">
                 {translate(
-                  "importCustomerPoints.wizard.dataPreview.messages.andXMoreIssues",
+                  "importCustomerPoints.wizard.dataMapping.messages.andXMoreIssues",
                   (features.length - 3).toString(),
                 )}
               </p>

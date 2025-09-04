@@ -407,7 +407,7 @@ type ImportCustomerPointsDemandOptionsSelected = {
 type ImportCustomerPointsWizardNext = {
   name:
     | "importCustomerPoints.dataInput.next"
-    | "importCustomerPoints.dataPreview.next"
+    | "importCustomerPoints.dataMapping.next"
     | "importCustomerPoints.demandOptions.next"
     | "importCustomerPoints.allocation.next";
 };
@@ -415,7 +415,7 @@ type ImportCustomerPointsWizardNext = {
 type ImportCustomerPointsWizardBack = {
   name:
     | "importCustomerPoints.dataInput.back"
-    | "importCustomerPoints.dataPreview.back"
+    | "importCustomerPoints.dataMapping.back"
     | "importCustomerPoints.demandOptions.back"
     | "importCustomerPoints.allocation.back";
 };
@@ -423,7 +423,7 @@ type ImportCustomerPointsWizardBack = {
 type ImportCustomerPointsWizardCancel = {
   name:
     | "importCustomerPoints.dataInput.cancel"
-    | "importCustomerPoints.dataPreview.cancel"
+    | "importCustomerPoints.dataMapping.cancel"
     | "importCustomerPoints.demandOptions.cancel"
     | "importCustomerPoints.allocation.cancel";
 };

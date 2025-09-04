@@ -10,7 +10,7 @@ import {
 } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
-describe("DataPreviewStep", () => {
+describe("DataMappingStep", () => {
   it("displays customer points tab with correct styling", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),

@@ -7,7 +7,7 @@ import {
 } from "src/components/wizard";
 import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
-import { DataPreviewStep } from "./data-preview-step";
+import { DataMappingStep } from "./data-mapping-step";
 import { DemandOptionsStep } from "./demand-options-step";
 import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
@@ -15,7 +15,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 
 const stepNames = {
   1: "dataInput",
-  2: "dataPreview",
+  2: "dataMapping",
   3: "demandOptions",
   4: "allocation",
 } as const;
@@ -118,7 +118,7 @@ export const ImportCustomerPointsWizard: React.FC<
           <DataInputStep onNext={handleNext} wizardState={wizardState} />
         )}
         {wizardState.currentStep === 2 && (
-          <DataPreviewStep
+          <DataMappingStep
             onNext={handleNext}
             onBack={handleBack}
             wizardState={wizardState}
