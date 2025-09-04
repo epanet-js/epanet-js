@@ -44,7 +44,7 @@ export const NothingSelected = memo(function NothingSelected() {
           gridTemplateColumns: "min-content 1fr",
         }}
       >
-        <div className="pt-1">
+        <div className="pt-[.125rem]">
           <MouseCursorDefaultIcon />
         </div>
         <div>{translate("onboardingSelectAsset")}</div>
@@ -60,15 +60,15 @@ export const NothingSelected = memo(function NothingSelected() {
               gridTemplateColumns: "min-content 1fr",
             }}
           >
-            <div className="pt-1">
+            <div className="pt-[.125rem]">
               <ReservoirIcon />
             </div>
             <div>{translate("onboardingDrawReservoir")}</div>
-            <div className="pt-1">
+            <div className="pt-[.125rem]">
               <JunctionIcon />
             </div>
             <div>{translate("onboardingDrawJunctions")}</div>
-            <div className="pt-1">
+            <div className="pt-[.125rem]">
               <PipeIcon />
             </div>
             <div>{translate("onboardingDrawPipe")}</div>
@@ -86,11 +86,11 @@ export const NothingSelected = memo(function NothingSelected() {
           gridTemplateColumns: "min-content 1fr",
         }}
       >
-        <div className="pt-1">
+        <div className="pt-[.125rem]">
           <RunSimulationIcon />
         </div>
         <div>{translate("onboardingRunSimulation")}</div>
-        <div className="pt-1">
+        <div className="pt-[.125rem]">
           <TabsIcon />
         </div>
         <div>{translate("onboardingMap")}</div>
@@ -108,7 +108,7 @@ export const NothingSelected = memo(function NothingSelected() {
               gridTemplateColumns: "min-content 1fr",
             }}
           >
-            <div className="pt-1">
+            <div className="pt-[.125rem]">
               <KeyboardIcon />
             </div>
             <a
@@ -124,7 +124,7 @@ export const NothingSelected = memo(function NothingSelected() {
             >
               {translate("keyboardShortcuts")}
             </a>
-            <div className="pt-1">
+            <div className="pt-[.125rem]">
               <UndoIcon />
             </div>
             <div>
