@@ -5,11 +5,11 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-import { parseCustomerPoints } from "src/import/parse-customer-points";
+import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
-} from "src/import/parse-customer-points-issues";
+} from "src/import/customer-points/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {

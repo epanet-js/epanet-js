@@ -3,7 +3,7 @@ import {
   AllocationRule,
   CustomerPoint,
 } from "src/hydraulic-model/customer-points";
-import { CustomerPointsParserIssues } from "src/import/parse-customer-points-issues";
+import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { Unit } from "src/quantity";
 

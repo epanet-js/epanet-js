@@ -6,8 +6,8 @@ import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
-import { parseCustomerPoints } from "src/import/parse-customer-points";
-import { CustomerPointsIssuesAccumulator } from "src/import/parse-customer-points-issues";
+import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
+import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("DataInputStep", () => {
