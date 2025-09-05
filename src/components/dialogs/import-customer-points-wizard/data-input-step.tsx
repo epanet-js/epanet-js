@@ -223,7 +223,7 @@ export const DataInputStep: React.FC<{
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - File Input */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 space-y-6 h-full">
+          <div className="bg-white dark:bg-slate-800 p-6 space-y-6 h-full">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               {translate("importCustomerPoints.dataSource.title")}
             </h2>
@@ -273,7 +273,7 @@ export const DataInputStep: React.FC<{
               }
             >
               <img
-                src="/model-builder/model-video-thumbnail.png"
+                src="/images/customer-import-thumbnail.png"
                 alt={translate(
                   "importCustomerPoints.wizard.videoTutorial.altText",
                 )}
