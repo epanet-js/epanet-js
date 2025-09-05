@@ -344,7 +344,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate("importCustomerPoints.wizard.dataMapping.table.id")}
+              {translate("importCustomerPoints.wizard.dataMapping.table.index")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate(

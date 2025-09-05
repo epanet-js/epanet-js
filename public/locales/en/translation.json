@@ -443,6 +443,7 @@
         "issuesTab": "Issues",
         "table": {
           "id": "ID",
+          "index": "Index",
           "latitude": "Latitude",
           "longitude": "Longitude",
           "demand": "Demand"
