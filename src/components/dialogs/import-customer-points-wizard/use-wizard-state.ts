@@ -103,7 +103,6 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({
       ...prev,
       error,
-      isLoading: false,
       isProcessing: false,
     }));
   };

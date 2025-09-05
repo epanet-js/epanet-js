@@ -52,67 +52,69 @@ export const DataMappingStepNew: React.FC<{
       setLoading(true);
       setError(null);
 
-      try {
-        const issues = new CustomerPointsIssuesAccumulator();
-        const validCustomerPoints: CustomerPoint[] = [];
-        let totalCount = 0;
+      setTimeout(() => {
+        try {
+          const issues = new CustomerPointsIssuesAccumulator();
+          const validCustomerPoints: CustomerPoint[] = [];
+          let totalCount = 0;
 
-        const demandImportUnit = modelMetadata.quantities.getUnit(
-          "customerDemandPerDay",
-        );
-        const demandTargetUnit =
-          modelMetadata.quantities.getUnit("customerDemand");
+          const demandImportUnit = modelMetadata.quantities.getUnit(
+            "customerDemandPerDay",
+          );
+          const demandTargetUnit =
+            modelMetadata.quantities.getUnit("customerDemand");
 
-        const fileContent = JSON.stringify({
-          type: "FeatureCollection",
-          features: inputData.features,
-        });
+          const fileContent = JSON.stringify({
+            type: "FeatureCollection",
+            features: inputData.features,
+          });
 
-        for (const customerPoint of parseCustomerPoints(
-          fileContent,
-          issues,
-          demandImportUnit,
-          demandTargetUnit,
-          1,
-          demandPropertyName,
-        )) {
-          totalCount++;
-          if (customerPoint) {
-            validCustomerPoints.push(customerPoint);
+          for (const customerPoint of parseCustomerPoints(
+            fileContent,
+            issues,
+            demandImportUnit,
+            demandTargetUnit,
+            1,
+            demandPropertyName,
+          )) {
+            totalCount++;
+            if (customerPoint) {
+              validCustomerPoints.push(customerPoint);
+            }
           }
-        }
 
-        const parsedDataSummary: ParsedDataSummary = {
-          validCustomerPoints,
-          issues: issues.buildResult(),
-          totalCount,
-          demandImportUnit,
-        };
+          const parsedDataSummary: ParsedDataSummary = {
+            validCustomerPoints,
+            issues: issues.buildResult(),
+            totalCount,
+            demandImportUnit,
+          };
 
-        if (validCustomerPoints.length === 0) {
+          if (validCustomerPoints.length === 0) {
+            userTracking.capture({
+              name: "importCustomerPoints.dataMapping.noValidPoints",
+              fileName: selectedFile!.name,
+            });
+          }
+
+          setParsedDataSummary(parsedDataSummary);
+          setLoading(false);
+
           userTracking.capture({
-            name: "importCustomerPoints.dataMapping.noValidPoints",
+            name: "importCustomerPoints.dataMapping.customerPointsLoaded",
+            validCount: validCustomerPoints.length,
+            issuesCount: issues.count(),
+            totalCount,
             fileName: selectedFile!.name,
           });
+        } catch (error) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataMapping.parseError",
+            fileName: selectedFile!.name,
+          });
+          setError(translate("importCustomerPoints.dataSource.parseFileError"));
         }
-
-        setParsedDataSummary(parsedDataSummary);
-        setLoading(false);
-
-        userTracking.capture({
-          name: "importCustomerPoints.dataMapping.customerPointsLoaded",
-          validCount: validCustomerPoints.length,
-          issuesCount: issues.count(),
-          totalCount,
-          fileName: selectedFile!.name,
-        });
-      } catch (error) {
-        userTracking.capture({
-          name: "importCustomerPoints.dataMapping.parseError",
-          fileName: selectedFile!.name,
-        });
-        setError(translate("importCustomerPoints.dataSource.parseFileError"));
-      }
+      }, 50);
     },
     [
       setLoading,
@@ -143,8 +145,7 @@ export const DataMappingStepNew: React.FC<{
 
   const showAttributesMapping = !!inputData;
   const showLoading = inputData && isLoading && !parsedDataSummary;
-  const showDataPreview =
-    parsedDataSummary && parsedDataSummary.validCustomerPoints.length > 0;
+  const showDataPreview = parsedDataSummary;
   const showNoDataMessage = !inputData;
   const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
   const errorCount = getTotalErrorCount(parsedDataSummary?.issues || null);

@@ -86,8 +86,9 @@ export const DataInputStep: React.FC<{
       setError(
         translate("importCustomerPoints.dataSource.fileFormatNotSupported"),
       );
+      setLoading(false);
     },
-    [userTracking, setError, translate],
+    [userTracking, setError, translate, setLoading],
   );
 
   const handleFileProcess = useCallback(
