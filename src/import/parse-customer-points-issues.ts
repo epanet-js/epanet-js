@@ -23,13 +23,6 @@ export class CustomerPointsIssuesAccumulator {
     this.issues.skippedNonPointFeatures.push(feature);
   }
 
-  addSkippedInvalidCoordinates(feature: Feature) {
-    if (!this.issues.skippedInvalidCoordinates) {
-      this.issues.skippedInvalidCoordinates = [];
-    }
-    this.issues.skippedInvalidCoordinates.push(feature);
-  }
-
   addSkippedMissingCoordinates(feature: Feature) {
     if (!this.issues.skippedMissingCoordinates) {
       this.issues.skippedMissingCoordinates = [];
