@@ -10,6 +10,7 @@ import { Button } from "src/components/elements";
 import { Form, Formik } from "formik";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const EarlyAccessDialog = ({
   onContinue: _onContinue,
@@ -20,24 +21,26 @@ export const EarlyAccessDialog = ({
 }) => {
   const { closeDialog } = useDialogState();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   const redirectUrl = afterSignupDialog
     ? buildAfterSignupUrl(afterSignupDialog)
     : undefined;
   return (
     <DialogContainer size="sm">
-      <DialogHeader titleIcon={EarlyAccessIcon} title="Early Access Feature" />
+      <DialogHeader
+        titleIcon={EarlyAccessIcon}
+        title={translate("earlyAccessDialog.title")}
+      />
       <Formik onSubmit={() => {}} initialValues={{}}>
         <Form>
           <p className="text-sm text-gray">
-            This feature is in early access, and we're excited to share it with
-            our signed-in users first. We're still actively making improvements,
-            and your feedback will help us make it even better.
+            {translate("earlyAccessDialog.description")}
           </p>
           {isAuthEnabled ? (
             <div className="flex gap-3 justify-end pt-4">
               <Button variant="default" onClick={closeDialog}>
-                Cancel
+                {translate("cancel")}
               </Button>
               <ClerkSignInButton
                 signUpForceRedirectUrl={redirectUrl}
@@ -52,14 +55,14 @@ export const EarlyAccessDialog = ({
                     });
                   }}
                 >
-                  Get Early Access
+                  {translate("earlyAccessDialog.getAccess")}
                 </Button>
               </ClerkSignInButton>
             </div>
           ) : (
             <SimpleDialogActions
               secondary={{
-                action: "Cancel",
+                action: translate("cancel"),
                 onClick: closeDialog,
               }}
             />
