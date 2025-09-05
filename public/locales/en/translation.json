@@ -18,6 +18,11 @@
   "language": "Language",
   "experimentalLanguage": "This language is in beta. Please try it and contact support if you notice any inaccuracies.",
   "earlyAccess": "Early Access",
+  "earlyAccessDialog": {
+    "title": "Early Access Feature",
+    "description": "This feature is in early access, and we're excited to share it with our signed-in users first. We're still actively making improvements, and your feedback will help us make it even better.",
+    "getAccess": "Get Early Access"
+  },
   "exit": "Exit",
   "clearSelection": "Clear Selection",
   "selectAll": "Select all",

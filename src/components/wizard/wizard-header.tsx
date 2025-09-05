@@ -7,6 +7,7 @@ interface WizardHeaderProps {
   steps: Step[];
   currentStep: number;
   onClose?: () => void;
+  badge?: React.ReactNode;
 }
 
 export const WizardHeader: React.FC<WizardHeaderProps> = ({
@@ -14,11 +15,15 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
   steps,
   currentStep,
   onClose,
+  badge,
 }) => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          {badge}
+        </div>
         {onClose && (
           <button
             onClick={onClose}
