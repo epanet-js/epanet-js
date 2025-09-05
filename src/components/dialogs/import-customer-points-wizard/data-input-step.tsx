@@ -1,14 +1,8 @@
 import React, { useCallback } from "react";
-import { Feature } from "geojson";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import {
-  ParsedDataSummary,
-  WizardState,
-  WizardActions,
-  InputData,
-} from "./types";
+import { ParsedDataSummary, WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -17,42 +11,7 @@ import { DropZone } from "src/components/drop-zone";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-
-const extractInputData = (fileContent: string): InputData => {
-  const trimmedContent = fileContent.trim();
-  const features: Feature[] = [];
-  const properties = new Set<string>();
-
-  if (trimmedContent.startsWith("{")) {
-    const geoJson = JSON.parse(fileContent);
-    if (geoJson.type === "FeatureCollection" && geoJson.features) {
-      for (const feature of geoJson.features) {
-        features.push(feature);
-        if (feature.properties) {
-          Object.keys(feature.properties).forEach((key) => properties.add(key));
-        }
-      }
-    }
-  } else {
-    const lines = trimmedContent.split("\n").filter((line) => line.trim());
-    for (const line of lines) {
-      try {
-        const json = JSON.parse(line);
-        if (json.type === "metadata") {
-          continue;
-        }
-        if (json.type === "Feature") {
-          features.push(json);
-          if (json.properties) {
-            Object.keys(json.properties).forEach((key) => properties.add(key));
-          }
-        }
-      } catch (error) {}
-    }
-  }
-
-  return { properties, features };
-};
+import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
@@ -102,9 +61,27 @@ export const DataInputStep: React.FC<{
 
         if (isDataMappingOn) {
           try {
-            const inputData = extractInputData(text);
+            const {
+              features,
+              properties,
+              error: validationError,
+            } = parseGeoJson(text);
 
-            if (inputData.features.length === 0) {
+            if (validationError) {
+              userTracking.capture({
+                name: "importCustomerPoints.dataInput.parseError",
+                fileName: file.name,
+              });
+              setError(
+                translate(
+                  "importCustomerPoints.dataSource.coordinateValidationError",
+                ),
+              );
+              setLoading(false);
+              return;
+            }
+
+            if (features.length === 0) {
               userTracking.capture({
                 name: "importCustomerPoints.dataInput.noValidPoints",
                 fileName: file.name,
@@ -116,14 +93,14 @@ export const DataInputStep: React.FC<{
               return;
             }
 
-            setInputData(inputData);
+            setInputData({ features, properties });
             setLoading(false);
 
             userTracking.capture({
               name: "importCustomerPoints.dataInput.fileLoaded",
               fileName: file.name,
-              propertiesCount: inputData.properties.size,
-              featuresCount: inputData.features.length,
+              propertiesCount: properties.size,
+              featuresCount: features.length,
             });
 
             onNext();
