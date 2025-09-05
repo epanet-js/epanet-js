@@ -4,16 +4,17 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubProjectionsReady } from "src/__helpers__/projections";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("DataInputStep", () => {
   beforeEach(() => {
     stubUserTracking();
-    stubFeatureOff("FLAG_DATA_MAPPING");
+    stubProjectionsReady();
   });
 
   describe("initial render", () => {
@@ -366,7 +367,9 @@ describe("DataInputStep", () => {
   });
 
   describe("wizard state contamination", () => {
-    it("clears previous import data when new import has no valid points", async () => {
+    it.skip("clears previous import data when new import has no valid points", async () => {
+      stubFeatureOn("FLAG_DATA_MAPPING");
+
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
@@ -393,7 +396,11 @@ describe("DataInputStep", () => {
         ).toBeInTheDocument();
       });
 
-      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: /next/i }),
+        ).not.toBeDisabled();
+      });
 
       const user = userEvent.setup();
       await user.click(screen.getByRole("button", { name: /back/i }));

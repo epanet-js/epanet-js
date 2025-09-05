@@ -2,8 +2,9 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubProjectionsReady } from "src/__helpers__/projections";
 import {
   setWizardState,
   createValidParsedDataSummary,
@@ -16,13 +17,10 @@ import { aTestFile } from "src/__helpers__/file";
 describe("DataMappingStep", () => {
   beforeEach(() => {
     stubUserTracking();
+    stubProjectionsReady();
   });
 
-  describe("when FLAG_DATA_MAPPING is disabled (deprecated version)", () => {
-    beforeEach(() => {
-      stubFeatureOff("FLAG_DATA_MAPPING");
-    });
-
+  describe("legacy test scenarios", () => {
     it("displays customer points tab with correct styling", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -133,12 +131,12 @@ describe("DataMappingStep", () => {
     });
   });
 
-  describe("when FLAG_DATA_MAPPING is enabled (new version)", () => {
+  describe("current implementation", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_DATA_MAPPING");
     });
 
-    it("shows demand property selector when FLAG_DATA_MAPPING is enabled and inputData exists", () => {
+    it("shows demand property selector when inputData exists", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });

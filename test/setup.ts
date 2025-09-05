@@ -271,19 +271,37 @@ if (
   }));
 
   (window as any).fetch = (url: string) => {
-    if (url !== "/zip-lookup.json") throw new Error("Unexpected fetch");
-    return Promise.resolve({
-      ok: true,
-      json: () =>
-        Promise.resolve(
-          JSON.parse(
-            Fs.readFileSync(
-              Path.join(__dirname, "../public/zip-lookup.json"),
-              "utf8",
+    if (url === "/zip-lookup.json") {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve(
+            JSON.parse(
+              Fs.readFileSync(
+                Path.join(__dirname, "../public/zip-lookup.json"),
+                "utf8",
+              ),
             ),
           ),
-        ),
-    });
+      });
+    }
+
+    if (url === "/projections.json") {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve(
+            JSON.parse(
+              Fs.readFileSync(
+                Path.join(__dirname, "../public/projections.json"),
+                "utf8",
+              ),
+            ),
+          ),
+      });
+    }
+
+    throw new Error("Unexpected fetch");
   };
 }
 
