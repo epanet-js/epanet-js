@@ -7,6 +7,8 @@ export type CustomerPointsParserIssues = {
   skippedInvalidProjection?: Feature[];
   skippedInvalidDemands?: Feature[];
   skippedCreationFailures?: Feature[];
+  skippedUnsupportedCrs?: Feature[];
+  skippedProjectionConversionFailures?: Feature[];
 };
 
 export class CustomerPointsIssuesAccumulator {
@@ -51,6 +53,20 @@ export class CustomerPointsIssuesAccumulator {
     this.issues.skippedCreationFailures.push(feature);
   }
 
+  addSkippedUnsupportedCrs(feature: Feature) {
+    if (!this.issues.skippedUnsupportedCrs) {
+      this.issues.skippedUnsupportedCrs = [];
+    }
+    this.issues.skippedUnsupportedCrs.push(feature);
+  }
+
+  addSkippedProjectionConversionFailure(feature: Feature) {
+    if (!this.issues.skippedProjectionConversionFailures) {
+      this.issues.skippedProjectionConversionFailures = [];
+    }
+    this.issues.skippedProjectionConversionFailures.push(feature);
+  }
+
   count(): number {
     let totalIssues = 0;
 
@@ -71,6 +87,12 @@ export class CustomerPointsIssuesAccumulator {
     }
     if (this.issues.skippedCreationFailures) {
       totalIssues += this.issues.skippedCreationFailures.length;
+    }
+    if (this.issues.skippedUnsupportedCrs) {
+      totalIssues += this.issues.skippedUnsupportedCrs.length;
+    }
+    if (this.issues.skippedProjectionConversionFailures) {
+      totalIssues += this.issues.skippedProjectionConversionFailures.length;
     }
 
     return totalIssues;

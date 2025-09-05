@@ -12,11 +12,13 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
+import type { Projection } from "src/hooks/use-projections";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
   wizardState: WizardState & WizardActions;
-}> = ({ onNext, wizardState }) => {
+  projections?: Map<string, Projection> | null;
+}> = ({ onNext, wizardState, projections }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
@@ -66,18 +68,34 @@ export const DataInputStep: React.FC<{
               features,
               properties,
               error: validationError,
-            } = parseGeoJson(text);
+              coordinateConversion,
+            } = parseGeoJson(text, projections || undefined);
 
             if (validationError) {
+              let errorMessage: string;
+
+              if (validationError.code === "unsupported-crs") {
+                errorMessage = translate(
+                  "importCustomerPoints.dataSource.unsupportedCrsError",
+                );
+              } else if (
+                validationError.code === "projection-conversion-failed"
+              ) {
+                errorMessage = translate(
+                  "importCustomerPoints.dataSource.projectionConversionError",
+                );
+              } else {
+                errorMessage = translate(
+                  "importCustomerPoints.dataSource.coordinateValidationError",
+                );
+              }
+
               userTracking.capture({
                 name: "importCustomerPoints.dataInput.parseError",
                 fileName: file.name,
+                errorCode: validationError.code,
               });
-              setError(
-                translate(
-                  "importCustomerPoints.dataSource.coordinateValidationError",
-                ),
-              );
+              setError(errorMessage);
               setLoading(false);
               return;
             }
@@ -102,6 +120,13 @@ export const DataInputStep: React.FC<{
               fileName: file.name,
               propertiesCount: properties.size,
               featuresCount: features.length,
+              coordinateConversion: coordinateConversion
+                ? {
+                    detected: coordinateConversion.detected,
+                    converted: coordinateConversion.converted,
+                    fromCRS: coordinateConversion.fromCRS,
+                  }
+                : undefined,
             });
 
             onNext();
@@ -189,6 +214,7 @@ export const DataInputStep: React.FC<{
       userTracking,
       translate,
       modelMetadata.quantities,
+      projections,
     ],
   );
 

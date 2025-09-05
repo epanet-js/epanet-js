@@ -1,4 +1,5 @@
 import { parseGeoJson } from "./parse-geojson";
+import type { Projection } from "src/hooks/use-projections";
 
 describe("parseGeoJson", () => {
   it("parses valid FeatureCollection", () => {
@@ -154,5 +155,105 @@ invalid json line
     expect(result.features).toHaveLength(0);
     expect(result.error).toBeDefined();
     expect(result.error?.code).toBe("invalid-projection");
+  });
+
+  describe("coordinate transformation", () => {
+    const mockProjections = new Map<string, Projection>([
+      [
+        "EPSG:3857",
+        {
+          id: "EPSG:3857",
+          name: "Web Mercator",
+          code: "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs",
+        },
+      ],
+    ]);
+
+    it("works without projections parameter (backward compatibility)", () => {
+      const geojson = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0, 0] },
+            properties: { name: "Test Point" },
+          },
+        ],
+      };
+
+      const result = parseGeoJson(JSON.stringify(geojson));
+
+      expect(result.features).toHaveLength(1);
+      expect(result.coordinateConversion).toBeUndefined();
+      expect(result.error).toBeUndefined();
+    });
+
+    it("handles no CRS without conversion", () => {
+      const geojson = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0, 0] },
+            properties: { name: "Test Point" },
+          },
+        ],
+      };
+
+      const result = parseGeoJson(JSON.stringify(geojson), mockProjections);
+
+      expect(result.features).toHaveLength(1);
+      expect(result.coordinateConversion).toBeUndefined();
+      expect(result.error).toBeUndefined();
+    });
+
+    it("detects and converts EPSG:3857 coordinates", () => {
+      const geojson = {
+        type: "FeatureCollection",
+        crs: {
+          type: "name",
+          properties: { name: "EPSG:3857" },
+        },
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0, 0] },
+            properties: { name: "Origin Point" },
+          },
+        ],
+      };
+
+      const result = parseGeoJson(JSON.stringify(geojson), mockProjections);
+
+      expect(result.features).toHaveLength(1);
+      expect(result.coordinateConversion).toBeDefined();
+      expect(result.coordinateConversion?.detected).toBe("EPSG:3857");
+      expect(result.coordinateConversion?.converted).toBe(true);
+      expect(result.coordinateConversion?.fromCRS).toBe("Web Mercator");
+      expect(result.error).toBeUndefined();
+    });
+
+    it("handles unsupported CRS with error", () => {
+      const geojson = {
+        type: "FeatureCollection",
+        crs: {
+          type: "name",
+          properties: { name: "EPSG:9999" },
+        },
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0, 0] },
+            properties: { name: "Test Point" },
+          },
+        ],
+      };
+
+      const result = parseGeoJson(JSON.stringify(geojson), mockProjections);
+
+      expect(result.features).toHaveLength(0);
+      expect(result.error).toBeDefined();
+      expect(result.error?.code).toBe("unsupported-crs");
+    });
   });
 });

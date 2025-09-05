@@ -13,6 +13,8 @@ import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
+import { useProjections } from "src/hooks/use-projections";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stepNames = {
   1: "dataInput",
@@ -32,6 +34,12 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
+  const {
+    projections,
+    loading: projectionsLoading,
+    error: projectionsError,
+  } = useProjections();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -116,29 +124,54 @@ export const ImportCustomerPointsWizard: React.FC<
       />
 
       <WizardContent>
-        {wizardState.currentStep === 1 && (
-          <DataInputStep onNext={handleNext} wizardState={wizardState} />
+        {isDataMappingOn && projectionsLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className="ml-3 text-gray-600">
+              {translate("importCustomerPoints.wizard.loading")}
+            </span>
+          </div>
         )}
-        {wizardState.currentStep === 2 && (
-          <DataMappingStep
-            onNext={handleNext}
-            onBack={handleBack}
-            wizardState={wizardState}
-          />
+
+        {isDataMappingOn && projectionsError && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+            <p className="text-red-700 text-sm">
+              {translate("importCustomerPoints.wizard.somethingWentWrong")}
+            </p>
+          </div>
         )}
-        {wizardState.currentStep === 3 && (
-          <DemandOptionsStep
-            onNext={handleNext}
-            onBack={handleBack}
-            wizardState={wizardState}
-          />
-        )}
-        {wizardState.currentStep === 4 && (
-          <AllocationStep
-            onBack={handleBack}
-            onFinish={handleFinish}
-            wizardState={wizardState}
-          />
+
+        {(!isDataMappingOn || (!projectionsLoading && !projectionsError)) && (
+          <>
+            {wizardState.currentStep === 1 && (
+              <DataInputStep
+                onNext={handleNext}
+                wizardState={wizardState}
+                projections={projections}
+              />
+            )}
+            {wizardState.currentStep === 2 && (
+              <DataMappingStep
+                onNext={handleNext}
+                onBack={handleBack}
+                wizardState={wizardState}
+              />
+            )}
+            {wizardState.currentStep === 3 && (
+              <DemandOptionsStep
+                onNext={handleNext}
+                onBack={handleBack}
+                wizardState={wizardState}
+              />
+            )}
+            {wizardState.currentStep === 4 && (
+              <AllocationStep
+                onBack={handleBack}
+                onFinish={handleFinish}
+                wizardState={wizardState}
+              />
+            )}
+          </>
         )}
       </WizardContent>
     </WizardContainer>

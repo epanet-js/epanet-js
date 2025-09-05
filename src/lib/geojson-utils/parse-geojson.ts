@@ -1,32 +1,51 @@
-import { Feature } from "geojson";
+import { Feature, FeatureCollection } from "geojson";
+import type { Projection } from "src/hooks/use-projections";
+import {
+  extractEPSGFromGeoJSON,
+  findProjectionByCode,
+  convertGeoJsonToWGS84,
+  isLikelyLatLng,
+} from "./coordinate-transform";
 
 type GeoJsonValidationErrorCode =
   | "invalid-projection"
   | "coordinates-missing"
   | "geometry-collection-not-supported"
   | "invalid-coordinate-format"
-  | "coordinates-not-numbers";
+  | "coordinates-not-numbers"
+  | "projection-conversion-failed"
+  | "unsupported-crs";
 
 type GeoJsonValidationError = {
   code: GeoJsonValidationErrorCode;
   feature?: Feature;
 };
 
-export function parseGeoJson(content: string): {
+type CoordinateConversion = {
+  detected: string;
+  converted: boolean;
+  fromCRS: string;
+};
+
+export function parseGeoJson(
+  content: string,
+  projections?: Map<string, Projection>,
+): {
   features: Feature[];
   properties: Set<string>;
   error?: GeoJsonValidationError;
+  coordinateConversion?: CoordinateConversion;
 } {
   const trimmedContent = content.trim();
 
   if (trimmedContent.startsWith("{")) {
-    const result = parseGeoJsonFeatureCollection(trimmedContent);
+    const result = parseGeoJsonFeatureCollection(trimmedContent, projections);
     if (result) {
       return result;
     }
   }
 
-  const result = parseGeoJsonL(trimmedContent);
+  const result = parseGeoJsonL(trimmedContent, projections);
 
   // If we have no features and the content looks like it should be JSON,
   // it's likely invalid JSON rather than empty valid JSON
@@ -43,10 +62,12 @@ export function parseGeoJson(content: string): {
 
 const parseGeoJsonFeatureCollection = (
   content: string,
+  projections?: Map<string, Projection>,
 ): {
   features: Feature[];
   properties: Set<string>;
   error?: GeoJsonValidationError;
+  coordinateConversion?: CoordinateConversion;
 } | null => {
   let geoJson;
   try {
@@ -56,16 +77,68 @@ const parseGeoJsonFeatureCollection = (
   }
 
   if (geoJson.type === "FeatureCollection" && geoJson.features) {
+    let coordinateConversion: CoordinateConversion | undefined;
+    let processedGeoJson = geoJson as FeatureCollection;
+
+    // Check for CRS and attempt coordinate conversion
+    if (projections) {
+      const { code, isCRS84 } = extractEPSGFromGeoJSON(geoJson);
+      if (code && !isCRS84 && code !== "4326") {
+        const projection = findProjectionByCode(code, projections);
+        if (projection) {
+          try {
+            const convertedGeoJson = convertGeoJsonToWGS84(
+              geoJson,
+              projection.code,
+            );
+            if (isLikelyLatLng(convertedGeoJson)) {
+              processedGeoJson = convertedGeoJson;
+              coordinateConversion = {
+                detected: projection.id,
+                converted: true,
+                fromCRS: projection.name,
+              };
+            } else {
+              return {
+                features: [],
+                properties: new Set(),
+                error: { code: "projection-conversion-failed" },
+              };
+            }
+          } catch (error) {
+            return {
+              features: [],
+              properties: new Set(),
+              error: { code: "projection-conversion-failed" },
+            };
+          }
+        } else {
+          return {
+            features: [],
+            properties: new Set(),
+            error: { code: "unsupported-crs" },
+          };
+        }
+      } else if (code && (isCRS84 || code === "4326")) {
+        coordinateConversion = {
+          detected: "EPSG:4326",
+          converted: false,
+          fromCRS: "WGS84",
+        };
+      }
+    }
+
     const features: Feature[] = [];
     const properties = new Set<string>();
 
-    for (const feature of geoJson.features) {
+    for (const feature of processedGeoJson.features) {
       const validationError = validateFeatureCoordinates(feature);
       if (validationError) {
         return {
           features: [],
           properties: new Set(),
           error: { code: validationError, feature },
+          coordinateConversion,
         };
       }
       features.push(feature);
@@ -73,7 +146,7 @@ const parseGeoJsonFeatureCollection = (
         Object.keys(feature.properties).forEach((key) => properties.add(key));
       }
     }
-    return { features, properties };
+    return { features, properties, coordinateConversion };
   }
 
   return null;
@@ -81,10 +154,12 @@ const parseGeoJsonFeatureCollection = (
 
 const parseGeoJsonL = (
   content: string,
+  _projections?: Map<string, Projection>,
 ): {
   features: Feature[];
   properties: Set<string>;
   error?: GeoJsonValidationError;
+  coordinateConversion?: CoordinateConversion;
 } => {
   const features: Feature[] = [];
   const properties = new Set<string>();

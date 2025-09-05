@@ -384,6 +384,7 @@ type ImportCustomerPointsDataInputNoValidPoints = {
 type ImportCustomerPointsDataInputParseError = {
   name: "importCustomerPoints.dataInput.parseError";
   fileName: string;
+  errorCode?: string;
 };
 
 type ImportCustomerPointsDataInputUnsupportedFormat = {
@@ -410,6 +411,11 @@ type ImportCustomerPointsDataInputFileLoaded = {
   fileName: string;
   propertiesCount: number;
   featuresCount: number;
+  coordinateConversion?: {
+    detected: string;
+    converted: boolean;
+    fromCRS: string;
+  };
 };
 
 type ImportCustomerPointsDataMappingNoValidPoints = {

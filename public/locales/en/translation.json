@@ -515,13 +515,17 @@
           "addRuleButton": "Add Rule"
         },
         "applyChanges": "Apply Changes"
-      }
+      },
+      "loading": "Loading...",
+      "somethingWentWrong": "Something went wrong"
     },
     "dataSource": {
       "title": "Add from File",
       "noValidPointsError": "No valid customer points found in the selected file.",
       "parseFileError": "Failed to parse file",
-      "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection",
+      "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection, or include a CRS definition in the GeoJSON",
+      "unsupportedCrsError": "Unsupported coordinate reference system",
+      "projectionConversionError": "Failed to convert coordinate system",
       "fileFormatNotSupported": "File format not supported",
       "supportedFormats": "Supported formats:",
       "parsingFile": "Reading file...",
