@@ -12,6 +12,7 @@ import { DemandOptionsStep } from "./demand-options-step";
 import { AllocationStep } from "./allocation-step";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
+import { EarlyAccessBadge } from "src/components/early-access-badge";
 
 const stepNames = {
   1: "dataInput",
@@ -111,6 +112,7 @@ export const ImportCustomerPointsWizard: React.FC<
         steps={steps}
         currentStep={wizardState.currentStep}
         onClose={handleCancel}
+        badge={<EarlyAccessBadge />}
       />
 
       <WizardContent>
