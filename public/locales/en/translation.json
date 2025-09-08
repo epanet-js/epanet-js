@@ -441,7 +441,7 @@
       "dataInputStep": "Data Input",
       "videoTutorial": {
         "title": "Customer Points Import Tutorial",
-        "description": "Learn how to import customer points by watching the tutorial above or reading the step-by-step guide.",
+        "description": "Learn how to import customer points by watching the tutorial above or reading the <guideLink>step-by-step guide</guideLink>.",
         "altText": "Customer points import tutorial"
       },
       "dataPreviewStep": "Data Mapping",

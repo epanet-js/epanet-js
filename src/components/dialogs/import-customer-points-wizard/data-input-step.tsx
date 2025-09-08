@@ -13,6 +13,11 @@ import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import type { Projection } from "src/hooks/use-projections";
+import {
+  customerPointsImportGuide,
+  customerPointsImportVideoUrl,
+} from "src/global-config";
+import { Trans } from "react-i18next";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
@@ -266,7 +271,7 @@ export const DataInputStep: React.FC<{
               className="relative overflow-hidden rounded-lg shadow-lg cursor-pointer"
               onClick={() =>
                 window.open(
-                  "https://www.youtube.com/watch?v=3B9UWHMb3W4",
+                  customerPointsImportVideoUrl,
                   "_blank",
                   "noopener,noreferrer",
                 )
@@ -313,9 +318,18 @@ export const DataInputStep: React.FC<{
             </div>
 
             <p className="text-slate-700 dark:text-slate-300 text-sm">
-              {translate(
-                "importCustomerPoints.wizard.videoTutorial.description",
-              )}
+              <Trans
+                i18nKey="importCustomerPoints.wizard.videoTutorial.description"
+                components={{
+                  guideLink: (
+                    <a
+                      href={customerPointsImportGuide}
+                      target="_blank"
+                      className="text-purple-700 dark:text-purple-300 underline"
+                    />
+                  ),
+                }}
+              />
             </p>
           </div>
         </div>
