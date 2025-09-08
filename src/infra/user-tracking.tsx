@@ -399,6 +399,12 @@ type ImportCustomerPointsDataInputCustomerPointsLoaded = {
   issuesCount: number;
   fileName: string;
 };
+
+type ImportCustomerPointsDataSelectDemandProperty = {
+  name: "importCustomerPoints.dataMapping.selectDemand";
+  property: string;
+};
+
 type ImportCustomerPointsDataInputSchemaExtracted = {
   name: "importCustomerPoints.dataInput.next";
   fileName: string;
@@ -411,11 +417,11 @@ type ImportCustomerPointsDataInputFileLoaded = {
   fileName: string;
   propertiesCount: number;
   featuresCount: number;
-  coordinateConversion?: {
+  coordinateConversion: {
     detected: string;
     converted: boolean;
     fromCRS: string;
-  };
+  } | null;
 };
 
 type ImportCustomerPointsDataMappingNoValidPoints = {
@@ -584,6 +590,7 @@ export type UserEvent =
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ExamplesOpened
+  | ImportCustomerPointsDataSelectDemandProperty
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }

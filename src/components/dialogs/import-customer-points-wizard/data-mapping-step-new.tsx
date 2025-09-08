@@ -129,11 +129,16 @@ export const DataMappingStepNew: React.FC<{
 
   const handleDemandPropertyChange = useCallback(
     (property: string) => {
+      userTracking.capture({
+        name: "importCustomerPoints.dataMapping.selectDemand",
+        property,
+      });
       setSelectedDemandProperty(property);
       setParsedDataSummary(null);
       parseInputDataToCustomerPoints(inputData as InputData, property);
     },
     [
+      userTracking,
       setSelectedDemandProperty,
       setParsedDataSummary,
       parseInputDataToCustomerPoints,

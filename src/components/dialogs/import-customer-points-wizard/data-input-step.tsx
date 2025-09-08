@@ -130,7 +130,7 @@ export const DataInputStep: React.FC<{
                     converted: coordinateConversion.converted,
                     fromCRS: coordinateConversion.fromCRS,
                   }
-                : undefined,
+                : null,
             });
 
             onNext();
