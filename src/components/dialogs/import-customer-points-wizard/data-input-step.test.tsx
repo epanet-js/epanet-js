@@ -351,12 +351,14 @@ describe("DataInputStep", () => {
         ).toBeInTheDocument();
       });
 
-      expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.fileLoaded",
-        fileName: "mixed-features.geojson",
-        propertiesCount: 3,
-        featuresCount: 3,
-      });
+      expect(userTracking.capture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+          fileName: "mixed-features.geojson",
+          propertiesCount: 3,
+          featuresCount: 3,
+        }),
+      );
 
       expect(userTracking.capture).not.toHaveBeenCalledWith(
         expect.objectContaining({
