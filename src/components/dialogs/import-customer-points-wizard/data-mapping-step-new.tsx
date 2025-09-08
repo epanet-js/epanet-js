@@ -171,11 +171,14 @@ export const DataMappingStepNew: React.FC<{
         <div className="space-y-8">
           <div>
             <h3 className="text-md font-medium text-gray-900 mb-3">
-              Attributes Mapping
+              {translate(
+                "importCustomerPoints.wizard.dataMapping.attributesMapping.title",
+              )}
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              Map the properties from your GIS data to the customer point
-              attributes
+              {translate(
+                "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
+              )}
             </p>
             <DemandPropertySelector
               availableProperties={Array.from(inputData.properties)}
@@ -189,7 +192,7 @@ export const DataMappingStepNew: React.FC<{
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 <span className="ml-3 text-gray-600">
-                  Parsing customer points...
+                  {translate("importCustomerPoints.wizard.dataMapping.loading")}
                 </span>
               </div>
             </div>
@@ -198,7 +201,9 @@ export const DataMappingStepNew: React.FC<{
           {showDataPreview && (
             <div>
               <h4 className="text-md font-medium text-gray-900 mb-2">
-                Data Preview
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.dataPreview.title",
+                )}
               </h4>
             </div>
           )}
@@ -206,10 +211,14 @@ export const DataMappingStepNew: React.FC<{
           {selectedDemandProperty && !parsedDataSummary && !showLoading && (
             <div>
               <h4 className="text-md font-medium text-gray-900 mb-2">
-                Data Preview
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.dataPreview.title",
+                )}
               </h4>
               <p className="text-sm text-gray-600">
-                Select a demand property to preview the data.
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.dataPreview.selectPrompt",
+                )}
               </p>
             </div>
           )}
@@ -547,10 +556,14 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
   selectedProperty,
   onSelectProperty,
 }) => {
+  const translate = useTranslate();
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Demand
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+        )}
       </label>
       <select
         value={selectedProperty || ""}
@@ -558,7 +571,9 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
       >
         <option value="" disabled>
-          Select demand property...
+          {translate(
+            "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+          )}
         </option>
         {availableProperties.map((property) => (
           <option key={property} value={property}>

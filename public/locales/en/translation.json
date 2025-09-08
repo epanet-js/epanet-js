@@ -451,6 +451,19 @@
         "title": "Data Mapping",
         "customerPoints": "Customer Points",
         "issuesTab": "Issues",
+        "loading": "Reading customer points...",
+        "attributesMapping": {
+          "title": "Attributes Mapping",
+          "description": "Map the properties from your GIS data to the customer point attributes"
+        },
+        "dataPreview": {
+          "title": "Data Preview",
+          "selectPrompt": "Select a demand property to preview the data."
+        },
+        "demandSelector": {
+          "label": "Demand",
+          "placeholder": "Select demand property..."
+        },
         "table": {
           "id": "ID",
           "index": "Index",
