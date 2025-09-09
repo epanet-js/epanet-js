@@ -9,7 +9,6 @@ import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -64,11 +63,11 @@ describe("DataInputStep", () => {
       });
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.customerPointsLoaded",
-        validCount: 2,
-        totalCount: 2,
-        issuesCount: 0,
+        name: "importCustomerPoints.dataInput.fileLoaded",
         fileName: "customer-points.geojson",
+        propertiesCount: 2,
+        featuresCount: 2,
+        coordinateConversion: null,
       });
     });
 
@@ -101,11 +100,11 @@ describe("DataInputStep", () => {
       });
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.customerPointsLoaded",
-        validCount: 2,
-        totalCount: 2,
-        issuesCount: 0,
+        name: "importCustomerPoints.dataInput.fileLoaded",
         fileName: "customer-points.geojsonl",
+        propertiesCount: 2,
+        featuresCount: 2,
+        coordinateConversion: null,
       });
     });
   });
@@ -133,7 +132,7 @@ describe("DataInputStep", () => {
       await waitFor(() => {
         expect(
           screen.getByRole("tab", {
-            name: /data preview/i,
+            name: /data input/i,
             current: "step",
           }),
         ).toBeInTheDocument();
@@ -142,12 +141,12 @@ describe("DataInputStep", () => {
       expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.noValidPoints",
+        name: "importCustomerPoints.dataInput.parseError",
         fileName: "invalid.geojson",
       });
     });
 
-    it("handles files with no valid customer points", async () => {
+    it("handles files with non-point geometries (validates later in data mapping)", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -176,11 +175,12 @@ describe("DataInputStep", () => {
       });
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.noValidPoints",
+        name: "importCustomerPoints.dataInput.fileLoaded",
         fileName: "no-points.geojson",
+        propertiesCount: 2,
+        featuresCount: 1,
+        coordinateConversion: null,
       });
-
-      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     });
 
     it("handles unsupported file formats (CSV)", async () => {
@@ -321,9 +321,7 @@ describe("DataInputStep", () => {
       expect(parsedIssues!.skippedInvalidDemands).toHaveLength(5);
     });
 
-    it("extracts raw data when DATA_MAPPING flag is enabled", async () => {
-      stubFeatureOn("FLAG_DATA_MAPPING");
-
+    it("extracts raw data with new data mapping flow", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -370,8 +368,6 @@ describe("DataInputStep", () => {
 
   describe("wizard state contamination", () => {
     it.skip("clears previous import data when new import has no valid points", async () => {
-      stubFeatureOn("FLAG_DATA_MAPPING");
-
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
@@ -436,11 +432,7 @@ describe("DataInputStep", () => {
     });
   });
 
-  describe("FLAG_DATA_MAPPING error handling", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_DATA_MAPPING");
-    });
-
+  describe("data mapping error handling", () => {
     it("shows parse error and stays on current step when JSON parsing fails", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({

@@ -1,16 +1,10 @@
 import React, { useCallback } from "react";
-import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
-import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { ParsedDataSummary, WizardState, WizardActions } from "./types";
+import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DropZone } from "src/components/drop-zone";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
-import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/jotai";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import type { Projection } from "src/hooks/use-projections";
 import {
@@ -26,8 +20,6 @@ export const DataInputStep: React.FC<{
 }> = ({ onNext, wizardState, projections }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const { modelMetadata } = useAtomValue(dataAtom);
-  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
 
   const {
     selectedFile,
@@ -36,10 +28,8 @@ export const DataInputStep: React.FC<{
     setSelectedFile,
     setLoading,
     setError,
-    setParsedDataSummary,
     setInputData,
     resetWizardData,
-    parsedDataSummary,
     inputData,
   } = wizardState;
 
@@ -66,136 +56,82 @@ export const DataInputStep: React.FC<{
       try {
         const text = await file.text();
 
-        if (isDataMappingOn) {
-          try {
-            const {
-              features,
-              properties,
-              error: validationError,
-              coordinateConversion,
-            } = parseGeoJson(text, projections || undefined);
+        try {
+          const {
+            features,
+            properties,
+            error: validationError,
+            coordinateConversion,
+          } = parseGeoJson(text, projections || undefined);
 
-            if (validationError) {
-              let errorMessage: string;
+          if (validationError) {
+            let errorMessage: string;
 
-              if (validationError.code === "unsupported-crs") {
-                errorMessage = translate(
-                  "importCustomerPoints.dataSource.unsupportedCrsError",
-                );
-              } else if (
-                validationError.code === "projection-conversion-failed"
-              ) {
-                errorMessage = translate(
-                  "importCustomerPoints.dataSource.projectionConversionError",
-                );
-              } else {
-                errorMessage = translate(
-                  "importCustomerPoints.dataSource.coordinateValidationError",
-                );
-              }
-
-              userTracking.capture({
-                name: "importCustomerPoints.dataInput.parseError",
-                fileName: file.name,
-                errorCode: validationError.code,
-              });
-              setError(errorMessage);
-              setLoading(false);
-              return;
-            }
-
-            if (features.length === 0) {
-              userTracking.capture({
-                name: "importCustomerPoints.dataInput.noValidPoints",
-                fileName: file.name,
-              });
-              setError(
-                translate("importCustomerPoints.dataSource.noValidPointsError"),
+            if (validationError.code === "unsupported-crs") {
+              errorMessage = translate(
+                "importCustomerPoints.dataSource.unsupportedCrsError",
               );
-              setLoading(false);
-              return;
+            } else if (
+              validationError.code === "projection-conversion-failed"
+            ) {
+              errorMessage = translate(
+                "importCustomerPoints.dataSource.projectionConversionError",
+              );
+            } else {
+              errorMessage = translate(
+                "importCustomerPoints.dataSource.coordinateValidationError",
+              );
             }
 
-            setInputData({ features, properties });
-            setLoading(false);
-
-            userTracking.capture({
-              name: "importCustomerPoints.dataInput.fileLoaded",
-              fileName: file.name,
-              propertiesCount: properties.size,
-              featuresCount: features.length,
-              coordinateConversion: coordinateConversion
-                ? {
-                    detected: coordinateConversion.detected,
-                    converted: coordinateConversion.converted,
-                    fromCRS: coordinateConversion.fromCRS,
-                  }
-                : null,
-            });
-
-            onNext();
-          } catch (error) {
             userTracking.capture({
               name: "importCustomerPoints.dataInput.parseError",
               fileName: file.name,
+              errorCode: validationError.code,
             });
-            captureError(error as Error);
-            setError(
-              translate("importCustomerPoints.dataSource.parseFileError"),
-            );
+            setError(errorMessage);
             setLoading(false);
             return;
           }
-        } else {
-          const issues = new CustomerPointsIssuesAccumulator();
-          const validCustomerPoints: CustomerPoint[] = [];
-          let totalCount = 0;
 
-          const demandImportUnit = modelMetadata.quantities.getUnit(
-            "customerDemandPerDay",
-          );
-          const demandTargetUnit =
-            modelMetadata.quantities.getUnit("customerDemand");
-
-          for (const customerPoint of parseCustomerPoints(
-            text,
-            issues,
-            demandImportUnit,
-            demandTargetUnit,
-            1,
-          )) {
-            totalCount++;
-            if (customerPoint) {
-              validCustomerPoints.push(customerPoint);
-            }
-          }
-
-          const parsedDataSummary: ParsedDataSummary = {
-            validCustomerPoints,
-            issues: issues.buildResult(),
-            totalCount,
-            demandImportUnit,
-          };
-
-          if (validCustomerPoints.length === 0) {
+          if (features.length === 0) {
             userTracking.capture({
               name: "importCustomerPoints.dataInput.noValidPoints",
               fileName: file.name,
             });
+            setError(
+              translate("importCustomerPoints.dataSource.noValidPointsError"),
+            );
+            setLoading(false);
+            return;
           }
 
-          setParsedDataSummary(parsedDataSummary);
+          setInputData({ features, properties });
           setLoading(false);
 
           userTracking.capture({
-            name: "importCustomerPoints.dataInput.customerPointsLoaded",
-            validCount: validCustomerPoints.length,
-            issuesCount: issues.count(),
-            totalCount,
+            name: "importCustomerPoints.dataInput.fileLoaded",
             fileName: file.name,
+            propertiesCount: properties.size,
+            featuresCount: features.length,
+            coordinateConversion: coordinateConversion
+              ? {
+                  detected: coordinateConversion.detected,
+                  converted: coordinateConversion.converted,
+                  fromCRS: coordinateConversion.fromCRS,
+                }
+              : null,
           });
 
           onNext();
+        } catch (error) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataInput.parseError",
+            fileName: file.name,
+          });
+          captureError(error as Error);
+          setError(translate("importCustomerPoints.dataSource.parseFileError"));
+          setLoading(false);
+          return;
         }
       } catch (error) {
         userTracking.capture({
@@ -211,13 +147,10 @@ export const DataInputStep: React.FC<{
       setSelectedFile,
       setLoading,
       setError,
-      setParsedDataSummary,
       setInputData,
-      isDataMappingOn,
       onNext,
       userTracking,
       translate,
-      modelMetadata.quantities,
       projections,
     ],
   );
@@ -335,7 +268,7 @@ export const DataInputStep: React.FC<{
       <WizardActionsComponent
         nextAction={{
           onClick: onNext,
-          disabled: isDataMappingOn ? !inputData : !parsedDataSummary,
+          disabled: !inputData,
         }}
       />
     </div>

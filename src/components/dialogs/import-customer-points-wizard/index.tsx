@@ -14,7 +14,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stepNames = {
   1: "dataInput",
@@ -34,7 +33,6 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
-  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
   const {
     projections,
     loading: projectionsLoading,
@@ -124,7 +122,7 @@ export const ImportCustomerPointsWizard: React.FC<
       />
 
       <WizardContent>
-        {isDataMappingOn && projectionsLoading && (
+        {projectionsLoading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             <span className="ml-3 text-gray-600">
@@ -133,7 +131,7 @@ export const ImportCustomerPointsWizard: React.FC<
           </div>
         )}
 
-        {isDataMappingOn && projectionsError && (
+        {projectionsError && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
             <p className="text-red-700 text-sm">
               {translate("importCustomerPoints.wizard.somethingWentWrong")}
@@ -141,7 +139,7 @@ export const ImportCustomerPointsWizard: React.FC<
           </div>
         )}
 
-        {(!isDataMappingOn || (!projectionsLoading && !projectionsError)) && (
+        {!projectionsLoading && !projectionsError && (
           <>
             {wizardState.currentStep === 1 && (
               <DataInputStep

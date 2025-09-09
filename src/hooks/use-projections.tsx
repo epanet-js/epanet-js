@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type Projection = {
   id: string;
@@ -14,7 +13,6 @@ type ProjectionsState = {
 };
 
 export const useProjections = (): ProjectionsState => {
-  const isDataMappingOn = useFeatureFlag("FLAG_DATA_MAPPING");
   const [state, setState] = useState<ProjectionsState>({
     projections: null,
     loading: false,
@@ -22,11 +20,6 @@ export const useProjections = (): ProjectionsState => {
   });
 
   useEffect(() => {
-    if (!isDataMappingOn) {
-      setState({ projections: null, loading: false, error: null });
-      return;
-    }
-
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     fetch("/projections.json")
@@ -54,7 +47,7 @@ export const useProjections = (): ProjectionsState => {
           error: error.message || "Failed to load coordinate projections",
         });
       });
-  }, [isDataMappingOn]);
+  }, []);
 
   return state;
 };

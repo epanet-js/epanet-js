@@ -2,15 +2,13 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import {
   setWizardState,
   createValidParsedDataSummary,
-  createParsedDataSummaryWithIssues,
-  createParsedDataSummaryWithInvalidDemands,
 } from "./__helpers__/wizard-state";
+import { waitFor } from "@testing-library/react";
 import { renderWizard } from "./__helpers__/render-wizard";
 import { aTestFile } from "src/__helpers__/file";
 
@@ -20,39 +18,57 @@ describe("DataMappingStep", () => {
     stubProjectionsReady();
   });
 
-  describe("legacy test scenarios", () => {
-    it("displays customer points tab with correct styling", () => {
+  describe("customer points processing scenarios", () => {
+    it("processes valid customer points and displays tabs correctly", async () => {
+      const user = userEvent.setup();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
 
       setWizardState(store, {
-        parsedDataSummary: createValidParsedDataSummary(),
-        selectedDemandProperty: "demand",
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["name", "demand", "flow"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: {
+                name: "Point1",
+                demand: 25.5,
+              },
+            },
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.002, 0.002],
+              },
+              properties: {
+                name: "Point2",
+                demand: 30.0,
+              },
+            },
+          ],
+        },
       });
 
       renderWizard(store);
 
-      expect(screen.getByText("Import Customer Points")).toBeInTheDocument();
+      const demandSelector = screen.getByRole("combobox");
+      await user.selectOptions(demandSelector, "demand");
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
+      });
 
       const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
       expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
-
-      expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
-      expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
-    });
-
-    it("disables and styles issues tab when no issues exist", () => {
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      setWizardState(store, {
-        parsedDataSummary: createValidParsedDataSummary(),
-        selectedDemandProperty: "demand",
-      });
-
-      renderWizard(store);
 
       const issuesTab = screen.getByText(/Issues \(0\)/);
       expect(issuesTab).toHaveClass("cursor-not-allowed");
@@ -62,23 +78,60 @@ describe("DataMappingStep", () => {
       expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
     });
 
-    it("enables issues tab and allows switching when issues exist", async () => {
+    it("handles invalid demands and shows issues details", async () => {
       const user = userEvent.setup();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
 
       setWizardState(store, {
-        parsedDataSummary: createParsedDataSummaryWithIssues(),
-        selectedDemandProperty: "demand",
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["name", "demand", "flow"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: {
+                name: "Point1",
+                demand: 25.5,
+              },
+            },
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.002, 0.002],
+              },
+              properties: {
+                name: "Point2",
+                demand: "invalid",
+              },
+            },
+          ],
+        },
       });
 
       renderWizard(store);
 
-      const issuesTab = screen.getByText(/Issues \(2\)/);
+      const demandSelector = screen.getByRole("combobox");
+      await user.selectOptions(demandSelector, "demand");
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/Issues \(1\)/)).toBeInTheDocument();
+
+      const issuesTab = screen.getByText(/Issues \(1\)/);
       expect(issuesTab).not.toHaveClass("cursor-not-allowed");
 
-      const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
+      const customerPointsTab = screen.getByText(/Customer Points \(1\)/);
       expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
 
       await user.click(issuesTab);
@@ -89,53 +142,14 @@ describe("DataMappingStep", () => {
         "text-green-700",
       );
 
+      expect(screen.getByText(/Invalid demands \(1\)/)).toBeInTheDocument();
+
       expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
       expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
-    });
-
-    it("displays correct counts in tab labels", () => {
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      setWizardState(store, {
-        parsedDataSummary: createParsedDataSummaryWithIssues(),
-        selectedDemandProperty: "demand",
-      });
-
-      renderWizard(store);
-
-      expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
-    });
-
-    it("displays invalid demands in issues tab", async () => {
-      const user = userEvent.setup();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      setWizardState(store, {
-        parsedDataSummary: createParsedDataSummaryWithInvalidDemands(),
-      });
-
-      renderWizard(store);
-
-      expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Issues \(2\)/)).toBeInTheDocument();
-
-      const issuesTab = screen.getByText(/Issues \(2\)/);
-      await user.click(issuesTab);
-
-      expect(screen.getByText(/Invalid demands \(2\)/)).toBeInTheDocument();
     });
   });
 
   describe("current implementation", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_DATA_MAPPING");
-    });
-
     it("shows demand property selector when inputData exists", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -219,11 +233,7 @@ describe("DataMappingStep", () => {
     });
   });
 
-  describe.skip("Legacy tests - when FLAG_DATA_MAPPING is enabled", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_DATA_MAPPING");
-    });
-
+  describe.skip("Legacy tests - deprecated functionality", () => {
     it("shows loading state when parsing inputData", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),

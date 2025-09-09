@@ -14,6 +14,25 @@ import { WizardState } from "./types";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { UIDMap } from "src/lib/id-mapper";
+import { vi } from "vitest";
+
+// Mock projections hook directly
+vi.mock("src/hooks/use-projections", () => ({
+  useProjections: vi.fn(() => ({
+    projections: new Map([
+      [
+        "EPSG:4326",
+        {
+          id: "EPSG:4326",
+          name: "WGS 84",
+          code: "+proj=longlat +datum=WGS84 +no_defs",
+        },
+      ],
+    ]),
+    loading: false,
+    error: null,
+  })),
+}));
 
 describe("AllocationStep", () => {
   it("renders allocation step with default wizard state", async () => {
@@ -212,6 +231,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
 
 const waitForAllocations = () => {
   return waitFor(() => {
+    expect(screen.queryByText(/Loading\.\.\./)).not.toBeInTheDocument();
     expect(screen.queryByText(/Computing allocations/)).not.toBeInTheDocument();
   });
 };
