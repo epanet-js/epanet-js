@@ -89,14 +89,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   };
 
   const resetWizardData = () => {
-    setWizardState((prev) => ({
-      ...prev,
-      parsedDataSummary: null,
-      parsedCustomerPoints: null,
-      inputData: null,
-      selectedDemandProperty: null,
-      error: null,
-    }));
+    setWizardState(initialState);
   };
 
   const setError = (error: string | null) => {
