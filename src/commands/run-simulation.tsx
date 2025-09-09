@@ -4,6 +4,8 @@ import { buildInp } from "src/simulation/build-inp";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
+import { useDrawingMode } from "./set-drawing-mode";
+import { Mode } from "src/state/mode";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -12,8 +14,10 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
+  const setDrawingMode = useDrawingMode();
 
   const runSimulation = useCallback(async () => {
+    setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = buildInp(hydraulicModel, {
       customerDemands: true,
@@ -40,7 +44,13 @@ export const useRunSimulation = () => {
       status,
       duration,
     });
-  }, [hydraulicModel, setSimulationState, setData, setDialogState]);
+  }, [
+    setDrawingMode,
+    hydraulicModel,
+    setSimulationState,
+    setData,
+    setDialogState,
+  ]);
 
   return runSimulation;
 };
