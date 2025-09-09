@@ -1,5 +1,12 @@
-import { Asset, AssetsMap } from "src/hydraulic-model";
+import { Asset, AssetsMap, AssetId } from "src/hydraulic-model";
 import { captureError } from "src/infra/error-tracking";
+
+export type ReportRow = {
+  text: string;
+  assetSlots: AssetId[];
+};
+
+export type ProcessedReport = ReportRow[];
 
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV)\s+(\d+)/i;
 const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
@@ -9,6 +16,48 @@ const assetReferenceRegExp =
 const skipRegexp = [/Error 213/, /Error 211/];
 
 const idRegExps = [valveTypeRegExp, errorMessageRegExp, assetReferenceRegExp];
+
+export const processReportWithSlots = (
+  report: string,
+  assets: AssetsMap,
+): ProcessedReport => {
+  return report.split("\n").map((row) => {
+    const isSkipped = skipRegexp.find((regexp) => regexp.test(row));
+    if (isSkipped) {
+      return { text: row, assetSlots: [] };
+    }
+
+    let processedText = row;
+    const assetSlots: AssetId[] = [];
+    let slotIndex = 0;
+
+    for (const regexp of idRegExps) {
+      processedText = processedText.replace(regexp, (match, id) => {
+        const asset = assets.get(id) as Asset;
+        if (!asset) {
+          captureError(
+            new Error(
+              `Asset ID '${id}' referenced in report (${match}) but not found in model`,
+            ),
+          );
+          return match;
+        }
+
+        const groupIndexInMatch = match.lastIndexOf(id);
+        const beforeId = match.slice(0, groupIndexInMatch);
+        const afterId = match.slice(groupIndexInMatch + id.length);
+        const slotMarker = `{{${slotIndex}}}`;
+
+        assetSlots.push(asset.id);
+        slotIndex++;
+
+        return beforeId + slotMarker + afterId;
+      });
+    }
+
+    return { text: processedText, assetSlots };
+  });
+};
 
 export const replaceIdWithLabels = (
   report: string,
@@ -31,7 +80,7 @@ export const replaceIdWithLabels = (
               `Asset ID '${id}' referenced in report (${match}) but not found in model`,
             ),
           );
-          return match; // Return unchanged if asset not found
+          return match;
         }
 
         const groupIndexInMatch = match.lastIndexOf(id);
