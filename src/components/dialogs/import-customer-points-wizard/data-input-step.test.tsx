@@ -7,8 +7,6 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
-import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
-import { CustomerPointsIssuesAccumulator } from "src/import/customer-points/parse-customer-points-issues";
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -146,7 +144,7 @@ describe("DataInputStep", () => {
       });
     });
 
-    it("handles files with non-point geometries (validates later in data mapping)", async () => {
+    it("handles files with non-point geometries", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -223,105 +221,7 @@ describe("DataInputStep", () => {
       });
     });
 
-    it("handles coordinates outside WGS84 range", () => {
-      const fileContent = createInvalidWGS84CoordinatesGeoJSON();
-      const issues = new CustomerPointsIssuesAccumulator();
-      const validCustomerPoints = [];
-      let totalCount = 0;
-
-      const demandImportUnit = "l/d";
-      const demandTargetUnit = "l/s";
-
-      for (const customerPoint of parseCustomerPoints(
-        fileContent,
-        issues,
-        demandImportUnit,
-        demandTargetUnit,
-        1,
-      )) {
-        totalCount++;
-        if (customerPoint) {
-          validCustomerPoints.push(customerPoint);
-        }
-      }
-
-      expect(validCustomerPoints).toHaveLength(1);
-      expect(totalCount).toBe(3);
-
-      const parsedIssues = issues.buildResult();
-      expect(parsedIssues).toBeDefined();
-      expect(parsedIssues!.skippedInvalidProjection).toHaveLength(2);
-
-      const invalidFeatures = parsedIssues!.skippedInvalidProjection!;
-      expect((invalidFeatures[0].geometry as any).coordinates).toEqual([
-        200, 95,
-      ]);
-      expect((invalidFeatures[1].geometry as any).coordinates).toEqual([
-        -200, -95,
-      ]);
-    });
-
-    it("handles missing coordinates", () => {
-      const fileContent = createMissingCoordinatesGeoJSON();
-      const issues = new CustomerPointsIssuesAccumulator();
-      const validCustomerPoints = [];
-      let totalCount = 0;
-
-      const demandImportUnit = "l/d";
-      const demandTargetUnit = "l/s";
-
-      for (const customerPoint of parseCustomerPoints(
-        fileContent,
-        issues,
-        demandImportUnit,
-        demandTargetUnit,
-        1,
-      )) {
-        totalCount++;
-        if (customerPoint) {
-          validCustomerPoints.push(customerPoint);
-        }
-      }
-
-      expect(validCustomerPoints).toHaveLength(1);
-      expect(totalCount).toBe(4);
-
-      const parsedIssues = issues.buildResult();
-      expect(parsedIssues).toBeDefined();
-      expect(parsedIssues!.skippedMissingCoordinates).toHaveLength(3);
-    });
-
-    it("handles invalid demand values", () => {
-      const fileContent = createInvalidDemandsGeoJSON();
-      const issues = new CustomerPointsIssuesAccumulator();
-      const validCustomerPoints = [];
-      let totalCount = 0;
-
-      const demandImportUnit = "l/d";
-      const demandTargetUnit = "l/s";
-
-      for (const customerPoint of parseCustomerPoints(
-        fileContent,
-        issues,
-        demandImportUnit,
-        demandTargetUnit,
-        1,
-      )) {
-        totalCount++;
-        if (customerPoint) {
-          validCustomerPoints.push(customerPoint);
-        }
-      }
-
-      expect(validCustomerPoints).toHaveLength(1);
-      expect(totalCount).toBe(6);
-
-      const parsedIssues = issues.buildResult();
-      expect(parsedIssues).toBeDefined();
-      expect(parsedIssues!.skippedInvalidDemands).toHaveLength(5);
-    });
-
-    it("extracts raw data with new data mapping flow", async () => {
+    it("extracts raw data from mixed feature types", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -366,7 +266,7 @@ describe("DataInputStep", () => {
     });
   });
 
-  describe("data mapping error handling", () => {
+  describe("file processing error handling", () => {
     it("shows parse error and stays on current step when JSON parsing fails", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
@@ -516,166 +416,6 @@ const createNoValidPointsGeoJSON = () =>
         properties: {
           name: "Not a point",
           demand: 25.5,
-        },
-      },
-    ],
-  });
-
-const createInvalidWGS84CoordinatesGeoJSON = () =>
-  JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.001, 0.001],
-        },
-        properties: {
-          name: "Valid Customer A",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [200, 95],
-        },
-        properties: {
-          name: "Invalid coordinates 1",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [-200, -95],
-        },
-        properties: {
-          name: "Invalid coordinates 2",
-          demand: 30.0,
-        },
-      },
-    ],
-  });
-
-const createMissingCoordinatesGeoJSON = () =>
-  JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.001, 0.001],
-        },
-        properties: {
-          name: "Valid Customer",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [],
-        },
-        properties: {
-          name: "Empty coordinates array",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.001],
-        },
-        properties: {
-          name: "Single coordinate",
-          demand: 30.0,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: null,
-        properties: {
-          name: "Null geometry",
-          demand: 15.0,
-        },
-      },
-    ],
-  });
-
-const createInvalidDemandsGeoJSON = () =>
-  JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.001, 0.001],
-        },
-        properties: {
-          name: "Valid Customer",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.002, 0.002],
-        },
-        properties: {
-          name: "String demand",
-          demand: "invalid",
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.003, 0.003],
-        },
-        properties: {
-          name: "Null demand",
-          demand: null,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.004, 0.004],
-        },
-        properties: {
-          name: "No demand property",
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.005, 0.005],
-        },
-        properties: {
-          name: "Boolean true demand",
-          demand: true,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.006, 0.006],
-        },
-        properties: {
-          name: "Boolean false demand",
-          demand: false,
         },
       },
     ],
