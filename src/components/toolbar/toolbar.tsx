@@ -31,7 +31,6 @@ import {
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
 
@@ -45,8 +44,6 @@ export const Toolbar = () => {
   const importCustomerPoints = useImportCustomerPoints();
 
   const { undo, redo } = useHistoryControl();
-
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const simulation = useAtomValue(simulationAtom);
 
@@ -82,17 +79,15 @@ export const Toolbar = () => {
           </MenuAction>
         </>
       }
-      {isCustomerPointOn && (
-        <MenuAction
-          label={translate("importCustomerPoints.label")}
-          role="button"
-          onClick={() => {
-            void importCustomerPoints({ source: "toolbar" });
-          }}
-        >
-          <ImportCustomerPointsIcon />
-        </MenuAction>
-      )}
+      <MenuAction
+        label={translate("importCustomerPoints.label")}
+        role="button"
+        onClick={() => {
+          void importCustomerPoints({ source: "toolbar" });
+        }}
+      >
+        <ImportCustomerPointsIcon />
+      </MenuAction>
       <Divider />
       {isMdOrLarger && (
         <>

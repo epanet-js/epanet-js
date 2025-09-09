@@ -41,7 +41,6 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -202,7 +201,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -302,12 +300,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          isCustomerPointOn &&
-          (hasNewImport ||
-            hasNewEditions ||
-            hasNewStyles ||
-            hasNewCustomerPoints ||
-            hasNewHiddenCustomerPoints)
+          hasNewImport ||
+          hasNewEditions ||
+          hasNewStyles ||
+          hasNewCustomerPoints ||
+          hasNewHiddenCustomerPoints
         ) {
           customerPointsOverlayRef.current = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
@@ -318,7 +315,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if ((hasNewZoom || hasNewSelection) && isCustomerPointOn) {
+        if (hasNewZoom || hasNewSelection) {
           customerPointsOverlayRef.current =
             updateCustomerPointsOverlayVisibility(
               customerPointsOverlayRef.current,
@@ -338,14 +335,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             );
         }
 
-        if (hasNewEphemeralState && isCustomerPointOn) {
+        if (hasNewEphemeralState) {
           ephemeralDeckLayersRef.current = buildCustomerPointsEphemeralOverlay(
             mapState.ephemeralState,
             mapState.currentZoom,
           );
         }
 
-        if (hasNewSelection && isCustomerPointOn) {
+        if (hasNewSelection) {
           selectionDeckLayersRef.current =
             buildSelectionOverlayForCustomerPoints(
               mapState.selection,
@@ -379,7 +376,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (isCustomerPointOn) {
+        {
           const shouldHideCustomerPointsOverlay =
             mapState.ephemeralState.type === "moveAssets" &&
             mapState.ephemeralState.targetAssets.length > 0;
@@ -410,7 +407,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isCustomerPointOn,
   ]);
 
   doUpdates();

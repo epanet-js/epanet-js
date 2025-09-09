@@ -14,7 +14,6 @@ import {
 import { PanelDetails } from "src/components/panel-details";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PropertyRow,
   PropertyRowReadonly,
@@ -645,15 +644,11 @@ const JunctionEditor = ({
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isCustomerPointsEnabled = useFeatureFlag("FLAG_CUSTOMER_POINT");
-
   const customerPoints = useMemo(() => {
-    if (!isCustomerPointsEnabled) return [];
-
     const connectedCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
     return Array.from(connectedCustomerPoints);
-  }, [isCustomerPointsEnabled, junction.id, hydraulicModel]);
+  }, [junction.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;
   const totalDemand = customerPoints.reduce(
@@ -662,13 +657,9 @@ const JunctionEditor = ({
   );
 
   const baseDemandUnit = quantitiesMetadata.getUnit("baseDemand");
-  const baseDemandLabel = isCustomerPointsEnabled
-    ? baseDemandUnit
-      ? `${translate("directDemand")} (${translateUnit(baseDemandUnit)})`
-      : translate("directDemand")
-    : baseDemandUnit
-      ? `${translate("baseDemand")} (${translateUnit(baseDemandUnit)})`
-      : translate("baseDemand");
+  const baseDemandLabel = baseDemandUnit
+    ? `${translate("directDemand")} (${translateUnit(baseDemandUnit)})`
+    : translate("directDemand");
 
   return (
     <PanelDetails title={translate("junction")} variant="fullwidth">
@@ -711,7 +702,7 @@ const JunctionEditor = ({
                   />
                 </div>
               </PropertyRow>
-              {isCustomerPointsEnabled && customerCount > 0 && (
+              {customerCount > 0 && (
                 <PropertyRow
                   label={
                     quantitiesMetadata.getUnit("baseDemand")

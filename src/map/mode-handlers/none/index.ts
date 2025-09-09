@@ -17,7 +17,6 @@ import { decodeId } from "src/lib/id";
 import { UIDMap } from "src/lib/id-mapper";
 import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 const stateUpdateTime = 16;
@@ -44,7 +43,6 @@ export function useNoneHandlers({
   hydraulicModel,
 }: HandlerContext): Handlers {
   const setMode = useSetAtom(modeAtom);
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
   const {
     clearSelection,
     isSelected,
@@ -84,7 +82,7 @@ export function useNoneHandlers({
 
     let hasClickableElement = visibleFeatures.length > 0;
 
-    if (!hasClickableElement && isCustomerPointOn) {
+    if (!hasClickableElement) {
       const pickedObjects = map.pickOverlayObjects({
         x: point.x,
         y: point.y,
@@ -124,8 +122,6 @@ export function useNoneHandlers({
   const getClickedCustomerPoint = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
   ): CustomerPoint | null => {
-    if (!isCustomerPointOn) return null;
-
     const pickedObjects = map.pickOverlayObjects({
       x: e.point.x,
       y: e.point.y,
@@ -205,7 +201,7 @@ export function useNoneHandlers({
               nodeId: assetId,
               newCoordinates,
               newElevation: newElevationOrFallback,
-              shouldUpdateCustomerPoints: isCustomerPointOn,
+              shouldUpdateCustomerPoints: true,
             });
             transact(moment);
             clearSelection();

@@ -8,7 +8,6 @@ import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -29,7 +28,6 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -53,8 +51,8 @@ export const useSaveInp = ({
             geolocation: true,
             madeBy: true,
             labelIds: true,
-            customerDemands: isCustomerPointOn,
-            customerPoints: isCustomerPointOn,
+            customerDemands: true,
+            customerPoints: true,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
@@ -93,7 +91,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate, isCustomerPointOn],
+      [getFsAccess, userTracking, translate],
     ),
   );
 

@@ -4,7 +4,6 @@ import { buildInp } from "src/simulation/build-inp";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -13,12 +12,11 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const runSimulation = useCallback(async () => {
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = buildInp(hydraulicModel, {
-      customerDemands: isCustomerPointOn,
+      customerDemands: true,
     });
     const start = performance.now();
     setDialogState({ type: "loading" });
@@ -42,13 +40,7 @@ export const useRunSimulation = () => {
       status,
       duration,
     });
-  }, [
-    hydraulicModel,
-    setSimulationState,
-    setData,
-    setDialogState,
-    isCustomerPointOn,
-  ]);
+  }, [hydraulicModel, setSimulationState, setData, setDialogState]);
 
   return runSimulation;
 };

@@ -11,7 +11,6 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetEditor", () => {
   describe("with a pipe", () => {
@@ -416,7 +415,7 @@ describe("AssetEditor", () => {
 
       expectPropertyDisplayed("label", "MY_JUNCTION");
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("base demand (l/s)", "100");
+      expectPropertyDisplayed("direct demand (l/s)", "100");
       expectPropertyDisplayed("pressure (m)", "Not Available");
     });
 
@@ -441,171 +440,136 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("actual demand (l/s)", "20");
     });
 
-    describe("with FLAG_CUSTOMER_POINT enabled", () => {
-      beforeEach(() => {
-        stubFeatureOn("FLAG_CUSTOMER_POINT");
+    it("shows Customer Demand field when junction has customer points", () => {
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          label: "MY_JUNCTION",
+          baseDemand: 50,
+        })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
+        .aCustomerPoint("CP1", {
+          coordinates: [1, 2],
+          demand: 25,
+          connection: {
+            pipeId: "P1",
+            junctionId: junctionId,
+            snapPoint: [1, 2],
+          },
+        })
+        .aCustomerPoint("CP2", {
+          coordinates: [3, 4],
+          demand: 30,
+          connection: {
+            pipeId: "P1",
+            junctionId: junctionId,
+            snapPoint: [3, 4],
+          },
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
       });
 
-      it("shows Direct Demand instead of Base Demand", () => {
-        const junctionId = "J1";
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(junctionId, {
-            label: "MY_JUNCTION",
-            elevation: 10,
-            baseDemand: 100,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: junctionId,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
+      expectPropertyDisplayed("direct demand (l/s)", "50");
 
-        expect(screen.getByText(/junction/i)).toBeInTheDocument();
-        expectPropertyDisplayed("direct demand (l/s)", "100");
-        expect(
-          screen.queryByRole("textbox", {
-            name: /key: base demand/i,
-          }),
-        ).not.toBeInTheDocument();
+      // Check if Customer Demand field is present with units in label
+      expect(
+        screen.getByRole("textbox", {
+          name: /key: customer demand \(l\/s\)/i,
+        }),
+      ).toBeInTheDocument();
+
+      // Check if the customer demand trigger is clickable and shows correct summary without units
+      const customerDemandTrigger = screen.getByRole("button", {
+        name: /customer demand values/i,
+      });
+      expect(customerDemandTrigger).toBeInTheDocument();
+      expect(customerDemandTrigger).toHaveTextContent("55 (2 customers)");
+    });
+
+    it("opens popover when Customer Demand field is clicked", async () => {
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          label: "MY_JUNCTION",
+          baseDemand: 50,
+        })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
+        .aCustomerPoint("CP1", {
+          coordinates: [1, 2],
+          demand: 25,
+          connection: {
+            pipeId: "P1",
+            junctionId: junctionId,
+            snapPoint: [1, 2],
+          },
+        })
+        .aCustomerPoint("CP2", {
+          coordinates: [3, 4],
+          demand: 30,
+          connection: {
+            pipeId: "P1",
+            junctionId: junctionId,
+            snapPoint: [3, 4],
+          },
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const customerDemandTrigger = screen.getByRole("button", {
+        name: /customer demand values/i,
       });
 
-      it("shows Customer Demand field when junction has customer points", () => {
-        const junctionId = "J1";
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(junctionId, {
-            label: "MY_JUNCTION",
-            baseDemand: 50,
-          })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
-          .aCustomerPoint("CP1", {
-            coordinates: [1, 2],
-            demand: 25,
-            connection: {
-              pipeId: "P1",
-              junctionId: junctionId,
-              snapPoint: [1, 2],
-            },
-          })
-          .aCustomerPoint("CP2", {
-            coordinates: [3, 4],
-            demand: 30,
-            connection: {
-              pipeId: "P1",
-              junctionId: junctionId,
-              snapPoint: [3, 4],
-            },
-          })
-          .build();
+      await user.click(customerDemandTrigger);
 
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: junctionId,
-        });
+      // Check if popover content is displayed
+      await waitFor(() => {
+        expect(screen.getByText("CP1")).toBeInTheDocument();
+      });
+      expect(screen.getByText("CP2")).toBeInTheDocument();
+      expect(screen.getByText("2,160,000")).toBeInTheDocument();
+      expect(screen.getByText("2,592,000")).toBeInTheDocument();
+    });
 
-        renderComponent(store);
-
-        expect(screen.getByText(/junction/i)).toBeInTheDocument();
-        expectPropertyDisplayed("direct demand (l/s)", "50");
-
-        // Check if Customer Demand field is present with units in label
-        expect(
-          screen.getByRole("textbox", {
-            name: /key: customer demand \(l\/s\)/i,
-          }),
-        ).toBeInTheDocument();
-
-        // Check if the customer demand trigger is clickable and shows correct summary without units
-        const customerDemandTrigger = screen.getByRole("button", {
-          name: /customer demand values/i,
-        });
-        expect(customerDemandTrigger).toBeInTheDocument();
-        expect(customerDemandTrigger).toHaveTextContent("55 (2 customers)");
+    it("does not show Customer Demand field when junction has no customer points", () => {
+      const junctionId = "J1";
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(junctionId, {
+          label: "MY_JUNCTION",
+          baseDemand: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: junctionId,
       });
 
-      it("opens popover when Customer Demand field is clicked", async () => {
-        const junctionId = "J1";
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(junctionId, {
-            label: "MY_JUNCTION",
-            baseDemand: 50,
-          })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
-          .aCustomerPoint("CP1", {
-            coordinates: [1, 2],
-            demand: 25,
-            connection: {
-              pipeId: "P1",
-              junctionId: junctionId,
-              snapPoint: [1, 2],
-            },
-          })
-          .aCustomerPoint("CP2", {
-            coordinates: [3, 4],
-            demand: 30,
-            connection: {
-              pipeId: "P1",
-              junctionId: junctionId,
-              snapPoint: [3, 4],
-            },
-          })
-          .build();
+      renderComponent(store);
 
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: junctionId,
-        });
-        const user = userEvent.setup();
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
+      expectPropertyDisplayed("direct demand (l/s)", "100");
 
-        renderComponent(store);
-
-        const customerDemandTrigger = screen.getByRole("button", {
-          name: /customer demand values/i,
-        });
-
-        await user.click(customerDemandTrigger);
-
-        // Check if popover content is displayed
-        await waitFor(() => {
-          expect(screen.getByText("CP1")).toBeInTheDocument();
-        });
-        expect(screen.getByText("CP2")).toBeInTheDocument();
-        expect(screen.getByText("2,160,000")).toBeInTheDocument();
-        expect(screen.getByText("2,592,000")).toBeInTheDocument();
-      });
-
-      it("does not show Customer Demand field when junction has no customer points", () => {
-        const junctionId = "J1";
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(junctionId, {
-            label: "MY_JUNCTION",
-            baseDemand: 100,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: junctionId,
-        });
-
-        renderComponent(store);
-
-        expect(screen.getByText(/junction/i)).toBeInTheDocument();
-        expectPropertyDisplayed("direct demand (l/s)", "100");
-
-        // Customer Demand field should not be present
-        expect(
-          screen.queryByRole("textbox", {
-            name: /key: customer demand \(l\/s\)/i,
-          }),
-        ).not.toBeInTheDocument();
-      });
-
-      afterEach(() => {
-        stubFeatureOff("FLAG_CUSTOMER_POINT");
-      });
+      // Customer Demand field should not be present
+      expect(
+        screen.queryByRole("textbox", {
+          name: /key: customer demand \(l\/s\)/i,
+        }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -1104,7 +1068,7 @@ describe("AssetEditor", () => {
 
     renderComponent(store);
 
-    expectPropertyDisplayed("base demand (l/s)", "100");
+    expectPropertyDisplayed("direct demand (l/s)", "100");
 
     act(() => {
       store.set(dataAtom, {
@@ -1113,7 +1077,7 @@ describe("AssetEditor", () => {
       });
     });
 
-    expectPropertyDisplayed("base demand (l/s)", "200");
+    expectPropertyDisplayed("direct demand (l/s)", "200");
 
     act(() => {
       store.set(dataAtom, {

@@ -6,7 +6,6 @@ import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
 import { ParserIssues, parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
@@ -29,7 +28,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const isCustomerPointOn = useFeatureFlag("FLAG_CUSTOMER_POINT");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -63,7 +61,7 @@ export const useImportInp = () => {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content, { customerPoints: isCustomerPointOn });
+          parseInp(content, { customerPoints: true });
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -115,7 +113,6 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
-      isCustomerPointOn,
     ],
   );
 
