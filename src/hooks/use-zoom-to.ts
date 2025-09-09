@@ -47,7 +47,7 @@ export function useZoomTo() {
           });
         });
       },
-      [map],
+      [map, isReportFlagOn],
     ),
   );
 }
