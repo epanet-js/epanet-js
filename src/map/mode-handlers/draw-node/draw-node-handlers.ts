@@ -7,7 +7,6 @@ import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
-import { NodeAsset } from "src/hydraulic-model";
 import { usePipeSnapping } from "./pipe-snapping";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -24,7 +23,7 @@ export function useDrawNodeHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-  const { assetBuilder, units } = hydraulicModel;
+  const { units } = hydraulicModel;
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
   const isSnappingOn = useFeatureFlag("FLAG_SNAPPING");
   const { findNearestPipeToSnap } = usePipeSnapping(
@@ -33,8 +32,18 @@ export function useDrawNodeHandlers({
     hydraulicModel.assets,
   );
 
-  const submitNode = (node: NodeAsset) => {
-    const moment = addNode(hydraulicModel, { node });
+  const submitNode = (
+    nodeType: NodeType,
+    coordinates: [number, number],
+    elevation: number,
+    pipeIdToSplit?: string,
+  ) => {
+    const moment = addNode(hydraulicModel, {
+      nodeType,
+      coordinates,
+      elevation,
+      pipeIdToSplit,
+    });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });
   };
@@ -43,6 +52,7 @@ export function useDrawNodeHandlers({
     click: async (e) => {
       let clickPosition = getMapCoord(e);
       let elevation = await fetchElevation(e.lngLat);
+      let pipeIdToSplit: string | undefined;
 
       if (
         isSnappingOn &&
@@ -50,36 +60,12 @@ export function useDrawNodeHandlers({
         ephemeralState.pipeSnappingPosition
       ) {
         clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
+        pipeIdToSplit = ephemeralState.pipeId || undefined;
         const [lng, lat] = clickPosition;
         elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
       }
 
-      let node;
-
-      switch (nodeType) {
-        case "junction":
-          node = assetBuilder.buildJunction({
-            elevation,
-            coordinates: clickPosition,
-          });
-          break;
-        case "reservoir":
-          node = assetBuilder.buildReservoir({
-            elevation,
-            coordinates: clickPosition,
-          });
-          break;
-        case "tank":
-          node = assetBuilder.buildTank({
-            elevation,
-            coordinates: clickPosition,
-          });
-          break;
-        default:
-          throw new Error(`Unsupported node type: ${nodeType as string}`);
-      }
-
-      submitNode(node);
+      submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
       setEphemeralState({ type: "none" });
     },
     move: throttle((e) => {
