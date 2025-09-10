@@ -7,11 +7,9 @@ import { useCallback, useContext } from "react";
 import { USelection } from "src/selection";
 import { dataAtom, Sel } from "src/state/jotai";
 import { BBox, FeatureCollection, IWrappedFeature } from "src/types";
-import { useFeatureFlag } from "./use-feature-flags";
 
 export function useZoomTo() {
   const map = useContext(MapContext);
-  const isReportFlagOn = useFeatureFlag("FLAG_REPORT");
 
   return useAtomCallback(
     useCallback(
@@ -39,15 +37,11 @@ export function useZoomTo() {
             animate: false,
             // Avoid extreme zooms when we're locating a point.
             // Otherwise, zoom to the thing.
-            maxZoom: isBBoxEmpty(extent)
-              ? isReportFlagOn
-                ? 18
-                : 14
-              : Infinity,
+            maxZoom: isBBoxEmpty(extent) ? 18 : Infinity,
           });
         });
       },
-      [map, isReportFlagOn],
+      [map],
     ),
   );
 }

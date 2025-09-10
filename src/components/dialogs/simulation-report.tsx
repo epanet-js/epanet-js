@@ -1,10 +1,6 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogContainer, DialogHeader } from "../dialog";
-import {
-  replaceIdWithLabels,
-  processReportWithSlots,
-  ReportRow,
-} from "src/simulation/report";
+import { processReportWithSlots, ReportRow } from "src/simulation/report";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
@@ -14,7 +10,6 @@ import {
   dialogAtom,
 } from "src/state/jotai";
 import { FileTextIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -27,7 +22,6 @@ export const SimulationReportDialog = () => {
   const selection = useAtomValue(selectionAtom);
   const { selectFeature } = useSelection(selection);
   const setDialog = useSetAtom(dialogAtom);
-  const isReportFlagOn = useFeatureFlag("FLAG_REPORT");
   const zoomTo = useZoomTo();
   const userTracking = useUserTracking();
 
@@ -93,15 +87,6 @@ export const SimulationReportDialog = () => {
     [hydraulicModel.assets, handleAssetClick],
   );
 
-  const parseRowLegacy = useCallback((row: string, index: number) => {
-    const trimmedRow = row.slice(2);
-    return (
-      <pre key={index}>
-        {trimmedRow.startsWith("  Error") ? trimmedRow.slice(2) : trimmedRow}
-      </pre>
-    );
-  }, []);
-
   const formattedReport = useMemo(() => {
     if (
       simulation.status !== "success" &&
@@ -110,27 +95,12 @@ export const SimulationReportDialog = () => {
     )
       return "";
 
-    if (isReportFlagOn) {
-      const processedReport = processReportWithSlots(
-        simulation.report,
-        hydraulicModel.assets,
-      );
-      return processedReport.map(renderRowWithSlots);
-    } else {
-      const reportWithLabels = replaceIdWithLabels(
-        simulation.report,
-        hydraulicModel.assets,
-      );
-      const rows = reportWithLabels.split("\n");
-      return rows.map(parseRowLegacy);
-    }
-  }, [
-    simulation,
-    hydraulicModel,
-    isReportFlagOn,
-    renderRowWithSlots,
-    parseRowLegacy,
-  ]);
+    const processedReport = processReportWithSlots(
+      simulation.report,
+      hydraulicModel.assets,
+    );
+    return processedReport.map(renderRowWithSlots);
+  }, [simulation, hydraulicModel, renderRowWithSlots]);
 
   return (
     <DialogContainer size="lg" fillMode="auto">
