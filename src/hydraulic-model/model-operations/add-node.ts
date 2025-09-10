@@ -79,15 +79,10 @@ const addNodeWithPipeSplitting = (
     throw new Error(`Invalid pipe ID: ${pipeIdToSplit}`);
   }
 
-  const splitPoint = point(node.coordinates);
-  const pipeLineString = lineString(pipe.coordinates);
-  const nearestPoint = findNearestPointOnLine(pipeLineString, splitPoint);
-  const splitCoordinates = nearestPoint.coordinates;
-
   const { pipe1, pipe2 } = splitPipeAtPoint(
     hydraulicModel,
     pipe,
-    splitCoordinates,
+    node.coordinates,
     node.id,
   );
 

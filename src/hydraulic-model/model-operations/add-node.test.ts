@@ -97,6 +97,31 @@ describe("addNode", () => {
       expect((pipe2 as any).connections).toEqual([junction.id, "J2"]);
     });
 
+    it("uses node coordinates exactly as split point", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .build();
+
+      const nodeCoordinates: [number, number] = [5.123, 0.456];
+
+      const { putAssets } = addNode(hydraulicModel, {
+        nodeType: "junction",
+        coordinates: nodeCoordinates,
+        elevation: 50,
+        pipeIdToSplit: "P1",
+      });
+
+      const [junction, pipe1, pipe2] = putAssets!;
+
+      expect(junction.coordinates).toEqual(nodeCoordinates);
+      expect(pipe1.coordinates[pipe1.coordinates.length - 1]).toEqual(
+        nodeCoordinates,
+      );
+      expect(pipe2.coordinates[0]).toEqual(nodeCoordinates);
+    });
+
     it("generates unique labels for split pipes", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aNode("J1", [0, 0])
