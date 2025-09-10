@@ -165,8 +165,8 @@ describe("addNode", () => {
       });
       originalPipe.setProperty("diameter", 200);
       originalPipe.setProperty("roughness", 0.1);
-      originalPipe.setProperty("minorloss", 0.5);
-      originalPipe.setProperty("description", "Test pipe");
+      originalPipe.setProperty("minorLoss", 0.5);
+      originalPipe.setProperty("initialStatus", "open");
 
       hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
@@ -180,13 +180,13 @@ describe("addNode", () => {
 
       expect(pipe1.getProperty("diameter")).toBe(200);
       expect(pipe1.getProperty("roughness")).toBe(0.1);
-      expect(pipe1.getProperty("minorloss")).toBe(0.5);
-      expect(pipe1.getProperty("description")).toBe("Test pipe");
+      expect(pipe1.getProperty("minorLoss")).toBe(0.5);
+      expect(pipe1.getProperty("initialStatus")).toBe("open");
 
       expect(pipe2.getProperty("diameter")).toBe(200);
       expect(pipe2.getProperty("roughness")).toBe(0.1);
-      expect(pipe2.getProperty("minorloss")).toBe(0.5);
-      expect(pipe2.getProperty("description")).toBe("Test pipe");
+      expect(pipe2.getProperty("minorLoss")).toBe(0.5);
+      expect(pipe2.getProperty("initialStatus")).toBe("open");
     });
 
     it("recomputes lengths for split pipes", () => {

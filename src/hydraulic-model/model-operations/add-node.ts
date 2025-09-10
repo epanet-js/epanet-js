@@ -1,4 +1,5 @@
 import { NodeAsset, LinkAsset, AssetId } from "../asset-types";
+import { PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
 import { LabelGenerator, LabelManager } from "../label-manager";
 import { Position } from "src/types";
@@ -8,6 +9,12 @@ import { findNearestPointOnLine } from "src/lib/geometry";
 import measureLength from "@turf/length";
 
 type NodeType = "junction" | "reservoir" | "tank";
+
+type CopyablePipeProperties = Pick<
+  PipeProperties,
+  "diameter" | "roughness" | "minorLoss" | "initialStatus"
+>;
+type CopyablePipePropertyKeys = keyof CopyablePipeProperties;
 
 type InputData = {
   nodeType: NodeType;
@@ -178,13 +185,12 @@ const generateUniqueLabel = (
 };
 
 const copyPipeProperties = (source: LinkAsset, target: LinkAsset) => {
-  const propertiesToCopy = [
+  const propertiesToCopy: CopyablePipePropertyKeys[] = [
     "diameter",
     "roughness",
-    "minorloss",
-    "status",
-    "description",
-  ] as const;
+    "minorLoss",
+    "initialStatus",
+  ];
 
   for (const property of propertiesToCopy) {
     if (source.hasProperty(property)) {
