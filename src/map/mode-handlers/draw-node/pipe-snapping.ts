@@ -5,27 +5,24 @@ import { decodeId } from "src/lib/id";
 import { AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { lineString, point } from "@turf/helpers";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { findNearestPointOnLine } from "src/lib/geometry";
-
-type SnapStrategy = "nearest-to-point" | "cursor";
 
 type PipeSnapResult = {
   pipeId: string;
+  snapPosition: Position;
 };
 
-export const usePipeSnappingForCustomerPoints = (
+export const usePipeSnapping = (
   map: MapEngine,
   idMap: IDMap,
   assetsMap: AssetsMap,
 ) => {
-  const findNearestPipe = (
+  const findNearestPipeToSnap = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
   ): PipeSnapResult | null => {
     const pipeFeatures = searchNearbyRenderedFeatures(map, {
       point: screenPoint,
-      distance: 20,
       layers: ["pipes", "imported-pipes"],
     });
 
@@ -33,6 +30,7 @@ export const usePipeSnappingForCustomerPoints = (
 
     let closestPipe: {
       pipeId: string;
+      snapPosition: Position;
       distance: number;
     } | null = null;
 
@@ -56,6 +54,7 @@ export const usePipeSnappingForCustomerPoints = (
       if (!closestPipe || distance < closestPipe.distance) {
         closestPipe = {
           pipeId: uuid,
+          snapPosition: result.coordinates,
           distance: distance,
         };
       }
@@ -65,45 +64,11 @@ export const usePipeSnappingForCustomerPoints = (
 
     return {
       pipeId: closestPipe.pipeId,
+      snapPosition: closestPipe.snapPosition,
     };
   };
 
-  const calculateSnapPoints = (
-    customerPoints: CustomerPoint[],
-    pipeId: string,
-    strategy: SnapStrategy,
-    mouseCoord: Position,
-  ): Position[] => {
-    const pipe = assetsMap.get(pipeId) as LinkAsset;
-    if (!pipe || !pipe.isLink || pipe.type !== "pipe") return [];
-
-    const pipeGeometry = pipe.feature.geometry;
-    if (pipeGeometry.type !== "LineString") return [];
-
-    const pipeLineString = lineString(pipeGeometry.coordinates);
-
-    switch (strategy) {
-      case "cursor": {
-        const mousePoint = point(mouseCoord);
-        const result = findNearestPointOnLine(pipeLineString, mousePoint);
-        const snapPoint = result.coordinates;
-        return customerPoints.map(() => snapPoint);
-      }
-      case "nearest-to-point": {
-        return customerPoints.map((customerPoint) => {
-          const customerPointGeometry = point(customerPoint.coordinates);
-          const result = findNearestPointOnLine(
-            pipeLineString,
-            customerPointGeometry,
-          );
-          return result.coordinates;
-        });
-      }
-    }
-  };
-
   return {
-    findNearestPipe,
-    calculateSnapPoints,
+    findNearestPipeToSnap,
   };
 };

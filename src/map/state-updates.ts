@@ -641,6 +641,8 @@ const getMovedAssets = (
       return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
     case "drawLink":
       return noMoved;
+    case "drawNode":
+      return noMoved;
     case "customerPointsHighlight":
       return noMoved;
     case "connectCustomerPoints":
@@ -660,6 +662,8 @@ const getHiddenCustomerPoints = (
     case "customerPointsHighlight":
       return noHiddenCustomerPoints;
     case "drawLink":
+      return noHiddenCustomerPoints;
+    case "drawNode":
       return noHiddenCustomerPoints;
     case "moveAssets":
       //all overlay is hidden

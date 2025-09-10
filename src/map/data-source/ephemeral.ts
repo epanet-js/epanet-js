@@ -8,6 +8,7 @@ import {
 } from "src/state/jotai";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
+import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
@@ -16,6 +17,10 @@ export const buildEphemeralStateSource = (
 ): Feature[] => {
   if (ephemeralState.type == "drawLink") {
     return buildDrawLinkSourceData(ephemeralState);
+  }
+
+  if (ephemeralState.type === "drawNode") {
+    return buildDrawNodeSourceData(ephemeralState, assets);
   }
 
   if (ephemeralState.type === "moveAssets") {
@@ -127,6 +132,44 @@ const buildConnectCustomerPointsSourceData = (
         },
       });
     }
+  }
+
+  return features;
+};
+
+const buildDrawNodeSourceData = (
+  ephemeralState: EphemeralDrawNode,
+  assets: AssetsMap,
+): Feature[] => {
+  const features: Feature[] = [];
+
+  if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
+    const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;
+    if (pipe && pipe.isLink) {
+      features.push({
+        type: "Feature",
+        id: `pipe-highlight-${ephemeralState.pipeId}`,
+        properties: {
+          pipeHighlight: true,
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: pipe.coordinates,
+        },
+      });
+    }
+
+    features.push({
+      type: "Feature",
+      id: "pipe-snap-point",
+      properties: {
+        halo: true,
+      },
+      geometry: {
+        type: "Point",
+        coordinates: ephemeralState.pipeSnappingPosition,
+      },
+    });
   }
 
   return features;

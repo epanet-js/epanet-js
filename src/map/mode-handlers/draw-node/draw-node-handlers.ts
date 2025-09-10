@@ -1,13 +1,15 @@
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode } from "src/state/jotai";
+import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
 import noop from "lodash/noop";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtom } from "jotai";
 import { getMapCoord } from "../utils";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { NodeAsset } from "src/hydraulic-model";
+import { usePipeSnapping } from "./pipe-snapping";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -15,12 +17,21 @@ export function useDrawNodeHandlers({
   hydraulicModel,
   rep,
   nodeType,
+  map,
+  idMap,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
+  const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { assetBuilder, units } = hydraulicModel;
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
+  const isSnappingOn = useFeatureFlag("FLAG_SNAPPING");
+  const { findNearestPipeToSnap } = usePipeSnapping(
+    map,
+    idMap,
+    hydraulicModel.assets,
+  );
 
   const submitNode = (node: NodeAsset) => {
     const moment = addNode(hydraulicModel, { node });
@@ -30,8 +41,18 @@ export function useDrawNodeHandlers({
 
   return {
     click: async (e) => {
-      const clickPosition = getMapCoord(e);
-      const elevation = await fetchElevation(e.lngLat);
+      let clickPosition = getMapCoord(e);
+      let elevation = await fetchElevation(e.lngLat);
+
+      if (
+        isSnappingOn &&
+        ephemeralState.type === "drawNode" &&
+        ephemeralState.pipeSnappingPosition
+      ) {
+        clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
+        const [lng, lat] = clickPosition;
+        elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
+      }
 
       let node;
 
@@ -59,15 +80,32 @@ export function useDrawNodeHandlers({
       }
 
       submitNode(node);
+      setEphemeralState({ type: "none" });
     },
     move: throttle((e) => {
       prefetchTile(e.lngLat);
+
+      if (isSnappingOn) {
+        const mouseCoord = getMapCoord(e);
+        const pipeSnapResult = findNearestPipeToSnap(e.point, mouseCoord);
+
+        if (pipeSnapResult) {
+          setEphemeralState({
+            type: "drawNode",
+            pipeSnappingPosition: pipeSnapResult.snapPosition,
+            pipeId: pipeSnapResult.pipeId,
+          });
+        } else if (ephemeralState.type === "drawNode") {
+          setEphemeralState({ type: "none" });
+        }
+      }
     }, 200),
     down: noop,
     up: noop,
     double: noop,
     exit() {
       setMode({ mode: Mode.NONE });
+      setEphemeralState({ type: "none" });
     },
   };
 }

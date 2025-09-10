@@ -4,7 +4,7 @@ import { useSetAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
 import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
-import { usePipeSnapping } from "./pipe-snapping";
+import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
 import { connectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -30,11 +30,8 @@ export function useConnectCustomerPointsHandlers({
     initializeConnectState,
     clearConnectState,
   } = useConnectCustomerPointsState();
-  const { findNearestPipe, calculateSnapPoints } = usePipeSnapping(
-    map,
-    idMap,
-    hydraulicModel.assets,
-  );
+  const { findNearestPipe, calculateSnapPoints } =
+    usePipeSnappingForCustomerPoints(map, idMap, hydraulicModel.assets);
 
   const hasInitializedRef = useRef(false);
 
