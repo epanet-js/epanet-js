@@ -18,6 +18,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
@@ -28,6 +29,7 @@ export const SimulationReportDialog = () => {
   const setDialog = useSetAtom(dialogAtom);
   const isReportFlagOn = useFeatureFlag("FLAG_REPORT");
   const zoomTo = useZoomTo();
+  const userTracking = useUserTracking();
 
   const handleAssetClick = useCallback(
     (assetId: AssetId) => {
@@ -37,8 +39,12 @@ export const SimulationReportDialog = () => {
         zoomTo([asset]);
         setDialog(null);
       }
+      userTracking.capture({
+        name: "simulationReport.assetClicked",
+        assetType: asset ? asset.type : null,
+      });
     },
-    [selectFeature, setDialog, hydraulicModel.assets, zoomTo],
+    [selectFeature, setDialog, hydraulicModel.assets, zoomTo, userTracking],
   );
 
   const renderRowWithSlots = useCallback(

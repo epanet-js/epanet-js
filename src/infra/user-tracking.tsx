@@ -508,6 +508,11 @@ type CustomerPointsConnectedCompleted = {
   strategy: "nearest-to-point" | "cursor";
 };
 
+type SimulationReportAssetClicked = {
+  name: "simulationReport.assetClicked";
+  assetType: Asset["type"] | null;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetSelected
@@ -587,6 +592,7 @@ export type UserEvent =
   | CustomerPointsReconnectStarted
   | CustomerPointsDisconnected
   | CustomerPointsConnectedCompleted
+  | SimulationReportAssetClicked
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ExamplesOpened
