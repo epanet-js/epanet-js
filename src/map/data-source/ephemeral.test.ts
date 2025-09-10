@@ -5,6 +5,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link";
 import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
+import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 
 describe("build ephemeral state source", () => {
   const mockIDMap: IDMap = UIDMap.loadIdsFromPersistence([]);
@@ -182,6 +183,95 @@ describe("build ephemeral state source", () => {
 
       expect(junctionFeature.properties).toEqual({});
       expect(junctionFeature.geometry).toEqual(junctionNew.feature.geometry);
+    });
+  });
+
+  describe("drawNode state", () => {
+    it("builds features for junction node snapping", () => {
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .build();
+
+      const ephemeralState: EphemeralDrawNode = {
+        type: "drawNode",
+        nodeType: "junction",
+        pipeSnappingPosition: [5, 0],
+        pipeId: "P1",
+      };
+
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
+
+      expect(features).toHaveLength(2);
+      const [pipeHighlight, snapPoint] = features;
+
+      expect(pipeHighlight.properties).toMatchObject({ pipeHighlight: true });
+      expect(snapPoint.id).toBe("pipe-snap-point");
+      expect(snapPoint.properties).toMatchObject({ halo: true });
+      expect(snapPoint.properties).not.toHaveProperty("icon");
+    });
+
+    it("builds features for reservoir node snapping with icon", () => {
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .build();
+
+      const ephemeralState: EphemeralDrawNode = {
+        type: "drawNode",
+        nodeType: "reservoir",
+        pipeSnappingPosition: [5, 0],
+        pipeId: "P1",
+      };
+
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
+
+      expect(features).toHaveLength(2);
+      const [, snapPoint] = features;
+
+      expect(snapPoint.properties).toMatchObject({
+        halo: true,
+        icon: "reservoir-highlight",
+      });
+    });
+
+    it("builds features for tank node snapping with icon", () => {
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .build();
+
+      const ephemeralState: EphemeralDrawNode = {
+        type: "drawNode",
+        nodeType: "tank",
+        pipeSnappingPosition: [5, 0],
+        pipeId: "P1",
+      };
+
+      const features = buildEphemeralStateSource(
+        ephemeralState,
+        mockIDMap,
+        assets,
+      );
+
+      expect(features).toHaveLength(2);
+      const [, snapPoint] = features;
+
+      expect(snapPoint.properties).toMatchObject({
+        halo: true,
+        icon: "tank-highlight",
+      });
     });
   });
 });

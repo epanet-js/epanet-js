@@ -159,12 +159,15 @@ const buildDrawNodeSourceData = (
       });
     }
 
+    const properties: any = { halo: true };
+    if (ephemeralState.nodeType !== "junction") {
+      properties.icon = `${ephemeralState.nodeType}-highlight`;
+    }
+
     features.push({
       type: "Feature",
       id: "pipe-snap-point",
-      properties: {
-        halo: true,
-      },
+      properties,
       geometry: {
         type: "Point",
         coordinates: ephemeralState.pipeSnappingPosition,

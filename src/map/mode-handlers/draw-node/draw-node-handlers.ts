@@ -78,6 +78,7 @@ export function useDrawNodeHandlers({
         if (pipeSnapResult) {
           setEphemeralState({
             type: "drawNode",
+            nodeType,
             pipeSnappingPosition: pipeSnapResult.snapPosition,
             pipeId: pipeSnapResult.pipeId,
           });
