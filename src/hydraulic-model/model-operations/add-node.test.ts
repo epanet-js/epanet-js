@@ -171,8 +171,8 @@ describe("addNode", () => {
       });
 
       const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("TestPipe_1_1");
-      expect(pipe2.label).toBe("TestPipe_2");
+      expect(pipe1.label).toBe("TestPipe_2");
+      expect(pipe2.label).toBe("TestPipe_3");
     });
 
     it("copies all properties from original pipe", () => {

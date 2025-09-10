@@ -100,14 +100,47 @@ describe("label manager", () => {
     it("handles label collisions", () => {
       const labelManager = new LabelManager();
       labelManager.register("TestPipe_1", "pipe", anId());
-      labelManager.register("TestPipe_1_1", "pipe", anId());
       labelManager.register("TestPipe_2", "pipe", anId());
 
       const [label1, label2] = labelManager.generateSplitLabels("TestPipe");
 
-      expect(label1).toEqual("TestPipe_1_2");
-      expect(label2).toEqual("TestPipe_2_1");
+      expect(label1).toEqual("TestPipe_3");
+      expect(label2).toEqual("TestPipe_4");
       expect(label1).not.toEqual(label2);
+    });
+
+    it("continues counter progression from existing numbered labels", () => {
+      const labelManager = new LabelManager();
+
+      const [label1, label2] = labelManager.generateSplitLabels("MainPipe_5");
+
+      expect(label1).toEqual("MainPipe_6");
+      expect(label2).toEqual("MainPipe_7");
+      expect(label1).not.toEqual(label2);
+    });
+
+    it("handles gaps in existing counters", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("TestPipe_1", "pipe", anId());
+      labelManager.register("TestPipe_3", "pipe", anId());
+
+      const [label1, label2] = labelManager.generateSplitLabels("TestPipe");
+
+      expect(label1).toEqual("TestPipe_2");
+      expect(label2).toEqual("TestPipe_4");
+      expect(label1).not.toEqual(label2);
+    });
+
+    it("avoids nested suffixes for already numbered inputs", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("MYLABEL_1", "pipe", anId());
+
+      const [label1, label2] = labelManager.generateSplitLabels("MYLABEL_1");
+
+      expect(label1).toEqual("MYLABEL_2");
+      expect(label2).toEqual("MYLABEL_3");
+      expect(label1).not.toMatch(/_1_/);
+      expect(label2).not.toMatch(/_1_/);
     });
 
     describe("31-character length limit", () => {

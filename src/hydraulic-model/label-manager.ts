@@ -76,25 +76,33 @@ export class LabelManager implements LabelGenerator {
     );
   }
 
-  generateSplitLabels(baseLabel: string): [string, string] {
+  generateSplitLabels(inputLabel: string): [string, string] {
     const MAX_LENGTH = 31;
+    const { baseLabel, nextCounter } = this.extractBaseAndCounter(inputLabel);
 
-    const generateUniqueLabel = (baseSuffix: string): string => {
-      let counter = 0;
+    const generateLabelWithCounter = (counter: number): string => {
+      const suffix = `_${counter}`;
+      const maxBaseLength = MAX_LENGTH - suffix.length;
+
+      if (maxBaseLength <= 0) {
+        throw new Error(
+          `Cannot generate label within ${MAX_LENGTH} character limit`,
+        );
+      }
+
+      const truncatedBase = baseLabel.substring(0, maxBaseLength);
+      return `${truncatedBase}${suffix}`;
+    };
+
+    const findNextAvailableLabel = (
+      startCounter: number,
+      excludeLabels: string[] = [],
+    ): string => {
+      let counter = startCounter;
       while (true) {
-        const suffix = counter === 0 ? baseSuffix : `${baseSuffix}_${counter}`;
-        const maxBaseLength = MAX_LENGTH - suffix.length;
+        const candidate = generateLabelWithCounter(counter);
 
-        if (maxBaseLength <= 0) {
-          throw new Error(
-            `Cannot generate label within ${MAX_LENGTH} character limit`,
-          );
-        }
-
-        const truncatedBase = baseLabel.substring(0, maxBaseLength);
-        const candidate = `${truncatedBase}${suffix}`;
-
-        if (this.count(candidate) === 0) {
+        if (this.count(candidate) === 0 && !excludeLabels.includes(candidate)) {
           return candidate;
         }
 
@@ -102,16 +110,26 @@ export class LabelManager implements LabelGenerator {
       }
     };
 
-    const label1 = generateUniqueLabel("_1");
-
-    let label2 = generateUniqueLabel("_2");
-    let counter = 0;
-    while (label2 === label1) {
-      label2 = generateUniqueLabel(`_2_${counter}`);
-      counter++;
-    }
+    const label1 = findNextAvailableLabel(nextCounter);
+    const label2 = findNextAvailableLabel(nextCounter + 1, [label1]);
 
     return [label1, label2];
+  }
+
+  private extractBaseAndCounter(inputLabel: string): {
+    baseLabel: string;
+    nextCounter: number;
+  } {
+    const counterPattern = /^(.+)_(\d+)$/;
+    const match = inputLabel.match(counterPattern);
+
+    if (match) {
+      const baseLabel = match[1];
+      const currentCounter = parseInt(match[2], 10);
+      return { baseLabel, nextCounter: currentCounter + 1 };
+    }
+
+    return { baseLabel: inputLabel, nextCounter: 1 };
   }
 
   private ensureUnique(
