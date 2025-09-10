@@ -1,7 +1,7 @@
 import { NodeAsset, LinkAsset, AssetId } from "../asset-types";
 import { PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
-import { LabelGenerator, LabelManager } from "../label-manager";
+import { LabelGenerator } from "../label-manager";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
@@ -129,16 +129,8 @@ const splitPipeAtPoint = (
   ];
 
   const baseLabel = originalPipe.label;
-  const label1 = generateUniqueLabel(
-    hydraulicModel.labelManager,
-    baseLabel,
-    "_1",
-  );
-  const label2 = generateUniqueLabel(
-    hydraulicModel.labelManager,
-    baseLabel,
-    "_2",
-  );
+  const [label1, label2] =
+    hydraulicModel.labelManager.generateSplitLabels(baseLabel);
 
   const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
 
@@ -161,22 +153,6 @@ const splitPipeAtPoint = (
   updatePipeLength(pipe2);
 
   return { pipe1, pipe2 };
-};
-
-const generateUniqueLabel = (
-  labelManager: LabelManager,
-  baseLabel: string,
-  suffix: string,
-): string => {
-  let candidate = `${baseLabel}${suffix}`;
-  let counter = 1;
-
-  while (labelManager.count(candidate) > 0) {
-    candidate = `${baseLabel}${suffix}_${counter}`;
-    counter++;
-  }
-
-  return candidate;
 };
 
 const copyPipeProperties = (source: LinkAsset, target: LinkAsset) => {

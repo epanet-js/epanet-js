@@ -85,4 +85,65 @@ describe("label manager", () => {
     expect(labelManager.generateFor("pipe", anId())).toEqual("P2");
     expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
   });
+
+  describe("generateSplitLabels", () => {
+    it("generates basic split labels", () => {
+      const labelManager = new LabelManager();
+
+      const [label1, label2] = labelManager.generateSplitLabels("MainPipe");
+
+      expect(label1).toEqual("MainPipe_1");
+      expect(label2).toEqual("MainPipe_2");
+      expect(label1).not.toEqual(label2);
+    });
+
+    it("handles label collisions", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("TestPipe_1", "pipe", anId());
+      labelManager.register("TestPipe_1_1", "pipe", anId());
+      labelManager.register("TestPipe_2", "pipe", anId());
+
+      const [label1, label2] = labelManager.generateSplitLabels("TestPipe");
+
+      expect(label1).toEqual("TestPipe_1_2");
+      expect(label2).toEqual("TestPipe_2_1");
+      expect(label1).not.toEqual(label2);
+    });
+
+    describe("31-character length limit", () => {
+      it("truncates base to fit suffixes", () => {
+        const labelManager = new LabelManager();
+        const longLabel = "ExtremelyLongPipeNameExampleThatExceedsLimit";
+
+        const [label1, label2] = labelManager.generateSplitLabels(longLabel);
+
+        expect(label1.length).toBeLessThanOrEqual(31);
+        expect(label2.length).toBeLessThanOrEqual(31);
+        expect(label1).toEqual("ExtremelyLongPipeNameExampleT_1");
+        expect(label2).toEqual("ExtremelyLongPipeNameExampleT_2");
+      });
+
+      it("handles collisions with progressive truncation", () => {
+        const labelManager = new LabelManager();
+        const longLabel = "VeryLongPipeNameExampleHere1234";
+
+        labelManager.register(
+          "VeryLongPipeNameExampleHere12_1",
+          "pipe",
+          anId(),
+        );
+        labelManager.register(
+          "VeryLongPipeNameExampleHere12_2",
+          "pipe",
+          anId(),
+        );
+
+        const [label1, label2] = labelManager.generateSplitLabels(longLabel);
+
+        expect(label1.length).toBeLessThanOrEqual(31);
+        expect(label2.length).toBeLessThanOrEqual(31);
+        expect(label1).not.toEqual(label2);
+      });
+    });
+  });
 });
