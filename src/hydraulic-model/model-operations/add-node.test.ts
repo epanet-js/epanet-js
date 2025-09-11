@@ -122,7 +122,7 @@ describe("addNode", () => {
       expect(pipe2.coordinates[0]).toEqual(nodeCoordinates);
     });
 
-    it("generates unique labels for split pipes", () => {
+    it("integrates with pipe splitting operation", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aNode("J1", [0, 0])
         .aNode("J2", [10, 0])
@@ -133,162 +133,21 @@ describe("addNode", () => {
         })
         .build();
 
-      const { putAssets } = addNode(hydraulicModel, {
+      const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         nodeType: "junction",
         coordinates: [5, 0],
         pipeIdToSplit: "MainPipe",
       });
 
-      const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("MainPipe");
-      expect(pipe2.label).toBe("MainPipe_1");
-    });
-
-    it("handles label collisions by iterating", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aNode("J3", [0, 5])
-        .aNode("J4", [10, 5])
-        .aPipe("TestPipe", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          label: "TestPipe",
-        })
-        .aPipe("TestPipe_1", {
-          startNodeId: "J3",
-          endNodeId: "J4",
-          label: "TestPipe_1",
-        })
-        .build();
-
-      hydraulicModel.labelManager.register("TestPipe_1", "pipe", "TestPipe_1");
-
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 0],
-        pipeIdToSplit: "TestPipe",
-      });
-
-      const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("TestPipe");
-      expect(pipe2.label).toBe("TestPipe_2");
-    });
-
-    it("follows logical progression when splitting numbered pipes", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("MYLABEL_1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          label: "MYLABEL_1",
-        })
-        .build();
-
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 0],
-        pipeIdToSplit: "MYLABEL_1",
-      });
-
-      const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("MYLABEL_1");
-      expect(pipe2.label).toBe("MYLABEL_2");
-    });
-
-    it("copies all properties from original pipe", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .build();
-
-      const originalPipe = hydraulicModel.assetBuilder.buildPipe({
-        label: "SpecialPipe",
-        coordinates: [
-          [0, 0],
-          [10, 0],
-        ],
-      });
-      originalPipe.setProperty("diameter", 200);
-      originalPipe.setProperty("roughness", 0.1);
-      originalPipe.setProperty("minorLoss", 0.5);
-      originalPipe.setProperty("initialStatus", "open");
-
-      hydraulicModel.assets.set(originalPipe.id, originalPipe);
-
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 0],
-        pipeIdToSplit: originalPipe.id,
-      });
-
-      const [, pipe1, pipe2] = putAssets!;
-
-      expect(pipe1.getProperty("diameter")).toBe(200);
-      expect(pipe1.getProperty("roughness")).toBe(0.1);
-      expect(pipe1.getProperty("minorLoss")).toBe(0.5);
-      expect(pipe1.getProperty("initialStatus")).toBe("open");
-
-      expect(pipe2.getProperty("diameter")).toBe(200);
-      expect(pipe2.getProperty("roughness")).toBe(0.1);
-      expect(pipe2.getProperty("minorLoss")).toBe(0.5);
-      expect(pipe2.getProperty("initialStatus")).toBe("open");
-    });
-
-    it("recomputes lengths for split pipes", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [100, 0])
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .build();
-
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [30, 0],
-        pipeIdToSplit: "P1",
-      });
-
-      const [, pipe1, pipe2] = putAssets!;
-
-      const length1 = pipe1.getProperty("length") as unknown as number;
-      const length2 = pipe2.getProperty("length") as unknown as number;
-
-      expect(length1).toBeGreaterThan(0);
-      expect(length2).toBeGreaterThan(0);
-      expect(length1 + length2).toBeCloseTo(11119508, 1);
-    });
-
-    it("splits pipe with multiple vertices", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 10])
-        .build();
-
-      const pipe = hydraulicModel.assetBuilder.buildPipe({
-        id: "P1",
-        coordinates: [
-          [0, 0],
-          [5, 0],
-          [5, 5],
-          [10, 10],
-        ],
-      });
-      hydraulicModel.assets.set("P1", pipe);
-
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 2.5],
-        pipeIdToSplit: "P1",
-      });
+      expect(putAssets).toHaveLength(3);
+      expect(deleteAssets).toEqual(["MainPipe"]);
 
       const [junction, pipe1, pipe2] = putAssets!;
-
-      expect(junction.coordinates).toEqual([5, 2.5]);
-      expect(pipe1.coordinates.length).toBeGreaterThanOrEqual(2);
-      expect(pipe2.coordinates.length).toBeGreaterThanOrEqual(2);
-      expect(pipe1.coordinates[0]).toEqual([0, 0]);
-      expect(pipe2.coordinates[pipe2.coordinates.length - 1]).toEqual([10, 10]);
+      expect(junction.type).toBe("junction");
+      expect(pipe1.type).toBe("pipe");
+      expect(pipe2.type).toBe("pipe");
+      expect(pipe1.label).toBe("MainPipe");
+      expect(pipe2.label).toBe("MainPipe_1");
     });
 
     it("throws error for invalid pipe ID", () => {
