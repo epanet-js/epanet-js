@@ -9,6 +9,7 @@ type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
 export type SnappingCandidate = {
   type: NodeAsset["type"] | "pipe";
   position: Position;
+  assetId: string;
 };
 
 type DrawingState =

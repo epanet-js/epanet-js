@@ -21,7 +21,7 @@ export const buildEphemeralStateSource = (
   }
 
   if (ephemeralState.type == "drawLink") {
-    return buildDrawLinkSourceData(ephemeralState);
+    return buildDrawLinkSourceData(ephemeralState, assets);
   }
 
   if (ephemeralState.type === "drawNode") {
@@ -62,17 +62,19 @@ const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
 
 const buildDrawLinkSourceData = (
   ephemeralState: EphemeralDrawLink,
+  assets: AssetsMap,
 ): Feature[] => {
   const features: Feature[] = [];
 
   const iconProps = (type: Asset["type"]) => {
-    if (type === "junction") return {};
+    if (type === "junction" || type === "pipe") return {};
 
     return { icon: `${type}-highlight` };
   };
 
   if (ephemeralState.snappingCandidate) {
     const candidate = ephemeralState.snappingCandidate;
+
     features.push({
       type: "Feature",
       id: `snapping-${candidate.type}`,
@@ -85,6 +87,23 @@ const buildDrawLinkSourceData = (
         coordinates: candidate.position,
       },
     });
+
+    if (candidate.type === "pipe") {
+      const pipe = assets.get(candidate.assetId) as LinkAsset;
+      if (pipe && pipe.isLink) {
+        features.push({
+          type: "Feature",
+          id: `pipe-highlight-${candidate.assetId}`,
+          properties: {
+            pipeHighlight: true,
+          },
+          geometry: {
+            type: "LineString",
+            coordinates: pipe.coordinates,
+          },
+        });
+      }
+    }
   }
 
   if (ephemeralState.startNode) {

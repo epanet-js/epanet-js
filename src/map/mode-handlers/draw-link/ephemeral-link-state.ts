@@ -1,5 +1,5 @@
-import { Position } from "geojson";
 import { LinkAsset, LinkType, NodeAsset } from "src/hydraulic-model";
+import { SnappingCandidate } from "./draw-link-state";
 
 export interface EphemeralDrawLinkDeprecated {
   type: "drawLinkDeprecated";
@@ -14,8 +14,5 @@ export interface EphemeralDrawLink {
   linkType: LinkType;
   link: LinkAsset;
   startNode?: NodeAsset;
-  snappingCandidate: {
-    type: NodeAsset["type"] | "pipe";
-    position: Position;
-  } | null;
+  snappingCandidate: SnappingCandidate | null;
 }

@@ -19,6 +19,7 @@ import { LngLat } from "mapbox-gl";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useDrawLinkHandlersDeprecated } from "./draw-link-handlers-deprecated";
 import { SnappingCandidate } from "./draw-link-state";
+import { usePipeSnapping } from "../draw-node/pipe-snapping";
 
 export function useDrawLinkHandlers(
   context: HandlerContext & { linkType: LinkType },
@@ -46,6 +47,11 @@ function useDrawLinkHandlersNew({
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState(assetBuilder, linkType);
   const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
+  const { findNearestPipeToSnap } = usePipeSnapping(
+    map,
+    idMap,
+    hydraulicModel.assets,
+  );
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
@@ -197,13 +203,26 @@ function useDrawLinkHandlersNew({
 
       void prefetchTile(e.lngLat);
 
-      const snappingNode = isSnapping() ? getSnappingNode(e) : null;
-      const snappingCandidate = snappingNode
-        ? ({
+      let snappingCandidate: SnappingCandidate | null = null;
+      if (isSnapping()) {
+        const snappingNode = getSnappingNode(e);
+        if (snappingNode) {
+          snappingCandidate = {
             type: snappingNode.type,
             position: snappingNode.coordinates,
-          } as SnappingCandidate)
-        : null;
+            assetId: snappingNode.id,
+          };
+        } else {
+          const snappingPipe = findNearestPipeToSnap(e.point, getMapCoord(e));
+          if (snappingPipe) {
+            snappingCandidate = {
+              type: "pipe",
+              position: snappingPipe.snapPosition,
+              assetId: snappingPipe.pipeId,
+            };
+          }
+        }
+      }
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCandidate);
@@ -211,7 +230,7 @@ function useDrawLinkHandlersNew({
       }
 
       const nextCoordinates =
-        (snappingNode && snappingNode.coordinates) || getMapCoord(e);
+        (snappingCandidate && snappingCandidate.position) || getMapCoord(e);
 
       const linkCopy = drawing.link.copy();
       linkCopy.extendTo(nextCoordinates);
