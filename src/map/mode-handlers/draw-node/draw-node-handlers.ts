@@ -68,25 +68,27 @@ export function useDrawNodeHandlers({
       submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
       setEphemeralState({ type: "none" });
     },
-    move: throttle((e) => {
-      prefetchTile(e.lngLat);
+    move: throttle(
+      (e) => {
+        prefetchTile(e.lngLat);
 
-      if (isSnappingOn) {
-        const mouseCoord = getMapCoord(e);
-        const pipeSnapResult = findNearestPipeToSnap(e.point, mouseCoord);
+        if (isSnappingOn) {
+          const mouseCoord = getMapCoord(e);
+          const pipeSnapResult = findNearestPipeToSnap(e.point, mouseCoord);
 
-        if (pipeSnapResult) {
           setEphemeralState({
             type: "drawNode",
             nodeType,
-            pipeSnappingPosition: pipeSnapResult.snapPosition,
-            pipeId: pipeSnapResult.pipeId,
+            pipeSnappingPosition: pipeSnapResult
+              ? pipeSnapResult.snapPosition
+              : null,
+            pipeId: pipeSnapResult ? pipeSnapResult.pipeId : null,
           });
-        } else if (ephemeralState.type === "drawNode") {
-          setEphemeralState({ type: "none" });
         }
-      }
-    }, 200),
+      },
+      200,
+      { trailing: false },
+    ),
     down: noop,
     up: noop,
     double: noop,

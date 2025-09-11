@@ -142,6 +142,7 @@ const buildDrawNodeSourceData = (
   assets: AssetsMap,
 ): Feature[] => {
   const features: Feature[] = [];
+  if (!ephemeralState.pipeSnappingPosition) return [];
 
   if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
     const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;
