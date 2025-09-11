@@ -76,7 +76,7 @@ export class LabelManager implements LabelGenerator {
     );
   }
 
-  generateSplitLabels(inputLabel: string): [string, string] {
+  generateNextLabel(inputLabel: string): string {
     const MAX_LENGTH = 31;
     const { baseLabel, nextCounter } = this.extractBaseAndCounter(inputLabel);
 
@@ -94,26 +94,16 @@ export class LabelManager implements LabelGenerator {
       return `${truncatedBase}${suffix}`;
     };
 
-    const findNextAvailableLabel = (
-      startCounter: number,
-      excludeLabels: string[] = [],
-    ): string => {
-      let counter = startCounter;
-      while (true) {
-        const candidate = generateLabelWithCounter(counter);
+    let counter = nextCounter;
+    while (true) {
+      const candidate = generateLabelWithCounter(counter);
 
-        if (this.count(candidate) === 0 && !excludeLabels.includes(candidate)) {
-          return candidate;
-        }
-
-        counter++;
+      if (this.count(candidate) === 0) {
+        return candidate;
       }
-    };
 
-    const label1 = findNextAvailableLabel(nextCounter);
-    const label2 = findNextAvailableLabel(nextCounter + 1, [label1]);
-
-    return [label1, label2];
+      counter++;
+    }
   }
 
   private extractBaseAndCounter(inputLabel: string): {

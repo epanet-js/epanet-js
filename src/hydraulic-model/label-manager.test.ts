@@ -86,77 +86,46 @@ describe("label manager", () => {
     expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
   });
 
-  describe("generateSplitLabels", () => {
-    it("generates basic split labels", () => {
+  describe("generateNextLabel", () => {
+    it("generates next numbered label from base label", () => {
       const labelManager = new LabelManager();
-
-      const [label1, label2] = labelManager.generateSplitLabels("MainPipe");
-
-      expect(label1).toEqual("MainPipe_1");
-      expect(label2).toEqual("MainPipe_2");
-      expect(label1).not.toEqual(label2);
-    });
-
-    it("handles label collisions", () => {
-      const labelManager = new LabelManager();
-      labelManager.register("TestPipe_1", "pipe", anId());
-      labelManager.register("TestPipe_2", "pipe", anId());
-
-      const [label1, label2] = labelManager.generateSplitLabels("TestPipe");
-
-      expect(label1).toEqual("TestPipe_3");
-      expect(label2).toEqual("TestPipe_4");
-      expect(label1).not.toEqual(label2);
+      const nextLabel = labelManager.generateNextLabel("MainPipe");
+      expect(nextLabel).toEqual("MainPipe_1");
     });
 
     it("continues counter progression from existing numbered labels", () => {
       const labelManager = new LabelManager();
-
-      const [label1, label2] = labelManager.generateSplitLabels("MainPipe_5");
-
-      expect(label1).toEqual("MainPipe_6");
-      expect(label2).toEqual("MainPipe_7");
-      expect(label1).not.toEqual(label2);
+      const nextLabel = labelManager.generateNextLabel("MainPipe_5");
+      expect(nextLabel).toEqual("MainPipe_6");
     });
 
-    it("handles gaps in existing counters", () => {
+    it("handles label collisions by finding next available", () => {
       const labelManager = new LabelManager();
       labelManager.register("TestPipe_1", "pipe", anId());
-      labelManager.register("TestPipe_3", "pipe", anId());
-
-      const [label1, label2] = labelManager.generateSplitLabels("TestPipe");
-
-      expect(label1).toEqual("TestPipe_2");
-      expect(label2).toEqual("TestPipe_4");
-      expect(label1).not.toEqual(label2);
+      labelManager.register("TestPipe_2", "pipe", anId());
+      const nextLabel = labelManager.generateNextLabel("TestPipe");
+      expect(nextLabel).toEqual("TestPipe_3");
     });
 
-    it("avoids nested suffixes for already numbered inputs", () => {
+    it("handles collisions on numbered labels", () => {
       const labelManager = new LabelManager();
-      labelManager.register("MYLABEL_1", "pipe", anId());
-
-      const [label1, label2] = labelManager.generateSplitLabels("MYLABEL_1");
-
-      expect(label1).toEqual("MYLABEL_2");
-      expect(label2).toEqual("MYLABEL_3");
-      expect(label1).not.toMatch(/_1_/);
-      expect(label2).not.toMatch(/_1_/);
+      labelManager.register("MYLABEL_2", "pipe", anId());
+      const nextLabel = labelManager.generateNextLabel("MYLABEL_1");
+      expect(nextLabel).toEqual("MYLABEL_3");
     });
 
     describe("31-character length limit", () => {
-      it("truncates base to fit suffixes", () => {
+      it("truncates base to fit suffix", () => {
         const labelManager = new LabelManager();
         const longLabel = "ExtremelyLongPipeNameExampleThatExceedsLimit";
 
-        const [label1, label2] = labelManager.generateSplitLabels(longLabel);
+        const nextLabel = labelManager.generateNextLabel(longLabel);
 
-        expect(label1.length).toBeLessThanOrEqual(31);
-        expect(label2.length).toBeLessThanOrEqual(31);
-        expect(label1).toEqual("ExtremelyLongPipeNameExampleT_1");
-        expect(label2).toEqual("ExtremelyLongPipeNameExampleT_2");
+        expect(nextLabel.length).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("ExtremelyLongPipeNameExampleT_1");
       });
 
-      it("handles collisions with progressive truncation", () => {
+      it("handles collisions with truncated labels", () => {
         const labelManager = new LabelManager();
         const longLabel = "VeryLongPipeNameExampleHere1234";
 
@@ -171,11 +140,30 @@ describe("label manager", () => {
           anId(),
         );
 
-        const [label1, label2] = labelManager.generateSplitLabels(longLabel);
+        const nextLabel = labelManager.generateNextLabel(longLabel);
 
-        expect(label1.length).toBeLessThanOrEqual(31);
-        expect(label2.length).toBeLessThanOrEqual(31);
-        expect(label1).not.toEqual(label2);
+        expect(nextLabel.length).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("VeryLongPipeNameExampleHere12_3");
+      });
+
+      it("handles numbered input labels with truncation", () => {
+        const labelManager = new LabelManager();
+        const longLabel = "ExtremelyLongPipeNameExample_5";
+
+        const nextLabel = labelManager.generateNextLabel(longLabel);
+
+        expect(nextLabel.length).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("ExtremelyLongPipeNameExample_6");
+      });
+
+      it("handles very long labels by truncating appropriately", () => {
+        const labelManager = new LabelManager();
+        const veryLongLabel = "A".repeat(30);
+
+        const nextLabel = labelManager.generateNextLabel(veryLongLabel);
+
+        expect(nextLabel.length).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("A".repeat(29) + "_1");
       });
     });
   });

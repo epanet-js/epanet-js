@@ -128,20 +128,19 @@ const splitPipeAtPoint = (
     ...originalCoordinates.slice(segmentIndex + 1),
   ];
 
-  const baseLabel = originalPipe.label;
-  const [label1, label2] =
-    hydraulicModel.labelManager.generateSplitLabels(baseLabel);
+  const originalLabel = originalPipe.label;
+  const newLabel = hydraulicModel.labelManager.generateNextLabel(originalLabel);
 
   const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
 
   const pipe1 = hydraulicModel.assetBuilder.buildPipe({
-    label: label1,
+    label: originalLabel,
     coordinates: coordinates1,
     connections: [originalStartNodeId, newNodeId],
   });
 
   const pipe2 = hydraulicModel.assetBuilder.buildPipe({
-    label: label2,
+    label: newLabel,
     coordinates: coordinates2,
     connections: [newNodeId, originalEndNodeId],
   });

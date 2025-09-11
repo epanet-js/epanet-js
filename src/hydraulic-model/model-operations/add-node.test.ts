@@ -140,8 +140,8 @@ describe("addNode", () => {
       });
 
       const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("MainPipe_1");
-      expect(pipe2.label).toBe("MainPipe_2");
+      expect(pipe1.label).toBe("MainPipe");
+      expect(pipe2.label).toBe("MainPipe_1");
     });
 
     it("handles label collisions by iterating", () => {
@@ -171,8 +171,30 @@ describe("addNode", () => {
       });
 
       const [, pipe1, pipe2] = putAssets!;
-      expect(pipe1.label).toBe("TestPipe_2");
-      expect(pipe2.label).toBe("TestPipe_3");
+      expect(pipe1.label).toBe("TestPipe");
+      expect(pipe2.label).toBe("TestPipe_2");
+    });
+
+    it("follows logical progression when splitting numbered pipes", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("MYLABEL_1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          label: "MYLABEL_1",
+        })
+        .build();
+
+      const { putAssets } = addNode(hydraulicModel, {
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdToSplit: "MYLABEL_1",
+      });
+
+      const [, pipe1, pipe2] = putAssets!;
+      expect(pipe1.label).toBe("MYLABEL_1");
+      expect(pipe2.label).toBe("MYLABEL_2");
     });
 
     it("copies all properties from original pipe", () => {
