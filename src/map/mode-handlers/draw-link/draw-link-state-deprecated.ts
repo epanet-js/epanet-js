@@ -1,26 +1,19 @@
-import { Position } from "geojson";
 import { useAtom } from "jotai";
 import { AssetBuilder, LinkAsset, LinkType } from "src/hydraulic-model";
 import { NodeAsset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
 type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
-
-export type SnappingCandidate = {
-  type: NodeAsset["type"] | "pipe";
-  position: Position;
-};
-
 type DrawingState =
   | {
       isNull: false;
       startNode: NodeAsset;
       link: LinkAsset;
-      snappingCandidate: SnappingCandidate | null;
+      snappingCandidate: NodeAsset | null;
     }
   | NullDrawing;
 
-export const useDrawingState = (
+export const useDrawingStateDeprecated = (
   assetBuilder: AssetBuilder,
   linkType: LinkType,
 ) => {
@@ -31,7 +24,7 @@ export const useDrawingState = (
   };
 
   const drawingState: DrawingState =
-    state.type === "drawLink" && state.startNode
+    state.type === "drawLinkDeprecated" && state.startNode
       ? {
           isNull: false,
           startNode: state.startNode,
@@ -40,11 +33,9 @@ export const useDrawingState = (
         }
       : { isNull: true, snappingCandidate: null };
 
-  const setSnappingCandidate = (
-    snappingCandidate: SnappingCandidate | null,
-  ) => {
+  const setSnappingCandidate = (snappingCandidate: NodeAsset | null) => {
     setEphemeralState((prev: EphemeralEditingState) => {
-      if (prev.type !== "drawLink") {
+      if (prev.type !== "drawLinkDeprecated") {
         let link;
         const startProperties = {
           label: "",
@@ -62,7 +53,7 @@ export const useDrawingState = (
             break;
         }
         return {
-          type: "drawLink",
+          type: "drawLinkDeprecated",
           linkType,
           link,
           snappingCandidate,
@@ -87,10 +78,10 @@ export const useDrawingState = (
   }: {
     startNode: NodeAsset;
     link: LinkAsset;
-    snappingCandidate: SnappingCandidate | null;
+    snappingCandidate: NodeAsset | null;
   }) => {
     setEphemeralState({
-      type: "drawLink",
+      type: "drawLinkDeprecated",
       link,
       linkType,
       startNode,

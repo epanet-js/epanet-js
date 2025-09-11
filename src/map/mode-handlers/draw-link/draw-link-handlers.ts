@@ -18,6 +18,7 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useDrawLinkHandlersDeprecated } from "./draw-link-handlers-deprecated";
+import { SnappingCandidate } from "./draw-link-state";
 
 export function useDrawLinkHandlers(
   context: HandlerContext & { linkType: LinkType },
@@ -197,9 +198,15 @@ function useDrawLinkHandlersNew({
       void prefetchTile(e.lngLat);
 
       const snappingNode = isSnapping() ? getSnappingNode(e) : null;
+      const snappingCandidate = snappingNode
+        ? ({
+            type: snappingNode.type,
+            position: snappingNode.coordinates,
+          } as SnappingCandidate)
+        : null;
 
       if (drawing.isNull) {
-        setSnappingCandidate(snappingNode);
+        setSnappingCandidate(snappingCandidate);
         return;
       }
 
@@ -213,7 +220,7 @@ function useDrawLinkHandlersNew({
         startNode: drawing.startNode,
         link: linkCopy,
         snappingCandidate: !linkCopy.isStart(nextCoordinates)
-          ? snappingNode
+          ? snappingCandidate
           : null,
       });
     },

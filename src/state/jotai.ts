@@ -27,9 +27,10 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
-import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link";
+import { EphemeralDrawLinkDeprecated } from "src/map/mode-handlers/draw-link";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
+import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -357,6 +358,7 @@ export type EphemeralConnectCustomerPoints = {
 
 export type EphemeralEditingState =
   | EphemeralDrawLink
+  | EphemeralDrawLinkDeprecated
   | EphemeralDrawNode
   | EphemeralMoveAssets
   | EphemeralCustomerPointsHighlight

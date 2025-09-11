@@ -7,7 +7,7 @@ import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "./snapping";
-import { useDrawingState } from "./draw-link-state";
+import { useDrawingStateDeprecated } from "./draw-link-state-deprecated";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { LinkAsset, NodeAsset } from "src/hydraulic-model";
@@ -30,7 +30,7 @@ export function useDrawLinkHandlersDeprecated({
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState(assetBuilder, linkType);
+    useDrawingStateDeprecated(assetBuilder, linkType);
   const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();

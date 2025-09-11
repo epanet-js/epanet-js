@@ -140,7 +140,7 @@ export function Hints() {
     }
     case Mode.DRAW_PIPE: {
       if (
-        ephemeralState.type === "drawLink" &&
+        ephemeralState.type === "drawLinkDeprecated" &&
         ephemeralState.linkType === "pipe" &&
         !!ephemeralState.startNode
       )
@@ -170,7 +170,7 @@ export function Hints() {
     }
     case Mode.DRAW_PUMP: {
       if (
-        ephemeralState.type === "drawLink" &&
+        ephemeralState.type === "drawLinkDeprecated" &&
         ephemeralState.linkType === "pump" &&
         !!ephemeralState.startNode
       )
@@ -200,7 +200,7 @@ export function Hints() {
     }
     case Mode.DRAW_VALVE: {
       if (
-        ephemeralState.type === "drawLink" &&
+        ephemeralState.type === "drawLinkDeprecated" &&
         ephemeralState.linkType === "valve" &&
         !!ephemeralState.startNode
       )

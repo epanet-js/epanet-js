@@ -2,7 +2,7 @@ import { buildEphemeralStateSource } from "./ephemeral";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { EphemeralEditingState } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { EphemeralDrawLink } from "../mode-handlers/draw-link";
+import { EphemeralDrawLinkDeprecated } from "../mode-handlers/draw-link";
 import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
@@ -48,8 +48,8 @@ describe("build ephemeral state source", () => {
       const snappingCandidate = assets.get("J2")! as NodeAsset;
       const link = assets.get("P1")! as LinkAsset;
 
-      const ephemeralState: EphemeralDrawLink = {
-        type: "drawLink",
+      const ephemeralState: EphemeralDrawLinkDeprecated = {
+        type: "drawLinkDeprecated",
         startNode,
         linkType: link.type,
         link,
@@ -98,8 +98,8 @@ describe("build ephemeral state source", () => {
       const tank = assets.get("T1")!;
       const reservoir = assets.get("R1")!;
 
-      const ephemeralState: EphemeralDrawLink = {
-        type: "drawLink",
+      const ephemeralState: EphemeralDrawLinkDeprecated = {
+        type: "drawLinkDeprecated",
         linkType: "pipe",
         startNode: tank as NodeAsset,
         link: {

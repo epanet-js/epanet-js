@@ -1,3 +1,3 @@
 export { useDrawLinkHandlers } from "./draw-link-handlers";
 export { useDrawLinkHandlersDeprecated } from "./draw-link-handlers-deprecated";
-export type { EphemeralDrawLink } from "./ephemeral-link-state";
+export type { EphemeralDrawLinkDeprecated } from "./ephemeral-link-state";
