@@ -1,26 +1,22 @@
-import { NodeAsset, LinkAsset, AssetId } from "../asset-types";
+import { NodeAsset, LinkAsset } from "../asset-types";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 import { LabelGenerator } from "../label-manager";
-import { splitPipe } from "./split-pipe";
 
 type InputData = {
   link: LinkAsset;
   startNode: NodeAsset;
   endNode: NodeAsset;
-  startPipeId?: AssetId;
-  endPipeId?: AssetId;
 };
 
-export const addLink: ModelOperation<InputData> = (
+export const addLinkDeprecated: ModelOperation<InputData> = (
   hydraulicModel,
-  { link, startNode, endNode, startPipeId, endPipeId },
+  { link, startNode, endNode },
 ) => {
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
-
   addMissingLabels(
     hydraulicModel.labelManager,
     linkCopy,
@@ -31,33 +27,9 @@ export const addLink: ModelOperation<InputData> = (
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
 
-  const allPutAssets = [linkCopy, startNodeCopy, endNodeCopy];
-  const allDeleteAssets: AssetId[] = [];
-
-  if (startPipeId) {
-    const startPipeSplitResult = splitPipe(hydraulicModel, {
-      pipeIdToSplit: startPipeId,
-      splitCoordinates: startNodeCopy.coordinates,
-      newNodeId: startNodeCopy.id,
-    });
-    allPutAssets.push(...startPipeSplitResult.putAssets!);
-    allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
-  }
-
-  if (endPipeId) {
-    const endPipeSplitResult = splitPipe(hydraulicModel, {
-      pipeIdToSplit: endPipeId,
-      splitCoordinates: endNodeCopy.coordinates,
-      newNodeId: endNodeCopy.id,
-    });
-    allPutAssets.push(...endPipeSplitResult.putAssets!);
-    allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
-  }
-
   return {
     note: `Add ${link.type}`,
-    putAssets: allPutAssets,
-    deleteAssets: allDeleteAssets.length > 0 ? allDeleteAssets : undefined,
+    putAssets: [linkCopy, startNodeCopy, endNodeCopy],
   };
 };
 

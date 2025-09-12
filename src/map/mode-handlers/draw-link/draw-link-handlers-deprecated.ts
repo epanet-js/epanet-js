@@ -13,7 +13,7 @@ import { nextTick } from "process";
 import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
-import { addLink } from "src/hydraulic-model/model-operations";
+import { addLinkDeprecated } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 
@@ -84,7 +84,7 @@ export function useDrawLinkHandlersDeprecated({
       return;
     }
 
-    const moment = addLink(hydraulicModel, {
+    const moment = addLinkDeprecated(hydraulicModel, {
       link: link,
       startNode,
       endNode,

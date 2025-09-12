@@ -47,7 +47,11 @@ export const useDrawingState = (
           snappingCandidate: state.snappingCandidate || null,
           link: state.link,
         }
-      : { isNull: true, snappingCandidate: null };
+      : {
+          isNull: true,
+          snappingCandidate:
+            state.type == "drawLink" ? state.snappingCandidate : null,
+        };
 
   const setSnappingCandidate = (
     snappingCandidate: SnappingCandidate | null,

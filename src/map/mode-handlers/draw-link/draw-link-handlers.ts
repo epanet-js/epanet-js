@@ -96,16 +96,25 @@ function useDrawLinkHandlersNew({
     linkCopy.addVertex(coordinates);
     setDrawing({
       startNode: drawing.startNode,
+      startPipeId: drawing.startPipeId,
       link: linkCopy,
       snappingCandidate: null,
     });
   };
 
-  const submitLink = (
-    startNode: NodeAsset,
-    link: LinkAsset,
-    endNode: NodeAsset,
-  ) => {
+  const submitLink = ({
+    startNode,
+    link,
+    endNode,
+    startPipeId,
+    endPipeId,
+  }: {
+    startNode: NodeAsset;
+    link: LinkAsset;
+    endNode: NodeAsset;
+    startPipeId?: AssetId;
+    endPipeId?: AssetId;
+  }) => {
     const length = measureLength(link.feature);
     if (!length) {
       return;
@@ -115,6 +124,8 @@ function useDrawLinkHandlersNew({
       link: link,
       startNode,
       endNode,
+      startPipeId,
+      endPipeId,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });
@@ -203,17 +214,23 @@ function useDrawLinkHandlersNew({
         }
 
         if (snappingCandidate) {
-          const endNode = submitLink(
-            drawing.startNode,
-            drawing.link,
-            snappingCandidate.type === "pipe"
-              ? assetBuilder.buildJunction({
-                  label: "",
-                  coordinates: clickPosition,
-                  elevation: pointElevation,
-                })
-              : snappingCandidate,
-          );
+          const endNode = submitLink({
+            startNode: drawing.startNode,
+            startPipeId: drawing.startPipeId,
+            link: drawing.link,
+            endNode:
+              snappingCandidate.type === "pipe"
+                ? assetBuilder.buildJunction({
+                    label: "",
+                    coordinates: clickPosition,
+                    elevation: pointElevation,
+                  })
+                : snappingCandidate,
+            endPipeId:
+              snappingCandidate.type === "pipe"
+                ? snappingCandidate.id
+                : undefined,
+          });
           isEndAndContinueOn() && endNode
             ? startDrawing({ startNode: endNode })
             : resetDrawing();
@@ -226,11 +243,12 @@ function useDrawLinkHandlersNew({
             coordinates: clickPosition,
             elevation: pointElevation,
           });
-          endJunction = submitLink(
-            drawing.startNode,
-            drawing.link,
-            endJunction,
-          );
+          endJunction = submitLink({
+            startNode: drawing.startNode,
+            startPipeId: drawing.startPipeId,
+            link: drawing.link,
+            endNode: endJunction,
+          });
           endJunction && startDrawing({ startNode: endJunction });
         } else {
           addVertex(clickPosition);
@@ -271,6 +289,7 @@ function useDrawLinkHandlersNew({
 
       setDrawing({
         startNode: drawing.startNode,
+        startPipeId: drawing.startPipeId,
         link: linkCopy,
         snappingCandidate: !linkCopy.isStart(nextCoordinates)
           ? snappingCandidate
@@ -292,7 +311,12 @@ function useDrawLinkHandlersNew({
         ),
       });
 
-      submitLink(startNode, link, endJunction);
+      submitLink({
+        startNode,
+        startPipeId: drawing.startPipeId,
+        link,
+        endNode: endJunction,
+      });
       resetDrawing();
     },
     exit() {
