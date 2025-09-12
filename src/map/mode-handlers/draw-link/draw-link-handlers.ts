@@ -10,7 +10,7 @@ import { useSnapping } from "./snapping";
 import { useDrawingState } from "./draw-link-state";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { LinkAsset, NodeAsset } from "src/hydraulic-model";
+import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { addLink } from "src/hydraulic-model/model-operations";
@@ -55,7 +55,13 @@ function useDrawLinkHandlersNew({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
-  const startDrawing = (startNode: NodeAsset) => {
+  const startDrawing = ({
+    startNode,
+    startPipeId,
+  }: {
+    startNode: NodeAsset;
+    startPipeId?: AssetId;
+  }) => {
     const coordinates = startNode.coordinates;
     const startProperties = {
       label: "",
@@ -78,6 +84,7 @@ function useDrawLinkHandlersNew({
       startNode,
       link,
       snappingCandidate: null,
+      startPipeId,
     });
     return link.id;
   };
@@ -168,16 +175,30 @@ function useDrawLinkHandlersNew({
             : await fetchElevation(e.lngLat);
 
         if (drawing.isNull) {
-          if (snappingCandidate && snappingCandidate.type !== "pipe") {
-            return startDrawing(snappingCandidate);
+          if (snappingCandidate) {
+            if (snappingCandidate.type === "pipe") {
+              const startNode = assetBuilder.buildJunction({
+                label: "",
+                coordinates: snappingCandidate.coordinates,
+                elevation: await fetchElevation(
+                  coordinatesToLngLat(snappingCandidate.coordinates) as LngLat,
+                ),
+              });
+              return startDrawing({
+                startNode,
+                startPipeId: snappingCandidate.id,
+              });
+            } else {
+              return startDrawing({ startNode: snappingCandidate });
+            }
           } else {
-            return startDrawing(
-              assetBuilder.buildJunction({
+            return startDrawing({
+              startNode: assetBuilder.buildJunction({
                 label: "",
                 coordinates: clickPosition,
                 elevation: pointElevation,
               }),
-            );
+            });
           }
         }
 
@@ -194,7 +215,7 @@ function useDrawLinkHandlersNew({
               : snappingCandidate,
           );
           isEndAndContinueOn() && endNode
-            ? startDrawing(endNode)
+            ? startDrawing({ startNode: endNode })
             : resetDrawing();
           return;
         }
@@ -210,7 +231,7 @@ function useDrawLinkHandlersNew({
             drawing.link,
             endJunction,
           );
-          endJunction && startDrawing(endJunction);
+          endJunction && startDrawing({ startNode: endJunction });
         } else {
           addVertex(clickPosition);
         }

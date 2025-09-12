@@ -22,6 +22,7 @@ type DrawingState =
   | {
       isNull: false;
       startNode: NodeAsset;
+      startPipeId?: AssetId;
       link: LinkAsset;
       snappingCandidate: SnappingCandidate | null;
     }
@@ -42,6 +43,7 @@ export const useDrawingState = (
       ? {
           isNull: false,
           startNode: state.startNode,
+          startPipeId: state.startPipeId,
           snappingCandidate: state.snappingCandidate || null,
           link: state.link,
         }
@@ -91,16 +93,19 @@ export const useDrawingState = (
     startNode,
     link,
     snappingCandidate,
+    startPipeId,
   }: {
     startNode: NodeAsset;
     link: LinkAsset;
     snappingCandidate: SnappingCandidate | null;
+    startPipeId?: AssetId;
   }) => {
     setEphemeralState({
       type: "drawLink",
       link,
       linkType,
       startNode,
+      startPipeId,
       snappingCandidate,
     });
   };
