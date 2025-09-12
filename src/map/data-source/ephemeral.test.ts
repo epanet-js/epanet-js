@@ -155,6 +155,7 @@ describe("build ephemeral state source", () => {
         .build();
 
       const startNode = assets.get("J1")! as NodeAsset;
+      const snappingTank = assets.get("T1")! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
@@ -184,11 +185,7 @@ describe("build ephemeral state source", () => {
           },
         } as LinkAsset,
         startNode,
-        snappingCandidate: {
-          type: "tank",
-          position: [30, 40],
-          assetId: "T1",
-        },
+        snappingCandidate: snappingTank,
       };
 
       const features = buildEphemeralStateSource(
@@ -201,14 +198,14 @@ describe("build ephemeral state source", () => {
 
       const [snappingFeature, startNodeFeature, linkFeature] = features;
 
-      expect(snappingFeature.id).toBe("snapping-tank");
+      expect(snappingFeature.id).toBe(`snapping-${snappingTank.type}`);
       expect(snappingFeature.properties).toMatchObject({
         halo: true,
         icon: "tank-highlight",
       });
       expect(snappingFeature.geometry).toEqual({
         type: "Point",
-        coordinates: [30, 40],
+        coordinates: snappingTank.coordinates,
       });
 
       expect(startNodeFeature.id).toBe(startNode.id);
@@ -271,8 +268,8 @@ describe("build ephemeral state source", () => {
         startNode,
         snappingCandidate: {
           type: "pipe",
-          position: [45, 55],
-          assetId: "P1",
+          coordinates: [45, 55],
+          id: "P1",
         },
       };
 
@@ -354,8 +351,8 @@ describe("build ephemeral state source", () => {
         startNode,
         snappingCandidate: {
           type: "pipe",
-          position: [45, 55],
-          assetId: "NONEXISTENT",
+          coordinates: [45, 55],
+          id: "NONEXISTENT",
         },
       };
 

@@ -1,15 +1,21 @@
 import { Position } from "geojson";
 import { useAtom } from "jotai";
-import { AssetBuilder, LinkAsset, LinkType } from "src/hydraulic-model";
+import {
+  AssetBuilder,
+  AssetId,
+  LinkAsset,
+  LinkType,
+} from "src/hydraulic-model";
 import { NodeAsset } from "src/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
 
-type NullDrawing = { isNull: true; snappingCandidate: NodeAsset | null };
+export type SnappingCandidate =
+  | NodeAsset
+  | { type: "pipe"; id: AssetId; coordinates: Position };
 
-export type SnappingCandidate = {
-  type: NodeAsset["type"] | "pipe";
-  position: Position;
-  assetId: string;
+type NullDrawing = {
+  isNull: true;
+  snappingCandidate: SnappingCandidate | null;
 };
 
 type DrawingState =

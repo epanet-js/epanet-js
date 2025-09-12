@@ -84,16 +84,16 @@ const buildDrawLinkSourceData = (
       } as any,
       geometry: {
         type: "Point",
-        coordinates: candidate.position,
+        coordinates: candidate.coordinates,
       },
     });
 
     if (candidate.type === "pipe") {
-      const pipe = assets.get(candidate.assetId) as LinkAsset;
+      const pipe = assets.get(candidate.id) as LinkAsset;
       if (pipe && pipe.isLink) {
         features.push({
           type: "Feature",
-          id: `pipe-highlight-${candidate.assetId}`,
+          id: `pipe-highlight-${candidate.id}`,
           properties: {
             pipeHighlight: true,
           },

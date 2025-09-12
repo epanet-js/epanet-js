@@ -128,38 +128,70 @@ function useDrawLinkHandlersNew({
 
   const isClickInProgress = useRef<boolean>(false);
 
+  const getSnappingCandidate = (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ): SnappingCandidate | null => {
+    let snappingCandidate: SnappingCandidate | null = null;
+    if (isSnapping()) {
+      const snappingNode = getSnappingNode(e);
+      if (snappingNode) {
+        snappingCandidate = snappingNode;
+      } else {
+        const snappingPipeResult = findNearestPipeToSnap(
+          e.point,
+          getMapCoord(e),
+        );
+        if (snappingPipeResult) {
+          snappingCandidate = {
+            type: "pipe",
+            id: snappingPipeResult.pipeId,
+            coordinates: snappingPipeResult.snapPosition,
+          };
+        }
+      }
+    }
+    return snappingCandidate;
+  };
+
   const handlers: Handlers = {
     click: (e) => {
       isClickInProgress.current = true;
 
       const doAsyncClick = async () => {
-        const snappingNode = isSnapping() ? getSnappingNode(e) : null;
-        const clickPosition = snappingNode
-          ? snappingNode.coordinates
+        const snappingCandidate = isSnapping() ? getSnappingCandidate(e) : null;
+        const clickPosition = snappingCandidate
+          ? snappingCandidate.coordinates
           : getMapCoord(e);
-        const pointElevation = snappingNode
-          ? snappingNode.elevation
-          : await fetchElevation(e.lngLat);
+        const pointElevation =
+          snappingCandidate && snappingCandidate.type !== "pipe"
+            ? snappingCandidate.elevation
+            : await fetchElevation(e.lngLat);
 
         if (drawing.isNull) {
-          const startNode = snappingNode
-            ? snappingNode
-            : assetBuilder.buildJunction({
+          if (snappingCandidate && snappingCandidate.type !== "pipe") {
+            return startDrawing(snappingCandidate);
+          } else {
+            return startDrawing(
+              assetBuilder.buildJunction({
                 label: "",
                 coordinates: clickPosition,
                 elevation: pointElevation,
-              });
-
-          startDrawing(startNode);
-
-          return;
+              }),
+            );
+          }
         }
 
-        if (!!snappingNode) {
+        if (snappingCandidate) {
           const endNode = submitLink(
             drawing.startNode,
             drawing.link,
-            snappingNode,
+            snappingCandidate.type === "pipe"
+              ? assetBuilder.buildJunction({
+                  label: "",
+                  coordinates: clickPosition,
+                  elevation: pointElevation,
+                })
+              : snappingCandidate,
           );
           isEndAndContinueOn() && endNode
             ? startDrawing(endNode)
@@ -203,26 +235,7 @@ function useDrawLinkHandlersNew({
 
       void prefetchTile(e.lngLat);
 
-      let snappingCandidate: SnappingCandidate | null = null;
-      if (isSnapping()) {
-        const snappingNode = getSnappingNode(e);
-        if (snappingNode) {
-          snappingCandidate = {
-            type: snappingNode.type,
-            position: snappingNode.coordinates,
-            assetId: snappingNode.id,
-          };
-        } else {
-          const snappingPipe = findNearestPipeToSnap(e.point, getMapCoord(e));
-          if (snappingPipe) {
-            snappingCandidate = {
-              type: "pipe",
-              position: snappingPipe.snapPosition,
-              assetId: snappingPipe.pipeId,
-            };
-          }
-        }
-      }
+      const snappingCandidate = isSnapping() ? getSnappingCandidate(e) : null;
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCandidate);
@@ -230,7 +243,7 @@ function useDrawLinkHandlersNew({
       }
 
       const nextCoordinates =
-        (snappingCandidate && snappingCandidate.position) || getMapCoord(e);
+        (snappingCandidate && snappingCandidate.coordinates) || getMapCoord(e);
 
       const linkCopy = drawing.link.copy();
       linkCopy.extendTo(nextCoordinates);
