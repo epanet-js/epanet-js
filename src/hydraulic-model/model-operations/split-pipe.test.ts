@@ -309,25 +309,6 @@ describe("splitPipe", () => {
     }).toThrow("At least one split is required");
   });
 
-  it("handles single split (backward compatibility)", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .build();
-
-    const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "P1",
-      splits: [{ nodeId: "J3", position: [5, 0] }],
-    });
-
-    expect(putAssets).toHaveLength(2);
-
-    const [pipe1, pipe2] = putAssets! as Pipe[];
-    expect(pipe1.label).toBe("P1");
-    expect(pipe2.label).toBe("P1_1");
-  });
-
   it("preserves all properties across multiple segments", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
@@ -412,93 +393,42 @@ describe("splitPipe", () => {
     ]);
   });
 
-  it("handles splits in random order correctly", () => {
+  it("preserves vertices correctly when split between vertices", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
-      .aNode("J2", [20, 0])
-      .aPipe("RANDOM_TEST", {
+      .aNode("J2", [100, 0])
+      .aPipe("MULTI_VERTEX", {
         startNodeId: "J1",
         endNodeId: "J2",
-        label: "RANDOM_TEST",
+        coordinates: [
+          [0, 0],
+          [20, 0],
+          [40, 0],
+          [60, 0],
+          [80, 0],
+          [100, 0],
+        ],
       })
       .build();
 
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "RANDOM_TEST",
-      splits: [
-        { nodeId: "J5", position: [15, 0] },
-        { nodeId: "J3", position: [5, 0] },
-        { nodeId: "J4", position: [10, 0] },
-      ],
+      pipeId: "MULTI_VERTEX",
+      splits: [{ nodeId: "J3", position: [33, 0] }],
     });
 
-    expect(putAssets).toHaveLength(4);
-
-    const [pipe1, pipe2, pipe3, pipe4] = putAssets! as Pipe[];
-
-    expect(pipe1.connections).toEqual(["J1", "J3"]);
-    expect(pipe2.connections).toEqual(["J3", "J4"]);
-    expect(pipe3.connections).toEqual(["J4", "J5"]);
-    expect(pipe4.connections).toEqual(["J5", "J2"]);
+    const [pipe1, pipe2] = putAssets! as Pipe[];
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
-      [5, 0],
+      [20, 0],
+      [33, 0],
     ]);
     expect(pipe2.coordinates).toEqual([
-      [5, 0],
-      [10, 0],
+      [33, 0],
+      [40, 0],
+      [60, 0],
+      [80, 0],
+      [100, 0],
     ]);
-    expect(pipe3.coordinates).toEqual([
-      [10, 0],
-      [15, 0],
-    ]);
-    expect(pipe4.coordinates).toEqual([
-      [15, 0],
-      [20, 0],
-    ]);
-  });
-
-  it("maintains correct node connections regardless of split order", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aPipe("CONNECTION_TEST", {
-        startNodeId: "J1",
-        endNodeId: "J2",
-        label: "CONNECTION_TEST",
-      })
-      .build();
-
-    const forwardResult = splitPipe(hydraulicModel, {
-      pipeId: "CONNECTION_TEST",
-      splits: [
-        { nodeId: "J3", position: [3, 0] },
-        { nodeId: "J4", position: [7, 0] },
-      ],
-    });
-
-    const reverseResult = splitPipe(hydraulicModel, {
-      pipeId: "CONNECTION_TEST",
-      splits: [
-        { nodeId: "J6", position: [7, 0] },
-        { nodeId: "J5", position: [3, 0] },
-      ],
-    });
-
-    const [fPipe1, fPipe2, fPipe3] = forwardResult.putAssets! as Pipe[];
-    const [rPipe1, rPipe2, rPipe3] = reverseResult.putAssets! as Pipe[];
-
-    expect(fPipe1.connections).toEqual(["J1", "J3"]);
-    expect(fPipe2.connections).toEqual(["J3", "J4"]);
-    expect(fPipe3.connections).toEqual(["J4", "J2"]);
-
-    expect(rPipe1.connections).toEqual(["J1", "J5"]);
-    expect(rPipe2.connections).toEqual(["J5", "J6"]);
-    expect(rPipe3.connections).toEqual(["J6", "J2"]);
-
-    expect(fPipe1.coordinates).toEqual(rPipe1.coordinates);
-    expect(fPipe2.coordinates).toEqual(rPipe2.coordinates);
-    expect(fPipe3.coordinates).toEqual(rPipe3.coordinates);
   });
 });

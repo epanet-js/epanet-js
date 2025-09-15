@@ -6,7 +6,6 @@ import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import measureLength from "@turf/length";
-import { LabelManager } from "../label-manager";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,
@@ -32,11 +31,7 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
     throw new Error("At least one split is required");
   }
 
-  const newPipes = splitPipeAtMultiplePoints(
-    hydraulicModel,
-    originalPipe,
-    splits,
-  );
+  const newPipes = splitPipeIteratively(hydraulicModel, originalPipe, splits);
 
   return {
     note: `Split pipe`,
@@ -45,260 +40,138 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
   };
 };
 
-const splitPipeAtMultiplePoints = (
+const findPipeContainingSplit = (
+  pipes: LinkAsset[],
+  split: { nodeId: AssetId; position: Position },
+): number => {
+  let bestPipeIndex = 0;
+  let minDistance = Number.MAX_VALUE;
+
+  for (let i = 0; i < pipes.length; i++) {
+    const pipe = pipes[i];
+    const line = lineString(pipe.coordinates);
+    const splitPoint = point(split.position);
+
+    const nearestPoint = findNearestPointOnLine(line, splitPoint);
+
+    if (nearestPoint.distance !== null && nearestPoint.distance < minDistance) {
+      minDistance = nearestPoint.distance;
+      bestPipeIndex = i;
+    }
+  }
+
+  return bestPipeIndex;
+};
+
+const splitPipeIteratively = (
   hydraulicModel: HydraulicModel,
   originalPipe: LinkAsset,
   splits: Array<{ nodeId: AssetId; position: Position }>,
 ): LinkAsset[] => {
-  const originalCoordinates = originalPipe.coordinates;
-  const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
-  const originalLabel = originalPipe.label;
-
-  const snappedSplits = splits.map((split) => ({
-    ...split,
-    position: snapPositionToPipe(originalCoordinates, split.position),
-  }));
-
-  const splitsWithDistance = snappedSplits.map((split) => ({
-    ...split,
-    distance: calculateSplitDistance(originalCoordinates, split.position),
-  }));
-
-  const sortedSplits = splitsWithDistance.sort(
-    (a, b) => a.distance - b.distance,
-  );
-
-  const segmentCoordinates = buildSegmentCoordinates(
-    originalCoordinates,
-    sortedSplits,
-  );
-  const segmentConnections = buildSegmentConnections(
-    originalStartNodeId,
-    originalEndNodeId,
-    sortedSplits,
-  );
-
-  const newPipes: LinkAsset[] = [];
-  const labels = generateLabels(
-    hydraulicModel.labelManager,
-    originalLabel,
-    segmentCoordinates.length,
-  );
-
-  for (let i = 0; i < segmentCoordinates.length; i++) {
-    const pipe = hydraulicModel.assetBuilder.buildPipe({
-      label: labels[i],
-      coordinates: segmentCoordinates[i],
-      connections: segmentConnections[i],
-    });
-
-    copyPipeProperties(originalPipe, pipe);
-    updatePipeLength(pipe);
-
-    newPipes.push(pipe);
+  if (splits.length === 0) {
+    return [originalPipe];
   }
 
-  return newPipes;
-};
+  const baseLabel = originalPipe.label;
+  const currentPipes = [originalPipe];
+  let remainingSplits = [...splits];
 
-const generateLabels = (
-  labelManager: LabelManager,
-  originalLabel: string,
-  count: number,
-) => {
-  const labels: string[] = [originalLabel];
+  while (remainingSplits.length > 0) {
+    const splitToProcess = remainingSplits[0];
 
-  for (let i = 1; i < count; i++) {
-    const lastLabel = labels[labels.length - 1];
-    const nextLabel = labelManager.generateNextLabel(lastLabel);
-    labels.push(nextLabel);
+    const targetPipeIndex = findPipeContainingSplit(
+      currentPipes,
+      splitToProcess,
+    );
+    const targetPipe = currentPipes[targetPipeIndex];
+
+    const [pipe1, pipe2] = splitPipeAtPointSimple(
+      hydraulicModel,
+      targetPipe,
+      splitToProcess,
+    );
+
+    currentPipes.splice(targetPipeIndex, 1, pipe1, pipe2);
+
+    remainingSplits = remainingSplits.slice(1);
   }
-  return labels;
+
+  relabelPipes(hydraulicModel, currentPipes, baseLabel);
+
+  return currentPipes;
 };
 
-const snapPositionToPipe = (
-  pipeCoordinates: Position[],
-  position: Position,
-): Position => {
-  const splitPoint = point(position);
-  let bestSnappedPosition = position;
+const relabelPipes = (
+  hydraulicModel: HydraulicModel,
+  pipes: LinkAsset[],
+  baseLabel: string,
+): void => {
+  if (pipes.length === 0) return;
+
+  pipes[0].setProperty("label", baseLabel);
+
+  for (let i = 1; i < pipes.length; i++) {
+    const newLabel = hydraulicModel.labelManager.generateNextLabel(
+      i === 1 ? baseLabel : pipes[i - 1].label,
+    );
+    pipes[i].setProperty("label", newLabel);
+  }
+};
+
+const splitPipeAtPointSimple = (
+  hydraulicModel: HydraulicModel,
+  pipe: LinkAsset,
+  split: { nodeId: AssetId; position: Position },
+): [LinkAsset, LinkAsset] => {
+  const splitPoint = point(split.position);
+
+  const originalCoords = pipe.coordinates;
+  const [originalStartNodeId, originalEndNodeId] = pipe.connections;
+
+  let splitIndex = -1;
   let minDistance = Number.MAX_VALUE;
 
-  for (let i = 0; i < pipeCoordinates.length - 1; i++) {
-    const segmentStart = pipeCoordinates[i];
-    const segmentEnd = pipeCoordinates[i + 1];
-    const segmentLine = lineString([segmentStart, segmentEnd]);
-    const nearestPoint = findNearestPointOnLine(segmentLine, splitPoint);
+  for (let i = 0; i < originalCoords.length - 1; i++) {
+    const segmentLine = lineString([originalCoords[i], originalCoords[i + 1]]);
+    const segmentNearest = findNearestPointOnLine(segmentLine, splitPoint);
 
-    if (nearestPoint.distance !== null && nearestPoint.distance < minDistance) {
-      minDistance = nearestPoint.distance;
-      bestSnappedPosition = nearestPoint.coordinates;
-    }
-  }
-
-  if (minDistance < 0.001) {
-    return bestSnappedPosition;
-  }
-
-  return position;
-};
-
-const buildSegmentCoordinates = (
-  originalCoordinates: Position[],
-  splits: Array<{ nodeId: AssetId; position: Position }>,
-): Position[][] => {
-  const allCriticalPoints = [
-    originalCoordinates[0],
-    ...splits.map((split) => split.position),
-    originalCoordinates[originalCoordinates.length - 1],
-  ];
-
-  const segments: Position[][] = [];
-
-  for (let i = 0; i < allCriticalPoints.length - 1; i++) {
-    const segmentStart = allCriticalPoints[i];
-    const segmentEnd = allCriticalPoints[i + 1];
-
-    const segmentCoordinates = [segmentStart];
-
-    if (originalCoordinates.length > 2) {
-      for (let j = 1; j < originalCoordinates.length - 1; j++) {
-        const coord = originalCoordinates[j];
-        if (
-          isCoordinateBetweenPoints(
-            coord,
-            segmentStart,
-            segmentEnd,
-            originalCoordinates,
-          )
-        ) {
-          segmentCoordinates.push(coord);
-        }
-      }
-    }
-
-    segmentCoordinates.push(segmentEnd);
-    segments.push(segmentCoordinates);
-  }
-
-  return segments;
-};
-
-const isCoordinateBetweenPoints = (
-  coord: Position,
-  start: Position,
-  end: Position,
-  originalCoordinates: Position[],
-): boolean => {
-  const startIndex = originalCoordinates.findIndex(
-    (c) =>
-      Math.abs(c[0] - start[0]) < 0.0001 && Math.abs(c[1] - start[1]) < 0.0001,
-  );
-  const endIndex = originalCoordinates.findIndex(
-    (c) => Math.abs(c[0] - end[0]) < 0.0001 && Math.abs(c[1] - end[1]) < 0.0001,
-  );
-  const coordIndex = originalCoordinates.findIndex(
-    (c) =>
-      Math.abs(c[0] - coord[0]) < 0.0001 && Math.abs(c[1] - coord[1]) < 0.0001,
-  );
-
-  if (startIndex === -1 || endIndex === -1 || coordIndex === -1) {
-    const distanceFromStart = Math.sqrt(
-      Math.pow(coord[0] - start[0], 2) + Math.pow(coord[1] - start[1], 2),
-    );
-    const distanceFromEnd = Math.sqrt(
-      Math.pow(coord[0] - end[0], 2) + Math.pow(coord[1] - end[1], 2),
-    );
-    const segmentLength = Math.sqrt(
-      Math.pow(end[0] - start[0], 2) + Math.pow(end[1] - start[1], 2),
-    );
-
-    return (
-      Math.abs(distanceFromStart + distanceFromEnd - segmentLength) < 0.0001
-    );
-  }
-
-  return (
-    coordIndex > Math.min(startIndex, endIndex) &&
-    coordIndex < Math.max(startIndex, endIndex)
-  );
-};
-
-const calculateSplitDistance = (
-  pipeCoordinates: Position[],
-  splitPosition: Position,
-): number => {
-  for (let i = 0; i < pipeCoordinates.length; i++) {
-    const coord = pipeCoordinates[i];
     if (
-      Math.abs(coord[0] - splitPosition[0]) < 0.0001 &&
-      Math.abs(coord[1] - splitPosition[1]) < 0.0001
+      segmentNearest.distance !== null &&
+      segmentNearest.distance < minDistance
     ) {
-      return calculateDistanceAlongPath(pipeCoordinates, 0, i);
+      minDistance = segmentNearest.distance;
+      splitIndex = i;
     }
   }
 
-  for (let i = 0; i < pipeCoordinates.length - 1; i++) {
-    const coord1 = pipeCoordinates[i];
-    const coord2 = pipeCoordinates[i + 1];
-
-    const segmentLine = lineString([coord1, coord2]);
-    const nearestPoint = findNearestPointOnLine(
-      segmentLine,
-      point(splitPosition),
-    );
-
-    if (nearestPoint.distance !== null && nearestPoint.distance < 0.001) {
-      const distanceToSegmentStart = calculateDistanceAlongPath(
-        pipeCoordinates,
-        0,
-        i,
-      );
-      const distanceAlongSegment = Math.sqrt(
-        Math.pow(nearestPoint.coordinates[0] - coord1[0], 2) +
-          Math.pow(nearestPoint.coordinates[1] - coord1[1], 2),
-      );
-      return distanceToSegmentStart + distanceAlongSegment;
-    }
+  if (splitIndex === -1) {
+    splitIndex = Math.floor((originalCoords.length - 1) / 2);
   }
 
-  return 0;
-};
+  const coords1 = originalCoords.slice(0, splitIndex + 1);
+  coords1.push(split.position);
 
-const calculateDistanceAlongPath = (
-  coordinates: Position[],
-  startIndex: number,
-  endIndex: number,
-): number => {
-  let distance = 0;
-  for (let i = startIndex; i < endIndex; i++) {
-    const coord1 = coordinates[i];
-    const coord2 = coordinates[i + 1];
-    distance += Math.sqrt(
-      Math.pow(coord2[0] - coord1[0], 2) + Math.pow(coord2[1] - coord1[1], 2),
-    );
-  }
-  return distance;
-};
+  const coords2 = [split.position];
+  coords2.push(...originalCoords.slice(splitIndex + 1));
 
-const buildSegmentConnections = (
-  originalStartNodeId: AssetId,
-  originalEndNodeId: AssetId,
-  splits: Array<{ nodeId: AssetId; position: Position }>,
-): [AssetId, AssetId][] => {
-  const allNodeIds = [
-    originalStartNodeId,
-    ...splits.map((split) => split.nodeId),
-    originalEndNodeId,
-  ];
+  const pipe1 = hydraulicModel.assetBuilder.buildPipe({
+    label: pipe.label,
+    coordinates: coords1,
+    connections: [originalStartNodeId, split.nodeId],
+  });
 
-  const connections: [AssetId, AssetId][] = [];
+  const pipe2 = hydraulicModel.assetBuilder.buildPipe({
+    label: pipe.label,
+    coordinates: coords2,
+    connections: [split.nodeId, originalEndNodeId],
+  });
 
-  for (let i = 0; i < allNodeIds.length - 1; i++) {
-    connections.push([allNodeIds[i], allNodeIds[i + 1]]);
-  }
+  copyPipeProperties(pipe, pipe1);
+  copyPipeProperties(pipe, pipe2);
+  updatePipeLength(pipe1);
+  updatePipeLength(pipe2);
 
-  return connections;
+  return [pipe1, pipe2];
 };
 
 const copyPipeProperties = (source: LinkAsset, target: LinkAsset) => {
