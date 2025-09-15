@@ -7,7 +7,7 @@ import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
-import { usePipeSnapping } from "./pipe-snapping";
+import { useSnapping } from "../hooks/use-snapping";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NodeType = "junction" | "reservoir" | "tank";
@@ -26,7 +26,7 @@ export function useDrawNodeHandlers({
   const { units } = hydraulicModel;
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
   const isSnappingOn = useFeatureFlag("FLAG_SNAPPING");
-  const { findNearestPipeToSnap } = usePipeSnapping(
+  const { findSnappingCandidate } = useSnapping(
     map,
     idMap,
     hydraulicModel.assets,
@@ -74,15 +74,19 @@ export function useDrawNodeHandlers({
 
         if (isSnappingOn) {
           const mouseCoord = getMapCoord(e);
-          const pipeSnapResult = findNearestPipeToSnap(e.point, mouseCoord);
+          const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
           setEphemeralState({
             type: "drawNode",
             nodeType,
-            pipeSnappingPosition: pipeSnapResult
-              ? pipeSnapResult.snapPosition
-              : null,
-            pipeId: pipeSnapResult ? pipeSnapResult.pipeId : null,
+            pipeSnappingPosition:
+              snappingCandidate && snappingCandidate.type === "pipe"
+                ? snappingCandidate.coordinates
+                : null,
+            pipeId:
+              snappingCandidate && snappingCandidate.type === "pipe"
+                ? snappingCandidate.id
+                : null,
           });
         }
       },

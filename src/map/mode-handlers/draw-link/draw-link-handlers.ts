@@ -6,7 +6,7 @@ import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
-import { useSnapping } from "./snapping";
+import { useSnapping } from "../hooks/use-snapping";
 import { useDrawingState } from "./draw-link-state";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
@@ -18,8 +18,6 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useDrawLinkHandlersDeprecated } from "./draw-link-handlers-deprecated";
-import { SnappingCandidate } from "./draw-link-state";
-import { usePipeSnapping } from "../draw-node/pipe-snapping";
 
 export function useDrawLinkHandlers(
   context: HandlerContext & { linkType: LinkType },
@@ -46,8 +44,7 @@ function useDrawLinkHandlersNew({
   const { assetBuilder, units } = hydraulicModel;
   const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
     useDrawingState(assetBuilder, linkType);
-  const { getSnappingNode } = useSnapping(map, idMap, hydraulicModel.assets);
-  const { findNearestPipeToSnap } = usePipeSnapping(
+  const { findSnappingCandidate } = useSnapping(
     map,
     idMap,
     hydraulicModel.assets,
@@ -146,37 +143,14 @@ function useDrawLinkHandlersNew({
 
   const isClickInProgress = useRef<boolean>(false);
 
-  const getSnappingCandidate = (
-    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
-  ): SnappingCandidate | null => {
-    let snappingCandidate: SnappingCandidate | null = null;
-    if (isSnapping()) {
-      const snappingNode = getSnappingNode(e);
-      if (snappingNode) {
-        snappingCandidate = snappingNode;
-      } else {
-        const snappingPipeResult = findNearestPipeToSnap(
-          e.point,
-          getMapCoord(e),
-        );
-        if (snappingPipeResult) {
-          snappingCandidate = {
-            type: "pipe",
-            id: snappingPipeResult.pipeId,
-            coordinates: snappingPipeResult.snapPosition,
-          };
-        }
-      }
-    }
-    return snappingCandidate;
-  };
-
   const handlers: Handlers = {
     click: (e) => {
       isClickInProgress.current = true;
 
       const doAsyncClick = async () => {
-        const snappingCandidate = isSnapping() ? getSnappingCandidate(e) : null;
+        const snappingCandidate = isSnapping()
+          ? findSnappingCandidate(e, getMapCoord(e))
+          : null;
         const clickPosition = snappingCandidate
           ? snappingCandidate.coordinates
           : getMapCoord(e);
@@ -274,7 +248,9 @@ function useDrawLinkHandlersNew({
 
       void prefetchTile(e.lngLat);
 
-      const snappingCandidate = isSnapping() ? getSnappingCandidate(e) : null;
+      const snappingCandidate = isSnapping()
+        ? findSnappingCandidate(e, getMapCoord(e))
+        : null;
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCandidate);
