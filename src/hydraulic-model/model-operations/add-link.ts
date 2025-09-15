@@ -34,24 +34,36 @@ export const addLink: ModelOperation<InputData> = (
   const allPutAssets = [linkCopy, startNodeCopy, endNodeCopy];
   const allDeleteAssets: AssetId[] = [];
 
-  if (startPipeId) {
-    const startPipeSplitResult = splitPipe(hydraulicModel, {
-      pipeIdToSplit: startPipeId,
-      splitCoordinates: startNodeCopy.coordinates,
-      newNodeId: startNodeCopy.id,
+  if (startPipeId && endPipeId && startPipeId === endPipeId) {
+    const splitResult = splitPipe(hydraulicModel, {
+      pipeId: startPipeId,
+      splits: [
+        { nodeId: startNodeCopy.id, position: startNodeCopy.coordinates },
+        { nodeId: endNodeCopy.id, position: endNodeCopy.coordinates },
+      ],
     });
-    allPutAssets.push(...startPipeSplitResult.putAssets!);
-    allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
-  }
+    allPutAssets.push(...splitResult.putAssets!);
+    allDeleteAssets.push(...splitResult.deleteAssets!);
+  } else {
+    if (startPipeId) {
+      const startPipeSplitResult = splitPipe(hydraulicModel, {
+        pipeId: startPipeId,
+        splits: [
+          { nodeId: startNodeCopy.id, position: startNodeCopy.coordinates },
+        ],
+      });
+      allPutAssets.push(...startPipeSplitResult.putAssets!);
+      allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
+    }
 
-  if (endPipeId) {
-    const endPipeSplitResult = splitPipe(hydraulicModel, {
-      pipeIdToSplit: endPipeId,
-      splitCoordinates: endNodeCopy.coordinates,
-      newNodeId: endNodeCopy.id,
-    });
-    allPutAssets.push(...endPipeSplitResult.putAssets!);
-    allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
+    if (endPipeId) {
+      const endPipeSplitResult = splitPipe(hydraulicModel, {
+        pipeId: endPipeId,
+        splits: [{ nodeId: endNodeCopy.id, position: endNodeCopy.coordinates }],
+      });
+      allPutAssets.push(...endPipeSplitResult.putAssets!);
+      allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
+    }
   }
 
   return {
@@ -60,7 +72,6 @@ export const addLink: ModelOperation<InputData> = (
     deleteAssets: allDeleteAssets.length > 0 ? allDeleteAssets : undefined,
   };
 };
-
 const addMissingLabels = (
   labelGenerator: LabelGenerator,
   link: LinkAsset,

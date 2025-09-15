@@ -66,9 +66,8 @@ const addNodeWithPipeSplitting = (
   pipeIdToSplit: AssetId,
 ) => {
   const splitResult = splitPipe(hydraulicModel, {
-    pipeIdToSplit,
-    splitCoordinates: node.coordinates,
-    newNodeId: node.id,
+    pipeId: pipeIdToSplit,
+    splits: [{ nodeId: node.id, position: node.coordinates }],
   });
 
   return {
