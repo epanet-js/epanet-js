@@ -7,7 +7,7 @@ import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
-import { useDrawingState } from "./draw-link-state";
+import { SnappingCandidate, useDrawingState } from "./draw-link-state";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
@@ -143,12 +143,65 @@ function useDrawLinkHandlersNew({
 
   const isClickInProgress = useRef<boolean>(false);
 
+  const createJunction = (coordinates: Position, elevation: number) =>
+    assetBuilder.buildJunction({
+      label: "",
+      coordinates,
+      elevation,
+    });
+
+  const handleSnappingClick = async (
+    snappingCandidate: SnappingCandidate,
+    clickPosition: Position,
+    pointElevation: number,
+  ) => {
+    if (drawing.isNull) {
+      if (snappingCandidate.type === "pipe") {
+        const startNode = createJunction(
+          snappingCandidate.coordinates,
+          await fetchElevation(
+            coordinatesToLngLat(snappingCandidate.coordinates) as LngLat,
+          ),
+        );
+        startDrawing({
+          startNode,
+          startPipeId: snappingCandidate.id,
+        });
+      } else {
+        startDrawing({
+          startNode: snappingCandidate,
+        });
+      }
+    } else {
+      const endNode = submitLink({
+        startNode: drawing.startNode,
+        startPipeId: drawing.startPipeId,
+        link: drawing.link,
+        endNode:
+          snappingCandidate.type === "pipe"
+            ? createJunction(clickPosition, pointElevation)
+            : snappingCandidate,
+        endPipeId:
+          snappingCandidate.type === "pipe" ? snappingCandidate.id : undefined,
+      });
+
+      if (isEndAndContinueOn() && endNode) {
+        startDrawing({
+          startNode: endNode,
+        });
+      } else {
+        resetDrawing();
+      }
+    }
+  };
+
   const handlers: Handlers = {
     click: (e) => {
       isClickInProgress.current = true;
 
       const doAsyncClick = async () => {
-        const snappingCandidate = isSnapping()
+        const isCurrentlySnapping = isSnapping();
+        const snappingCandidate = isCurrentlySnapping
           ? findSnappingCandidate(e, getMapCoord(e))
           : null;
         const clickPosition = snappingCandidate
@@ -159,71 +212,31 @@ function useDrawLinkHandlersNew({
             ? snappingCandidate.elevation
             : await fetchElevation(e.lngLat);
 
+        if (snappingCandidate) {
+          return handleSnappingClick(
+            snappingCandidate,
+            clickPosition,
+            pointElevation,
+          );
+        }
+
         if (drawing.isNull) {
-          if (snappingCandidate) {
-            if (snappingCandidate.type === "pipe") {
-              const startNode = assetBuilder.buildJunction({
-                label: "",
-                coordinates: snappingCandidate.coordinates,
-                elevation: await fetchElevation(
-                  coordinatesToLngLat(snappingCandidate.coordinates) as LngLat,
-                ),
-              });
-              return startDrawing({
-                startNode,
-                startPipeId: snappingCandidate.id,
-              });
-            } else {
-              return startDrawing({ startNode: snappingCandidate });
-            }
-          } else {
-            return startDrawing({
-              startNode: assetBuilder.buildJunction({
-                label: "",
-                coordinates: clickPosition,
-                elevation: pointElevation,
-              }),
+          const startNode = createJunction(clickPosition, pointElevation);
+          startDrawing({
+            startNode,
+          });
+        } else if (isEndAndContinueOn()) {
+          const endJunction = submitLink({
+            startNode: drawing.startNode,
+            startPipeId: drawing.startPipeId,
+            link: drawing.link,
+            endNode: createJunction(clickPosition, pointElevation),
+          });
+          if (endJunction) {
+            startDrawing({
+              startNode: endJunction,
             });
           }
-        }
-
-        if (snappingCandidate) {
-          const endNode = submitLink({
-            startNode: drawing.startNode,
-            startPipeId: drawing.startPipeId,
-            link: drawing.link,
-            endNode:
-              snappingCandidate.type === "pipe"
-                ? assetBuilder.buildJunction({
-                    label: "",
-                    coordinates: clickPosition,
-                    elevation: pointElevation,
-                  })
-                : snappingCandidate,
-            endPipeId:
-              snappingCandidate.type === "pipe"
-                ? snappingCandidate.id
-                : undefined,
-          });
-          isEndAndContinueOn() && endNode
-            ? startDrawing({ startNode: endNode })
-            : resetDrawing();
-          return;
-        }
-
-        if (isEndAndContinueOn()) {
-          let endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
-            label: "",
-            coordinates: clickPosition,
-            elevation: pointElevation,
-          });
-          endJunction = submitLink({
-            startNode: drawing.startNode,
-            startPipeId: drawing.startPipeId,
-            link: drawing.link,
-            endNode: endJunction,
-          });
-          endJunction && startDrawing({ startNode: endJunction });
         } else {
           addVertex(clickPosition);
         }
