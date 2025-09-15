@@ -267,23 +267,22 @@ function useDrawLinkHandlersNew({
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCandidate);
-        return;
+      } else {
+        const nextCoordinates =
+          (snappingCandidate && snappingCandidate.coordinates) ||
+          getMapCoord(e);
+
+        const linkCopy = drawing.link.copy();
+        linkCopy.extendTo(nextCoordinates);
+
+        setDrawing({
+          ...drawing,
+          link: linkCopy,
+          snappingCandidate: !linkCopy.isStart(nextCoordinates)
+            ? snappingCandidate
+            : null,
+        });
       }
-
-      const nextCoordinates =
-        (snappingCandidate && snappingCandidate.coordinates) || getMapCoord(e);
-
-      const linkCopy = drawing.link.copy();
-      linkCopy.extendTo(nextCoordinates);
-
-      setDrawing({
-        startNode: drawing.startNode,
-        startPipeId: drawing.startPipeId,
-        link: linkCopy,
-        snappingCandidate: !linkCopy.isStart(nextCoordinates)
-          ? snappingCandidate
-          : null,
-      });
     },
     double: async (e) => {
       e.preventDefault();
