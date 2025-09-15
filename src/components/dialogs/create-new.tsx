@@ -23,7 +23,6 @@ import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapContext } from "src/map/map-context";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
@@ -66,11 +65,10 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isLocationSearchOn = useFeatureFlag("FLAG_NEW_PROJECT_LOCATION");
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
-  if (map && isLocationSearchOn && !originalMapStateRef.current) {
+  if (map && !originalMapStateRef.current) {
     originalMapStateRef.current = map.getBounds();
   }
 
@@ -120,16 +118,12 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       >
         {({ values, setFieldValue }) => (
           <Form>
-            {isLocationSearchOn && (
-              <>
-                <LocationSearchSelector
-                  selected={values.location}
-                  onChange={(location) => setFieldValue("location", location)}
-                />
+            <LocationSearchSelector
+              selected={values.location}
+              onChange={(location) => setFieldValue("location", location)}
+            />
 
-                <hr className="my-2" />
-              </>
-            )}
+            <hr className="my-2" />
 
             <UnitsSystemSelector
               selected={values.unitsSpec}
