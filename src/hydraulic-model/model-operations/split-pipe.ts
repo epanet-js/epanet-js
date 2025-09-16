@@ -2,6 +2,8 @@ import { NodeAsset } from "../asset-types";
 import { Pipe, PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
+import { CustomerPoint } from "../customer-points";
+import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import measureLength from "@turf/length";
@@ -27,10 +29,44 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
 
   const newPipes = splitPipeIteratively(hydraulicModel, pipe, splits);
 
+  const tempAssets = new Map(hydraulicModel.assets);
+  for (const splitNode of splits) {
+    tempAssets.set(splitNode.id, splitNode);
+  }
+
+  const connectedCustomerPoints =
+    hydraulicModel.customerPointsLookup.getCustomerPoints(pipe.id);
+  const reconnectedCustomerPoints: CustomerPoint[] = [];
+
+  if (connectedCustomerPoints.size > 0) {
+    for (const customerPoint of connectedCustomerPoints) {
+      if (customerPoint.connection?.snapPoint) {
+        const targetPipe = findTargetPipeForCustomerPoint(
+          newPipes,
+          customerPoint.connection.snapPoint as [number, number],
+        );
+        if (targetPipe) {
+          const reconnectedPoint = reconnectCustomerPointToPipe(
+            customerPoint,
+            targetPipe,
+            tempAssets,
+          );
+          if (reconnectedPoint) {
+            reconnectedCustomerPoints.push(reconnectedPoint);
+          }
+        }
+      }
+    }
+  }
+
   return {
     note: `Split pipe`,
     putAssets: newPipes,
     deleteAssets: [pipe.id],
+    putCustomerPoints:
+      reconnectedCustomerPoints.length > 0
+        ? reconnectedCustomerPoints
+        : undefined,
   };
 };
 
@@ -186,4 +222,73 @@ const copyPipeProperties = (source: Pipe, target: Pipe) => {
 const updatePipeLength = (pipe: Pipe) => {
   const length = measureLength(pipe.feature, { units: "meters" });
   pipe.setProperty("length", length);
+};
+
+const findTargetPipeForCustomerPoint = (
+  pipes: Pipe[],
+  snapPoint: [number, number],
+): Pipe | null => {
+  let closestPipe: Pipe | null = null;
+  let minDistance = Number.MAX_VALUE;
+
+  const customerSnapPoint = point(snapPoint);
+
+  for (const pipe of pipes) {
+    const pipeLineString = lineString(pipe.coordinates);
+    const nearestPoint = findNearestPointOnLine(
+      pipeLineString,
+      customerSnapPoint,
+    );
+
+    if (nearestPoint.distance !== null && nearestPoint.distance < minDistance) {
+      minDistance = nearestPoint.distance;
+      closestPipe = pipe;
+    }
+  }
+
+  return closestPipe;
+};
+
+const reconnectCustomerPointToPipe = (
+  customerPoint: CustomerPoint,
+  targetPipe: Pipe,
+  assets: Map<string, any>,
+): CustomerPoint | null => {
+  const [startNodeId, endNodeId] = targetPipe.connections;
+  const startNode = assets.get(startNodeId);
+  const endNode = assets.get(endNodeId);
+
+  if (!startNode || startNode.isLink || !endNode || endNode.isLink) {
+    return null;
+  }
+
+  const startNodeData = {
+    id: startNodeId,
+    type: startNode.type,
+    coordinates: startNode.coordinates,
+  };
+  const endNodeData = {
+    id: endNodeId,
+    type: endNode.type,
+    coordinates: endNode.coordinates,
+  };
+
+  const targetJunctionId = findJunctionForCustomerPoint(
+    startNodeData,
+    endNodeData,
+    customerPoint.connection!.snapPoint,
+  );
+
+  if (!targetJunctionId) {
+    return null;
+  }
+
+  const reconnectedPoint = customerPoint.copyDisconnected();
+  reconnectedPoint.connect({
+    pipeId: targetPipe.id,
+    snapPoint: customerPoint.connection!.snapPoint,
+    junctionId: targetJunctionId,
+  });
+
+  return reconnectedPoint;
 };

@@ -79,6 +79,7 @@ const addNodeWithPipeSplitting = (
   return {
     note: `Add ${node.type} and split pipe`,
     putAssets: [node, ...splitResult.putAssets!],
+    putCustomerPoints: splitResult.putCustomerPoints,
     deleteAssets: splitResult.deleteAssets!,
   };
 };

@@ -1,5 +1,8 @@
 import { splitPipe } from "./split-pipe";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import {
+  HydraulicModelBuilder,
+  buildCustomerPoint,
+} from "src/__helpers__/hydraulic-model-builder";
 import { Pipe } from "../asset-types/pipe";
 
 describe("splitPipe", () => {
@@ -24,7 +27,7 @@ describe("splitPipe", () => {
     expect(putAssets).toHaveLength(2);
     expect(deleteAssets).toEqual(["P1"]);
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = putAssets as Pipe[];
     expect(pipe1.type).toBe("pipe");
     expect(pipe2.type).toBe("pipe");
     expect(pipe1.coordinates).toEqual([
@@ -35,8 +38,8 @@ describe("splitPipe", () => {
       [5, 0],
       [10, 0],
     ]);
-    expect((pipe1 as Pipe).connections).toEqual(["J1", splitNode.id]);
-    expect((pipe2 as Pipe).connections).toEqual([splitNode.id, "J2"]);
+    expect(pipe1.connections).toEqual(["J1", splitNode.id]);
+    expect(pipe2.connections).toEqual([splitNode.id, "J2"]);
   });
 
   it("generates correct labels for split pipes", () => {
@@ -274,7 +277,7 @@ describe("splitPipe", () => {
     expect(putAssets).toHaveLength(3);
     expect(deleteAssets).toEqual(["MY_PIPE"]);
 
-    const [pipe1, pipe2, pipe3] = putAssets! as Pipe[];
+    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
 
     expect(pipe1.label).toBe("MY_PIPE");
     expect(pipe2.label).toBe("MY_PIPE_1");
@@ -336,7 +339,7 @@ describe("splitPipe", () => {
 
     expect(putAssets).toHaveLength(3);
 
-    const [pipe1, pipe2, pipe3] = putAssets! as Pipe[];
+    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -426,7 +429,7 @@ describe("splitPipe", () => {
 
     expect(putAssets).toHaveLength(3);
 
-    const [pipe1, pipe2, pipe3] = putAssets! as Pipe[];
+    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
 
     expect(pipe1.label).toBe("REVERSE_TEST");
     expect(pipe2.label).toBe("REVERSE_TEST_1");
@@ -493,5 +496,204 @@ describe("splitPipe", () => {
       [80, 0],
       [100, 0],
     ]);
+  });
+
+  it("reconnects customer points to appropriate split segments", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 50,
+    });
+    const customerPoint2 = buildCustomerPoint("CP2", {
+      coordinates: [8, 1],
+      demand: 75,
+    });
+
+    // Connect customer points to the original pipe
+    customerPoint1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      junctionId: "J1",
+    });
+    customerPoint2.connect({
+      pipeId: "P1",
+      snapPoint: [8, 0],
+      junctionId: "J2",
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(putAssets).toHaveLength(2);
+    expect(putCustomerPoints).toBeDefined();
+    expect(putCustomerPoints).toHaveLength(2);
+
+    const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
+    const [splitPipe1, splitPipe2] = putAssets as Pipe[];
+
+    // Customer point 1 should connect to the first split (closer to J1)
+    expect(reconnectedCP1.connection?.pipeId).toBe(splitPipe1.id);
+    expect(reconnectedCP1.connection?.junctionId).toBe("J1");
+
+    // Customer point 2 should connect to the second split (closer to J2)
+    expect(reconnectedCP2.connection?.pipeId).toBe(splitPipe2.id);
+    expect(reconnectedCP2.connection?.junctionId).toBe("J2");
+  });
+
+  it("handles multiple splits with customer points correctly", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [20, 0])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint("CP1", {
+      coordinates: [3, 1],
+      demand: 30,
+    });
+    const customerPoint2 = buildCustomerPoint("CP2", {
+      coordinates: [10, 1],
+      demand: 50,
+    });
+    const customerPoint3 = buildCustomerPoint("CP3", {
+      coordinates: [17, 1],
+      demand: 40,
+    });
+
+    // Connect customer points to original pipe at different locations
+    customerPoint1.connect({
+      pipeId: "P1",
+      snapPoint: [3, 0],
+      junctionId: "J1",
+    });
+    customerPoint2.connect({
+      pipeId: "P1",
+      snapPoint: [10, 0],
+      junctionId: "J1",
+    });
+    customerPoint3.connect({
+      pipeId: "P1",
+      snapPoint: [17, 0],
+      junctionId: "J2",
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPoints.set(customerPoint3.id, customerPoint3);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint3);
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode1 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [7, 0],
+    });
+    const splitNode2 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J4",
+      coordinates: [14, 0],
+    });
+
+    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    expect(putAssets).toHaveLength(3);
+    expect(putCustomerPoints).toHaveLength(3);
+
+    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
+    const reconnectedPoints = putCustomerPoints!;
+
+    // Verify each customer point is connected to the correct split segment
+    const cp1Reconnected = reconnectedPoints.find((cp) => cp.id === "CP1");
+    const cp2Reconnected = reconnectedPoints.find((cp) => cp.id === "CP2");
+    const cp3Reconnected = reconnectedPoints.find((cp) => cp.id === "CP3");
+
+    expect(cp1Reconnected?.connection?.pipeId).toBe(pipe1.id); // [0,0] to [7,0]
+    expect(cp2Reconnected?.connection?.pipeId).toBe(pipe2.id); // [7,0] to [14,0]
+    expect(cp3Reconnected?.connection?.pipeId).toBe(pipe3.id); // [14,0] to [20,0]
+  });
+
+  it("handles split with no customer points connected", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(putAssets).toHaveLength(2);
+    expect(putCustomerPoints).toBeUndefined();
+  });
+
+  it("preserves customer point properties when reconnecting", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const customerPoint = buildCustomerPoint("CP1", {
+      coordinates: [3, 1],
+      demand: 125,
+    });
+
+    customerPoint.connect({
+      pipeId: "P1",
+      snapPoint: [3, 0],
+      junctionId: "J1",
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint);
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(putAssets).toHaveLength(2);
+    expect(putCustomerPoints).toHaveLength(1);
+
+    const reconnectedPoint = putCustomerPoints![0];
+    expect(reconnectedPoint.id).toBe("CP1");
+    expect(reconnectedPoint.baseDemand).toBe(125);
+    expect(reconnectedPoint.coordinates).toEqual([3, 1]);
+    expect(reconnectedPoint.connection?.snapPoint).toEqual([3, 0]);
   });
 });

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { addNode } from "./add-node";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import {
+  HydraulicModelBuilder,
+  buildCustomerPoint,
+} from "src/__helpers__/hydraulic-model-builder";
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
@@ -199,6 +202,45 @@ describe("addNode", () => {
       expect((firstSegment as any).connections[1]).toBe(newJunction.id);
       expect((secondSegment as any).connections[0]).toBe(newJunction.id);
       expect((secondSegment as any).connections[1]).toBe("EndNode");
+    });
+
+    it("reconnects customer points when splitting pipe", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .build();
+
+      const customerPoint = buildCustomerPoint("CP1", {
+        coordinates: [3, 1],
+        demand: 75,
+      });
+
+      customerPoint.connect({
+        pipeId: "P1",
+        snapPoint: [3, 0],
+        junctionId: "J1",
+      });
+
+      hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+      hydraulicModel.customerPointsLookup.addConnection(customerPoint);
+
+      const { putAssets, putCustomerPoints } = addNode(hydraulicModel, {
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdToSplit: "P1",
+      });
+
+      expect(putAssets).toHaveLength(3);
+      expect(putCustomerPoints).toBeDefined();
+      expect(putCustomerPoints).toHaveLength(1);
+
+      const reconnectedCP = putCustomerPoints![0];
+      const [newJunction, pipe1] = putAssets!;
+
+      expect(reconnectedCP.connection?.pipeId).toBe(pipe1.id);
+      expect(reconnectedCP.connection?.junctionId).toBe(newJunction.id);
+      expect(reconnectedCP.baseDemand).toBe(75);
     });
   });
 
