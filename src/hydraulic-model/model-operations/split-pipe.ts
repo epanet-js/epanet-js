@@ -1,7 +1,6 @@
-import { LinkAsset, AssetId } from "../asset-types";
-import { PipeProperties } from "../asset-types/pipe";
+import { NodeAsset } from "../asset-types";
+import { Pipe, PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
-import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
@@ -14,43 +13,35 @@ type CopyablePipeProperties = Pick<
 type CopyablePipePropertyKeys = keyof CopyablePipeProperties;
 
 type SplitPipeInput = {
-  pipeId: AssetId;
-  splits: Array<{ nodeId: AssetId; position: Position }>;
+  pipe: Pipe;
+  splits: NodeAsset[];
 };
 
 export const splitPipe: ModelOperation<SplitPipeInput> = (
   hydraulicModel,
-  { pipeId, splits },
+  { pipe, splits },
 ) => {
-  const originalPipe = hydraulicModel.assets.get(pipeId) as LinkAsset;
-  if (!originalPipe || !originalPipe.isLink || originalPipe.type !== "pipe") {
-    throw new Error(`Invalid pipe ID: ${pipeId}`);
-  }
-
   if (splits.length === 0) {
     throw new Error("At least one split is required");
   }
 
-  const newPipes = splitPipeIteratively(hydraulicModel, originalPipe, splits);
+  const newPipes = splitPipeIteratively(hydraulicModel, pipe, splits);
 
   return {
     note: `Split pipe`,
     putAssets: newPipes,
-    deleteAssets: [originalPipe.id],
+    deleteAssets: [pipe.id],
   };
 };
 
-const findPipeContainingSplit = (
-  pipes: LinkAsset[],
-  split: { nodeId: AssetId; position: Position },
-): number => {
+const findPipeContainingSplit = (pipes: Pipe[], split: NodeAsset): number => {
   let bestPipeIndex = 0;
   let minDistance = Number.MAX_VALUE;
 
   for (let i = 0; i < pipes.length; i++) {
     const pipe = pipes[i];
     const line = lineString(pipe.coordinates);
-    const splitPoint = point(split.position);
+    const splitPoint = point(split.coordinates);
 
     const nearestPoint = findNearestPointOnLine(line, splitPoint);
 
@@ -65,9 +56,9 @@ const findPipeContainingSplit = (
 
 const splitPipeIteratively = (
   hydraulicModel: HydraulicModel,
-  originalPipe: LinkAsset,
-  splits: Array<{ nodeId: AssetId; position: Position }>,
-): LinkAsset[] => {
+  originalPipe: Pipe,
+  splits: NodeAsset[],
+): Pipe[] => {
   if (splits.length === 0) {
     return [originalPipe];
   }
@@ -103,7 +94,7 @@ const splitPipeIteratively = (
 
 const relabelPipes = (
   hydraulicModel: HydraulicModel,
-  pipes: LinkAsset[],
+  pipes: Pipe[],
   baseLabel: string,
 ): void => {
   if (pipes.length === 0) return;
@@ -120,10 +111,10 @@ const relabelPipes = (
 
 const splitPipeAtPointSimple = (
   hydraulicModel: HydraulicModel,
-  pipe: LinkAsset,
-  split: { nodeId: AssetId; position: Position },
-): [LinkAsset, LinkAsset] => {
-  const splitPoint = point(split.position);
+  pipe: Pipe,
+  split: NodeAsset,
+): [Pipe, Pipe] => {
+  const splitPoint = point(split.coordinates);
 
   const originalCoords = pipe.coordinates;
   const [originalStartNodeId, originalEndNodeId] = pipe.connections;
@@ -149,21 +140,21 @@ const splitPipeAtPointSimple = (
   }
 
   const coords1 = originalCoords.slice(0, splitIndex + 1);
-  coords1.push(split.position);
+  coords1.push(split.coordinates);
 
-  const coords2 = [split.position];
+  const coords2 = [split.coordinates];
   coords2.push(...originalCoords.slice(splitIndex + 1));
 
   const pipe1 = hydraulicModel.assetBuilder.buildPipe({
     label: pipe.label,
     coordinates: coords1,
-    connections: [originalStartNodeId, split.nodeId],
+    connections: [originalStartNodeId, split.id],
   });
 
   const pipe2 = hydraulicModel.assetBuilder.buildPipe({
     label: pipe.label,
     coordinates: coords2,
-    connections: [split.nodeId, originalEndNodeId],
+    connections: [split.id, originalEndNodeId],
   });
 
   copyPipeProperties(pipe, pipe1);
@@ -174,7 +165,7 @@ const splitPipeAtPointSimple = (
   return [pipe1, pipe2];
 };
 
-const copyPipeProperties = (source: LinkAsset, target: LinkAsset) => {
+const copyPipeProperties = (source: Pipe, target: Pipe) => {
   const propertiesToCopy: CopyablePipePropertyKeys[] = [
     "diameter",
     "roughness",
@@ -192,7 +183,7 @@ const copyPipeProperties = (source: LinkAsset, target: LinkAsset) => {
   }
 };
 
-const updatePipeLength = (pipe: LinkAsset) => {
+const updatePipeLength = (pipe: Pipe) => {
   const length = measureLength(pipe.feature, { units: "meters" });
   pipe.setProperty("length", length);
 };

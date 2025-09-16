@@ -10,9 +10,15 @@ describe("splitPipe", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
     const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
-      pipeId: "P1",
-      splits: [{ nodeId: "J3", position: [5, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     expect(putAssets).toHaveLength(2);
@@ -29,8 +35,8 @@ describe("splitPipe", () => {
       [5, 0],
       [10, 0],
     ]);
-    expect((pipe1 as Pipe).connections).toEqual(["J1", "J3"]);
-    expect((pipe2 as Pipe).connections).toEqual(["J3", "J2"]);
+    expect((pipe1 as Pipe).connections).toEqual(["J1", splitNode.id]);
+    expect((pipe2 as Pipe).connections).toEqual([splitNode.id, "J2"]);
   });
 
   it("generates correct labels for split pipes", () => {
@@ -44,9 +50,15 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("MainPipe") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "MainPipe",
-      splits: [{ nodeId: "J3", position: [5, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -74,9 +86,15 @@ describe("splitPipe", () => {
 
     hydraulicModel.labelManager.register("TestPipe_1", "pipe", "TestPipe_1");
 
+    const pipe = hydraulicModel.assets.get("TestPipe") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J5",
+      coordinates: [5, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "TestPipe",
-      splits: [{ nodeId: "J5", position: [5, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -95,9 +113,15 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("MYLABEL_1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "MYLABEL_1",
-      splits: [{ nodeId: "J3", position: [5, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -125,9 +149,14 @@ describe("splitPipe", () => {
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: originalPipe.id,
-      splits: [{ nodeId: "J3", position: [5, 0] }],
+      pipe: originalPipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -150,9 +179,15 @@ describe("splitPipe", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "P1",
-      splits: [{ nodeId: "J3", position: [5, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -165,17 +200,21 @@ describe("splitPipe", () => {
     expect(length1).toBeLessThan(length1 + length2);
   });
 
-  it("throws error for invalid pipe ID", () => {
+  it("throws error when no splits provided", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
 
     expect(() => {
       splitPipe(hydraulicModel, {
-        pipeId: "nonexistent",
-        splits: [{ nodeId: "J2", position: [5, 0] }],
+        pipe,
+        splits: [],
       });
-    }).toThrow("Invalid pipe ID: nonexistent");
+    }).toThrow("At least one split is required");
   });
 
   it("uses split coordinates exactly as split point", () => {
@@ -187,9 +226,15 @@ describe("splitPipe", () => {
 
     const splitCoordinates: [number, number] = [5.123, 0.456];
 
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: splitCoordinates,
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "P1",
-      splits: [{ nodeId: "J3", position: splitCoordinates }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets!;
@@ -211,12 +256,19 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("MY_PIPE") as Pipe;
+    const splitNode1 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [0.000027, 0],
+    });
+    const splitNode2 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J4",
+      coordinates: [0.000063, 0],
+    });
+
     const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
-      pipeId: "MY_PIPE",
-      splits: [
-        { nodeId: "J3", position: [0.000027, 0] },
-        { nodeId: "J4", position: [0.000063, 0] },
-      ],
+      pipe,
+      splits: [splitNode1, splitNode2],
     });
 
     expect(putAssets).toHaveLength(3);
@@ -228,9 +280,9 @@ describe("splitPipe", () => {
     expect(pipe2.label).toBe("MY_PIPE_1");
     expect(pipe3.label).toBe("MY_PIPE_2");
 
-    expect(pipe1.connections).toEqual(["J1", "J3"]);
-    expect(pipe2.connections).toEqual(["J3", "J4"]);
-    expect(pipe3.connections).toEqual(["J4", "J2"]);
+    expect(pipe1.connections).toEqual(["J1", splitNode1.id]);
+    expect(pipe2.connections).toEqual([splitNode1.id, splitNode2.id]);
+    expect(pipe3.connections).toEqual([splitNode2.id, "J2"]);
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -267,12 +319,19 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode1 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 2.5],
+    });
+    const splitNode2 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J4",
+      coordinates: [15, 7.5],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "P1",
-      splits: [
-        { nodeId: "J3", position: [5, 2.5] },
-        { nodeId: "J4", position: [15, 7.5] },
-      ],
+      pipe,
+      splits: [splitNode1, splitNode2],
     });
 
     expect(putAssets).toHaveLength(3);
@@ -292,21 +351,6 @@ describe("splitPipe", () => {
       [15, 7.5],
       [20, 10],
     ]);
-  });
-
-  it("throws error when no splits provided", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .build();
-
-    expect(() => {
-      splitPipe(hydraulicModel, {
-        pipeId: "P1",
-        splits: [],
-      });
-    }).toThrow("At least one split is required");
   });
 
   it("preserves all properties across multiple segments", () => {
@@ -329,12 +373,18 @@ describe("splitPipe", () => {
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
+    const splitNode1 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [3, 0],
+    });
+    const splitNode2 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J4",
+      coordinates: [7, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: originalPipe.id,
-      splits: [
-        { nodeId: "J3", position: [3, 0] },
-        { nodeId: "J4", position: [7, 0] },
-      ],
+      pipe: originalPipe,
+      splits: [splitNode1, splitNode2],
     });
 
     const [pipe1, pipe2, pipe3] = putAssets! as Pipe[];
@@ -359,12 +409,19 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("REVERSE_TEST") as Pipe;
+    const splitNode1 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J4",
+      coordinates: [7, 0],
+    });
+    const splitNode2 = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [3, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "REVERSE_TEST",
-      splits: [
-        { nodeId: "J4", position: [7, 0] },
-        { nodeId: "J3", position: [3, 0] },
-      ],
+      pipe,
+      splits: [splitNode1, splitNode2],
     });
 
     expect(putAssets).toHaveLength(3);
@@ -375,9 +432,9 @@ describe("splitPipe", () => {
     expect(pipe2.label).toBe("REVERSE_TEST_1");
     expect(pipe3.label).toBe("REVERSE_TEST_2");
 
-    expect(pipe1.connections).toEqual(["J1", "J3"]);
-    expect(pipe2.connections).toEqual(["J3", "J4"]);
-    expect(pipe3.connections).toEqual(["J4", "J2"]);
+    expect(pipe1.connections).toEqual(["J1", splitNode2.id]);
+    expect(pipe2.connections).toEqual([splitNode2.id, splitNode1.id]);
+    expect(pipe3.connections).toEqual([splitNode1.id, "J2"]);
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -411,9 +468,15 @@ describe("splitPipe", () => {
       })
       .build();
 
+    const pipe = hydraulicModel.assets.get("MULTI_VERTEX") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [33, 0],
+    });
+
     const { putAssets } = splitPipe(hydraulicModel, {
-      pipeId: "MULTI_VERTEX",
-      splits: [{ nodeId: "J3", position: [33, 0] }],
+      pipe,
+      splits: [splitNode],
     });
 
     const [pipe1, pipe2] = putAssets! as Pipe[];

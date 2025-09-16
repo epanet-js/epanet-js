@@ -1,4 +1,5 @@
 import { NodeAsset, LinkAsset, AssetId } from "../asset-types";
+import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
@@ -35,31 +36,38 @@ export const addLink: ModelOperation<InputData> = (
   const allDeleteAssets: AssetId[] = [];
 
   if (startPipeId && endPipeId && startPipeId === endPipeId) {
+    const pipe = hydraulicModel.assets.get(startPipeId) as Pipe;
+    if (!pipe || pipe.type !== "pipe") {
+      throw new Error(`Invalid pipe ID: ${startPipeId}`);
+    }
     const splitResult = splitPipe(hydraulicModel, {
-      pipeId: startPipeId,
-      splits: [
-        { nodeId: startNodeCopy.id, position: startNodeCopy.coordinates },
-        { nodeId: endNodeCopy.id, position: endNodeCopy.coordinates },
-      ],
+      pipe,
+      splits: [startNodeCopy, endNodeCopy],
     });
     allPutAssets.push(...splitResult.putAssets!);
     allDeleteAssets.push(...splitResult.deleteAssets!);
   } else {
     if (startPipeId) {
+      const startPipe = hydraulicModel.assets.get(startPipeId) as Pipe;
+      if (!startPipe || startPipe.type !== "pipe") {
+        throw new Error(`Invalid pipe ID: ${startPipeId}`);
+      }
       const startPipeSplitResult = splitPipe(hydraulicModel, {
-        pipeId: startPipeId,
-        splits: [
-          { nodeId: startNodeCopy.id, position: startNodeCopy.coordinates },
-        ],
+        pipe: startPipe,
+        splits: [startNodeCopy],
       });
       allPutAssets.push(...startPipeSplitResult.putAssets!);
       allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
     }
 
     if (endPipeId) {
+      const endPipe = hydraulicModel.assets.get(endPipeId) as Pipe;
+      if (!endPipe || endPipe.type !== "pipe") {
+        throw new Error(`Invalid pipe ID: ${endPipeId}`);
+      }
       const endPipeSplitResult = splitPipe(hydraulicModel, {
-        pipeId: endPipeId,
-        splits: [{ nodeId: endNodeCopy.id, position: endNodeCopy.coordinates }],
+        pipe: endPipe,
+        splits: [endNodeCopy],
       });
       allPutAssets.push(...endPipeSplitResult.putAssets!);
       allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);

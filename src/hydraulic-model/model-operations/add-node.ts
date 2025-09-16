@@ -1,4 +1,5 @@
 import { NodeAsset, AssetId } from "../asset-types";
+import { Pipe } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
 import { LabelGenerator } from "../label-manager";
 import { Position } from "src/types";
@@ -65,9 +66,14 @@ const addNodeWithPipeSplitting = (
   node: NodeAsset,
   pipeIdToSplit: AssetId,
 ) => {
+  const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
+  if (!pipe || pipe.type !== "pipe") {
+    throw new Error(`Invalid pipe ID: ${pipeIdToSplit}`);
+  }
+
   const splitResult = splitPipe(hydraulicModel, {
-    pipeId: pipeIdToSplit,
-    splits: [{ nodeId: node.id, position: node.coordinates }],
+    pipe,
+    splits: [node],
   });
 
   return {
