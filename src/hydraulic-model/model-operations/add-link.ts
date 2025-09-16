@@ -33,6 +33,7 @@ export const addLink: ModelOperation<InputData> = (
   removeRedundantVertices(linkCopy);
 
   const allPutAssets = [linkCopy, startNodeCopy, endNodeCopy];
+  const allPutCustomerPoints = [];
   const allDeleteAssets: AssetId[] = [];
 
   if (startPipeId && endPipeId && startPipeId === endPipeId) {
@@ -45,6 +46,7 @@ export const addLink: ModelOperation<InputData> = (
       splits: [startNodeCopy, endNodeCopy],
     });
     allPutAssets.push(...splitResult.putAssets!);
+    allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
     allDeleteAssets.push(...splitResult.deleteAssets!);
   } else {
     if (startPipeId) {
@@ -57,6 +59,9 @@ export const addLink: ModelOperation<InputData> = (
         splits: [startNodeCopy],
       });
       allPutAssets.push(...startPipeSplitResult.putAssets!);
+      allPutCustomerPoints.push(
+        ...(startPipeSplitResult.putCustomerPoints || []),
+      );
       allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
     }
 
@@ -70,6 +75,9 @@ export const addLink: ModelOperation<InputData> = (
         splits: [endNodeCopy],
       });
       allPutAssets.push(...endPipeSplitResult.putAssets!);
+      allPutCustomerPoints.push(
+        ...(endPipeSplitResult.putCustomerPoints || []),
+      );
       allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
     }
   }
@@ -78,6 +86,7 @@ export const addLink: ModelOperation<InputData> = (
     note: `Add ${link.type}`,
     putAssets: allPutAssets,
     deleteAssets: allDeleteAssets.length > 0 ? allDeleteAssets : undefined,
+    putCustomerPoints: allPutCustomerPoints,
   };
 };
 const addMissingLabels = (
