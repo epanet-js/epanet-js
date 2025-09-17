@@ -9,6 +9,9 @@ export type EphemeralMoveAssets = {
   oldAssets: Asset[];
   targetAssets: Asset[];
   startPoint?: mapboxgl.Point;
+  pipeSnappingPosition?: [number, number];
+  pipeId?: string;
+  nodeSnappingId?: string;
 };
 
 const nullPoint = new mapboxgl.Point(0, 0);
@@ -47,6 +50,40 @@ export const useMoveState = () => {
     });
   };
 
+  const updateMoveWithSnapping = (
+    targetAssets: Asset[],
+    snappingInfo?: {
+      pipeSnappingPosition?: [number, number];
+      pipeId?: string;
+      nodeSnappingId?: string;
+    },
+  ) => {
+    if (isCommittingRef.current) return;
+
+    setEphemeralState((prev: EphemeralEditingState) => {
+      if (prev.type !== "moveAssets") {
+        return {
+          type: "moveAssets",
+          startPoint: nullPoint,
+          targetAssets,
+          oldAssets: targetAssets,
+          pipeSnappingPosition: snappingInfo?.pipeSnappingPosition,
+          pipeId: snappingInfo?.pipeId,
+          nodeSnappingId: snappingInfo?.nodeSnappingId,
+        } as EphemeralMoveAssets;
+      }
+
+      return {
+        ...prev,
+        targetAssets,
+        oldAssets: prev.oldAssets.length > 0 ? prev.oldAssets : targetAssets,
+        pipeSnappingPosition: snappingInfo?.pipeSnappingPosition,
+        pipeId: snappingInfo?.pipeId,
+        nodeSnappingId: snappingInfo?.nodeSnappingId,
+      };
+    });
+  };
+
   const resetMove = () => {
     setEphemeralState({ type: "none" });
   };
@@ -65,6 +102,7 @@ export const useMoveState = () => {
     setStartPoint,
     startPoint: (state as EphemeralMoveAssets).startPoint,
     updateMove,
+    updateMoveWithSnapping,
     resetMove,
     startCommit,
     finishCommit,

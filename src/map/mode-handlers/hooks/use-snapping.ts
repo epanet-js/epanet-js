@@ -29,7 +29,10 @@ export const useSnapping = (
     enablePipeSnapping: true,
   },
 ) => {
-  const getNeighborPoint = (point: mapboxgl.Point): string | null => {
+  const getNeighborPoint = (
+    point: mapboxgl.Point,
+    excludeIds?: string[],
+  ): string | null => {
     if (!options.enableNodeSnapping) return null;
 
     const pointFeatures = searchNearbyRenderedFeatures(map, {
@@ -47,16 +50,23 @@ export const useSnapping = (
     });
     if (!pointFeatures.length) return null;
 
-    const id = pointFeatures[0].id;
-    const decodedId = decodeId(id as RawId);
-    const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
+    for (const feature of pointFeatures) {
+      const id = feature.id;
+      const decodedId = decodeId(id as RawId);
+      const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
 
-    return uuid;
+      if (uuid && (!excludeIds || !excludeIds.includes(uuid))) {
+        return uuid;
+      }
+    }
+
+    return null;
   };
 
   const findNearestPipeToSnap = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
+    excludeIds?: string[],
   ): PipeSnapResult | null => {
     if (!options.enablePipeSnapping) return null;
 
@@ -74,6 +84,8 @@ export const useSnapping = (
       const decodedId = decodeId(id as RawId);
       const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
       if (!uuid) continue;
+
+      if (excludeIds && excludeIds.includes(uuid)) continue;
 
       const asset = assetsMap.get(uuid) as LinkAsset;
       if (!asset || !asset.isLink || asset.type !== "pipe") continue;
@@ -101,10 +113,11 @@ export const useSnapping = (
   const findSnappingCandidate = (
     e: MapMouseEvent | MapTouchEvent,
     mouseCoord?: Position,
+    excludeIds?: string[],
   ): SnappingCandidate | null => {
     const coord = mouseCoord || [e.lngLat.lng, e.lngLat.lat];
 
-    const assetId = getNeighborPoint(e.point);
+    const assetId = getNeighborPoint(e.point, excludeIds);
     if (assetId) {
       const snappingNode = getNode(assetsMap, assetId);
       if (snappingNode) {
@@ -112,7 +125,7 @@ export const useSnapping = (
       }
     }
 
-    const pipeSnapResult = findNearestPipeToSnap(e.point, coord);
+    const pipeSnapResult = findNearestPipeToSnap(e.point, coord, excludeIds);
     if (pipeSnapResult) {
       return {
         type: "pipe",

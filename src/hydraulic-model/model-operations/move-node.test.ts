@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { moveNode } from "./move-node";
 
 import { NodeAsset, LinkAsset } from "../asset-types";
@@ -248,5 +248,133 @@ describe("moveNode", () => {
       const updatedCustomerPoint = putCustomerPoints![0];
       expect(updatedCustomerPoint.connection!.junctionId).toEqual("J2");
     });
+  });
+
+  it("splits pipe and connects moved node when pipeIdToSplit provided", () => {
+    // Mock window object to enable FLAG_SNAPPING
+    vi.stubGlobal("window", {
+      location: {
+        search: "?FLAG_SNAPPING=true",
+      },
+    });
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aNode("J3", [0, 10])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const { putAssets, deleteAssets } = moveNode(hydraulicModel, {
+      nodeId: "J3",
+      newCoordinates: [5, 0],
+      newElevation: 10,
+      pipeIdToSplit: "P1",
+    });
+
+    expect(deleteAssets).toEqual(["P1"]);
+    expect(putAssets).toHaveLength(3);
+
+    const [movedNode, pipe1, pipe2] = putAssets!;
+    expect(movedNode.id).toBe("J3");
+    expect(movedNode.coordinates).toEqual([5, 0]);
+
+    expect(pipe1.type).toBe("pipe");
+    expect(pipe2.type).toBe("pipe");
+    expect((pipe1 as any).connections).toEqual(["J1", "J3"]);
+    expect((pipe2 as any).connections).toEqual(["J3", "J2"]);
+
+    // Clean up
+    vi.unstubAllGlobals();
+  });
+
+  it("combines move and split operations for customer points", () => {
+    // Mock window object to enable FLAG_SNAPPING
+    vi.stubGlobal("window", {
+      location: {
+        search: "?FLAG_SNAPPING=true",
+      },
+    });
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aNode("J3", [0, 10])
+      .aNode("J4", [10, 10])
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+      .aCustomerPoint("CP1", {
+        coordinates: [3, 1],
+        demand: 50,
+        connection: {
+          pipeId: "P1",
+          snapPoint: [3, 0],
+          junctionId: "J1",
+        },
+      })
+      .aCustomerPoint("CP2", {
+        coordinates: [0, 12],
+        demand: 75,
+        connection: {
+          pipeId: "P2",
+          snapPoint: [0, 10],
+          junctionId: "J3",
+        },
+      })
+      .build();
+
+    const { putCustomerPoints } = moveNode(hydraulicModel, {
+      nodeId: "J3",
+      newCoordinates: [5, 0],
+      newElevation: 10,
+      shouldUpdateCustomerPoints: true,
+      pipeIdToSplit: "P1",
+    });
+
+    expect(putCustomerPoints).toBeDefined();
+    expect(putCustomerPoints!.length).toBeGreaterThan(0);
+
+    const updatedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1");
+    const updatedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2");
+
+    expect(updatedCP1).toBeDefined();
+    expect(updatedCP2).toBeDefined();
+
+    // Clean up
+    vi.unstubAllGlobals();
+  });
+
+  it("throws error for invalid pipeIdToSplit", () => {
+    // Mock window object to enable FLAG_SNAPPING
+    vi.stubGlobal("window", {
+      location: {
+        search: "?FLAG_SNAPPING=true",
+      },
+    });
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .build();
+
+    expect(() =>
+      moveNode(hydraulicModel, {
+        nodeId: "J1",
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: "NonExistentPipe",
+      }),
+    ).toThrow("Invalid pipe ID: NonExistentPipe");
+
+    expect(() =>
+      moveNode(hydraulicModel, {
+        nodeId: "J1",
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: "J1",
+      }),
+    ).toThrow("Invalid pipe ID: J1");
+
+    // Clean up
+    vi.unstubAllGlobals();
   });
 });

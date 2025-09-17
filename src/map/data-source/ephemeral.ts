@@ -29,7 +29,7 @@ export const buildEphemeralStateSource = (
   }
 
   if (ephemeralState.type === "moveAssets") {
-    return buildMoveAssetsSourceData(ephemeralState);
+    return buildMoveAssetsSourceData(ephemeralState, assets);
   }
 
   if (ephemeralState.type === "connectCustomerPoints") {
@@ -39,7 +39,10 @@ export const buildEphemeralStateSource = (
   return [];
 };
 
-const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
+const buildMoveAssetsSourceData = (
+  ephemeralState: EphemeralMoveAssets,
+  assets: AssetsMap,
+) => {
   const features: Feature[] = [];
 
   const iconProps = (asset: Asset) => {
@@ -55,6 +58,55 @@ const buildMoveAssetsSourceData = (ephemeralState: EphemeralMoveAssets) => {
         ...iconProps(asset),
       } as any,
     });
+  }
+
+  if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
+    const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;
+    if (pipe && pipe.isLink) {
+      features.push({
+        type: "Feature",
+        id: `pipe-highlight-${ephemeralState.pipeId}`,
+        properties: {
+          pipeHighlight: true,
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: pipe.coordinates,
+        },
+      });
+    }
+
+    features.push({
+      type: "Feature",
+      id: "pipe-snap-point",
+      properties: {
+        halo: true,
+      },
+      geometry: {
+        type: "Point",
+        coordinates: ephemeralState.pipeSnappingPosition,
+      },
+    });
+  }
+
+  if (ephemeralState.nodeSnappingId) {
+    const node = assets.get(ephemeralState.nodeSnappingId) as NodeAsset;
+    if (node && !node.isLink) {
+      const properties: any = { halo: true };
+      if (node.type !== "junction") {
+        properties.icon = `${node.type}-highlight`;
+      }
+
+      features.push({
+        type: "Feature",
+        id: `node-snapping-${ephemeralState.nodeSnappingId}`,
+        properties,
+        geometry: {
+          type: "Point",
+          coordinates: node.coordinates,
+        },
+      });
+    }
   }
 
   return features;
