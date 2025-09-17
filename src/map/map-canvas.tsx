@@ -321,6 +321,7 @@ export const MapCanvas = memo(function MapCanvas({
   );
 
   const cursorStyle = useMemo(() => {
+    if (cursor === "not-allowed") return "placemark-cursor-not-allowed";
     if (mode.mode !== Mode.NONE) return "placemark-cursor-crosshair";
 
     if (cursor === "move") return "cursor-move";

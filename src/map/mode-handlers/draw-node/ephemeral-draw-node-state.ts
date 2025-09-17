@@ -7,4 +7,5 @@ export interface EphemeralDrawNode {
   nodeType: NodeType;
   pipeSnappingPosition: Position | null;
   pipeId: string | null;
+  nodeSnappingId: string | null;
 }

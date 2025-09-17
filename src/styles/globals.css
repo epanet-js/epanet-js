@@ -56,6 +56,10 @@ details > summary {
   cursor: crosshair !important;
 }
 
+.placemark-cursor-not-allowed .mapboxgl-canvas-container {
+  cursor: not-allowed !important;
+}
+
 /** SAFARI COMPATIBILITY: it's the only browser
  * that shows the disclosure caret even when you tell
  * it not to */

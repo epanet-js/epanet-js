@@ -1,5 +1,10 @@
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
+import {
+  modeAtom,
+  Mode,
+  ephemeralStateAtom,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom } from "jotai";
 import { getMapCoord } from "../utils";
@@ -21,6 +26,7 @@ export function useDrawNodeHandlers({
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const setCursor = useSetAtom(cursorStyleAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { units } = hydraulicModel;
@@ -50,6 +56,15 @@ export function useDrawNodeHandlers({
 
   return {
     click: async (e) => {
+      if (isSnappingOn) {
+        const mouseCoord = getMapCoord(e);
+        const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+
+        if (snappingCandidate && snappingCandidate.type !== "pipe") {
+          return;
+        }
+      }
+
       let clickPosition = getMapCoord(e);
       let elevation = await fetchElevation(e.lngLat);
       let pipeIdToSplit: string | undefined;
@@ -76,17 +91,21 @@ export function useDrawNodeHandlers({
           const mouseCoord = getMapCoord(e);
           const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
+          const isNodeSnapping =
+            snappingCandidate && snappingCandidate.type !== "pipe";
+          const isPipeSnapping =
+            snappingCandidate && snappingCandidate.type === "pipe";
+
+          setCursor(isNodeSnapping ? "not-allowed" : "default");
+
           setEphemeralState({
             type: "drawNode",
             nodeType,
-            pipeSnappingPosition:
-              snappingCandidate && snappingCandidate.type === "pipe"
-                ? snappingCandidate.coordinates
-                : null,
-            pipeId:
-              snappingCandidate && snappingCandidate.type === "pipe"
-                ? snappingCandidate.id
-                : null,
+            pipeSnappingPosition: isPipeSnapping
+              ? snappingCandidate.coordinates
+              : null,
+            pipeId: isPipeSnapping ? snappingCandidate.id : null,
+            nodeSnappingId: isNodeSnapping ? snappingCandidate.id : null,
           });
         }
       },
@@ -99,6 +118,7 @@ export function useDrawNodeHandlers({
     exit() {
       setMode({ mode: Mode.NONE });
       setEphemeralState({ type: "none" });
+      setCursor("default");
     },
   };
 }
