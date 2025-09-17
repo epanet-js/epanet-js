@@ -696,4 +696,64 @@ describe("splitPipe", () => {
     expect(reconnectedPoint.coordinates).toEqual([3, 1]);
     expect(reconnectedPoint.connection?.snapPoint).toEqual([3, 0]);
   });
+
+  it("disconnects customer points when split has no junctions", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir("R1", { coordinates: [0, 0] })
+      .aNode("J1", [10, 0])
+      .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint("CP1", {
+      coordinates: [2, 1],
+      demand: 50,
+    });
+    const customerPoint2 = buildCustomerPoint("CP2", {
+      coordinates: [8, 1],
+      demand: 75,
+    });
+
+    customerPoint1.connect({
+      pipeId: "P1",
+      snapPoint: [2, 0],
+      junctionId: "J1",
+    });
+    customerPoint2.connect({
+      pipeId: "P1",
+      snapPoint: [8, 0],
+      junctionId: "J1",
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitReservoir = hydraulicModel.assetBuilder.buildReservoir({
+      label: "R2",
+      coordinates: [5, 0],
+    });
+
+    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitReservoir],
+    });
+
+    expect(putAssets).toHaveLength(2);
+    expect(putCustomerPoints).toHaveLength(2);
+
+    const [splitPipe1, splitPipe2] = putAssets as Pipe[];
+    const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
+
+    expect(splitPipe1.connections).toEqual(["R1", splitReservoir.id]);
+    expect(splitPipe2.connections).toEqual([splitReservoir.id, "J1"]);
+
+    const cp1 = reconnectedCP1.id === "CP1" ? reconnectedCP1 : reconnectedCP2;
+    const cp2 = reconnectedCP1.id === "CP2" ? reconnectedCP1 : reconnectedCP2;
+
+    expect(cp1.connection).toBeNull();
+    expect(cp2.connection?.pipeId).toBe(splitPipe2.id);
+    expect(cp2.connection?.junctionId).toBe("J1");
+  });
 });

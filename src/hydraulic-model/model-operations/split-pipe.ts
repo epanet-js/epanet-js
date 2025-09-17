@@ -280,7 +280,7 @@ const reconnectCustomerPointToPipe = (
   );
 
   if (!targetJunctionId) {
-    return null;
+    return customerPoint.copyDisconnected();
   }
 
   const reconnectedPoint = customerPoint.copyDisconnected();
