@@ -8,6 +8,7 @@ import { searchNearbyRenderedFeatures } from "../../search";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { SnappingCandidate } from "../draw-link/draw-link-state";
+import { DataSource } from "../../data-source";
 
 type SnappingOptions = {
   enableNodeSnapping?: boolean;
@@ -56,6 +57,9 @@ export const useSnapping = (
       const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
 
       if (uuid && (!excludeIds || !excludeIds.includes(uuid))) {
+        if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
+          continue;
+        }
         return uuid;
       }
     }
@@ -86,6 +90,10 @@ export const useSnapping = (
       if (!uuid) continue;
 
       if (excludeIds && excludeIds.includes(uuid)) continue;
+
+      if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
+        continue;
+      }
 
       const asset = assetsMap.get(uuid) as LinkAsset;
       if (!asset || !asset.isLink || asset.type !== "pipe") continue;

@@ -336,6 +336,22 @@ export class MapEngine {
     );
   }
 
+  getFeatureState(source: DataSource, featureId: RawId): Record<string, any> {
+    if (!this.map || !(this.map as any).style) return {};
+
+    return (
+      this.map.getFeatureState({
+        source,
+        id: featureId,
+      }) || {}
+    );
+  }
+
+  isFeatureHidden(source: DataSource, featureId: RawId): boolean {
+    const featureState = this.getFeatureState(source, featureId);
+    return featureState.hidden === true;
+  }
+
   safeResize() {
     if (this.map && this.map.getCanvas()) {
       this.map.resize();

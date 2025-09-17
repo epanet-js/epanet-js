@@ -52,10 +52,19 @@ class MapTestEngine {
     getStyle: vi.fn().mockReturnValue({ layers: [] }),
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
-    removeFeatureState: (source: { source: string; id: string }) => {
+    removeFeatureState: (
+      source: { source: string; id: string },
+      key?: string,
+    ) => {
       const sourceStates = this.featureStates.get(source.source);
       if (sourceStates) {
-        sourceStates.delete(source.id);
+        if (key) {
+          const featureState = sourceStates.get(source.id) || {};
+          delete featureState[key];
+          sourceStates.set(source.id, featureState);
+        } else {
+          sourceStates.delete(source.id);
+        }
       }
     },
     setFeatureState: (
@@ -108,8 +117,18 @@ class MapTestEngine {
     return Promise.resolve();
   }
   removeSource() {}
-  showFeature() {}
-  hideFeature() {}
+  showFeature(sourceName: DataSource, featureId: string) {
+    this.map.removeFeatureState(
+      { source: sourceName, id: featureId },
+      "hidden",
+    );
+  }
+  hideFeature(sourceName: DataSource, featureId: string) {
+    this.map.setFeatureState(
+      { source: sourceName, id: featureId },
+      { hidden: true },
+    );
+  }
   showLayers() {}
   hideLayers() {}
   showFeatures() {}
@@ -155,6 +174,16 @@ class MapTestEngine {
       { selected: "false" },
     );
   }
+
+  getFeatureState(source: DataSource, featureId: string): FeatureState {
+    return this.map.getFeatureState({ source, id: featureId });
+  }
+
+  isFeatureHidden(source: DataSource, featureId: string): boolean {
+    const featureState = this.getFeatureState(source, featureId);
+    return featureState.hidden === true;
+  }
+
   safeResize() {}
 }
 
