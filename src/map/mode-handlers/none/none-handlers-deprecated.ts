@@ -9,7 +9,7 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
-import { moveNode } from "src/hydraulic-model/model-operations";
+import { moveNodeDeprecated } from "src/hydraulic-model/model-operations/move-node-deprecated";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
@@ -170,7 +170,7 @@ export function useNoneHandlersDeprecated({
 
       const newCoordinates = getMapCoord(e);
       const noElevation = 0;
-      const { putAssets } = moveNode(hydraulicModel, {
+      const { putAssets } = moveNodeDeprecated(hydraulicModel, {
         nodeId: asset.id,
         newCoordinates,
         newElevation: noElevation,
@@ -197,7 +197,7 @@ export function useNoneHandlersDeprecated({
         startCommit();
         fetchElevation(e.lngLat)
           .then((newElevationOrFallback) => {
-            const moment = moveNode(hydraulicModel, {
+            const moment = moveNodeDeprecated(hydraulicModel, {
               nodeId: assetId,
               newCoordinates,
               newElevation: newElevationOrFallback,
