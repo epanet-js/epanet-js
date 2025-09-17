@@ -256,6 +256,7 @@ export function useNoneHandlers({
         );
 
         if (snappingCandidate && snappingCandidate.type !== "pipe") {
+          clearSelection();
           resetMove();
           return;
         }
