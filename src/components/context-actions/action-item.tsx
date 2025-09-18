@@ -17,6 +17,7 @@ export interface Action {
   variant?: B3Variant;
   applicable: boolean;
   shortcut?: string;
+  selected?: boolean;
 }
 
 export interface ActionProps {
@@ -25,7 +26,14 @@ export interface ActionProps {
 }
 
 export function ActionItem({
-  action: { icon, label, onSelect, variant = "quiet", shortcut },
+  action: {
+    icon,
+    label,
+    onSelect,
+    variant = "quiet",
+    shortcut,
+    selected = false,
+  },
   as,
   ...rest
 }: {
@@ -51,7 +59,12 @@ export function ActionItem({
           onClick={(evt) => onSelect(evt as unknown as Event)}
           asChild
         >
-          <Button variant={variant}>{icon}</Button>
+          <Button
+            variant={selected ? "quiet/mode" : variant}
+            aria-expanded={selected ? "true" : "false"}
+          >
+            {icon}
+          </Button>
         </Tooltip.Trigger>
       </div>
       <TContent side="bottom">

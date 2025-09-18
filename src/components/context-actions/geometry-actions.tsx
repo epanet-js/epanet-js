@@ -11,7 +11,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, EditVerticesIcon, ZoomToIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtomValue } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { Position } from "src/types";
@@ -26,6 +26,7 @@ export function useActions(
   const isVerticesOn = useFeatureFlag("FLAG_VERTICES");
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const { mode: currentMode } = useAtomValue(modeAtom);
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -66,6 +67,7 @@ export function useActions(
     icon: <EditVerticesIcon />,
     applicable: Boolean(isVerticesOn && isOneLinkSelected),
     label: translate("editVertices"),
+    selected: currentMode === Mode.EDIT_VERTICES,
     onSelect: function editVertices() {
       if (selectedWrappedFeatures.length === 1) {
         const feature = selectedWrappedFeatures[0];
