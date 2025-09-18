@@ -360,6 +360,7 @@ export type EphemeralEditVertices = {
   type: "editVertices";
   linkId: string;
   vertices: Position[];
+  selectedVertexIndex?: number;
 };
 
 export type EphemeralEditingState =

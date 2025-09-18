@@ -321,8 +321,10 @@ export const MapCanvas = memo(function MapCanvas({
   );
 
   const cursorStyle = useMemo(() => {
+    if (cursor === "grab") return "placemark-cursor-grab";
     if (cursor === "not-allowed") return "placemark-cursor-not-allowed";
-    if (mode.mode !== Mode.NONE) return "placemark-cursor-crosshair";
+    if (mode.mode !== Mode.NONE && mode.mode !== Mode.EDIT_VERTICES)
+      return "placemark-cursor-crosshair";
 
     if (cursor === "move") return "cursor-move";
     if (cursor === "pointer") return "placemark-cursor-pointer";

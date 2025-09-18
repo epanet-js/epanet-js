@@ -325,9 +325,7 @@ const buildEditVerticesSourceData = (
     features.push({
       type: "Feature",
       id: `vertex-${ephemeralState.linkId}-${index}`,
-      properties: {
-        halo: true,
-      },
+      properties: {},
       geometry: {
         type: "Point",
         coordinates: vertex,

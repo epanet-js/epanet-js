@@ -44,6 +44,10 @@ details > summary {
   cursor: pointer !important;
 }
 
+.placemark-cursor-grab .mapboxgl-canvas-container {
+  cursor: grab !important;
+}
+
 .placemark-cursor-default .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-default.svg"), auto !important;
 }
