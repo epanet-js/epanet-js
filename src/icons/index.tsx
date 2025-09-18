@@ -51,6 +51,7 @@ import {
   Undo2,
   Upload,
   User,
+  Waypoints,
   X,
   Zap,
 } from "lucide-react";
@@ -110,6 +111,7 @@ export const FileAddIcon = icon(FilePlus);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
 export const DeleteIcon = icon(Trash);
+export const EditVerticesIcon = icon(Waypoints);
 export const ZoomToIcon = icon(Crosshair);
 export const GlobeIcon = icon(Globe);
 export const SettingsIcon = icon(Settings);

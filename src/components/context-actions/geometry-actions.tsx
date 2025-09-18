@@ -9,7 +9,8 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
-import { DeleteIcon, ZoomToIcon } from "src/icons";
+import { DeleteIcon, EditVerticesIcon, ZoomToIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -18,6 +19,7 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
+  const isVerticesOn = useFeatureFlag("FLAG_VERTICES");
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -42,7 +44,24 @@ export function useActions(
     },
   };
 
-  return [zoomToAction, deleteAssetsAction];
+  const isOneLinkSelected =
+    selectedWrappedFeatures.length === 1 &&
+    selectedWrappedFeatures[0].feature.properties?.type &&
+    typeof selectedWrappedFeatures[0].feature.properties.type === "string" &&
+    ["pipe", "pump", "valve"].includes(
+      selectedWrappedFeatures[0].feature.properties.type,
+    );
+
+  const editVerticesAction = {
+    icon: <EditVerticesIcon />,
+    applicable: Boolean(isVerticesOn && isOneLinkSelected),
+    label: translate("editVertices"),
+    onSelect: function editVertices() {
+      return Promise.resolve();
+    },
+  };
+
+  return [zoomToAction, editVerticesAction, deleteAssetsAction];
 }
 
 export function GeometryActions({

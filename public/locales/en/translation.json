@@ -111,6 +111,7 @@
   "none": "None",
   "type": "Type",
   "delete": "Delete",
+  "editVertices": "Edit Vertices",
   "zoomTo": "Zoom To",
   "min": "Min",
   "max": "Max",

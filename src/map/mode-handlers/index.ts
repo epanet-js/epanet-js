@@ -34,6 +34,7 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     }),
     [Mode.CONNECT_CUSTOMER_POINTS]:
       useConnectCustomerPointsHandlers(handlerContext),
+    [Mode.EDIT_VERTICES]: useNoneHandlers(handlerContext),
   };
   return HANDLERS;
 }
