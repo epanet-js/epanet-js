@@ -11,6 +11,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, EditVerticesIcon, ZoomToIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSetAtom } from "jotai";
+import { ephemeralStateAtom } from "src/state/jotai";
+import { Mode, modeAtom } from "src/state/mode";
+import { Position } from "src/types";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -20,6 +24,8 @@ export function useActions(
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const isVerticesOn = useFeatureFlag("FLAG_VERTICES");
+  const setMode = useSetAtom(modeAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -52,11 +58,35 @@ export function useActions(
       selectedWrappedFeatures[0].feature.properties.type,
     );
 
+  const extractVertices = (coordinates: Position[]): Position[] => {
+    return coordinates.slice(1, -1);
+  };
+
   const editVerticesAction = {
     icon: <EditVerticesIcon />,
     applicable: Boolean(isVerticesOn && isOneLinkSelected),
     label: translate("editVertices"),
     onSelect: function editVertices() {
+      if (selectedWrappedFeatures.length === 1) {
+        const feature = selectedWrappedFeatures[0];
+        const geometry = feature.feature.geometry;
+
+        if (geometry && geometry.type === "LineString") {
+          const coordinates = geometry.coordinates;
+
+          if (coordinates && coordinates.length > 2) {
+            const vertices = extractVertices(coordinates);
+
+            setEphemeralState({
+              type: "editVertices",
+              linkId: feature.id,
+              vertices,
+            });
+
+            setMode({ mode: Mode.EDIT_VERTICES });
+          }
+        }
+      }
       return Promise.resolve();
     },
   };

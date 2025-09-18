@@ -356,6 +356,12 @@ export type EphemeralConnectCustomerPoints = {
   strategy: "nearest-to-point" | "cursor";
 };
 
+export type EphemeralEditVertices = {
+  type: "editVertices";
+  linkId: string;
+  vertices: Position[];
+};
+
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralDrawLinkDeprecated
@@ -363,6 +369,7 @@ export type EphemeralEditingState =
   | EphemeralMoveAssets
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
+  | EphemeralEditVertices
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

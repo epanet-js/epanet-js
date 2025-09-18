@@ -649,6 +649,8 @@ const getMovedAssets = (
       return noMoved;
     case "connectCustomerPoints":
       return noMoved;
+    case "editVertices":
+      return noMoved;
     case "none":
       return noMoved;
   }
@@ -671,6 +673,8 @@ const getHiddenCustomerPoints = (
       return noHiddenCustomerPoints;
     case "moveAssets":
       //all overlay is hidden
+      return noHiddenCustomerPoints;
+    case "editVertices":
       return noHiddenCustomerPoints;
     case "none":
       return noHiddenCustomerPoints;

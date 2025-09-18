@@ -5,6 +5,7 @@ import { AssetsMap } from "src/hydraulic-model";
 import {
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
+  EphemeralEditVertices,
 } from "src/state/jotai";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
@@ -34,6 +35,10 @@ export const buildEphemeralStateSource = (
 
   if (ephemeralState.type === "connectCustomerPoints") {
     return buildConnectCustomerPointsSourceData(ephemeralState, assets);
+  }
+
+  if (ephemeralState.type === "editVertices") {
+    return buildEditVerticesSourceData(ephemeralState);
   }
 
   return [];
@@ -307,6 +312,28 @@ const buildDrawNodeSourceData = (
       },
     });
   }
+
+  return features;
+};
+
+const buildEditVerticesSourceData = (
+  ephemeralState: EphemeralEditVertices,
+): Feature[] => {
+  const features: Feature[] = [];
+
+  ephemeralState.vertices.forEach((vertex, index) => {
+    features.push({
+      type: "Feature",
+      id: `vertex-${ephemeralState.linkId}-${index}`,
+      properties: {
+        halo: true,
+      },
+      geometry: {
+        type: "Point",
+        coordinates: vertex,
+      },
+    });
+  });
 
   return features;
 };
