@@ -214,6 +214,7 @@ export function useEditVerticesHandlers(
           startPoint: undefined,
           originalVertexPosition: undefined,
           linkCoordinates: undefined,
+          selectedVertexIndex: undefined,
         });
       } else {
         const moment = updateVertices(hydraulicModel, {
@@ -228,6 +229,7 @@ export function useEditVerticesHandlers(
           startPoint: undefined,
           originalVertexPosition: undefined,
           linkCoordinates: undefined,
+          selectedVertexIndex: undefined,
         });
       }
 
