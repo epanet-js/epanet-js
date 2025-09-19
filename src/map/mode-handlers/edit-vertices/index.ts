@@ -11,6 +11,8 @@ import { useSelection } from "src/selection";
 import { useNoneHandlers } from "../none/none-handlers";
 import { getMapCoord } from "src/map/map-event";
 import throttle from "lodash/throttle";
+import { usePersistence } from "src/lib/persistence/context";
+import { updateVertices } from "src/hydraulic-model/model-operations";
 
 const searchVerticesWithTolerance = (
   map: HandlerContext["map"],
@@ -71,6 +73,8 @@ export function useEditVerticesHandlers(
   const { clearSelection } = useSelection(selection);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
+  const rep = usePersistence();
+  const transact = rep.useTransact();
 
   const defaultHandlers = useNoneHandlers(handlerContext);
 
@@ -212,6 +216,12 @@ export function useEditVerticesHandlers(
           linkCoordinates: undefined,
         });
       } else {
+        const moment = updateVertices(hydraulicModel, {
+          linkId: ephemeralState.linkId,
+          newVertices: ephemeralState.vertices,
+        });
+        transact(moment);
+
         setEphemeralState({
           ...ephemeralState,
           isDragging: false,
