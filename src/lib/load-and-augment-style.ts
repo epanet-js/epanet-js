@@ -30,6 +30,7 @@ import {
   ephemeralJunctionHighlightLayers,
   ephemeralHaloLayer,
   ephemeralPipeHighlightLayer,
+  ephemeralVerticesLayer,
 } from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
@@ -224,6 +225,7 @@ export function makeLayers({
     ...tankLayers({ sources: ["icons"] }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
+    ephemeralVerticesLayer({ source: "ephemeral" }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
     ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
     ...(typeof previewProperty === "string"

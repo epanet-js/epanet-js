@@ -98,3 +98,28 @@ export const ephemeralPipeHighlightLayer = ({
     },
   };
 };
+
+export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
+  return {
+    id: "ephemeral-vertices",
+    type: "circle",
+    source,
+    layout: {},
+    filter: ["==", ["get", "type"], "vertex"],
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 3, 16, 4],
+      "circle-color": colors.indigo600,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        12,
+        0.5,
+        16,
+        1,
+      ],
+    },
+    minzoom: 10,
+  } as CircleLayer;
+};
