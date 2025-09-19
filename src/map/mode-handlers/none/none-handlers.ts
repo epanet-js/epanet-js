@@ -12,15 +12,12 @@ import { getNode } from "src/hydraulic-model";
 import { moveNode } from "src/hydraulic-model/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
-import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
-import { decodeId } from "src/lib/id";
-import { UIDMap } from "src/lib/id-mapper";
-import { Asset } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
+import { useClickedAsset } from "../utils";
 
 const stateUpdateTime = 16;
 
@@ -45,6 +42,12 @@ export function useNoneHandlers({
   map,
   hydraulicModel,
 }: HandlerContext): Handlers {
+  const { getClickedAsset } = useClickedAsset(
+    map,
+    idMap,
+    hydraulicModel.assets,
+  );
+
   const setMode = useSetAtom(modeAtom);
   const {
     clearSelection,
@@ -111,21 +114,6 @@ export function useNoneHandlers({
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     fastMovePointer(e.point);
-  };
-
-  const getClickedAsset = (
-    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
-  ): Asset | null => {
-    const rawId = getClickedFeature(map as QueryProvider, e.point);
-    if (rawId === null) return null;
-
-    const decodedId = decodeId(rawId);
-    const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
-
-    const asset = hydraulicModel.assets.get(uuid);
-    if (!asset) return null;
-
-    return asset;
   };
 
   const getClickedCustomerPoint = (
