@@ -2,6 +2,7 @@ import { atom, createStore } from "jotai";
 import { atomWithStorage, selectAtom } from "jotai/utils";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
+import mapboxgl from "mapbox-gl";
 import {
   FolderMap,
   IFolder,
@@ -361,6 +362,10 @@ export type EphemeralEditVertices = {
   linkId: string;
   vertices: Position[];
   selectedVertexIndex?: number;
+  isDragging?: boolean;
+  startPoint?: mapboxgl.Point;
+  originalVertexPosition?: Position;
+  linkCoordinates?: Position[];
 };
 
 export type EphemeralEditingState =

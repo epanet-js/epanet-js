@@ -650,7 +650,9 @@ const getMovedAssets = (
     case "connectCustomerPoints":
       return noMoved;
     case "editVertices":
-      return noMoved;
+      return ephemeralState.isDragging
+        ? new Set([ephemeralState.linkId])
+        : noMoved;
     case "none":
       return noMoved;
   }

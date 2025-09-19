@@ -338,5 +338,17 @@ const buildEditVerticesSourceData = (
     });
   });
 
+  if (ephemeralState.isDragging && ephemeralState.linkCoordinates) {
+    features.push({
+      type: "Feature",
+      id: `link-draft-${ephemeralState.linkId}`,
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: ephemeralState.linkCoordinates,
+      },
+    });
+  }
+
   return features;
 };
