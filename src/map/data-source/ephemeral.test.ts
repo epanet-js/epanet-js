@@ -530,7 +530,9 @@ describe("build ephemeral state source", () => {
           coordinates: ephemeralState.vertices[index],
         });
         expect(feature.properties).toEqual({
-          halo: true,
+          type: "vertex",
+          vertexIndex: index,
+          selected: false,
         });
       });
     });
