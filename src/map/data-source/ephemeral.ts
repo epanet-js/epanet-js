@@ -322,11 +322,14 @@ const buildEditVerticesSourceData = (
   const features: Feature[] = [];
 
   ephemeralState.vertices.forEach((vertex, index) => {
+    const isSelected = ephemeralState.selectedVertexIndex === index;
     features.push({
       type: "Feature",
       id: `vertex-${ephemeralState.linkId}-${index}`,
       properties: {
         type: "vertex",
+        vertexIndex: index,
+        selected: isSelected,
       },
       geometry: {
         type: "Point",

@@ -108,7 +108,12 @@ export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
     filter: ["==", ["get", "type"], "vertex"],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 3, 16, 4],
-      "circle-color": colors.indigo600,
+      "circle-color": [
+        "case",
+        ["==", ["get", "selected"], true],
+        colors.fuchsia500,
+        colors.indigo600,
+      ],
       "circle-stroke-color": "white",
       "circle-stroke-width": [
         "interpolate",
