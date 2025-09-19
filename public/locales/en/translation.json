@@ -164,6 +164,7 @@
   "onboardingUndoRedo": "Undo or redo with {{1}} and {{2}}.",
   "onboardingFiles": "Working with files",
   "onboardingMoveNode": "Drag the node to change its position.",
+  "onboardingEditVertices": "Click and drag vertices to reshape the link.",
   "onboardingAutomaticCalculations": "Elevations and lengths are assigned automatically.",
   "onboardingAutomaticUpdates": "Elevations and lengths are updated automatically.",
   "onboardingAutomaticElevations": "Elevations are assigned automatically.",
