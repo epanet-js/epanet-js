@@ -158,7 +158,7 @@ export const ModelBuilderIframeDialog = ({
         )}
         <iframe
           src={modelBuilderUrl}
-          className="w-full flex-1 min-h-[600px] border-0 rounded"
+          className="w-full flex-1 border-0 rounded"
           onLoad={() => setIsLoading(false)}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
           title={translate("importFromGIS")}
