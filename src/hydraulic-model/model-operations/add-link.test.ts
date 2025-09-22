@@ -617,7 +617,7 @@ describe("addLink", () => {
           link,
           startPipeId: "NONEXISTENT",
         });
-      }).toThrow("Invalid pipe ID: NONEXISTENT");
+      }).toThrow("Start pipe not found: NONEXISTENT (asset does not exist)");
     });
 
     it("throws error for invalid endPipeId", () => {
@@ -639,7 +639,7 @@ describe("addLink", () => {
           link,
           endPipeId: "NONEXISTENT",
         });
-      }).toThrow("Invalid pipe ID: NONEXISTENT");
+      }).toThrow("End pipe not found: NONEXISTENT (asset does not exist)");
     });
   });
 });

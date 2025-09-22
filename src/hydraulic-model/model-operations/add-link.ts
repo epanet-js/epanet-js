@@ -5,6 +5,7 @@ import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 import { LabelGenerator } from "../label-manager";
 import { splitPipe } from "./split-pipe";
+import { AssetsMap } from "../assets-map";
 
 type InputData = {
   link: LinkAsset;
@@ -37,10 +38,11 @@ export const addLink: ModelOperation<InputData> = (
   const allDeleteAssets: AssetId[] = [];
 
   if (startPipeId && endPipeId && startPipeId === endPipeId) {
-    const pipe = hydraulicModel.assets.get(startPipeId) as Pipe;
-    if (!pipe || pipe.type !== "pipe") {
-      throw new Error(`Invalid pipe ID: ${startPipeId}`);
-    }
+    const pipe = validatePipeOrThrow(
+      hydraulicModel.assets,
+      startPipeId,
+      "Pipe",
+    );
     const splitResult = splitPipe(hydraulicModel, {
       pipe,
       splits: [startNodeCopy, endNodeCopy],
@@ -50,10 +52,11 @@ export const addLink: ModelOperation<InputData> = (
     allDeleteAssets.push(...splitResult.deleteAssets!);
   } else {
     if (startPipeId) {
-      const startPipe = hydraulicModel.assets.get(startPipeId) as Pipe;
-      if (!startPipe || startPipe.type !== "pipe") {
-        throw new Error(`Invalid pipe ID: ${startPipeId}`);
-      }
+      const startPipe = validatePipeOrThrow(
+        hydraulicModel.assets,
+        startPipeId,
+        "Start pipe",
+      );
       const startPipeSplitResult = splitPipe(hydraulicModel, {
         pipe: startPipe,
         splits: [startNodeCopy],
@@ -66,10 +69,11 @@ export const addLink: ModelOperation<InputData> = (
     }
 
     if (endPipeId) {
-      const endPipe = hydraulicModel.assets.get(endPipeId) as Pipe;
-      if (!endPipe || endPipe.type !== "pipe") {
-        throw new Error(`Invalid pipe ID: ${endPipeId}`);
-      }
+      const endPipe = validatePipeOrThrow(
+        hydraulicModel.assets,
+        endPipeId,
+        "End pipe",
+      );
       const endPipeSplitResult = splitPipe(hydraulicModel, {
         pipe: endPipe,
         splits: [endNodeCopy],
@@ -154,4 +158,21 @@ const isAlmostTheSamePoint = (a: Position, b: Position) => {
   const minResolutionInMeters = 1;
   const distanceInMeters = distance(a, b) * 1000;
   return distanceInMeters <= minResolutionInMeters;
+};
+
+const validatePipeOrThrow = (
+  assets: AssetsMap,
+  pipeId: AssetId,
+  context: string = "Pipe",
+): Pipe => {
+  const asset = assets.get(pipeId);
+  if (!asset) {
+    throw new Error(`${context} not found: ${pipeId} (asset does not exist)`);
+  }
+  if (asset.type !== "pipe") {
+    throw new Error(
+      `Invalid ${context.toLowerCase()} ID: ${pipeId} (found ${asset.type} instead of pipe)`,
+    );
+  }
+  return asset as Pipe;
 };
