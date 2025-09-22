@@ -102,29 +102,23 @@ export const ephemeralPipeHighlightLayer = ({
 export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
   return {
     id: "ephemeral-vertices",
-    type: "circle",
+    type: "symbol",
     source,
-    layout: {},
-    filter: ["==", ["get", "type"], "vertex"],
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 3, 16, 4],
-      "circle-color": [
+    layout: {
+      "symbol-placement": "point",
+      "icon-image": [
         "case",
         ["==", ["get", "selected"], true],
-        colors.fuchsia500,
-        colors.indigo600,
+        "vertex-square-selected",
+        "vertex-square",
       ],
-      "circle-stroke-color": "white",
-      "circle-stroke-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        0.5,
-        16,
-        1,
-      ],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.1, 16, 0.15],
+      "icon-allow-overlap": true,
+    },
+    filter: ["==", ["get", "type"], "vertex"],
+    paint: {
+      "icon-opacity": 1,
     },
     minzoom: 10,
-  } as CircleLayer;
+  } as SymbolLayer;
 };

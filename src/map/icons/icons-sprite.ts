@@ -10,6 +10,7 @@ import {
   buildPumpSvg,
   buildTankSvg,
   buildReservoirSvg,
+  buildVertexSquareSvg,
 } from "./dynamic-icons";
 import { colors } from "src/lib/constants";
 
@@ -40,7 +41,9 @@ export type IconId =
   | "pipe-cv-closed"
   | "tank"
   | "tank-selected"
-  | "tank-highlight";
+  | "tank-highlight"
+  | "vertex-square"
+  | "vertex-square-selected";
 
 export type TextureProps = {
   width: number;
@@ -289,6 +292,24 @@ const iconUrls: IconUrl[] = [
       buildReservoirSvg({
         borderColor: colors.indigo300,
         fillColor: colors.indigo800,
+      }),
+    ),
+  },
+  {
+    id: "vertex-square",
+    url: urlFor(
+      buildVertexSquareSvg({
+        borderColor: "white",
+        fillColor: colors.indigo600,
+      }),
+    ),
+  },
+  {
+    id: "vertex-square-selected",
+    url: urlFor(
+      buildVertexSquareSvg({
+        borderColor: "white",
+        fillColor: colors.fuchsia500,
       }),
     ),
   },

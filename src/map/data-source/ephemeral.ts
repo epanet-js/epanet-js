@@ -330,6 +330,7 @@ const buildEditVerticesSourceData = (
         type: "vertex",
         vertexIndex: index,
         selected: isSelected,
+        icon: true,
       },
       geometry: {
         type: "Point",
