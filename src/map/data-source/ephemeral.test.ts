@@ -533,6 +533,7 @@ describe("build ephemeral state source", () => {
           type: "vertex",
           vertexIndex: index,
           selected: false,
+          icon: true,
         });
       });
     });
