@@ -143,7 +143,7 @@ export function useEditVerticesHandlers(
         const newVertices = [...ephemeralState.vertices];
         newVertices.splice(
           ephemeralState.vertexCandidate.segmentIndex,
-          1,
+          0,
           ephemeralState.vertexCandidate.position,
         );
 
