@@ -13,7 +13,6 @@ import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -31,7 +30,6 @@ export function useDrawNodeHandlers({
   const userTracking = useUserTracking();
   const { units } = hydraulicModel;
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
-  const isSnappingOn = useFeatureFlag("FLAG_SNAPPING");
   const { findSnappingCandidate } = useSnapping(
     map,
     idMap,
@@ -56,13 +54,11 @@ export function useDrawNodeHandlers({
 
   return {
     click: async (e) => {
-      if (isSnappingOn) {
-        const mouseCoord = getMapCoord(e);
-        const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+      const mouseCoord = getMapCoord(e);
+      const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
-        if (snappingCandidate && snappingCandidate.type !== "pipe") {
-          return;
-        }
+      if (snappingCandidate && snappingCandidate.type !== "pipe") {
+        return;
       }
 
       let clickPosition = getMapCoord(e);
@@ -70,7 +66,6 @@ export function useDrawNodeHandlers({
       let pipeIdToSplit: string | undefined;
 
       if (
-        isSnappingOn &&
         ephemeralState.type === "drawNode" &&
         ephemeralState.pipeSnappingPosition
       ) {
@@ -87,27 +82,25 @@ export function useDrawNodeHandlers({
       (e) => {
         prefetchTile(e.lngLat);
 
-        if (isSnappingOn) {
-          const mouseCoord = getMapCoord(e);
-          const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+        const mouseCoord = getMapCoord(e);
+        const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
-          const isNodeSnapping =
-            snappingCandidate && snappingCandidate.type !== "pipe";
-          const isPipeSnapping =
-            snappingCandidate && snappingCandidate.type === "pipe";
+        const isNodeSnapping =
+          snappingCandidate && snappingCandidate.type !== "pipe";
+        const isPipeSnapping =
+          snappingCandidate && snappingCandidate.type === "pipe";
 
-          setCursor(isNodeSnapping ? "not-allowed" : "default");
+        setCursor(isNodeSnapping ? "not-allowed" : "default");
 
-          setEphemeralState({
-            type: "drawNode",
-            nodeType,
-            pipeSnappingPosition: isPipeSnapping
-              ? snappingCandidate.coordinates
-              : null,
-            pipeId: isPipeSnapping ? snappingCandidate.id : null,
-            nodeSnappingId: isNodeSnapping ? snappingCandidate.id : null,
-          });
-        }
+        setEphemeralState({
+          type: "drawNode",
+          nodeType,
+          pipeSnappingPosition: isPipeSnapping
+            ? snappingCandidate.coordinates
+            : null,
+          pipeId: isPipeSnapping ? snappingCandidate.id : null,
+          nodeSnappingId: isNodeSnapping ? snappingCandidate.id : null,
+        });
       },
       200,
       { trailing: false },

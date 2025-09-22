@@ -8,7 +8,7 @@ import {
 } from "src/state/jotai";
 import { useSetAtom, useAtom } from "jotai";
 import { useSelection } from "src/selection";
-import { useNoneHandlers } from "../none/none-handlers";
+import { useNoneHandlers } from "../none";
 import { getMapCoord } from "src/map/map-event";
 import throttle from "lodash/throttle";
 import { usePersistence } from "src/lib/persistence/context";

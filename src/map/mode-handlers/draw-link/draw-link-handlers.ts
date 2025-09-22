@@ -16,21 +16,8 @@ import { LinkType } from "src/hydraulic-model";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useDrawLinkHandlersDeprecated } from "./draw-link-handlers-deprecated";
 
-export function useDrawLinkHandlers(
-  context: HandlerContext & { linkType: LinkType },
-): Handlers {
-  const isSnappingOn = useFeatureFlag("FLAG_SNAPPING");
-
-  const newHandlers = useDrawLinkHandlersNew(context);
-  const deprecatedHandlers = useDrawLinkHandlersDeprecated(context);
-
-  return isSnappingOn ? newHandlers : deprecatedHandlers;
-}
-
-function useDrawLinkHandlersNew({
+export function useDrawLinkHandlers({
   rep,
   hydraulicModel,
   map,

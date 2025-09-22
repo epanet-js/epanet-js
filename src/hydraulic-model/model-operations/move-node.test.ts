@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { moveNode } from "./move-node";
 
 import { NodeAsset, LinkAsset } from "../asset-types";
@@ -251,13 +251,6 @@ describe("moveNode", () => {
   });
 
   it("splits pipe and connects moved node when pipeIdToSplit provided", () => {
-    // Mock window object to enable FLAG_SNAPPING
-    vi.stubGlobal("window", {
-      location: {
-        search: "?FLAG_SNAPPING=true",
-      },
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
       .aNode("J2", [10, 0])
@@ -283,19 +276,9 @@ describe("moveNode", () => {
     expect(pipe2.type).toBe("pipe");
     expect((pipe1 as any).connections).toEqual(["J1", "J3"]);
     expect((pipe2 as any).connections).toEqual(["J3", "J2"]);
-
-    // Clean up
-    vi.unstubAllGlobals();
   });
 
   it("combines move and split operations for customer points", () => {
-    // Mock window object to enable FLAG_SNAPPING
-    vi.stubGlobal("window", {
-      location: {
-        search: "?FLAG_SNAPPING=true",
-      },
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
       .aNode("J2", [10, 0])
@@ -339,19 +322,9 @@ describe("moveNode", () => {
 
     expect(updatedCP1).toBeDefined();
     expect(updatedCP2).toBeDefined();
-
-    // Clean up
-    vi.unstubAllGlobals();
   });
 
   it("throws error for invalid pipeIdToSplit", () => {
-    // Mock window object to enable FLAG_SNAPPING
-    vi.stubGlobal("window", {
-      location: {
-        search: "?FLAG_SNAPPING=true",
-      },
-    });
-
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode("J1", [0, 0])
       .build();
@@ -373,8 +346,5 @@ describe("moveNode", () => {
         pipeIdToSplit: "J1",
       }),
     ).toThrow("Invalid pipe ID: J1");
-
-    // Clean up
-    vi.unstubAllGlobals();
   });
 });

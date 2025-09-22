@@ -9,7 +9,6 @@ import {
 } from "src/state/jotai";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
-import { EphemeralDrawLinkDeprecated } from "../mode-handlers/draw-link";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";
 
 export const buildEphemeralStateSource = (
@@ -17,10 +16,6 @@ export const buildEphemeralStateSource = (
   _idMap: IDMap,
   assets: AssetsMap,
 ): Feature[] => {
-  if (ephemeralState.type == "drawLinkDeprecated") {
-    return buildDrawLinkSourceDataDeprecated(ephemeralState);
-  }
-
   if (ephemeralState.type == "drawLink") {
     return buildDrawLinkSourceData(ephemeralState, assets);
   }
@@ -170,62 +165,6 @@ const buildDrawLinkSourceData = (
       id: startNode.id,
       properties: {
         ...iconProps(startNode.type),
-      } as any,
-      geometry: {
-        type: "Point",
-        coordinates: startNode.coordinates,
-      },
-    });
-  }
-
-  const linkCoordinates = ephemeralState.link.coordinates;
-  features.push({
-    type: "Feature",
-    id: "draw-link-line",
-    properties: {},
-    geometry: {
-      type: "LineString",
-      coordinates: linkCoordinates,
-    },
-  });
-
-  return features;
-};
-
-const buildDrawLinkSourceDataDeprecated = (
-  ephemeralState: EphemeralDrawLinkDeprecated,
-): Feature[] => {
-  const features: Feature[] = [];
-
-  const iconProps = (node: NodeAsset) => {
-    if (node.type === "junction") return {};
-
-    return { icon: `${node.type}-highlight` };
-  };
-
-  if (ephemeralState.snappingCandidate) {
-    const candidate = ephemeralState.snappingCandidate;
-    features.push({
-      type: "Feature",
-      id: `snapping-${candidate.id}`,
-      properties: {
-        halo: true,
-        ...iconProps(candidate),
-      } as any,
-      geometry: {
-        type: "Point",
-        coordinates: candidate.coordinates,
-      },
-    });
-  }
-
-  if (ephemeralState.startNode) {
-    const startNode = ephemeralState.startNode;
-    features.push({
-      type: "Feature",
-      id: startNode.id,
-      properties: {
-        ...iconProps(startNode),
       } as any,
       geometry: {
         type: "Point",
