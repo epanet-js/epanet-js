@@ -278,6 +278,23 @@ const buildEditVerticesSourceData = (
     });
   });
 
+  if (ephemeralState.vertexCandidate) {
+    features.push({
+      type: "Feature",
+      id: `vertex-candidate-${ephemeralState.linkId}`,
+      properties: {
+        type: "vertex-candidate",
+        segmentIndex: ephemeralState.vertexCandidate.segmentIndex,
+        icon: true,
+        halo: true,
+      },
+      geometry: {
+        type: "Point",
+        coordinates: ephemeralState.vertexCandidate.position,
+      },
+    });
+  }
+
   if (ephemeralState.isDragging && ephemeralState.linkCoordinates) {
     features.push({
       type: "Feature",

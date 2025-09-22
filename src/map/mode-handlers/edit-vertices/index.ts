@@ -13,6 +13,9 @@ import { getMapCoord } from "src/map/map-event";
 import throttle from "lodash/throttle";
 import { usePersistence } from "src/lib/persistence/context";
 import { updateVertices } from "src/hydraulic-model/model-operations";
+import { useLinkSnapping } from "./link-snapping";
+import { lineString, point } from "@turf/helpers";
+import { findNearestPointOnLine } from "src/lib/geometry";
 
 const searchVerticesWithTolerance = (
   map: HandlerContext["map"],
@@ -65,16 +68,60 @@ const buildLinkCoordinates = (
   return [startCoordinates, ...vertices, endCoordinates];
 };
 
+const calculateVertexCandidate = (
+  snapPosition: Position,
+  linkId: string,
+  vertices: Position[],
+  hydraulicModel: HandlerContext["hydraulicModel"],
+): { position: Position; segmentIndex: number } | null => {
+  const fullLinkCoordinates = buildLinkCoordinates(
+    linkId,
+    vertices,
+    hydraulicModel,
+  );
+  if (fullLinkCoordinates.length < 2) return null;
+
+  let closestSegmentIndex = 0;
+  let minDistance = Number.MAX_VALUE;
+  let projectedPoint = snapPosition;
+
+  for (let i = 0; i < fullLinkCoordinates.length - 1; i++) {
+    const segmentStart = fullLinkCoordinates[i];
+    const segmentEnd = fullLinkCoordinates[i + 1];
+
+    const segmentLineString = lineString([segmentStart, segmentEnd]);
+    const snapPoint = point(snapPosition);
+    const result = findNearestPointOnLine(segmentLineString, snapPoint);
+
+    const distance = result.distance ?? Number.MAX_VALUE;
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestSegmentIndex = i;
+      projectedPoint = result.coordinates;
+    }
+  }
+
+  return {
+    position: projectedPoint,
+    segmentIndex: Math.max(0, closestSegmentIndex),
+  };
+};
+
 export function useEditVerticesHandlers(
   handlerContext: HandlerContext,
 ): Handlers {
-  const { selection, map, hydraulicModel } = handlerContext;
+  const { selection, map, hydraulicModel, idMap } = handlerContext;
   const setMode = useSetAtom(modeAtom);
   const { clearSelection } = useSelection(selection);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const { findNearestLinkToSnap } = useLinkSnapping(
+    map,
+    idMap,
+    hydraulicModel.assets,
+  );
 
   const defaultHandlers = useNoneHandlers(handlerContext);
 
@@ -82,30 +129,58 @@ export function useEditVerticesHandlers(
     clearSelection();
     setEphemeralState({ type: "none" });
     setMode({ mode: Mode.NONE });
+    setCursor("");
   };
 
   const handlers: Handlers = {
     click: (e) => {
+      if (ephemeralState.type !== "editVertices") {
+        defaultHandlers.click(e);
+        return;
+      }
+
+      if (ephemeralState.vertexCandidate) {
+        const newVertices = [...ephemeralState.vertices];
+        newVertices.splice(
+          ephemeralState.vertexCandidate.segmentIndex,
+          1,
+          ephemeralState.vertexCandidate.position,
+        );
+
+        const moment = updateVertices(hydraulicModel, {
+          linkId: ephemeralState.linkId,
+          newVertices,
+        });
+        transact(moment);
+
+        setEphemeralState({
+          ...ephemeralState,
+          vertices: newVertices,
+          vertexCandidate: undefined,
+        });
+        return;
+      }
+
       const vertexFeatures = searchVerticesWithTolerance(map, e.point);
 
       if (vertexFeatures.length > 0) {
         const clickedVertex = vertexFeatures[0];
+        const vertexType = clickedVertex.properties?.type;
         const vertexIndex = clickedVertex.properties?.vertexIndex;
 
-        if (
-          typeof vertexIndex === "number" &&
-          ephemeralState.type === "editVertices"
-        ) {
+        if (vertexType === "vertex" && typeof vertexIndex === "number") {
           setEphemeralState({
             ...ephemeralState,
             selectedVertexIndex: vertexIndex,
+            vertexCandidate: undefined,
           });
+          return;
         }
-      } else {
-        setMode({ mode: Mode.NONE });
-        setEphemeralState({ type: "none" });
-        defaultHandlers.click(e);
       }
+
+      setMode({ mode: Mode.NONE });
+      setEphemeralState({ type: "none" });
+      defaultHandlers.click(e);
     },
     double: () => {},
     move: throttle(
@@ -134,15 +209,59 @@ export function useEditVerticesHandlers(
             ...ephemeralState,
             vertices: updatedVertices,
             linkCoordinates,
+            vertexCandidate: undefined,
           });
           return;
         }
 
         const vertexFeatures = searchVerticesWithTolerance(map, e.point);
 
-        if (vertexFeatures.length > 0) {
+        const hasActualVertex = vertexFeatures.some(
+          (feature) => feature.properties?.type === "vertex",
+        );
+
+        if (hasActualVertex) {
           setCursor("pointer");
+          setEphemeralState({
+            ...ephemeralState,
+            vertexCandidate: undefined,
+          });
+          return;
+        }
+
+        const mouseCoord = getMapCoord(e);
+        const linkSnapResult = findNearestLinkToSnap(
+          e.point,
+          mouseCoord,
+          ephemeralState.linkId,
+        );
+
+        if (linkSnapResult && linkSnapResult.linkId === ephemeralState.linkId) {
+          const vertexCandidate = calculateVertexCandidate(
+            linkSnapResult.snapPosition,
+            ephemeralState.linkId,
+            ephemeralState.vertices,
+            hydraulicModel,
+          );
+
+          if (vertexCandidate) {
+            setCursor("pointer");
+            setEphemeralState({
+              ...ephemeralState,
+              vertexCandidate,
+            });
+          } else {
+            setEphemeralState({
+              ...ephemeralState,
+              vertexCandidate: undefined,
+            });
+            defaultHandlers.move(e);
+          }
         } else {
+          setEphemeralState({
+            ...ephemeralState,
+            vertexCandidate: undefined,
+          });
           defaultHandlers.move(e);
         }
       },
@@ -174,6 +293,7 @@ export function useEditVerticesHandlers(
             startPoint: e.point,
             originalVertexPosition: originalVertex,
             linkCoordinates,
+            vertexCandidate: undefined,
           });
 
           setCursor("move");
@@ -215,6 +335,7 @@ export function useEditVerticesHandlers(
           originalVertexPosition: undefined,
           linkCoordinates: undefined,
           selectedVertexIndex: undefined,
+          vertexCandidate: undefined,
         });
       } else {
         const moment = updateVertices(hydraulicModel, {
@@ -230,6 +351,7 @@ export function useEditVerticesHandlers(
           originalVertexPosition: undefined,
           linkCoordinates: undefined,
           selectedVertexIndex: undefined,
+          vertexCandidate: undefined,
         });
       }
 

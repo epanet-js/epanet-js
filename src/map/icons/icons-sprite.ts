@@ -43,7 +43,8 @@ export type IconId =
   | "tank-selected"
   | "tank-highlight"
   | "vertex-square"
-  | "vertex-square-selected";
+  | "vertex-square-selected"
+  | "vertex-square-candidate";
 
 export type TextureProps = {
   width: number;
@@ -310,6 +311,15 @@ const iconUrls: IconUrl[] = [
       buildVertexSquareSvg({
         borderColor: "white",
         fillColor: colors.fuchsia500,
+      }),
+    ),
+  },
+  {
+    id: "vertex-square-candidate",
+    url: urlFor(
+      buildVertexSquareSvg({
+        borderColor: "white",
+        fillColor: colors.indigo600,
       }),
     ),
   },

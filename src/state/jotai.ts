@@ -365,6 +365,10 @@ export type EphemeralEditVertices = {
   startPoint?: mapboxgl.Point;
   originalVertexPosition?: Position;
   linkCoordinates?: Position[];
+  vertexCandidate?: {
+    position: Position;
+    segmentIndex: number;
+  };
 };
 
 export type EphemeralEditingState =
