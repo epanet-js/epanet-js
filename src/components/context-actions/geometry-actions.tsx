@@ -75,18 +75,15 @@ export function useActions(
 
         if (geometry && geometry.type === "LineString") {
           const coordinates = geometry.coordinates;
+          const vertices = extractVertices(coordinates);
 
-          if (coordinates && coordinates.length > 2) {
-            const vertices = extractVertices(coordinates);
+          setEphemeralState({
+            type: "editVertices",
+            linkId: feature.id,
+            vertices,
+          });
 
-            setEphemeralState({
-              type: "editVertices",
-              linkId: feature.id,
-              vertices,
-            });
-
-            setMode({ mode: Mode.EDIT_VERTICES });
-          }
+          setMode({ mode: Mode.EDIT_VERTICES });
         }
       }
       return Promise.resolve();
