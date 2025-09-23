@@ -16,6 +16,7 @@ import { updateVertices } from "src/hydraulic-model/model-operations";
 import { useLinkSnapping } from "./link-snapping";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
+import { AssetId } from "src/hydraulic-model";
 
 const searchVerticesWithTolerance = (
   map: HandlerContext["map"],
@@ -132,6 +133,34 @@ export function useEditVerticesHandlers(
     setCursor("");
   };
 
+  const handleAddNewVertex = ({
+    linkId,
+    vertices,
+    position,
+    segmentIndex,
+  }: {
+    linkId: AssetId;
+    vertices: Position[];
+    position: Position;
+    segmentIndex: number;
+  }) => {
+    const newVertices = [...vertices];
+    newVertices.splice(segmentIndex, 0, position);
+
+    const moment = updateVertices(hydraulicModel, {
+      linkId,
+      newVertices,
+    });
+    transact(moment);
+
+    setEphemeralState({
+      type: "editVertices",
+      linkId,
+      vertices: newVertices,
+      vertexCandidate: undefined,
+    });
+  };
+
   const handlers: Handlers = {
     click: (e) => {
       if (ephemeralState.type !== "editVertices") {
@@ -140,25 +169,12 @@ export function useEditVerticesHandlers(
       }
 
       if (ephemeralState.vertexCandidate) {
-        const newVertices = [...ephemeralState.vertices];
-        newVertices.splice(
-          ephemeralState.vertexCandidate.segmentIndex,
-          0,
-          ephemeralState.vertexCandidate.position,
-        );
-
-        const moment = updateVertices(hydraulicModel, {
+        return handleAddNewVertex({
           linkId: ephemeralState.linkId,
-          newVertices,
+          vertices: ephemeralState.vertices,
+          position: ephemeralState.vertexCandidate.position,
+          segmentIndex: ephemeralState.vertexCandidate.segmentIndex,
         });
-        transact(moment);
-
-        setEphemeralState({
-          ...ephemeralState,
-          vertices: newVertices,
-          vertexCandidate: undefined,
-        });
-        return;
       }
 
       const vertexFeatures = searchVerticesWithTolerance(map, e.point);
