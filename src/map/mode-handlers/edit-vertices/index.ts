@@ -17,6 +17,7 @@ import { useLinkSnapping } from "./link-snapping";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { AssetId } from "src/hydraulic-model";
+import { MapEngine } from "src/map/map-engine";
 
 const searchVerticesWithTolerance = (
   map: HandlerContext["map"],
@@ -161,6 +162,17 @@ export function useEditVerticesHandlers(
     });
   };
 
+  const getVertexAt = (
+    map: MapEngine,
+    point: mapboxgl.Point,
+  ): number | null => {
+    const vertexFeatures = searchVerticesWithTolerance(map, point);
+    if (vertexFeatures.length === 0) return null;
+
+    const vertexFeature = vertexFeatures[0];
+    return vertexFeature.properties?.vertexIndex as number;
+  };
+
   const handlers: Handlers = {
     click: (e) => {
       if (ephemeralState.type !== "editVertices") {
@@ -169,34 +181,28 @@ export function useEditVerticesHandlers(
       }
 
       if (ephemeralState.vertexCandidate) {
-        return handleAddNewVertex({
+        handleAddNewVertex({
           linkId: ephemeralState.linkId,
           vertices: ephemeralState.vertices,
           position: ephemeralState.vertexCandidate.position,
           segmentIndex: ephemeralState.vertexCandidate.segmentIndex,
         });
+        return;
       }
 
-      const vertexFeatures = searchVerticesWithTolerance(map, e.point);
+      const vertexIndex = getVertexAt(map, e.point);
 
-      if (vertexFeatures.length > 0) {
-        const clickedVertex = vertexFeatures[0];
-        const vertexType = clickedVertex.properties?.type;
-        const vertexIndex = clickedVertex.properties?.vertexIndex;
-
-        if (vertexType === "vertex" && typeof vertexIndex === "number") {
-          setEphemeralState({
-            ...ephemeralState,
-            selectedVertexIndex: vertexIndex,
-            vertexCandidate: undefined,
-          });
-          return;
-        }
+      if (vertexIndex !== null) {
+        setEphemeralState({
+          ...ephemeralState,
+          selectedVertexIndex: vertexIndex,
+          vertexCandidate: undefined,
+        });
+      } else {
+        setMode({ mode: Mode.NONE });
+        setEphemeralState({ type: "none" });
+        defaultHandlers.click(e);
       }
-
-      setMode({ mode: Mode.NONE });
-      setEphemeralState({ type: "none" });
-      defaultHandlers.click(e);
     },
     double: () => {},
     move: throttle(
