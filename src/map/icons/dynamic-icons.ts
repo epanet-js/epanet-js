@@ -390,7 +390,7 @@ export const buildVertexSquareSvg = ({
   height?: number;
   borderColor?: string;
   fillColor?: string;
-}) => {
+} = {}) => {
   const viewboxWidth = 32;
   const viewboxHeight = 32;
 

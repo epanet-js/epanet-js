@@ -112,7 +112,7 @@ export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
         "vertex-square-candidate",
         ["==", ["get", "selected"], true],
         "vertex-square-selected",
-        "vertex-square",
+        "vertex-square-default",
       ],
       "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.1, 16, 0.15],
       "icon-allow-overlap": true,
