@@ -16,6 +16,8 @@ import {
   nullData,
   simulationAtom,
   initialSimulationState,
+  modeAtom,
+  ephemeralStateAtom,
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -27,6 +29,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
+import { Mode } from "src/state/mode";
 
 import {
   linkSymbologyAtom,
@@ -78,6 +81,8 @@ export class MemPersistence implements IPersistence {
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());
+      this.store.set(modeAtom, { mode: Mode.NONE });
+      this.store.set(ephemeralStateAtom, { type: "none" });
     };
   }
 
