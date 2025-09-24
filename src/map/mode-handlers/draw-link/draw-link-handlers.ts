@@ -25,6 +25,14 @@ export type SnappingCandidate =
   | NodeAsset
   | { type: "pipe"; id: AssetId; coordinates: Position };
 
+export type SubmitLinkParams = {
+  startNode: NodeAsset;
+  link: LinkAsset;
+  endNode: NodeAsset;
+  startPipeId?: AssetId;
+  endPipeId?: AssetId;
+};
+
 type NullDrawing = {
   isNull: true;
   snappingCandidate: SnappingCandidate | null;
@@ -47,9 +55,11 @@ export function useDrawLinkHandlers({
   idMap,
   linkType,
   previousLink,
+  onSubmitLink,
 }: HandlerContext & {
   linkType: LinkType;
   previousLink?: LinkAsset;
+  onSubmitLink?: (params: SubmitLinkParams) => NodeAsset | undefined;
 }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -259,7 +269,7 @@ export function useDrawLinkHandlers({
         });
       }
     } else {
-      const endNode = submitLink({
+      const submitParams = {
         startNode: drawing.startNode,
         startPipeId: drawing.startPipeId,
         link: drawing.link,
@@ -269,7 +279,10 @@ export function useDrawLinkHandlers({
             : snappingCandidate,
         endPipeId:
           snappingCandidate.type === "pipe" ? snappingCandidate.id : undefined,
-      });
+      };
+      const endNode = onSubmitLink
+        ? onSubmitLink(submitParams)
+        : submitLink(submitParams);
 
       if (isEndAndContinueOn() && endNode) {
         startDrawing({
@@ -312,12 +325,15 @@ export function useDrawLinkHandlers({
             startNode,
           });
         } else if (isEndAndContinueOn()) {
-          const endJunction = submitLink({
+          const submitParams = {
             startNode: drawing.startNode,
             startPipeId: drawing.startPipeId,
             link: drawing.link,
             endNode: createJunction(clickPosition, pointElevation),
-          });
+          };
+          const endJunction = onSubmitLink
+            ? onSubmitLink(submitParams)
+            : submitLink(submitParams);
           if (endJunction) {
             startDrawing({
               startNode: endJunction,
@@ -385,12 +401,13 @@ export function useDrawLinkHandlers({
         ),
       });
 
-      submitLink({
+      const submitParams = {
         startNode,
         startPipeId: drawing.startPipeId,
         link,
         endNode: endJunction,
-      });
+      };
+      onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
       resetDrawing();
     },
     exit() {
