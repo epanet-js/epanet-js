@@ -58,7 +58,9 @@ const addMissingLabels = (
   startNode: NodeAsset,
   endNode: NodeAsset,
 ) => {
-  link.setProperty("label", labelGenerator.generateFor(link.type, link.id));
+  if (link.label === "") {
+    link.setProperty("label", labelGenerator.generateFor(link.type, link.id));
+  }
   if (startNode.label === "") {
     startNode.setProperty(
       "label",
