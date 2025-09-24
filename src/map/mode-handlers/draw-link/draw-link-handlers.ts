@@ -1,13 +1,17 @@
 import type { HandlerContext, Position } from "src/types";
 import noop from "lodash/noop";
-import { modeAtom, Mode } from "src/state/jotai";
-import { useSetAtom } from "jotai";
+import {
+  modeAtom,
+  Mode,
+  ephemeralStateAtom,
+  EphemeralEditingState,
+} from "src/state/jotai";
+import { useSetAtom, useAtom } from "jotai";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
-import { SnappingCandidate, useDrawingState } from "./draw-link-state";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
@@ -17,6 +21,25 @@ import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 
+export type SnappingCandidate =
+  | NodeAsset
+  | { type: "pipe"; id: AssetId; coordinates: Position };
+
+type NullDrawing = {
+  isNull: true;
+  snappingCandidate: SnappingCandidate | null;
+};
+
+type DrawingState =
+  | {
+      isNull: false;
+      startNode: NodeAsset;
+      startPipeId?: AssetId;
+      link: LinkAsset;
+      snappingCandidate: SnappingCandidate | null;
+    }
+  | NullDrawing;
+
 export function useDrawLinkHandlers({
   rep,
   hydraulicModel,
@@ -25,12 +48,11 @@ export function useDrawLinkHandlers({
   linkType,
 }: HandlerContext & { linkType: LinkType }): Handlers {
   const setMode = useSetAtom(modeAtom);
+  const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
-  const { resetDrawing, drawing, setDrawing, setSnappingCandidate } =
-    useDrawingState(assetBuilder, linkType);
   const { findSnappingCandidate } = useSnapping(
     map,
     idMap,
@@ -38,6 +60,92 @@ export function useDrawLinkHandlers({
   );
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
+
+  const createLinkForType = (coordinates: Position[] = []) => {
+    const startProperties = {
+      label: "",
+      coordinates,
+    };
+    switch (linkType) {
+      case "pipe":
+        return assetBuilder.buildPipe(startProperties);
+      case "pump":
+        return assetBuilder.buildPump(startProperties);
+      case "valve":
+        return assetBuilder.buildValve(startProperties);
+    }
+  };
+
+  const resetDrawing = () => {
+    setEphemeralState({ type: "none" });
+  };
+
+  const getDrawingState = (): DrawingState => {
+    if (ephemeralState.type === "drawLink" && ephemeralState.startNode) {
+      return {
+        isNull: false,
+        startNode: ephemeralState.startNode,
+        startPipeId: ephemeralState.startPipeId,
+        snappingCandidate: ephemeralState.snappingCandidate || null,
+        link: ephemeralState.link,
+      };
+    }
+    return {
+      isNull: true,
+      snappingCandidate:
+        ephemeralState.type === "drawLink"
+          ? ephemeralState.snappingCandidate
+          : null,
+    };
+  };
+
+  const setDrawing = ({
+    startNode,
+    link,
+    snappingCandidate,
+    startPipeId,
+  }: {
+    startNode: NodeAsset;
+    link: LinkAsset;
+    snappingCandidate: SnappingCandidate | null;
+    startPipeId?: AssetId;
+  }) => {
+    setEphemeralState({
+      type: "drawLink",
+      link,
+      linkType,
+      startNode,
+      startPipeId,
+      snappingCandidate,
+    });
+  };
+
+  const setSnappingCandidate = (
+    snappingCandidate: SnappingCandidate | null,
+  ) => {
+    setEphemeralState((prev: EphemeralEditingState) => {
+      if (prev.type !== "drawLink") {
+        const link = createLinkForType();
+        return {
+          type: "drawLink",
+          linkType,
+          link,
+          snappingCandidate,
+        };
+      }
+
+      if (prev.snappingCandidate === snappingCandidate) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        snappingCandidate,
+      };
+    });
+  };
+
+  const drawing = getDrawingState();
 
   const startDrawing = ({
     startNode,
@@ -47,22 +155,7 @@ export function useDrawLinkHandlers({
     startPipeId?: AssetId;
   }) => {
     const coordinates = startNode.coordinates;
-    const startProperties = {
-      label: "",
-      coordinates: [coordinates, coordinates],
-    };
-    let link;
-    switch (linkType) {
-      case "pipe":
-        link = assetBuilder.buildPipe(startProperties);
-        break;
-      case "pump":
-        link = assetBuilder.buildPump(startProperties);
-        break;
-      case "valve":
-        link = assetBuilder.buildValve(startProperties);
-        break;
-    }
+    const link = createLinkForType([coordinates, coordinates]);
 
     setDrawing({
       startNode,

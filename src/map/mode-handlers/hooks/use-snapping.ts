@@ -7,7 +7,7 @@ import { AssetsMap, getNode, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "../../search";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
-import { SnappingCandidate } from "../draw-link/draw-link-state";
+import { SnappingCandidate } from "../draw-link/draw-link-handlers";
 import { DataSource } from "../../data-source";
 
 type SnappingOptions = {
