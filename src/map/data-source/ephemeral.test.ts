@@ -289,7 +289,7 @@ describe("build ephemeral state source", () => {
       expect(tankFeature.properties).toMatchObject({ icon: "tank-highlight" });
       expect(tankFeature.geometry).toEqual(tankNew.feature.geometry);
 
-      expect(junctionFeature.properties).toEqual({});
+      expect(junctionFeature.properties).toEqual({ draft: true });
       expect(junctionFeature.geometry).toEqual(junctionNew.feature.geometry);
     });
   });
