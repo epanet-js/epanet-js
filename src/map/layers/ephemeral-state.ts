@@ -71,7 +71,7 @@ export const ephemeralDraftLineLayer = ({
     id: "ephemeral-draft-line",
     type: "line",
     source,
-    filter: ["==", "$type", "LineString"],
+    filter: ["all", ["==", "$type", "LineString"], ["has", "draft"]],
     paint: {
       "line-opacity": 1,
       "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
@@ -127,4 +127,22 @@ export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
     },
     minzoom: 10,
   } as SymbolLayer;
+};
+
+export const ephemeralShadowLineLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): LineLayer => {
+  return {
+    id: "ephemeral-shadow-line",
+    type: "line",
+    source,
+    filter: ["all", ["==", "$type", "LineString"], ["has", "shadowLine"]],
+    paint: {
+      "line-opacity": 0.4,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 3],
+      "line-color": colors.gray500,
+    },
+  };
 };

@@ -173,11 +173,27 @@ const buildDrawLinkSourceData = (
     });
   }
 
+  if (ephemeralState.previousLink) {
+    features.push({
+      type: "Feature",
+      id: "shadow-line",
+      properties: {
+        shadowLine: true,
+      },
+      geometry: {
+        type: "LineString",
+        coordinates: ephemeralState.previousLink.coordinates,
+      },
+    });
+  }
+
   const linkCoordinates = ephemeralState.link.coordinates;
   features.push({
     type: "Feature",
     id: "draw-link-line",
-    properties: {},
+    properties: {
+      draft: true,
+    },
     geometry: {
       type: "LineString",
       coordinates: linkCoordinates,
@@ -299,7 +315,7 @@ const buildEditVerticesSourceData = (
     features.push({
       type: "Feature",
       id: `link-draft-${ephemeralState.linkId}`,
-      properties: {},
+      properties: { draft: true },
       geometry: {
         type: "LineString",
         coordinates: ephemeralState.linkCoordinates,

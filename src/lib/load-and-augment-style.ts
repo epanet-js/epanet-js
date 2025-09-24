@@ -31,6 +31,7 @@ import {
   ephemeralHaloLayer,
   ephemeralPipeHighlightLayer,
   ephemeralVerticesLayer,
+  ephemeralShadowLineLayer,
 } from "src/map/layers/ephemeral-state";
 
 function getEmptyStyle() {
@@ -176,6 +177,7 @@ export function makeLayers({
       layerId: "valve-lines",
       symbology,
     }),
+    ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
     pipeArrows({
