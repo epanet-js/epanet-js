@@ -55,6 +55,7 @@ const buildMoveAssetsSourceData = (
     features.push({
       ...asset.feature,
       properties: {
+        draft: true,
         ...iconProps(asset),
       } as any,
     });
