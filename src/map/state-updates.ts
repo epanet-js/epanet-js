@@ -49,11 +49,9 @@ import {
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
-import {
-  CustomerPoint,
-  CustomerPoints,
-} from "src/hydraulic-model/customer-points";
+import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -82,7 +80,6 @@ type MapState = {
   simulation: SimulationState;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
-  hiddenCustomerPoints: CustomerPoint[];
   isOffline: boolean;
   customerPointsMeta: { count: number; keysHash: string };
   currentZoom: number;
@@ -102,7 +99,6 @@ const nullMapState: MapState = {
   simulation: initialSimulationState,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
-  hiddenCustomerPoints: [],
   isOffline: false,
   customerPointsMeta: { count: 0, keysHash: "" },
   currentZoom: DEFAULT_ZOOM,
@@ -131,7 +127,6 @@ const mapStateAtom = atom<MapState>((get) => {
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
   const movedAssetIds = getMovedAssets(ephemeralState);
-  const hiddenCustomerPoints = getHiddenCustomerPoints(ephemeralState);
   const isOffline = get(offlineAtom);
 
   return {
@@ -144,7 +139,6 @@ const mapStateAtom = atom<MapState>((get) => {
     simulation,
     selectedAssetIds,
     movedAssetIds,
-    hiddenCustomerPoints,
     isOffline,
     customerPointsMeta,
     currentZoom,
@@ -163,7 +157,6 @@ const detectChanges = (
   hasNewSimulation: boolean;
   hasNewSymbology: boolean;
   hasNewCustomerPoints: boolean;
-  hasNewHiddenCustomerPoints: boolean;
   hasNewZoom: boolean;
 } => {
   return {
@@ -177,8 +170,6 @@ const detectChanges = (
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
     hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
-    hasNewHiddenCustomerPoints:
-      state.hiddenCustomerPoints !== prev.hiddenCustomerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
   };
 };
@@ -201,6 +192,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -220,7 +212,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSymbology,
       hasNewSimulation,
       hasNewCustomerPoints,
-      hasNewHiddenCustomerPoints,
       hasNewZoom,
     } = changes;
 
@@ -303,15 +294,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewImport ||
           hasNewEditions ||
           hasNewStyles ||
-          hasNewCustomerPoints ||
-          hasNewHiddenCustomerPoints
+          hasNewCustomerPoints
         ) {
           customerPointsOverlayRef.current = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             mapState.currentZoom,
-            mapState.hiddenCustomerPoints.length > 0
-              ? new Set(mapState.hiddenCustomerPoints.map((cp) => cp.id))
-              : undefined,
           );
         }
 
@@ -380,7 +367,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           const shouldHideCustomerPointsOverlay =
             (mapState.ephemeralState.type === "moveAssets" &&
               mapState.ephemeralState.targetAssets.length > 0) ||
-            mapState.ephemeralState.type === "editVertices";
+            mapState.ephemeralState.type === "editVertices" ||
+            (isRedrawOn && mapState.ephemeralState.type === "drawLink");
+
           const combinedOverlay = [
             ...(shouldHideCustomerPointsOverlay
               ? []
@@ -408,6 +397,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isRedrawOn,
   ]);
 
   doUpdates();
@@ -656,29 +646,6 @@ const getMovedAssets = (
         : noMoved;
     case "none":
       return noMoved;
-  }
-};
-
-const noHiddenCustomerPoints: CustomerPoint[] = [];
-const getHiddenCustomerPoints = (
-  ephemeralState: EphemeralEditingState,
-): CustomerPoint[] => {
-  switch (ephemeralState.type) {
-    case "connectCustomerPoints":
-      return ephemeralState.customerPoints;
-    case "customerPointsHighlight":
-      return noHiddenCustomerPoints;
-    case "drawLink":
-      return noHiddenCustomerPoints;
-    case "drawNode":
-      return noHiddenCustomerPoints;
-    case "moveAssets":
-      //all overlay is hidden
-      return noHiddenCustomerPoints;
-    case "editVertices":
-      return noHiddenCustomerPoints;
-    case "none":
-      return noHiddenCustomerPoints;
   }
 };
 
