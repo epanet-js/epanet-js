@@ -368,7 +368,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             (mapState.ephemeralState.type === "moveAssets" &&
               mapState.ephemeralState.targetAssets.length > 0) ||
             mapState.ephemeralState.type === "editVertices" ||
-            (isRedrawOn && mapState.ephemeralState.type === "drawLink");
+            (isRedrawOn &&
+              mapState.ephemeralState.type === "drawLink" &&
+              mapState.ephemeralState.previousLink);
 
           const combinedOverlay = [
             ...(shouldHideCustomerPointsOverlay
