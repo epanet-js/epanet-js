@@ -231,6 +231,11 @@ export function Hints() {
         );
       }
     }
+    case Mode.REDRAW_LINK: {
+      return (
+        <Hint hintId="REDRAW_LINK" text={translate("onboardingRedrawLink")} />
+      );
+    }
     case Mode.DRAW_RESERVOIR: {
       return (
         <Hint
