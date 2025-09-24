@@ -141,6 +141,7 @@ export function useDrawLinkHandlers({
     setEphemeralState((prev: EphemeralEditingState) => {
       if (prev.type !== "drawLink") {
         const link = createLinkForType();
+
         return {
           type: "drawLink",
           linkType,
@@ -171,7 +172,8 @@ export function useDrawLinkHandlers({
     startPipeId?: AssetId;
   }) => {
     const coordinates = startNode.coordinates;
-    const link = createLinkForType([coordinates, coordinates]);
+    const link = previousLink ? previousLink.copy() : createLinkForType();
+    link.setCoordinates([coordinates, coordinates]);
 
     setDrawing({
       startNode,
