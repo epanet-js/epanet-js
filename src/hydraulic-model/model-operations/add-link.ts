@@ -1,4 +1,4 @@
-import { NodeAsset, LinkAsset, AssetId } from "../asset-types";
+import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
 import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
@@ -6,6 +6,8 @@ import { Position } from "geojson";
 import { LabelGenerator } from "../label-manager";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "../assets-map";
+import { HydraulicModel } from "../hydraulic-model";
+import { CustomerPoint } from "../customer-points";
 
 type InputData = {
   link: LinkAsset;
@@ -33,66 +35,23 @@ export const addLink: ModelOperation<InputData> = (
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
 
-  const allPutAssets = [linkCopy, startNodeCopy, endNodeCopy];
-  const allPutCustomerPoints = [];
-  const allDeleteAssets: AssetId[] = [];
-
-  if (startPipeId && endPipeId && startPipeId === endPipeId) {
-    const pipe = validatePipeOrThrow(
-      hydraulicModel.assets,
-      startPipeId,
-      "Pipe",
-    );
-    const splitResult = splitPipe(hydraulicModel, {
-      pipe,
-      splits: [startNodeCopy, endNodeCopy],
-    });
-    allPutAssets.push(...splitResult.putAssets!);
-    allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
-    allDeleteAssets.push(...splitResult.deleteAssets!);
-  } else {
-    if (startPipeId) {
-      const startPipe = validatePipeOrThrow(
-        hydraulicModel.assets,
-        startPipeId,
-        "Start pipe",
-      );
-      const startPipeSplitResult = splitPipe(hydraulicModel, {
-        pipe: startPipe,
-        splits: [startNodeCopy],
-      });
-      allPutAssets.push(...startPipeSplitResult.putAssets!);
-      allPutCustomerPoints.push(
-        ...(startPipeSplitResult.putCustomerPoints || []),
-      );
-      allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
-    }
-
-    if (endPipeId) {
-      const endPipe = validatePipeOrThrow(
-        hydraulicModel.assets,
-        endPipeId,
-        "End pipe",
-      );
-      const endPipeSplitResult = splitPipe(hydraulicModel, {
-        pipe: endPipe,
-        splits: [endNodeCopy],
-      });
-      allPutAssets.push(...endPipeSplitResult.putAssets!);
-      allPutCustomerPoints.push(
-        ...(endPipeSplitResult.putCustomerPoints || []),
-      );
-      allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
-    }
-  }
+  const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
+    link: linkCopy,
+    startNode: startNodeCopy,
+    endNode: endNodeCopy,
+    startPipeId,
+    endPipeId,
+    hydraulicModel,
+  });
 
   return {
     note: `Add ${link.type}`,
-    putAssets: allPutAssets,
-    deleteAssets: allDeleteAssets.length > 0 ? allDeleteAssets : undefined,
-    putCustomerPoints: allPutCustomerPoints,
+    putAssets,
+    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
+    putCustomerPoints,
   };
 };
+
 const addMissingLabels = (
   labelGenerator: LabelGenerator,
   link: LinkAsset,
@@ -112,6 +71,84 @@ const addMissingLabels = (
       labelGenerator.generateFor(endNode.type, endNode.id),
     );
   }
+};
+
+const handlePipeSplits = ({
+  link,
+  startNode,
+  endNode,
+  startPipeId,
+  endPipeId,
+  hydraulicModel,
+}: {
+  link: LinkAsset;
+  startNode: NodeAsset;
+  endNode: NodeAsset;
+  startPipeId?: AssetId;
+  endPipeId?: AssetId;
+  hydraulicModel: HydraulicModel;
+}): {
+  putAssets: Asset[];
+  deleteAssets: AssetId[];
+  putCustomerPoints: CustomerPoint[];
+} => {
+  const allPutAssets = [link, startNode, endNode];
+  const allPutCustomerPoints = [];
+  const allDeleteAssets: AssetId[] = [];
+
+  if (startPipeId && endPipeId && startPipeId === endPipeId) {
+    const pipe = validatePipeOrThrow(
+      hydraulicModel.assets,
+      startPipeId,
+      "Pipe",
+    );
+    const splitResult = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [startNode, endNode],
+    });
+    allPutAssets.push(...splitResult.putAssets!);
+    allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
+    allDeleteAssets.push(...splitResult.deleteAssets!);
+  } else {
+    if (startPipeId) {
+      const startPipe = validatePipeOrThrow(
+        hydraulicModel.assets,
+        startPipeId,
+        "Start pipe",
+      );
+      const startPipeSplitResult = splitPipe(hydraulicModel, {
+        pipe: startPipe,
+        splits: [startNode],
+      });
+      allPutAssets.push(...startPipeSplitResult.putAssets!);
+      allPutCustomerPoints.push(
+        ...(startPipeSplitResult.putCustomerPoints || []),
+      );
+      allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
+    }
+
+    if (endPipeId) {
+      const endPipe = validatePipeOrThrow(
+        hydraulicModel.assets,
+        endPipeId,
+        "End pipe",
+      );
+      const endPipeSplitResult = splitPipe(hydraulicModel, {
+        pipe: endPipe,
+        splits: [endNode],
+      });
+      allPutAssets.push(...endPipeSplitResult.putAssets!);
+      allPutCustomerPoints.push(
+        ...(endPipeSplitResult.putCustomerPoints || []),
+      );
+      allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
+    }
+  }
+  return {
+    putAssets: allPutAssets,
+    deleteAssets: allDeleteAssets,
+    putCustomerPoints: allPutCustomerPoints,
+  };
 };
 
 const removeRedundantVertices = (link: LinkAsset) => {
