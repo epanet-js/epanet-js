@@ -9,7 +9,12 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
-import { DeleteIcon, EditVerticesIcon, ZoomToIcon } from "src/icons";
+import {
+  DeleteIcon,
+  EditVerticesIcon,
+  ZoomToIcon,
+  RedrawIcon,
+} from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtomValue } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
@@ -24,6 +29,7 @@ export function useActions(
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const isVerticesOn = useFeatureFlag("FLAG_VERTICES");
+  const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
@@ -90,7 +96,28 @@ export function useActions(
     },
   };
 
-  return [zoomToAction, editVerticesAction, deleteAssetsAction];
+  const redrawAction = {
+    icon: <RedrawIcon />,
+    applicable: Boolean(isRedrawOn && isOneLinkSelected),
+    label: translate("redraw"),
+    selected: currentMode === Mode.REDRAW_LINK,
+    onSelect: function redrawLink() {
+      if (selectedWrappedFeatures.length === 1) {
+        const feature = selectedWrappedFeatures[0];
+        const linkType = feature.feature.properties?.type;
+
+        if (
+          typeof linkType === "string" &&
+          ["pipe", "pump", "valve"].includes(linkType)
+        ) {
+          setMode({ mode: Mode.REDRAW_LINK });
+        }
+      }
+      return Promise.resolve();
+    },
+  };
+
+  return [zoomToAction, editVerticesAction, redrawAction, deleteAssetsAction];
 }
 
 export function GeometryActions({

@@ -46,7 +46,11 @@ export function useDrawLinkHandlers({
   map,
   idMap,
   linkType,
-}: HandlerContext & { linkType: LinkType }): Handlers {
+  previousLink,
+}: HandlerContext & {
+  linkType: LinkType;
+  previousLink?: LinkAsset;
+}): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const transact = rep.useTransact();
@@ -117,6 +121,7 @@ export function useDrawLinkHandlers({
       startNode,
       startPipeId,
       snappingCandidate,
+      ...(previousLink && { previousLink }),
     });
   };
 
@@ -131,6 +136,7 @@ export function useDrawLinkHandlers({
           linkType,
           link,
           snappingCandidate,
+          ...(previousLink && { previousLink }),
         };
       }
 
