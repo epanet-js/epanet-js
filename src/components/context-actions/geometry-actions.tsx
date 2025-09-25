@@ -15,6 +15,7 @@ import { useSetAtom, useAtomValue } from "jotai";
 import { ephemeralStateAtom, dataAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { LinkAsset, LinkType } from "src/hydraulic-model";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -28,6 +29,7 @@ export function useActions(
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const userTracking = useUserTracking();
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -79,6 +81,15 @@ export function useActions(
           ) as LinkAsset;
 
           if (selectedAsset) {
+            const eventSource =
+              source === "context-item" ? "context-menu" : "toolbar";
+
+            userTracking.capture({
+              name: "asset.redrawStarted",
+              source: eventSource,
+              type: linkType as LinkAsset["type"],
+            });
+
             setEphemeralState({
               type: "drawLink",
               linkType: linkType as LinkType,

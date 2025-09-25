@@ -60,6 +60,12 @@ type AssetRedrawed = {
   type: Asset["type"];
 };
 
+type AssetRedrawStarted = {
+  name: "asset.redrawStarted";
+  source: "context-menu" | "toolbar";
+  type: Asset["type"];
+};
+
 type AssetPropertyEdited = {
   name: "assetProperty.edited";
   type: Asset["type"];
@@ -521,6 +527,7 @@ type SimulationReportAssetClicked = {
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
+  | AssetRedrawStarted
   | AssetSelected
   | AssetDeselected
   | AssetPropertyEdited
