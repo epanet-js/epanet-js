@@ -101,7 +101,7 @@ export function useDrawLinkHandlers({
         startNode: ephemeralState.startNode,
         startPipeId: ephemeralState.startPipeId,
         snappingCandidate: ephemeralState.snappingCandidate || null,
-        link: ephemeralState.link,
+        link: ephemeralState.link as LinkAsset,
       };
     }
     return {

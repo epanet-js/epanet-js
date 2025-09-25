@@ -17,9 +17,10 @@ import {
 } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtomValue } from "jotai";
-import { ephemeralStateAtom } from "src/state/jotai";
+import { ephemeralStateAtom, dataAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { Position } from "src/types";
+import { LinkAsset, LinkType } from "src/hydraulic-model";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -33,6 +34,7 @@ export function useActions(
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -110,6 +112,19 @@ export function useActions(
           typeof linkType === "string" &&
           ["pipe", "pump", "valve"].includes(linkType)
         ) {
+          const selectedAsset = hydraulicModel.assets.get(
+            feature.id,
+          ) as LinkAsset;
+
+          if (selectedAsset) {
+            setEphemeralState({
+              type: "drawLink",
+              linkType: linkType as LinkType,
+              snappingCandidate: null,
+              previousLink: selectedAsset,
+            });
+          }
+
           setMode({ mode: Mode.REDRAW_LINK });
         }
       }

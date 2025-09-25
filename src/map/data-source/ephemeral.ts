@@ -188,18 +188,20 @@ const buildDrawLinkSourceData = (
     });
   }
 
-  const linkCoordinates = ephemeralState.link.coordinates;
-  features.push({
-    type: "Feature",
-    id: "draw-link-line",
-    properties: {
-      draft: true,
-    },
-    geometry: {
-      type: "LineString",
-      coordinates: linkCoordinates,
-    },
-  });
+  if (ephemeralState.link) {
+    const linkCoordinates = ephemeralState.link.coordinates;
+    features.push({
+      type: "Feature",
+      id: "draw-link-line",
+      properties: {
+        draft: true,
+      },
+      geometry: {
+        type: "LineString",
+        coordinates: linkCoordinates,
+      },
+    });
+  }
 
   return features;
 };

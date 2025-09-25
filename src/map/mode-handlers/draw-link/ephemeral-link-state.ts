@@ -4,7 +4,7 @@ import { SnappingCandidate } from "./draw-link-handlers";
 export interface EphemeralDrawLink {
   type: "drawLink";
   linkType: LinkType;
-  link: LinkAsset;
+  link?: LinkAsset;
   startNode?: NodeAsset;
   startPipeId?: AssetId;
   snappingCandidate: SnappingCandidate | null;
