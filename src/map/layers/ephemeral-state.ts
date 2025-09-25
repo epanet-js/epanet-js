@@ -142,7 +142,7 @@ export const ephemeralShadowLineLayer = ({
     paint: {
       "line-opacity": 0.4,
       "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 3],
-      "line-color": colors.gray500,
+      "line-color": colors.indigo500,
     },
   };
 };
