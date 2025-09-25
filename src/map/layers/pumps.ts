@@ -74,7 +74,12 @@ export const pumpIcons = ({
       paint: {
         "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
         "circle-color": LINE_COLORS_SELECTED,
-        "circle-opacity": 0.8,
+        "circle-opacity": [
+          "case",
+          ["boolean", ["feature-state", "hidden"], false],
+          0,
+          0.8,
+        ],
         "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
       },
       minzoom: 10,
