@@ -5,8 +5,9 @@ import {
   Mode,
   ephemeralStateAtom,
   EphemeralEditingState,
+  selectionAtom,
 } from "src/state/jotai";
-import { useSetAtom, useAtom } from "jotai";
+import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
@@ -20,6 +21,7 @@ import { LinkType } from "src/hydraulic-model";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
+import { useSelection } from "src/selection";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -63,6 +65,8 @@ export function useDrawLinkHandlers({
 }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const selection = useAtomValue(selectionAtom);
+  const { clearSelection } = useSelection(selection);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -415,6 +419,7 @@ export function useDrawLinkHandlers({
     exit() {
       resetDrawing();
       setMode({ mode: Mode.NONE });
+      clearSelection();
     },
     touchstart: (e) => {
       usingTouchEvents.current = true;
