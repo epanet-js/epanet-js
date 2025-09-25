@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom, modeAtom, Mode } from "src/state/jotai";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, SELECTION_NONE } from "src/selection";
-import { addLink } from "src/hydraulic-model/model-operations";
+import { replaceLink } from "src/hydraulic-model/model-operations";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -39,12 +39,13 @@ export function useRedrawLinkHandlers(
       return;
     }
 
-    const moment = addLink(hydraulicModel, {
-      link: link,
+    const moment = replaceLink(hydraulicModel, {
+      sourceLinkId: previousLink.id,
       startNode,
       endNode,
       startPipeId,
       endPipeId,
+      newLink: link,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });
