@@ -55,6 +55,11 @@ type AssetCreated = {
   type: Asset["type"];
 };
 
+type AssetRedrawed = {
+  name: "asset.redrawed";
+  type: Asset["type"];
+};
+
 type AssetPropertyEdited = {
   name: "assetProperty.edited";
   type: Asset["type"];
@@ -515,6 +520,7 @@ type SimulationReportAssetClicked = {
 
 export type UserEvent =
   | AssetCreated
+  | AssetRedrawed
   | AssetSelected
   | AssetDeselected
   | AssetPropertyEdited

@@ -48,7 +48,7 @@ export function useRedrawLinkHandlers(
       newLink: link,
     });
 
-    userTracking.capture({ name: "asset.created", type: link.type });
+    userTracking.capture({ name: "asset.redrawed", type: link.type });
     transact(moment);
 
     setMode({ mode: Mode.NONE });
