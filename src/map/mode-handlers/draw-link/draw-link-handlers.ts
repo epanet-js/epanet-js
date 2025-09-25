@@ -56,11 +56,11 @@ export function useDrawLinkHandlers({
   map,
   idMap,
   linkType,
-  previousLink,
+  sourceLink,
   onSubmitLink,
 }: HandlerContext & {
   linkType: LinkType;
-  previousLink?: LinkAsset;
+  sourceLink?: LinkAsset;
   onSubmitLink?: (params: SubmitLinkParams) => NodeAsset | undefined;
 }): Handlers {
   const setMode = useSetAtom(modeAtom);
@@ -135,7 +135,7 @@ export function useDrawLinkHandlers({
       startNode,
       startPipeId,
       snappingCandidate,
-      ...(previousLink && { previousLink }),
+      ...(sourceLink && { sourceLink }),
     });
   };
 
@@ -151,7 +151,7 @@ export function useDrawLinkHandlers({
           linkType,
           link,
           snappingCandidate,
-          ...(previousLink && { previousLink }),
+          ...(sourceLink && { sourceLink }),
         };
       }
 
@@ -176,7 +176,7 @@ export function useDrawLinkHandlers({
     startPipeId?: AssetId;
   }) => {
     const coordinates = startNode.coordinates;
-    const link = previousLink ? previousLink.copy() : createLinkForType();
+    const link = sourceLink ? sourceLink.copy() : createLinkForType();
     link.setCoordinates([coordinates, coordinates]);
 
     setDrawing({

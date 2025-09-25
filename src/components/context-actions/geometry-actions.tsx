@@ -121,7 +121,7 @@ export function useActions(
               type: "drawLink",
               linkType: linkType as LinkType,
               snappingCandidate: null,
-              previousLink: selectedAsset,
+              sourceLink: selectedAsset,
             });
           }
 

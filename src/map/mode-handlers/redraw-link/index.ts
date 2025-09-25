@@ -25,7 +25,7 @@ export function useRedrawLinkHandlers(
     .filter((asset: Asset | undefined) => asset && asset.isLink === true);
 
   const selectedLink = selectedAssets[0] as LinkAsset;
-  const previousLink = selectedLink || undefined;
+  const sourceLink = selectedLink || undefined;
 
   const onSubmitLink = ({
     startNode,
@@ -40,7 +40,7 @@ export function useRedrawLinkHandlers(
     }
 
     const moment = replaceLink(hydraulicModel, {
-      sourceLinkId: previousLink.id,
+      sourceLinkId: sourceLink.id,
       startNode,
       endNode,
       startPipeId,
@@ -61,7 +61,7 @@ export function useRedrawLinkHandlers(
   return useDrawLinkHandlers({
     ...handlerContext,
     linkType: selectedLink ? selectedLink.type : "pipe",
-    previousLink,
+    sourceLink,
     onSubmitLink,
   });
 }

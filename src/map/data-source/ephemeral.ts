@@ -174,7 +174,7 @@ const buildDrawLinkSourceData = (
     });
   }
 
-  if (ephemeralState.previousLink) {
+  if (ephemeralState.sourceLink) {
     features.push({
       type: "Feature",
       id: "shadow-line",
@@ -183,7 +183,7 @@ const buildDrawLinkSourceData = (
       },
       geometry: {
         type: "LineString",
-        coordinates: ephemeralState.previousLink.coordinates,
+        coordinates: ephemeralState.sourceLink.coordinates,
       },
     });
   }
