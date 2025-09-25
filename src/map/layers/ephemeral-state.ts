@@ -99,36 +99,6 @@ export const ephemeralPipeHighlightLayer = ({
   };
 };
 
-export const ephemeralVerticesLayer = ({ source }: { source: DataSource }) => {
-  return {
-    id: "ephemeral-vertices",
-    type: "symbol",
-    source,
-    layout: {
-      "symbol-placement": "point",
-      "icon-image": [
-        "case",
-        ["==", ["get", "type"], "vertex-candidate"],
-        "vertex-square-candidate",
-        ["==", ["get", "selected"], true],
-        "vertex-square-selected",
-        "vertex-square-default",
-      ],
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.1, 16, 0.15],
-      "icon-allow-overlap": true,
-    },
-    filter: [
-      "in",
-      ["get", "type"],
-      ["literal", ["vertex", "vertex-candidate"]],
-    ],
-    paint: {
-      "icon-opacity": 1,
-    },
-    minzoom: 10,
-  } as SymbolLayer;
-};
-
 export const ephemeralShadowLineLayer = ({
   source,
 }: {

@@ -10,10 +10,8 @@ import {
   buildPumpSvg,
   buildTankSvg,
   buildReservoirSvg,
-  buildVertexSquareSvg,
 } from "./dynamic-icons";
-import { colors, POINT_COLORS_SELECTED } from "src/lib/constants";
-import { strokeColorFor } from "src/lib/color";
+import { colors } from "src/lib/constants";
 
 export type IconId =
   | "reservoir"
@@ -42,11 +40,7 @@ export type IconId =
   | "pipe-cv-closed"
   | "tank"
   | "tank-selected"
-  | "tank-highlight"
-  | "vertex-square"
-  | "vertex-square-selected"
-  | "vertex-square-candidate"
-  | "vertex-square-default";
+  | "tank-highlight";
 
 export type TextureProps = {
   width: number;
@@ -295,42 +289,6 @@ const iconUrls: IconUrl[] = [
       buildReservoirSvg({
         borderColor: colors.indigo300,
         fillColor: colors.indigo800,
-      }),
-    ),
-  },
-  {
-    id: "vertex-square-default",
-    url: urlFor(
-      buildVertexSquareSvg({
-        borderColor: strokeColorFor(colors.indigo200),
-        fillColor: colors.indigo200,
-      }),
-    ),
-  },
-  {
-    id: "vertex-square-selected",
-    url: urlFor(
-      buildVertexSquareSvg({
-        borderColor: strokeColorFor(POINT_COLORS_SELECTED),
-        fillColor: POINT_COLORS_SELECTED,
-      }),
-    ),
-  },
-  {
-    id: "vertex-square-candidate",
-    url: urlFor(
-      buildVertexSquareSvg({
-        borderColor: strokeColorFor(colors.indigo800),
-        fillColor: colors.indigo800,
-      }),
-    ),
-  },
-  {
-    id: "vertex-square",
-    url: urlFor(
-      buildVertexSquareSvg({
-        borderColor: strokeColorFor(colors.indigo200),
-        fillColor: colors.indigo200,
       }),
     ),
   },

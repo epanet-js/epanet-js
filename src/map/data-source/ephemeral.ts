@@ -5,7 +5,6 @@ import { AssetsMap } from "src/hydraulic-model";
 import {
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
-  EphemeralEditVertices,
 } from "src/state/jotai";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
@@ -30,10 +29,6 @@ export const buildEphemeralStateSource = (
 
   if (ephemeralState.type === "connectCustomerPoints") {
     return buildConnectCustomerPointsSourceData(ephemeralState, assets);
-  }
-
-  if (ephemeralState.type === "editVertices") {
-    return buildEditVerticesSourceData(ephemeralState);
   }
 
   return [];
@@ -267,61 +262,6 @@ const buildDrawNodeSourceData = (
       geometry: {
         type: "Point",
         coordinates: ephemeralState.pipeSnappingPosition,
-      },
-    });
-  }
-
-  return features;
-};
-
-const buildEditVerticesSourceData = (
-  ephemeralState: EphemeralEditVertices,
-): Feature[] => {
-  const features: Feature[] = [];
-
-  ephemeralState.vertices.forEach((vertex, index) => {
-    const isSelected = ephemeralState.selectedVertexIndex === index;
-    features.push({
-      type: "Feature",
-      id: `vertex-${ephemeralState.linkId}-${index}`,
-      properties: {
-        type: "vertex",
-        vertexIndex: index,
-        selected: isSelected,
-        icon: true,
-      },
-      geometry: {
-        type: "Point",
-        coordinates: vertex,
-      },
-    });
-  });
-
-  if (ephemeralState.vertexCandidate) {
-    features.push({
-      type: "Feature",
-      id: `vertex-candidate-${ephemeralState.linkId}`,
-      properties: {
-        type: "vertex-candidate",
-        segmentIndex: ephemeralState.vertexCandidate.segmentIndex,
-        icon: true,
-        halo: true,
-      },
-      geometry: {
-        type: "Point",
-        coordinates: ephemeralState.vertexCandidate.position,
-      },
-    });
-  }
-
-  if (ephemeralState.isDragging && ephemeralState.linkCoordinates) {
-    features.push({
-      type: "Feature",
-      id: `link-draft-${ephemeralState.linkId}`,
-      properties: { draft: true },
-      geometry: {
-        type: "LineString",
-        coordinates: ephemeralState.linkCoordinates,
       },
     });
   }

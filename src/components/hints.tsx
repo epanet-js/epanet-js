@@ -261,14 +261,6 @@ export function Hints() {
         />
       );
     }
-    case Mode.EDIT_VERTICES: {
-      return (
-        <Hint
-          hintId={"EDIT_VERTICES"}
-          text={translate("onboardingEditVertices")}
-        />
-      );
-    }
   }
 
   return null;

@@ -9,17 +9,11 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
-import {
-  DeleteIcon,
-  EditVerticesIcon,
-  ZoomToIcon,
-  RedrawIcon,
-} from "src/icons";
+import { DeleteIcon, ZoomToIcon, RedrawIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtomValue } from "jotai";
 import { ephemeralStateAtom, dataAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { Position } from "src/types";
 import { LinkAsset, LinkType } from "src/hydraulic-model";
 
 export function useActions(
@@ -29,7 +23,6 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
-  const isVerticesOn = useFeatureFlag("FLAG_VERTICES");
   const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -67,37 +60,6 @@ export function useActions(
       selectedWrappedFeatures[0].feature.properties.type,
     );
 
-  const extractVertices = (coordinates: Position[]): Position[] => {
-    return coordinates.slice(1, -1);
-  };
-
-  const editVerticesAction = {
-    icon: <EditVerticesIcon />,
-    applicable: Boolean(isVerticesOn && isOneLinkSelected),
-    label: translate("editVertices"),
-    selected: currentMode === Mode.EDIT_VERTICES,
-    onSelect: function editVertices() {
-      if (selectedWrappedFeatures.length === 1) {
-        const feature = selectedWrappedFeatures[0];
-        const geometry = feature.feature.geometry;
-
-        if (geometry && geometry.type === "LineString") {
-          const coordinates = geometry.coordinates;
-          const vertices = extractVertices(coordinates);
-
-          setEphemeralState({
-            type: "editVertices",
-            linkId: feature.id,
-            vertices,
-          });
-
-          setMode({ mode: Mode.EDIT_VERTICES });
-        }
-      }
-      return Promise.resolve();
-    },
-  };
-
   const redrawAction = {
     icon: <RedrawIcon />,
     applicable: Boolean(isRedrawOn && isOneLinkSelected),
@@ -132,7 +94,7 @@ export function useActions(
     },
   };
 
-  return [zoomToAction, editVerticesAction, redrawAction, deleteAssetsAction];
+  return [zoomToAction, redrawAction, deleteAssetsAction];
 }
 
 export function GeometryActions({

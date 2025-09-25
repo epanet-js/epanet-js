@@ -367,7 +367,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           const shouldHideCustomerPointsOverlay =
             (mapState.ephemeralState.type === "moveAssets" &&
               mapState.ephemeralState.targetAssets.length > 0) ||
-            mapState.ephemeralState.type === "editVertices" ||
             (isRedrawOn &&
               mapState.ephemeralState.type === "drawLink" &&
               mapState.ephemeralState.sourceLink);
@@ -642,10 +641,6 @@ const getMovedAssets = (
       return noMoved;
     case "connectCustomerPoints":
       return noMoved;
-    case "editVertices":
-      return ephemeralState.isDragging
-        ? new Set([ephemeralState.linkId])
-        : noMoved;
     case "none":
       return noMoved;
   }

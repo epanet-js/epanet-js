@@ -13,7 +13,6 @@ export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.DRAW_PUMP]: "6",
   [Mode.DRAW_VALVE]: "7",
   [Mode.CONNECT_CUSTOMER_POINTS]: "",
-  [Mode.EDIT_VERTICES]: "",
   [Mode.REDRAW_LINK]: "",
 };
 

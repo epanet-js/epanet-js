@@ -6,4 +6,3 @@ export { changeProperty } from "./change-property";
 export { allocateCustomerPoints } from "./allocate-customer-points";
 export { disconnectCustomers } from "./disconnect-customers";
 export { connectCustomers } from "./connect-customers";
-export { updateVertices } from "./update-vertices";

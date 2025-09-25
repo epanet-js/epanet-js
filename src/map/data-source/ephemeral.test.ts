@@ -1,6 +1,6 @@
 import { buildEphemeralStateSource } from "./ephemeral";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
-import { EphemeralEditingState, EphemeralEditVertices } from "src/state/jotai";
+import { EphemeralEditingState } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
@@ -383,59 +383,6 @@ describe("build ephemeral state source", () => {
         halo: true,
         icon: "tank-highlight",
       });
-    });
-  });
-
-  describe("editVertices state", () => {
-    it("should render vertex points with halo", () => {
-      const ephemeralState: EphemeralEditVertices = {
-        type: "editVertices",
-        linkId: "P1",
-        vertices: [
-          [1, 1],
-          [2, 2],
-          [3, 3],
-        ],
-      };
-
-      const features = buildEphemeralStateSource(
-        ephemeralState,
-        mockIDMap,
-        new Map(),
-      );
-
-      expect(features).toHaveLength(3);
-
-      features.forEach((feature, index) => {
-        expect(feature.id).toBe(`vertex-P1-${index}`);
-        expect(feature.type).toBe("Feature");
-        expect(feature.geometry).toEqual({
-          type: "Point",
-          coordinates: ephemeralState.vertices[index],
-        });
-        expect(feature.properties).toEqual({
-          type: "vertex",
-          vertexIndex: index,
-          selected: false,
-          icon: true,
-        });
-      });
-    });
-
-    it("should render empty array when no vertices", () => {
-      const ephemeralState: EphemeralEditVertices = {
-        type: "editVertices",
-        linkId: "P1",
-        vertices: [],
-      };
-
-      const features = buildEphemeralStateSource(
-        ephemeralState,
-        mockIDMap,
-        new Map(),
-      );
-
-      expect(features).toHaveLength(0);
     });
   });
 });

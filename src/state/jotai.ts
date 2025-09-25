@@ -2,7 +2,6 @@ import { atom, createStore } from "jotai";
 import { atomWithStorage, selectAtom } from "jotai/utils";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
-import mapboxgl from "mapbox-gl";
 import {
   FolderMap,
   IFolder,
@@ -356,28 +355,12 @@ export type EphemeralConnectCustomerPoints = {
   strategy: "nearest-to-point" | "cursor";
 };
 
-export type EphemeralEditVertices = {
-  type: "editVertices";
-  linkId: string;
-  vertices: Position[];
-  selectedVertexIndex?: number;
-  isDragging?: boolean;
-  startPoint?: mapboxgl.Point;
-  originalVertexPosition?: Position;
-  linkCoordinates?: Position[];
-  vertexCandidate?: {
-    position: Position;
-    segmentIndex: number;
-  };
-};
-
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralDrawNode
   | EphemeralMoveAssets
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
-  | EphemeralEditVertices
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

@@ -4,7 +4,6 @@ import { useNoneHandlers } from "./none";
 import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
 import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
-import { useEditVerticesHandlers } from "./edit-vertices";
 import { useRedrawLinkHandlers } from "./redraw-link";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
@@ -36,7 +35,6 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     }),
     [Mode.CONNECT_CUSTOMER_POINTS]:
       useConnectCustomerPointsHandlers(handlerContext),
-    [Mode.EDIT_VERTICES]: useEditVerticesHandlers(handlerContext),
     [Mode.REDRAW_LINK]: useRedrawLinkHandlers(handlerContext),
   };
   return HANDLERS;
