@@ -62,7 +62,7 @@ type AssetRedrawed = {
 
 type AssetRedrawStarted = {
   name: "asset.redrawStarted";
-  source: "context-menu" | "toolbar";
+  source: "context-menu" | "toolbar" | "shortcut";
   type: Asset["type"];
 };
 

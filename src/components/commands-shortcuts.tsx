@@ -53,6 +53,10 @@ import {
   useConnectCustomerPoints,
   useDisconnectCustomerPoints,
 } from "src/commands/customer-point-actions";
+import {
+  redrawModeShortcut,
+  useSetRedrawMode,
+} from "src/commands/set-redraw-mode";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -72,6 +76,7 @@ export const CommandShortcuts = () => {
   const showSimulationSettings = useShowSimulationSettings();
   const connectCustomerPoints = useConnectCustomerPoints();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
+  const setRedrawMode = useSetRedrawMode();
   const simulation = useAtomValue(simulationAtom);
 
   useHotkeys(
@@ -270,6 +275,16 @@ export const CommandShortcuts = () => {
     },
     [disconnectCustomerPoints],
     "Disconnect customer points",
+  );
+
+  useHotkeys(
+    redrawModeShortcut,
+    (e) => {
+      e.preventDefault();
+      setRedrawMode({ source: "shortcut" });
+    },
+    [setRedrawMode],
+    "Set redraw mode",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

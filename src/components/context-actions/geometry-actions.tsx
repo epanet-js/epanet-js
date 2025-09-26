@@ -11,13 +11,14 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, ZoomToIcon, RedrawIcon, ReverseIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useSetAtom, useAtomValue } from "jotai";
-import { ephemeralStateAtom, dataAtom } from "src/state/jotai";
+import { useAtomValue } from "jotai";
+import { dataAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { LinkAsset, LinkType } from "src/hydraulic-model";
+import { LinkAsset } from "src/hydraulic-model";
 import { reverseLink } from "src/hydraulic-model/model-operations/reverse-link";
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
+import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -28,13 +29,12 @@ export function useActions(
   const deleteSelectedAssets = useDeleteSelectedAssets();
   const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const isReverseOn = useFeatureFlag("FLAG_REVERSE");
-  const setMode = useSetAtom(modeAtom);
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const setRedrawMode = useSetRedrawMode();
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -73,39 +73,9 @@ export function useActions(
     label: translate("redraw"),
     selected: currentMode === Mode.REDRAW_LINK,
     onSelect: function redrawLink() {
-      if (selectedWrappedFeatures.length === 1) {
-        const feature = selectedWrappedFeatures[0];
-        const linkType = feature.feature.properties?.type;
-
-        if (
-          typeof linkType === "string" &&
-          ["pipe", "pump", "valve"].includes(linkType)
-        ) {
-          const selectedAsset = hydraulicModel.assets.get(
-            feature.id,
-          ) as LinkAsset;
-
-          if (selectedAsset) {
-            const eventSource =
-              source === "context-item" ? "context-menu" : "toolbar";
-
-            userTracking.capture({
-              name: "asset.redrawStarted",
-              source: eventSource,
-              type: linkType as LinkAsset["type"],
-            });
-
-            setEphemeralState({
-              type: "drawLink",
-              linkType: linkType as LinkType,
-              snappingCandidate: null,
-              sourceLink: selectedAsset,
-            });
-          }
-
-          setMode({ mode: Mode.REDRAW_LINK });
-        }
-      }
+      const eventSource =
+        source === "context-item" ? "context-menu" : "toolbar";
+      setRedrawMode({ source: eventSource });
       return Promise.resolve();
     },
   };
