@@ -68,7 +68,7 @@ type AssetRedrawStarted = {
 
 type LinkReversed = {
   name: "link.reversed";
-  source: "context-menu" | "toolbar";
+  source: "context-menu" | "toolbar" | "shortcut";
   type: Asset["type"];
 };
 

@@ -12,13 +12,9 @@ import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, ZoomToIcon, RedrawIcon, ReverseIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
-import { LinkAsset } from "src/hydraulic-model";
-import { reverseLink } from "src/hydraulic-model/model-operations/reverse-link";
-import { useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence/context";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
+import { useReverseLink } from "src/commands/reverse-link";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -30,11 +26,8 @@ export function useActions(
   const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const isReverseOn = useFeatureFlag("FLAG_REVERSE");
   const { mode: currentMode } = useAtomValue(modeAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const userTracking = useUserTracking();
-  const rep = usePersistence();
-  const transact = rep.useTransact();
   const setRedrawMode = useSetRedrawMode();
+  const reverseLinkAction = useReverseLink();
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -84,42 +77,15 @@ export function useActions(
     icon: <ReverseIcon />,
     applicable: Boolean(isReverseOn && isOneLinkSelected),
     label: translate("reverse"),
-    onSelect: function reverseLinkAction() {
-      if (selectedWrappedFeatures.length === 1) {
-        const feature = selectedWrappedFeatures[0];
-        const linkType = feature.feature.properties?.type;
-
-        if (
-          typeof linkType === "string" &&
-          ["pipe", "pump", "valve"].includes(linkType)
-        ) {
-          const selectedAsset = hydraulicModel.assets.get(
-            feature.id,
-          ) as LinkAsset;
-
-          if (selectedAsset) {
-            const eventSource =
-              source === "context-item" ? "context-menu" : "toolbar";
-
-            userTracking.capture({
-              name: "link.reversed",
-              source: eventSource,
-              type: linkType as LinkAsset["type"],
-            });
-
-            const moment = reverseLink(hydraulicModel, {
-              linkId: selectedAsset.id,
-            });
-
-            transact(moment);
-          }
-        }
-      }
+    onSelect: function reverseLinkActionHandler() {
+      const eventSource =
+        source === "context-item" ? "context-menu" : "toolbar";
+      reverseLinkAction({ source: eventSource });
       return Promise.resolve();
     },
   };
 
-  return [zoomToAction, redrawAction, reverseAction, deleteAssetsAction];
+  return [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
 }
 
 export function GeometryActions({

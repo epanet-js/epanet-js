@@ -57,6 +57,7 @@ import {
   redrawModeShortcut,
   useSetRedrawMode,
 } from "src/commands/set-redraw-mode";
+import { reverseLinkShortcut, useReverseLink } from "src/commands/reverse-link";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -77,6 +78,7 @@ export const CommandShortcuts = () => {
   const connectCustomerPoints = useConnectCustomerPoints();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const setRedrawMode = useSetRedrawMode();
+  const reverseLinkAction = useReverseLink();
   const simulation = useAtomValue(simulationAtom);
 
   useHotkeys(
@@ -285,6 +287,16 @@ export const CommandShortcuts = () => {
     },
     [setRedrawMode],
     "Set redraw mode",
+  );
+
+  useHotkeys(
+    reverseLinkShortcut,
+    (e) => {
+      e.preventDefault();
+      reverseLinkAction({ source: "shortcut" });
+    },
+    [reverseLinkAction],
+    "Reverse link",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
