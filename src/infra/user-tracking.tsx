@@ -66,6 +66,12 @@ type AssetRedrawStarted = {
   type: Asset["type"];
 };
 
+type LinkReversed = {
+  name: "link.reversed";
+  source: "context-menu" | "toolbar";
+  type: Asset["type"];
+};
+
 type AssetPropertyEdited = {
   name: "assetProperty.edited";
   type: Asset["type"];
@@ -528,6 +534,7 @@ export type UserEvent =
   | AssetCreated
   | AssetRedrawed
   | AssetRedrawStarted
+  | LinkReversed
   | AssetSelected
   | AssetDeselected
   | AssetPropertyEdited

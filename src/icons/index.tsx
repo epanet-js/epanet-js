@@ -1,6 +1,7 @@
 import {
   LucideProps,
   LucideIcon,
+  ArrowDownUp,
   ArrowRight,
   Bell,
   Check,
@@ -141,6 +142,21 @@ export const VisibilityOffIcon = icon(EyeOff);
 export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
+
+export const ReverseIcon: React.FC<IconProps> = ({
+  size: rawSize = "md",
+  ...props
+}) => {
+  const pixels = getPixels(rawSize);
+
+  return (
+    <ArrowDownUp
+      size={pixels}
+      {...props}
+      style={{ transform: "rotate(90deg)", ...props.style }}
+    />
+  );
+};
 
 export { CustomUnsavedChangesIcon as UnsavedChangesIcon } from "./custom-icons/unsaved-changes-icon";
 export { CustomGithubIcon as GithubIcon } from "./custom-icons/github-icon";

@@ -112,6 +112,7 @@
   "type": "Type",
   "delete": "Delete",
   "redraw": "Redraw",
+  "reverse": "Reverse",
   "zoomTo": "Zoom To",
   "min": "Min",
   "max": "Max",
