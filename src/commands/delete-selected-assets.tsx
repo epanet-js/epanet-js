@@ -1,17 +1,25 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { Asset } from "src/hydraulic-model";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
 import { USelection } from "src/selection";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import {
+  dataAtom,
+  selectionAtom,
+  ephemeralStateAtom,
+  modeAtom,
+  Mode,
+} from "src/state/jotai";
 
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelectedAssets = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
+  const setMode = useSetAtom(modeAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -22,6 +30,8 @@ export const useDeleteSelectedAssets = () => {
       if (!assetIds.length) return;
 
       setSelection(USelection.none());
+      setMode({ mode: Mode.NONE });
+      setEphemeralState({ type: "none" });
 
       if (assetIds.length === 1) {
         userTracking.capture({
@@ -44,7 +54,15 @@ export const useDeleteSelectedAssets = () => {
 
       transact(moment);
     },
-    [hydraulicModel, selection, transact, setSelection, userTracking],
+    [
+      hydraulicModel,
+      selection,
+      transact,
+      setSelection,
+      setMode,
+      setEphemeralState,
+      userTracking,
+    ],
   );
 
   return deleteSelectedAssets;
