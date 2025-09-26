@@ -54,4 +54,11 @@ export const setFlagsContext = (flagsEnabled: string[]) => {
   );
 };
 
+export const setErrorContext = (
+  name: string,
+  context: Parameters<typeof Sentry.setContext>[1],
+) => {
+  Sentry.setContext(name, context);
+};
+
 export const ErrorBoundary = Sentry.ErrorBoundary;

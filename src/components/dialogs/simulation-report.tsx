@@ -87,20 +87,20 @@ export const SimulationReportDialog = () => {
     [hydraulicModel.assets, handleAssetClick],
   );
 
-  const formattedReport = useMemo(() => {
+  const processedReport = useMemo(() => {
     if (
       simulation.status !== "success" &&
       simulation.status !== "failure" &&
       simulation.status !== "warning"
     )
-      return "";
+      return [];
 
-    const processedReport = processReportWithSlots(
-      simulation.report,
-      hydraulicModel.assets,
-    );
+    return processReportWithSlots(simulation.report, hydraulicModel.assets);
+  }, [simulation, hydraulicModel.assets]);
+
+  const formattedReport = useMemo(() => {
     return processedReport.map(renderRowWithSlots);
-  }, [simulation, hydraulicModel, renderRowWithSlots]);
+  }, [processedReport, renderRowWithSlots]);
 
   return (
     <DialogContainer size="lg" fillMode="auto">
