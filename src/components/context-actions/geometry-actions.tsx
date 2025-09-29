@@ -10,7 +10,6 @@ import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { DeleteIcon, ZoomToIcon, RedrawIcon, ReverseIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
@@ -23,7 +22,6 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
-  const isReverseOn = useFeatureFlag("FLAG_REVERSE");
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
@@ -74,7 +72,7 @@ export function useActions(
 
   const reverseAction = {
     icon: <ReverseIcon />,
-    applicable: Boolean(isReverseOn && isOneLinkSelected),
+    applicable: Boolean(isOneLinkSelected),
     label: translate("reverse"),
     onSelect: function reverseLinkActionHandler() {
       const eventSource =
