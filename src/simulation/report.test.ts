@@ -130,48 +130,32 @@ Error 207: Pipe 777 has missing data`;
     });
 
     expect(setErrorContextSpy).toHaveBeenCalledWith(
-      "Report Processing Errors",
+      "Report Processing Issues",
       {
-        totalMissingAssets: 6,
-        missingAssets: [
-          {
-            assetId: "999",
-            context: "Error 205: Node 999",
-            reportLine: "Error 205: Node 999 has missing data",
-          },
-          {
-            assetId: "999",
-            context: "Node 999",
-            reportLine: "Error 205: Node 999 has missing data",
-          },
-          {
-            assetId: "888",
-            context: "Error 206: Node 888",
-            reportLine: "Error 206: Node 888 has missing data",
-          },
-          {
-            assetId: "888",
-            context: "Node 888",
-            reportLine: "Error 206: Node 888 has missing data",
-          },
-          {
-            assetId: "777",
-            context: "Error 207: Pipe 777",
-            reportLine: "Error 207: Pipe 777 has missing data",
-          },
-          {
-            assetId: "777",
-            context: "Pipe 777",
-            reportLine: "Error 207: Pipe 777 has missing data",
-          },
+        totalLinesWithIssues: 6,
+        reportLines: [
+          "Error 205: Node 999 has missing data",
+          "Error 205: Node 999 has missing data",
+          "Error 206: Node 888 has missing data",
+          "Error 206: Node 888 has missing data",
+          "Error 207: Pipe 777 has missing data",
+          "Error 207: Pipe 777 has missing data",
+        ],
+        reasons: [
+          "missing_asset",
+          "missing_asset",
+          "missing_asset",
+          "missing_asset",
+          "missing_asset",
+          "missing_asset",
         ],
       },
     );
 
     expect(captureErrorSpy).toHaveBeenCalledOnce();
     const errorCall = captureErrorSpy.mock.calls[0][0];
-    expect(errorCall.message).toContain(
-      "6 missing asset reference(s): 999, 999, 888, 888, 777, 777",
+    expect(errorCall.message).toBe(
+      "Report processing encountered 6 lines with issues",
     );
   });
 

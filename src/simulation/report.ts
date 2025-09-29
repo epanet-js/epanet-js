@@ -1,5 +1,5 @@
 import { Asset, AssetsMap, AssetId } from "src/hydraulic-model";
-import { ErrorCollector } from "src/infra/error-collection";
+import { ReportErrorCollector } from "./report-error-collector";
 
 export type ReportRow = {
   text: string;
@@ -21,7 +21,7 @@ export const processReportWithSlots = (
   report: string,
   assets: AssetsMap,
 ): ProcessedReport => {
-  const errorCollector = new ErrorCollector();
+  const errorCollector = new ReportErrorCollector();
 
   const result = report.split("\n").map((row) => {
     const isSkipped = skipRegexp.find((regexp) => regexp.test(row));
@@ -37,7 +37,7 @@ export const processReportWithSlots = (
       processedText = processedText.replace(regexp, (match, id) => {
         const asset = assets.get(id) as Asset;
         if (!asset) {
-          errorCollector.collectMissingAssetError(id, match, row);
+          errorCollector.collectLineWithIssue(row, "missing_asset");
           return match;
         }
 
