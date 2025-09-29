@@ -193,6 +193,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
+  const isPumpIconOn = useFeatureFlag("FLAG_PUMP_ICON");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -230,7 +231,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(map, mapState.stylesConfig, translate);
+          await updateLayerStyles(
+            map,
+            mapState.stylesConfig,
+            translate,
+            isPumpIconOn,
+          );
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -399,6 +405,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translateUnit,
     hydraulicModel,
     isRedrawOn,
+    isPumpIconOn,
   ]);
 
   doUpdates();
@@ -417,12 +424,13 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
+    isPumpIconOn?: boolean,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
     });
-    await map.setStyle(style);
+    await map.setStyle(style, isPumpIconOn);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
 );

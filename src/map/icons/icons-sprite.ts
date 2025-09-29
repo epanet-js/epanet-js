@@ -8,6 +8,7 @@ import {
   buildPrvSvg,
   buildPsvSvg,
   buildPumpSvg,
+  buildPumpSvgDeprecated,
   buildTankSvg,
   buildReservoirSvg,
 } from "./dynamic-icons";
@@ -59,245 +60,250 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const iconUrls: IconUrl[] = [
-  {
-    id: "triangle",
-    url: triangle.src,
-    isSdf: true,
-  },
-  {
-    id: "pump-on",
-    url: urlFor(
-      buildPumpSvg({
-        borderColor: "none",
-        fillColor: colors.green300,
-        triangleColor: colors.green800,
-      }),
-    ),
-  },
-  {
-    id: "pump-off",
-    url: urlFor(
-      buildPumpSvg({
-        borderColor: "none",
-        fillColor: colors.red300,
-        triangleColor: colors.red700,
-      }),
-    ),
-  },
-  {
-    id: "valve-prv-active",
-    url: urlFor(
-      buildPrvSvg({
-        triangleColor: colors.green800,
-        fillColor: colors.green300,
-      }),
-    ),
-  },
-  {
-    id: "valve-prv-open",
-    url: urlFor(
-      buildPrvSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "valve-prv-closed",
-    url: urlFor(
-      buildPrvSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "valve-psv-active",
-    url: urlFor(
-      buildPsvSvg({
-        triangleColor: colors.green800,
-        fillColor: colors.green300,
-      }),
-    ),
-  },
-  {
-    id: "valve-psv-open",
-    url: urlFor(
-      buildPsvSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "valve-psv-closed",
-    url: urlFor(
-      buildPsvSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "valve-tcv-active",
-    url: urlFor(
-      buildGpvSvg({
-        triangleColor: colors.green800,
-        fillColor: colors.green300,
-      }),
-    ),
-  },
-  {
-    id: "valve-tcv-open",
-    url: urlFor(
-      buildGpvSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "valve-tcv-closed",
-    url: urlFor(
-      buildGpvSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "valve-fcv-active",
-    url: urlFor(
-      buildFcvSvg({
-        triangleColor: colors.green800,
-        fillColor: colors.green300,
-      }),
-    ),
-  },
-  {
-    id: "valve-fcv-open",
-    url: urlFor(
-      buildFcvSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "valve-fcv-closed",
-    url: urlFor(
-      buildFcvSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "valve-pbv-active",
-    url: urlFor(
-      buildPbvSvg({
-        triangleColor: colors.green800,
-        fillColor: colors.green300,
-      }),
-    ),
-  },
-  {
-    id: "valve-pbv-open",
-    url: urlFor(
-      buildPbvSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "valve-pbv-closed",
-    url: urlFor(
-      buildPbvSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "pipe-cv-open",
-    url: urlFor(
-      buildCheckValveSvg({
-        triangleColor: colors.gray700,
-        fillColor: colors.gray300,
-      }),
-    ),
-  },
-  {
-    id: "pipe-cv-closed",
-    url: urlFor(
-      buildCheckValveSvg({
-        triangleColor: colors.red700,
-        fillColor: colors.red300,
-      }),
-    ),
-  },
-  {
-    id: "tank",
-    url: urlFor(
-      buildTankSvg({
-        borderColor: colors.indigo800,
-        fillColor: colors.indigo300,
-      }),
-    ),
-  },
-  {
-    id: "tank-selected",
-    url: urlFor(
-      buildTankSvg({
-        borderColor: colors.fuchsia300,
-        fillColor: colors.fuchsia500,
-      }),
-    ),
-  },
-  {
-    id: "tank-highlight",
-    url: urlFor(
-      buildTankSvg({
-        borderColor: colors.indigo300,
-        fillColor: colors.indigo800,
-      }),
-    ),
-  },
-  {
-    id: "reservoir",
-    url: urlFor(
-      buildReservoirSvg({
-        borderColor: colors.indigo800,
-        fillColor: colors.indigo300,
-      }),
-    ),
-  },
-  {
-    id: "reservoir-selected",
-    url: urlFor(
-      buildReservoirSvg({
-        borderColor: colors.fuchsia300,
-        fillColor: colors.fuchsia500,
-      }),
-    ),
-  },
-  {
-    id: "reservoir-highlight",
-    url: urlFor(
-      buildReservoirSvg({
-        borderColor: colors.indigo300,
-        fillColor: colors.indigo800,
-      }),
-    ),
-  },
-];
+const buildIconUrls = (isPumpIconOn: boolean): IconUrl[] => {
+  const pumpSvgBuilder = isPumpIconOn ? buildPumpSvg : buildPumpSvgDeprecated;
+
+  return [
+    {
+      id: "triangle",
+      url: triangle.src,
+      isSdf: true,
+    },
+    {
+      id: "pump-on",
+      url: urlFor(
+        pumpSvgBuilder({
+          borderColor: "none",
+          fillColor: colors.green300,
+          triangleColor: colors.green800,
+        }),
+      ),
+    },
+    {
+      id: "pump-off",
+      url: urlFor(
+        pumpSvgBuilder({
+          borderColor: "none",
+          fillColor: colors.red300,
+          triangleColor: colors.red700,
+        }),
+      ),
+    },
+    {
+      id: "valve-prv-active",
+      url: urlFor(
+        buildPrvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-prv-open",
+      url: urlFor(
+        buildPrvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-prv-closed",
+      url: urlFor(
+        buildPrvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-psv-active",
+      url: urlFor(
+        buildPsvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-psv-open",
+      url: urlFor(
+        buildPsvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-psv-closed",
+      url: urlFor(
+        buildPsvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-tcv-active",
+      url: urlFor(
+        buildGpvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-tcv-open",
+      url: urlFor(
+        buildGpvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-tcv-closed",
+      url: urlFor(
+        buildGpvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-fcv-active",
+      url: urlFor(
+        buildFcvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-fcv-open",
+      url: urlFor(
+        buildFcvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-fcv-closed",
+      url: urlFor(
+        buildFcvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pbv-active",
+      url: urlFor(
+        buildPbvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pbv-open",
+      url: urlFor(
+        buildPbvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pbv-closed",
+      url: urlFor(
+        buildPbvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "pipe-cv-open",
+      url: urlFor(
+        buildCheckValveSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "pipe-cv-closed",
+      url: urlFor(
+        buildCheckValveSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "tank",
+      url: urlFor(
+        buildTankSvg({
+          borderColor: colors.indigo800,
+          fillColor: colors.indigo300,
+        }),
+      ),
+    },
+    {
+      id: "tank-selected",
+      url: urlFor(
+        buildTankSvg({
+          borderColor: colors.fuchsia300,
+          fillColor: colors.fuchsia500,
+        }),
+      ),
+    },
+    {
+      id: "tank-highlight",
+      url: urlFor(
+        buildTankSvg({
+          borderColor: colors.indigo300,
+          fillColor: colors.indigo800,
+        }),
+      ),
+    },
+    {
+      id: "reservoir",
+      url: urlFor(
+        buildReservoirSvg({
+          borderColor: colors.indigo800,
+          fillColor: colors.indigo300,
+        }),
+      ),
+    },
+    {
+      id: "reservoir-selected",
+      url: urlFor(
+        buildReservoirSvg({
+          borderColor: colors.fuchsia300,
+          fillColor: colors.fuchsia500,
+        }),
+      ),
+    },
+    {
+      id: "reservoir-highlight",
+      url: urlFor(
+        buildReservoirSvg({
+          borderColor: colors.indigo300,
+          fillColor: colors.indigo800,
+        }),
+      ),
+    },
+  ];
+};
 
 export const prepareIconsSprite = withDebugInstrumentation(
-  async (): Promise<IconImage[]> => {
+  async (isPumpIconOn = true): Promise<IconImage[]> => {
+    const currentIconUrls = buildIconUrls(isPumpIconOn);
     const iconImages = await Promise.all(
-      iconUrls.map((iconUrl) => fetchImage(iconUrl)),
+      currentIconUrls.map((iconUrl) => fetchImage(iconUrl)),
     );
 
     return iconImages;

@@ -37,6 +37,7 @@ export class MapEngine {
   handlers: React.MutableRefObject<MapHandlers>;
   overlay: MapboxOverlay;
   private icons: IconImage[] = [];
+  private currentPumpIconFlag?: boolean;
 
   constructor({
     element,
@@ -101,10 +102,10 @@ export class MapEngine {
     this.map = map;
   }
 
-  setStyle(style: Style): Promise<void> {
+  setStyle(style: Style, isPumpIconOn?: boolean): Promise<void> {
     return new Promise((resolve) => {
       this.map.once("style.load", () => {
-        void this.addIcons();
+        void this.addIcons(isPumpIconOn);
         resolve();
       });
 
@@ -113,9 +114,10 @@ export class MapEngine {
     });
   }
 
-  async addIcons() {
-    if (!this.icons.length) {
-      this.icons = await prepareIconsSprite();
+  async addIcons(isPumpIconOn?: boolean) {
+    if (!this.icons.length || this.currentPumpIconFlag !== isPumpIconOn) {
+      this.icons = await prepareIconsSprite(isPumpIconOn);
+      this.currentPumpIconFlag = isPumpIconOn;
     }
 
     for (const { id, image, isSdf } of this.icons) {

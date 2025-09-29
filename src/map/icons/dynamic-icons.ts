@@ -63,6 +63,47 @@ export const buildPumpSvg = ({
   return `
   <svg
     xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 100 100"
+    width="${width}"
+    height="${height}"
+  >
+    <!-- Circle -->
+    <circle
+      cx="50"
+      cy="50"
+      r="48"
+      stroke="${borderColor}"
+      stroke-width="2"
+      fill="${fillColor}"
+    />
+
+    <!-- Isosceles triangle (arrow, slightly smaller) -->
+    <polygon
+      points="50,20 70,65 30,65"
+      fill="${triangleColor}"
+      stroke="${triangleColor}"
+      stroke-width="2"
+    />
+  </svg>
+  `;
+};
+
+export const buildPumpSvgDeprecated = ({
+  width = 64,
+  height = 64,
+  borderColor = "black",
+  fillColor = "white",
+  triangleColor = "black",
+}: {
+  width?: number;
+  height?: number;
+  borderColor?: string;
+  fillColor?: string;
+  triangleColor?: string;
+}) => {
+  return `
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
     viewBox="0 -0.8 35.232498 35.232498"
     fill="none"
     stroke="currentColor"
