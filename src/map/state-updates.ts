@@ -192,7 +192,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const isPumpIconOn = useFeatureFlag("FLAG_PUMP_ICON");
 
   const doUpdates = useCallback(() => {
@@ -373,8 +372,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           const shouldHideCustomerPointsOverlay =
             (mapState.ephemeralState.type === "moveAssets" &&
               mapState.ephemeralState.targetAssets.length > 0) ||
-            (isRedrawOn &&
-              mapState.ephemeralState.type === "drawLink" &&
+            (mapState.ephemeralState.type === "drawLink" &&
               mapState.ephemeralState.sourceLink);
 
           const combinedOverlay = [
@@ -404,7 +402,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isRedrawOn,
     isPumpIconOn,
   ]);
 

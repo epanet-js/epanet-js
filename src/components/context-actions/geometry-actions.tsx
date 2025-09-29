@@ -23,7 +23,6 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
-  const isRedrawOn = useFeatureFlag("FLAG_REDRAW");
   const isReverseOn = useFeatureFlag("FLAG_REVERSE");
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
@@ -62,7 +61,7 @@ export function useActions(
 
   const redrawAction = {
     icon: <RedrawIcon />,
-    applicable: Boolean(isRedrawOn && isOneLinkSelected),
+    applicable: Boolean(isOneLinkSelected),
     label: translate("redraw"),
     selected: currentMode === Mode.REDRAW_LINK,
     onSelect: function redrawLink() {

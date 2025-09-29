@@ -147,6 +147,7 @@
   "onboardingStartPipeEmpty": "Click anywhere to start drawing a pipe.",
   "onboardingCtrlPipe": "Hold {{1}} and click to end and start a new pipe immediately.",
   "onboardingDrawPipe": "Click to define vertices. Finish at a junction or double-click to add one.",
+  "onboardingRedrawLink": "Click to define new vertices for the selected link. Finish at a junction or double-click to add one.",
   "onboardingConnectCustomerPoints": "Click on a pipe to connect the customer point.",
   "onboardingShiftConnectCustomerPoints": "Hold {{1}} to connect the customer points at cursor location.",
   "onboardingStartPump": "Click on an existing node to draw a pump, or click anywhere to start with a new junction.",
