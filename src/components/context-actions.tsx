@@ -59,10 +59,12 @@ export default function ContextActions() {
 
   return (
     <div className="flex items-center">
-      <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
-        {translate("selection")} (
-        {pluralize(translate, "asset", selectedWrappedFeatures.length)})
-      </div>
+      {selectedWrappedFeatures.length > 1 && (
+        <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
+          {translate("selection")} (
+          {pluralize(translate, "asset", selectedWrappedFeatures.length)})
+        </div>
+      )}
       <GeometryActions
         selectedWrappedFeatures={selectedWrappedFeatures}
         as="root"
