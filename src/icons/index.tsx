@@ -34,7 +34,7 @@ import {
   Link2Off,
   Menu,
   MousePointer2,
-  PenLine,
+  PencilLine,
   Plus,
   RectangleHorizontal,
   Redo2,
@@ -95,7 +95,7 @@ export const WarningIcon = icon(TriangleAlert);
 export const ErrorIcon = icon(CircleX);
 export const UserIcon = icon(User);
 export const RefreshIcon = icon(RefreshCw);
-export const RedrawIcon = icon(PenLine);
+export const RedrawIcon = icon(PencilLine);
 export const ArrowRightIcon = icon(ArrowRight);
 export const ChevronUpIcon = icon(ChevronUp);
 export const ChevronRightIcon = icon(ChevronRight);
