@@ -1,8 +1,14 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+const isProtectedRoute = createRouteMatcher(["/api/canny-sso(.*)"]);
+
 export default clerkMiddleware(
-  (auth, request) => {
+  async (auth, request) => {
+    if (isProtectedRoute(request)) {
+      await auth.protect();
+    }
+
     if (request.nextUrl.pathname.startsWith("/api")) return NextResponse.next();
 
     const response = NextResponse.next();
