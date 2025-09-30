@@ -51,7 +51,6 @@ import {
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -192,7 +191,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isPumpIconOn = useFeatureFlag("FLAG_PUMP_ICON");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -230,12 +228,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(
-            map,
-            mapState.stylesConfig,
-            translate,
-            isPumpIconOn,
-          );
+          await updateLayerStyles(map, mapState.stylesConfig, translate);
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -402,7 +395,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isPumpIconOn,
   ]);
 
   doUpdates();
@@ -421,13 +413,12 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
-    isPumpIconOn?: boolean,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
     });
-    await map.setStyle(style, isPumpIconOn);
+    await map.setStyle(style);
   },
   { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
 );

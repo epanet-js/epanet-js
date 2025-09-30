@@ -8,7 +8,6 @@ import {
   buildPrvSvg,
   buildPsvSvg,
   buildPumpSvg,
-  buildPumpSvgDeprecated,
   buildTankSvg,
   buildReservoirSvg,
 } from "./dynamic-icons";
@@ -60,8 +59,8 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const buildIconUrls = (isPumpIconOn: boolean): IconUrl[] => {
-  const pumpSvgBuilder = isPumpIconOn ? buildPumpSvg : buildPumpSvgDeprecated;
+const buildIconUrls = (): IconUrl[] => {
+  const pumpSvgBuilder = buildPumpSvg;
 
   return [
     {
@@ -300,8 +299,8 @@ const buildIconUrls = (isPumpIconOn: boolean): IconUrl[] => {
 };
 
 export const prepareIconsSprite = withDebugInstrumentation(
-  async (isPumpIconOn = true): Promise<IconImage[]> => {
-    const currentIconUrls = buildIconUrls(isPumpIconOn);
+  async (): Promise<IconImage[]> => {
+    const currentIconUrls = buildIconUrls();
     const iconImages = await Promise.all(
       currentIconUrls.map((iconUrl) => fetchImage(iconUrl)),
     );
