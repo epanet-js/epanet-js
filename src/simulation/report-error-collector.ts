@@ -1,27 +1,29 @@
 import { captureError, setErrorContext } from "src/infra/error-tracking";
 
-type LineWithIssue = {
-  reportLine: string;
-  reason: string;
-};
-
 export class ReportErrorCollector {
-  private linesWithIssues: LineWithIssue[] = [];
+  private linesWithIssues: string[] = [];
 
-  collectLineWithIssue(reportLine: string, reason: string) {
-    this.linesWithIssues.push({ reportLine, reason });
+  collectMissingAssetId(
+    reportLine: string,
+    match: string,
+    id: string,
+    regexp: string,
+  ) {
+    this.linesWithIssues.push(
+      JSON.stringify({
+        reportLine,
+        reason: "missing_asset",
+        match,
+        id,
+        regexp,
+      }),
+    );
   }
 
   flushErrors() {
     if (this.linesWithIssues.length === 0) return;
 
-    const errorContext = {
-      totalLinesWithIssues: this.linesWithIssues.length,
-      reportLines: this.linesWithIssues.map((line) => line.reportLine),
-      reasons: this.linesWithIssues.map((line) => line.reason),
-    };
-
-    setErrorContext("Report Processing Issues", errorContext);
+    setErrorContext("Report Processing Issues", this.linesWithIssues);
 
     const errorMessage = `Report processing encountered ${this.linesWithIssues.length} lines with issues`;
 

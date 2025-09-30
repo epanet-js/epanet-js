@@ -37,7 +37,12 @@ export const processReportWithSlots = (
       processedText = processedText.replace(regexp, (match, id) => {
         const asset = assets.get(id) as Asset;
         if (!asset) {
-          errorCollector.collectLineWithIssue(row, "missing_asset");
+          errorCollector.collectMissingAssetId(
+            row,
+            match,
+            id,
+            regexp.toString(),
+          );
           return match;
         }
 

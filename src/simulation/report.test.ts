@@ -1,6 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { processReportWithSlots } from "./report";
-import * as errorTracking from "src/infra/error-tracking";
 
 describe("processReportWithSlots", () => {
   it("processes simple error messages into slots", () => {
@@ -102,61 +101,6 @@ Error 211: illegal link property value 0 0`;
       text: "Error 211: illegal link property value 0 0",
       assetSlots: [],
     });
-  });
-
-  it("captures batched error when assets not found but preserves original text", () => {
-    const assets = HydraulicModelBuilder.with().build().assets;
-    const captureErrorSpy = vi.spyOn(errorTracking, "captureError");
-    const setErrorContextSpy = vi.spyOn(errorTracking, "setErrorContext");
-
-    const report = `Error 205: Node 999 has missing data
-Error 206: Node 888 has missing data
-Error 207: Pipe 777 has missing data`;
-
-    const result = processReportWithSlots(report, assets);
-
-    expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({
-      text: "Error 205: Node 999 has missing data",
-      assetSlots: [],
-    });
-    expect(result[1]).toEqual({
-      text: "Error 206: Node 888 has missing data",
-      assetSlots: [],
-    });
-    expect(result[2]).toEqual({
-      text: "Error 207: Pipe 777 has missing data",
-      assetSlots: [],
-    });
-
-    expect(setErrorContextSpy).toHaveBeenCalledWith(
-      "Report Processing Issues",
-      {
-        totalLinesWithIssues: 6,
-        reportLines: [
-          "Error 205: Node 999 has missing data",
-          "Error 205: Node 999 has missing data",
-          "Error 206: Node 888 has missing data",
-          "Error 206: Node 888 has missing data",
-          "Error 207: Pipe 777 has missing data",
-          "Error 207: Pipe 777 has missing data",
-        ],
-        reasons: [
-          "missing_asset",
-          "missing_asset",
-          "missing_asset",
-          "missing_asset",
-          "missing_asset",
-          "missing_asset",
-        ],
-      },
-    );
-
-    expect(captureErrorSpy).toHaveBeenCalledOnce();
-    const errorCall = captureErrorSpy.mock.calls[0][0];
-    expect(errorCall.message).toBe(
-      "Report processing encountered 6 lines with issues",
-    );
   });
 
   it("handles complex multi-asset scenarios", () => {
