@@ -12,6 +12,8 @@ const valvesSectionRowRegExp =
   /^\s*(\d+)\t(\d+)\t(\d+)\t[\d.]+\t(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\t/i;
 const pipesSectionRowRegExp =
   /^\s*(\S+)\s+(\S+)\s+(\S+)\s+[\d.]+\s+[\d.]+\s+[\d.]+/;
+const pumpsSectionRowRegExp =
+  /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(?:HEAD|POWER|SPEED|PATTERN)\b/i;
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\s+(\d+)(?=\s+[a-z])/i;
 const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
 const assetReferenceRegExp =
@@ -22,6 +24,7 @@ const skipRegexp = [/Error 213/, /Error 211/];
 const idRegExps = [
   valvesSectionRowRegExp,
   pipesSectionRowRegExp,
+  pumpsSectionRowRegExp,
   valveTypeRegExp,
   errorMessageRegExp,
   assetReferenceRegExp,

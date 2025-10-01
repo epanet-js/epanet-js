@@ -187,4 +187,22 @@ Node 19 and Pipe 56`;
       assetSlots: ["P1", "J1", "J2"],
     });
   });
+
+  it("replaces IDs with labels in PUMPS section rows", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aPump("Pump1", { label: "MainPump" })
+      .aJunction("N12", { label: "Node12" })
+      .aJunction("N32", { label: "Node32" })
+      .build().assets;
+
+    const report = `Pump1   N12     N32     HEAD Curve1  SPEED 1.2`;
+
+    const result = processReportWithSlots(report, assets);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      text: "{{0}}   {{1}}     {{2}}     HEAD Curve1  SPEED 1.2",
+      assetSlots: ["Pump1", "N12", "N32"],
+    });
+  });
 });
