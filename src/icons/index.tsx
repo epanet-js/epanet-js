@@ -34,6 +34,7 @@ import {
   Link2Off,
   Menu,
   MousePointer2,
+  PanelLeft,
   PencilLine,
   Plus,
   RectangleHorizontal,
@@ -130,6 +131,7 @@ export const RunSimulationIcon = icon(Zap);
 export const ImportCustomerPointsIcon = icon(HousePlus);
 export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
+export const ToolsPanelIcon = icon(PanelLeft);
 export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);
 export const TankIcon = icon(RectangleHorizontal);

@@ -9,6 +9,7 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
+  ToolsPanelIcon,
 } from "src/icons";
 import Modes from "../modes";
 import ContextActions from "../context-actions";
@@ -33,6 +34,8 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
+import { useToggleNetworkReview } from "src/commands/toggle-network-review";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -164,6 +167,8 @@ export const Toolbar = () => {
         <FileTextIcon />
       </MenuAction>
       <Divider />
+      <NetworkReviewToggle />
+      <Divider />
       {isMdOrLarger && (
         <>
           <ContextActions />
@@ -176,4 +181,22 @@ export const Toolbar = () => {
 
 const Divider = () => {
   return <div className="border-r-2 border-gray-100 h-8 mx-1"></div>;
+};
+
+const NetworkReviewToggle = () => {
+  const translate = useTranslate();
+  const [isActive, toggleNetworkReview] = useToggleNetworkReview();
+  const isEnabled = useFeatureFlag("FLAG_NETWORK_REVIEW");
+  return !isEnabled ? null : (
+    <MenuAction
+      label={translate("viewNetworkReview")}
+      role="button"
+      selected={!!isActive}
+      onClick={() => {
+        toggleNetworkReview({ source: "toolbar" });
+      }}
+    >
+      <ToolsPanelIcon />
+    </MenuAction>
+  );
 };

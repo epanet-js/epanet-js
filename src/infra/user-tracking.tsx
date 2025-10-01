@@ -530,6 +530,11 @@ type SimulationReportAssetClicked = {
   assetType: Asset["type"] | null;
 };
 
+type NetworkReviewOpenned = {
+  name: "networkReview.opened";
+  source: string;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -617,6 +622,7 @@ export type UserEvent =
   | ModelBuilderCompleted
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
+  | NetworkReviewOpenned
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }

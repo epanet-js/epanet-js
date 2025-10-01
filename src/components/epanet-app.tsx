@@ -15,7 +15,7 @@ import React, {
   useState,
 } from "react";
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
-import { BottomPanel, SidePanel } from "src/components/panels";
+import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom } from "jotai";
@@ -137,6 +137,12 @@ export function EpanetApp() {
             "pb-10",
           )}
         >
+          {layout === "HORIZONTAL" && (
+            <>
+              <LeftSidePanel />
+              <Resizer side="left" />
+            </>
+          )}
           <DndContext
             sensors={sensor}
             modifiers={[restrictToWindowEdges]}

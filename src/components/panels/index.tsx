@@ -148,3 +148,17 @@ export const Panel = memo(function PanelInner() {
     </div>
   );
 });
+
+export const LeftSidePanel = memo(function LeftSidePanelInner() {
+  const splits = useAtomValue(splitsAtom);
+  if (!splits.leftOpen) return null;
+  return (
+    <div
+      style={{
+        width: splits.left,
+        height: "100%",
+      }}
+      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
+    ></div>
+  );
+});
