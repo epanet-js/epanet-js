@@ -8,6 +8,8 @@ export type ReportRow = {
 
 export type ProcessedReport = ReportRow[];
 
+const valvesSectionRowRegExp =
+  /^\s*(\d+)\t(\d+)\t(\d+)\t[\d.]+\t(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\t/i;
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\s+(\d+)(?=\s+[a-z])/i;
 const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
 const assetReferenceRegExp =
@@ -15,7 +17,12 @@ const assetReferenceRegExp =
 
 const skipRegexp = [/Error 213/, /Error 211/];
 
-const idRegExps = [valveTypeRegExp, errorMessageRegExp, assetReferenceRegExp];
+const idRegExps = [
+  valvesSectionRowRegExp,
+  valveTypeRegExp,
+  errorMessageRegExp,
+  assetReferenceRegExp,
+];
 
 export const processReportWithSlots = (
   report: string,
@@ -34,27 +41,37 @@ export const processReportWithSlots = (
     let slotIndex = 0;
 
     for (const regexp of idRegExps) {
-      processedText = processedText.replace(regexp, (match, id) => {
-        const asset = assets.get(id) as Asset;
-        if (!asset) {
-          errorCollector.collectMissingAssetId(
-            row,
-            match,
-            id,
-            regexp.toString(),
-          );
-          return match;
+      processedText = processedText.replace(regexp, (match, ...capturedIds) => {
+        let result = match;
+        let offsetAdjustment = 0;
+
+        for (const id of capturedIds) {
+          const asset = assets.get(id) as Asset;
+          if (!asset) {
+            errorCollector.collectMissingAssetId(
+              row,
+              match,
+              id,
+              regexp.toString(),
+            );
+            continue;
+          }
+
+          const groupIndexInMatch = result.indexOf(id, offsetAdjustment);
+          if (groupIndexInMatch === -1) continue;
+
+          const beforeId = result.slice(0, groupIndexInMatch);
+          const afterId = result.slice(groupIndexInMatch + id.length);
+          const slotMarker = `{{${slotIndex}}}`;
+
+          assetSlots.push(asset.id);
+          slotIndex++;
+
+          result = beforeId + slotMarker + afterId;
+          offsetAdjustment = groupIndexInMatch + slotMarker.length;
         }
 
-        const groupIndexInMatch = match.lastIndexOf(id);
-        const beforeId = match.slice(0, groupIndexInMatch);
-        const afterId = match.slice(groupIndexInMatch + id.length);
-        const slotMarker = `{{${slotIndex}}}`;
-
-        assetSlots.push(asset.id);
-        slotIndex++;
-
-        return beforeId + slotMarker + afterId;
+        return result;
       });
     }
 
