@@ -135,4 +135,22 @@ Node 19 and Pipe 56`;
       assetSlots: ["19", "56"],
     });
   });
+
+  it("does not match valve type in tabular data", () => {
+    const assets = HydraulicModelBuilder.with()
+      .aValve("7", { label: "V7" })
+      .aJunction("2", { label: "J2" })
+      .aJunction("0", { label: "J0" })
+      .build().assets;
+
+    const report = ` 7\t2\t2\t300\tTCV\t0\t0`;
+
+    const result = processReportWithSlots(report, assets);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      text: " 7\t2\t2\t300\tTCV\t0\t0",
+      assetSlots: [],
+    });
+  });
 });
