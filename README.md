@@ -44,6 +44,15 @@ This model helps prevent harmful free riding and keeps development sustainable. 
 pnpm install
 ```
 
+##### Issues with Apple Silicon
+We use the `node-canvas` library and the version we use does not include a packaged build for Apple Silicon. There is a build script available but `pnpm` does not launch it automatically. If you run into problems try the following:
+1. Manually install the dependencies to run the build script [official documentation](https://github.com/Automattic/node-canvas/wiki/Installation%3A-Mac-OS-X)
+2. Manually execute the `canvas` package build script
+```sh
+cd node_modules/canvas
+npm run install
+```
+
 #### Configuration
 
 Copy the contents from `.env.example` to `.env` and edit with the values from your accounts.
