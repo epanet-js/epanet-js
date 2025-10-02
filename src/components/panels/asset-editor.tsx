@@ -223,8 +223,14 @@ const AssetEditorInner = ({
         />
       );
     case "tank":
-      return (
+      return isNewPanelOn ? (
         <TankEditor
+          tank={asset as Tank}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
+        />
+      ) : (
+        <TankEditorDeprecated
           tank={asset as Tank}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -801,7 +807,7 @@ const AssetEditorContent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-5 p-4">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
           <span className="font-semibold">{label}</span>
@@ -868,8 +874,109 @@ const ReservoirEditorDeprecated = ({
     </PanelDetails>
   );
 };
-
 const TankEditor = ({
+  tank,
+  quantitiesMetadata,
+  onPropertyChange,
+}: {
+  tank: Tank;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+}) => {
+  const translate = useTranslate();
+  return (
+    <AssetEditorContent label={tank.label} type={translate("tank")}>
+      <AttributesSection name={"Model attributes"}>
+        <QuantityRow
+          name="elevation"
+          value={tank.elevation}
+          unit={quantitiesMetadata.getUnit("elevation")}
+          decimals={quantitiesMetadata.getDecimals("elevation")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="initialLevel"
+          value={tank.initialLevel}
+          unit={quantitiesMetadata.getUnit("initialLevel")}
+          decimals={quantitiesMetadata.getDecimals("initialLevel")}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+        />
+        <QuantityRow
+          name="minLevel"
+          value={tank.minLevel}
+          unit={quantitiesMetadata.getUnit("minLevel")}
+          decimals={quantitiesMetadata.getDecimals("minLevel")}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+        />
+        <QuantityRow
+          name="maxLevel"
+          value={tank.maxLevel}
+          unit={quantitiesMetadata.getUnit("maxLevel")}
+          decimals={quantitiesMetadata.getDecimals("maxLevel")}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+        />
+        <QuantityRow
+          name="diameter"
+          value={tank.diameter}
+          unit={quantitiesMetadata.getUnit("tankDiameter")}
+          decimals={quantitiesMetadata.getDecimals("diameter")}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          isNullable={false}
+        />
+        <QuantityRow
+          name="minVolume"
+          value={tank.minVolume}
+          unit={quantitiesMetadata.getUnit("minVolume")}
+          decimals={quantitiesMetadata.getDecimals("minVolume")}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+        />
+        <SwitchRow
+          name="overflow"
+          label={translate("canOverflow")}
+          enabled={tank.overflow}
+          onChange={onPropertyChange}
+        />
+      </AttributesSection>
+      <AttributesSection name="Simulation results">
+        <QuantityRow
+          name="pressure"
+          value={tank.pressure}
+          unit={quantitiesMetadata.getUnit("pressure")}
+          decimals={quantitiesMetadata.getDecimals("pressure")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="head"
+          value={tank.head}
+          unit={quantitiesMetadata.getUnit("head")}
+          decimals={quantitiesMetadata.getDecimals("head")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="level"
+          value={tank.level}
+          unit={quantitiesMetadata.getUnit("level")}
+          decimals={quantitiesMetadata.getDecimals("level")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="volume"
+          value={tank.volume}
+          unit={quantitiesMetadata.getUnit("volume")}
+          decimals={quantitiesMetadata.getDecimals("volume")}
+          readOnly={true}
+        />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const TankEditorDeprecated = ({
   tank,
   quantitiesMetadata,
   onPropertyChange,
@@ -935,7 +1042,7 @@ const TankEditor = ({
                 onChange={onPropertyChange}
                 positiveOnly={true}
               />
-              <SwitchRow
+              <SwitchRowDeprecated
                 name="overflow"
                 label={translate("canOverflow")}
                 enabled={tank.overflow}
@@ -1016,8 +1123,41 @@ const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
     </PropertyRow>
   );
 };
-
 const SwitchRow = ({
+  name,
+  label,
+  enabled,
+  onChange,
+}: {
+  name: string;
+  label?: string;
+  enabled: boolean;
+  onChange: (property: string, newValue: boolean, oldValue: boolean) => void;
+}) => {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
+
+  const handleToggle = (checked: boolean) => {
+    onChange(name, checked, enabled);
+  };
+
+  return (
+    <AttributeRow label={actualLabel}>
+      <div className="flex items-center p-1">
+        <Switch.Root
+          checked={enabled}
+          onCheckedChange={handleToggle}
+          aria-label={label}
+          className="w-[28px] h-[16px] bg-gray-300 rounded-full relative data-[state=checked]:bg-purple-300 transition-colors"
+        >
+          <Switch.Thumb className="block w-[12px] h-[12px] bg-white rounded-full shadow transition-transform translate-x-[2px] data-[state=checked]:translate-x-[14px]" />
+        </Switch.Root>
+      </div>
+    </AttributeRow>
+  );
+};
+
+const SwitchRowDeprecated = ({
   name,
   label,
   enabled,
@@ -1130,10 +1270,7 @@ const QuantityRow = ({
   };
 
   return (
-    <div className="flex items-center">
-      <span className="text-sm text-gray-500 w-[120px] flex-shrink-0">
-        {label}
-      </span>
+    <AttributeRow label={label}>
       <NumericField
         key={lastChange.current + displayValue}
         label={label}
@@ -1144,6 +1281,23 @@ const QuantityRow = ({
         onChangeValue={handleChange}
         styleOptions={{ padding: "sm" }}
       />
+    </AttributeRow>
+  );
+};
+
+const AttributeRow = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex items-center">
+      <span className="text-sm text-gray-500 w-[120px] flex-shrink-0">
+        {label}
+      </span>
+      {children}
     </div>
   );
 };
