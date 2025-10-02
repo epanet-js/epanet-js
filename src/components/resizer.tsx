@@ -73,13 +73,14 @@ export function solveSplits(
   splits: Splits,
   side: Side,
   newValue: number,
+  isCollapseAllowed: boolean,
 ): Splits {
   const otherSide = OTHER_SIDE[side];
   const windowWidth = window.innerWidth;
   const newSplits = { ...splits };
 
   if (newValue < MIN_SPLITS[side]) {
-    newSplits[`${side}Open`] = false;
+    if (isCollapseAllowed) newSplits[`${side}Open`] = false;
   } else {
     newSplits[side] = Math.min(newValue, windowWidth - MIN_MAP_WIDTH);
   }
@@ -102,7 +103,7 @@ export function solveSplits(
   return newSplits;
 }
 
-function useResize(side: Side) {
+function useResize(side: Side, isCollapseAllowed: boolean) {
   const [splits, setSplits] = useAtom(splitsAtom);
   const showPanel = splits[`${side}Open`];
   const rawSplit = useRef<number | null>(null);
@@ -117,7 +118,7 @@ function useResize(side: Side) {
       if (rawSplit.current === null) return;
       const raw = rawSplit.current;
       setSplits((splits) => {
-        return solveSplits(splits, side, raw);
+        return solveSplits(splits, side, raw, isCollapseAllowed);
       });
     },
     onMoveEnd() {
@@ -156,8 +157,14 @@ function useResizeBottom() {
   return { moveProps, splits };
 }
 
-export const Resizer = memo(function ResizerInner({ side }: { side: Side }) {
-  const { moveProps, showPanel, splits } = useResize(side);
+export const Resizer = memo(function ResizerInner({
+  side,
+  isToggleAllowed = true,
+}: {
+  side: Side;
+  isToggleAllowed?: boolean;
+}) {
+  const { moveProps, showPanel, splits } = useResize(side, isToggleAllowed);
 
   return (
     <>
@@ -178,7 +185,6 @@ export const Resizer = memo(function ResizerInner({ side }: { side: Side }) {
         justify-center
         w-1
         hover-none:w-3
-        z-max
         bg-opacity-0
         dark:bg-opacity-0
         hover-none:bg-opacity-40
@@ -200,7 +206,7 @@ export const Resizer = memo(function ResizerInner({ side }: { side: Side }) {
         bg-white"
         />
       </button>
-      {showPanel ? null : <PanelToggle side={side} />}
+      {showPanel ? null : isToggleAllowed && <PanelToggle side={side} />}
     </>
   );
 });
@@ -267,7 +273,6 @@ export const BottomResizer = memo(function BottomResizerInner() {
         justify-center
         h-1
         hover-none:w-3
-        z-max
         bg-opacity-0
         dark:bg-opacity-0
         hover-none:bg-opacity-40

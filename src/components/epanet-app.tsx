@@ -46,6 +46,7 @@ import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -65,6 +66,7 @@ export function EpanetApp() {
   useWindowResizeSplits();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
+  const isNetworkReviewEnabled = useFeatureFlag("FLAG_NETWORK_REVIEW");
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
@@ -137,12 +139,7 @@ export function EpanetApp() {
             "pb-10",
           )}
         >
-          {layout === "HORIZONTAL" && (
-            <>
-              <LeftSidePanel />
-              <Resizer side="left" />
-            </>
-          )}
+          {layout === "HORIZONTAL" && <LeftSidePanel />}
           <DndContext
             sensors={sensor}
             modifiers={[restrictToWindowEdges]}
@@ -164,6 +161,9 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
+              {isNetworkReviewEnabled && (
+                <Resizer side="left" isToggleAllowed={false} />
+              )}
               <Resizer side="right" />
             </>
           )}

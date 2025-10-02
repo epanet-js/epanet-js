@@ -168,7 +168,6 @@ export const Toolbar = () => {
       </MenuAction>
       <Divider />
       <NetworkReviewToggle />
-      <Divider />
       {isMdOrLarger && (
         <>
           <ContextActions />
@@ -188,15 +187,18 @@ const NetworkReviewToggle = () => {
   const [isActive, toggleNetworkReview] = useToggleNetworkReview();
   const isEnabled = useFeatureFlag("FLAG_NETWORK_REVIEW");
   return !isEnabled ? null : (
-    <MenuAction
-      label={translate("viewNetworkReview")}
-      role="button"
-      selected={!!isActive}
-      onClick={() => {
-        toggleNetworkReview({ source: "toolbar" });
-      }}
-    >
-      <ToolsPanelIcon />
-    </MenuAction>
+    <>
+      <MenuAction
+        label={translate("viewNetworkReview")}
+        role="button"
+        selected={!!isActive}
+        onClick={() => {
+          toggleNetworkReview({ source: "toolbar" });
+        }}
+      >
+        <ToolsPanelIcon />
+      </MenuAction>
+      <Divider />
+    </>
   );
 };
