@@ -50,6 +50,8 @@ import {
 } from "src/hydraulic-model/asset-types/valve";
 import { NumericField } from "../form/numeric-field";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import ContextActions from "../context-actions";
 
 export function AssetEditor({
   selectedFeature,
@@ -81,6 +83,7 @@ const AssetEditorInner = ({
   quantitiesMetadata: Quantities;
 }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const isNewPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -206,8 +209,14 @@ const AssetEditorInner = ({
         />
       );
     case "reservoir":
-      return (
+      return isNewPanelOn ? (
         <ReservoirEditor
+          reservoir={asset as Reservoir}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
+        />
+      ) : (
+        <ReservoirEditorDeprecated
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -281,7 +290,7 @@ const PipeEditor = ({
                 availableStatuses={pipeStatuses}
                 onChange={onStatusChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="diameter"
                 value={pipe.diameter}
                 positiveOnly={true}
@@ -290,7 +299,7 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="length"
                 value={pipe.length}
                 positiveOnly={true}
@@ -299,7 +308,7 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("length")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="roughness"
                 value={pipe.roughness}
                 positiveOnly={true}
@@ -307,7 +316,7 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("roughness")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="minorLoss"
                 value={pipe.minorLoss}
                 positiveOnly={true}
@@ -315,28 +324,28 @@ const PipeEditor = ({
                 decimals={quantitiesMetadata.getDecimals("minorLoss")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="flow"
                 value={pipe.flow}
                 unit={quantitiesMetadata.getUnit("flow")}
                 decimals={quantitiesMetadata.getDecimals("flow")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="velocity"
                 value={pipe.velocity}
                 unit={quantitiesMetadata.getUnit("velocity")}
                 decimals={quantitiesMetadata.getDecimals("velocity")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="unitHeadloss"
                 value={pipe.unitHeadloss}
                 unit={quantitiesMetadata.getUnit("unitHeadloss")}
                 decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="headlossShort"
                 value={pipe.headloss}
                 unit={quantitiesMetadata.getUnit("headloss")}
@@ -436,7 +445,7 @@ const ValveEditor = ({
                 }
               />
               {valve.kind === "tcv" && (
-                <QuantityRow
+                <QuantityRowDeprecated
                   name="setting"
                   value={valve.setting}
                   unit={null}
@@ -444,7 +453,7 @@ const ValveEditor = ({
                 />
               )}
               {["psv", "prv", "pbv"].includes(valve.kind) && (
-                <QuantityRow
+                <QuantityRowDeprecated
                   name="setting"
                   value={valve.setting}
                   unit={quantitiesMetadata.getUnit("pressure")}
@@ -452,7 +461,7 @@ const ValveEditor = ({
                 />
               )}
               {valve.kind === "fcv" && (
-                <QuantityRow
+                <QuantityRowDeprecated
                   name="setting"
                   value={valve.setting}
                   unit={quantitiesMetadata.getUnit("flow")}
@@ -467,7 +476,7 @@ const ValveEditor = ({
                   onStatusChange(newValue, oldValue);
                 }}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="diameter"
                 positiveOnly={true}
                 value={valve.diameter}
@@ -475,7 +484,7 @@ const ValveEditor = ({
                 decimals={quantitiesMetadata.getDecimals("diameter")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="minorLoss"
                 positiveOnly={true}
                 value={valve.minorLoss}
@@ -483,21 +492,21 @@ const ValveEditor = ({
                 decimals={quantitiesMetadata.getDecimals("minorLoss")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="flow"
                 readOnly={true}
                 value={valve.flow}
                 unit={quantitiesMetadata.getUnit("flow")}
                 decimals={quantitiesMetadata.getDecimals("flow")}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="velocity"
                 readOnly={true}
                 value={valve.velocity}
                 unit={quantitiesMetadata.getUnit("velocity")}
                 decimals={quantitiesMetadata.getDecimals("velocity")}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="headlossShort"
                 readOnly={true}
                 value={valve.headloss}
@@ -568,7 +577,7 @@ const PumpEditor = ({
                 }}
               />
               {pump.definitionType === "power" && (
-                <QuantityRow
+                <QuantityRowDeprecated
                   name="power"
                   value={pump.power}
                   unit={quantitiesMetadata.getUnit("power")}
@@ -578,14 +587,14 @@ const PumpEditor = ({
               )}
               {pump.definitionType === "flow-vs-head" && (
                 <>
-                  <QuantityRow
+                  <QuantityRowDeprecated
                     name="designFlow"
                     value={pump.designFlow}
                     unit={quantitiesMetadata.getUnit("flow")}
                     decimals={quantitiesMetadata.getDecimals("flow")}
                     onChange={onPropertyChange}
                   />
-                  <QuantityRow
+                  <QuantityRowDeprecated
                     name="designHead"
                     value={pump.designHead}
                     unit={quantitiesMetadata.getUnit("head")}
@@ -594,7 +603,7 @@ const PumpEditor = ({
                   />
                 </>
               )}
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="speed"
                 value={pump.speed}
                 unit={quantitiesMetadata.getUnit("speed")}
@@ -608,14 +617,14 @@ const PumpEditor = ({
                 availableStatuses={pumpStatuses}
                 onChange={onStatusChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="flow"
                 value={pump.flow}
                 unit={quantitiesMetadata.getUnit("flow")}
                 decimals={quantitiesMetadata.getDecimals("flow")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="pumpHead"
                 value={pump.head}
                 unit={quantitiesMetadata.getUnit("headloss")}
@@ -669,7 +678,7 @@ const JunctionEditor = ({
             <PropertyTableHead />
             <tbody>
               <TextRowReadOnly name="label" value={junction.label} />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="elevation"
                 value={junction.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
@@ -721,21 +730,21 @@ const JunctionEditor = ({
                   />
                 </PropertyRow>
               )}
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="pressure"
                 value={junction.pressure}
                 unit={quantitiesMetadata.getUnit("pressure")}
                 decimals={quantitiesMetadata.getDecimals("pressure")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="head"
                 value={junction.head}
                 unit={quantitiesMetadata.getUnit("head")}
                 decimals={quantitiesMetadata.getDecimals("head")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="actualDemand"
                 value={junction.actualDemand}
                 unit={quantitiesMetadata.getUnit("actualDemand")}
@@ -761,6 +770,76 @@ const ReservoirEditor = ({
 }) => {
   const translate = useTranslate();
   return (
+    <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
+      <AttributesSection name={"Model attributes"}>
+        <QuantityRow
+          name="elevation"
+          value={reservoir.elevation}
+          unit={quantitiesMetadata.getUnit("elevation")}
+          decimals={quantitiesMetadata.getDecimals("elevation")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="head"
+          value={reservoir.head}
+          unit={quantitiesMetadata.getUnit("head")}
+          decimals={quantitiesMetadata.getDecimals("head")}
+          onChange={onPropertyChange}
+        />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const AssetEditorContent = ({
+  label,
+  type,
+  children,
+}: {
+  label: string;
+  type: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">{label}</span>
+          <ContextActions />
+        </div>
+        <span className="text-xs text-gray-500">{type}</span>
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const AttributesSection = ({
+  name,
+  children,
+}: {
+  name: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex flex-col">
+      <span className="text-sm font-semibold pb-3">{name}</span>
+      <div className="flex flex-col gap-2">{children}</div>
+    </div>
+  );
+};
+
+const ReservoirEditorDeprecated = ({
+  reservoir,
+  quantitiesMetadata,
+  onPropertyChange,
+}: {
+  reservoir: Reservoir;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+}) => {
+  const translate = useTranslate();
+  return (
     <PanelDetails title={translate("reservoir")} variant="fullwidth">
       <div className="pb-3 contain-layout">
         <div className="overflow-y-auto placemark-scrollbar" data-focus-scope>
@@ -768,14 +847,14 @@ const ReservoirEditor = ({
             <PropertyTableHead />
             <tbody>
               <TextRowReadOnly name="label" value={reservoir.label} />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="elevation"
                 value={reservoir.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals("elevation")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="head"
                 value={reservoir.head}
                 unit={quantitiesMetadata.getUnit("head")}
@@ -808,14 +887,14 @@ const TankEditor = ({
             <PropertyTableHead />
             <tbody>
               <TextRowReadOnly name="label" value={tank.label} />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="elevation"
                 value={tank.elevation}
                 unit={quantitiesMetadata.getUnit("elevation")}
                 decimals={quantitiesMetadata.getDecimals("elevation")}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="initialLevel"
                 value={tank.initialLevel}
                 unit={quantitiesMetadata.getUnit("initialLevel")}
@@ -823,7 +902,7 @@ const TankEditor = ({
                 onChange={onPropertyChange}
                 positiveOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="minLevel"
                 value={tank.minLevel}
                 unit={quantitiesMetadata.getUnit("minLevel")}
@@ -831,7 +910,7 @@ const TankEditor = ({
                 onChange={onPropertyChange}
                 positiveOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="maxLevel"
                 value={tank.maxLevel}
                 unit={quantitiesMetadata.getUnit("maxLevel")}
@@ -839,7 +918,7 @@ const TankEditor = ({
                 onChange={onPropertyChange}
                 positiveOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="diameter"
                 value={tank.diameter}
                 unit={quantitiesMetadata.getUnit("tankDiameter")}
@@ -848,7 +927,7 @@ const TankEditor = ({
                 positiveOnly={true}
                 isNullable={false}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="minVolume"
                 value={tank.minVolume}
                 unit={quantitiesMetadata.getUnit("minVolume")}
@@ -862,28 +941,28 @@ const TankEditor = ({
                 enabled={tank.overflow}
                 onChange={onPropertyChange}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="pressure"
                 value={tank.pressure}
                 unit={quantitiesMetadata.getUnit("pressure")}
                 decimals={quantitiesMetadata.getDecimals("pressure")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="head"
                 value={tank.head}
                 unit={quantitiesMetadata.getUnit("head")}
                 decimals={quantitiesMetadata.getDecimals("head")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="level"
                 value={tank.level}
                 unit={quantitiesMetadata.getUnit("level")}
                 decimals={quantitiesMetadata.getDecimals("level")}
                 readOnly={true}
               />
-              <QuantityRow
+              <QuantityRowDeprecated
                 name="volume"
                 value={tank.volume}
                 unit={quantitiesMetadata.getUnit("volume")}
@@ -1014,6 +1093,62 @@ const StatusRow = <T extends AssetStatus>({
 };
 
 const QuantityRow = ({
+  name,
+  value,
+  unit,
+  decimals,
+  positiveOnly = false,
+  readOnly = false,
+  isNullable = true,
+  onChange,
+}: {
+  name: string;
+  value: number | null;
+  unit: Unit;
+  positiveOnly?: boolean;
+  isNullable?: boolean;
+  readOnly?: boolean;
+  decimals?: number;
+  onChange?: (name: string, newValue: number, oldValue: number | null) => void;
+}) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const lastChange = useRef<number>(0);
+
+  const displayValue =
+    value === null
+      ? translate("notAvailable")
+      : localizeDecimal(value, { decimals });
+
+  const label = unit
+    ? `${translate(name)} (${translateUnit(unit)})`
+    : `${translate(name)}`;
+
+  const handleChange = (newValue: number) => {
+    lastChange.current = Date.now();
+    onChange && onChange(name, newValue, value);
+  };
+
+  return (
+    <div className="flex items-center">
+      <span className="text-sm text-gray-500 w-[120px] flex-shrink-0">
+        {label}
+      </span>
+      <NumericField
+        key={lastChange.current + displayValue}
+        label={label}
+        positiveOnly={positiveOnly}
+        isNullable={isNullable}
+        readOnly={readOnly}
+        displayValue={displayValue}
+        onChangeValue={handleChange}
+        styleOptions={{ padding: "sm" }}
+      />
+    </div>
+  );
+};
+
+const QuantityRowDeprecated = ({
   name,
   value,
   unit,
