@@ -23,7 +23,9 @@ export class ReportErrorCollector {
   flushErrors() {
     if (this.linesWithIssues.length === 0) return;
 
-    setErrorContext("Report Processing Issues", this.linesWithIssues);
+    setErrorContext("Report Processing Issues", {
+      issues: this.linesWithIssues,
+    });
 
     const errorMessage = `Report processing encountered ${this.linesWithIssues.length} lines with issues`;
 
