@@ -208,7 +208,6 @@
   "autoElevations": "Auto-Elevations",
   "on": "On",
   "viewReport": "View Report",
-  "viewNetworkReview": "Review Network",
   "ignore": "Ignore",
   "loading": "Loading...",
   "ok": "OK",
@@ -561,6 +560,17 @@
       "reconnect": "Reconnect",
       "disconnect": "Disconnect",
       "customerPointSelected": "{{1}} customer point"
+    }
+  },
+  "networkReview": {
+    "toggle": "Review Network",
+    "title": "Network Review",
+    "description": "Perfom a series of checks to make sure you will be able to run a simulation.",
+    "connectivityTrace": {
+      "title": "Connectivity trace"
+    },
+    "orphanNodes": {
+      "title": "Orphan nodes"
     }
   }
 }

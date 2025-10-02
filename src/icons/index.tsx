@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   Circle,
   CircleCheck,
+  CircleDotDashed,
   CircleQuestionMark,
   CircleSlash2,
   CircleX,
@@ -54,6 +55,7 @@ import {
   Undo2,
   Upload,
   User,
+  Waypoints,
   X,
   Zap,
 } from "lucide-react";
@@ -144,6 +146,8 @@ export const VisibilityOffIcon = icon(EyeOff);
 export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
+export const ConnectivityTraceIcon = icon(Waypoints);
+export const OrphanNodeIcon = icon(CircleDotDashed);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

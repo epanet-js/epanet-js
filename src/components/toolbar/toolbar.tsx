@@ -189,7 +189,7 @@ const NetworkReviewToggle = () => {
   return !isEnabled ? null : (
     <>
       <MenuAction
-        label={translate("viewNetworkReview")}
+        label={translate("networkReview.toggle")}
         role="button"
         selected={!!isActive}
         onClick={() => {

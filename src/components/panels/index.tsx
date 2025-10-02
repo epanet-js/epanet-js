@@ -13,6 +13,7 @@ import FeatureEditor from "src/components/panels/feature-editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
+import { NetworkReview } from "./network-review";
 
 function Tab({
   onClick,
@@ -159,6 +160,8 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
         height: "100%",
       }}
       className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
-    ></div>
+    >
+      <NetworkReview />
+    </div>
   );
 });
