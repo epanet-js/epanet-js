@@ -124,10 +124,10 @@ export const ColorRampSelector = ({
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
-    "border rounded-sm border-transparent hover:border-gray-300",
+    "border rounded-sm border-gray-200",
     "text-sm text-gray-700",
     "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
-    "px-2 py-2 min-h-9",
+    "p-2 min-h-9 w-full",
   );
 
   const contentStyles = `bg-white w-[--radix-select-trigger-width] border text-sm rounded-sm shadow-md z-50`;

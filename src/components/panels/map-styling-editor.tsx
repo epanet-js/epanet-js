@@ -155,7 +155,6 @@ const SymbologyEditor = ({
     <PanelSection title={title}>
       <InlineField name={translate("colorBy")}>
         <Selector
-          styleOptions={{ border: false }}
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
           options={(["none", ...properties] as SelectOption[]).map((type) => {
             const unit = type !== "none" ? quantities.getUnit(type) : null;
@@ -253,7 +252,7 @@ const RangeColorRuleEditorTrigger = ({
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <SelectorLikeButton styleOptions={{ border: false }}>
+        <SelectorLikeButton>
           {translate(mode)}, {numIntervals}
         </SelectorLikeButton>
       </Popover.Trigger>
