@@ -207,8 +207,17 @@ const AssetEditorInner = ({
       );
     case "valve":
       const valve = asset as Valve;
-      return (
+      return isNewPanelOn ? (
         <ValveEditor
+          valve={valve}
+          onPropertyChange={handlePropertyChange}
+          quantitiesMetadata={quantitiesMetadata}
+          onStatusChange={handleStatusChange}
+          onTypeChange={handleValveKindChange}
+          {...getLinkNodes(hydraulicModel.assets, valve)}
+        />
+      ) : (
+        <ValveEditorDeprecated
           valve={valve}
           onPropertyChange={handlePropertyChange}
           quantitiesMetadata={quantitiesMetadata}
@@ -516,6 +525,138 @@ export const valveStatusLabel = (valve: Valve) => {
 };
 
 const ValveEditor = ({
+  valve,
+  startNode,
+  endNode,
+  quantitiesMetadata,
+  onPropertyChange,
+  onStatusChange,
+  onTypeChange,
+}: {
+  valve: Valve;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
+  quantitiesMetadata: Quantities;
+  onStatusChange: OnStatusChange<ValveStatus>;
+  onPropertyChange: OnPropertyChange;
+  onTypeChange: OnTypeChange<ValveKind>;
+}) => {
+  const translate = useTranslate();
+  const statusText = translate(valveStatusLabel(valve));
+
+  const statusOptions = useMemo(() => {
+    return [
+      { label: translate("valve.active"), value: "active" },
+      { label: translate("valve.open"), value: "open" },
+      { label: translate("valve.closed"), value: "closed" },
+    ] as { label: string; value: ValveStatus }[];
+  }, [translate]);
+
+  const kindOptions = useMemo(() => {
+    return valveKinds.map((kind) => {
+      return {
+        label: kind.toUpperCase(),
+        description: translate(`valve.${kind}.detailed`),
+        value: kind,
+      };
+    });
+  }, [translate]);
+
+  const handleKindChange = (
+    name: string,
+    newValue: ValveKind,
+    oldValue: ValveKind,
+  ) => {
+    onTypeChange(newValue, oldValue);
+  };
+
+  const handleStatusChange = (
+    name: string,
+    newValue: ValveStatus,
+    oldValue: ValveStatus,
+  ) => {
+    onStatusChange(newValue, oldValue);
+  };
+
+  const getSettingUnit = () => {
+    if (valve.kind === "tcv") return null;
+    if (["psv", "prv", "pbv"].includes(valve.kind))
+      return quantitiesMetadata.getUnit("pressure");
+    if (valve.kind === "fcv") return quantitiesMetadata.getUnit("flow");
+    return null;
+  };
+
+  return (
+    <AssetEditorContent label={valve.label} type={translate("valve")}>
+      <AttributesSection name="Connections">
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </AttributesSection>
+      <AttributesSection name="Model attributes">
+        <SelectRow
+          name="valveType"
+          selected={valve.kind}
+          options={kindOptions}
+          onChange={handleKindChange}
+        />
+        <QuantityRow
+          name="setting"
+          value={valve.setting}
+          unit={getSettingUnit()}
+          onChange={onPropertyChange}
+        />
+        <SelectRow
+          name="initialStatus"
+          selected={valve.initialStatus}
+          options={statusOptions}
+          onChange={handleStatusChange}
+        />
+        <QuantityRow
+          name="diameter"
+          value={valve.diameter}
+          positiveOnly={true}
+          unit={quantitiesMetadata.getUnit("diameter")}
+          decimals={quantitiesMetadata.getDecimals("diameter")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="minorLoss"
+          value={valve.minorLoss}
+          positiveOnly={true}
+          unit={quantitiesMetadata.getUnit("minorLoss")}
+          decimals={quantitiesMetadata.getDecimals("minorLoss")}
+          onChange={onPropertyChange}
+        />
+      </AttributesSection>
+      <AttributesSection name="Simulation results">
+        <QuantityRow
+          name="flow"
+          value={valve.flow}
+          unit={quantitiesMetadata.getUnit("flow")}
+          decimals={quantitiesMetadata.getDecimals("flow")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="velocity"
+          value={valve.velocity}
+          unit={quantitiesMetadata.getUnit("velocity")}
+          decimals={quantitiesMetadata.getDecimals("velocity")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="headlossShort"
+          value={valve.headloss}
+          unit={quantitiesMetadata.getUnit("headloss")}
+          decimals={quantitiesMetadata.getDecimals("headloss")}
+          readOnly={true}
+        />
+        <TextRow name="status" value={statusText} />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const ValveEditorDeprecated = ({
   valve,
   startNode,
   endNode,
@@ -1300,7 +1441,7 @@ const TextField = ({ children }: { children: React.ReactNode }) => (
   <span className="w-full p-2 text-sm text-gray-700">{children}</span>
 );
 
-const SelectRow = <T extends PipeStatus>({
+const SelectRow = <T extends PipeStatus | ValveKind | ValveStatus>({
   name,
   label,
   selected,
@@ -1310,7 +1451,7 @@ const SelectRow = <T extends PipeStatus>({
   name: string;
   label?: string;
   selected: T;
-  options: { label: string; value: T }[];
+  options: { label: string; description?: string; value: T }[];
   onChange: (name: string, newValue: T, oldValue: T) => void;
 }) => {
   const translate = useTranslate();
