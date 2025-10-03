@@ -12,9 +12,12 @@ import {
   ToolsPanelIcon,
 } from "src/icons";
 import Modes from "../modes";
-import ContextActions from "../context-actions";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/jotai";
+import {
+  simulationAtom,
+  selectedFeaturesAtom,
+  selectionAtom,
+} from "src/state/jotai";
 import {
   saveAsShortcut,
   saveShortcut,
@@ -36,6 +39,7 @@ import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ContextActions } from "../context-actions";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -49,9 +53,16 @@ export const Toolbar = () => {
   const { undo, redo } = useHistoryControl();
 
   const simulation = useAtomValue(simulationAtom);
+  const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+  const selection = useAtomValue(selectionAtom);
 
   const isMdOrLarger = useBreakpoint("md");
   const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
+
+  const shouldHideContextActions =
+    isAssetPanelOn &&
+    selectedWrappedFeatures.length === 1 &&
+    selection.type !== "singleCustomerPoint";
 
   return (
     <div
@@ -169,7 +180,7 @@ export const Toolbar = () => {
       </MenuAction>
       <Divider />
       <NetworkReviewToggle />
-      {isMdOrLarger && !isAssetPanelOn && (
+      {isMdOrLarger && !shouldHideContextActions && (
         <>
           <ContextActions />
           <div className="flex-auto" />

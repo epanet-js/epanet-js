@@ -54,7 +54,7 @@ import {
 import { NumericField } from "../form/numeric-field";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import ContextActions from "../context-actions";
+import { ContextActions } from "../context-actions";
 
 export function AssetEditor({
   selectedFeature,

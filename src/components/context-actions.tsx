@@ -34,7 +34,7 @@ export function ToolbarTrigger({
   );
 }
 
-export default function ContextActions() {
+export function ContextActions() {
   const translate = useTranslate();
   const selection = useAtomValue(selectionAtom);
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
