@@ -957,7 +957,7 @@ const AttributesSection = ({
   return (
     <div className="flex flex-col">
       <span className="text-sm font-semibold pb-3">{name}</span>
-      <div className="flex flex-col gap-2">{children}</div>
+      <div className="flex flex-col gap-1">{children}</div>
     </div>
   );
 };
@@ -1272,7 +1272,7 @@ const SwitchRow = ({
 
   return (
     <AttributeRow label={actualLabel}>
-      <div className="flex items-center p-1">
+      <div className="flex items-center px-1 py-2">
         <Switch.Root
           checked={enabled}
           onCheckedChange={handleToggle}
@@ -1291,7 +1291,7 @@ const TextRow = ({ name, value }: { name: string; value: string }) => {
   const label = translate(name);
   return (
     <AttributeRow label={label}>
-      <span className="text-sm text-gray-700">{value}</span>
+      <span className="w-full p-2 text-sm text-gray-700">{value}</span>
     </AttributeRow>
   );
 };
