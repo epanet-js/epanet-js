@@ -195,8 +195,17 @@ const AssetEditorInner = ({
       );
     case "pump":
       const pump = asset as Pump;
-      return (
+      return isNewPanelOn ? (
         <PumpEditor
+          pump={pump}
+          onPropertyChange={handlePropertyChange}
+          onStatusChange={handleStatusChange}
+          onDefinitionTypeChange={handleDefinitionTypeChange}
+          quantitiesMetadata={quantitiesMetadata}
+          {...getLinkNodes(hydraulicModel.assets, pump)}
+        />
+      ) : (
+        <PumpEditorDeprecated
           pump={pump}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
@@ -797,6 +806,134 @@ const ValveEditorDeprecated = ({
 };
 
 const PumpEditor = ({
+  pump,
+  startNode,
+  endNode,
+  onStatusChange,
+  onPropertyChange,
+  onDefinitionTypeChange,
+  quantitiesMetadata,
+}: {
+  pump: Pump;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
+  onPropertyChange: OnPropertyChange;
+  onStatusChange: OnStatusChange<PumpStatus>;
+  onDefinitionTypeChange: (
+    newType: PumpDefintionType,
+    oldType: PumpDefintionType,
+  ) => void;
+  quantitiesMetadata: Quantities;
+}) => {
+  const translate = useTranslate();
+  const statusText = translate(pumpStatusLabel(pump));
+
+  const definitionOptions = useMemo(() => {
+    return [
+      { label: translate("constantPower"), value: "power" },
+      { label: translate("flowVsHead"), value: "flow-vs-head" },
+    ] as { label: string; value: PumpDefintionType }[];
+  }, [translate]);
+
+  const statusOptions = useMemo(() => {
+    return pumpStatuses.map((status) => ({
+      label: translate(`pump.${status}`),
+      value: status,
+    }));
+  }, [translate]);
+
+  const handleDefinitionTypeChange = (
+    name: string,
+    newValue: PumpDefintionType,
+    oldValue: PumpDefintionType,
+  ) => {
+    onDefinitionTypeChange(newValue, oldValue);
+  };
+
+  const handleStatusChange = (
+    name: string,
+    newValue: PumpStatus,
+    oldValue: PumpStatus,
+  ) => {
+    onStatusChange(newValue, oldValue);
+  };
+
+  return (
+    <AssetEditorContent label={pump.label} type={translate("pump")}>
+      <AttributesSection name="Connections">
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </AttributesSection>
+      <AttributesSection name="Model attributes">
+        <SelectRow
+          name="pumpType"
+          selected={pump.definitionType}
+          options={definitionOptions}
+          onChange={handleDefinitionTypeChange}
+        />
+        {pump.definitionType === "power" && (
+          <QuantityRow
+            name="power"
+            value={pump.power}
+            unit={quantitiesMetadata.getUnit("power")}
+            decimals={quantitiesMetadata.getDecimals("power")}
+            onChange={onPropertyChange}
+          />
+        )}
+        {pump.definitionType === "flow-vs-head" && (
+          <>
+            <QuantityRow
+              name="designFlow"
+              value={pump.designFlow}
+              unit={quantitiesMetadata.getUnit("flow")}
+              decimals={quantitiesMetadata.getDecimals("flow")}
+              onChange={onPropertyChange}
+            />
+            <QuantityRow
+              name="designHead"
+              value={pump.designHead}
+              unit={quantitiesMetadata.getUnit("head")}
+              decimals={quantitiesMetadata.getDecimals("head")}
+              onChange={onPropertyChange}
+            />
+          </>
+        )}
+        <QuantityRow
+          name="speed"
+          value={pump.speed}
+          unit={quantitiesMetadata.getUnit("speed")}
+          decimals={quantitiesMetadata.getDecimals("speed")}
+          onChange={onPropertyChange}
+        />
+        <SelectRow
+          name="initialStatus"
+          selected={pump.initialStatus}
+          options={statusOptions}
+          onChange={handleStatusChange}
+        />
+      </AttributesSection>
+      <AttributesSection name="Simulation results">
+        <QuantityRow
+          name="flow"
+          value={pump.flow}
+          unit={quantitiesMetadata.getUnit("flow")}
+          decimals={quantitiesMetadata.getDecimals("flow")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="pumpHead"
+          value={pump.head}
+          unit={quantitiesMetadata.getUnit("headloss")}
+          decimals={quantitiesMetadata.getDecimals("headloss")}
+          readOnly={true}
+        />
+        <TextRow name="status" value={statusText} />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const PumpEditorDeprecated = ({
   pump,
   startNode,
   endNode,
@@ -1441,7 +1578,14 @@ const TextField = ({ children }: { children: React.ReactNode }) => (
   <span className="w-full p-2 text-sm text-gray-700">{children}</span>
 );
 
-const SelectRow = <T extends PipeStatus | ValveKind | ValveStatus>({
+const SelectRow = <
+  T extends
+    | PipeStatus
+    | ValveKind
+    | ValveStatus
+    | PumpDefintionType
+    | PumpStatus,
+>({
   name,
   label,
   selected,
