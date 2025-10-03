@@ -1212,7 +1212,7 @@ const AssetEditorContent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex flex-col gap-5 p-4">
+    <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
           <span className="font-semibold">{label}</span>
