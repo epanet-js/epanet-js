@@ -12,32 +12,30 @@ export function NetworkReview() {
   const translate = useTranslate();
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
-      <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-900 border-gray-200 dark:border-gray-900">
-        <div className="px-3 py-5">
-          <div className="flex items-start justify-between text-sm font-bold text-gray-900 dark:text-white pb-3">
-            {translate("networkReview.title")}
-          </div>
-          <div className="items-start text-sm">
-            {translate("networkReview.description")}
-          </div>
-        </div>
+      <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100">
+        {translate("networkReview.title")}
       </div>
-      <ReviewCheck
-        icon={<ConnectivityTraceIcon />}
-        label={translate("networkReview.connectivityTrace.title")}
-      />
-      <ReviewCheck
-        icon={<OrphanNodeIcon />}
-        label={translate("networkReview.orphanNodes.title")}
-      />
-      <ReviewCheck
-        icon={<ProximityCheckIcon />}
-        label={translate("networkReview.proximityCheck.title")}
-      />
-      <ReviewCheck
-        icon={<PipesCrossinIcon />}
-        label={translate("networkReview.crossingPipes.title")}
-      />
+      <div className="px-4 py-2 text-sm">
+        {translate("networkReview.description")}
+      </div>
+      <div className="flex-auto px-1">
+        <ReviewCheck
+          icon={<ConnectivityTraceIcon />}
+          label={translate("networkReview.connectivityTrace.title")}
+        />
+        <ReviewCheck
+          icon={<OrphanNodeIcon />}
+          label={translate("networkReview.orphanNodes.title")}
+        />
+        <ReviewCheck
+          icon={<ProximityCheckIcon />}
+          label={translate("networkReview.proximityCheck.title")}
+        />
+        <ReviewCheck
+          icon={<PipesCrossinIcon />}
+          label={translate("networkReview.crossingPipes.title")}
+        />
+      </div>
     </div>
   );
 }
