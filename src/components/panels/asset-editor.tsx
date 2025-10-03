@@ -1333,7 +1333,7 @@ const AttributesSection = ({
 }) => {
   return (
     <div className="flex flex-col">
-      <span className="text-sm font-semibold pb-3">{name}</span>
+      <span className="text-sm font-semibold pb-2">{name}</span>
       <div className="flex flex-col gap-1">{children}</div>
     </div>
   );
