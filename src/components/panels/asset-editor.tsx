@@ -1453,7 +1453,7 @@ const QuantityRow = ({
         readOnly={readOnly}
         displayValue={displayValue}
         onChangeValue={handleChange}
-        styleOptions={{ padding: "md" }}
+        styleOptions={{ padding: "md", ghostBorder: readOnly, textSize: "sm" }}
       />
     </AttributeRow>
   );

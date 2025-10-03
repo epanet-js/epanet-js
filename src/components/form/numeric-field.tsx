@@ -10,8 +10,10 @@ import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
 import clsx from "clsx";
 
 type StyleOptions = {
+  textSize?: "xs" | "sm" | "md";
   padding?: "md" | "sm";
   border?: "sm" | "none";
+  ghostBorder?: boolean;
   variant?: "default" | "warning";
 };
 
@@ -146,6 +148,8 @@ function styledInput({
   padding = "md",
   border = "sm",
   variant = "default",
+  textSize = "xs",
+  ghostBorder = false,
 }: StyleOptions = {}) {
   return clsx(
     "text-gray-700 dark:text-gray-100",
@@ -155,16 +159,21 @@ function styledInput({
     },
     {
       "border-none": border === "none",
-      "border border-gray-300 focus-visible:border-transparent":
-        border === "sm",
+      "border focus-visible:border-transparent": border === "sm",
     },
+    ghostBorder ? "border-transparent" : "border-gray-300",
     {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
         variant === "default",
       "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
         variant === "warning",
     },
+    {
+      "text-xs": textSize === "xs",
+      "text-sm": textSize === "sm",
+      "text-md": textSize === "md",
+    },
 
-    "bg-transparent block tabular-nums text-xs overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
+    "bg-transparent block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
