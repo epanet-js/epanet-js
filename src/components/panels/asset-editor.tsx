@@ -1864,7 +1864,10 @@ const AttributeRow = ({
 }) => {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-sm text-gray-500 w-[120px] flex-shrink-0">
+      <span
+        aria-label={`key: ${label}`}
+        className="text-sm text-gray-500 w-[120px] flex-shrink-0"
+      >
         {label}
       </span>
       {children}

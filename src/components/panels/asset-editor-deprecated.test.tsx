@@ -11,14 +11,8 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "./feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 describe("AssetEditor", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_ASSET_PANEL");
-  });
-
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const pipeId = "P1";
@@ -44,20 +38,17 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
-      expect(screen.getByText("Pipe")).toBeInTheDocument();
-      expect(
-        screen.getByRole("combobox", {
-          name: /initial status/i,
-        }),
-      ).toHaveTextContent("Open");
-      expectTextPropertyDisplayed("start node", "J1");
-      expectTextPropertyDisplayed("end node", "J2");
+      expect(screen.getByText(/pipe/i)).toBeInTheDocument();
+
+      expectStatusDisplayed("Open");
+      expectPropertyDisplayed("label", "MY_PIPE");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
       expectPropertyDisplayed("diameter (mm)", "100.1");
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
       expectPropertyDisplayed("loss coeff. (m)", "0.1");
-      expect(screen.queryAllByText("Not Available").length).toBeGreaterThan(0);
+      expectPropertyDisplayed("flow", "Not Available");
     });
 
     it("can show simulation results", () => {
@@ -80,10 +71,10 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
-      expectTextPropertyDisplayed("velocity (m/s)", "10.123");
-      expectTextPropertyDisplayed("headloss (m)", "0.234");
-      expectTextPropertyDisplayed("unit headloss (m/km)", "0.123");
+      expectPropertyDisplayed("flow (l/s)", "20.123");
+      expectPropertyDisplayed("velocity (m/s)", "10.123");
+      expectPropertyDisplayed("headloss (m)", "0.234");
+      expectPropertyDisplayed("unit headloss (m/km)", "0.123");
     });
   });
 
@@ -107,10 +98,11 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_VALVE")).toBeInTheDocument();
-      expect(screen.getByText("Valve")).toBeInTheDocument();
-      expectTextPropertyDisplayed("start node", "J1");
-      expectTextPropertyDisplayed("end node", "J2");
+      expect(screen.getByText(/valve/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_VALVE");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
       expectPropertyDisplayed("diameter (mm)", "22");
       expectPropertyDisplayed("loss coeff.", "14");
     });
@@ -218,10 +210,10 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
-      expectTextPropertyDisplayed("velocity (m/s)", "10.123");
-      expectTextPropertyDisplayed("headloss (m)", "98");
-      expectTextPropertyDisplayed("status", "Open - Cannot deliver pressure");
+      expectPropertyDisplayed("flow (l/s)", "20.123");
+      expectPropertyDisplayed("velocity (m/s)", "10.123");
+      expectPropertyDisplayed("headloss (m)", "98");
+      expectPropertyDisplayed("status", "Open - Cannot deliver pressure");
     });
   });
 
@@ -245,15 +237,12 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
-      expect(screen.getByText("Pump")).toBeInTheDocument();
-      expectTextPropertyDisplayed("start node", "J1");
-      expectTextPropertyDisplayed("end node", "J2");
-      expect(
-        screen.getByRole("combobox", {
-          name: /initial status/i,
-        }),
-      ).toHaveTextContent("On");
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_PUMP");
+      expectPropertyDisplayed("start node", "J1");
+      expectPropertyDisplayed("end node", "J2");
+      expectStatusDisplayed("On");
     });
 
     it("shows properties for flow-vs-head definition", () => {
@@ -279,8 +268,8 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
-      expect(screen.getByText("Pump")).toBeInTheDocument();
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
       expectPropertyDisplayed("design flow (l/s)", "20");
       expectPropertyDisplayed("design head (m)", "10");
       expectPropertyDisplayed("speed", "0.8");
@@ -307,8 +296,8 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
-      expect(screen.getByText("Pump")).toBeInTheDocument();
+      expect(screen.getByText(/pump/i)).toBeInTheDocument();
+
       expectPropertyDisplayed("power (kW)", "100");
     });
 
@@ -361,9 +350,9 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
-      expectTextPropertyDisplayed("pump head (m)", "10.123");
-      expectTextPropertyDisplayed("status", "On");
+      expectPropertyDisplayed("flow (l/s)", "20.123");
+      expectPropertyDisplayed("pump head (m)", "10.123");
+      expectPropertyDisplayed("status", "On");
     });
 
     it("can change its status", async () => {
@@ -380,7 +369,7 @@ describe("AssetEditor", () => {
       const historyControl = renderComponent(store);
 
       const selector = screen.getByRole("combobox", {
-        name: /initial status/i,
+        name: /value for: initial status/i,
       });
 
       await user.click(selector);
@@ -398,7 +387,7 @@ describe("AssetEditor", () => {
       historyControl("undo");
       await waitFor(() => {
         const updatedSelector = screen.getByRole("combobox", {
-          name: /initial status/i,
+          name: /value for: initial status/i,
         });
         expect(updatedSelector).toHaveTextContent("On");
       });
@@ -422,11 +411,12 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
-      expect(screen.getByText("Junction")).toBeInTheDocument();
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_JUNCTION");
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("direct demand (l/s)", "100");
-      expect(screen.queryAllByText("Not Available").length).toBeGreaterThan(0);
+      expectPropertyDisplayed("pressure (m)", "Not Available");
     });
 
     it("can show simulation results", () => {
@@ -445,9 +435,9 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("pressure (m)", "20");
-      expectTextPropertyDisplayed("head (m)", "10");
-      expectTextPropertyDisplayed("actual demand (l/s)", "20");
+      expectPropertyDisplayed("pressure (m)", "20");
+      expectPropertyDisplayed("head (m)", "10");
+      expectPropertyDisplayed("actual demand (l/s)", "20");
     });
 
     it("shows Customer Demand field when junction has customer points", () => {
@@ -486,12 +476,14 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
-      expect(screen.getByText("Junction")).toBeInTheDocument();
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
       expectPropertyDisplayed("direct demand (l/s)", "50");
 
+      // Check if Customer Demand field is present with units in label
       expect(
-        screen.getByLabelText(/key: customer demand \(l\/s\)/i),
+        screen.getByRole("textbox", {
+          name: /key: customer demand \(l\/s\)/i,
+        }),
       ).toBeInTheDocument();
 
       // Check if the customer demand trigger is clickable and shows correct summary without units
@@ -499,8 +491,7 @@ describe("AssetEditor", () => {
         name: /customer demand values/i,
       });
       expect(customerDemandTrigger).toBeInTheDocument();
-      expect(customerDemandTrigger).toHaveTextContent("55");
-      expect(customerDemandTrigger).toHaveTextContent("2");
+      expect(customerDemandTrigger).toHaveTextContent("55 (2 customers)");
     });
 
     it("opens popover when Customer Demand field is clicked", async () => {
@@ -570,12 +561,14 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
-      expect(screen.getByText("Junction")).toBeInTheDocument();
+      expect(screen.getByText(/junction/i)).toBeInTheDocument();
       expectPropertyDisplayed("direct demand (l/s)", "100");
 
+      // Customer Demand field should not be present
       expect(
-        screen.queryByLabelText(/key: customer demand \(l\/s\)/i),
+        screen.queryByRole("textbox", {
+          name: /key: customer demand \(l\/s\)/i,
+        }),
       ).not.toBeInTheDocument();
     });
   });
@@ -597,8 +590,9 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_RESERVOIR")).toBeInTheDocument();
-      expect(screen.getByText("Reservoir")).toBeInTheDocument();
+      expect(screen.getByText(/reservoir/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_RESERVOIR");
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("head (m)", "100");
     });
@@ -626,8 +620,9 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_TANK")).toBeInTheDocument();
-      expect(screen.getByText("Tank")).toBeInTheDocument();
+      expect(screen.getByText(/tank/i)).toBeInTheDocument();
+
+      expectPropertyDisplayed("label", "MY_TANK");
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("diameter (m)", "300");
       expectPropertyDisplayed("initial level (m)", "50");
@@ -654,8 +649,7 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_TANK")).toBeInTheDocument();
-      expect(screen.getByText("Tank")).toBeInTheDocument();
+      expect(screen.getByText(/tank/i)).toBeInTheDocument();
       expect(screen.getByRole("switch", { name: /overflow/i })).toHaveAttribute(
         "aria-checked",
         "false",
@@ -689,10 +683,10 @@ describe("AssetEditor", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("pressure (m)", "15.123");
-      expectTextPropertyDisplayed("head (m)", "125.568");
-      expectTextPropertyDisplayed("level (m)", "25.988");
-      expectTextPropertyDisplayed("volume (m³)", "1,500.432");
+      expectPropertyDisplayed("pressure (m)", "15.123");
+      expectPropertyDisplayed("head (m)", "125.568");
+      expectPropertyDisplayed("level (m)", "25.988");
+      expectPropertyDisplayed("volume (m³)", "1,500.432");
     });
   });
 
@@ -707,7 +701,7 @@ describe("AssetEditor", () => {
     const historyControl = renderComponent(store);
 
     const selector = screen.getByRole("combobox", {
-      name: /initial status/i,
+      name: /value for: initial status/i,
     });
 
     await user.click(selector);
@@ -725,7 +719,7 @@ describe("AssetEditor", () => {
     historyControl("undo");
     await waitFor(() => {
       const updatedSelector = screen.getByRole("combobox", {
-        name: /initial status/i,
+        name: /value for: initial status/i,
       });
       expect(updatedSelector).toHaveTextContent("Open");
     });
@@ -771,21 +765,22 @@ describe("AssetEditor", () => {
     });
   });
 
-  it("cannot change simulation results", () => {
+  it("cannot change simulation results", async () => {
     const pipeId = "PIPE1";
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(pipeId, { simulation: { flow: 10, status: "open" } })
       .build();
     const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const user = userEvent.setup();
 
     renderComponent(store);
 
-    expectTextPropertyDisplayed("flow (l/s)", "10");
-    expect(
-      screen.queryByRole("textbox", {
-        name: /value for: flow/i,
-      }),
-    ).not.toBeInTheDocument();
+    const field = screen.getByRole("textbox", {
+      name: /value for: flow/i,
+    });
+    await user.click(field);
+    expect(field).toHaveValue("10");
+    expect(field).toHaveAttribute("readonly");
   });
 
   it("clears group formatting when focusing input", async () => {
@@ -831,17 +826,46 @@ describe("AssetEditor", () => {
     renderComponent(store);
 
     await user.tab();
-    const selector = screen.getByRole("combobox", {
-      name: /initial status/i,
-    });
-    expect(selector).toHaveFocus();
-
+    expect(
+      screen.getByRole("textbox", {
+        name: /value for: label/i,
+      }),
+    ).toHaveFocus();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    expect(
+      screen.getByRole("combobox", {
+        name: /value for: initial status/i,
+      }),
+    ).toHaveFocus();
     await user.keyboard("[ArrowDown]");
     expect(screen.getByText(/open/i)).toBeInTheDocument();
     await user.keyboard("[ArrowUp]");
     await user.keyboard("[Enter]");
 
-    expect(selector).toHaveTextContent("Open");
+    const updatedSelector = screen.getByRole("combobox", {
+      name: /value for: initial status/i,
+    });
+    expect(updatedSelector).toHaveTextContent("Open");
+
+    await user.tab();
+    expect(
+      screen.getByRole("textbox", {
+        name: /value for: label/i,
+      }),
+    ).toHaveFocus();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+
+    expect(
+      screen.getByRole("textbox", { name: /value for: diameter/i }),
+    ).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(updatedSelector).toHaveFocus();
   });
 
   describe("validations", () => {
@@ -1100,9 +1124,7 @@ describe("AssetEditor", () => {
       <QueryClientProvider client={new QueryClient()}>
         <JotaiProvider store={store}>
           <PersistenceContext.Provider value={persistence}>
-            <TooltipProvider>
-              <FeatureEditor />
-            </TooltipProvider>
+            <FeatureEditor />
           </PersistenceContext.Provider>
         </JotaiProvider>
       </QueryClientProvider>,
@@ -1112,23 +1134,33 @@ describe("AssetEditor", () => {
     return historyControl;
   };
 
-  const expectTextPropertyDisplayed = (name: string, value: string) => {
-    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const label = screen.getByLabelText(new RegExp(`key: ${escapedName}`, "i"));
-    expect(label).toBeInTheDocument();
-    const container = label.closest(".flex.items-center.gap-1");
-    expect(container).toHaveTextContent(value);
-  };
-
   const expectPropertyDisplayed = (name: string, value: string) => {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     expect(
-      screen.getByLabelText(new RegExp(`key: ${escapedName}`, "i")),
+      screen.getByRole("textbox", {
+        name: new RegExp(`key: ${escapedName}`, "i"),
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", {
         name: new RegExp(`value for: ${escapedName}`, "i"),
       }),
     ).toHaveValue(value);
+  };
+
+  const expectStatusDisplayed = (
+    value: string,
+    escapedName = "initial status",
+  ) => {
+    expect(
+      screen.getByRole("textbox", {
+        name: new RegExp(`key: ${escapedName}`, "i"),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", {
+        name: new RegExp(`value for: ${escapedName}`, "i"),
+      }),
+    ).toHaveTextContent(value);
   };
 });
