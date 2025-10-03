@@ -1,5 +1,12 @@
+import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { ConnectivityTraceIcon, OrphanNodeIcon } from "src/icons";
+import {
+  ChevronRightIcon,
+  ConnectivityTraceIcon,
+  OrphanNodeIcon,
+  PipesCrossinIcon,
+  ProximityCheckIcon,
+} from "src/icons";
 
 export function NetworkReview() {
   const translate = useTranslate();
@@ -15,25 +22,55 @@ export function NetworkReview() {
           </div>
         </div>
       </div>
-      <div
-        className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-        style={{
-          gridTemplateColumns: "min-content 1fr",
-        }}
-      >
-        <div className="pt-[.125rem]">
-          <ConnectivityTraceIcon />
-        </div>
-        <div className="text-sm font-semibold pb-2">
-          {translate("networkReview.connectivityTrace.title")}
-        </div>
-        <div className="pt-[.125rem]">
-          <OrphanNodeIcon />
-        </div>
-        <div className="text-sm font-semibold pb-2">
-          {translate("networkReview.orphanNodes.title")}
-        </div>
-      </div>
+      <ReviewCheck
+        icon={<ConnectivityTraceIcon />}
+        label={translate("networkReview.connectivityTrace.title")}
+      />
+      <ReviewCheck
+        icon={<OrphanNodeIcon />}
+        label={translate("networkReview.orphanNodes.title")}
+      />
+      <ReviewCheck
+        icon={<ProximityCheckIcon />}
+        label={translate("networkReview.proximityCheck.title")}
+      />
+      <ReviewCheck
+        icon={<PipesCrossinIcon />}
+        label={translate("networkReview.crossingPipes.title")}
+      />
     </div>
   );
 }
+
+const ReviewCheck = ({
+  label,
+  onClick,
+  icon,
+}: {
+  label: string;
+  onClick?: () => void;
+  icon: React.ReactNode;
+}) => {
+  return (
+    <Button
+      onClick={onClick}
+      variant={"quiet/mode"}
+      role="button"
+      aria-label={label}
+      className="group w-full"
+    >
+      <div
+        className="grid gap-x-2 items-start p-2 pr-0 text-sm w-full"
+        style={{
+          gridTemplateColumns: "auto 1fr auto",
+        }}
+      >
+        <div className="pt-[.125rem]">{icon}</div>
+        <div className="text-sm font-bold text-left">{label}</div>
+        <div className="pt-[.125rem] opacity-0 group-hover:opacity-100 transition-opacity">
+          <ChevronRightIcon />
+        </div>
+      </div>
+    </Button>
+  );
+};
