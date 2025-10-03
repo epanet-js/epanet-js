@@ -39,7 +39,7 @@ export const MapStylingEditor = () => {
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
-      <div className="flex flex-col divide-gray-200 border-gray-200 dark:border-gray-900">
+      <div className="flex flex-col border-gray-200 dark:border-gray-900 p-4 gap-4">
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -229,8 +229,8 @@ const PanelSection = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="px-3 py-5">
-      <div className="flex items-start justify-between text-sm font-bold text-gray-900 dark:text-white pb-3">
+    <div>
+      <div className="flex items-start justify-between text-sm font-bold text-gray-900 dark:text-white pb-2">
         {title}
         {button && button}
       </div>
