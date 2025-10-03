@@ -189,7 +189,7 @@ export const OTHER_SIDE: Record<Side, Side> = {
  */
 export const MIN_SPLITS = {
   left: 100,
-  right: 200,
+  right: 260,
 } as const;
 export const MAX_SPLIT = 640;
 
