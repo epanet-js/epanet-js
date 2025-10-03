@@ -940,7 +940,7 @@ const AssetEditorContent = ({
           <span className="font-semibold">{label}</span>
           <ContextActions />
         </div>
-        <span className="text-xs text-gray-500">{type}</span>
+        <span className="text-sm text-gray-500">{type}</span>
       </div>
       {children}
     </div>
@@ -1291,10 +1291,14 @@ const TextRow = ({ name, value }: { name: string; value: string }) => {
   const label = translate(name);
   return (
     <AttributeRow label={label}>
-      <span className="w-full p-2 text-sm text-gray-700">{value}</span>
+      <TextField>{value}</TextField>
     </AttributeRow>
   );
 };
+
+const TextField = ({ children }: { children: React.ReactNode }) => (
+  <span className="w-full p-2 text-sm text-gray-700">{children}</span>
+);
 
 const SelectRow = <T extends PipeStatus>({
   name,
@@ -1445,16 +1449,24 @@ const QuantityRow = ({
 
   return (
     <AttributeRow label={label}>
-      <NumericField
-        key={lastChange.current + displayValue}
-        label={label}
-        positiveOnly={positiveOnly}
-        isNullable={isNullable}
-        readOnly={readOnly}
-        displayValue={displayValue}
-        onChangeValue={handleChange}
-        styleOptions={{ padding: "md", ghostBorder: readOnly, textSize: "sm" }}
-      />
+      {readOnly ? (
+        <TextField>{displayValue}</TextField>
+      ) : (
+        <NumericField
+          key={lastChange.current + displayValue}
+          label={label}
+          positiveOnly={positiveOnly}
+          isNullable={isNullable}
+          readOnly={readOnly}
+          displayValue={displayValue}
+          onChangeValue={handleChange}
+          styleOptions={{
+            padding: "md",
+            ghostBorder: readOnly,
+            textSize: "sm",
+          }}
+        />
+      )}
     </AttributeRow>
   );
 };
