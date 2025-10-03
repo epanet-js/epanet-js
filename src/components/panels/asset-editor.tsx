@@ -174,8 +174,17 @@ const AssetEditorInner = ({
       );
     case "pipe":
       const pipe = asset as Pipe;
-      return (
+      return isNewPanelOn ? (
         <PipeEditor
+          pipe={pipe}
+          {...getLinkNodes(hydraulicModel.assets, pipe)}
+          headlossFormula={hydraulicModel.headlossFormula}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
+          onStatusChange={handleStatusChange}
+        />
+      ) : (
+        <PipeEditorDeprecated
           pipe={pipe}
           {...getLinkNodes(hydraulicModel.assets, pipe)}
           headlossFormula={hydraulicModel.headlossFormula}
@@ -254,6 +263,124 @@ const pipeStatusLabel = (pipe: Pipe) => {
 };
 
 const PipeEditor = ({
+  pipe,
+  startNode,
+  endNode,
+  headlossFormula,
+  quantitiesMetadata,
+  onPropertyChange,
+  onStatusChange,
+}: {
+  pipe: Pipe;
+  startNode: NodeAsset | null;
+  endNode: NodeAsset | null;
+  headlossFormula: HeadlossFormula;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+  onStatusChange: OnStatusChange<PipeStatus>;
+}) => {
+  const translate = useTranslate();
+  const simulationStatusText = translate(pipeStatusLabel(pipe));
+
+  const pipeStatusOptions = useMemo(() => {
+    return pipeStatuses.map((status) => ({
+      label: translate(`pipe.${status}`),
+      value: status,
+    }));
+  }, [translate]);
+
+  const handleStatusChange = (
+    name: string,
+    newValue: PipeStatus,
+    oldValue: PipeStatus,
+  ) => {
+    onStatusChange(newValue, oldValue);
+  };
+
+  return (
+    <AssetEditorContent label={pipe.label} type={translate("pipe")}>
+      <AttributesSection name="Connections">
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </AttributesSection>
+      <AttributesSection name="Model attributes">
+        <SelectRow
+          name="initialStatus"
+          selected={pipe.initialStatus}
+          options={pipeStatusOptions}
+          onChange={handleStatusChange}
+        />
+        <QuantityRow
+          name="diameter"
+          value={pipe.diameter}
+          positiveOnly={true}
+          isNullable={false}
+          unit={quantitiesMetadata.getUnit("diameter")}
+          decimals={quantitiesMetadata.getDecimals("diameter")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="length"
+          value={pipe.length}
+          positiveOnly={true}
+          isNullable={false}
+          unit={quantitiesMetadata.getUnit("length")}
+          decimals={quantitiesMetadata.getDecimals("length")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="roughness"
+          value={pipe.roughness}
+          positiveOnly={true}
+          unit={quantitiesMetadata.getUnit("roughness")}
+          decimals={quantitiesMetadata.getDecimals("roughness")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="minorLoss"
+          value={pipe.minorLoss}
+          positiveOnly={true}
+          unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
+          decimals={quantitiesMetadata.getDecimals("minorLoss")}
+          onChange={onPropertyChange}
+        />
+      </AttributesSection>
+      <AttributesSection name="Simulation results">
+        <QuantityRow
+          name="flow"
+          value={pipe.flow}
+          unit={quantitiesMetadata.getUnit("flow")}
+          decimals={quantitiesMetadata.getDecimals("flow")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="velocity"
+          value={pipe.velocity}
+          unit={quantitiesMetadata.getUnit("velocity")}
+          decimals={quantitiesMetadata.getDecimals("velocity")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="unitHeadloss"
+          value={pipe.unitHeadloss}
+          unit={quantitiesMetadata.getUnit("unitHeadloss")}
+          decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="headlossShort"
+          value={pipe.headloss}
+          unit={quantitiesMetadata.getUnit("headloss")}
+          decimals={quantitiesMetadata.getDecimals("headloss")}
+          readOnly={true}
+        />
+        <TextRow name="actualStatus" value={simulationStatusText} />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const PipeEditorDeprecated = ({
   pipe,
   startNode,
   endNode,
@@ -442,7 +569,7 @@ const ValveEditor = ({
                 name="endNode"
                 value={endNode ? endNode.label : ""}
               />
-              <SelectRow
+              <SelectRowDeprecated
                 name="valveType"
                 selected={valve.kind}
                 options={kindOptions}
@@ -474,7 +601,7 @@ const ValveEditor = ({
                   onChange={onPropertyChange}
                 />
               )}
-              <SelectRow
+              <SelectRowDeprecated
                 name="initialStatus"
                 selected={valve.initialStatus}
                 options={statusOptions}
@@ -574,7 +701,7 @@ const PumpEditor = ({
                 name="endNode"
                 value={endNode ? endNode.label : ""}
               />
-              <SelectRow
+              <SelectRowDeprecated
                 name="pumpType"
                 selected={pump.definitionType}
                 options={definitionOptions}
@@ -1090,7 +1217,9 @@ const TextRowReadOnly = ({ name, value }: { name: string; value: string }) => {
   return <PropertyRowReadonly pair={[label, value]} />;
 };
 
-const SelectRow = <T extends PumpDefintionType | ValveStatus | ValveKind>({
+const SelectRowDeprecated = <
+  T extends PumpDefintionType | ValveStatus | ValveKind,
+>({
   name,
   label,
   selected,
@@ -1152,6 +1281,51 @@ const SwitchRow = ({
         >
           <Switch.Thumb className="block w-[12px] h-[12px] bg-white rounded-full shadow transition-transform translate-x-[2px] data-[state=checked]:translate-x-[14px]" />
         </Switch.Root>
+      </div>
+    </AttributeRow>
+  );
+};
+
+const TextRow = ({ name, value }: { name: string; value: string }) => {
+  const translate = useTranslate();
+  const label = translate(name);
+  return (
+    <AttributeRow label={label}>
+      <span className="text-sm text-gray-700">{value}</span>
+    </AttributeRow>
+  );
+};
+
+const SelectRow = <T extends PipeStatus>({
+  name,
+  label,
+  selected,
+  options,
+  onChange,
+}: {
+  name: string;
+  label?: string;
+  selected: T;
+  options: { label: string; value: T }[];
+  onChange: (name: string, newValue: T, oldValue: T) => void;
+}) => {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
+  return (
+    <AttributeRow label={actualLabel}>
+      <div className="w-full">
+        <Selector
+          ariaLabel={actualLabel}
+          options={options}
+          selected={selected}
+          onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
+          disableFocusOnClose={true}
+          styleOptions={{
+            border: true,
+            textSize: "text-sm",
+            paddingY: 2,
+          }}
+        />
       </div>
     </AttributeRow>
   );
@@ -1279,7 +1453,7 @@ const QuantityRow = ({
         readOnly={readOnly}
         displayValue={displayValue}
         onChangeValue={handleChange}
-        styleOptions={{ padding: "sm" }}
+        styleOptions={{ padding: "md" }}
       />
     </AttributeRow>
   );
