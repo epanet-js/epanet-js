@@ -164,8 +164,15 @@ const AssetEditorInner = ({
 
   switch (asset.type) {
     case "junction":
-      return (
+      return isNewPanelOn ? (
         <JunctionEditor
+          junction={asset as Junction}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={handlePropertyChange}
+          hydraulicModel={hydraulicModel}
+        />
+      ) : (
+        <JunctionEditorDeprecated
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -1052,6 +1059,95 @@ const PumpEditorDeprecated = ({
 };
 
 const JunctionEditor = ({
+  junction,
+  quantitiesMetadata,
+  onPropertyChange,
+  hydraulicModel,
+}: {
+  junction: Junction;
+  quantitiesMetadata: Quantities;
+  onPropertyChange: OnPropertyChange;
+  hydraulicModel: HydraulicModel;
+}) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const customerPoints = useMemo(() => {
+    const connectedCustomerPoints =
+      hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
+    return Array.from(connectedCustomerPoints);
+  }, [junction.id, hydraulicModel]);
+
+  const customerCount = customerPoints.length;
+  const totalDemand = customerPoints.reduce(
+    (sum, cp) => sum + cp.baseDemand,
+    0,
+  );
+
+  return (
+    <AssetEditorContent label={junction.label} type={translate("junction")}>
+      <AttributesSection name="Model attributes">
+        <QuantityRow
+          name="elevation"
+          value={junction.elevation}
+          unit={quantitiesMetadata.getUnit("elevation")}
+          decimals={quantitiesMetadata.getDecimals("elevation")}
+          onChange={onPropertyChange}
+        />
+        <QuantityRow
+          name="directDemand"
+          value={junction.baseDemand}
+          unit={quantitiesMetadata.getUnit("baseDemand")}
+          decimals={quantitiesMetadata.getDecimals("baseDemand")}
+          onChange={(name, newValue, oldValue) =>
+            onPropertyChange("baseDemand", newValue, oldValue)
+          }
+        />
+        {customerCount > 0 && (
+          <AttributeRow
+            label={
+              quantitiesMetadata.getUnit("baseDemand")
+                ? `${translate("customerDemand")} (${translateUnit(quantitiesMetadata.getUnit("baseDemand"))})`
+                : translate("customerDemand")
+            }
+          >
+            <CustomerDemandField
+              totalDemand={totalDemand}
+              customerCount={customerCount}
+              customerPoints={customerPoints}
+              aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
+              customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+            />
+          </AttributeRow>
+        )}
+      </AttributesSection>
+      <AttributesSection name="Simulation results">
+        <QuantityRow
+          name="pressure"
+          value={junction.pressure}
+          unit={quantitiesMetadata.getUnit("pressure")}
+          decimals={quantitiesMetadata.getDecimals("pressure")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="head"
+          value={junction.head}
+          unit={quantitiesMetadata.getUnit("head")}
+          decimals={quantitiesMetadata.getDecimals("head")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="actualDemand"
+          value={junction.actualDemand}
+          unit={quantitiesMetadata.getUnit("actualDemand")}
+          decimals={quantitiesMetadata.getDecimals("actualDemand")}
+          readOnly={true}
+        />
+      </AttributesSection>
+    </AssetEditorContent>
+  );
+};
+
+const JunctionEditorDeprecated = ({
   junction,
   quantitiesMetadata,
   onPropertyChange,
