@@ -18,7 +18,10 @@ import {
   PropertyRow,
   PropertyRowReadonly,
 } from "./feature-editor/property-row";
-import { CustomerDemandField } from "./feature-editor/customer-demand-field";
+import {
+  CustomerDemandField,
+  CustomerDemandFieldDeprecated,
+} from "./feature-editor/customer-demand-field";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -1226,7 +1229,7 @@ const JunctionEditorDeprecated = ({
                       : translate("customerDemand")
                   }
                 >
-                  <CustomerDemandField
+                  <CustomerDemandFieldDeprecated
                     totalDemand={totalDemand}
                     customerCount={customerCount}
                     customerPoints={customerPoints}
@@ -1860,7 +1863,7 @@ const AttributeRow = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-1">
       <span className="text-sm text-gray-500 w-[120px] flex-shrink-0">
         {label}
       </span>
