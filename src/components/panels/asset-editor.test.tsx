@@ -635,8 +635,8 @@ describe("AssetEditor", () => {
       expectPropertyDisplayed("max level (m)", "100");
       expectPropertyDisplayed("min volume (m³)", "0");
       expect(
-        screen.getByRole("switch", { name: /can overflow/i }),
-      ).toHaveAttribute("aria-checked", "true");
+        screen.getByRole("checkbox", { name: /can overflow/i }),
+      ).toBeChecked();
     });
 
     it("can change the overflow setting", async () => {
@@ -656,17 +656,18 @@ describe("AssetEditor", () => {
 
       expect(screen.getByText("MY_TANK")).toBeInTheDocument();
       expect(screen.getByText("Tank")).toBeInTheDocument();
-      expect(screen.getByRole("switch", { name: /overflow/i })).toHaveAttribute(
-        "aria-checked",
-        "false",
-      );
+      expect(
+        screen.getByRole("checkbox", { name: /overflow/i }),
+      ).not.toBeChecked();
 
-      await userEvent.click(screen.getByRole("switch", { name: /overflow/i }));
+      await userEvent.click(
+        screen.getByRole("checkbox", { name: /overflow/i }),
+      );
 
       await waitFor(() => {
         expect(
-          screen.getByRole("switch", { name: /overflow/i }),
-        ).toHaveAttribute("aria-checked", "true");
+          screen.getByRole("checkbox", { name: /overflow/i }),
+        ).toBeChecked();
       });
     });
 

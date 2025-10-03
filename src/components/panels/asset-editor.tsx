@@ -55,6 +55,7 @@ import { NumericField } from "../form/numeric-field";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ContextActions } from "../context-actions";
+import { Checkbox } from "../form/Checkbox";
 
 export function AssetEditor({
   selectedFeature,
@@ -1649,15 +1650,12 @@ const SwitchRow = ({
 
   return (
     <AttributeRow label={actualLabel}>
-      <div className="flex items-center px-1 py-2">
-        <Switch.Root
+      <div className="p-2 flex items-center h-[38px]">
+        <Checkbox
           checked={enabled}
-          onCheckedChange={handleToggle}
-          aria-label={label}
-          className="w-[28px] h-[16px] bg-gray-300 rounded-full relative data-[state=checked]:bg-purple-300 transition-colors"
-        >
-          <Switch.Thumb className="block w-[12px] h-[12px] bg-white rounded-full shadow transition-transform translate-x-[2px] data-[state=checked]:translate-x-[14px]" />
-        </Switch.Root>
+          aria-label={actualLabel}
+          onChange={(e) => handleToggle(e.target.checked)}
+        />
       </div>
     </AttributeRow>
   );
