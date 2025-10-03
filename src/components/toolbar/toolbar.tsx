@@ -51,6 +51,7 @@ export const Toolbar = () => {
   const simulation = useAtomValue(simulationAtom);
 
   const isMdOrLarger = useBreakpoint("md");
+  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
 
   return (
     <div
@@ -168,7 +169,7 @@ export const Toolbar = () => {
       </MenuAction>
       <Divider />
       <NetworkReviewToggle />
-      {isMdOrLarger && (
+      {isMdOrLarger && !isAssetPanelOn && (
         <>
           <ContextActions />
           <div className="flex-auto" />
