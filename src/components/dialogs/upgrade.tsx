@@ -18,7 +18,10 @@ import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector } from "../form/selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
-import { studentAccountActiviationHelpUrl } from "src/global-config";
+import {
+  studentAccountActiviationHelpUrl,
+  teamsPlanRequestFormUrl,
+} from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { RedirectToSignIn, useAuth } from "src/auth";
 import {
@@ -445,13 +448,16 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.teams[paymentType];
+  const userTracking = useUserTracking();
+
+  const goToTeamsRequestForm = () => {
+    userTracking.capture({ name: "teamsRequest.clicked" });
+    window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
-        <div className="absolute top-0 right-0 bg-gradient-to-br from-gray-300 via-purple-gray to-gray-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
-          {translate("comingSoon")}
-        </div>
         <PlanHeader
           name="Teams"
           price={price}
@@ -492,8 +498,12 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
       </div>
       <div className="p-4 w-full">
-        <Button size="full-width" variant="quiet" disabled={true}>
-          {translate("comingSoon")}
+        <Button
+          size="full-width"
+          variant="primary"
+          onClick={goToTeamsRequestForm}
+        >
+          {translate("upgradeTo", "Teams")}
         </Button>
       </div>
     </div>

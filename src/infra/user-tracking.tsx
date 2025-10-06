@@ -669,6 +669,7 @@ export type UserEvent =
       newValue: number;
       oldValue: number;
     }
+  | { name: "teamsRequest.clicked" }
   | {
       name: "baseMap.changed";
       oldBasemap: string;

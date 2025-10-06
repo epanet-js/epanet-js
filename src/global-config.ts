@@ -22,3 +22,4 @@ export const customerPointsImportVideoUrl =
   "https://www.youtube.com/watch?v=58BFdUokcd4";
 export const customerPointsImportGuide =
   "https://help.epanetjs.com/Importing-customer-points-265e18c9f0f680f28bf2dbc0052b1c60";
+export const teamsPlanRequestFormUrl = "https://tally.so/r/wkqjyo";
