@@ -56,6 +56,7 @@ import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ContextActions } from "../context-actions";
 import { Checkbox } from "../form/Checkbox";
+import { PanelActions } from "./asset-panel/panel-actions";
 
 export function AssetEditor({
   selectedFeature,
@@ -1311,12 +1312,14 @@ const AssetEditorContent = ({
   type: string;
   children: React.ReactNode;
 }) => {
+  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
           <span className="font-semibold">{label}</span>
-          <ContextActions />
+          {isAssetPanelOn ? <PanelActions /> : <ContextActions />}
         </div>
         <span className="text-sm text-gray-500">{type}</span>
       </div>

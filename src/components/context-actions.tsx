@@ -1,38 +1,10 @@
-import * as E from "src/components/elements";
-import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtomValue } from "jotai";
 import { selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
-import * as T from "@radix-ui/react-tooltip";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
-import { ChevronDownIcon } from "src/icons";
-
-export function ToolbarTrigger({
-  children,
-  ...props
-}: {
-  children: React.ReactNode;
-} & React.ComponentProps<typeof T.Trigger>) {
-  return (
-    <div
-      className="h-10 w-12 p-1
-          group bn
-          flex items-stretch justify-center focus:outline-none"
-    >
-      <T.Trigger asChild {...props}>
-        <DD.Trigger asChild>
-          <E.Button variant="quiet">
-            {children}
-            <ChevronDownIcon />
-          </E.Button>
-        </DD.Trigger>
-      </T.Trigger>
-    </div>
-  );
-}
 
 export function ContextActions() {
   const translate = useTranslate();
