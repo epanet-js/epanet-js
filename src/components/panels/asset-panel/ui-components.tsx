@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit } from "src/quantity";
@@ -15,6 +15,13 @@ import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
 import { InlineField } from "src/components/form/fields";
 import clsx from "clsx";
+import * as P from "@radix-ui/react-popover";
+import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPointsPopover } from "../feature-editor/customer-points-popover";
+import { useSetAtom } from "jotai";
+import { ephemeralStateAtom } from "src/state/jotai";
+import { ChevronDownIcon } from "src/icons";
 
 export const AssetEditorContent = ({
   label,
@@ -198,6 +205,75 @@ export const SwitchRow = ({
           onChange={(e) => handleToggle(e.target.checked)}
         />
       </div>
+    </InlineField>
+  );
+};
+
+export const ConnectedCustomersRow = ({
+  customerCount,
+  customerPoints,
+  aggregateUnit,
+  customerUnit,
+}: {
+  customerCount: number;
+  customerPoints: CustomerPoint[];
+  aggregateUnit: Unit;
+  customerUnit: Unit;
+}) => {
+  const translate = useTranslate();
+  const [isOpen, setIsOpen] = useState(false);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
+
+  const handleClose = () => {
+    setEphemeralState({ type: "none" });
+    setIsOpen(false);
+  };
+
+  const handleTriggerKeyDown: KeyboardEventHandler<HTMLButtonElement> = (
+    event,
+  ) => {
+    if (event.code === "Enter" && !isOpen) {
+      setIsOpen(true);
+      event.stopPropagation();
+    }
+  };
+
+  return (
+    <InlineField name={translate("connectedCustomers")} labelSize="md">
+      <P.Root
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleClose();
+          } else {
+            setIsOpen(true);
+            setEphemeralState({
+              type: "customerPointsHighlight",
+              customerPoints: customerPoints,
+            });
+          }
+        }}
+      >
+        <P.Trigger
+          aria-label={`Connected customers: ${customerCount}`}
+          onKeyDown={handleTriggerKeyDown}
+          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center justify-between"
+        >
+          <span>{customerCount}</span>
+          <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+        </P.Trigger>
+        <P.Portal>
+          <StyledPopoverContent>
+            <StyledPopoverArrow />
+            <CustomerPointsPopover
+              customerPoints={customerPoints}
+              aggregateUnit={aggregateUnit}
+              customerUnit={customerUnit}
+              onClose={handleClose}
+            />
+          </StyledPopoverContent>
+        </P.Portal>
+      </P.Root>
     </InlineField>
   );
 };

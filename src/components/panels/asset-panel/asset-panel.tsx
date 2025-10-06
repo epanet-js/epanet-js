@@ -13,7 +13,6 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
@@ -40,10 +39,9 @@ import {
   SelectRow,
   TextRow,
   SwitchRow,
+  ConnectedCustomersRow,
 } from "./ui-components";
-import { CustomerDemandField } from "../feature-editor/customer-demand-field";
 import { Section } from "src/components/form/fields";
-import { InlineField } from "src/components/form/fields";
 
 type OnPropertyChange = (
   name: string,
@@ -249,7 +247,6 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
   const customerPoints = useMemo(() => {
     const connectedCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
@@ -272,6 +269,8 @@ const JunctionEditor = ({
           decimals={quantitiesMetadata.getDecimals("elevation")}
           onChange={onPropertyChange}
         />
+      </Section>
+      <Section title={translate("demands")}>
         <QuantityRow
           name="directDemand"
           value={junction.baseDemand}
@@ -282,22 +281,21 @@ const JunctionEditor = ({
           }
         />
         {customerCount > 0 && (
-          <InlineField
-            name={
-              quantitiesMetadata.getUnit("baseDemand")
-                ? `${translate("customerDemand")} (${translateUnit(quantitiesMetadata.getUnit("baseDemand"))})`
-                : translate("customerDemand")
-            }
-            labelSize="md"
-          >
-            <CustomerDemandField
-              totalDemand={totalDemand}
+          <>
+            <QuantityRow
+              name="customerDemand"
+              value={totalDemand}
+              unit={quantitiesMetadata.getUnit("baseDemand")}
+              decimals={quantitiesMetadata.getDecimals("baseDemand")}
+              readOnly={true}
+            />
+            <ConnectedCustomersRow
               customerCount={customerCount}
               customerPoints={customerPoints}
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
             />
-          </InlineField>
+          </>
         )}
       </Section>
       <Section title={translate("simulationResults")}>

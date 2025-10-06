@@ -490,17 +490,13 @@ describe("AssetPanel", () => {
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("direct demand (l/s)", "50");
 
-      expect(
-        screen.getByLabelText(/label: customer demand \(l\/s\)/i),
-      ).toBeInTheDocument();
+      expectTextPropertyDisplayed("customer demand (l/s)", "55");
 
-      // Check if the customer demand trigger is clickable and shows correct summary without units
-      const customerDemandTrigger = screen.getByRole("button", {
-        name: /customer demand values/i,
+      const connectedCustomersTrigger = screen.getByRole("button", {
+        name: /connected customers/i,
       });
-      expect(customerDemandTrigger).toBeInTheDocument();
-      expect(customerDemandTrigger).toHaveTextContent("55");
-      expect(customerDemandTrigger).toHaveTextContent("2");
+      expect(connectedCustomersTrigger).toBeInTheDocument();
+      expect(connectedCustomersTrigger).toHaveTextContent("2");
     });
 
     it("opens popover when Customer Demand field is clicked", async () => {
@@ -540,13 +536,12 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      const customerDemandTrigger = screen.getByRole("button", {
-        name: /customer demand values/i,
+      const connectedCustomersTrigger = screen.getByRole("button", {
+        name: /connected customers/i,
       });
 
-      await user.click(customerDemandTrigger);
+      await user.click(connectedCustomersTrigger);
 
-      // Check if popover content is displayed
       await waitFor(() => {
         expect(screen.getByText("CP1")).toBeInTheDocument();
       });
