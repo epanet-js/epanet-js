@@ -53,7 +53,7 @@ export const OrphanAssets = () => {
   );
 
   return (
-    <div className="flex-auto">
+    <div className="absolute inset-0 flex flex-col">
       <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100">
         {translate("networkReview.orphanNodes.title")}
 
