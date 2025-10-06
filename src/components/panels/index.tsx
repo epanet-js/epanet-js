@@ -157,7 +157,6 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
     <div
       style={{
         width: splits.left,
-        height: "100%",
       }}
       className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
     >

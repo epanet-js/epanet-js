@@ -575,7 +575,8 @@
       "title": "Connectivity trace"
     },
     "orphanNodes": {
-      "title": "Orphan nodes"
+      "title": "Orphan nodes",
+      "summary": "{{1}} orphan nodes found"
     },
     "proximityCheck": {
       "title": "Proximity check"

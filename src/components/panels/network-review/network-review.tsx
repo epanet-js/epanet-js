@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -7,8 +8,32 @@ import {
   PipesCrossinIcon,
   ProximityCheckIcon,
 } from "src/icons";
+import { OrphanAssets } from "./orphan-assets";
+
+const enum CheckType {
+  connectivityTrace = "connectivityTrace",
+  orphanAssets = "orphanAssets",
+  proximityCheck = "proximityCheck",
+  crossingPipes = "crossingPipes",
+}
 
 export function NetworkReview() {
+  const [checkType, setCheckType] = useState<CheckType | null>(null);
+
+  return checkType === CheckType.orphanAssets ? (
+    <OrphanAssets />
+  ) : (
+    <NetworkReviewSummary
+      onClick={(checkType: CheckType) => setCheckType(checkType)}
+    />
+  );
+}
+
+function NetworkReviewSummary({
+  onClick,
+}: {
+  onClick: (check: CheckType) => void;
+}) {
   const translate = useTranslate();
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
@@ -20,38 +45,45 @@ export function NetworkReview() {
       </div>
       <div className="flex-auto px-1">
         <ReviewCheck
-          icon={<ConnectivityTraceIcon />}
-          label={translate("networkReview.connectivityTrace.title")}
+          checkType={CheckType.connectivityTrace}
+          onClick={onClick}
         />
-        <ReviewCheck
-          icon={<OrphanNodeIcon />}
-          label={translate("networkReview.orphanNodes.title")}
-        />
-        <ReviewCheck
-          icon={<ProximityCheckIcon />}
-          label={translate("networkReview.proximityCheck.title")}
-        />
-        <ReviewCheck
-          icon={<PipesCrossinIcon />}
-          label={translate("networkReview.crossingPipes.title")}
-        />
+        <ReviewCheck checkType={CheckType.orphanAssets} onClick={onClick} />
+        <ReviewCheck checkType={CheckType.proximityCheck} onClick={onClick} />
+        <ReviewCheck checkType={CheckType.crossingPipes} onClick={onClick} />
       </div>
     </div>
   );
 }
 
+const iconsByCheckType = {
+  [CheckType.orphanAssets]: <OrphanNodeIcon />,
+  [CheckType.connectivityTrace]: <ConnectivityTraceIcon />,
+  [CheckType.proximityCheck]: <ProximityCheckIcon />,
+  [CheckType.crossingPipes]: <PipesCrossinIcon />,
+};
+
+const labelKeyByCheckType = {
+  [CheckType.orphanAssets]: "networkReview.orphanNodes.title",
+  [CheckType.connectivityTrace]: "networkReview.connectivityTrace.title",
+  [CheckType.proximityCheck]: "networkReview.proximityCheck.title",
+  [CheckType.crossingPipes]: "networkReview.crossingPipes.title",
+};
+
 const ReviewCheck = ({
-  label,
   onClick,
-  icon,
+  checkType,
 }: {
-  label: string;
-  onClick?: () => void;
-  icon: React.ReactNode;
+  checkType: CheckType;
+  onClick: (checkType: CheckType) => void;
 }) => {
+  const translate = useTranslate();
+
+  const label = translate(labelKeyByCheckType[checkType]);
+
   return (
     <Button
-      onClick={onClick}
+      onClick={() => onClick(checkType)}
       variant={"quiet/mode"}
       role="button"
       aria-label={label}
@@ -63,7 +95,7 @@ const ReviewCheck = ({
           gridTemplateColumns: "auto 1fr auto",
         }}
       >
-        <div className="pt-[.125rem]">{icon}</div>
+        <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
         <div className="text-sm font-bold text-left">{label}</div>
         <div className="pt-[.125rem] opacity-0 group-hover:opacity-100 transition-opacity">
           <ChevronRightIcon />
