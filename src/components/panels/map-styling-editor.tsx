@@ -19,7 +19,7 @@ import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
-import { InlineField, Section } from "../form/fields";
+import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 
@@ -38,8 +38,8 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
 
   return (
-    <div className="flex-auto overflow-y-auto placemark-scrollbar">
-      <div className="flex flex-col border-gray-200 dark:border-gray-900 p-4 gap-4">
+    <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
+      <SectionList>
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -51,7 +51,7 @@ export const MapStylingEditor = () => {
         <Section title={translate("layers")} button={<AddLayer />}>
           <LayersEditor />
         </Section>
-      </div>
+      </SectionList>
     </div>
   );
 };

@@ -13,7 +13,7 @@ import {
 } from "src/hydraulic-model/asset-types/pump";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
-import { InlineField } from "src/components/form/fields";
+import { InlineField, SectionList } from "src/components/form/fields";
 import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
@@ -33,7 +33,7 @@ export const AssetEditorContent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <SectionList>
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
           <span className="font-semibold truncate max-w-full" title={label}>
@@ -44,7 +44,7 @@ export const AssetEditorContent = ({
         <span className="text-sm text-gray-500">{type}</span>
       </div>
       {children}
-    </div>
+    </SectionList>
   );
 };
 

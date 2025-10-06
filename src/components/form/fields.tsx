@@ -80,3 +80,35 @@ export const Section = ({
     </div>
   );
 };
+
+export const SectionList = ({
+  children,
+  gap = 5,
+  padding = 4,
+}: {
+  children: React.ReactNode;
+  gap?: 1 | 2 | 3 | 4 | 5 | 6;
+  padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+}) => {
+  return (
+    <div
+      className={clsx("flex flex-col", {
+        "gap-1": gap === 1,
+        "gap-2": gap === 2,
+        "gap-3": gap === 3,
+        "gap-4": gap === 4,
+        "gap-5": gap === 5,
+        "gap-6": gap === 6,
+        "p-0": padding === 0,
+        "p-1": padding === 1,
+        "p-2": padding === 2,
+        "p-3": padding === 3,
+        "p-4": padding === 4,
+        "p-5": padding === 5,
+        "p-6": padding === 6,
+      })}
+    >
+      {children}
+    </div>
+  );
+};
