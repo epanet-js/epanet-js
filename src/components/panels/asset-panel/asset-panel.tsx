@@ -264,7 +264,7 @@ const JunctionEditor = ({
 
   return (
     <AssetEditorContent label={junction.label} type={translate("junction")}>
-      <Section title={translate("Model attributes")}>
+      <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
           value={junction.elevation}
@@ -300,7 +300,7 @@ const JunctionEditor = ({
           </InlineField>
         )}
       </Section>
-      <Section title="Simulation results">
+      <Section title={translate("simulationResults")}>
         <QuantityRow
           name="pressure"
           value={junction.pressure}
@@ -364,11 +364,11 @@ const PipeEditor = ({
 
   return (
     <AssetEditorContent label={pipe.label} type={translate("pipe")}>
-      <Section title="Connections">
+      <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      <Section title="Model attributes">
+      <Section title={translate("modelAttributes")}>
         <SelectRow
           name="initialStatus"
           selected={pipe.initialStatus}
@@ -410,7 +410,7 @@ const PipeEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
-      <Section title="Simulation results">
+      <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
           value={pipe.flow}
@@ -457,7 +457,7 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   return (
     <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
-      <Section title={"Model attributes"}>
+      <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
           value={reservoir.elevation}
@@ -489,7 +489,7 @@ const TankEditor = ({
   const translate = useTranslate();
   return (
     <AssetEditorContent label={tank.label} type={translate("tank")}>
-      <Section title={"Model attributes"}>
+      <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
           value={tank.elevation}
@@ -545,7 +545,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
-      <Section title="Simulation results">
+      <Section title={translate("simulationResults")}>
         <QuantityRow
           name="pressure"
           value={tank.pressure}
@@ -643,11 +643,11 @@ const ValveEditor = ({
 
   return (
     <AssetEditorContent label={valve.label} type={translate("valve")}>
-      <Section title="Connections">
+      <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      <Section title="Model attributes">
+      <Section title={translate("modelAttributes")}>
         <SelectRow
           name="valveType"
           selected={valve.kind}
@@ -683,7 +683,7 @@ const ValveEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
-      <Section title="Simulation results">
+      <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
           value={valve.flow}
@@ -766,11 +766,11 @@ const PumpEditor = ({
 
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
-      <Section title="Connections">
+      <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      <Section title="Model attributes">
+      <Section title={translate("modelAttributes")}>
         <SelectRow
           name="pumpType"
           selected={pump.definitionType}
@@ -818,7 +818,7 @@ const PumpEditor = ({
           onChange={handleStatusChange}
         />
       </Section>
-      <Section title="Simulation results">
+      <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
           value={pump.flow}
