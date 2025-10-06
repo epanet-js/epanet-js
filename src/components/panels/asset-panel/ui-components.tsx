@@ -29,7 +29,9 @@ export const AssetEditorContent = ({
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
-          <span className="font-semibold">{label}</span>
+          <span className="font-semibold truncate max-w-full" title={label}>
+            {label}
+          </span>
           <PanelActions />
         </div>
         <span className="text-sm text-gray-500">{type}</span>
