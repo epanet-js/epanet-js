@@ -5,7 +5,7 @@ export const Checkbox = ({
   return (
     <input
       type="checkbox"
-      className={`cursor-pointer w-${size} h-${size} text-purple-500 bg-gray-200 border-gray-300 rounded focus:ring-purple-500`}
+      className={`cursor-pointer w-${size} h-${size} text-purple-400 bg-gray-200 border-gray-300 rounded focus:ring-purple-500`}
       {...props}
     />
   );
