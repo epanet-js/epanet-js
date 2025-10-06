@@ -39,7 +39,9 @@ export const InlineField = ({
         "items-center": align === "center",
       })}
     >
-      <label className={labelClasses}>{name}</label>
+      <label className={labelClasses} aria-label={`label: ${name}`}>
+        {name}
+      </label>
 
       <div className={inputWrapperClasses}>{children}</div>
     </div>

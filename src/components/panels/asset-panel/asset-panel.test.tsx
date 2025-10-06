@@ -491,7 +491,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("direct demand (l/s)", "50");
 
       expect(
-        screen.getByLabelText(/key: customer demand \(l\/s\)/i),
+        screen.getByLabelText(/label: customer demand \(l\/s\)/i),
       ).toBeInTheDocument();
 
       // Check if the customer demand trigger is clickable and shows correct summary without units
@@ -575,7 +575,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("direct demand (l/s)", "100");
 
       expect(
-        screen.queryByLabelText(/key: customer demand \(l\/s\)/i),
+        screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
       ).not.toBeInTheDocument();
     });
   });
@@ -1115,7 +1115,9 @@ describe("AssetPanel", () => {
 
   const expectTextPropertyDisplayed = (name: string, value: string) => {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const label = screen.getByLabelText(new RegExp(`key: ${escapedName}`, "i"));
+    const label = screen.getByLabelText(
+      new RegExp(`label: ${escapedName}`, "i"),
+    );
     expect(label).toBeInTheDocument();
     const container = label.closest(".flex.items-center.gap-1");
     expect(container).toHaveTextContent(value);
@@ -1124,7 +1126,7 @@ describe("AssetPanel", () => {
   const expectPropertyDisplayed = (name: string, value: string) => {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     expect(
-      screen.getByLabelText(new RegExp(`key: ${escapedName}`, "i")),
+      screen.getByLabelText(new RegExp(`label: ${escapedName}`, "i")),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", {
