@@ -45,6 +45,37 @@ export default function MultiAssetViewer({
   );
 }
 
+export function MultiAssetPropertiesTable({
+  selectedFeatures,
+  quantitiesMetadata,
+}: {
+  selectedFeatures: IWrappedFeature[];
+  quantitiesMetadata: Quantities;
+}) {
+  const propertyMap = computePropertyStats(
+    selectedFeatures as Asset[],
+    quantitiesMetadata,
+  );
+  const pairs = Array.from(propertyMap.entries());
+
+  return (
+    <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
+      <PropertyTableHead />
+      <tbody>
+        {pairs.map((pair) => {
+          return (
+            <PropertyRowMulti
+              key={pair[0]}
+              pair={pair}
+              quantitiesMetadata={quantitiesMetadata}
+            />
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 export function FeatureEditorPropertiesMulti({
   selectedFeatures,
   quantitiesMetadata,
@@ -53,31 +84,16 @@ export function FeatureEditorPropertiesMulti({
   quantitiesMetadata: Quantities;
 }) {
   const translate = useTranslate();
-  const propertyMap = computePropertyStats(
-    selectedFeatures as Asset[],
-    quantitiesMetadata,
-  );
-  const pairs = Array.from(propertyMap.entries());
 
   return (
     <PanelDetails
       title={`${translate("selection")} (${pluralize(translate, "asset", selectedFeatures.length)})`}
       variant="fullwidth"
     >
-      <table className="ppb-2 b-2 w-full" data-focus-scope onKeyDown={onArrow}>
-        <PropertyTableHead />
-        <tbody>
-          {pairs.map((pair) => {
-            return (
-              <PropertyRowMulti
-                key={pair[0]}
-                pair={pair}
-                quantitiesMetadata={quantitiesMetadata}
-              />
-            );
-          })}
-        </tbody>
-      </table>
+      <MultiAssetPropertiesTable
+        selectedFeatures={selectedFeatures}
+        quantitiesMetadata={quantitiesMetadata}
+      />
     </PanelDetails>
   );
 }
