@@ -18,10 +18,7 @@ import {
   PropertyRow,
   PropertyRowReadonly,
 } from "./feature-editor/property-row";
-import {
-  CustomerDemandField,
-  CustomerDemandFieldDeprecated,
-} from "./feature-editor/customer-demand-field";
+import { CustomerDemandFieldDeprecated } from "./feature-editor/customer-demand-field";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
 
@@ -54,9 +51,7 @@ import {
 import { NumericField } from "../form/numeric-field";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ContextActions } from "../context-actions";
-import { Checkbox } from "../form/Checkbox";
-import { PanelActions } from "./asset-panel/panel-actions";
+import { AssetPanel } from "./asset-panel";
 
 export function AssetEditor({
   selectedFeature,
@@ -88,10 +83,14 @@ const AssetEditorInner = ({
   quantitiesMetadata: Quantities;
 }) => {
   const { hydraulicModel } = useAtomValue(dataAtom);
-  const isNewPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
+  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+
+  if (isAssetPanelOn) {
+    return <AssetPanel asset={asset} quantitiesMetadata={quantitiesMetadata} />;
+  }
 
   const handlePropertyChange = (
     property: string,
@@ -169,14 +168,7 @@ const AssetEditorInner = ({
 
   switch (asset.type) {
     case "junction":
-      return isNewPanelOn ? (
-        <JunctionEditor
-          junction={asset as Junction}
-          quantitiesMetadata={quantitiesMetadata}
-          onPropertyChange={handlePropertyChange}
-          hydraulicModel={hydraulicModel}
-        />
-      ) : (
+      return (
         <JunctionEditorDeprecated
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
@@ -184,18 +176,9 @@ const AssetEditorInner = ({
           hydraulicModel={hydraulicModel}
         />
       );
-    case "pipe":
+    case "pipe": {
       const pipe = asset as Pipe;
-      return isNewPanelOn ? (
-        <PipeEditor
-          pipe={pipe}
-          {...getLinkNodes(hydraulicModel.assets, pipe)}
-          headlossFormula={hydraulicModel.headlossFormula}
-          quantitiesMetadata={quantitiesMetadata}
-          onPropertyChange={handlePropertyChange}
-          onStatusChange={handleStatusChange}
-        />
-      ) : (
+      return (
         <PipeEditorDeprecated
           pipe={pipe}
           {...getLinkNodes(hydraulicModel.assets, pipe)}
@@ -205,18 +188,10 @@ const AssetEditorInner = ({
           onStatusChange={handleStatusChange}
         />
       );
-    case "pump":
+    }
+    case "pump": {
       const pump = asset as Pump;
-      return isNewPanelOn ? (
-        <PumpEditor
-          pump={pump}
-          onPropertyChange={handlePropertyChange}
-          onStatusChange={handleStatusChange}
-          onDefinitionTypeChange={handleDefinitionTypeChange}
-          quantitiesMetadata={quantitiesMetadata}
-          {...getLinkNodes(hydraulicModel.assets, pump)}
-        />
-      ) : (
+      return (
         <PumpEditorDeprecated
           pump={pump}
           onPropertyChange={handlePropertyChange}
@@ -226,18 +201,10 @@ const AssetEditorInner = ({
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
       );
-    case "valve":
+    }
+    case "valve": {
       const valve = asset as Valve;
-      return isNewPanelOn ? (
-        <ValveEditor
-          valve={valve}
-          onPropertyChange={handlePropertyChange}
-          quantitiesMetadata={quantitiesMetadata}
-          onStatusChange={handleStatusChange}
-          onTypeChange={handleValveKindChange}
-          {...getLinkNodes(hydraulicModel.assets, valve)}
-        />
-      ) : (
+      return (
         <ValveEditorDeprecated
           valve={valve}
           onPropertyChange={handlePropertyChange}
@@ -247,14 +214,9 @@ const AssetEditorInner = ({
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
+    }
     case "reservoir":
-      return isNewPanelOn ? (
-        <ReservoirEditor
-          reservoir={asset as Reservoir}
-          quantitiesMetadata={quantitiesMetadata}
-          onPropertyChange={handlePropertyChange}
-        />
-      ) : (
+      return (
         <ReservoirEditorDeprecated
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
@@ -262,13 +224,7 @@ const AssetEditorInner = ({
         />
       );
     case "tank":
-      return isNewPanelOn ? (
-        <TankEditor
-          tank={asset as Tank}
-          quantitiesMetadata={quantitiesMetadata}
-          onPropertyChange={handlePropertyChange}
-        />
-      ) : (
+      return (
         <TankEditorDeprecated
           tank={asset as Tank}
           quantitiesMetadata={quantitiesMetadata}
@@ -288,126 +244,23 @@ type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
 const pipeStatusLabel = (pipe: Pipe) => {
   if (pipe.status === null) return "notAvailable";
-
   return "pipe." + pipe.status;
 };
 
-const PipeEditor = ({
-  pipe,
-  startNode,
-  endNode,
-  headlossFormula,
-  quantitiesMetadata,
-  onPropertyChange,
-  onStatusChange,
-}: {
-  pipe: Pipe;
-  startNode: NodeAsset | null;
-  endNode: NodeAsset | null;
-  headlossFormula: HeadlossFormula;
-  quantitiesMetadata: Quantities;
-  onPropertyChange: OnPropertyChange;
-  onStatusChange: OnStatusChange<PipeStatus>;
-}) => {
-  const translate = useTranslate();
-  const simulationStatusText = translate(pipeStatusLabel(pipe));
+const pumpStatusLabel = (pump: Pump) => {
+  if (pump.status === null) return "notAvailable";
+  if (pump.statusWarning) {
+    return `pump.${pump.status}.${pump.statusWarning}`;
+  }
+  return "pump." + pump.status;
+};
 
-  const pipeStatusOptions = useMemo(() => {
-    return pipeStatuses.map((status) => ({
-      label: translate(`pipe.${status}`),
-      value: status,
-    }));
-  }, [translate]);
-
-  const handleStatusChange = (
-    name: string,
-    newValue: PipeStatus,
-    oldValue: PipeStatus,
-  ) => {
-    onStatusChange(newValue, oldValue);
-  };
-
-  return (
-    <AssetEditorContent label={pipe.label} type={translate("pipe")}>
-      <AttributesSection name="Connections">
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
-        <SelectRow
-          name="initialStatus"
-          selected={pipe.initialStatus}
-          options={pipeStatusOptions}
-          onChange={handleStatusChange}
-        />
-        <QuantityRow
-          name="diameter"
-          value={pipe.diameter}
-          positiveOnly={true}
-          isNullable={false}
-          unit={quantitiesMetadata.getUnit("diameter")}
-          decimals={quantitiesMetadata.getDecimals("diameter")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="length"
-          value={pipe.length}
-          positiveOnly={true}
-          isNullable={false}
-          unit={quantitiesMetadata.getUnit("length")}
-          decimals={quantitiesMetadata.getDecimals("length")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="roughness"
-          value={pipe.roughness}
-          positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("roughness")}
-          decimals={quantitiesMetadata.getDecimals("roughness")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="minorLoss"
-          value={pipe.minorLoss}
-          positiveOnly={true}
-          unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
-          decimals={quantitiesMetadata.getDecimals("minorLoss")}
-          onChange={onPropertyChange}
-        />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
-        <QuantityRow
-          name="flow"
-          value={pipe.flow}
-          unit={quantitiesMetadata.getUnit("flow")}
-          decimals={quantitiesMetadata.getDecimals("flow")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="velocity"
-          value={pipe.velocity}
-          unit={quantitiesMetadata.getUnit("velocity")}
-          decimals={quantitiesMetadata.getDecimals("velocity")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="unitHeadloss"
-          value={pipe.unitHeadloss}
-          unit={quantitiesMetadata.getUnit("unitHeadloss")}
-          decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="headlossShort"
-          value={pipe.headloss}
-          unit={quantitiesMetadata.getUnit("headloss")}
-          decimals={quantitiesMetadata.getDecimals("headloss")}
-          readOnly={true}
-        />
-        <TextRow name="actualStatus" value={simulationStatusText} />
-      </AttributesSection>
-    </AssetEditorContent>
-  );
+const valveStatusLabel = (valve: Valve) => {
+  if (valve.status === null) return "notAvailable";
+  if (valve.statusWarning) {
+    return `valve.${valve.status}.${valve.statusWarning}`;
+  }
+  return "valve." + valve.status;
 };
 
 const PipeEditorDeprecated = ({
@@ -524,156 +377,6 @@ const PipeEditorDeprecated = ({
         </div>
       </div>
     </PanelDetails>
-  );
-};
-
-const pumpStatusLabel = (pump: Pump) => {
-  if (pump.status === null) return "notAvailable";
-
-  if (pump.statusWarning) {
-    return `pump.${pump.status}.${pump.statusWarning}`;
-  }
-  return "pump." + pump.status;
-};
-
-export const valveStatusLabel = (valve: Valve) => {
-  if (valve.status === null) return "notAvailable";
-
-  if (valve.statusWarning) {
-    return `valve.${valve.status}.${valve.statusWarning}`;
-  }
-  return "valve." + valve.status;
-};
-
-const ValveEditor = ({
-  valve,
-  startNode,
-  endNode,
-  quantitiesMetadata,
-  onPropertyChange,
-  onStatusChange,
-  onTypeChange,
-}: {
-  valve: Valve;
-  startNode: NodeAsset | null;
-  endNode: NodeAsset | null;
-  quantitiesMetadata: Quantities;
-  onStatusChange: OnStatusChange<ValveStatus>;
-  onPropertyChange: OnPropertyChange;
-  onTypeChange: OnTypeChange<ValveKind>;
-}) => {
-  const translate = useTranslate();
-  const statusText = translate(valveStatusLabel(valve));
-
-  const statusOptions = useMemo(() => {
-    return [
-      { label: translate("valve.active"), value: "active" },
-      { label: translate("valve.open"), value: "open" },
-      { label: translate("valve.closed"), value: "closed" },
-    ] as { label: string; value: ValveStatus }[];
-  }, [translate]);
-
-  const kindOptions = useMemo(() => {
-    return valveKinds.map((kind) => {
-      return {
-        label: kind.toUpperCase(),
-        description: translate(`valve.${kind}.detailed`),
-        value: kind,
-      };
-    });
-  }, [translate]);
-
-  const handleKindChange = (
-    name: string,
-    newValue: ValveKind,
-    oldValue: ValveKind,
-  ) => {
-    onTypeChange(newValue, oldValue);
-  };
-
-  const handleStatusChange = (
-    name: string,
-    newValue: ValveStatus,
-    oldValue: ValveStatus,
-  ) => {
-    onStatusChange(newValue, oldValue);
-  };
-
-  const getSettingUnit = () => {
-    if (valve.kind === "tcv") return null;
-    if (["psv", "prv", "pbv"].includes(valve.kind))
-      return quantitiesMetadata.getUnit("pressure");
-    if (valve.kind === "fcv") return quantitiesMetadata.getUnit("flow");
-    return null;
-  };
-
-  return (
-    <AssetEditorContent label={valve.label} type={translate("valve")}>
-      <AttributesSection name="Connections">
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
-        <SelectRow
-          name="valveType"
-          selected={valve.kind}
-          options={kindOptions}
-          onChange={handleKindChange}
-        />
-        <QuantityRow
-          name="setting"
-          value={valve.setting}
-          unit={getSettingUnit()}
-          onChange={onPropertyChange}
-        />
-        <SelectRow
-          name="initialStatus"
-          selected={valve.initialStatus}
-          options={statusOptions}
-          onChange={handleStatusChange}
-        />
-        <QuantityRow
-          name="diameter"
-          value={valve.diameter}
-          positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("diameter")}
-          decimals={quantitiesMetadata.getDecimals("diameter")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="minorLoss"
-          value={valve.minorLoss}
-          positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("minorLoss")}
-          decimals={quantitiesMetadata.getDecimals("minorLoss")}
-          onChange={onPropertyChange}
-        />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
-        <QuantityRow
-          name="flow"
-          value={valve.flow}
-          unit={quantitiesMetadata.getUnit("flow")}
-          decimals={quantitiesMetadata.getDecimals("flow")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="velocity"
-          value={valve.velocity}
-          unit={quantitiesMetadata.getUnit("velocity")}
-          decimals={quantitiesMetadata.getDecimals("velocity")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="headlossShort"
-          value={valve.headloss}
-          unit={quantitiesMetadata.getUnit("headloss")}
-          decimals={quantitiesMetadata.getDecimals("headloss")}
-          readOnly={true}
-        />
-        <TextRow name="status" value={statusText} />
-      </AttributesSection>
-    </AssetEditorContent>
   );
 };
 
@@ -817,134 +520,6 @@ const ValveEditorDeprecated = ({
   );
 };
 
-const PumpEditor = ({
-  pump,
-  startNode,
-  endNode,
-  onStatusChange,
-  onPropertyChange,
-  onDefinitionTypeChange,
-  quantitiesMetadata,
-}: {
-  pump: Pump;
-  startNode: NodeAsset | null;
-  endNode: NodeAsset | null;
-  onPropertyChange: OnPropertyChange;
-  onStatusChange: OnStatusChange<PumpStatus>;
-  onDefinitionTypeChange: (
-    newType: PumpDefintionType,
-    oldType: PumpDefintionType,
-  ) => void;
-  quantitiesMetadata: Quantities;
-}) => {
-  const translate = useTranslate();
-  const statusText = translate(pumpStatusLabel(pump));
-
-  const definitionOptions = useMemo(() => {
-    return [
-      { label: translate("constantPower"), value: "power" },
-      { label: translate("flowVsHead"), value: "flow-vs-head" },
-    ] as { label: string; value: PumpDefintionType }[];
-  }, [translate]);
-
-  const statusOptions = useMemo(() => {
-    return pumpStatuses.map((status) => ({
-      label: translate(`pump.${status}`),
-      value: status,
-    }));
-  }, [translate]);
-
-  const handleDefinitionTypeChange = (
-    name: string,
-    newValue: PumpDefintionType,
-    oldValue: PumpDefintionType,
-  ) => {
-    onDefinitionTypeChange(newValue, oldValue);
-  };
-
-  const handleStatusChange = (
-    name: string,
-    newValue: PumpStatus,
-    oldValue: PumpStatus,
-  ) => {
-    onStatusChange(newValue, oldValue);
-  };
-
-  return (
-    <AssetEditorContent label={pump.label} type={translate("pump")}>
-      <AttributesSection name="Connections">
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
-        <SelectRow
-          name="pumpType"
-          selected={pump.definitionType}
-          options={definitionOptions}
-          onChange={handleDefinitionTypeChange}
-        />
-        {pump.definitionType === "power" && (
-          <QuantityRow
-            name="power"
-            value={pump.power}
-            unit={quantitiesMetadata.getUnit("power")}
-            decimals={quantitiesMetadata.getDecimals("power")}
-            onChange={onPropertyChange}
-          />
-        )}
-        {pump.definitionType === "flow-vs-head" && (
-          <>
-            <QuantityRow
-              name="designFlow"
-              value={pump.designFlow}
-              unit={quantitiesMetadata.getUnit("flow")}
-              decimals={quantitiesMetadata.getDecimals("flow")}
-              onChange={onPropertyChange}
-            />
-            <QuantityRow
-              name="designHead"
-              value={pump.designHead}
-              unit={quantitiesMetadata.getUnit("head")}
-              decimals={quantitiesMetadata.getDecimals("head")}
-              onChange={onPropertyChange}
-            />
-          </>
-        )}
-        <QuantityRow
-          name="speed"
-          value={pump.speed}
-          unit={quantitiesMetadata.getUnit("speed")}
-          decimals={quantitiesMetadata.getDecimals("speed")}
-          onChange={onPropertyChange}
-        />
-        <SelectRow
-          name="initialStatus"
-          selected={pump.initialStatus}
-          options={statusOptions}
-          onChange={handleStatusChange}
-        />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
-        <QuantityRow
-          name="flow"
-          value={pump.flow}
-          unit={quantitiesMetadata.getUnit("flow")}
-          decimals={quantitiesMetadata.getDecimals("flow")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="pumpHead"
-          value={pump.head}
-          unit={quantitiesMetadata.getUnit("headloss")}
-          decimals={quantitiesMetadata.getDecimals("headloss")}
-          readOnly={true}
-        />
-        <TextRow name="status" value={statusText} />
-      </AttributesSection>
-    </AssetEditorContent>
-  );
-};
-
 const PumpEditorDeprecated = ({
   pump,
   startNode,
@@ -1060,95 +635,6 @@ const PumpEditorDeprecated = ({
         </div>
       </div>
     </PanelDetails>
-  );
-};
-
-const JunctionEditor = ({
-  junction,
-  quantitiesMetadata,
-  onPropertyChange,
-  hydraulicModel,
-}: {
-  junction: Junction;
-  quantitiesMetadata: Quantities;
-  onPropertyChange: OnPropertyChange;
-  hydraulicModel: HydraulicModel;
-}) => {
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-  const customerPoints = useMemo(() => {
-    const connectedCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
-    return Array.from(connectedCustomerPoints);
-  }, [junction.id, hydraulicModel]);
-
-  const customerCount = customerPoints.length;
-  const totalDemand = customerPoints.reduce(
-    (sum, cp) => sum + cp.baseDemand,
-    0,
-  );
-
-  return (
-    <AssetEditorContent label={junction.label} type={translate("junction")}>
-      <AttributesSection name="Model attributes">
-        <QuantityRow
-          name="elevation"
-          value={junction.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
-          decimals={quantitiesMetadata.getDecimals("elevation")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="directDemand"
-          value={junction.baseDemand}
-          unit={quantitiesMetadata.getUnit("baseDemand")}
-          decimals={quantitiesMetadata.getDecimals("baseDemand")}
-          onChange={(name, newValue, oldValue) =>
-            onPropertyChange("baseDemand", newValue, oldValue)
-          }
-        />
-        {customerCount > 0 && (
-          <AttributeRow
-            label={
-              quantitiesMetadata.getUnit("baseDemand")
-                ? `${translate("customerDemand")} (${translateUnit(quantitiesMetadata.getUnit("baseDemand"))})`
-                : translate("customerDemand")
-            }
-          >
-            <CustomerDemandField
-              totalDemand={totalDemand}
-              customerCount={customerCount}
-              customerPoints={customerPoints}
-              aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
-              customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
-            />
-          </AttributeRow>
-        )}
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
-        <QuantityRow
-          name="pressure"
-          value={junction.pressure}
-          unit={quantitiesMetadata.getUnit("pressure")}
-          decimals={quantitiesMetadata.getDecimals("pressure")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="head"
-          value={junction.head}
-          unit={quantitiesMetadata.getUnit("head")}
-          decimals={quantitiesMetadata.getDecimals("head")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="actualDemand"
-          value={junction.actualDemand}
-          unit={quantitiesMetadata.getUnit("actualDemand")}
-          decimals={quantitiesMetadata.getDecimals("actualDemand")}
-          readOnly={true}
-        />
-      </AttributesSection>
-    </AssetEditorContent>
   );
 };
 
@@ -1271,78 +757,6 @@ const JunctionEditorDeprecated = ({
   );
 };
 
-const ReservoirEditor = ({
-  reservoir,
-  quantitiesMetadata,
-  onPropertyChange,
-}: {
-  reservoir: Reservoir;
-  quantitiesMetadata: Quantities;
-  onPropertyChange: OnPropertyChange;
-}) => {
-  const translate = useTranslate();
-  return (
-    <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
-      <AttributesSection name={"Model attributes"}>
-        <QuantityRow
-          name="elevation"
-          value={reservoir.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
-          decimals={quantitiesMetadata.getDecimals("elevation")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="head"
-          value={reservoir.head}
-          unit={quantitiesMetadata.getUnit("head")}
-          decimals={quantitiesMetadata.getDecimals("head")}
-          onChange={onPropertyChange}
-        />
-      </AttributesSection>
-    </AssetEditorContent>
-  );
-};
-
-const AssetEditorContent = ({
-  label,
-  type,
-  children,
-}: {
-  label: string;
-  type: string;
-  children: React.ReactNode;
-}) => {
-  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
-
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold">{label}</span>
-          {isAssetPanelOn ? <PanelActions /> : <ContextActions />}
-        </div>
-        <span className="text-sm text-gray-500">{type}</span>
-      </div>
-      {children}
-    </div>
-  );
-};
-
-const AttributesSection = ({
-  name,
-  children,
-}: {
-  name: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="flex flex-col">
-      <span className="text-sm font-semibold pb-2">{name}</span>
-      <div className="flex flex-col gap-1">{children}</div>
-    </div>
-  );
-};
-
 const ReservoirEditorDeprecated = ({
   reservoir,
   quantitiesMetadata,
@@ -1380,107 +794,6 @@ const ReservoirEditorDeprecated = ({
         </div>
       </div>
     </PanelDetails>
-  );
-};
-const TankEditor = ({
-  tank,
-  quantitiesMetadata,
-  onPropertyChange,
-}: {
-  tank: Tank;
-  quantitiesMetadata: Quantities;
-  onPropertyChange: OnPropertyChange;
-}) => {
-  const translate = useTranslate();
-  return (
-    <AssetEditorContent label={tank.label} type={translate("tank")}>
-      <AttributesSection name={"Model attributes"}>
-        <QuantityRow
-          name="elevation"
-          value={tank.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
-          decimals={quantitiesMetadata.getDecimals("elevation")}
-          onChange={onPropertyChange}
-        />
-        <QuantityRow
-          name="initialLevel"
-          value={tank.initialLevel}
-          unit={quantitiesMetadata.getUnit("initialLevel")}
-          decimals={quantitiesMetadata.getDecimals("initialLevel")}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-        />
-        <QuantityRow
-          name="minLevel"
-          value={tank.minLevel}
-          unit={quantitiesMetadata.getUnit("minLevel")}
-          decimals={quantitiesMetadata.getDecimals("minLevel")}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-        />
-        <QuantityRow
-          name="maxLevel"
-          value={tank.maxLevel}
-          unit={quantitiesMetadata.getUnit("maxLevel")}
-          decimals={quantitiesMetadata.getDecimals("maxLevel")}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-        />
-        <QuantityRow
-          name="diameter"
-          value={tank.diameter}
-          unit={quantitiesMetadata.getUnit("tankDiameter")}
-          decimals={quantitiesMetadata.getDecimals("diameter")}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-          isNullable={false}
-        />
-        <QuantityRow
-          name="minVolume"
-          value={tank.minVolume}
-          unit={quantitiesMetadata.getUnit("minVolume")}
-          decimals={quantitiesMetadata.getDecimals("minVolume")}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-        />
-        <SwitchRow
-          name="overflow"
-          label={translate("canOverflow")}
-          enabled={tank.overflow}
-          onChange={onPropertyChange}
-        />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
-        <QuantityRow
-          name="pressure"
-          value={tank.pressure}
-          unit={quantitiesMetadata.getUnit("pressure")}
-          decimals={quantitiesMetadata.getDecimals("pressure")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="head"
-          value={tank.head}
-          unit={quantitiesMetadata.getUnit("head")}
-          decimals={quantitiesMetadata.getDecimals("head")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="level"
-          value={tank.level}
-          unit={quantitiesMetadata.getUnit("level")}
-          decimals={quantitiesMetadata.getDecimals("level")}
-          readOnly={true}
-        />
-        <QuantityRow
-          name="volume"
-          value={tank.volume}
-          unit={quantitiesMetadata.getUnit("volume")}
-          decimals={quantitiesMetadata.getDecimals("volume")}
-          readOnly={true}
-        />
-      </AttributesSection>
-    </AssetEditorContent>
   );
 };
 
@@ -1633,92 +946,6 @@ const SelectRowDeprecated = <
     </PropertyRow>
   );
 };
-const SwitchRow = ({
-  name,
-  label,
-  enabled,
-  onChange,
-}: {
-  name: string;
-  label?: string;
-  enabled: boolean;
-  onChange: (property: string, newValue: boolean, oldValue: boolean) => void;
-}) => {
-  const translate = useTranslate();
-  const actualLabel = label || translate(name);
-
-  const handleToggle = (checked: boolean) => {
-    onChange(name, checked, enabled);
-  };
-
-  return (
-    <AttributeRow label={actualLabel}>
-      <div className="p-2 flex items-center h-[38px]">
-        <Checkbox
-          checked={enabled}
-          aria-label={actualLabel}
-          onChange={(e) => handleToggle(e.target.checked)}
-        />
-      </div>
-    </AttributeRow>
-  );
-};
-
-const TextRow = ({ name, value }: { name: string; value: string }) => {
-  const translate = useTranslate();
-  const label = translate(name);
-  return (
-    <AttributeRow label={label}>
-      <TextField>{value}</TextField>
-    </AttributeRow>
-  );
-};
-
-const TextField = ({ children }: { children: React.ReactNode }) => (
-  <span className="w-full p-2 text-sm text-gray-700">{children}</span>
-);
-
-const SelectRow = <
-  T extends
-    | PipeStatus
-    | ValveKind
-    | ValveStatus
-    | PumpDefintionType
-    | PumpStatus,
->({
-  name,
-  label,
-  selected,
-  options,
-  onChange,
-}: {
-  name: string;
-  label?: string;
-  selected: T;
-  options: { label: string; description?: string; value: T }[];
-  onChange: (name: string, newValue: T, oldValue: T) => void;
-}) => {
-  const translate = useTranslate();
-  const actualLabel = label || translate(name);
-  return (
-    <AttributeRow label={actualLabel}>
-      <div className="w-full">
-        <Selector
-          ariaLabel={actualLabel}
-          options={options}
-          selected={selected}
-          onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
-          disableFocusOnClose={true}
-          styleOptions={{
-            border: true,
-            textSize: "text-sm",
-            paddingY: 2,
-          }}
-        />
-      </div>
-    </AttributeRow>
-  );
-};
 
 const SwitchRowDeprecated = ({
   name,
@@ -1792,87 +1019,6 @@ const StatusRow = <T extends AssetStatus>({
         />
       </div>
     </PropertyRow>
-  );
-};
-
-const QuantityRow = ({
-  name,
-  value,
-  unit,
-  decimals,
-  positiveOnly = false,
-  readOnly = false,
-  isNullable = true,
-  onChange,
-}: {
-  name: string;
-  value: number | null;
-  unit: Unit;
-  positiveOnly?: boolean;
-  isNullable?: boolean;
-  readOnly?: boolean;
-  decimals?: number;
-  onChange?: (name: string, newValue: number, oldValue: number | null) => void;
-}) => {
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-  const lastChange = useRef<number>(0);
-
-  const displayValue =
-    value === null
-      ? translate("notAvailable")
-      : localizeDecimal(value, { decimals });
-
-  const label = unit
-    ? `${translate(name)} (${translateUnit(unit)})`
-    : `${translate(name)}`;
-
-  const handleChange = (newValue: number) => {
-    lastChange.current = Date.now();
-    onChange && onChange(name, newValue, value);
-  };
-
-  return (
-    <AttributeRow label={label}>
-      {readOnly ? (
-        <TextField>{displayValue}</TextField>
-      ) : (
-        <NumericField
-          key={lastChange.current + displayValue}
-          label={label}
-          positiveOnly={positiveOnly}
-          isNullable={isNullable}
-          readOnly={readOnly}
-          displayValue={displayValue}
-          onChangeValue={handleChange}
-          styleOptions={{
-            padding: "md",
-            ghostBorder: readOnly,
-            textSize: "sm",
-          }}
-        />
-      )}
-    </AttributeRow>
-  );
-};
-
-const AttributeRow = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="flex items-center gap-1">
-      <span
-        aria-label={`key: ${label}`}
-        className="text-sm text-gray-500 w-[120px] flex-shrink-0"
-      >
-        {label}
-      </span>
-      {children}
-    </div>
   );
 };
 

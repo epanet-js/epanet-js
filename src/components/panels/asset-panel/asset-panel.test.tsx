@@ -8,13 +8,13 @@ import { MemPersistence } from "src/lib/persistence/memory";
 import { UIDMap } from "src/lib/id-mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
-import FeatureEditor from "./feature-editor";
+import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
-describe("AssetEditor", () => {
+describe("AssetPanel", () => {
   beforeEach(() => {
     stubFeatureOn("FLAG_ASSET_PANEL");
   });
