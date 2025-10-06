@@ -7,16 +7,20 @@ export const FieldList = ({ children }: { children: React.ReactNode }) => {
 export const InlineField = ({
   name,
   layout = "fixed-label",
+  labelSize = "sm",
   align = "center",
   children,
 }: {
   name: string;
   layout?: "fixed-label" | "half-split" | "label-flex-none";
+  labelSize?: "sm" | "md";
   align?: "start" | "center";
   children: React.ReactNode;
 }) => {
   const labelClasses = clsx("text-sm text-gray-500", {
-    "max-w-[67px] w-full flex-shrink-0": layout === "fixed-label",
+    "max-w-[67px] w-full flex-shrink-0":
+      layout === "fixed-label" && labelSize === "sm",
+    "w-[120px] flex-shrink-0": layout === "fixed-label" && labelSize === "md",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
@@ -26,9 +30,11 @@ export const InlineField = ({
     "w-3/4": layout === "label-flex-none",
   });
 
+  const spacingClass = labelSize === "md" ? "gap-1" : "space-x-4";
+
   return (
     <div
-      className={clsx("flex space-x-4", {
+      className={clsx("flex", spacingClass, {
         "items-start": align === "start",
         "items-center": align === "center",
       })}
@@ -52,3 +58,23 @@ export const VerticalField = ({
     {children}
   </div>
 );
+
+export const Section = ({
+  title,
+  button,
+  children,
+}: {
+  title: string;
+  button?: React.ReactNode;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-start justify-between text-sm font-semibold pb-2">
+        {title}
+        {button && button}
+      </div>
+      <div className="flex flex-col gap-1">{children}</div>
+    </div>
+  );
+};

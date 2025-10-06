@@ -19,7 +19,7 @@ import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
-import { FieldList, InlineField } from "../form/fields";
+import { InlineField, Section } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 
@@ -48,9 +48,9 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
-        <PanelSection title={translate("layers")} button={<AddLayer />}>
+        <Section title={translate("layers")} button={<AddLayer />}>
           <LayersEditor />
-        </PanelSection>
+        </Section>
       </div>
     </div>
   );
@@ -152,7 +152,7 @@ const SymbologyEditor = ({
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
-    <PanelSection title={title}>
+    <Section title={title}>
       <InlineField name={translate("colorBy")}>
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
@@ -214,27 +214,7 @@ const SymbologyEditor = ({
           </InlineField>
         </>
       )}
-    </PanelSection>
-  );
-};
-
-const PanelSection = ({
-  title,
-  button,
-  children,
-}: {
-  title: string;
-  button?: React.ReactNode;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div>
-      <div className="flex items-start justify-between text-sm font-bold text-gray-900 dark:text-white pb-2">
-        {title}
-        {button && button}
-      </div>
-      <FieldList>{children}</FieldList>
-    </div>
+    </Section>
   );
 };
 

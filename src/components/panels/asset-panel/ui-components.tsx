@@ -13,6 +13,8 @@ import {
 } from "src/hydraulic-model/asset-types/pump";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
+import { InlineField } from "src/components/form/fields";
+import clsx from "clsx";
 
 export const AssetEditorContent = ({
   label,
@@ -37,52 +39,30 @@ export const AssetEditorContent = ({
   );
 };
 
-export const AttributesSection = ({
-  name,
+export const TextField = ({
   children,
+  padding = "md",
 }: {
-  name: string;
   children: React.ReactNode;
-}) => {
-  return (
-    <div className="flex flex-col">
-      <span className="text-sm font-semibold pb-2">{name}</span>
-      <div className="flex flex-col gap-1">{children}</div>
-    </div>
-  );
-};
-
-export const AttributeRow = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="flex items-center gap-1">
-      <span
-        aria-label={`key: ${label}`}
-        className="text-sm text-gray-500 w-[120px] flex-shrink-0"
-      >
-        {label}
-      </span>
-      {children}
-    </div>
-  );
-};
-
-export const TextField = ({ children }: { children: React.ReactNode }) => (
-  <span className="w-full p-2 text-sm text-gray-700">{children}</span>
+  padding?: "sm" | "md";
+}) => (
+  <span
+    className={clsx("block w-full text-sm text-gray-700", {
+      "p-1": padding === "sm",
+      "p-2": padding === "md",
+    })}
+  >
+    {children}
+  </span>
 );
 
 export const TextRow = ({ name, value }: { name: string; value: string }) => {
   const translate = useTranslate();
   const label = translate(name);
   return (
-    <AttributeRow label={label}>
+    <InlineField name={label} labelSize="md">
       <TextField>{value}</TextField>
-    </AttributeRow>
+    </InlineField>
   );
 };
 
@@ -124,9 +104,9 @@ export const QuantityRow = ({
   };
 
   return (
-    <AttributeRow label={label}>
+    <InlineField name={label} labelSize="md">
       {readOnly ? (
-        <TextField>{displayValue}</TextField>
+        <TextField padding="md">{displayValue}</TextField>
       ) : (
         <NumericField
           key={lastChange.current + displayValue}
@@ -143,7 +123,7 @@ export const QuantityRow = ({
           }}
         />
       )}
-    </AttributeRow>
+    </InlineField>
   );
 };
 
@@ -170,7 +150,7 @@ export const SelectRow = <
   const translate = useTranslate();
   const actualLabel = label || translate(name);
   return (
-    <AttributeRow label={actualLabel}>
+    <InlineField name={actualLabel} labelSize="md">
       <div className="w-full">
         <Selector
           ariaLabel={actualLabel}
@@ -185,7 +165,7 @@ export const SelectRow = <
           }}
         />
       </div>
-    </AttributeRow>
+    </InlineField>
   );
 };
 
@@ -208,7 +188,7 @@ export const SwitchRow = ({
   };
 
   return (
-    <AttributeRow label={actualLabel}>
+    <InlineField name={actualLabel} labelSize="md">
       <div className="p-2 flex items-center h-[38px]">
         <Checkbox
           checked={enabled}
@@ -216,6 +196,6 @@ export const SwitchRow = ({
           onChange={(e) => handleToggle(e.target.checked)}
         />
       </div>
-    </AttributeRow>
+    </InlineField>
   );
 };

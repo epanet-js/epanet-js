@@ -36,14 +36,14 @@ import {
 } from "src/hydraulic-model/asset-types/valve";
 import {
   AssetEditorContent,
-  AttributesSection,
   QuantityRow,
   SelectRow,
   TextRow,
   SwitchRow,
 } from "./ui-components";
 import { CustomerDemandField } from "../feature-editor/customer-demand-field";
-import { AttributeRow } from "./ui-components";
+import { Section } from "src/components/form/fields";
+import { InlineField } from "src/components/form/fields";
 
 type OnPropertyChange = (
   name: string,
@@ -264,7 +264,7 @@ const JunctionEditor = ({
 
   return (
     <AssetEditorContent label={junction.label} type={translate("junction")}>
-      <AttributesSection name="Model attributes">
+      <Section title={translate("Model attributes")}>
         <QuantityRow
           name="elevation"
           value={junction.elevation}
@@ -282,12 +282,13 @@ const JunctionEditor = ({
           }
         />
         {customerCount > 0 && (
-          <AttributeRow
-            label={
+          <InlineField
+            name={
               quantitiesMetadata.getUnit("baseDemand")
                 ? `${translate("customerDemand")} (${translateUnit(quantitiesMetadata.getUnit("baseDemand"))})`
                 : translate("customerDemand")
             }
+            labelSize="md"
           >
             <CustomerDemandField
               totalDemand={totalDemand}
@@ -296,10 +297,10 @@ const JunctionEditor = ({
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
             />
-          </AttributeRow>
+          </InlineField>
         )}
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
+      </Section>
+      <Section title="Simulation results">
         <QuantityRow
           name="pressure"
           value={junction.pressure}
@@ -321,7 +322,7 @@ const JunctionEditor = ({
           decimals={quantitiesMetadata.getDecimals("actualDemand")}
           readOnly={true}
         />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -363,11 +364,11 @@ const PipeEditor = ({
 
   return (
     <AssetEditorContent label={pipe.label} type={translate("pipe")}>
-      <AttributesSection name="Connections">
+      <Section title="Connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
+      </Section>
+      <Section title="Model attributes">
         <SelectRow
           name="initialStatus"
           selected={pipe.initialStatus}
@@ -408,8 +409,8 @@ const PipeEditor = ({
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           onChange={onPropertyChange}
         />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
+      </Section>
+      <Section title="Simulation results">
         <QuantityRow
           name="flow"
           value={pipe.flow}
@@ -439,7 +440,7 @@ const PipeEditor = ({
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -456,7 +457,7 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   return (
     <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
-      <AttributesSection name={"Model attributes"}>
+      <Section title={"Model attributes"}>
         <QuantityRow
           name="elevation"
           value={reservoir.elevation}
@@ -471,7 +472,7 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("head")}
           onChange={onPropertyChange}
         />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -488,7 +489,7 @@ const TankEditor = ({
   const translate = useTranslate();
   return (
     <AssetEditorContent label={tank.label} type={translate("tank")}>
-      <AttributesSection name={"Model attributes"}>
+      <Section title={"Model attributes"}>
         <QuantityRow
           name="elevation"
           value={tank.elevation}
@@ -543,8 +544,8 @@ const TankEditor = ({
           enabled={tank.overflow}
           onChange={onPropertyChange}
         />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
+      </Section>
+      <Section title="Simulation results">
         <QuantityRow
           name="pressure"
           value={tank.pressure}
@@ -573,7 +574,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("volume")}
           readOnly={true}
         />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -642,11 +643,11 @@ const ValveEditor = ({
 
   return (
     <AssetEditorContent label={valve.label} type={translate("valve")}>
-      <AttributesSection name="Connections">
+      <Section title="Connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
+      </Section>
+      <Section title="Model attributes">
         <SelectRow
           name="valveType"
           selected={valve.kind}
@@ -681,8 +682,8 @@ const ValveEditor = ({
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           onChange={onPropertyChange}
         />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
+      </Section>
+      <Section title="Simulation results">
         <QuantityRow
           name="flow"
           value={valve.flow}
@@ -705,7 +706,7 @@ const ValveEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -765,11 +766,11 @@ const PumpEditor = ({
 
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
-      <AttributesSection name="Connections">
+      <Section title="Connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </AttributesSection>
-      <AttributesSection name="Model attributes">
+      </Section>
+      <Section title="Model attributes">
         <SelectRow
           name="pumpType"
           selected={pump.definitionType}
@@ -816,8 +817,8 @@ const PumpEditor = ({
           options={statusOptions}
           onChange={handleStatusChange}
         />
-      </AttributesSection>
-      <AttributesSection name="Simulation results">
+      </Section>
+      <Section title="Simulation results">
         <QuantityRow
           name="flow"
           value={pump.flow}
@@ -833,7 +834,7 @@ const PumpEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </AttributesSection>
+      </Section>
     </AssetEditorContent>
   );
 };
