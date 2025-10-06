@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { buildCannyAuthData } from "src/lib/build-canny-auth-data";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
@@ -33,15 +34,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Server configuration error", { status: 500 });
   }
 
-  const userData = {
-    avatarURL: user.imageUrl,
-    email: user.emailAddresses[0]?.emailAddress,
-    id: user.id,
-    name:
-      `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
-      user.username ||
-      user.id,
-  };
+  const userData = buildCannyAuthData(user);
 
   const ssoToken = jwt.sign(userData, privateKey, { algorithm: "HS256" });
 
