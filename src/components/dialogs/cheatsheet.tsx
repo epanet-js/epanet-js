@@ -8,6 +8,7 @@ import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
+import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -37,11 +38,7 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isNetworkReviewEnabled =
-    useFeatureFlag("FLAG_ORPHAN_NODES") ||
-    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
-    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
-    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
+  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
   const BINDINGS = {
     ...getBindings(translate),

@@ -43,6 +43,7 @@ import {
 } from "src/commands/toggle-network-review";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ContextActions } from "../context-actions";
+import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -200,11 +201,7 @@ const Divider = () => {
 const NetworkReviewToggle = () => {
   const translate = useTranslate();
   const [isActive, toggleNetworkReview] = useToggleNetworkReview();
-  const isNetworkReviewEnabled =
-    useFeatureFlag("FLAG_ORPHAN_NODES") ||
-    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
-    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
-    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
+  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
   return !isNetworkReviewEnabled ? null : (
     <>

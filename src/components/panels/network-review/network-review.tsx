@@ -118,3 +118,17 @@ const ReviewCheck = ({
     </Button>
   );
 };
+
+export const useNetworkReviewEnabled = () => {
+  const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
+  const isProximityCheckEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
+  const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
+  const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
+
+  return (
+    isOrphanNodesEnabled ||
+    isProximityCheckEnabled ||
+    isConnectivityTraceEnabled ||
+    isCrossingPipesEnabled
+  );
+};

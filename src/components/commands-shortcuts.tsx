@@ -62,7 +62,7 @@ import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
 } from "src/commands/toggle-network-review";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useNetworkReviewEnabled } from "./panels/network-review/network-review";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -87,11 +87,7 @@ export const CommandShortcuts = () => {
   const simulation = useAtomValue(simulationAtom);
   const [, toggleNetworkReview] = useToggleNetworkReview();
 
-  const isNetworkReviewEnabled =
-    useFeatureFlag("FLAG_ORPHAN_NODES") ||
-    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
-    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
-    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
+  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
   useHotkeys(
     showReportShorcut,
@@ -311,18 +307,16 @@ export const CommandShortcuts = () => {
     "Reverse link",
   );
 
-  if (isNetworkReviewEnabled) {
-    //eslint-disable-next-line
-    useHotkeys(
-      toggleNetworkReviewShortcut,
-      (e) => {
-        e.preventDefault();
-        toggleNetworkReview({ source: "shortcut" });
-      },
-      [toggleNetworkReview],
-      "Toggle network review",
-    );
-  }
+  useHotkeys(
+    toggleNetworkReviewShortcut,
+    (e) => {
+      e.preventDefault();
+      toggleNetworkReview({ source: "shortcut" });
+    },
+    [toggleNetworkReview],
+    "Toggle network review",
+    !isNetworkReviewEnabled,
+  );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
     // eslint-disable-next-line

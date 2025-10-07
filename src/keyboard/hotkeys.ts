@@ -13,6 +13,7 @@ export const useHotkeys = (
   fn: (e: Event) => void,
   dependencyList: DependencyList,
   label: string,
+  disabled = false,
 ) => {
   const isMac = useFeatureFlag("FLAG_MAC");
   const keysList = Array.isArray(keys) ? keys : [keys];
@@ -31,10 +32,10 @@ export const useHotkeys = (
 
     if (!!dialog) return;
 
-    Mousetrap.bind(localizedKeys, fn);
+    if (disabled === false) Mousetrap.bind(localizedKeys, fn);
     return () => {
       Mousetrap.unbind(localizedKeys);
     };
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...dependencyList, dialog]);
+  }, [...dependencyList, dialog, disabled]);
 };
