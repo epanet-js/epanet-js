@@ -1,5 +1,6 @@
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -65,15 +66,63 @@ export const OrphanAssets = () => {
           )}
         </p>
       </div>
-      <div className="flex-auto p-1 overflow-y-scroll placemark-scrollbar">
-        {orphanAssets.map((orphanAsset) => (
-          <OrphanAssetItem
-            key={orphanAsset.assetId}
-            orphanAsset={orphanAsset}
-            isSelected={selectedOrphanAssetId === orphanAsset.assetId}
-            onClick={() => selectOrphanAsset(orphanAsset)}
-          />
-        ))}
+      <IssuesList
+        issues={orphanAssets}
+        onClick={selectOrphanAsset}
+        selectedId={selectedOrphanAssetId}
+      />
+    </div>
+  );
+};
+
+const IssuesList = ({
+  issues,
+  onClick,
+  selectedId,
+}: {
+  issues: OrphanAsset[];
+  onClick: (issue: OrphanAsset) => void;
+  selectedId: string | null;
+}) => {
+  const parentRef = useRef(null);
+  const rowVirtualizer = useVirtualizer({
+    count: issues.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 35,
+  });
+
+  return (
+    <div
+      ref={parentRef}
+      className="flex-auto p-1 overflow-y-auto placemark-scrollbar"
+      tabIndex={0}
+    >
+      <div
+        className="w-full relative"
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          const issue = issues[virtualRow.index];
+          return (
+            <div
+              key={issue.assetId}
+              className="w-full top-0 left-0 block absolute p-0"
+              style={{
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              role="listItem"
+            >
+              <OrphanAssetItem
+                orphanAsset={issue}
+                selectedId={selectedId}
+                onClick={onClick}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -91,18 +140,25 @@ const iconByAssetType: { [key in AssetType]: React.ReactNode } = {
 const OrphanAssetItem = ({
   orphanAsset,
   onClick,
-  isSelected,
+  selectedId,
 }: {
   orphanAsset: OrphanAsset;
-  onClick: () => void;
-  isSelected: boolean;
+  onClick: (orphanAsset: OrphanAsset) => void;
+  selectedId: string | null;
 }) => {
+  const translate = useTranslate();
+  const isSelected = selectedId === orphanAsset.assetId;
+
   return (
     <Button
-      onClick={onClick}
+      onClick={() => onClick(orphanAsset)}
       variant={"quiet"}
       role="button"
-      aria-label={"missing"}
+      aria-label={translate(
+        "networkReview.orphanNodes.issue",
+        translate(orphanAsset.type),
+        orphanAsset.assetId,
+      )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
       className="group w-full"

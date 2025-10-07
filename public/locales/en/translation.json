@@ -572,7 +572,8 @@
     },
     "orphanNodes": {
       "title": "Orphan nodes",
-      "summary": "{{1}} issues found"
+      "summary": "{{1}} issues found",
+      "issue": "Orphan {{1}}: {{2}}"
     },
     "proximityCheck": {
       "title": "Proximity check"
