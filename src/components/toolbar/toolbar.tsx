@@ -57,8 +57,10 @@ export const Toolbar = () => {
   const selection = useAtomValue(selectionAtom);
 
   const isMdOrLarger = useBreakpoint("md");
+  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
 
   const shouldHideContextActions =
+    isAssetPanelOn &&
     selectedWrappedFeatures.length === 1 &&
     selection.type !== "singleCustomerPoint";
 
@@ -195,7 +197,7 @@ const Divider = () => {
 const NetworkReviewToggle = () => {
   const translate = useTranslate();
   const [isActive, toggleNetworkReview] = useToggleNetworkReview();
-  const isEnabled = useFeatureFlag("FLAG_NETWORK_REVIEW");
+  const isEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
   return !isEnabled ? null : (
     <>
       <MenuAction

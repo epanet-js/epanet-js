@@ -66,7 +66,7 @@ export function EpanetApp() {
   useWindowResizeSplits();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
-  const isNetworkReviewEnabled = useFeatureFlag("FLAG_NETWORK_REVIEW");
+  const isNetworkReviewEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
