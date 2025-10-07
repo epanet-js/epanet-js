@@ -467,13 +467,28 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
         <FeaturesList
           title={translate("everythingAnd", "Pro")}
-          textColor="text-gray-500"
           items={[
             {
               feature: translate("prioritySupport"),
               Icon: CheckIcon,
-              iconColor: "text-gray-400",
+              iconColor: "text-green-500",
             },
+            {
+              feature: translate("volumeDiscounts"),
+              Icon: CheckIcon,
+              iconColor: "text-green-500",
+            },
+            {
+              feature: translate("payByInvoice"),
+              Icon: CheckIcon,
+              iconColor: "text-green-500",
+            },
+          ]}
+        />
+        <FeaturesList
+          title={translate("comingSoon")}
+          textColor="text-gray-500"
+          items={[
             {
               feature: translate("teamStorage"),
               Icon: CheckIcon,
@@ -486,11 +501,6 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             },
             {
               feature: translate("sharingModels"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("volumeDiscounts"),
               Icon: CheckIcon,
               iconColor: "text-gray-400",
             },
