@@ -21,7 +21,7 @@ export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
 
   return checkType === CheckType.orphanAssets ? (
-    <OrphanAssets />
+    <OrphanAssets onGoBack={() => setCheckType(null)} />
   ) : (
     <NetworkReviewSummary
       onClick={(checkType: CheckType) => setCheckType(checkType)}

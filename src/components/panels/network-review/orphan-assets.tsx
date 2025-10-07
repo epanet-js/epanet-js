@@ -6,6 +6,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType } from "src/hydraulic-model";
 import {
+  ChevronLeftIcon,
   JunctionIcon,
   PipeIcon,
   PumpIcon,
@@ -20,7 +21,7 @@ import {
 import { useSelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 
-export const OrphanAssets = () => {
+export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const translate = useTranslate();
   const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
@@ -55,16 +56,33 @@ export const OrphanAssets = () => {
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <div className="py-3 px-4 w-full border-b-2 border-gray-100">
-        <p className="text-sm font-bold text-gray-900 dark:text-white">
-          {translate("networkReview.orphanNodes.title")}
-        </p>
-        <p className="text-gray-500 text-sm">
-          {translate(
-            "networkReview.orphanNodes.summary",
-            orphanAssets.length.toString(),
-          )}
-        </p>
+      <div
+        className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 group pl-1 pt-1"
+        style={{
+          gridTemplateColumns: "auto 1fr",
+        }}
+      >
+        <Button
+          size="xs"
+          className="py-3"
+          variant={"quiet"}
+          role="button"
+          aria-label={translate("back")}
+          onClick={onGoBack}
+        >
+          <ChevronLeftIcon />
+        </Button>
+        <div className="w-full flex-col py-3 ">
+          <p className="text-sm font-bold text-gray-900 dark:text-white">
+            {translate("networkReview.orphanNodes.title")}
+          </p>
+          <p className="text-gray-500 text-sm">
+            {translate(
+              "networkReview.orphanNodes.summary",
+              orphanAssets.length.toString(),
+            )}
+          </p>
+        </div>
       </div>
       <IssuesList
         issues={orphanAssets}
