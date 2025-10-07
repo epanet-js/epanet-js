@@ -9,6 +9,7 @@ import {
   ProximityCheckIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const enum CheckType {
   connectivityTrace = "connectivityTrace",
@@ -35,6 +36,11 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
+  const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
+  const isProximityCheckEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
+  const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
+  const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
+
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar">
       <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100">
@@ -44,13 +50,21 @@ function NetworkReviewSummary({
         {translate("networkReview.description")}
       </div>
       <div className="flex-auto px-1">
-        <ReviewCheck
-          checkType={CheckType.connectivityTrace}
-          onClick={onClick}
-        />
-        <ReviewCheck checkType={CheckType.orphanAssets} onClick={onClick} />
-        <ReviewCheck checkType={CheckType.proximityCheck} onClick={onClick} />
-        <ReviewCheck checkType={CheckType.crossingPipes} onClick={onClick} />
+        {isConnectivityTraceEnabled && (
+          <ReviewCheck
+            checkType={CheckType.connectivityTrace}
+            onClick={onClick}
+          />
+        )}
+        {isOrphanNodesEnabled && (
+          <ReviewCheck checkType={CheckType.orphanAssets} onClick={onClick} />
+        )}
+        {isProximityCheckEnabled && (
+          <ReviewCheck checkType={CheckType.proximityCheck} onClick={onClick} />
+        )}
+        {isCrossingPipesEnabled && (
+          <ReviewCheck checkType={CheckType.crossingPipes} onClick={onClick} />
+        )}
       </div>
     </div>
   );
