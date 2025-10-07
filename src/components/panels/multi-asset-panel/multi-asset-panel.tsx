@@ -3,7 +3,7 @@ import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { SectionList } from "src/components/form/fields";
-import { MultiAssetPropertiesTable } from "../multi-asset-viewer";
+import { MultiAssetPropertiesTable } from "../multi-asset-properties-table";
 import { MultiAssetActions } from "./actions";
 
 export function MultiAssetPanel({

@@ -3,15 +3,12 @@ import { selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
-import { pluralize } from "src/lib/utils";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function ContextActions() {
   const translate = useTranslate();
   const selection = useAtomValue(selectionAtom);
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
-  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
 
   if (selection.type === "singleCustomerPoint") {
     return (
@@ -31,21 +28,10 @@ export function ContextActions() {
 
   if (selectedWrappedFeatures.length === 0) return null;
 
-  const isMultiSelection = selectedWrappedFeatures.length > 1;
-  const shouldHideActions = isMultiSelection && isAssetPanelOn;
-
-  if (shouldHideActions) {
-    return null;
-  }
+  if (selectedWrappedFeatures.length > 1) return null;
 
   return (
     <div className="flex items-center">
-      {isMultiSelection && (
-        <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
-          {translate("selection")} (
-          {pluralize(translate, "asset", selectedWrappedFeatures.length)})
-        </div>
-      )}
       <GeometryActions
         selectedWrappedFeatures={selectedWrappedFeatures}
         as="root"

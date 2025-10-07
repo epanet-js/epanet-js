@@ -1,10 +1,7 @@
 import { IWrappedFeature } from "src/types";
 import { MultiPair } from "src/lib/multi-properties";
 import { KeyboardEventHandler, useRef, useState } from "react";
-import { PanelDetails } from "../panel-details";
-import { pluralize } from "src/lib/utils";
 import { onArrow } from "src/lib/arrow-navigation";
-import { PropertyTableHead } from "./asset-editor";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import * as P from "@radix-ui/react-popover";
@@ -23,27 +20,7 @@ import {
 import { Asset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MultipleAssetsIcon } from "src/icons";
-
-export default function MultiAssetViewer({
-  selectedFeatures,
-  quantitiesMetadata,
-}: {
-  selectedFeatures: IWrappedFeature[];
-  quantitiesMetadata: Quantities;
-}) {
-  return (
-    <>
-      <div className="overflow-auto">
-        <FeatureEditorPropertiesMulti
-          selectedFeatures={selectedFeatures}
-          quantitiesMetadata={quantitiesMetadata}
-        />
-      </div>
-      <div className="flex-auto" />
-      <div className="divide-y divide-gray-200 dark:divide-gray-900 border-t border-gray-200 dark:border-gray-900 overflow-auto placemark-scrollbar"></div>
-    </>
-  );
-}
+import { pluralize } from "src/lib/utils";
 
 export function MultiAssetPropertiesTable({
   selectedFeatures,
@@ -76,27 +53,22 @@ export function MultiAssetPropertiesTable({
   );
 }
 
-export function FeatureEditorPropertiesMulti({
-  selectedFeatures,
-  quantitiesMetadata,
-}: {
-  selectedFeatures: IWrappedFeature[];
-  quantitiesMetadata: Quantities;
-}) {
+function PropertyTableHead() {
   const translate = useTranslate();
-
   return (
-    <PanelDetails
-      title={`${translate("selection")} (${pluralize(translate, "asset", selectedFeatures.length)})`}
-      variant="fullwidth"
-    >
-      <MultiAssetPropertiesTable
-        selectedFeatures={selectedFeatures}
-        quantitiesMetadata={quantitiesMetadata}
-      />
-    </PanelDetails>
+    <thead>
+      <tr className="bg-gray-100 dark:bg-gray-800 font-sans text-gray-500 dark:text-gray-100 text-xs text-left">
+        <th className="pl-3 py-2 border-r border-t border-b border-gray-200 dark:border-gray-700">
+          {translate("property")}
+        </th>
+        <th className="pl-2 py-2 border-l border-t border-b border-gray-200 dark:border-gray-700">
+          {translate("value")}
+        </th>
+      </tr>
+    </thead>
   );
 }
+
 const PropertyRowMulti = ({
   pair,
   quantitiesMetadata,

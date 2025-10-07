@@ -11,14 +11,9 @@ import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 describe("AssetPanel", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_ASSET_PANEL");
-  });
-
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const pipeId = "P1";
