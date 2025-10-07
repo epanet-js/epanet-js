@@ -61,10 +61,8 @@ export const Toolbar = () => {
   const selection = useAtomValue(selectionAtom);
 
   const isMdOrLarger = useBreakpoint("md");
-  const isAssetPanelOn = useFeatureFlag("FLAG_ASSET_PANEL");
 
   const shouldHideContextActions =
-    isAssetPanelOn &&
     selectedWrappedFeatures.length === 1 &&
     selection.type !== "singleCustomerPoint";
 
