@@ -100,14 +100,15 @@ const OrphanAssetItem = ({
   return (
     <Button
       onClick={onClick}
-      variant={"quiet/mode"}
+      variant={"quiet"}
       role="button"
       aria-label={"missing"}
       aria-checked={isSelected}
+      aria-expanded={isSelected ? "true" : "false"}
       className="group w-full"
     >
       <div
-        className="grid gap-x-2 items-start p-2 pr-0 text-sm w-full"
+        className="grid gap-x-2 items-start p-1 pr-0 text-sm w-full"
         style={{
           gridTemplateColumns: "auto 1fr",
         }}
