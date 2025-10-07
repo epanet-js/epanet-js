@@ -572,12 +572,13 @@
     "toggle": "Toggle Network Review",
     "title": "Network Review",
     "description": "Perfom a series of checks to make sure you will be able to run a simulation.",
+    "issuesFound": "{{1}} issues found",
+    "noIssuesFound": "No issues found",
     "connectivityTrace": {
       "title": "Connectivity trace"
     },
     "orphanNodes": {
       "title": "Orphan nodes",
-      "summary": "{{1}} issues found",
       "issue": "Orphan {{1}}: {{2}}"
     },
     "proximityCheck": {

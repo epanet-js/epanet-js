@@ -11,6 +11,7 @@ import {
   PipeIcon,
   PumpIcon,
   ReservoirIcon,
+  SuccessIcon,
   TankIcon,
   ValveIcon,
 } from "src/icons";
@@ -76,12 +77,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           <p className="text-sm font-bold text-gray-900 dark:text-white">
             {translate("networkReview.orphanNodes.title")}
           </p>
-          <p className="text-gray-500 text-sm">
-            {translate(
-              "networkReview.orphanNodes.summary",
-              orphanAssets.length.toString(),
-            )}
-          </p>
+          <IssuesSummary count={orphanAssets.length} />
         </div>
       </div>
       <IssuesList
@@ -89,6 +85,21 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         onClick={selectOrphanAsset}
         selectedId={selectedOrphanAssetId}
       />
+    </div>
+  );
+};
+
+const IssuesSummary = ({ count }: { count: number }) => {
+  const translate = useTranslate();
+
+  return count > 0 ? (
+    <p className="text-gray-500 text-sm">
+      {translate("networkReview.issuesFound", count.toString())}
+    </p>
+  ) : (
+    <div className="flex flex-row items-center space-x-2 text-sm text-green-500">
+      <p>{translate("networkReview.noIssuesFound")}</p>
+      <SuccessIcon className="mr-1" />
     </div>
   );
 };
