@@ -7,6 +7,7 @@ import { showSimulationSettingsShortcut } from "src/commands/show-simulation-set
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
+import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -36,7 +37,18 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const BINDINGS = getBindings(translate);
+  const isNetworkReviewEnabled =
+    useFeatureFlag("FLAG_ORPHAN_NODES") ||
+    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
+    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
+    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
+
+  const BINDINGS = {
+    ...getBindings(translate),
+    ...(isNetworkReviewEnabled
+      ? { [toggleNetworkReviewShortcut]: translate("networkReview.toggle") }
+      : {}),
+  };
 
   return (
     <>
