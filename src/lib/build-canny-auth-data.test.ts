@@ -58,7 +58,7 @@ describe("buildCannyAuthData", () => {
     });
     const result = buildCannyAuthData(user);
 
-    expect(result.name).toBe("epanet-js user_2abcde");
+    expect(result.name).toBe("epanet-js anonymous user (#2abcde)");
   });
 
   it("handles user ID without user_ prefix", () => {
@@ -76,7 +76,7 @@ describe("buildCannyAuthData", () => {
     });
     const result = buildCannyAuthData(user);
 
-    expect(result.name).toBe("epanet-js user_abc");
+    expect(result.name).toBe("epanet-js anonymous user (#abc)");
   });
 
   it("trims whitespace from firstName", () => {
@@ -106,7 +106,7 @@ describe("buildCannyAuthData", () => {
     });
     const result = buildCannyAuthData(user);
 
-    expect(result.name).toBe("epanet-js user_2abcde");
+    expect(result.name).toBe("epanet-js anonymous user (#2abcde)");
   });
 
   it("handles empty lastName correctly", () => {
@@ -136,6 +136,6 @@ describe("buildCannyAuthData", () => {
     });
     const result = buildCannyAuthData(user);
 
-    expect(result.name).toBe("epanet-js user_2nXXXX");
+    expect(result.name).toBe("epanet-js anonymous user (#2nXXXX)");
   });
 });

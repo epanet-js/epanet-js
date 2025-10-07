@@ -44,5 +44,5 @@ const buildFallbackUsername = (userId: string): string => {
   const afterPrefix = userId.slice(startIndex + prefix.length);
   const firstSixChars = afterPrefix.slice(0, 6);
 
-  return `epanet-js user_${firstSixChars}`;
+  return `epanet-js anonymous user (#${firstSixChars})`;
 };
