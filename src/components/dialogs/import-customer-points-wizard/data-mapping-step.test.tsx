@@ -60,10 +60,10 @@ describe("DataMappingStep", () => {
       await user.selectOptions(demandSelector, "demand");
 
       await waitFor(() => {
-        expect(screen.getByText(/Customer Points \(2\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
       });
 
-      const customerPointsTab = screen.getByText(/Customer Points \(2\)/);
+      const customerPointsTab = screen.getByText(/Customer points \(2\)/);
       expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
 
       const issuesTab = screen.getByText(/Issues \(0\)/);
@@ -119,7 +119,7 @@ describe("DataMappingStep", () => {
       await user.selectOptions(demandSelector, "demand");
 
       await waitFor(() => {
-        expect(screen.getByText(/Customer Points \(1\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
       });
 
       expect(screen.getByText(/Issues \(1\)/)).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe("DataMappingStep", () => {
       const issuesTab = screen.getByText(/Issues \(1\)/);
       expect(issuesTab).not.toHaveClass("cursor-not-allowed");
 
-      const customerPointsTab = screen.getByText(/Customer Points \(1\)/);
+      const customerPointsTab = screen.getByText(/Customer points \(1\)/);
       expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
 
       await user.click(issuesTab);

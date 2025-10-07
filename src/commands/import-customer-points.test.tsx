@@ -655,7 +655,7 @@ const waitForAllocations = async () => {
 
   // Wait for allocation summary to appear
   await waitFor(() => {
-    expect(screen.getByText(/Allocation Summary/)).toBeInTheDocument();
+    expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
   });
 };
 

@@ -39,8 +39,8 @@ describe("AllocationRulesTable", () => {
       });
 
       expect(screen.getByText("Order")).toBeInTheDocument();
-      expect(screen.getByText("Max Diameter (mm)")).toBeInTheDocument();
-      expect(screen.getByText("Max Distance (m)")).toBeInTheDocument();
+      expect(screen.getByText("Max diameter (mm)")).toBeInTheDocument();
+      expect(screen.getByText("Max distance (m)")).toBeInTheDocument();
       expect(screen.getByText("Allocations")).toBeInTheDocument();
       expect(screen.queryByText("Actions")).not.toBeInTheDocument();
 
@@ -52,10 +52,10 @@ describe("AllocationRulesTable", () => {
       ).not.toBeInTheDocument();
 
       const diameterFields = screen.getAllByLabelText(
-        "Value for: Max Diameter",
+        "Value for: Max diameter",
       );
       const distanceFields = screen.getAllByLabelText(
-        "Value for: Max Distance",
+        "Value for: Max distance",
       );
       expect(diameterFields[0]).toHaveAttribute("readOnly");
       expect(distanceFields[0]).toHaveAttribute("readOnly");
@@ -72,8 +72,8 @@ describe("AllocationRulesTable", () => {
       });
 
       expect(screen.getByText("Order")).toBeInTheDocument();
-      expect(screen.getByText("Max Diameter (mm)")).toBeInTheDocument();
-      expect(screen.getByText("Max Distance (m)")).toBeInTheDocument();
+      expect(screen.getByText("Max diameter (mm)")).toBeInTheDocument();
+      expect(screen.getByText("Max distance (m)")).toBeInTheDocument();
       expect(screen.getByText("Actions")).toBeInTheDocument();
       expect(screen.queryByText("Allocations")).not.toBeInTheDocument();
 
@@ -84,8 +84,8 @@ describe("AllocationRulesTable", () => {
       expect(screen.getByTitle("Move down")).toBeInTheDocument();
       expect(screen.getByTitle("Remove rule")).toBeInTheDocument();
 
-      const diameterField = screen.getByLabelText("Value for: Max Diameter");
-      const distanceField = screen.getByLabelText("Value for: Max Distance");
+      const diameterField = screen.getByLabelText("Value for: Max diameter");
+      const distanceField = screen.getByLabelText("Value for: Max distance");
       expect(diameterField).not.toHaveAttribute("readOnly");
       expect(distanceField).not.toHaveAttribute("readOnly");
     });
@@ -197,7 +197,7 @@ describe("AllocationRulesTable", () => {
         onChange,
       });
 
-      const diameterField = screen.getByLabelText("Value for: Max Diameter");
+      const diameterField = screen.getByLabelText("Value for: Max diameter");
 
       fireEvent.focus(diameterField);
       fireEvent.change(diameterField, { target: { value: "250" } });
@@ -219,7 +219,7 @@ describe("AllocationRulesTable", () => {
         onChange,
       });
 
-      const distanceField = screen.getByLabelText("Value for: Max Distance");
+      const distanceField = screen.getByLabelText("Value for: Max distance");
 
       fireEvent.focus(distanceField);
       fireEvent.change(distanceField, { target: { value: "125" } });

@@ -51,8 +51,8 @@ describe("AllocationStep", () => {
       }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText("Max Diameter (mm)")).toBeInTheDocument();
-    expect(screen.getByText("Max Distance (m)")).toBeInTheDocument();
+    expect(screen.getByText("Max diameter (mm)")).toBeInTheDocument();
+    expect(screen.getByText("Max distance (m)")).toBeInTheDocument();
     expect(screen.getByText("Order")).toBeInTheDocument();
   });
 
@@ -65,7 +65,7 @@ describe("AllocationStep", () => {
 
     await waitForAllocations();
 
-    expect(screen.getByText(/Allocation Summary/)).toBeInTheDocument();
+    expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
     expect(
       screen.getByText(/customer points will be allocated/),
     ).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("AllocationStep", () => {
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    const distanceField = screen.getByLabelText("Value for: Max Distance");
+    const distanceField = screen.getByLabelText("Value for: Max distance");
     await user.clear(distanceField);
     await user.type(distanceField, "50");
 
@@ -100,7 +100,7 @@ describe("AllocationStep", () => {
 
     await waitForAllocations();
 
-    expect(screen.getByText(/Allocation Summary/)).toBeInTheDocument();
+    expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
     expect(
       screen.getByText(/customer points will be allocated/),
     ).toBeInTheDocument();

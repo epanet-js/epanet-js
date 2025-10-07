@@ -290,7 +290,7 @@ const waitForAllocations = async () => {
 
   await waitFor(
     () => {
-      expect(screen.getByText(/Allocation Summary/)).toBeInTheDocument();
+      expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
     },
     { timeout: 10000 },
   );

@@ -52,7 +52,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
       expectPropertyDisplayed("loss coeff. (m)", "0.1");
-      expect(screen.queryAllByText("Not Available").length).toBeGreaterThan(0);
+      expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
     it("can show simulation results", () => {
@@ -421,7 +421,7 @@ describe("AssetPanel", () => {
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("direct demand (l/s)", "100");
-      expect(screen.queryAllByText("Not Available").length).toBeGreaterThan(0);
+      expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
     it("can show simulation results", () => {
