@@ -54,17 +54,18 @@ export const OrphanAssets = () => {
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100">
-        {translate("networkReview.orphanNodes.title")}
-
-        <div className="text-sm">
+      <div className="py-3 px-4 w-full border-b-2 border-gray-100">
+        <p className="text-sm font-bold text-gray-900 dark:text-white">
+          {translate("networkReview.orphanNodes.title")}
+        </p>
+        <p className="text-gray-500 text-sm">
           {translate(
             "networkReview.orphanNodes.summary",
             orphanAssets.length.toString(),
           )}
-        </div>
+        </p>
       </div>
-      <div className="flex-auto px-1 overflow-y-scroll placemark-scrollbar">
+      <div className="flex-auto p-1 overflow-y-scroll placemark-scrollbar">
         {orphanAssets.map((orphanAsset) => (
           <OrphanAssetItem
             key={orphanAsset.assetId}
