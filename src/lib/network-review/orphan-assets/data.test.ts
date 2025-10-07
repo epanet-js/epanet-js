@@ -1,5 +1,9 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { HydraulicModelBufferView, encodeHydraulicModel } from "./data";
+import {
+  HydraulicModelBufferView,
+  decodeOrphanAssets,
+  encodeHydraulicModel,
+} from "./data";
 
 describe("HydraulicModel encoding/decoding", () => {
   it("encodes/decodes nodes correctly", () => {
@@ -79,5 +83,51 @@ describe("HydraulicModel encoding/decoding", () => {
       startNode: "J1",
       endNode: "J2",
     });
+  });
+
+  it("decodeOrphanAssets returns results sorted by type and assetId", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J2")
+      .aJunction("J1")
+      .aPump("PM2")
+      .aPump("PM1")
+      .aValve("V2")
+      .aValve("V1")
+      .aTank("T2")
+      .aTank("T1")
+      .aReservoir("R2")
+      .aReservoir("R1")
+      .build();
+    const idsLookup = [
+      "J2",
+      "J1",
+      "PM2",
+      "PM1",
+      "V2",
+      "V1",
+      "T2",
+      "T1",
+      "R2",
+      "R1",
+    ];
+    const rawOrphanAssets = {
+      orphanNodes: [0, 1, 6, 7, 8, 9],
+      orphanLinks: [2, 3, 4, 5],
+    };
+
+    const orphanAssets = decodeOrphanAssets(model, idsLookup, rawOrphanAssets);
+
+    expect(orphanAssets.map((asset) => asset.assetId)).toEqual([
+      "R1",
+      "R2",
+      "T1",
+      "T2",
+      "V1",
+      "V2",
+      "PM1",
+      "PM2",
+      "J1",
+      "J2",
+    ]);
   });
 });

@@ -114,6 +114,15 @@ export function encodeHydraulicModel(
   };
 }
 
+enum typeOrder {
+  "reservoir" = 5,
+  "tank" = 4,
+  "valve" = 3,
+  "pump" = 2,
+  "junction" = 1,
+  "pipe" = 0,
+}
+
 export function decodeOrphanAssets(
   model: HydraulicModel,
   idsLookup: string[],
@@ -139,7 +148,15 @@ export function decodeOrphanAssets(
     }
   });
 
-  return orphanAssets;
+  return orphanAssets.sort((a: OrphanAsset, b: OrphanAsset) => {
+    const nameA = a.assetId.toUpperCase();
+    const nameB = b.assetId.toUpperCase();
+
+    if (a.type !== b.type) {
+      return typeOrder[a.type] > typeOrder[b.type] ? -1 : 1;
+    }
+    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+  });
 }
 
 export interface Node {
