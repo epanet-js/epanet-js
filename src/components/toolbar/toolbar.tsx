@@ -37,7 +37,10 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
-import { useToggleNetworkReview } from "src/commands/toggle-network-review";
+import {
+  toggleNetworkReviewShortcut,
+  useToggleNetworkReview,
+} from "src/commands/toggle-network-review";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ContextActions } from "../context-actions";
 
@@ -197,8 +200,13 @@ const Divider = () => {
 const NetworkReviewToggle = () => {
   const translate = useTranslate();
   const [isActive, toggleNetworkReview] = useToggleNetworkReview();
-  const isEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
-  return !isEnabled ? null : (
+  const isNetworkReviewEnabled =
+    useFeatureFlag("FLAG_ORPHAN_NODES") ||
+    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
+    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
+    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
+
+  return !isNetworkReviewEnabled ? null : (
     <>
       <MenuAction
         label={translate("networkReview.toggle")}
@@ -207,6 +215,7 @@ const NetworkReviewToggle = () => {
         onClick={() => {
           toggleNetworkReview({ source: "toolbar" });
         }}
+        readOnlyHotkey={toggleNetworkReviewShortcut}
       >
         <ToolsPanelIcon />
       </MenuAction>

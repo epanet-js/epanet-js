@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { splitsAtom } from "src/state/jotai";
 
-export const showReportShorcut = "alt+r";
+export const toggleNetworkReviewShortcut = "ctrl+b";
 
 export const useToggleNetworkReview = (): [
   boolean,

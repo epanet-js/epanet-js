@@ -66,7 +66,11 @@ export function EpanetApp() {
   useWindowResizeSplits();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
-  const isNetworkReviewEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
+  const isNetworkReviewEnabled =
+    useFeatureFlag("FLAG_ORPHAN_NODES") ||
+    useFeatureFlag("FLAG_PROXIMITY_CHECK") || //eslint-disable-line
+    useFeatureFlag("FLAG_CONNECTIVITY_TRACE") || //eslint-disable-line
+    useFeatureFlag("FLAG_CROSSING_PIPES"); //eslint-disable-line
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
