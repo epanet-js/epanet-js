@@ -54,4 +54,21 @@ describe("findOrphanAssets", () => {
     expect(orphanNodes).toHaveLength(0);
     expect(idsLookup[orphanLinks[0]]).toEqual("OrphanPump");
   });
+
+  it("does not report orphan nodes for nodes connected to valves or pumps", () => {
+    const model = HydraulicModelBuilder.with()
+      .aTank("T1")
+      .aNode("J1")
+      .aValve("V1", { startNodeId: "T1", endNodeId: "J1" })
+      .aPump("PU1", { startNodeId: "T1", endNodeId: "J1" })
+      .aNode("J2")
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+    const { idsLookup, ...data } = encodeHydraulicModel(model);
+
+    const { orphanLinks, orphanNodes } = findOrphanAssets(data);
+
+    expect(orphanLinks).toHaveLength(0);
+    expect(orphanNodes).toHaveLength(0);
+  });
 });

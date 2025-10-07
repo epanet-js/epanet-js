@@ -18,10 +18,10 @@ export function findOrphanAssets(input: RunData): EncodedOrphanAssets {
   for (const link of data.otherLinks()) {
     if (!connected.has(link.startNode) && !connected.has(link.endNode)) {
       orphanLinks.push(link.id);
-      // Mark nodes as connected to avoid duplicate reporting
-      connected.add(link.startNode);
-      connected.add(link.endNode);
     }
+    // Mark nodes as connected to avoid duplicate reporting
+    connected.add(link.startNode);
+    connected.add(link.endNode);
   }
 
   const orphanNodes: number[] = [];
