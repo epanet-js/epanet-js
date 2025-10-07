@@ -188,7 +188,7 @@ const OrphanAssetItem = ({
         }}
       >
         <div className="pt-[.125rem]">{iconByAssetType[orphanAsset.type]}</div>
-        <div className="text-sm font-bold text-left">{orphanAsset.assetId}</div>
+        <div className="text-sm font-bold text-left">{orphanAsset.label}</div>
       </div>
     </Button>
   );

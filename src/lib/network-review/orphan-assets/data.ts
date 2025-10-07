@@ -20,6 +20,7 @@ export type EncodedOrphanAssets = {
 export interface OrphanAsset {
   assetId: AssetId;
   type: AssetType;
+  label: string;
 }
 
 const UINT32_SIZE = 4;
@@ -136,7 +137,11 @@ export function decodeOrphanAssets(
     const linkId = idsLookup[linkIdx];
     const linkAsset = model.assets.get(linkId);
     if (linkAsset) {
-      orphanAssets.push({ assetId: linkId, type: linkAsset.type });
+      orphanAssets.push({
+        assetId: linkId,
+        type: linkAsset.type,
+        label: linkAsset.label,
+      });
     }
   });
 
@@ -144,18 +149,22 @@ export function decodeOrphanAssets(
     const nodeId = idsLookup[nodeIdx];
     const nodeAsset = model.assets.get(nodeId);
     if (nodeAsset) {
-      orphanAssets.push({ assetId: nodeId, type: nodeAsset.type });
+      orphanAssets.push({
+        assetId: nodeId,
+        type: nodeAsset.type,
+        label: nodeAsset.label,
+      });
     }
   });
 
   return orphanAssets.sort((a: OrphanAsset, b: OrphanAsset) => {
-    const nameA = a.assetId.toUpperCase();
-    const nameB = b.assetId.toUpperCase();
+    const labelA = a.label.toUpperCase();
+    const labelB = b.label.toUpperCase();
 
     if (a.type !== b.type) {
       return typeOrder[a.type] > typeOrder[b.type] ? -1 : 1;
     }
-    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+    return labelA < labelB ? -1 : labelA > labelB ? 1 : 0;
   });
 }
 

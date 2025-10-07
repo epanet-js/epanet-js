@@ -87,29 +87,18 @@ describe("HydraulicModel encoding/decoding", () => {
 
   it("decodeOrphanAssets returns results sorted by type and assetId", () => {
     const model = HydraulicModelBuilder.with()
-      .aJunction("J2")
-      .aJunction("J1")
-      .aPump("PM2")
-      .aPump("PM1")
-      .aValve("V2")
-      .aValve("V1")
-      .aTank("T2")
-      .aTank("T1")
-      .aReservoir("R2")
-      .aReservoir("R1")
+      .aJunction("0", { label: "J2" })
+      .aJunction("9", { label: "J1" })
+      .aPump("8", { label: "PM2" })
+      .aPump("7", { label: "PM1" })
+      .aValve("6", { label: "V2" })
+      .aValve("5", { label: "V1" })
+      .aTank("4", { label: "T2" })
+      .aTank("3", { label: "T1" })
+      .aReservoir("2", { label: "R2" })
+      .aReservoir("1", { label: "R1" })
       .build();
-    const idsLookup = [
-      "J2",
-      "J1",
-      "PM2",
-      "PM1",
-      "V2",
-      "V1",
-      "T2",
-      "T1",
-      "R2",
-      "R1",
-    ];
+    const idsLookup = ["0", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
     const rawOrphanAssets = {
       orphanNodes: [0, 1, 6, 7, 8, 9],
       orphanLinks: [2, 3, 4, 5],
@@ -117,7 +106,7 @@ describe("HydraulicModel encoding/decoding", () => {
 
     const orphanAssets = decodeOrphanAssets(model, idsLookup, rawOrphanAssets);
 
-    expect(orphanAssets.map((asset) => asset.assetId)).toEqual([
+    expect(orphanAssets.map((asset) => asset.label)).toEqual([
       "R1",
       "R2",
       "T1",
