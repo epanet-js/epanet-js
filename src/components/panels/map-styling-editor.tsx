@@ -22,7 +22,6 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -223,13 +222,8 @@ const SymbologyEditor = ({
 const CustomerPointsSection = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const isHideCustomersOn = useFeatureFlag("FLAG_HIDE_CUSTOMERS");
   const { customerPointsSymbology, updateCustomerPointsSymbology } =
     useSymbologyState();
-
-  if (!isHideCustomersOn) {
-    return null;
-  }
 
   const handleVisibilityChange = () => {
     const newVisibility = !customerPointsSymbology.visible;
