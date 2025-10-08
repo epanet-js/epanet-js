@@ -30,12 +30,18 @@ export type LinkSymbology = {
   labelRule: LabelRule | null;
 };
 
+export type CustomerPointsSymbology = {
+  visible: boolean;
+};
+
 export type SymbologySpec = {
   node: NodeSymbology;
   link: LinkSymbology;
+  customerPoints: CustomerPointsSymbology;
 };
 
 export const nullSymbologySpec: SymbologySpec = {
   link: { colorRule: null, labelRule: null },
   node: { colorRule: null, labelRule: null },
+  customerPoints: { visible: true },
 };

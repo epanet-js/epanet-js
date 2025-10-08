@@ -368,8 +368,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             (mapState.ephemeralState.type === "drawLink" &&
               mapState.ephemeralState.sourceLink);
 
+          const isCustomerPointsVisible =
+            mapState.symbology.customerPoints.visible;
+
           const combinedOverlay = [
-            ...(shouldHideCustomerPointsOverlay
+            ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
               ? []
               : customerPointsOverlayRef.current),
             ...selectionDeckLayersRef.current,

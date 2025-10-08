@@ -273,6 +273,7 @@
   "chooseType": "Choose type",
   "toggleVisibility": "Toggle visibility",
   "toggleLabelsVisibility": "Toggle labels visibility",
+  "visible": "Visible",
   "basemap": "Basemap",
   "back": "Back",
   "updateLayer": "Update layer",

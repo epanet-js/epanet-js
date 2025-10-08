@@ -1,5 +1,10 @@
 import { atom, useAtom } from "jotai";
-import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
+import {
+  SymbologySpec,
+  LinkSymbology,
+  NodeSymbology,
+  CustomerPointsSymbology,
+} from "src/map/symbology";
 import {
   SupportedProperty,
   nullSymbologySpec,
@@ -12,18 +17,25 @@ export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());
 
 export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
 export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
+export const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
+  nullSymbologySpec.customerPoints,
+);
 
 export const symbologyAtom = atom((get) => {
   const node = get(nodeSymbologyAtom);
   const link = get(linkSymbologyAtom);
+  const customerPoints = get(customerPointsSymbologyAtom);
 
-  return { node, link };
+  return { node, link, customerPoints };
 });
 
 export const useSymbologyState = () => {
   const [savedSymbologies, setSavedAnalyises] = useAtom(savedSymbologiesAtom);
   const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);
+  const [customerPointsSymbology, setCustomerPointsSymbology] = useAtom(
+    customerPointsSymbologyAtom,
+  );
 
   const switchNodeSymbologyTo = (
     property: SupportedProperty | null,
@@ -87,12 +99,20 @@ export const useSymbologyState = () => {
     setSavedAnalyises(symbologiesMap);
   };
 
+  const updateCustomerPointsSymbology = (
+    newCustomerPointsSymbology: CustomerPointsSymbology,
+  ) => {
+    setCustomerPointsSymbology(newCustomerPointsSymbology);
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
+    customerPointsSymbology,
     switchNodeSymbologyTo,
     switchLinkSymbologyTo,
     updateNodeSymbology,
     updateLinkSymbology,
+    updateCustomerPointsSymbology,
   };
 };

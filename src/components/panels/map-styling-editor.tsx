@@ -22,6 +22,7 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -48,6 +49,7 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
+        <CustomerPointsSection />
         <Section title={translate("layers")} button={<AddLayer />}>
           <LayersEditor />
         </Section>
@@ -214,6 +216,44 @@ const SymbologyEditor = ({
           </InlineField>
         </>
       )}
+    </Section>
+  );
+};
+
+const CustomerPointsSection = () => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const isHideCustomersOn = useFeatureFlag("FLAG_HIDE_CUSTOMERS");
+  const { customerPointsSymbology, updateCustomerPointsSymbology } =
+    useSymbologyState();
+
+  if (!isHideCustomersOn) {
+    return null;
+  }
+
+  const handleVisibilityChange = () => {
+    const newVisibility = !customerPointsSymbology.visible;
+
+    userTracking.capture({
+      name: newVisibility
+        ? "map.customerPoints.shown"
+        : "map.customerPoints.hidden",
+    });
+
+    updateCustomerPointsSymbology({ visible: newVisibility });
+  };
+
+  return (
+    <Section title={translate("customerPoints")}>
+      <InlineField name={translate("visible")}>
+        <div className="p-2 flex items-center h-[38px]">
+          <Checkbox
+            checked={customerPointsSymbology.visible}
+            aria-label={`${translate("customerPoints")} ${translate("visible")}`}
+            onChange={handleVisibilityChange}
+          />
+        </div>
+      </InlineField>
     </Section>
   );
 };

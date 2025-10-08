@@ -625,6 +625,8 @@ export type UserEvent =
   | NetworkReviewOpenned
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
+  | { name: "map.customerPoints.shown" }
+  | { name: "map.customerPoints.hidden" }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
   | { name: "map.colorRamp.changed"; rampName: string; property: string }
   | { name: "map.colorRamp.reversed"; rampName: string; property: string }
