@@ -110,7 +110,9 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           aria-label={translate("back")}
           onClick={goBack}
         >
-          <ChevronLeftIcon />
+          <div className="pt-[.125rem]">
+            <ChevronLeftIcon />
+          </div>
         </Button>
         <div className="w-full flex-col py-3 ">
           <p className="text-sm font-bold text-gray-900 dark:text-white">
