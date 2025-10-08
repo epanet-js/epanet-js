@@ -3,6 +3,7 @@ import {
   LucideIcon,
   ArrowDownUp,
   ArrowRight,
+  BadgeCheck,
   Bell,
   Check,
   ChevronDown,
@@ -36,7 +37,6 @@ import {
   Menu,
   MousePointer2,
   PanelLeft,
-  PartyPopper,
   PencilLine,
   Plus,
   RectangleHorizontal,
@@ -150,7 +150,7 @@ export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
 export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
-export const NoIssuesIcon = icon(PartyPopper);
+export const NoIssuesIcon = icon(BadgeCheck);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
