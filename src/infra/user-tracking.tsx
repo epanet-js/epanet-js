@@ -548,12 +548,22 @@ type NetworkReviewChecked = {
     | "networkReview.crossingPipes.opened";
 };
 
+type NetworkReviewChanged = {
+  name:
+    | "networkReview.orphanAssets.changed"
+    | "networkReview.proximityCheck.changed"
+    | "networkReview.connectivityTrace.changed"
+    | "networkReview.crossingPipes.changed";
+  count: number;
+};
+
 type NetworkReviewBack = {
   name:
     | "networkReview.orphanAssets.back"
     | "networkReview.proximityCheck.back"
     | "networkReview.connectivityTrace.back"
     | "networkReview.crossingPipes.back";
+  count: number;
 };
 
 export type UserEvent =
@@ -647,6 +657,7 @@ export type UserEvent =
   | NetworkReviewClosed
   | NetworkReviewChecked
   | NetworkReviewBack
+  | NetworkReviewChanged
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

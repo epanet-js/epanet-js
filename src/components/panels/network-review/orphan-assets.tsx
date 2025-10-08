@@ -26,6 +26,7 @@ import { dataAtom, selectionAtom } from "src/state/jotai";
 
 export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
   const { selectFeature, isSelected } = useSelection(selection);
@@ -34,6 +35,8 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
     string | null
   >(null);
+
+  const lastIssuesCount = useRef(0);
 
   useEffect(
     function recomputeOrphanAssets() {
@@ -72,6 +75,25 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
       );
   }, [orphanAssets, isSelected, setSelectedOrphanAssetId]);
 
+  useEffect(() => {
+    const issuesCount = orphanAssets.length;
+    if (lastIssuesCount.current !== issuesCount) {
+      lastIssuesCount.current = issuesCount;
+      userTracking.capture({
+        name: "networkReview.orphanAssets.changed",
+        count: issuesCount,
+      });
+    }
+  }, [orphanAssets, userTracking]);
+
+  const goBack = useCallback(() => {
+    userTracking.capture({
+      name: "networkReview.orphanAssets.back",
+      count: orphanAssets.length,
+    });
+    onGoBack();
+  }, [onGoBack, userTracking, orphanAssets]);
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <div
@@ -80,7 +102,16 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           gridTemplateColumns: "auto 1fr",
         }}
       >
-        <BackButton onClick={onGoBack} />
+        <Button
+          size="xs"
+          className="py-3"
+          variant={"quiet"}
+          role="button"
+          aria-label={translate("back")}
+          onClick={goBack}
+        >
+          <ChevronLeftIcon />
+        </Button>
         <div className="w-full flex-col py-3 ">
           <p className="text-sm font-bold text-gray-900 dark:text-white">
             {translate("networkReview.orphanAssets.title")}
@@ -98,29 +129,6 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         <EmptyState />
       )}
     </div>
-  );
-};
-
-const BackButton = ({ onClick }: { onClick: () => void }) => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-
-  const goBack = useCallback(() => {
-    userTracking.capture({ name: "networkReview.orphanAssets.back" });
-    onClick();
-  }, [onClick, userTracking]);
-
-  return (
-    <Button
-      size="xs"
-      className="py-3"
-      variant={"quiet"}
-      role="button"
-      aria-label={translate("back")}
-      onClick={goBack}
-    >
-      <ChevronLeftIcon />
-    </Button>
   );
 };
 
