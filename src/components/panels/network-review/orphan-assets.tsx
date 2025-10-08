@@ -7,7 +7,6 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType } from "src/hydraulic-model";
 import {
   ChevronLeftIcon,
-  CloseIcon,
   JunctionIcon,
   NoIssuesIcon,
   PipeIcon,
@@ -121,7 +120,6 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           <IssuesSummary count={orphanAssets.length} />
         </div>
       </div>
-      <ToolDescription />
       {orphanAssets.length > 0 ? (
         <IssuesList
           issues={orphanAssets}
@@ -151,40 +149,21 @@ const IssuesSummary = ({ count }: { count: number }) => {
 
 const ToolDescription = () => {
   const translate = useTranslate();
-  const [isShown, setIsShown] = useState(true);
-  return isShown ? (
-    <div className="w-full p-2">
-      <div
-        className="w-full bg-blue-50 rounded p-4 relative shadow-sm"
-        role="status"
-        aria-live="polite"
-      >
-        <Button
-          variant="quiet"
-          aria-label="Dismiss info"
-          className="absolute right-1 top-1"
-          onClick={() => setIsShown(false)}
-        >
-          <CloseIcon size="sm" />
-        </Button>
-        <div className="flex items-start gap-3">
-          <p className="text-sm">
-            {translate("networkReview.orphanAssets.description")}
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : null;
+  return (
+    <p className="text-sm w-full p-3">
+      {translate("networkReview.orphanAssets.description")}
+    </p>
+  );
 };
 
 const EmptyState = () => {
   const translate = useTranslate();
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <div className="text-gray-200">
+      <div className="text-gray-300">
         <NoIssuesIcon size={96} strokeWidth={1.75} />
       </div>
-      <p className="text-center pt-4 font-bold text-gray-300">
+      <p className="text-center pt-4 font-bold text-gray-400">
         {translate("networkReview.orphanAssets.noIssues")}
       </p>
     </div>
@@ -200,9 +179,10 @@ const IssuesList = ({
   onClick: (issue: OrphanAsset) => void;
   selectedId: string | null;
 }) => {
+  const headerRows = 1;
   const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
-    count: issues.length,
+    count: issues.length + headerRows,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 35,
   });
@@ -210,9 +190,9 @@ const IssuesList = ({
   useEffect(() => {
     if (selectedId === null) return;
 
-    const rowIndex = issues.findIndex(
-      (orphanAsset) => orphanAsset.assetId === selectedId,
-    );
+    const rowIndex =
+      issues.findIndex((orphanAsset) => orphanAsset.assetId === selectedId) +
+      headerRows;
 
     const range = rowVirtualizer.range;
 
@@ -227,38 +207,58 @@ const IssuesList = ({
     });
   }, [selectedId, issues, rowVirtualizer]);
 
+  const items = rowVirtualizer.getVirtualItems();
+
   return (
     <div
       ref={parentRef}
       className="flex-auto p-1 overflow-y-auto placemark-scrollbar"
+      style={{ contain: "strict" }}
       tabIndex={0}
     >
       <div
         className="w-full relative"
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-        }}
+        style={{ height: rowVirtualizer.getTotalSize() }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const issue = issues[virtualRow.index];
-          return (
-            <div
-              key={issue.assetId}
-              className="w-full top-0 left-0 block absolute p-0"
-              style={{
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-              role="listItem"
-            >
-              <OrphanAssetItem
-                orphanAsset={issue}
-                selectedId={selectedId}
-                onClick={onClick}
-              />
-            </div>
-          );
-        })}
+        <div
+          className="absolute top-0 left-0 w-full"
+          style={{
+            transform: `translateY(${items[0]?.start ?? 0}px)`,
+          }}
+        >
+          {items.map((virtualRow) => {
+            if (virtualRow.index === 0) {
+              return (
+                <div
+                  key="description"
+                  data-index={virtualRow.index}
+                  className="w-full"
+                  ref={rowVirtualizer.measureElement}
+                  role="listItem"
+                >
+                  <ToolDescription />
+                </div>
+              );
+            }
+
+            const issue = issues[virtualRow.index + headerRows];
+            return (
+              <div
+                key={issue.assetId}
+                data-index={virtualRow.index}
+                className="w-full"
+                ref={rowVirtualizer.measureElement}
+                role="listItem"
+              >
+                <OrphanAssetItem
+                  orphanAsset={issue}
+                  selectedId={selectedId}
+                  onClick={onClick}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
