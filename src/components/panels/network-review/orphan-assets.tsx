@@ -16,6 +16,7 @@ import {
   TankIcon,
   ValveIcon,
 } from "src/icons";
+import { useUserTracking } from "src/infra/user-tracking";
 import {
   findOrphanAssets,
   OrphanAsset,
@@ -64,16 +65,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           gridTemplateColumns: "auto 1fr",
         }}
       >
-        <Button
-          size="xs"
-          className="py-3"
-          variant={"quiet"}
-          role="button"
-          aria-label={translate("back")}
-          onClick={onGoBack}
-        >
-          <ChevronLeftIcon />
-        </Button>
+        <BackButton onClick={onGoBack} />
         <div className="w-full flex-col py-3 ">
           <p className="text-sm font-bold text-gray-900 dark:text-white">
             {translate("networkReview.orphanAssets.title")}
@@ -91,6 +83,29 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         <EmptyState />
       )}
     </div>
+  );
+};
+
+const BackButton = ({ onClick }: { onClick: () => void }) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+
+  const goBack = useCallback(() => {
+    userTracking.capture({ name: "networkReview.orphanAssets.back" });
+    onClick();
+  }, [onClick, userTracking]);
+
+  return (
+    <Button
+      size="xs"
+      className="py-3"
+      variant={"quiet"}
+      role="button"
+      aria-label={translate("back")}
+      onClick={goBack}
+    >
+      <ChevronLeftIcon />
+    </Button>
   );
 };
 

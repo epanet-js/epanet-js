@@ -530,9 +530,25 @@ type SimulationReportAssetClicked = {
   assetType: Asset["type"] | null;
 };
 
-type NetworkReviewOpenned = {
+type NetworkReviewOpened = {
   name: "networkReview.opened";
   source: string;
+};
+
+type NetworkReviewChecked = {
+  name:
+    | "networkReview.orphanAssets.opened"
+    | "networkReview.proximityCheck.opened"
+    | "networkReview.connectivityTrace.opened"
+    | "networkReview.crossingPipes.opened";
+};
+
+type NetworkReviewBack = {
+  name:
+    | "networkReview.orphanAssets.back"
+    | "networkReview.proximityCheck.back"
+    | "networkReview.connectivityTrace.back"
+    | "networkReview.crossingPipes.back";
 };
 
 export type UserEvent =
@@ -622,7 +638,9 @@ export type UserEvent =
   | ModelBuilderCompleted
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
-  | NetworkReviewOpenned
+  | NetworkReviewOpened
+  | NetworkReviewChecked
+  | NetworkReviewBack
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -10,6 +10,7 @@ import {
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 
 const enum CheckType {
   connectivityTrace = "connectivityTrace",
@@ -92,12 +93,20 @@ const ReviewCheck = ({
   onClick: (checkType: CheckType) => void;
 }) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
 
   const label = translate(labelKeyByCheckType[checkType]);
 
+  const selectCheck = useCallback(() => {
+    userTracking.capture({
+      name: `networkReview.${checkType}.opened`,
+    });
+    onClick(checkType);
+  }, [onClick, checkType, userTracking]);
+
   return (
     <Button
-      onClick={() => onClick(checkType)}
+      onClick={selectCheck}
       variant={"quiet/mode"}
       role="button"
       aria-label={label}
