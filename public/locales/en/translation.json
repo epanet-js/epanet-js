@@ -590,7 +590,13 @@
       "emptyMessage": "There are no orphan assets in your network. Well done!"
     },
     "proximityCheck": {
-      "title": "Proximity check"
+      "title": "Proximity check",
+      "description": "Find nodes that are too close to other neighbouring nodes",
+      "summary_zero": "No issues found",
+      "summary_one": "1 issue found",
+      "summary_other": "{{count}} issues found",
+      "issueLabel": "Orphan {{1}}: {{2}}",
+      "emptyMessage": "There are no nodes violating the distance constraing. Well done!"
     },
     "crossingPipes": {
       "title": "Crossing pipes"

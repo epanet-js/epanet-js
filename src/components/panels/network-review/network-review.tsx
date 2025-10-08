@@ -13,6 +13,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { Resizer } from "src/components/resizer";
 import { CheckType } from "./common";
+import { ProximityCheck } from "./proximity-check";
 
 export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
@@ -24,6 +25,8 @@ export function NetworkReview() {
   switch (checkType) {
     case CheckType.orphanAssets:
       return <OrphanAssets onGoBack={goBackToSummary} />;
+    case CheckType.proximityCheck:
+      return <ProximityCheck onGoBack={goBackToSummary} />;
     default:
       return (
         <NetworkReviewSummary
