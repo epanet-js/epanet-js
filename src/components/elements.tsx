@@ -655,6 +655,7 @@ export type B3Size = "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
 export type B3Variant =
   | "default"
   | "primary"
+  | "blue"
   | "quiet"
   | "code"
   | "quiet/mode"
@@ -709,7 +710,13 @@ export function sharedOutline(
     focus-visible:ring-red-500
     dark:focus-visible:ring-red-500
     dark:focus-visible:ring-offset-gray-900`
-        : `focus-visible:ring-1
+        : variant === "blue"
+          ? `focus-visible:ring-1
+    focus-visible:ring-offset-1
+    focus-visible:ring-blue-500
+    dark:focus-visible:ring-blue-500
+    dark:focus-visible:ring-offset-gray-900`
+          : `focus-visible:ring-1
     focus-visible:ring-offset-1
     focus-visible:ring-purple-500
     dark:focus-visible:ring-purple-500
@@ -717,6 +724,7 @@ export function sharedOutline(
 
     {
       [`border border-purple-500`]: variant === "primary",
+      [`border border-blue-500`]: variant === "blue",
       [`border
     border-gray-200               dark:border-gray-500
     shadow-sm
@@ -750,6 +758,11 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
         `bg-purple-500`,
         !disabled &&
           `hover:bg-purple-600 dark:hover:bg-purple-400 hover:shadow`,
+      ];
+    case "blue":
+      return [
+        `bg-blue-600`,
+        !disabled && `hover:bg-blue-700 dark:hover:bg-blue-500 hover:shadow`,
       ];
     case "default":
       return !disabled && `hover:bg-gray-100 dark:hover:bg-gray-800`;
@@ -789,6 +802,9 @@ const sharedText = (variant: B3Variant): ClassValue => {
     case "primary": {
       return "font-medium text-white";
     }
+    case "blue": {
+      return "font-medium text-white";
+    }
     case "destructive": {
       return "font-medium text-red-500 dark:text-red-300";
     }
@@ -822,7 +838,10 @@ export const styledButton = ({
       : variant === "primary"
         ? `aria-expanded:bg-purple-600
     data-state-on:bg-purple-600`
-        : `
+        : variant === "blue"
+          ? `aria-expanded:bg-blue-700
+    data-state-on:bg-blue-700`
+          : `
     aria-expanded:bg-gray-200 dark:aria-expanded:bg-black
     data-state-on:bg-gray-200 dark:data-state-on:bg-gray-600`,
     "disabled:opacity-50 disabled:cursor-not-allowed",

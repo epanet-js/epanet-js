@@ -456,7 +456,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   };
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
+    <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-blue-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
         <PlanHeader
           name="Teams"
@@ -486,7 +486,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           ]}
         />
         <FeaturesList
-          title={translate("comingSoon")}
+          title={`${translate("comingSoon")}:`}
           textColor="text-gray-500"
           items={[
             {
@@ -508,11 +508,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
       </div>
       <div className="p-4 w-full">
-        <Button
-          size="full-width"
-          variant="primary"
-          onClick={goToTeamsRequestForm}
-        >
+        <Button size="full-width" variant="blue" onClick={goToTeamsRequestForm}>
           {translate("upgradeTo", "Teams")}
         </Button>
       </div>
