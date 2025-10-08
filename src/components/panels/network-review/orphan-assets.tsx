@@ -28,7 +28,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const translate = useTranslate();
   const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
-  const { selectFeature } = useSelection(selection);
+  const { selectFeature, isSelected } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
@@ -56,6 +56,21 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
     },
     [hydraulicModel, selectFeature, zoomTo],
   );
+
+  useEffect(() => {
+    const selectedOrphanAsset = orphanAssets.find((orphanAsset) =>
+      isSelected(orphanAsset.assetId),
+    );
+
+    if (!selectedOrphanAsset) {
+      setSelectedOrphanAssetId(null);
+    } else
+      setSelectedOrphanAssetId((prev) =>
+        prev === selectedOrphanAsset.assetId
+          ? prev
+          : selectedOrphanAsset.assetId,
+      );
+  }, [orphanAssets, isSelected, setSelectedOrphanAssetId]);
 
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -156,6 +171,26 @@ const IssuesList = ({
     getScrollElement: () => parentRef.current,
     estimateSize: () => 35,
   });
+
+  useEffect(() => {
+    if (selectedId === null) return;
+
+    const rowIndex = issues.findIndex(
+      (orphanAsset) => orphanAsset.assetId === selectedId,
+    );
+
+    const range = rowVirtualizer.range;
+
+    if (!range) return;
+    const { startIndex, endIndex } = range;
+    if (rowIndex >= startIndex && rowIndex < endIndex) {
+      return;
+    }
+
+    rowVirtualizer.scrollToIndex(rowIndex, {
+      align: "center",
+    });
+  }, [selectedId, issues, rowVirtualizer]);
 
   return (
     <div
