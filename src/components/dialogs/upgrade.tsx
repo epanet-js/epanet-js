@@ -508,7 +508,11 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         />
       </div>
       <div className="p-4 w-full">
-        <Button size="full-width" variant="blue" onClick={goToTeamsRequestForm}>
+        <Button
+          size="full-width"
+          variant="primary"
+          onClick={goToTeamsRequestForm}
+        >
           {translate("upgradeTo", "Teams")}
         </Button>
       </div>
