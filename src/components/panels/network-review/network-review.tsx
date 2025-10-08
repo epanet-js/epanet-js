@@ -78,7 +78,7 @@ const iconsByCheckType = {
 };
 
 const labelKeyByCheckType = {
-  [CheckType.orphanAssets]: "networkReview.orphanNodes.title",
+  [CheckType.orphanAssets]: "networkReview.orphanAssets.title",
   [CheckType.connectivityTrace]: "networkReview.connectivityTrace.title",
   [CheckType.proximityCheck]: "networkReview.proximityCheck.title",
   [CheckType.crossingPipes]: "networkReview.crossingPipes.title",

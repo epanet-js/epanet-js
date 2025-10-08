@@ -573,15 +573,21 @@
   "networkReview": {
     "toggle": "Toggle Network Review",
     "title": "Network Review",
-    "description": "Perfom a series of checks to make sure you will be able to run a simulation.",
+    "description": "Run a series of checks to validate your network's topology and ensure data quality.",
     "issuesFound": "{{1}} issues found",
     "noIssuesFound": "No issues found",
     "connectivityTrace": {
       "title": "Connectivity trace"
     },
-    "orphanNodes": {
-      "title": "Orphan nodes",
-      "issue": "Orphan {{1}}: {{2}}"
+    "orphanAssets": {
+      "title": "Orphan assets",
+      "description": "Find assets that are disconnected from your network",
+      "summary": {
+        "issuesFound": "{{1}} issues found",
+        "noIssuesFound": "No issues found"
+      },
+      "issueLabel": "Orphan {{1}}: {{2}}",
+      "noIssues": "There are no orphan assets in your network. Well done!"
     },
     "proximityCheck": {
       "title": "Proximity check"

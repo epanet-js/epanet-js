@@ -8,6 +8,7 @@ import { AssetType } from "src/hydraulic-model";
 import {
   ChevronLeftIcon,
   JunctionIcon,
+  NoIssuesIcon,
   PipeIcon,
   PumpIcon,
   ReservoirIcon,
@@ -75,16 +76,20 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         </Button>
         <div className="w-full flex-col py-3 ">
           <p className="text-sm font-bold text-gray-900 dark:text-white">
-            {translate("networkReview.orphanNodes.title")}
+            {translate("networkReview.orphanAssets.title")}
           </p>
           <IssuesSummary count={orphanAssets.length} />
         </div>
       </div>
-      <IssuesList
-        issues={orphanAssets}
-        onClick={selectOrphanAsset}
-        selectedId={selectedOrphanAssetId}
-      />
+      {orphanAssets.length > 0 ? (
+        <IssuesList
+          issues={orphanAssets}
+          onClick={selectOrphanAsset}
+          selectedId={selectedOrphanAssetId}
+        />
+      ) : (
+        <EmptyState />
+      )}
     </div>
   );
 };
@@ -94,12 +99,29 @@ const IssuesSummary = ({ count }: { count: number }) => {
 
   return count > 0 ? (
     <p className="text-gray-500 text-sm">
-      {translate("networkReview.issuesFound", count.toString())}
+      {translate(
+        "networkReview.orphanAssets.summary.issuesFound",
+        count.toString(),
+      )}
     </p>
   ) : (
     <div className="flex flex-row items-center space-x-2 text-sm text-green-500">
-      <p>{translate("networkReview.noIssuesFound")}</p>
+      <p>{translate("networkReview.orphanAssets.summary.noIssuesFound")}</p>
       <SuccessIcon className="mr-1" />
+    </div>
+  );
+};
+
+const EmptyState = () => {
+  const translate = useTranslate();
+  return (
+    <div className="flex-grow flex flex-col items-center justify-center p-4">
+      <div className="text-gray-200">
+        <NoIssuesIcon size={96} strokeWidth={1.75} />
+      </div>
+      <p className="text-center pt-4 font-bold text-gray-300">
+        {translate("networkReview.orphanAssets.noIssues")}
+      </p>
     </div>
   );
 };
@@ -184,9 +206,9 @@ const OrphanAssetItem = ({
       variant={"quiet"}
       role="button"
       aria-label={translate(
-        "networkReview.orphanNodes.issue",
+        "networkReview.orphanAssets.issueLabel",
         translate(orphanAsset.type),
-        orphanAsset.assetId,
+        orphanAsset.label,
       )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
@@ -199,7 +221,9 @@ const OrphanAssetItem = ({
         }}
       >
         <div className="pt-[.125rem]">{iconByAssetType[orphanAsset.type]}</div>
-        <div className="text-sm font-bold text-left">{orphanAsset.label}</div>
+        <div className="text-sm font-semibold text-left">
+          {orphanAsset.label}
+        </div>
       </div>
     </Button>
   );
