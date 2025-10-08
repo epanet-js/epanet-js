@@ -300,7 +300,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoom || hasNewSelection) {
+        if (hasNewZoom || hasNewSelection || hasNewSymbology) {
           customerPointsOverlayRef.current =
             updateCustomerPointsOverlayVisibility(
               customerPointsOverlayRef.current,
@@ -361,7 +361,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        {
+        if (
+          hasNewSymbology ||
+          hasNewZoom ||
+          hasNewSelection ||
+          hasNewEphemeralState ||
+          hasNewCustomerPoints
+        ) {
           const shouldHideCustomerPointsOverlay =
             (mapState.ephemeralState.type === "moveAssets" &&
               mapState.ephemeralState.targetAssets.length > 0) ||
