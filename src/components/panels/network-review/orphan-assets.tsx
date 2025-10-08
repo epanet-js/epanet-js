@@ -7,12 +7,12 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType } from "src/hydraulic-model";
 import {
   ChevronLeftIcon,
+  CloseIcon,
   JunctionIcon,
   NoIssuesIcon,
   PipeIcon,
   PumpIcon,
   ReservoirIcon,
-  SuccessIcon,
   TankIcon,
   ValveIcon,
 } from "src/icons";
@@ -119,6 +119,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           <IssuesSummary count={orphanAssets.length} />
         </div>
       </div>
+      <ToolDescription />
       {orphanAssets.length > 0 ? (
         <IssuesList
           issues={orphanAssets}
@@ -135,19 +136,43 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
 const IssuesSummary = ({ count }: { count: number }) => {
   const translate = useTranslate();
 
-  return count > 0 ? (
-    <p className="text-gray-500 text-sm">
-      {translate(
-        "networkReview.orphanAssets.summary.issuesFound",
-        count.toString(),
-      )}
-    </p>
-  ) : (
-    <div className="flex flex-row items-center space-x-2 text-sm text-green-500">
-      <p>{translate("networkReview.orphanAssets.summary.noIssuesFound")}</p>
-      <SuccessIcon className="mr-1" />
+  const message =
+    count > 0
+      ? translate(
+          "networkReview.orphanAssets.summary.issuesFound",
+          count.toString(),
+        )
+      : translate("networkReview.orphanAssets.summary.noIssuesFound");
+
+  return <p className="text-gray-500 text-sm">{message}</p>;
+};
+
+const ToolDescription = () => {
+  const translate = useTranslate();
+  const [isShown, setIsShown] = useState(true);
+  return isShown ? (
+    <div className="w-full p-2">
+      <div
+        className="w-full bg-blue-50 rounded p-4 relative shadow-sm"
+        role="status"
+        aria-live="polite"
+      >
+        <Button
+          variant="quiet"
+          aria-label="Dismiss info"
+          className="absolute right-1 top-1"
+          onClick={() => setIsShown(false)}
+        >
+          <CloseIcon size="sm" />
+        </Button>
+        <div className="flex items-start gap-3">
+          <p className="text-sm">
+            {translate("networkReview.orphanAssets.description")}
+          </p>
+        </div>
+      </div>
     </div>
-  );
+  ) : null;
 };
 
 const EmptyState = () => {
