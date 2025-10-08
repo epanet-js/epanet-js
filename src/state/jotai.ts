@@ -188,7 +188,7 @@ export const OTHER_SIDE: Record<Side, Side> = {
  * be controlled by dragging the resizer
  */
 export const MIN_SPLITS = {
-  left: 100,
+  left: 150,
   right: 260,
 } as const;
 export const MAX_SPLIT = 640;

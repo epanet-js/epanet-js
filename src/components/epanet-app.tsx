@@ -161,9 +161,7 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
-              {isNetworkReviewEnabled && (
-                <Resizer side="left" isToggleAllowed={false} />
-              )}
+              {isNetworkReviewEnabled && <Resizer side="left" />}
               <Resizer side="right" />
             </>
           )}
