@@ -583,12 +583,11 @@
     "orphanAssets": {
       "title": "Orphan assets",
       "description": "Find assets that are disconnected from your network",
-      "summary": {
-        "issuesFound": "{{1}} issues found",
-        "noIssuesFound": "No issues found"
-      },
+      "summary_zero": "No issues found",
+      "summary_one": "1 issue found",
+      "summary_other": "{{count}} issues found",
       "issueLabel": "Orphan {{1}}: {{2}}",
-      "noIssues": "There are no orphan assets in your network. Well done!"
+      "emptyMessage": "There are no orphan assets in your network. Well done!"
     },
     "proximityCheck": {
       "title": "Proximity check"

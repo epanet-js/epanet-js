@@ -6,9 +6,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType } from "src/hydraulic-model";
 import {
-  ChevronLeftIcon,
   JunctionIcon,
-  NoIssuesIcon,
   PipeIcon,
   PumpIcon,
   ReservoirIcon,
@@ -22,9 +20,9 @@ import {
 } from "src/lib/network-review/orphan-assets";
 import { useSelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
+import { CheckType, EmptyState, ToolDescription, ToolHeader } from "./common";
 
 export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
-  const translate = useTranslate();
   const userTracking = useUserTracking();
   const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
@@ -85,41 +83,13 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [orphanAssets, userTracking]);
 
-  const goBack = useCallback(() => {
-    userTracking.capture({
-      name: "networkReview.orphanAssets.back",
-      count: orphanAssets.length,
-    });
-    onGoBack();
-  }, [onGoBack, userTracking, orphanAssets]);
-
   return (
     <div className="absolute inset-0 flex flex-col">
-      <div
-        className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 group pl-1 pt-1"
-        style={{
-          gridTemplateColumns: "auto 1fr",
-        }}
-      >
-        <Button
-          size="xs"
-          className="py-3"
-          variant={"quiet"}
-          role="button"
-          aria-label={translate("back")}
-          onClick={goBack}
-        >
-          <div className="pt-[.125rem]">
-            <ChevronLeftIcon />
-          </div>
-        </Button>
-        <div className="w-full flex-col py-3 ">
-          <p className="text-sm font-bold text-gray-900 dark:text-white">
-            {translate("networkReview.orphanAssets.title")}
-          </p>
-          <IssuesSummary count={orphanAssets.length} />
-        </div>
-      </div>
+      <ToolHeader
+        checkType={CheckType.orphanAssets}
+        onGoBack={onGoBack}
+        itemsCount={orphanAssets.length}
+      />
       {orphanAssets.length > 0 ? (
         <IssuesList
           issues={orphanAssets}
@@ -127,45 +97,8 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           selectedId={selectedOrphanAssetId}
         />
       ) : (
-        <EmptyState />
+        <EmptyState checkType={CheckType.orphanAssets} />
       )}
-    </div>
-  );
-};
-
-const IssuesSummary = ({ count }: { count: number }) => {
-  const translate = useTranslate();
-
-  const message =
-    count > 0
-      ? translate(
-          "networkReview.orphanAssets.summary.issuesFound",
-          count.toString(),
-        )
-      : translate("networkReview.orphanAssets.summary.noIssuesFound");
-
-  return <p className="text-gray-500 text-sm">{message}</p>;
-};
-
-const ToolDescription = () => {
-  const translate = useTranslate();
-  return (
-    <p className="text-sm w-full p-3">
-      {translate("networkReview.orphanAssets.description")}
-    </p>
-  );
-};
-
-const EmptyState = () => {
-  const translate = useTranslate();
-  return (
-    <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <div className="text-gray-300">
-        <NoIssuesIcon size={96} strokeWidth={1.75} />
-      </div>
-      <p className="text-center pt-4 font-bold text-gray-400">
-        {translate("networkReview.orphanAssets.noIssues")}
-      </p>
     </div>
   );
 };
@@ -236,7 +169,7 @@ const IssuesList = ({
                   ref={rowVirtualizer.measureElement}
                   role="listItem"
                 >
-                  <ToolDescription />
+                  <ToolDescription checkType={CheckType.orphanAssets} />
                 </div>
               );
             }

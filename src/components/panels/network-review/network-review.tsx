@@ -12,24 +12,25 @@ import { OrphanAssets } from "./orphan-assets";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { Resizer } from "src/components/resizer";
-
-const enum CheckType {
-  connectivityTrace = "connectivityTrace",
-  orphanAssets = "orphanAssets",
-  proximityCheck = "proximityCheck",
-  crossingPipes = "crossingPipes",
-}
+import { CheckType } from "./common";
 
 export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
 
-  return checkType === CheckType.orphanAssets ? (
-    <OrphanAssets onGoBack={() => setCheckType(null)} />
-  ) : (
-    <NetworkReviewSummary
-      onClick={(checkType: CheckType) => setCheckType(checkType)}
-    />
-  );
+  const goBackToSummary = useCallback(() => {
+    setCheckType(null);
+  }, []);
+
+  switch (checkType) {
+    case CheckType.orphanAssets:
+      return <OrphanAssets onGoBack={goBackToSummary} />;
+    default:
+      return (
+        <NetworkReviewSummary
+          onClick={(checkType: CheckType) => setCheckType(checkType)}
+        />
+      );
+  }
 }
 
 export const NetworkReviewResizer = () => {
