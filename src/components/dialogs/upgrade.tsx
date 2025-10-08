@@ -456,7 +456,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   };
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-blue-300 overflow-hidden flex flex-col justify-between">
+    <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6">
         <PlanHeader
           name="Teams"
