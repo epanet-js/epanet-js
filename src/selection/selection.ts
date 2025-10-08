@@ -200,8 +200,8 @@ export const USelection = {
       }
       case "multi": {
         if (selection.ids.includes(id)) {
-          selection.ids = selection.ids.filter((sid) => sid !== id);
-          return selection;
+          const newIds = selection.ids.filter((sid) => sid !== id);
+          return this.fromIds(newIds);
         } else {
           return selection;
         }
