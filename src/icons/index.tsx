@@ -34,6 +34,7 @@ import {
   Keyboard,
   Link2,
   Link2Off,
+  MapIcon,
   Menu,
   MousePointer2,
   PanelLeft,
@@ -93,6 +94,7 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
 };
 
 export const HelpIcon = icon(CircleQuestionMark);
+export const RoadmapIcon = icon(MapIcon);
 export const InfoIcon = icon(Info);
 export const SuccessIcon = icon(CircleCheck);
 export const WarningIcon = icon(TriangleAlert);

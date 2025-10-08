@@ -310,6 +310,11 @@ type HelpCenterVisited = {
   source: "welcome" | "menu" | "educationPlan";
 };
 
+type RoadmapVisited = {
+  name: "roadmap.visited";
+  source: "menu";
+};
+
 type RepoVisited = {
   name: "repo.visited";
   source: "welcome" | "menu";
@@ -611,6 +616,7 @@ export type UserEvent =
   | PropertyAggregateOpened
   | QuickStartVisited
   | HelpCenterVisited
+  | RoadmapVisited
   | RepoVisited
   | SignUpStarted
   | SignInStarted
