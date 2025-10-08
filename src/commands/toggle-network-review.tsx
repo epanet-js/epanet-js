@@ -14,11 +14,14 @@ export const useToggleNetworkReview = (): [
 
   const toggleNetworkReview = useCallback(
     ({ source }: { source: "toolbar" | "shortcut" }) => {
-      userTracking.capture({
-        name: "networkReview.opened",
-        source,
+      setPanelSplits((splits) => {
+        const isShown = !splits.leftOpen;
+        userTracking.capture({
+          name: isShown ? "networkReview.opened" : "networkReview.closed",
+          source,
+        });
+        return { ...splits, leftOpen: isShown };
       });
-      setPanelSplits((splits) => ({ ...splits, leftOpen: !splits.leftOpen }));
     },
     [setPanelSplits, userTracking],
   );

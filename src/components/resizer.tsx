@@ -74,13 +74,17 @@ export function solveSplits(
   side: Side,
   newValue: number,
   isCollapseAllowed: boolean,
+  onToggle?: (shown: boolean) => void,
 ): Splits {
   const otherSide = OTHER_SIDE[side];
   const windowWidth = window.innerWidth;
   const newSplits = { ...splits };
 
   if (newValue < MIN_SPLITS[side]) {
-    if (isCollapseAllowed) newSplits[`${side}Open`] = false;
+    if (isCollapseAllowed) {
+      newSplits[`${side}Open`] = false;
+      onToggle?.(false);
+    }
   } else {
     newSplits[side] = Math.min(newValue, windowWidth - MIN_MAP_WIDTH);
   }
@@ -103,7 +107,11 @@ export function solveSplits(
   return newSplits;
 }
 
-function useResize(side: Side, isCollapseAllowed: boolean) {
+function useResize(
+  side: Side,
+  isCollapseAllowed: boolean,
+  onToggle?: (shown: boolean) => void,
+) {
   const [splits, setSplits] = useAtom(splitsAtom);
   const showPanel = splits[`${side}Open`];
   const rawSplit = useRef<number | null>(null);
@@ -118,7 +126,7 @@ function useResize(side: Side, isCollapseAllowed: boolean) {
       if (rawSplit.current === null) return;
       const raw = rawSplit.current;
       setSplits((splits) => {
-        return solveSplits(splits, side, raw, isCollapseAllowed);
+        return solveSplits(splits, side, raw, isCollapseAllowed, onToggle);
       });
     },
     onMoveEnd() {
@@ -159,12 +167,18 @@ function useResizeBottom() {
 
 export const Resizer = memo(function ResizerInner({
   side,
+  onToggle,
   isToggleAllowed = true,
 }: {
   side: Side;
+  onToggle?: (shown: boolean) => void;
   isToggleAllowed?: boolean;
 }) {
-  const { moveProps, showPanel, splits } = useResize(side, isToggleAllowed);
+  const { moveProps, showPanel, splits } = useResize(
+    side,
+    isToggleAllowed,
+    onToggle,
+  );
 
   return (
     <>
@@ -211,7 +225,13 @@ export const Resizer = memo(function ResizerInner({
   );
 });
 
-function PanelToggle({ side }: { side: Side }) {
+function PanelToggle({
+  side,
+  onToggle,
+}: {
+  side: Side;
+  onToggle?: (shown: boolean) => void;
+}) {
   const setSplits = useSetAtom(splitsAtom);
 
   const togglePanel = () => {
@@ -221,6 +241,7 @@ function PanelToggle({ side }: { side: Side }) {
         [`${side}Open`]: !splits[`${side}Open`],
       };
     });
+    onToggle?.(true);
   };
 
   return (

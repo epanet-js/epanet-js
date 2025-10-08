@@ -11,6 +11,7 @@ import {
 import { OrphanAssets } from "./orphan-assets";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
+import { Resizer } from "src/components/resizer";
 
 const enum CheckType {
   connectivityTrace = "connectivityTrace",
@@ -30,6 +31,25 @@ export function NetworkReview() {
     />
   );
 }
+
+export const NetworkReviewResizer = () => {
+  const isNetworkReviewEnabled = useNetworkReviewEnabled();
+  const userTracking = useUserTracking();
+
+  const onPanelToggled = useCallback(
+    (shown: boolean) => {
+      userTracking.capture({
+        name: shown ? "networkReview.opened" : "networkReview.closed",
+        source: "panelResizer",
+      });
+    },
+    [userTracking],
+  );
+
+  return isNetworkReviewEnabled ? (
+    <Resizer side="left" onToggle={onPanelToggled} />
+  ) : null;
+};
 
 function NetworkReviewSummary({
   onClick,

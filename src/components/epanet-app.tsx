@@ -46,7 +46,7 @@ import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
-import { useNetworkReviewEnabled } from "./panels/network-review/network-review";
+import { NetworkReviewResizer } from "./panels/network-review/network-review";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -66,7 +66,6 @@ export function EpanetApp() {
   useWindowResizeSplits();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
-  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
@@ -161,7 +160,7 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
-              {isNetworkReviewEnabled && <Resizer side="left" />}
+              <NetworkReviewResizer />
               <Resizer side="right" />
             </>
           )}

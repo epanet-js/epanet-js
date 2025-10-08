@@ -535,6 +535,11 @@ type NetworkReviewOpened = {
   source: string;
 };
 
+type NetworkReviewClosed = {
+  name: "networkReview.closed";
+  source: string;
+};
+
 type NetworkReviewChecked = {
   name:
     | "networkReview.orphanAssets.opened"
@@ -639,6 +644,7 @@ export type UserEvent =
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
   | NetworkReviewOpened
+  | NetworkReviewClosed
   | NetworkReviewChecked
   | NetworkReviewBack
   | { name: "map.labels.shown"; type: string; subtype: string }
