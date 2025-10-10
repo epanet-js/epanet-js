@@ -47,6 +47,7 @@ import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
 import { NetworkReviewResizer } from "./panels/network-review/network-review";
+import { PrivacyBanner } from "./privacy-banner";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -177,6 +178,7 @@ export function EpanetApp() {
       <TabCloseGuard />
       <OfflineGuard />
       <NotificationFromUrl />
+      <PrivacyBanner />
     </main>
   );
 }

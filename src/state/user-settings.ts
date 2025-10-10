@@ -2,9 +2,13 @@ import { atomWithStorage } from "jotai/utils";
 
 export type UserSettings = {
   showWelcomeOnStart: boolean;
+  gdprConsentAnonymous: boolean;
 };
 
-export const defaultUserSettings = { showWelcomeOnStart: true };
+export const defaultUserSettings = {
+  showWelcomeOnStart: true,
+  gdprConsentAnonymous: false,
+};
 
 export const userSettingsAtom = atomWithStorage<UserSettings>(
   "user-settings",
