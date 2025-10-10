@@ -351,6 +351,12 @@ export const Dialogs = memo(function Dialogs() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
+              onInteractOutside={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest("[data-privacy-banner]")) {
+                  e.preventDefault();
+                }
+              }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               size={"sm"}
             >

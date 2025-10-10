@@ -15,8 +15,8 @@ export const defaultUserSettings: UserSettings = {
   showWelcomeOnStart: true,
   gdprConsentAnonymous: false,
   privacyPreferences: {
-    analytics: true,
-    errorReporting: true,
+    analytics: false,
+    errorReporting: false,
   },
 };
 

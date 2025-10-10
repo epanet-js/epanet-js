@@ -45,7 +45,13 @@ export const PrivacyBanner = () => {
   return (
     <div className="fixed bottom-10 left-0 w-full z-50 pointer-events-none">
       <div className="max-w-4xl mx-auto px-4 pointer-events-auto">
-        <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg p-6">
+        <div
+          className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg p-6"
+          data-privacy-banner
+          onPointerDownCapture={(e) => {
+            e.stopPropagation();
+          }}
+        >
           {view === "banner" ? (
             <BannerView
               onAccept={handleAcceptConsent}
@@ -77,7 +83,7 @@ const BannerView = ({
       </h2>
       <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
         <p>
-          We use tracking technologies to understand how our app is used and to
+          We use tracking technologies to understand how the app is used and to
           improve your experience. To comply with privacy regulations, we need
           your consent to collect this data. You can manage your preferences at
           any time in the app's settings.

@@ -89,9 +89,16 @@ export const DialogContainer = ({
               e.preventDefault();
               e.stopPropagation();
             }}
-            onInteractOutside={
-              disableOutsideClick ? (e) => e.preventDefault() : undefined
-            }
+            onInteractOutside={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest("[data-privacy-banner]")) {
+                e.preventDefault();
+                return;
+              }
+              if (disableOutsideClick) {
+                e.preventDefault();
+              }
+            }}
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={size}
             fillMode={fillMode}
