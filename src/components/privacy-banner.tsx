@@ -72,8 +72,7 @@ const BannerView = ({
         <p>
           We use tracking technologies to understand how the app is used and to
           improve your experience. To comply with privacy regulations, we need
-          your consent to collect this data. You can manage your preferences at
-          any time in the app's settings.
+          your consent to collect this data.
         </p>
         <p>
           For more details, please see our{" "}
@@ -144,9 +143,9 @@ const PreferencesView = ({
               App analytics
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              We collect anonymous usage data to understand how our app is used,
-              which helps us improve its performance and features. This data
-              does not personally identify you.
+              We collect <strong>anonymous</strong> usage data to understand how
+              our app is used, which helps us improve its performance and
+              features. This data does not personally identify you.
             </p>
           </div>
         </div>
