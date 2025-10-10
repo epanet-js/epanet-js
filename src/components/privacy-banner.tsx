@@ -22,7 +22,7 @@ export const PrivacyBanner = () => {
     !isLoaded ||
     isSignedIn ||
     !isPrivacyBannerOn ||
-    userSettings.gdprConsentAnonymous
+    userSettings.privacyPreferences !== undefined
   ) {
     return null;
   }
@@ -30,7 +30,6 @@ export const PrivacyBanner = () => {
   const handleAcceptConsent = () => {
     setUserSettings((prev) => ({
       ...prev,
-      gdprConsentAnonymous: true,
       privacyPreferences: {
         analytics: true,
         errorReporting: true,
@@ -121,13 +120,15 @@ const PreferencesView = ({
   setUserSettings: (update: SetStateAction<UserSettings>) => void;
 }) => {
   const [preferences, setPreferences] = useState<PrivacyPreferences>(
-    userSettings.privacyPreferences,
+    userSettings.privacyPreferences ?? {
+      analytics: false,
+      errorReporting: false,
+    },
   );
 
   const handleSave = () => {
     setUserSettings((prev) => ({
       ...prev,
-      gdprConsentAnonymous: true,
       privacyPreferences: preferences,
     }));
   };

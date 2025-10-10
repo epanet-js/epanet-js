@@ -7,17 +7,12 @@ export type PrivacyPreferences = {
 
 export type UserSettings = {
   showWelcomeOnStart: boolean;
-  gdprConsentAnonymous: boolean;
-  privacyPreferences: PrivacyPreferences;
+  privacyPreferences: PrivacyPreferences | undefined;
 };
 
 export const defaultUserSettings: UserSettings = {
   showWelcomeOnStart: true,
-  gdprConsentAnonymous: false,
-  privacyPreferences: {
-    analytics: false,
-    errorReporting: false,
-  },
+  privacyPreferences: undefined,
 };
 
 export const userSettingsAtom = atomWithStorage<UserSettings>(
