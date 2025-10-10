@@ -965,14 +965,14 @@ export const TextWell = classed.div(
 export const StyledSwitch = classed(S.Root)(
   `w-10 h-5 rounded-full
   bg-gray-200 dark:bg-black
-  data-state-checked:bg-gray-300 dark:data-state-checked:bg-gray-300
+  data-state-checked:bg-purple-300 dark:data-state-checked:bg-purple-400
   dark:ring-1 dark:ring-gray-300
   transition-all`,
 );
 export const StyledThumb = classed(S.Thumb)(
   `w-5 h-5 border-2
   border-gray-200 dark:border-black
-  data-state-checked:border-gray-300 dark:data-state-checked:border-gray-300
+  data-state-checked:border-purple-300 dark:data-state-checked:border-purple-400
   rounded-full bg-white block shadow-sm data-state-checked:translate-x-5`,
 );
 

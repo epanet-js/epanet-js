@@ -1,14 +1,22 @@
-import { useAtom } from "jotai";
+import { useState } from "react";
+import { useAtom, type SetStateAction } from "jotai";
 import { useAuth } from "src/auth";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { userSettingsAtom } from "src/state/user-settings";
-import { Button, styledInlineA } from "./elements";
+import {
+  userSettingsAtom,
+  type UserSettings,
+  type PrivacyPreferences,
+} from "src/state/user-settings";
+import { Button, StyledSwitch, StyledThumb, styledInlineA } from "./elements";
 import { privacyPolicyUrl } from "src/global-config";
+
+type View = "banner" | "preferences";
 
 export const PrivacyBanner = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const isPrivacyBannerOn = useFeatureFlag("FLAG_PRIVACY_BANNER");
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
+  const [view, setView] = useState<View>("banner");
 
   if (
     !isLoaded ||
@@ -23,54 +31,164 @@ export const PrivacyBanner = () => {
     setUserSettings((prev) => ({
       ...prev,
       gdprConsentAnonymous: true,
+      privacyPreferences: {
+        analytics: true,
+        errorReporting: true,
+      },
     }));
   };
 
   const handleManagePreferences = () => {
-    setUserSettings((prev) => ({
-      ...prev,
-      gdprConsentAnonymous: true,
-    }));
+    setView("preferences");
   };
 
   return (
     <div className="fixed bottom-10 left-0 w-full z-50 pointer-events-none">
       <div className="max-w-4xl mx-auto px-4 pointer-events-auto">
         <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg p-6">
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-              Protecting your privacy
-            </h2>
-            <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
-              <p>
-                We use tracking technologies to understand how our app is used
-                and to improve your experience. To comply with privacy
-                regulations, we need your consent to collect this data. You can
-                manage your preferences at any time in the app's settings.
-              </p>
-              <p>
-                For more details, please see our{" "}
-                <a
-                  href={privacyPolicyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styledInlineA}
-                >
-                  Privacy policy
-                </a>
-                .
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-              <Button variant="default" onClick={handleManagePreferences}>
-                Manage my preferences
-              </Button>
-              <Button variant="primary" onClick={handleAcceptConsent}>
-                Accept and continue
-              </Button>
-            </div>
+          {view === "banner" ? (
+            <BannerView
+              onAccept={handleAcceptConsent}
+              onManagePreferences={handleManagePreferences}
+            />
+          ) : (
+            <PreferencesView
+              userSettings={userSettings}
+              setUserSettings={setUserSettings}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BannerView = ({
+  onAccept,
+  onManagePreferences,
+}: {
+  onAccept: () => void;
+  onManagePreferences: () => void;
+}) => {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+        Protecting your privacy
+      </h2>
+      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
+        <p>
+          We use tracking technologies to understand how our app is used and to
+          improve your experience. To comply with privacy regulations, we need
+          your consent to collect this data. You can manage your preferences at
+          any time in the app's settings.
+        </p>
+        <p>
+          For more details, please see our{" "}
+          <a
+            href={privacyPolicyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styledInlineA}
+          >
+            Privacy policy
+          </a>
+          .
+        </p>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+        <Button variant="default" onClick={onManagePreferences}>
+          Manage my preferences
+        </Button>
+        <Button variant="primary" onClick={onAccept}>
+          Accept and continue
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const PreferencesView = ({
+  userSettings,
+  setUserSettings,
+}: {
+  userSettings: UserSettings;
+  setUserSettings: (update: SetStateAction<UserSettings>) => void;
+}) => {
+  const [preferences, setPreferences] = useState<PrivacyPreferences>(
+    userSettings.privacyPreferences,
+  );
+
+  const handleSave = () => {
+    setUserSettings((prev) => ({
+      ...prev,
+      gdprConsentAnonymous: true,
+      privacyPreferences: preferences,
+    }));
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+        Manage your data preferences
+      </h2>
+      <p className="text-sm text-gray-700 dark:text-gray-300">
+        You can choose which types of data we collect to improve your
+        experience.
+      </p>
+      <div className="space-y-6">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 pt-1">
+            <StyledSwitch
+              checked={preferences.analytics}
+              onCheckedChange={(checked) =>
+                setPreferences((prev) => ({ ...prev, analytics: checked }))
+              }
+            >
+              <StyledThumb />
+            </StyledSwitch>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+              App analytics
+            </h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              We collect anonymous usage data to understand how our app is used,
+              which helps us improve its performance and features. This data
+              does not personally identify you.
+            </p>
           </div>
         </div>
+
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 pt-1">
+            <StyledSwitch
+              checked={preferences.errorReporting}
+              onCheckedChange={(checked) =>
+                setPreferences((prev) => ({
+                  ...prev,
+                  errorReporting: checked,
+                }))
+              }
+            >
+              <StyledThumb />
+            </StyledSwitch>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+              Error reporting
+            </h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              We automatically collect crash and error reports to fix bugs and
+              prevent issues. This data may include information about your
+              device and the state of the app at the time of the error.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button variant="primary" onClick={handleSave}>
+          Save preferences
+        </Button>
       </div>
     </div>
   );
