@@ -177,3 +177,5 @@ export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
 export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";
 export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipes-crossing-icon";
 export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/proximity-check-icon";
+export { CustomPanelLeftActive as PanelLeftActive } from "./custom-icons/panel-left-active";
+export { CustomPanelRightActive as PanelRightActive } from "./custom-icons/panel-right-active";
