@@ -22,6 +22,7 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -62,6 +63,7 @@ const simulationProperties = [
   "velocity",
   "unitHeadloss",
   "pressure",
+  "actualDemand",
   "head",
 ];
 
@@ -77,6 +79,7 @@ const SymbologyEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
+  const isDemandsMapOn = useFeatureFlag("FLAG_DEMANDS_MAP");
 
   const {
     linkSymbology,
@@ -152,21 +155,28 @@ const SymbologyEditor = ({
 
   const isSmOrLarger = useBreakpoint("sm");
 
+  const filteredProperties = properties.filter((prop) => {
+    if (prop === "actualDemand") return isDemandsMapOn;
+    return true;
+  });
+
   return (
     <Section title={title}>
       <InlineField name={translate("colorBy")}>
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-          options={(["none", ...properties] as SelectOption[]).map((type) => {
-            const unit = type !== "none" ? quantities.getUnit(type) : null;
-            return {
-              value: type,
-              label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
-              disabled:
-                simulation.status === "idle" &&
-                simulationProperties.includes(type),
-            };
-          })}
+          options={(["none", ...filteredProperties] as SelectOption[]).map(
+            (type) => {
+              const unit = type !== "none" ? quantities.getUnit(type) : null;
+              return {
+                value: type,
+                label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+                disabled:
+                  simulation.status === "idle" &&
+                  simulationProperties.includes(type),
+              };
+            },
+          )}
           selected={
             (symbology.colorRule
               ? symbology.colorRule.property

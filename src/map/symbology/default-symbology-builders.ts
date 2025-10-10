@@ -18,6 +18,7 @@ type DefaultSymbologyBuilders = {
     quantities: Quantities,
   ) => () => LinkSymbology;
   pressure: (hydraulicModel: HydraulicModel) => () => NodeSymbology;
+  actualDemand: (hydraulicModel: HydraulicModel) => () => NodeSymbology;
   elevation: (HydraulicModel: HydraulicModel) => () => NodeSymbology;
   head: (HydraulicModel: HydraulicModel) => () => NodeSymbology;
   none: () => () => { colorRule: null; labelRule: null };
@@ -101,6 +102,17 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       mode: "prettyBreaks",
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "pressure"),
+    });
+    return { colorRule, labelRule: nullLabelRule };
+  },
+  actualDemand: (hydraulicModel: HydraulicModel) => (): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "actualDemand",
+      unit: hydraulicModel.units.actualDemand,
+      rampName: "Temps",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData: getSortedValues(hydraulicModel.assets, "actualDemand"),
     });
     return { colorRule, labelRule: nullLabelRule };
   },

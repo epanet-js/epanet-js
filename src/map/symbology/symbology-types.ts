@@ -3,6 +3,7 @@ import { RangeColorRule } from "./range-color-rule";
 export const supportedNodeProperties = [
   "elevation",
   "pressure",
+  "actualDemand",
   "head",
 ] as const;
 export const supportedLinkProperties = [
