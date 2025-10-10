@@ -1,40 +1,28 @@
 import { useState } from "react";
-import { useAtom, type SetStateAction } from "jotai";
 import { useAuth } from "src/auth";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  userSettingsAtom,
-  type UserSettings,
-  type PrivacyPreferences,
-} from "src/state/user-settings";
+import { useUserSettings } from "src/hooks/use-user-settings";
+import { type PrivacyPreferences } from "src/state/user-settings";
 import { Button, StyledSwitch, StyledThumb, styledInlineA } from "./elements";
 import { privacyPolicyUrl } from "src/global-config";
 
 type View = "banner" | "preferences";
 
 export const PrivacyBanner = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isLoaded } = useAuth();
   const isPrivacyBannerOn = useFeatureFlag("FLAG_PRIVACY_BANNER");
-  const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
+  const { privacySettings, setPrivacySettings } = useUserSettings();
   const [view, setView] = useState<View>("banner");
 
-  if (
-    !isLoaded ||
-    isSignedIn ||
-    !isPrivacyBannerOn ||
-    userSettings.privacyPreferences !== undefined
-  ) {
+  if (!isLoaded || !isPrivacyBannerOn || privacySettings !== undefined) {
     return null;
   }
 
   const handleAcceptConsent = () => {
-    setUserSettings((prev) => ({
-      ...prev,
-      privacyPreferences: {
-        analytics: true,
-        errorReporting: true,
-      },
-    }));
+    void setPrivacySettings({
+      analytics: true,
+      errorReporting: true,
+    });
   };
 
   const handleManagePreferences = () => {
@@ -58,8 +46,8 @@ export const PrivacyBanner = () => {
             />
           ) : (
             <PreferencesView
-              userSettings={userSettings}
-              setUserSettings={setUserSettings}
+              privacySettings={privacySettings}
+              setPrivacySettings={setPrivacySettings}
             />
           )}
         </div>
@@ -113,24 +101,21 @@ const BannerView = ({
 };
 
 const PreferencesView = ({
-  userSettings,
-  setUserSettings,
+  privacySettings,
+  setPrivacySettings,
 }: {
-  userSettings: UserSettings;
-  setUserSettings: (update: SetStateAction<UserSettings>) => void;
+  privacySettings: PrivacyPreferences | undefined;
+  setPrivacySettings: (settings: PrivacyPreferences) => Promise<void>;
 }) => {
   const [preferences, setPreferences] = useState<PrivacyPreferences>(
-    userSettings.privacyPreferences ?? {
+    privacySettings ?? {
       analytics: false,
       errorReporting: false,
     },
   );
 
   const handleSave = () => {
-    setUserSettings((prev) => ({
-      ...prev,
-      privacyPreferences: preferences,
-    }));
+    void setPrivacySettings(preferences);
   };
 
   return (
