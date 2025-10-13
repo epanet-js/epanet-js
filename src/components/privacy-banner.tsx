@@ -122,10 +122,15 @@ const PreferencesView = ({
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
         Manage your data preferences
       </h2>
-      <p className="text-sm text-gray-700 dark:text-gray-300">
-        You can choose which types of data we collect to improve your
-        experience.
-      </p>
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          To ensure the app's basic functionality, we automatically collect{" "}
+          <strong>anonymous</strong> data on page views to understand popular
+          content and use feature flags to enable and manage new features. This
+          data is essential for the app's performance and is collected
+          automatically.
+        </p>
+      </div>
       <div className="space-y-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 pt-1">
@@ -140,12 +145,13 @@ const PreferencesView = ({
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-              App analytics
+              Product analytics
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
               We collect <strong>anonymous</strong> usage data to understand how
-              our app is used, which helps us improve its performance and
-              features. This data does not personally identify you.
+              features are being used, which helps us improve the app's
+              performance and functionality. This data does not personally
+              identify you.
             </p>
           </div>
         </div>
