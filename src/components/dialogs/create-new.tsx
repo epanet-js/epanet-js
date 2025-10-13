@@ -25,7 +25,7 @@ import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe"
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
 import { useContext, useRef, useCallback } from "react";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
 import { FileIcon } from "src/icons";
 
@@ -155,7 +155,6 @@ const LocationSearchSelector = ({
 }) => {
   const translate = useTranslate();
   const map = useContext(MapContext);
-  const { captureError } = useErrorTracking();
 
   const searchLocations = useCallback(
     async (query: string): Promise<LocationOption[]> => {
@@ -191,7 +190,7 @@ const LocationSearchSelector = ({
       }
       return [];
     },
-    [captureError],
+    [],
   );
 
   const handleLocationChange = useCallback(

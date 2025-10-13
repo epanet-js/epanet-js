@@ -14,7 +14,7 @@ import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError, setErrorContext } from "src/infra/error-tracking";
 
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
@@ -25,7 +25,6 @@ export const SimulationReportDialog = () => {
   const setDialog = useSetAtom(dialogAtom);
   const zoomTo = useZoomTo();
   const userTracking = useUserTracking();
-  const { captureError, setErrorContext } = useErrorTracking();
 
   const handleAssetClick = useCallback(
     (assetId: AssetId) => {
@@ -113,7 +112,7 @@ export const SimulationReportDialog = () => {
     }
 
     return processedReport;
-  }, [simulation, hydraulicModel.assets, captureError, setErrorContext]);
+  }, [simulation, hydraulicModel.assets]);
 
   return (
     <DialogContainer size="lg" fillMode="auto">

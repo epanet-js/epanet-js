@@ -12,7 +12,7 @@ import { AckDialogAction } from "src/components/dialog";
 import { Loading } from "../elements";
 import { parseInp } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { ErrorIcon } from "src/icons";
@@ -29,7 +29,6 @@ export function OpenInpDialog({
   const translate = useTranslate();
   const { file } = modal;
   const map = useContext(MapContext);
-  const { captureError } = useErrorTracking();
 
   const [isLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
@@ -85,21 +84,13 @@ export function OpenInpDialog({
       captureError(error as Error);
       setError(true);
     }
-  }, [
-    file,
-    map?.map,
-    onClose,
-    transactImport,
-    setFileInfo,
-    setDialogState,
-    captureError,
-  ]);
+  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
 
   useEffect(
     function onRender() {
       importInp().catch((e) => captureError(e));
     },
-    [importInp, captureError],
+    [importInp],
   );
 
   if (error) {

@@ -10,7 +10,7 @@ import type { i18n } from "i18next";
 import { Locale } from "src/infra/i18n/locale";
 import { useUserSettings } from "src/hooks/use-user-settings";
 import "src/infra/i18n/i18next-config";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
 import { ErrorIcon } from "src/icons";
 
@@ -28,7 +28,6 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
   const { locale, setLocale: setUserLocale } = useUserSettings();
   const { i18n } = useI18NextTranslation();
   const [isI18nReady, setIsI18nReady] = useState(false);
-  const { captureError } = useErrorTracking();
 
   const changeLanguageWithTimeout = useCallback(
     async (i18n: i18n, locale: Locale): Promise<void> => {
@@ -48,7 +47,7 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
         },
       );
     },
-    [captureError],
+    [],
   );
 
   useEffect(() => {

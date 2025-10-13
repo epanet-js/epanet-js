@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
@@ -35,7 +35,6 @@ const Drop = () => {
   const importInp = useImportInp();
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
-  const { captureError } = useErrorTracking();
 
   useEffect(() => {
     window.addEventListener("dragover", stopWindowDrag);
@@ -107,14 +106,7 @@ const Drop = () => {
       document.removeEventListener("dragleave", onDragLeave);
       document.removeEventListener("drop", onDropCaught);
     };
-  }, [
-    setDragging,
-    checkUnsavedChanges,
-    importInp,
-    userTracking,
-    dialog,
-    captureError,
-  ]);
+  }, [setDragging, checkUnsavedChanges, importInp, userTracking, dialog]);
 
   if (dialog && dialog.type !== "welcome") return null;
 

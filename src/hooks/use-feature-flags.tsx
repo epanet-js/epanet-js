@@ -1,6 +1,6 @@
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState, createContext, useContext } from "react";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 import {
   getEnabledFlagsFromUrl,
@@ -19,7 +19,6 @@ const FeatureFlagsPostHogProvider = ({
   const posthog = usePostHog();
   const [flagsVersion, setFlagsVersion] = useState(0);
   const [isReady, setIsReady] = useState(false);
-  const { setFlagsContext } = useErrorTracking();
 
   useEffect(() => {
     if (posthog) {
@@ -48,7 +47,7 @@ const FeatureFlagsPostHogProvider = ({
           }
         });
     }
-  }, [posthog, isReady, setFlagsContext]);
+  }, [posthog, isReady]);
 
   return (
     <FeatureFlagsReadyContext.Provider value={isReady}>
@@ -63,13 +62,12 @@ const FeatureFlagsUrlProvider = ({
   children: React.ReactNode;
 }) => {
   const [isReady, setIsReady] = useState(false);
-  const { setFlagsContext } = useErrorTracking();
 
   useEffect(() => {
     const flagsEnabled = getEnabledFlagsFromUrl();
     setFlagsContext(flagsEnabled);
     setIsReady(true);
-  }, [setFlagsContext]);
+  }, []);
 
   return (
     <FeatureFlagsReadyContext.Provider value={isReady}>

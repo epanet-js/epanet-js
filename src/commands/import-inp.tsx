@@ -1,7 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { dialogAtom, fileInfoAtom } from "src/state/jotai";
-import { useErrorTracking } from "src/hooks/use-error-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
 import { ParserIssues, parseInp } from "src/import/inp";
@@ -28,7 +28,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const { captureError } = useErrorTracking();
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -114,7 +113,6 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
-      captureError,
     ],
   );
 

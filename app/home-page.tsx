@@ -18,7 +18,6 @@ import dynamic from "next/dynamic";
 import { ErrorBoundary } from "@sentry/nextjs";
 import { FallbackError } from "src/components/fallback-error";
 import { FeatureFlagsProvider } from "src/hooks/use-feature-flags";
-import { ErrorTrackingProvider } from "src/hooks/use-error-tracking";
 import { LocaleProvider } from "src/hooks/use-locale";
 
 const queryClient = new QueryClient();
@@ -51,23 +50,21 @@ function ScratchpadInner({ store }: { store: Store }) {
   const idMap = useRef(UIDMap.empty());
 
   return (
-    <ErrorTrackingProvider>
-      <AuthProvider>
-        <UserTrackingProvider>
-          <FeatureFlagsProvider>
-            <LocaleProvider>
-              <PersistenceContext.Provider
-                value={new MemPersistence(idMap.current, store)}
-              >
-                <Suspense fallback={null}>
-                  <EpanetApp />
-                </Suspense>
-              </PersistenceContext.Provider>
-            </LocaleProvider>
-          </FeatureFlagsProvider>
-        </UserTrackingProvider>
-      </AuthProvider>
-    </ErrorTrackingProvider>
+    <AuthProvider>
+      <UserTrackingProvider>
+        <FeatureFlagsProvider>
+          <LocaleProvider>
+            <PersistenceContext.Provider
+              value={new MemPersistence(idMap.current, store)}
+            >
+              <Suspense fallback={null}>
+                <EpanetApp />
+              </Suspense>
+            </PersistenceContext.Provider>
+          </LocaleProvider>
+        </FeatureFlagsProvider>
+      </UserTrackingProvider>
+    </AuthProvider>
   );
 }
 
