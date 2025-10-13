@@ -1,18 +1,11 @@
 import { atomWithStorage } from "jotai/utils";
 
-export type PrivacyPreferences = {
-  analytics: boolean;
-  errorReporting: boolean;
-};
-
 export type UserSettings = {
   showWelcomeOnStart: boolean;
-  privacyPreferences: PrivacyPreferences | undefined;
 };
 
 export const defaultUserSettings: UserSettings = {
   showWelcomeOnStart: true,
-  privacyPreferences: undefined,
 };
 
 export const userSettingsAtom = atomWithStorage<UserSettings>(

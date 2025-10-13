@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { readRawPrivacySettings } from "src/hooks/use-privacy-settings";
 
 const tunnel =
   process.env.NEXT_PUBLIC_SENTRY_PROXY === "true" ? "/m" : undefined;
@@ -10,4 +11,10 @@ Sentry.init({
   tracesSampleRate: 1,
   debug: false,
   tunnel,
+  beforeSend: (event) => {
+    const privacySettings = readRawPrivacySettings();
+    if (privacySettings?.errorReporting === false) return null;
+
+    return event;
+  },
 });

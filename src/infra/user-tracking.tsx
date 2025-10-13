@@ -6,7 +6,7 @@ import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
-import { useUserSettings } from "src/hooks/use-user-settings";
+import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 
 type Metadata = {
   [key: string]: boolean | string | number | string[];
@@ -739,7 +739,7 @@ const debugPostHog = {
 
 export const useUserTracking = () => {
   const posthog = usePostHog();
-  const { privacySettings } = useUserSettings();
+  const { privacySettings } = usePrivacySettings();
 
   const isAnalyticsDisabled = privacySettings?.analytics === false;
 

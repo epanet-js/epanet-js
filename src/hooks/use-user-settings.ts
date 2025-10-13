@@ -3,25 +3,13 @@ import { useCallback } from "react";
 import { localeAtom } from "src/state/locale";
 import { Locale } from "src/infra/i18n/locale";
 import { useAuth } from "src/auth";
-import {
-  userSettingsAtom,
-  type PrivacyPreferences,
-} from "src/state/user-settings";
-import { useUrlFeatureFlag } from "./use-url-feature-flag";
 
 export type UserSettings = {
   locale: Locale;
   setLocale: (locale: Locale) => Promise<void>;
-  privacySettings: PrivacyPreferences | undefined;
-  setPrivacySettings: (settings: PrivacyPreferences) => Promise<void>;
 };
 
 export type UseUserSettingsHook = () => UserSettings;
-
-const everyPrivacySettingEnabled = {
-  analytics: true,
-  errorReporting: true,
-};
 
 const useUserSettingsWithAuth = (): UserSettings => {
   const { user, isSignedIn } = useAuth();
@@ -37,26 +25,14 @@ const useUserSettingsWithAuth = (): UserSettings => {
     [isSignedIn, user],
   );
 
-  const privacySettings: PrivacyPreferences = everyPrivacySettingEnabled;
-
-  const setPrivacySettings = useCallback((settings: PrivacyPreferences) => {
-    // eslint-disable-next-line no-console
-    console.log("DEBUG: Privacy settings update for signed-in user", settings);
-    return Promise.resolve();
-  }, []);
-
   return {
     locale,
     setLocale,
-    privacySettings,
-    setPrivacySettings,
   };
 };
 
 const useUserSettingsWithoutAuth = (): UserSettings => {
   const [locale, setLocaleAtom] = useAtom(localeAtom);
-  const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
-  const isPrivacyBannerEnabled = useUrlFeatureFlag("FLAG_PRIVACY_BANNER");
 
   const setLocale = useCallback(
     (newLocale: Locale) => {
@@ -66,26 +42,9 @@ const useUserSettingsWithoutAuth = (): UserSettings => {
     [setLocaleAtom],
   );
 
-  const setPrivacySettings = useCallback(
-    (settings: PrivacyPreferences) => {
-      setUserSettings((prev) => ({
-        ...prev,
-        privacyPreferences: settings,
-      }));
-      return Promise.resolve();
-    },
-    [setUserSettings],
-  );
-
-  const privacySettings = isPrivacyBannerEnabled
-    ? userSettings.privacyPreferences
-    : everyPrivacySettingEnabled;
-
   return {
     locale,
     setLocale,
-    privacySettings,
-    setPrivacySettings,
   };
 };
 
