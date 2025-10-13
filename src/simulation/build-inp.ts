@@ -12,7 +12,6 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
-import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
@@ -49,10 +48,7 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   if (flowUnit === "acft/d") return "AFD";
   if (flowUnit === "m^3/d") return "CMD";
 
-  captureError(
-    new Error(`Flow unit not supported ${flowUnit}, fallback to default`),
-  );
-  return "LPS";
+  throw new Error(`Flow unit not supported ${flowUnit}`);
 };
 
 class EpanetIds {
