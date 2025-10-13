@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { processReportWithSlots, ReportRow } from "src/simulation/report";
-import { useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   dataAtom,
@@ -89,19 +89,20 @@ export const SimulationReportDialog = () => {
     [hydraulicModel.assets, handleAssetClick],
   );
 
-  const { processedReport, errorCollector } = useMemo(() => {
+  const processedReport = useMemo(() => {
     if (
       simulation.status !== "success" &&
       simulation.status !== "failure" &&
       simulation.status !== "warning"
     )
-      return { processedReport: [], errorCollector: null };
+      return [];
 
-    return processReportWithSlots(simulation.report, hydraulicModel.assets);
-  }, [simulation, hydraulicModel.assets]);
+    const { processedReport, errorCollector } = processReportWithSlots(
+      simulation.report,
+      hydraulicModel.assets,
+    );
 
-  useEffect(() => {
-    if (errorCollector && errorCollector.hasErrors()) {
+    if (errorCollector.hasErrors()) {
       const errors = errorCollector.getErrors();
       setErrorContext("Report Processing Issues", {
         issues: errors.map((e) => JSON.stringify(e)),
@@ -110,11 +111,9 @@ export const SimulationReportDialog = () => {
       const errorMessage = `Report processing encountered ${errors.length} lines with issues`;
       captureError(new Error(errorMessage));
     }
-  }, [errorCollector, captureError, setErrorContext]);
 
-  const formattedReport = useMemo(() => {
-    return processedReport.map(renderRowWithSlots);
-  }, [processedReport, renderRowWithSlots]);
+    return processedReport;
+  }, [simulation, hydraulicModel.assets, captureError, setErrorContext]);
 
   return (
     <DialogContainer size="lg" fillMode="auto">
@@ -124,7 +123,7 @@ export const SimulationReportDialog = () => {
       />
 
       <div className="p-4 overflow-auto border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
-        {formattedReport}
+        {processedReport.map(renderRowWithSlots)}
       </div>
     </DialogContainer>
   );
