@@ -13,7 +13,7 @@ import { useRef } from "react";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -69,6 +69,7 @@ export function useDrawLinkHandlers({
   const { clearSelection } = useSelection(selection);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const { captureError } = useErrorTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
   const { findSnappingCandidate } = useSnapping(

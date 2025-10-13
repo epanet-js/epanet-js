@@ -1,7 +1,7 @@
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useImportInp, inpExtension } from "./import-inp";
 import { useCallback } from "react";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { OpenInpStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 
@@ -12,6 +12,7 @@ export const useOpenInpFromFs = () => {
   const importInp = useImportInp();
   const userTracking = useUserTracking();
   const { openFile, isReady } = useFileOpen();
+  const { captureError } = useErrorTracking();
 
   const openInpFromFs = useCallback(
     async ({ source }: { source: string }) => {
@@ -34,10 +35,10 @@ export const useOpenInpFromFs = () => {
 
         void importInp([file]);
       } catch (error) {
-        handleFileOpenError(error as Error);
+        captureError(error as Error);
       }
     },
-    [openFile, isReady, importInp, userTracking],
+    [openFile, isReady, importInp, userTracking, captureError],
   );
 
   return useCallback(
@@ -46,8 +47,4 @@ export const useOpenInpFromFs = () => {
     },
     [openInpFromFs, checkUnsavedChanges],
   );
-};
-
-const handleFileOpenError = (error: Error) => {
-  captureError(error);
 };

@@ -9,7 +9,8 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import * as S from "@radix-ui/react-switch";
-import { ErrorBoundary, captureError } from "src/infra/error-tracking";
+import { ErrorBoundary } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import * as Select from "@radix-ui/react-select";
 import React from "react";
 import { SUPPORT_EMAIL } from "src/lib/constants";
@@ -607,6 +608,8 @@ export const StyledMenuLink = React.forwardRef(
     } & React.HTMLAttributes<HTMLAnchorElement>,
     ref: React.ForwardedRef<HTMLAnchorElement>,
   ) => {
+    const { captureError } = useErrorTracking();
+
     return (
       <a
         className={menuItemLike({ variant })}

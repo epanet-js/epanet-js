@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
@@ -20,6 +20,7 @@ export const DataInputStep: React.FC<{
 }> = ({ onNext, wizardState, projections }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const { captureError } = useErrorTracking();
 
   const {
     selectedFile,
@@ -152,6 +153,7 @@ export const DataInputStep: React.FC<{
       userTracking,
       translate,
       projections,
+      captureError,
     ],
   );
 

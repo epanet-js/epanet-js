@@ -10,7 +10,7 @@ import {
   useAuth as useClerkAuth,
   useUser as useClerkUser,
 } from "@clerk/nextjs";
-import { captureWarning } from "./infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
@@ -22,9 +22,14 @@ const AUTH_TIMEOUT_MS = 5000;
 export const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const handleError = useCallback((error: Error) => {
-    captureWarning(error.message);
-  }, []);
+  const { captureWarning } = useErrorTracking();
+
+  const handleError = useCallback(
+    (error: Error) => {
+      captureWarning(error.message);
+    },
+    [captureWarning],
+  );
 
   const clerkLocalization = getLocale() === "es" ? esES : enUS;
 

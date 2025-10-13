@@ -10,32 +10,11 @@ import type { i18n } from "i18next";
 import { Locale } from "src/infra/i18n/locale";
 import { useUserSettings } from "src/hooks/use-user-settings";
 import "src/infra/i18n/i18next-config";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { notify } from "src/components/notifications";
 import { ErrorIcon } from "src/icons";
 
 const I18N_TIMEOUT_MS = 10000;
-
-const changeLanguageWithTimeout = async (
-  i18n: i18n,
-  locale: Locale,
-): Promise<void> => {
-  const changeLanguagePromise = i18n.changeLanguage(locale).then(() => {});
-  const timeoutPromise = new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), I18N_TIMEOUT_MS);
-  });
-
-  return Promise.race([changeLanguagePromise, timeoutPromise]).catch(
-    (error) => {
-      captureError(error);
-      notify({
-        variant: "error",
-        title: "Error",
-        Icon: ErrorIcon,
-      });
-    },
-  );
-};
 
 type LocaleContextType = {
   locale: Locale;
@@ -49,6 +28,28 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
   const { locale, setLocale: setUserLocale } = useUserSettings();
   const { i18n } = useI18NextTranslation();
   const [isI18nReady, setIsI18nReady] = useState(false);
+  const { captureError } = useErrorTracking();
+
+  const changeLanguageWithTimeout = useCallback(
+    async (i18n: i18n, locale: Locale): Promise<void> => {
+      const changeLanguagePromise = i18n.changeLanguage(locale).then(() => {});
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), I18N_TIMEOUT_MS);
+      });
+
+      return Promise.race([changeLanguagePromise, timeoutPromise]).catch(
+        (error) => {
+          captureError(error);
+          notify({
+            variant: "error",
+            title: "Error",
+            Icon: ErrorIcon,
+          });
+        },
+      );
+    },
+    [captureError],
+  );
 
   useEffect(() => {
     setIsI18nReady(false);
@@ -59,7 +60,7 @@ export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
       setIsI18nReady(true);
     };
     void syncLanguage();
-  }, [locale, i18n]);
+  }, [locale, i18n, changeLanguageWithTimeout]);
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {

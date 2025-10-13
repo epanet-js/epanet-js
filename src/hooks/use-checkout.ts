@@ -1,7 +1,7 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/user-plan";
 import { ErrorIcon } from "src/icons";
@@ -17,6 +17,7 @@ const checkoutLoadingAtom = atom<boolean>(false);
 export const useCheckout = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
+  const { captureError } = useErrorTracking();
 
   const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
     clearCheckoutParams();

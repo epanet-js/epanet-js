@@ -2,7 +2,7 @@ import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog";
 import { useImportInp } from "./import-inp";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -15,6 +15,7 @@ export const useOpenInpFromUrl = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const importInp = useImportInp();
+  const { captureError } = useErrorTracking();
 
   const handleDownloadError = useCallback(() => {
     notify({
@@ -49,7 +50,13 @@ export const useOpenInpFromUrl = () => {
         handleDownloadError();
       }
     },
-    [setDialogState, handleDownloadError, checkUnsavedChanges, importInp],
+    [
+      setDialogState,
+      handleDownloadError,
+      checkUnsavedChanges,
+      importInp,
+      captureError,
+    ],
   );
 
   return { openInpFromUrl };

@@ -8,7 +8,7 @@ import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
 import { connectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
 export function useConnectCustomerPointsHandlers({
@@ -22,6 +22,7 @@ export function useConnectCustomerPointsHandlers({
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
+  const { captureError } = useErrorTracking();
   const {
     customerPoints,
     ephemeralState,

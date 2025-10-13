@@ -31,7 +31,7 @@ import loadAndAugmentStyle from "src/lib/load-and-augment-style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
-import { captureError } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec, symbologyAtom } from "src/state/symbology";
@@ -191,6 +191,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const { captureError } = useErrorTracking();
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -404,6 +405,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    captureError,
   ]);
 
   doUpdates();

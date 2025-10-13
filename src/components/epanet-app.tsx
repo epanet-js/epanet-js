@@ -43,7 +43,7 @@ import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
-import { setUserContext } from "src/infra/error-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
 import { NetworkReviewResizer } from "./panels/network-review/network-review";
@@ -67,6 +67,7 @@ export function EpanetApp() {
   useWindowResizeSplits();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
+  const { setUserContext } = useErrorTracking();
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
@@ -84,7 +85,7 @@ export function EpanetApp() {
       userTracking.reset();
       setUserContext(null);
     }
-  }, [isSignedIn, user, userTracking]);
+  }, [isSignedIn, user, userTracking, setUserContext]);
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
