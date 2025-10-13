@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "src/auth";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUrlFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserSettings } from "src/hooks/use-user-settings";
 import { type PrivacyPreferences } from "src/state/user-settings";
 import { Button, StyledSwitch, StyledThumb, styledInlineA } from "./elements";
@@ -10,7 +10,7 @@ type View = "banner" | "preferences";
 
 export const PrivacyBanner = () => {
   const { isLoaded } = useAuth();
-  const isPrivacyBannerOn = useFeatureFlag("FLAG_PRIVACY_BANNER");
+  const isPrivacyBannerOn = useUrlFeatureFlag("FLAG_PRIVACY_BANNER");
   const { privacySettings, setPrivacySettings } = useUserSettings();
   const [view, setView] = useState<View>("banner");
 

@@ -7,6 +7,7 @@ import {
   userSettingsAtom,
   type PrivacyPreferences,
 } from "src/state/user-settings";
+import { useUrlFeatureFlag } from "./use-url-feature-flag";
 
 export type UserSettings = {
   locale: Locale;
@@ -16,6 +17,11 @@ export type UserSettings = {
 };
 
 export type UseUserSettingsHook = () => UserSettings;
+
+const everyPrivacySettingEnabled = {
+  analytics: true,
+  errorReporting: true,
+};
 
 const useUserSettingsWithAuth = (): UserSettings => {
   const { user, isSignedIn } = useAuth();
@@ -31,10 +37,7 @@ const useUserSettingsWithAuth = (): UserSettings => {
     [isSignedIn, user],
   );
 
-  const privacySettings: PrivacyPreferences = {
-    analytics: true,
-    errorReporting: true,
-  };
+  const privacySettings: PrivacyPreferences = everyPrivacySettingEnabled;
 
   const setPrivacySettings = useCallback((settings: PrivacyPreferences) => {
     // eslint-disable-next-line no-console
@@ -53,6 +56,7 @@ const useUserSettingsWithAuth = (): UserSettings => {
 const useUserSettingsWithoutAuth = (): UserSettings => {
   const [locale, setLocaleAtom] = useAtom(localeAtom);
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
+  const isPrivacyBannerEnabled = useUrlFeatureFlag("FLAG_PRIVACY_BANNER");
 
   const setLocale = useCallback(
     (newLocale: Locale) => {
@@ -73,10 +77,14 @@ const useUserSettingsWithoutAuth = (): UserSettings => {
     [setUserSettings],
   );
 
+  const privacySettings = isPrivacyBannerEnabled
+    ? userSettings.privacyPreferences
+    : everyPrivacySettingEnabled;
+
   return {
     locale,
     setLocale,
-    privacySettings: userSettings.privacyPreferences,
+    privacySettings,
     setPrivacySettings,
   };
 };

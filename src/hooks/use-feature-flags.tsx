@@ -2,6 +2,10 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useState, createContext, useContext } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
+import {
+  getEnabledFlagsFromUrl,
+  useUrlFeatureFlag as useUrlFeatureFlagImpl,
+} from "./use-url-feature-flag";
 
 const FEATURE_FLAGS_TIMEOUT_MS = 5000;
 
@@ -98,25 +102,15 @@ export const useFeatureFlag = isPosthogConfigured
   ? useFeatureFlagWithPostHog
   : useFeatureFlagWithUrl;
 
-const getEnabledFlagsFromUrl = (): string[] => {
-  if (typeof window === "undefined" || typeof window.location === "undefined") {
-    return [];
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const enabledFlags: string[] = [];
-
-  for (const [key, value] of urlParams.entries()) {
-    if (key.startsWith("FLAG_")) {
-      if (value.toLowerCase() === "true") {
-        enabledFlags.push(key);
-      }
-    }
-  }
-
-  return enabledFlags;
-};
-
 export const useFeatureFlagsReady = (): boolean => {
   return useContext(FeatureFlagsReadyContext);
 };
+
+/**
+ * Hook that ONLY checks URL parameters for feature flags.
+ * Useful for testing features independently of PostHog state.
+ * Always returns the URL parameter value, ignoring PostHog configuration.
+ *
+ * Re-exported from use-url-feature-flag.ts for backwards compatibility.
+ */
+export const useUrlFeatureFlag = useUrlFeatureFlagImpl;

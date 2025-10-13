@@ -6,6 +6,7 @@ import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
+import { useUserSettings } from "src/hooks/use-user-settings";
 
 type Metadata = {
   [key: string]: boolean | string | number | string[];
@@ -738,27 +739,34 @@ const debugPostHog = {
 
 export const useUserTracking = () => {
   const posthog = usePostHog();
+  const { privacySettings } = useUserSettings();
+
+  const isAnalyticsDisabled = privacySettings?.analytics === false;
 
   const capture = useCallback(
     (event: UserEvent) => {
+      if (isAnalyticsDisabled) return;
       const { name, ...metadata } = event;
+
       posthog.capture(name, metadata);
       isDebugOn && debugPostHog.capture(name, metadata);
     },
-    [posthog],
+    [posthog, isAnalyticsDisabled],
   );
 
   const identify = useCallback(
     (user: User) => {
+      if (isAnalyticsDisabled) return;
       const properties = {
         email: user.email,
         first_name: user.firstName,
         last_name: user.lastName,
       };
+
       posthog.identify(user.id || "", properties);
       isDebugOn && debugPostHog.identify(user.id, properties);
     },
-    [posthog],
+    [posthog, isAnalyticsDisabled],
   );
 
   const isIdentified = useCallback(() => {
@@ -774,7 +782,7 @@ export const useUserTracking = () => {
     if (posthog?.reloadFeatureFlags) {
       posthog.reloadFeatureFlags();
     }
-  }, [posthog]);
+  }, [posthog, isAnalyticsDisabled]);
 
   return { identify, capture, isIdentified, reset, reloadFeatureFlags };
 };
