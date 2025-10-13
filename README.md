@@ -99,6 +99,21 @@ pnpm check-types:watch
 pnpm lint
 ```
 
+#### Pre-commit hook
+
+To prevent pushing code that has linter or types errors you can add to `.git/hooks/pre-commit` the following:
+
+```
+#!/bin/sh
+echo "Running type check..."
+pnpm run check-types || exit 1
+
+echo "Running lint..."
+pnpm run lint || exit 1
+
+echo "✅ All checks passed!"
+```
+
 ## Deploy
 
 You will need to configure the environment variables for the deployment. You can find the list of variables in `.env.example`.
@@ -119,3 +134,4 @@ This repository contains code under two different licenses:
 2. **Modifications and Future Contributions (FSL-1.1-MIT)**: Any changes or contributions made after the first commit (`0fa095f5c60ba944fa4e25b8a7e749e52c2beefb`) onwards are licensed under the FSL-1.1-MIT License.
 
 You can find the full text of the MIT License in the `LICENSE` file.
+
