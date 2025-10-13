@@ -1,6 +1,5 @@
 import { EventedType } from "ngraph.events";
 import createGraph, { Graph, Link, Node } from "ngraph.graph";
-import { captureWarning } from "src/infra/error-tracking";
 
 type GraphChange = {
   changeType: "add" | "remove";
@@ -31,7 +30,6 @@ export class Topology {
 
   addLink(linkId: string, startNodeId: string, endNodeId: string) {
     if (this.linksMap.has(linkId)) {
-      captureWarning(`There is already a link with the same id ${linkId}`);
       return;
     }
 
