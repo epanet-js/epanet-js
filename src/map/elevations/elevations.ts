@@ -1,6 +1,5 @@
 import { QueryClient } from "@tanstack/query-core";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
-import { captureWarning } from "src/infra/error-tracking";
 import { Unit, convertTo } from "src/quantity";
 
 const staleTime = 5 * 60 * 1000;
@@ -103,7 +102,6 @@ const fetchTileFromUrlDeprecated = withDebugInstrumentation(
   async (tileUrl: string): Promise<Blob | null> => {
     const response = await fetch(tileUrl);
     if (!response.ok) {
-      captureWarning(`Failed to fetch tile: ${tileUrl}`);
       return null;
     }
     return response.blob();
