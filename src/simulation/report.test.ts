@@ -11,14 +11,14 @@ describe("processReportWithSlots", () => {
     const report = `Error 233: Error 1
 Error 215: Pipe 1234 is a duplicate ID.`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(2);
+    expect(processedReport[0]).toEqual({
       text: "Error 233: Error {{0}}",
       assetSlots: ["1"],
     });
-    expect(result[1]).toEqual({
+    expect(processedReport[1]).toEqual({
       text: "Error 215: Pipe {{0}} is a duplicate ID.",
       assetSlots: ["1234"],
     });
@@ -32,10 +32,10 @@ Error 215: Pipe 1234 is a duplicate ID.`;
 
     const report = `Node 19 and Pipe 56 are connected`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
       text: "Node {{0}} and Pipe {{1}} are connected",
       assetSlots: ["19", "56"],
     });
@@ -47,14 +47,14 @@ Error 215: Pipe 1234 is a duplicate ID.`;
     const report = `This is a normal line
 Another normal line`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(2);
+    expect(processedReport[0]).toEqual({
       text: "This is a normal line",
       assetSlots: [],
     });
-    expect(result[1]).toEqual({
+    expect(processedReport[1]).toEqual({
       text: "Another normal line",
       assetSlots: [],
     });
@@ -69,14 +69,14 @@ Another normal line`;
     const report = `PRV 1 open but cannot deliver pressure
 FCV 20 open but cannot deliver pressure`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(2);
+    expect(processedReport[0]).toEqual({
       text: "PRV {{0}} open but cannot deliver pressure",
       assetSlots: ["1"],
     });
-    expect(result[1]).toEqual({
+    expect(processedReport[1]).toEqual({
       text: "FCV {{0}} open but cannot deliver pressure",
       assetSlots: ["20"],
     });
@@ -90,14 +90,14 @@ FCV 20 open but cannot deliver pressure`;
     const report = `Error 213: invalid option value 0 in [VALVES] section
 Error 211: illegal link property value 0 0`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(2);
+    expect(processedReport[0]).toEqual({
       text: "Error 213: invalid option value 0 in [VALVES] section",
       assetSlots: [],
     });
-    expect(result[1]).toEqual({
+    expect(processedReport[1]).toEqual({
       text: "Error 211: illegal link property value 0 0",
       assetSlots: [],
     });
@@ -115,22 +115,22 @@ WARNING: Node 19 disconnected at 0:00:00 hrs
 maximum flow change = 0.0001 for Link 56
 Node 19 and Pipe 56`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(4);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(4);
+    expect(processedReport[0]).toEqual({
       text: "0:00:00: Reservoir {{0}} is closed",
       assetSlots: ["14"],
     });
-    expect(result[1]).toEqual({
+    expect(processedReport[1]).toEqual({
       text: "WARNING: Node {{0}} disconnected at 0:00:00 hrs",
       assetSlots: ["19"],
     });
-    expect(result[2]).toEqual({
+    expect(processedReport[2]).toEqual({
       text: "maximum flow change = 0.0001 for Link {{0}}",
       assetSlots: ["56"],
     });
-    expect(result[3]).toEqual({
+    expect(processedReport[3]).toEqual({
       text: "Node {{0}} and Pipe {{1}}",
       assetSlots: ["19", "56"],
     });
@@ -143,10 +143,10 @@ Node 19 and Pipe 56`;
 
     const report = `Configuration: TCV 0`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
       text: "Configuration: TCV 0",
       assetSlots: [],
     });
@@ -161,10 +161,10 @@ Node 19 and Pipe 56`;
 
     const report = ` 7\t2\t3\t300\tTCV\t0\t0`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
       text: " {{0}}\t{{1}}\t{{2}}\t300\tTCV\t0\t0",
       assetSlots: ["7", "2", "3"],
     });
@@ -179,10 +179,10 @@ Node 19 and Pipe 56`;
 
     const report = `P1    J1     J2     1200      12      120       0.2     OPEN`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
       text: "{{0}}    {{1}}     {{2}}     1200      12      120       0.2     OPEN",
       assetSlots: ["P1", "J1", "J2"],
     });
@@ -197,10 +197,10 @@ Node 19 and Pipe 56`;
 
     const report = `Pump1   N12     N32     HEAD Curve1  SPEED 1.2`;
 
-    const result = processReportWithSlots(report, assets);
+    const { processedReport } = processReportWithSlots(report, assets);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
       text: "{{0}}   {{1}}     {{2}}     HEAD Curve1  SPEED 1.2",
       assetSlots: ["Pump1", "N12", "N32"],
     });

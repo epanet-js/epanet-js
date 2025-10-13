@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { processReportWithSlots, ReportRow } from "src/simulation/report";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   dataAtom,
@@ -14,6 +14,7 @@ import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useErrorTracking } from "src/hooks/use-error-tracking";
 
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
@@ -24,6 +25,7 @@ export const SimulationReportDialog = () => {
   const setDialog = useSetAtom(dialogAtom);
   const zoomTo = useZoomTo();
   const userTracking = useUserTracking();
+  const { captureError, setErrorContext } = useErrorTracking();
 
   const handleAssetClick = useCallback(
     (assetId: AssetId) => {
@@ -87,16 +89,28 @@ export const SimulationReportDialog = () => {
     [hydraulicModel.assets, handleAssetClick],
   );
 
-  const processedReport = useMemo(() => {
+  const { processedReport, errorCollector } = useMemo(() => {
     if (
       simulation.status !== "success" &&
       simulation.status !== "failure" &&
       simulation.status !== "warning"
     )
-      return [];
+      return { processedReport: [], errorCollector: null };
 
     return processReportWithSlots(simulation.report, hydraulicModel.assets);
   }, [simulation, hydraulicModel.assets]);
+
+  useEffect(() => {
+    if (errorCollector && errorCollector.hasErrors()) {
+      const errors = errorCollector.getErrors();
+      setErrorContext("Report Processing Issues", {
+        issues: errors.map((e) => JSON.stringify(e)),
+      });
+
+      const errorMessage = `Report processing encountered ${errors.length} lines with issues`;
+      captureError(new Error(errorMessage));
+    }
+  }, [errorCollector, captureError, setErrorContext]);
 
   const formattedReport = useMemo(() => {
     return processedReport.map(renderRowWithSlots);

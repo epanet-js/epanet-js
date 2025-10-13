@@ -1,7 +1,13 @@
-import { captureError, setErrorContext } from "src/infra/error-tracking";
+export type CollectedError = {
+  reportLine: string;
+  reason: string;
+  match: string;
+  id: string;
+  regexp: string;
+};
 
 export class ReportErrorCollector {
-  private linesWithIssues: string[] = [];
+  private linesWithIssues: CollectedError[] = [];
 
   collectMissingAssetId(
     reportLine: string,
@@ -9,28 +15,17 @@ export class ReportErrorCollector {
     id: string,
     regexp: string,
   ) {
-    this.linesWithIssues.push(
-      JSON.stringify({
-        reportLine,
-        reason: "missing_asset",
-        match,
-        id,
-        regexp,
-      }),
-    );
+    this.linesWithIssues.push({
+      reportLine,
+      reason: "missing_asset",
+      match,
+      id,
+      regexp,
+    });
   }
 
-  flushErrors() {
-    if (this.linesWithIssues.length === 0) return;
-
-    setErrorContext("Report Processing Issues", {
-      issues: this.linesWithIssues,
-    });
-
-    const errorMessage = `Report processing encountered ${this.linesWithIssues.length} lines with issues`;
-
-    captureError(new Error(errorMessage));
-    this.linesWithIssues = [];
+  getErrors(): CollectedError[] {
+    return this.linesWithIssues;
   }
 
   hasErrors(): boolean {

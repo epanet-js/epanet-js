@@ -8,6 +8,11 @@ export type ReportRow = {
 
 export type ProcessedReport = ReportRow[];
 
+export type ProcessReportResult = {
+  processedReport: ProcessedReport;
+  errorCollector: ReportErrorCollector;
+};
+
 const valvesSectionRowRegExp =
   /^\s*(\d+)\t(\d+)\t(\d+)\t[\d.]+\t(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\t/i;
 const pipesSectionRowRegExp =
@@ -33,10 +38,10 @@ const idRegExps = [
 export const processReportWithSlots = (
   report: string,
   assets: AssetsMap,
-): ProcessedReport => {
+): ProcessReportResult => {
   const errorCollector = new ReportErrorCollector();
 
-  const result = report.split("\n").map((row) => {
+  const processedReport = report.split("\n").map((row) => {
     const isSkipped = skipRegexp.find((regexp) => regexp.test(row));
     if (isSkipped) {
       return { text: row, assetSlots: [] };
@@ -84,7 +89,5 @@ export const processReportWithSlots = (
     return { text: processedText, assetSlots };
   });
 
-  errorCollector.flushErrors();
-
-  return result;
+  return { processedReport, errorCollector };
 };
