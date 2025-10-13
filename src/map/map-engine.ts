@@ -4,7 +4,6 @@ import type { Map as MapboxMap, MapboxGeoJSONFeature } from "mapbox-gl";
 import { CURSOR_DEFAULT } from "src/lib/constants";
 import type { Feature, IFeatureCollection } from "src/types";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { captureWarning } from "src/infra/error-tracking";
 import { LayersList } from "@deck.gl/core";
 import { DataSource } from "./data-source";
 import { prepareIconsSprite } from "./icons";
@@ -136,9 +135,6 @@ export class MapEngine {
     return new Promise((resolve) => {
       const idleTimeoutMs = sourceUpdateTimeoutFor(sourceFeatures.length);
       const timeout = setTimeout(() => {
-        captureWarning(
-          `Timeout: Mapbox idle took more than ${idleTimeoutMs}, ${sourceFeatures.length}`,
-        );
         resolve();
       }, idleTimeoutMs);
 
