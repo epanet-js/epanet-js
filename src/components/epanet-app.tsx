@@ -48,6 +48,7 @@ import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
 import { NetworkReviewResizer } from "./panels/network-review/network-review";
 import { PrivacyBanner } from "./privacy-banner";
+import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -68,9 +69,11 @@ export function EpanetApp() {
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
   const { setUserContext } = useErrorTracking();
+  const { enableAllTracking } = usePrivacySettings();
 
   useEffect(() => {
     if (isSignedIn && user && !userTracking.isIdentified()) {
+      enableAllTracking();
       userTracking.identify(user);
       userTracking.reloadFeatureFlags();
       setUserContext({
@@ -86,7 +89,7 @@ export function EpanetApp() {
       localStorage.clear();
       setUserContext(null);
     }
-  }, [isSignedIn, user, userTracking, setUserContext]);
+  }, [isSignedIn, user, userTracking, setUserContext, enableAllTracking]);
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");

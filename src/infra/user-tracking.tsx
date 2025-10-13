@@ -756,7 +756,6 @@ export const useUserTracking = () => {
 
   const identify = useCallback(
     (user: User) => {
-      if (isAnalyticsDisabled) return;
       const properties = {
         email: user.email,
         first_name: user.firstName,
@@ -766,7 +765,7 @@ export const useUserTracking = () => {
       posthog.identify(user.id || "", properties);
       isDebugOn && debugPostHog.identify(user.id, properties);
     },
-    [posthog, isAnalyticsDisabled],
+    [posthog],
   );
 
   const isIdentified = useCallback(() => {

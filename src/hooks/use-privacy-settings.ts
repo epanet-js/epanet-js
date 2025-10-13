@@ -22,12 +22,22 @@ export const usePrivacySettings = () => {
     return Promise.resolve();
   };
 
+  const enableAllTracking = () => {
+    void setPrivacySettings({
+      skipErrorReporting: false,
+      skipAnalytics: false,
+    });
+  };
+
   return {
     privacySettings,
     setPrivacySettings,
+    enableAllTracking,
   };
 };
 
 export const readRawPrivacySettings = (): PrivacyPreferences => {
-  return JSON.parse(localStorage.getItem(storageKey) || "{}");
+  return JSON.parse(
+    localStorage.getItem(storageKey) || "{}",
+  ) as PrivacyPreferences;
 };
