@@ -83,6 +83,7 @@ export function EpanetApp() {
     if (!isSignedIn && userTracking.isIdentified()) {
       userTracking.capture({ name: "logOut.completed" });
       userTracking.reset();
+      localStorage.clear();
       setUserContext(null);
     }
   }, [isSignedIn, user, userTracking, setUserContext]);
