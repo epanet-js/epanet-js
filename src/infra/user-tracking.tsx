@@ -741,7 +741,7 @@ export const useUserTracking = () => {
   const posthog = usePostHog();
   const { privacySettings } = usePrivacySettings();
 
-  const isAnalyticsDisabled = privacySettings?.analytics === false;
+  const isAnalyticsDisabled = privacySettings?.skipAnalytics === true;
 
   const capture = useCallback(
     (event: UserEvent) => {

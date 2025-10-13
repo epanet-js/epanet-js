@@ -2,8 +2,8 @@ import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 export type PrivacyPreferences = {
-  analytics: boolean;
-  errorReporting: boolean;
+  skipAnalytics: boolean;
+  skipErrorReporting: boolean;
 };
 
 const storageKey = "privacy-settings";

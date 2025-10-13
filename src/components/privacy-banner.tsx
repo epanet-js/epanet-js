@@ -22,8 +22,8 @@ export const PrivacyBanner = () => {
 
   const handleAcceptConsent = () => {
     void setPrivacySettings({
-      analytics: true,
-      errorReporting: true,
+      skipAnalytics: false,
+      skipErrorReporting: false,
     });
   };
 
@@ -110,8 +110,8 @@ const PreferencesView = ({
 }) => {
   const [preferences, setPreferences] = useState<PrivacyPreferences>(
     privacySettings ?? {
-      analytics: false,
-      errorReporting: false,
+      skipAnalytics: true,
+      skipErrorReporting: true,
     },
   );
 
@@ -137,9 +137,9 @@ const PreferencesView = ({
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 pt-1">
             <StyledSwitch
-              checked={preferences.analytics}
+              checked={!preferences.skipAnalytics}
               onCheckedChange={(checked) =>
-                setPreferences((prev) => ({ ...prev, analytics: checked }))
+                setPreferences((prev) => ({ ...prev, skipAnalytics: !checked }))
               }
             >
               <StyledThumb />
@@ -161,11 +161,11 @@ const PreferencesView = ({
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 pt-1">
             <StyledSwitch
-              checked={preferences.errorReporting}
+              checked={!preferences.skipErrorReporting}
               onCheckedChange={(checked) =>
                 setPreferences((prev) => ({
                   ...prev,
-                  errorReporting: checked,
+                  skipErrorReporting: !checked,
                 }))
               }
             >

@@ -13,7 +13,7 @@ Sentry.init({
   tunnel,
   beforeSend: (event) => {
     const privacySettings = readRawPrivacySettings();
-    if (privacySettings?.errorReporting === false) return null;
+    if (privacySettings?.skipErrorReporting === true) return null;
 
     return event;
   },
