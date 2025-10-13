@@ -782,7 +782,7 @@ export const useUserTracking = () => {
     if (posthog?.reloadFeatureFlags) {
       posthog.reloadFeatureFlags();
     }
-  }, [posthog, isAnalyticsDisabled]);
+  }, [posthog]);
 
   return { identify, capture, isIdentified, reset, reloadFeatureFlags };
 };
