@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MapCanvas } from "src/map/map-canvas";
+import { ErrorTrackingProvider } from "src/hooks/use-error-tracking";
 
 export const renderMap = async (
   store: Store,
@@ -15,17 +16,19 @@ export const renderMap = async (
   let mapEngine: MapTestEngine | null = null;
   const persistence = new MemPersistence(idMap, store);
   render(
-    <QueryClientProvider client={new QueryClient()}>
-      <JotaiProvider store={store}>
-        <PersistenceContext.Provider value={persistence}>
-          <MapCanvas
-            setMap={(mapEngineInstance) => {
-              mapEngine = mapEngineInstance as unknown as MapTestEngine;
-            }}
-          />
-        </PersistenceContext.Provider>
-      </JotaiProvider>
-    </QueryClientProvider>,
+    <ErrorTrackingProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={persistence}>
+            <MapCanvas
+              setMap={(mapEngineInstance) => {
+                mapEngine = mapEngineInstance as unknown as MapTestEngine;
+              }}
+            />
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>
+    </ErrorTrackingProvider>,
   );
 
   await waitFor(() => {

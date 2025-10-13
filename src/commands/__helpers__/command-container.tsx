@@ -6,6 +6,7 @@ import { Dialogs } from "src/components/dialogs";
 import { Store } from "src/state/jotai";
 import { UIDMap } from "src/lib/id-mapper";
 import Notifications from "src/components/notifications";
+import { ErrorTrackingProvider } from "src/hooks/use-error-tracking";
 
 export const CommandContainer = ({
   store,
@@ -16,14 +17,16 @@ export const CommandContainer = ({
 }) => {
   const idMap = UIDMap.empty();
   return (
-    <QueryClientProvider client={new QueryClient()}>
-      <JotaiProvider store={store}>
-        <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
-          <Dialogs></Dialogs>
-          <Notifications duration={1} successDuration={1} />
-          {children}
-        </PersistenceContext.Provider>
-      </JotaiProvider>
-    </QueryClientProvider>
+    <ErrorTrackingProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={new MemPersistence(idMap, store)}>
+            <Dialogs></Dialogs>
+            <Notifications duration={1} successDuration={1} />
+            {children}
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>
+    </ErrorTrackingProvider>
   );
 };
