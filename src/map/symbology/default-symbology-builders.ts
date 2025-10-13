@@ -109,7 +109,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "actualDemand",
       unit: hydraulicModel.units.actualDemand,
-      rampName: "Temps",
+      rampName: "Emrld",
       mode: "prettyBreaks",
       fallbackEndpoints: [0, 100],
       sortedData: getSortedValues(hydraulicModel.assets, "actualDemand"),
