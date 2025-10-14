@@ -34,24 +34,22 @@ export const ToolHeader = ({
 
   return (
     <div
-      className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 pt-1"
+      className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 py-3"
       style={{
         gridTemplateColumns: "auto 1fr",
       }}
     >
       <Button
+        className="mt-[-.25rem] py-1.5"
         size="xs"
-        className="py-3"
         variant={"quiet"}
         role="button"
         aria-label={translate("back")}
         onClick={goBack}
       >
-        <div className="pt-[.125rem]">
-          <ChevronLeftIcon size={16} />
-        </div>
+        <ChevronLeftIcon size={16} />
       </Button>
-      <div className="w-full flex-col py-3 ">
+      <div className="w-full flex-col">
         <p className="text-sm font-bold text-gray-900 dark:text-white">
           {translate(`networkReview.${checkType}.title`)}
         </p>
