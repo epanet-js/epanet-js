@@ -45,3 +45,14 @@ export const assetLayers: LayerId[] = [
 ];
 
 export const clickableLayers: LayerId[] = assetLayers;
+
+export const editingLayers: string[] = [
+  ...assetLayers,
+  "imported-pipe-arrows",
+  "pipe-arrows",
+  "imported-features-link-labels",
+  "features-link-labels",
+  "imported-features-node-labels",
+  "features-node-labels",
+  "check-valve-icons",
+];

@@ -81,11 +81,13 @@ export default async function loadAndAugmentStyle({
   symbology,
   previewProperty,
   translate,
+  hideLayersOnLoad = false,
 }: {
   layerConfigs: LayerConfigMap;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
   translate: (key: string) => string;
+  hideLayersOnLoad?: boolean;
 }): Promise<Style> {
   let style = getEmptyStyle();
   let id = 0;
@@ -108,7 +110,7 @@ export default async function loadAndAugmentStyle({
     }
   }
 
-  addEditingLayers({ style, symbology, previewProperty });
+  addEditingLayers({ style, symbology, previewProperty, hideLayersOnLoad });
 
   return style;
 }
@@ -117,10 +119,12 @@ export function addEditingLayers({
   style,
   symbology,
   previewProperty,
+  hideLayersOnLoad = false,
 }: {
   style: Style;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
+  hideLayersOnLoad?: boolean;
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
@@ -132,19 +136,20 @@ export function addEditingLayers({
   }
 
   style.layers = style.layers.concat(
-    makeLayers({ symbology, previewProperty }),
+    makeLayers({ symbology, previewProperty, hideLayersOnLoad }),
   );
 }
 
 export function makeLayers({
   symbology,
   previewProperty,
+  hideLayersOnLoad = false,
 }: {
   symbology: ISymbology;
   previewProperty: PreviewProperty;
+  hideLayersOnLoad?: boolean;
 }): mapboxgl.AnyLayer[] {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return [
+  const layers = [
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "imported-features",
@@ -255,6 +260,23 @@ export function makeLayers({
         ]
       : []),
   ].filter((l) => !!l);
+
+  if (!hideLayersOnLoad) {
+    return layers;
+  }
+
+  return layers.map((layer) => {
+    if ("source" in layer && layer.source !== "ephemeral") {
+      return {
+        ...layer,
+        layout: {
+          ...(layer.layout || {}),
+          visibility: "none",
+        },
+      } as mapboxgl.AnyLayer;
+    }
+    return layer;
+  });
 }
 
 function LABEL_PAINT(

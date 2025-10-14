@@ -28,6 +28,7 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load-and-augment-style";
+import { editingLayers } from "src/map/layers/layer";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -41,6 +42,7 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -191,6 +193,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isMapBlinkFixOn = useFeatureFlag("FLAG_MAP_BLINK");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -228,7 +231,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(map, mapState.stylesConfig, translate);
+          await updateLayerStyles(
+            map,
+            mapState.stylesConfig,
+            translate,
+            isMapBlinkFixOn,
+          );
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -361,6 +369,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
+        if (hasNewStyles && isMapBlinkFixOn) {
+          showEditingLayers(map);
+        }
+
         if (
           hasNewSymbology ||
           hasNewZoom ||
@@ -404,6 +416,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isMapBlinkFixOn,
   ]);
 
   doUpdates();
@@ -422,10 +435,12 @@ const updateLayerStyles = withDebugInstrumentation(
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
+    hideLayersOnLoad: boolean,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
+      hideLayersOnLoad,
     });
     await map.setStyle(style);
   },
@@ -611,6 +626,13 @@ const updateSelection = withDebugInstrumentation(
     }
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
+);
+
+const showEditingLayers = withDebugInstrumentation(
+  (map: MapEngine) => {
+    map.showLayers(editingLayers as any);
+  },
+  { name: "MAP_STATE:SHOW_EDITING_LAYERS", maxDurationMs: 100 },
 );
 
 const updateEphemeralStateSource = withDebugInstrumentation(
