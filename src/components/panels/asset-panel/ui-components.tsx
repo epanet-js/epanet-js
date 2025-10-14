@@ -257,7 +257,7 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center gap-x-1"
+          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center gap-x-2"
         >
           <MultipleValuesIcon />
           {customerCount}
