@@ -97,7 +97,10 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           selectedId={selectedOrphanAssetId}
         />
       ) : (
-        <EmptyState checkType={CheckType.orphanAssets} />
+        <>
+          <ToolDescription checkType={CheckType.orphanAssets} />
+          <EmptyState checkType={CheckType.orphanAssets} />
+        </>
       )}
     </div>
   );

@@ -592,12 +592,13 @@
     },
     "proximityCheck": {
       "title": "Proximity check",
-      "description": "Find nodes that are too close to other neighbouring nodes",
-      "summary_zero": "No issues found",
-      "summary_one": "1 issue found",
-      "summary_other": "{{count}} issues found",
-      "issueLabel": "Orphan {{1}}: {{2}}",
-      "emptyMessage": "There are no nodes violating the distance constraing. Well done!"
+      "description": "Finds junctions located close to nearby pipes that may need to be connected.",
+      "summary_zero": "No potential connections found",
+      "summary_one": "1 potential connection found",
+      "summary_other": "{{count}} potential connections found",
+      "issueLabel": "Potential connection for {{1}}",
+      "emptyMessage": "No nearby nodes found - you can increase the search distance to find more.",
+      "distance": "Distance"
     },
     "crossingPipes": {
       "title": "Crossing pipes"
