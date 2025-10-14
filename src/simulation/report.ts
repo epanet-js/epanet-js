@@ -56,7 +56,12 @@ export const processReportWithSlots = (
         let result = match;
         let offsetAdjustment = 0;
 
-        for (const id of capturedIds) {
+        const actualCapturedIds = capturedIds.filter(
+          (arg, index, array) =>
+            typeof arg === "string" && index < array.length - 2,
+        );
+
+        for (const id of actualCapturedIds) {
           const asset = assets.get(id) as Asset;
           if (!asset) {
             errorCollector.collectMissingAssetId(

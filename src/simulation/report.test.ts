@@ -205,4 +205,41 @@ Node 19 and Pipe 56`;
       assetSlots: ["Pump1", "N12", "N32"],
     });
   });
+
+  it("handles error messages with missing tank node correctly", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 225: invalid lower/upper levels for tank node 42`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 225: invalid lower/upper levels for tank node 42`,
+      assetSlots: [],
+    });
+
+    const errors = errorCollector.getErrors();
+    expect(errors).toHaveLength(2);
+
+    expect(errors[0]).toMatchObject({
+      reportLine: " Error 225: invalid lower/upper levels for tank node 42",
+      reason: "missing_asset",
+      match: "Error 225: invalid lower/upper levels for tank node 42",
+      id: "42",
+      regexp: "/Error \\d{3}:.*?\\b(\\d+)\\b/",
+    });
+
+    expect(errors[1]).toMatchObject({
+      reportLine: " Error 225: invalid lower/upper levels for tank node 42",
+      reason: "missing_asset",
+      match: "node 42",
+      id: "42",
+      regexp:
+        "/(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\\s+(\\d+)/gi",
+    });
+  });
 });
