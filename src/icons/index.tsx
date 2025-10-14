@@ -140,6 +140,7 @@ export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
 export const PanelLeftIcon = icon(PanelLeft);
 export const PanelRightIcon = icon(PanelRight);
+export const MultipleValuesIcon = icon(SquareStack);
 export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);
 export const TankIcon = icon(RectangleHorizontal);

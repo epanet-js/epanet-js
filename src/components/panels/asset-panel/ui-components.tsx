@@ -21,7 +21,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsPopover } from "../feature-editor/customer-points-popover";
 import { useSetAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { ChevronDownIcon } from "src/icons";
+import { MultipleValuesIcon } from "src/icons";
 
 export const AssetEditorContent = ({
   label,
@@ -257,10 +257,10 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center justify-between"
+          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center gap-x-1"
         >
-          <span>{customerCount}</span>
-          <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+          <MultipleValuesIcon />
+          {customerCount}
         </P.Trigger>
         <P.Portal>
           <StyledPopoverContent>
