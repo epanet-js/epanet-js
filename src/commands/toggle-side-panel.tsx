@@ -3,25 +3,25 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { defaultSplits, splitsAtom } from "src/state/jotai";
 
-export const toggleNetworkReviewShortcut = "ctrl+b";
+export const toggleSidePanelShortcut = "alt+ctrl+b";
 
-export const useToggleNetworkReview = () => {
+export const useToggleSidePanel = () => {
   const setPanelSplits = useSetAtom(splitsAtom);
   const userTracking = useUserTracking();
 
-  const toggleNetworkReview = useCallback(
+  const toggleSidePanel = useCallback(
     ({ source }: { source: "toolbar" | "shortcut" }) => {
       setPanelSplits((splits) => {
-        const isShown = !splits.leftOpen;
+        const isShown = !splits.rightOpen;
         userTracking.capture({
-          name: isShown ? "networkReview.opened" : "networkReview.closed",
+          name: isShown ? "sidePanel.opened" : "sidePanel.closed",
           source,
         });
-        return { ...splits, leftOpen: isShown, left: defaultSplits.left };
+        return { ...splits, rightOpen: isShown, right: defaultSplits.right };
       });
     },
     [setPanelSplits, userTracking],
   );
 
-  return toggleNetworkReview;
+  return toggleSidePanel;
 };

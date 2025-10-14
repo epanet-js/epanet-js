@@ -9,6 +9,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
+import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -33,6 +34,7 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),
   "Command+y": translate("redo"),
+  [toggleSidePanelShortcut]: translate("toggleSidePanel"),
 });
 
 export function CheatsheetDialog() {

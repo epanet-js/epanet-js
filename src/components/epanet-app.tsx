@@ -46,7 +46,6 @@ import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
-import { NetworkReviewResizer } from "./panels/network-review/network-review";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 
@@ -165,8 +164,8 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
-              <NetworkReviewResizer />
-              <Resizer side="right" />
+              <Resizer side="left" isToggleAllowed={false} />
+              <Resizer side="right" isToggleAllowed={false} />
             </>
           )}
           {layout === "VERTICAL" && <BottomPanel />}

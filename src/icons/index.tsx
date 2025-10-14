@@ -38,6 +38,7 @@ import {
   Menu,
   MousePointer2,
   PanelLeft,
+  PanelRight,
   PencilLine,
   Plus,
   RectangleHorizontal,
@@ -137,7 +138,8 @@ export const CustomerPointIcon = icon(House);
 export const ImportCustomerPointsIcon = icon(HousePlus);
 export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
-export const ToolsPanelIcon = icon(PanelLeft);
+export const PanelLeftIcon = icon(PanelLeft);
+export const PanelRightIcon = icon(PanelRight);
 export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);
 export const TankIcon = icon(RectangleHorizontal);
@@ -177,5 +179,5 @@ export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
 export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";
 export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipes-crossing-icon";
 export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/proximity-check-icon";
-export { CustomPanelLeftActive as PanelLeftActive } from "./custom-icons/panel-left-active";
-export { CustomPanelRightActive as PanelRightActive } from "./custom-icons/panel-right-active";
+export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
+export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";

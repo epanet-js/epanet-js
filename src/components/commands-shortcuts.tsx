@@ -63,6 +63,10 @@ import {
   useToggleNetworkReview,
 } from "src/commands/toggle-network-review";
 import { useNetworkReviewEnabled } from "./panels/network-review/network-review";
+import {
+  toggleSidePanelShortcut,
+  useToggleSidePanel,
+} from "src/commands/toggle-side-panel";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -85,7 +89,8 @@ export const CommandShortcuts = () => {
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const simulation = useAtomValue(simulationAtom);
-  const [, toggleNetworkReview] = useToggleNetworkReview();
+  const toggleNetworkReview = useToggleNetworkReview();
+  const toggleSidePanel = useToggleSidePanel();
 
   const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
@@ -316,6 +321,16 @@ export const CommandShortcuts = () => {
     [toggleNetworkReview],
     "Toggle network review",
     !isNetworkReviewEnabled,
+  );
+
+  useHotkeys(
+    toggleSidePanelShortcut,
+    (e) => {
+      e.preventDefault();
+      toggleSidePanel({ source: "shortcut" });
+    },
+    [toggleSidePanel],
+    "Toggle side panel",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

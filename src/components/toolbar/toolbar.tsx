@@ -9,7 +9,10 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
-  ToolsPanelIcon,
+  PanelLeftIcon,
+  PanelLeftActiveIcon,
+  PanelRightActiveIcon,
+  PanelRightIcon,
 } from "src/icons";
 import Modes from "../modes";
 import { useAtomValue } from "jotai";
@@ -17,6 +20,7 @@ import {
   simulationAtom,
   selectedFeaturesAtom,
   selectionAtom,
+  splitsAtom,
 } from "src/state/jotai";
 import {
   saveAsShortcut,
@@ -43,6 +47,10 @@ import {
 } from "src/commands/toggle-network-review";
 import { ContextActions } from "../context-actions";
 import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
+import {
+  toggleSidePanelShortcut,
+  useToggleSidePanel,
+} from "src/commands/toggle-side-panel";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -60,6 +68,7 @@ export const Toolbar = () => {
   const selection = useAtomValue(selectionAtom);
 
   const isMdOrLarger = useBreakpoint("md");
+  const isSmOrLarger = useBreakpoint("sm");
 
   const shouldHideContextActions =
     selectedWrappedFeatures.length === 1 &&
@@ -68,7 +77,7 @@ export const Toolbar = () => {
   return (
     <div
       className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
-          border-t border-gray-200 dark:border-gray-900 pl-2 h-12"
+          border-t border-gray-200 dark:border-gray-900 px-2 h-12"
     >
       <CreateNewDropdown />
       {
@@ -179,14 +188,13 @@ export const Toolbar = () => {
       >
         <FileTextIcon />
       </MenuAction>
-      <Divider />
-      <NetworkReviewToggle />
       {isMdOrLarger && !shouldHideContextActions && (
         <>
           <ContextActions />
           <div className="flex-auto" />
         </>
       )}
+      {isSmOrLarger && <LayoutActions />}
     </div>
   );
 };
@@ -195,25 +203,45 @@ const Divider = () => {
   return <div className="border-r-2 border-gray-100 h-8 mx-1"></div>;
 };
 
-const NetworkReviewToggle = () => {
+const LayoutActions = () => {
   const translate = useTranslate();
-  const [isActive, toggleNetworkReview] = useToggleNetworkReview();
+  const { leftOpen, rightOpen } = useAtomValue(splitsAtom);
   const isNetworkReviewEnabled = useNetworkReviewEnabled();
+  const toggleNetworkReview = useToggleNetworkReview();
+  const toggleSidePanel = useToggleSidePanel();
 
-  return !isNetworkReviewEnabled ? null : (
+  const leftPanelIcon = leftOpen ? <PanelLeftActiveIcon /> : <PanelLeftIcon />;
+
+  const rightPanelIcon = rightOpen ? (
+    <PanelRightActiveIcon />
+  ) : (
+    <PanelRightIcon />
+  );
+
+  return (
     <>
+      {isNetworkReviewEnabled && (
+        <MenuAction
+          label={translate("networkReview.toggle")}
+          role="button"
+          onClick={() => {
+            toggleNetworkReview({ source: "toolbar" });
+          }}
+          readOnlyHotkey={toggleNetworkReviewShortcut}
+        >
+          {leftPanelIcon}
+        </MenuAction>
+      )}
       <MenuAction
-        label={translate("networkReview.toggle")}
+        label={translate("toggleSidePanel")}
         role="button"
-        selected={!!isActive}
         onClick={() => {
-          toggleNetworkReview({ source: "toolbar" });
+          toggleSidePanel({ source: "toolbar" });
         }}
-        readOnlyHotkey={toggleNetworkReviewShortcut}
+        readOnlyHotkey={toggleSidePanelShortcut}
       >
-        <ToolsPanelIcon />
+        {rightPanelIcon}
       </MenuAction>
-      <Divider />
     </>
   );
 };

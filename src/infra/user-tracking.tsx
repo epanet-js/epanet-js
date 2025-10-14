@@ -572,6 +572,16 @@ type NetworkReviewBack = {
   count: number;
 };
 
+type SidePanelOpened = {
+  name: "sidePanel.opened";
+  source: string;
+};
+
+type SidePanelClosed = {
+  name: "sidePanel.closed";
+  source: string;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -665,6 +675,8 @@ export type UserEvent =
   | NetworkReviewChecked
   | NetworkReviewBack
   | NetworkReviewChanged
+  | SidePanelOpened
+  | SidePanelClosed
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }
