@@ -76,125 +76,129 @@ export const Toolbar = () => {
 
   return (
     <div
-      className="relative flex flex-row items-center justify-start overflow-x-auto sm:overflow-visible
+      className="relative flex flex-row items-center justify-between overflow-x-auto sm:overflow-visible
           border-t border-gray-200 dark:border-gray-900 px-2 h-12"
     >
-      <CreateNewDropdown />
-      {
-        <>
-          <MenuAction
-            label={translate("save")}
-            role="button"
-            onClick={() => {
-              void saveInp({ source: "toolbar" });
-            }}
-            readOnlyHotkey={saveShortcut}
-          >
-            <SaveIcon />
-          </MenuAction>
-          <MenuAction
-            label={translate("saveAs")}
-            role="button"
-            onClick={() => {
-              void saveInp({ source: "toolbar", isSaveAs: true });
-            }}
-            readOnlyHotkey={saveAsShortcut}
-          >
-            <SaveAllIcon />
-          </MenuAction>
-        </>
-      }
-      <MenuAction
-        label={translate("importCustomerPoints.label")}
-        role="button"
-        onClick={() => {
-          void importCustomerPoints({ source: "toolbar" });
-        }}
-      >
-        <ImportCustomerPointsIcon />
-      </MenuAction>
-      <Divider />
-      {isMdOrLarger && (
-        <>
-          <MenuAction
-            label={translate("undo")}
-            role="button"
-            onClick={() => {
-              userTracking.capture({
-                name: "operation.undone",
-                source: "toolbar",
-              });
+      <div className="flex flex-row items-center justify-start">
+        <CreateNewDropdown />
+        {
+          <>
+            <MenuAction
+              label={translate("save")}
+              role="button"
+              onClick={() => {
+                void saveInp({ source: "toolbar" });
+              }}
+              readOnlyHotkey={saveShortcut}
+            >
+              <SaveIcon />
+            </MenuAction>
+            <MenuAction
+              label={translate("saveAs")}
+              role="button"
+              onClick={() => {
+                void saveInp({ source: "toolbar", isSaveAs: true });
+              }}
+              readOnlyHotkey={saveAsShortcut}
+            >
+              <SaveAllIcon />
+            </MenuAction>
+          </>
+        }
+        <MenuAction
+          label={translate("importCustomerPoints.label")}
+          role="button"
+          onClick={() => {
+            void importCustomerPoints({ source: "toolbar" });
+          }}
+        >
+          <ImportCustomerPointsIcon />
+        </MenuAction>
+        <Divider />
+        {isMdOrLarger && (
+          <>
+            <MenuAction
+              label={translate("undo")}
+              role="button"
+              onClick={() => {
+                userTracking.capture({
+                  name: "operation.undone",
+                  source: "toolbar",
+                });
 
-              void undo();
-            }}
-            readOnlyHotkey={"ctrl+z"}
-          >
-            <UndoIcon />
-          </MenuAction>
-          <MenuAction
-            label={translate("redo")}
-            role="button"
-            onClick={() => {
-              userTracking.capture({
-                name: "operation.redone",
-                source: "toolbar",
-              });
-              void redo();
-            }}
-            readOnlyHotkey={"ctrl+y"}
-          >
-            <RedoIcon />
-          </MenuAction>
-          <Divider />
-        </>
-      )}
-      {isMdOrLarger && (
-        <>
-          <Modes replaceGeometryForId={null} />
-          <Divider />
-        </>
-      )}
-      <MenuAction
-        label={translate("simulate")}
-        role="button"
-        onClick={() => {
-          userTracking.capture({
-            name: "simulation.executed",
-            source: "toolbar",
-          });
-          void runSimulation();
-        }}
-        expanded={true}
-        readOnlyHotkey={runSimulationShortcut}
-      >
-        <RunSimulationIcon className="stroke-yellow-600" />
-      </MenuAction>
-      <MenuAction
-        label={translate("simulationSettings")}
-        role="button"
-        onClick={() => showSimulationSettings({ source: "toolbar" })}
-        readOnlyHotkey={showSimulationSettingsShortcut}
-      >
-        <SettingsIcon />
-      </MenuAction>
-      <MenuAction
-        label={translate("viewReport")}
-        role="button"
-        onClick={() => {
-          showReport({ source: "toolbar" });
-        }}
-        readOnlyHotkey={"alt+r"}
-        disabled={simulation.status === "idle"}
-      >
-        <FileTextIcon />
-      </MenuAction>
-      {isMdOrLarger && !shouldHideContextActions && (
-        <>
-          <ContextActions />
-          <div className="flex-auto" />
-        </>
-      )}
-      {isSmOrLarger && <LayoutActions />}
+                void undo();
+              }}
+              readOnlyHotkey={"ctrl+z"}
+            >
+              <UndoIcon />
+            </MenuAction>
+            <MenuAction
+              label={translate("redo")}
+              role="button"
+              onClick={() => {
+                userTracking.capture({
+                  name: "operation.redone",
+                  source: "toolbar",
+                });
+                void redo();
+              }}
+              readOnlyHotkey={"ctrl+y"}
+            >
+              <RedoIcon />
+            </MenuAction>
+            <Divider />
+          </>
+        )}
+        {isMdOrLarger && (
+          <>
+            <Modes replaceGeometryForId={null} />
+            <Divider />
+          </>
+        )}
+        <MenuAction
+          label={translate("simulate")}
+          role="button"
+          onClick={() => {
+            userTracking.capture({
+              name: "simulation.executed",
+              source: "toolbar",
+            });
+            void runSimulation();
+          }}
+          expanded={true}
+          readOnlyHotkey={runSimulationShortcut}
+        >
+          <RunSimulationIcon className="stroke-yellow-600" />
+        </MenuAction>
+        <MenuAction
+          label={translate("simulationSettings")}
+          role="button"
+          onClick={() => showSimulationSettings({ source: "toolbar" })}
+          readOnlyHotkey={showSimulationSettingsShortcut}
+        >
+          <SettingsIcon />
+        </MenuAction>
+        <MenuAction
+          label={translate("viewReport")}
+          role="button"
+          onClick={() => {
+            showReport({ source: "toolbar" });
+          }}
+          readOnlyHotkey={"alt+r"}
+          disabled={simulation.status === "idle"}
+        >
+          <FileTextIcon />
+        </MenuAction>
+        {isMdOrLarger && !shouldHideContextActions && (
+          <>
+            <ContextActions />
+            <div className="flex-auto" />
+          </>
+        )}
+      </div>
+      <div className="flex flex-row items-center justify-end">
+        {isSmOrLarger && <LayoutActions />}
+      </div>
     </div>
   );
 };
