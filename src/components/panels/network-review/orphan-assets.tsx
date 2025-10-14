@@ -177,7 +177,7 @@ const IssuesList = ({
               );
             }
 
-            const issue = issues[virtualRow.index + headerRows];
+            const issue = issues[virtualRow.index - headerRows];
             return (
               <div
                 key={issue.assetId}
