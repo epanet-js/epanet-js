@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   CategoryStats,
-  QuantityStats,
+  QuantityStatsDeprecated,
   computePropertyStats,
 } from "./asset-property-stats";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
@@ -19,7 +19,7 @@ describe("Asset property stats", () => {
     const selection = [...assets.values()];
 
     const statsMap = computePropertyStats(selection, defaultQuantities);
-    const propertyStats = statsMap.get("elevation") as QuantityStats;
+    const propertyStats = statsMap.get("elevation") as QuantityStatsDeprecated;
 
     expect(propertyStats.type).toEqual("quantity");
     expect(propertyStats.property).toEqual("elevation");
@@ -59,7 +59,7 @@ describe("Asset property stats", () => {
     const statsMap = computePropertyStats(selection, defaultQuantities);
 
     expect(
-      (statsMap.get("baseDemand") as QuantityStats).values.get(20),
+      (statsMap.get("baseDemand") as QuantityStatsDeprecated).values.get(20),
     ).toEqual(1);
     expect([...statsMap.get("elevation")!.values.keys()]).toEqual([10, 30]);
   });
@@ -75,7 +75,7 @@ describe("Asset property stats", () => {
 
     const statsMap = computePropertyStats(selection, quantities);
 
-    const propertyStats = statsMap.get("pressure") as QuantityStats;
+    const propertyStats = statsMap.get("pressure") as QuantityStatsDeprecated;
     expect(propertyStats.values.get(2.345)).toEqual(1);
     expect(propertyStats.values.get(0)).toEqual(2);
     expect(propertyStats.min).toEqual(0);

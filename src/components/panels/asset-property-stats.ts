@@ -7,7 +7,7 @@ import { roundToDecimal } from "src/infra/i18n/numbers";
 import { DecimalsSpec, Quantities } from "src/model-metadata/quantities-spec";
 import { valveStatusLabel } from "./asset-panel";
 
-export type QuantityStats = {
+export type QuantityStatsDeprecated = {
   type: "quantity";
   property: string;
   sum: number;
@@ -24,7 +24,7 @@ export type CategoryStats = {
   values: Map<string, number>;
 };
 
-export type PropertyStats = QuantityStats | CategoryStats;
+export type PropertyStats = QuantityStatsDeprecated | CategoryStats;
 
 type StatsMap = Map<string, PropertyStats>;
 
@@ -71,7 +71,7 @@ const appendPipeStats = (
     updateCategoryStats(statsMap, "pipeStatus", statusLabel);
   }
   for (const name of pipeQuantities) {
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       name,
       pipe[name as unknown as keyof Pipe] as number,
@@ -79,14 +79,14 @@ const appendPipeStats = (
     );
   }
   if (pipe.headloss !== null)
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       "headloss",
       pipe.headloss,
       quantitiesMetadata,
     );
   if (pipe.unitHeadloss !== null)
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       "unitHeadloss",
       pipe.unitHeadloss,
@@ -103,21 +103,26 @@ const appendValveStats = (
   if (valve.status !== null)
     updateCategoryStats(statsMap, "valveStatus", valveStatusLabel(valve));
   if (valve.velocity !== null)
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       "velocity",
       valve.velocity,
       quantitiesMetadata,
     );
   if (valve.headloss !== null)
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       "headloss",
       valve.headloss,
       quantitiesMetadata,
     );
   if (valve.flow !== null)
-    updateQuantityStats(statsMap, "flow", valve.flow, quantitiesMetadata);
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "flow",
+      valve.flow,
+      quantitiesMetadata,
+    );
 };
 
 const appendPumpStats = (
@@ -133,9 +138,19 @@ const appendPumpStats = (
   if (pump.status !== null)
     updateCategoryStats(statsMap, "pumpStatus", pumpStatusLabel(pump));
   if (pump.head !== null)
-    updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "pumpHead",
+      pump.head,
+      quantitiesMetadata,
+    );
   if (pump.flow !== null)
-    updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "flow",
+      pump.flow,
+      quantitiesMetadata,
+    );
 };
 
 const appendJunctionStats = (
@@ -144,13 +159,27 @@ const appendJunctionStats = (
   quantitiesMetadata: Quantities,
 ) => {
   for (const name of junctionQuantities) {
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       name,
       junction[name as unknown as keyof Junction] as number,
       quantitiesMetadata,
     );
   }
+  if (junction.head !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "head",
+      junction.head,
+      quantitiesMetadata,
+    );
+  if (junction.actualDemand !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "actualDemand",
+      junction.actualDemand,
+      quantitiesMetadata,
+    );
 };
 
 const appendReservoirStats = (
@@ -159,7 +188,7 @@ const appendReservoirStats = (
   quantitiesMetadata: Quantities,
 ) => {
   for (const name of reservoirQuantities) {
-    updateQuantityStats(
+    updateQuantityStatsDeprecated(
       statsMap,
       name,
       reservoir[name as unknown as keyof Reservoir] as number,
@@ -173,17 +202,73 @@ const appendTankStats = (
   tank: Tank,
   quantitiesMetadata: Quantities,
 ) => {
-  updateQuantityStats(statsMap, "level", tank.level, quantitiesMetadata);
-  updateQuantityStats(statsMap, "volume", tank.volume, quantitiesMetadata);
-  updateQuantityStats(
+  updateQuantityStatsDeprecated(
     statsMap,
     "elevation",
     tank.elevation,
     quantitiesMetadata,
   );
+  updateQuantityStatsDeprecated(
+    statsMap,
+    "initialLevel",
+    tank.initialLevel,
+    quantitiesMetadata,
+  );
+  updateQuantityStatsDeprecated(
+    statsMap,
+    "minLevel",
+    tank.minLevel,
+    quantitiesMetadata,
+  );
+  updateQuantityStatsDeprecated(
+    statsMap,
+    "maxLevel",
+    tank.maxLevel,
+    quantitiesMetadata,
+  );
+  updateQuantityStatsDeprecated(
+    statsMap,
+    "diameter",
+    tank.diameter,
+    quantitiesMetadata,
+  );
+  updateQuantityStatsDeprecated(
+    statsMap,
+    "minVolume",
+    tank.minVolume,
+    quantitiesMetadata,
+  );
+  if (tank.pressure !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "pressure",
+      tank.pressure,
+      quantitiesMetadata,
+    );
+  if (tank.head !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "head",
+      tank.head,
+      quantitiesMetadata,
+    );
+  if (tank.level !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "level",
+      tank.level,
+      quantitiesMetadata,
+    );
+  if (tank.volume !== null)
+    updateQuantityStatsDeprecated(
+      statsMap,
+      "volume",
+      tank.volume,
+      quantitiesMetadata,
+    );
 };
 
-const updateQuantityStats = (
+const updateQuantityStatsDeprecated = (
   statsMap: StatsMap,
   property: string,
   value: number | null,
@@ -208,7 +293,7 @@ const updateQuantityStats = (
   );
   const roundedValue = roundToDecimal(value, decimalsToRound);
 
-  const propertyStats = statsMap.get(property) as QuantityStats;
+  const propertyStats = statsMap.get(property) as QuantityStatsDeprecated;
 
   if (roundedValue < propertyStats.min) propertyStats.min = roundedValue;
   if (roundedValue > propertyStats.max) propertyStats.max = roundedValue;

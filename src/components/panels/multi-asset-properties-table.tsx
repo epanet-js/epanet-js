@@ -14,7 +14,7 @@ import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   PropertyStats,
-  QuantityStats,
+  QuantityStatsDeprecated,
   computePropertyStats,
 } from "./asset-property-stats";
 import { Asset } from "src/hydraulic-model";
@@ -170,7 +170,7 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
           <StyledPopoverContent onKeyDown={handleContentKeyDown}>
             <StyledPopoverArrow />
             {propertyStats.type === "quantity" && (
-              <QuantityStatsFields quantityStats={propertyStats} />
+              <QuantityStatsDeprecatedFields quantityStats={propertyStats} />
             )}
             <ValueList pair={pair} />
           </StyledPopoverContent>
@@ -180,10 +180,10 @@ function MultiValueField({ property, pair, propertyStats }: MultiValueProps) {
   );
 }
 
-const QuantityStatsFields = ({
+const QuantityStatsDeprecatedFields = ({
   quantityStats,
 }: {
-  quantityStats: QuantityStats;
+  quantityStats: QuantityStatsDeprecated;
 }) => {
   const translate = useTranslate();
   const [tabIndex, setTabIndex] = useState(-1);
@@ -214,7 +214,9 @@ const QuantityStatsFields = ({
               tabIndex={tabIndex}
               onFocus={handleFocus}
               value={localizeDecimal(
-                quantityStats[metric as keyof QuantityStats] as number,
+                quantityStats[
+                  metric as keyof QuantityStatsDeprecated
+                ] as number,
               )}
             />
           </div>
