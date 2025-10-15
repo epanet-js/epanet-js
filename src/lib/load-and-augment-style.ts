@@ -1,3 +1,10 @@
+// DEPRECATED: This file is deprecated for the new code path with FLAG_MAP_BLINK.
+// Use build-map-style.ts for the new implementation which provides a cleaner separation:
+// - buildBaseStyle() loads base style + empty sources only
+// - Editing layers are added manually via addEditingLayersToMap()
+// This file remains for the deprecated path (FLAG_MAP_BLINK off) and will be removed
+// when the feature flag is retired.
+
 import type { PreviewProperty } from "src/state/jotai";
 // TODO: this is a UI concern that should be separate.
 import type { Style } from "mapbox-gl";
@@ -81,13 +88,11 @@ export default async function loadAndAugmentStyle({
   symbology,
   previewProperty,
   translate,
-  hideLayersOnLoad = false,
 }: {
   layerConfigs: LayerConfigMap;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
   translate: (key: string) => string;
-  hideLayersOnLoad?: boolean;
 }): Promise<Style> {
   let style = getEmptyStyle();
   let id = 0;
@@ -110,7 +115,7 @@ export default async function loadAndAugmentStyle({
     }
   }
 
-  addEditingLayers({ style, symbology, previewProperty, hideLayersOnLoad });
+  addEditingLayers({ style, symbology, previewProperty });
 
   return style;
 }
@@ -119,12 +124,10 @@ export function addEditingLayers({
   style,
   symbology,
   previewProperty,
-  hideLayersOnLoad = false,
 }: {
   style: Style;
   symbology: ISymbology;
   previewProperty: PreviewProperty;
-  hideLayersOnLoad?: boolean;
 }) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
@@ -136,20 +139,18 @@ export function addEditingLayers({
   }
 
   style.layers = style.layers.concat(
-    makeLayers({ symbology, previewProperty, hideLayersOnLoad }),
+    makeLayers({ symbology, previewProperty }),
   );
 }
 
 export function makeLayers({
   symbology,
   previewProperty,
-  hideLayersOnLoad = false,
 }: {
   symbology: ISymbology;
   previewProperty: PreviewProperty;
-  hideLayersOnLoad?: boolean;
 }): mapboxgl.AnyLayer[] {
-  const layers = [
+  return [
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "imported-features",
@@ -260,23 +261,6 @@ export function makeLayers({
         ]
       : []),
   ].filter((l) => !!l);
-
-  if (!hideLayersOnLoad) {
-    return layers;
-  }
-
-  return layers.map((layer) => {
-    if ("source" in layer && layer.source !== "ephemeral") {
-      return {
-        ...layer,
-        layout: {
-          ...(layer.layout || {}),
-          visibility: "none",
-        },
-      } as mapboxgl.AnyLayer;
-    }
-    return layer;
-  });
 }
 
 function LABEL_PAINT(

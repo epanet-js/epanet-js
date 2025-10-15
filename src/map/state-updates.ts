@@ -28,7 +28,7 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import loadAndAugmentStyle from "src/lib/load-and-augment-style";
-import { editingLayers } from "src/map/layers/layer";
+import { buildBaseStyle, makeLayers } from "./build-style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -231,12 +231,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          await updateLayerStyles(
-            map,
-            mapState.stylesConfig,
-            translate,
-            isMapBlinkFixOn,
-          );
+          if (isMapBlinkFixOn) {
+            await buildBaseStyleAndSetOnMap(
+              map,
+              mapState.stylesConfig,
+              translate,
+            );
+          } else {
+            await loadAndAugmentStyleDeprecated(
+              map,
+              mapState.stylesConfig,
+              translate,
+            );
+          }
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -370,7 +377,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewStyles && isMapBlinkFixOn) {
-          showEditingLayers(map);
+          addEditingLayersToMap(map, mapState.stylesConfig);
         }
 
         if (
@@ -430,21 +437,34 @@ const resetMapState = withDebugInstrumentation(
   { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
 );
 
-const updateLayerStyles = withDebugInstrumentation(
+const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
   async (
     map: MapEngine,
     styles: StylesConfig,
     translate: (key: string) => string,
-    hideLayersOnLoad: boolean,
+  ) => {
+    const style = await buildBaseStyle({
+      layerConfigs: styles.layerConfigs,
+      translate,
+    });
+    await map.setStyle(style);
+  },
+  { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
+);
+
+const loadAndAugmentStyleDeprecated = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    styles: StylesConfig,
+    translate: (key: string) => string,
   ) => {
     const style = await loadAndAugmentStyle({
       ...styles,
       translate,
-      hideLayersOnLoad,
     });
     await map.setStyle(style);
   },
-  { name: "MAP_STATE:UPDATE_STYLES", maxDurationMs: 1000 },
+  { name: "MAP_STATE:LOAD_AUGMENT_STYLE_DEPRECATED", maxDurationMs: 1000 },
 );
 
 const toggleAnalysisLayers = withDebugInstrumentation(
@@ -628,11 +648,18 @@ const updateSelection = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
-const showEditingLayers = withDebugInstrumentation(
-  (map: MapEngine) => {
-    map.showLayers(editingLayers as any);
+const addEditingLayersToMap = withDebugInstrumentation(
+  (map: MapEngine, stylesConfig: StylesConfig) => {
+    const layers = makeLayers({
+      symbology: stylesConfig.symbology,
+      previewProperty: stylesConfig.previewProperty,
+    });
+
+    for (const layer of layers) {
+      map.addLayer(layer);
+    }
   },
-  { name: "MAP_STATE:SHOW_EDITING_LAYERS", maxDurationMs: 100 },
+  { name: "MAP_STATE:ADD_EDITING_LAYERS", maxDurationMs: 100 },
 );
 
 const updateEphemeralStateSource = withDebugInstrumentation(

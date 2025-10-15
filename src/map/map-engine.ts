@@ -197,6 +197,10 @@ export class MapEngine {
     }
   }
 
+  addLayer(layer: mapboxgl.AnyLayer, beforeId?: string) {
+    this.map.addLayer(layer, beforeId);
+  }
+
   hideLayers(layerIds: LayerId[]) {
     for (const layerId of layerIds) {
       this.map.setLayoutProperty(layerId, "visibility", "none");
