@@ -121,6 +121,13 @@ const PreferencesView = ({
     void setPrivacySettings(preferences);
   };
 
+  const handleAllowAll = () => {
+    void setPrivacySettings({
+      skipAnalytics: false,
+      skipErrorReporting: false,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
@@ -130,22 +137,17 @@ const PreferencesView = ({
         <p className="text-sm text-gray-700 dark:text-gray-300">
           To ensure the app works properly, we automatically collect anonymous
           data about page views and use feature flags to enable and manage new
-          features. This information is essential for the app’s basic
+          features. This information is essential for the app's basic
           functionality and cannot be disabled.
         </p>
       </div>
+      <div className="flex justify-start">
+        <Button variant="primary" onClick={handleAllowAll}>
+          Accept all optional preferences
+        </Button>
+      </div>
       <div className="space-y-6">
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 pt-1">
-            <StyledSwitch
-              checked={!preferences.skipAnalytics}
-              onCheckedChange={(checked) =>
-                setPreferences((prev) => ({ ...prev, skipAnalytics: !checked }))
-              }
-            >
-              <StyledThumb />
-            </StyledSwitch>
-          </div>
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
               Product analytics
@@ -156,9 +158,29 @@ const PreferencesView = ({
               This information does not personally identify you.
             </p>
           </div>
+          <div className="flex-shrink-0 pt-1">
+            <StyledSwitch
+              checked={!preferences.skipAnalytics}
+              onCheckedChange={(checked) =>
+                setPreferences((prev) => ({ ...prev, skipAnalytics: !checked }))
+              }
+            >
+              <StyledThumb />
+            </StyledSwitch>
+          </div>
         </div>
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+              Error reporting
+            </h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              We collect crash and error reports to fix bugs and prevent issues.
+              This may include details about your device and what was happening
+              in the app when the error occurred.
+            </p>
+          </div>
           <div className="flex-shrink-0 pt-1">
             <StyledSwitch
               checked={!preferences.skipErrorReporting}
@@ -171,16 +193,6 @@ const PreferencesView = ({
             >
               <StyledThumb />
             </StyledSwitch>
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-              Error reporting
-            </h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              We collect crash and error reports to fix bugs and prevent issues.
-              This may include details about your device and what was happening
-              in the app when the error occurred.
-            </p>
           </div>
         </div>
       </div>
