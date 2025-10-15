@@ -78,14 +78,16 @@ const BannerView = ({
         </p>
         <p>
           For more details, please see our{" "}
-          <a
-            href={privacyPolicyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styledInlineA}
-          >
-            Privacy policy
-          </a>
+          <strong>
+            <a
+              href={privacyPolicyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styledInlineA}
+            >
+              privacy policy
+            </a>
+          </strong>
           .
         </p>
       </div>
@@ -126,11 +128,10 @@ const PreferencesView = ({
       </h2>
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
         <p className="text-sm text-gray-700 dark:text-gray-300">
-          To ensure the app's basic functionality, we automatically collect{" "}
-          <strong>anonymous</strong> data on page views to understand popular
-          content and use feature flags to enable and manage new features. This
-          data is essential for the app's performance and is collected
-          automatically.
+          To ensure the app works properly, we automatically collect anonymous
+          data about page views and use feature flags to enable and manage new
+          features. This information is essential for the app’s basic
+          functionality and cannot be disabled.
         </p>
       </div>
       <div className="space-y-6">
@@ -151,9 +152,8 @@ const PreferencesView = ({
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
               We collect <strong>anonymous</strong> usage data to understand how
-              features are being used, which helps us improve the app's
-              performance and functionality. This data does not personally
-              identify you.
+              features are used and to improve performance and functionality.
+              This information does not personally identify you.
             </p>
           </div>
         </div>
@@ -177,9 +177,9 @@ const PreferencesView = ({
               Error reporting
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              We automatically collect crash and error reports to fix bugs and
-              prevent issues. This data may include information about your
-              device and the state of the app at the time of the error.
+              We collect crash and error reports to fix bugs and prevent issues.
+              This may include details about your device and what was happening
+              in the app when the error occurred.
             </p>
           </div>
         </div>
