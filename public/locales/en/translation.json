@@ -603,5 +603,20 @@
     "crossingPipes": {
       "title": "Crossing pipes"
     }
+  },
+  "privacyBanner": {
+    "title": "Protecting your privacy",
+    "description": "We use tracking technologies to understand how the app is used and to improve your experience. To comply with privacy regulations, we need your consent to collect this data.",
+    "seePrivacyPolicy": "For more details, please see our",
+    "acceptAndContinue": "Accept and continue",
+    "managePreferences": "Manage my preferences",
+    "preferencesTitle": "Manage your data preferences",
+    "essentialDataNotice": "To ensure the app works properly, we automatically collect anonymous data about page views and use feature flags to enable and manage new features. This information is essential for the app's basic functionality and cannot be disabled.",
+    "acceptAllPreferences": "Accept all optional preferences",
+    "productAnalyticsTitle": "Product analytics",
+    "productAnalyticsDescription": "We collect <strong>anonymous</strong> usage data to understand how features are used and to improve performance and functionality. This information does not personally identify you.",
+    "errorReportingTitle": "Error reporting",
+    "errorReportingDescription": "We collect crash and error reports to fix bugs and prevent issues. This may include details about your device and what was happening in the app when the error occurred.",
+    "savePreferences": "Save preferences"
   }
 }

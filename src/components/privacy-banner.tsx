@@ -7,6 +7,7 @@ import {
 } from "src/hooks/use-privacy-settings";
 import { Button, StyledSwitch, StyledThumb, styledInlineA } from "./elements";
 import { privacyPolicyUrl } from "src/global-config";
+import { useTranslate } from "src/hooks/use-translate";
 
 type View = "banner" | "preferences";
 
@@ -65,19 +66,17 @@ const BannerView = ({
   onAccept: () => void;
   onManagePreferences: () => void;
 }) => {
+  const translate = useTranslate();
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-        Protecting your privacy
+        {translate("privacyBanner.title")}
       </h2>
       <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
+        <p>{translate("privacyBanner.description")}</p>
         <p>
-          We use tracking technologies to understand how the app is used and to
-          improve your experience. To comply with privacy regulations, we need
-          your consent to collect this data.
-        </p>
-        <p>
-          For more details, please see our{" "}
+          {translate("privacyBanner.seePrivacyPolicy")}{" "}
           <strong>
             <a
               href={privacyPolicyUrl}
@@ -85,7 +84,7 @@ const BannerView = ({
               rel="noopener noreferrer"
               className={styledInlineA}
             >
-              privacy policy
+              {translate("privacyPolicy")}
             </a>
           </strong>
           .
@@ -93,10 +92,10 @@ const BannerView = ({
       </div>
       <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
         <Button variant="default" onClick={onManagePreferences}>
-          Manage my preferences
+          {translate("privacyBanner.managePreferences")}
         </Button>
         <Button variant="primary" onClick={onAccept}>
-          Accept and continue
+          {translate("privacyBanner.acceptAndContinue")}
         </Button>
       </div>
     </div>
@@ -110,6 +109,7 @@ const PreferencesView = ({
   privacySettings: PrivacyPreferences | undefined;
   setPrivacySettings: (settings: PrivacyPreferences) => Promise<void>;
 }) => {
+  const translate = useTranslate();
   const [preferences, setPreferences] = useState<PrivacyPreferences>(
     privacySettings ?? {
       skipAnalytics: true,
@@ -131,32 +131,30 @@ const PreferencesView = ({
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-        Manage your data preferences
+        {translate("privacyBanner.preferencesTitle")}
       </h2>
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
         <p className="text-sm text-gray-700 dark:text-gray-300">
-          To ensure the app works properly, we automatically collect anonymous
-          data about page views and use feature flags to enable and manage new
-          features. This information is essential for the app's basic
-          functionality and cannot be disabled.
+          {translate("privacyBanner.essentialDataNotice")}
         </p>
       </div>
       <div className="flex justify-start">
         <Button variant="primary" onClick={handleAllowAll}>
-          Accept all optional preferences
+          {translate("privacyBanner.acceptAllPreferences")}
         </Button>
       </div>
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-              Product analytics
+              {translate("privacyBanner.productAnalyticsTitle")}
             </h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              We collect <strong>anonymous</strong> usage data to understand how
-              features are used and to improve performance and functionality.
-              This information does not personally identify you.
-            </p>
+            <p
+              className="text-sm text-gray-700 dark:text-gray-300"
+              dangerouslySetInnerHTML={{
+                __html: translate("privacyBanner.productAnalyticsDescription"),
+              }}
+            />
           </div>
           <div className="flex-shrink-0 pt-1">
             <StyledSwitch
@@ -173,12 +171,10 @@ const PreferencesView = ({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-              Error reporting
+              {translate("privacyBanner.errorReportingTitle")}
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              We collect crash and error reports to fix bugs and prevent issues.
-              This may include details about your device and what was happening
-              in the app when the error occurred.
+              {translate("privacyBanner.errorReportingDescription")}
             </p>
           </div>
           <div className="flex-shrink-0 pt-1">
@@ -198,7 +194,7 @@ const PreferencesView = ({
       </div>
       <div className="flex justify-end">
         <Button variant="primary" onClick={handleSave}>
-          Save preferences
+          {translate("privacyBanner.savePreferences")}
         </Button>
       </div>
     </div>
