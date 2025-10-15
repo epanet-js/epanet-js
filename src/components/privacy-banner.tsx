@@ -156,7 +156,7 @@ const PreferencesView = ({
               }}
             />
           </div>
-          <div className="flex-shrink-0 pt-1">
+          <div className="flex-shrink-0">
             <StyledSwitch
               checked={!preferences.skipAnalytics}
               onCheckedChange={(checked) =>
@@ -177,7 +177,7 @@ const PreferencesView = ({
               {translate("privacyBanner.errorReportingDescription")}
             </p>
           </div>
-          <div className="flex-shrink-0 pt-1">
+          <div className="flex-shrink-0">
             <StyledSwitch
               checked={!preferences.skipErrorReporting}
               onCheckedChange={(checked) =>
