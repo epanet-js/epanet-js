@@ -83,15 +83,13 @@ export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {
 export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
-    <div className="flex-grow">
-      <div className="flex flex-col items-center justify-center p-4">
-        <div className="text-gray-500">
-          <NoIssuesIcon size={96} strokeWidth={1.75} />
-        </div>
-        <p className="text-sm text-center pt-4 text-gray-500">
-          {translate(`networkReview.${checkType}.emptyMessage`)}
-        </p>
+    <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+      <div className="text-green-600">
+        <NoIssuesIcon size={96} />
       </div>
+      <p className="text-sm text-center py-4 text-gray-600 max-w-48">
+        {translate(`networkReview.${checkType}.emptyMessage`)}
+      </p>
     </div>
   );
 };
