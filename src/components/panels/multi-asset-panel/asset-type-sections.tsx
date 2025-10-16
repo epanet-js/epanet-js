@@ -1,5 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { Section } from "src/components/form/fields";
+import { Section, SectionList } from "src/components/form/fields";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 
@@ -21,7 +21,7 @@ export function AssetTypeSections({
   ];
 
   return (
-    <>
+    <SectionList padding={0} gap={3}>
       {sectionKeys.map((sectionKey) => {
         const stats = sections[sectionKey];
 
@@ -47,6 +47,6 @@ export function AssetTypeSections({
           </Section>
         );
       })}
-    </>
+    </SectionList>
   );
 }
