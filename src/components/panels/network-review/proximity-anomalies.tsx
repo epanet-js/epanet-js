@@ -8,9 +8,9 @@ import { dataAtom, selectionAtom } from "src/state/jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { convertTo, Quantity } from "src/quantity";
 import {
-  PossibleConnection,
-  findPossibleConnections,
-} from "src/lib/network-review/proximity-check";
+  ProximityAnomaly,
+  findProximityAnomalies,
+} from "src/lib/network-review/proximity-anomalies";
 import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -19,10 +19,10 @@ import { Button } from "src/components/elements";
 import { JunctionIcon, PipeIcon, ReservoirIcon, TankIcon } from "src/icons";
 import { AssetType, Pipe } from "src/hydraulic-model";
 
-export const ProximityCheck = ({ onGoBack }: { onGoBack: () => void }) => {
+export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
-  const { checkPossibleConnections, possibleConnections } =
-    useCheckNearbyConnections();
+  const { checkProximityAnomalies, proximityAnomalies } =
+    useCheckProximityAnomalies();
   const { distanceInM, localizedDistance, updateDistance } = useDistance();
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected } = useSelection(selection);
@@ -35,74 +35,73 @@ export const ProximityCheck = ({ onGoBack }: { onGoBack: () => void }) => {
   const lastIssuesCount = useRef(0);
 
   useEffect(
-    function recomputePossibleConnections() {
+    function recomputeProximityAnomalies() {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      checkPossibleConnections(distanceInM);
+      checkProximityAnomalies(distanceInM);
     },
-    [distanceInM, checkPossibleConnections],
+    [distanceInM, checkProximityAnomalies],
   );
 
-  const selectPossibleConnection = useCallback(
-    (connection: PossibleConnection) => {
-      const nodeAsset = hydraulicModel.assets.get(connection.nodeId);
-      const pipeAsset = hydraulicModel.assets.get(connection.pipeId);
+  const selectProximityAnomaly = useCallback(
+    (anomaly: ProximityAnomaly) => {
+      const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
+      const pipeAsset = hydraulicModel.assets.get(anomaly.pipeId);
       if (!nodeAsset || !pipeAsset) {
         setSelectedConnectionId(null);
         return;
       }
-      const connectionId = `${connection.nodeId}-${connection.pipeId}`;
+      const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
       setSelectedConnectionId(connectionId);
-      setSelection(USelection.fromIds([connection.nodeId, connection.pipeId]));
+      setSelection(USelection.fromIds([anomaly.nodeId, anomaly.pipeId]));
       zoomTo([nodeAsset]);
     },
     [hydraulicModel, setSelection, zoomTo],
   );
 
   useEffect(() => {
-    const selectedConnection = possibleConnections.find(
-      (connection) =>
-        isSelected(connection.nodeId) && isSelected(connection.pipeId),
+    const selectedAnomaly = proximityAnomalies.find(
+      (anomaly) => isSelected(anomaly.nodeId) && isSelected(anomaly.pipeId),
     );
 
-    if (!selectedConnection) {
+    if (!selectedAnomaly) {
       setSelectedConnectionId(null);
     } else {
-      const connectionId = `${selectedConnection.nodeId}-${selectedConnection.pipeId}`;
+      const connectionId = `${selectedAnomaly.nodeId}-${selectedAnomaly.pipeId}`;
       setSelectedConnectionId((prev) =>
         prev === connectionId ? prev : connectionId,
       );
     }
-  }, [possibleConnections, isSelected]);
+  }, [proximityAnomalies, isSelected]);
 
   useEffect(() => {
-    const issuesCount = possibleConnections.length;
+    const issuesCount = proximityAnomalies.length;
     if (lastIssuesCount.current !== issuesCount) {
       lastIssuesCount.current = issuesCount;
       userTracking.capture({
-        name: "networkReview.proximityCheck.changed",
+        name: "networkReview.proximityAnomalies.changed",
         count: issuesCount,
       });
     }
-  }, [possibleConnections, userTracking]);
+  }, [proximityAnomalies, userTracking]);
 
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
         onGoBack={onGoBack}
-        itemsCount={possibleConnections.length}
-        checkType={CheckType.proximityCheck}
+        itemsCount={proximityAnomalies.length}
+        checkType={CheckType.proximityAnomalies}
       />
       <DistanceInput distance={localizedDistance} onChange={updateDistance} />
-      {possibleConnections.length > 0 ? (
+      {proximityAnomalies.length > 0 ? (
         <IssuesList
-          issues={possibleConnections}
-          onClick={selectPossibleConnection}
+          issues={proximityAnomalies}
+          onClick={selectProximityAnomaly}
           selectedId={selectedConnectionId}
         />
       ) : (
         <>
-          <ToolDescription checkType={CheckType.proximityCheck} />
-          <EmptyState checkType={CheckType.proximityCheck} />
+          <ToolDescription checkType={CheckType.proximityAnomalies} />
+          <EmptyState checkType={CheckType.proximityAnomalies} />
         </>
       )}
     </div>
@@ -121,7 +120,7 @@ const DistanceInput = ({
 }) => {
   const translate = useTranslate();
 
-  const label = `${translate("networkReview.proximityCheck.distance")} (${distance.unit})`;
+  const label = `${translate("networkReview.proximityAnomalies.distance")} (${distance.unit})`;
 
   return (
     <div className="flex gap-2 flex-row p-3 items-center">
@@ -164,21 +163,21 @@ const useDistance = () => {
   };
 };
 
-const useCheckNearbyConnections = () => {
-  const [possibleConnections, setPossibleConnections] = useState<
-    PossibleConnection[]
+const useCheckProximityAnomalies = () => {
+  const [proximityAnomalies, setProximityAnomalies] = useState<
+    ProximityAnomaly[]
   >([]);
   const { hydraulicModel } = useAtomValue(dataAtom);
 
-  const checkPossibleConnections = useCallback(
+  const checkProximityAnomalies = useCallback(
     async (distance: number) => {
-      const result = await findPossibleConnections(hydraulicModel, distance);
-      setPossibleConnections(result);
+      const result = await findProximityAnomalies(hydraulicModel, distance);
+      setProximityAnomalies(result);
     },
     [hydraulicModel],
   );
 
-  return { checkPossibleConnections, possibleConnections };
+  return { checkProximityAnomalies, proximityAnomalies };
 };
 
 const IssuesList = ({
@@ -186,8 +185,8 @@ const IssuesList = ({
   onClick,
   selectedId,
 }: {
-  issues: PossibleConnection[];
-  onClick: (issue: PossibleConnection) => void;
+  issues: ProximityAnomaly[];
+  onClick: (issue: ProximityAnomaly) => void;
   selectedId: string | null;
 }) => {
   const headerRows = 1;
@@ -203,8 +202,7 @@ const IssuesList = ({
 
     const rowIndex =
       issues.findIndex(
-        (connection) =>
-          `${connection.nodeId}-${connection.pipeId}` === selectedId,
+        (anomaly) => `${anomaly.nodeId}-${anomaly.pipeId}` === selectedId,
       ) + headerRows;
 
     const range = rowVirtualizer.range;
@@ -249,7 +247,7 @@ const IssuesList = ({
                   ref={rowVirtualizer.measureElement}
                   role="listItem"
                 >
-                  <ToolDescription checkType={CheckType.proximityCheck} />
+                  <ToolDescription checkType={CheckType.proximityAnomalies} />
                 </div>
               );
             }
@@ -263,8 +261,8 @@ const IssuesList = ({
                 ref={rowVirtualizer.measureElement}
                 role="listItem"
               >
-                <PossibleConnectionItem
-                  connection={issue}
+                <ProximityAnomalyItem
+                  anomaly={issue}
                   selectedId={selectedId}
                   onClick={onClick}
                 />
@@ -286,29 +284,29 @@ const iconByAssetType: { [key in AssetType]: React.ReactNode } = {
   pipe: <PipeIcon />,
 };
 
-const PossibleConnectionItem = ({
-  connection,
+const ProximityAnomalyItem = ({
+  anomaly,
   onClick,
   selectedId,
 }: {
-  connection: PossibleConnection;
-  onClick: (connection: PossibleConnection) => void;
+  anomaly: ProximityAnomaly;
+  onClick: (anomaly: ProximityAnomaly) => void;
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
   const { hydraulicModel } = useAtomValue(dataAtom);
-  const connectionId = `${connection.nodeId}-${connection.pipeId}`;
+  const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
   const isSelected = selectedId === connectionId;
 
-  const nodeAsset = hydraulicModel.assets.get(connection.nodeId);
-  const pipeAsset = hydraulicModel.assets.get(connection.pipeId);
+  const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
+  const pipeAsset = hydraulicModel.assets.get(anomaly.pipeId);
 
   if (!nodeAsset || !pipeAsset || pipeAsset.type !== "pipe") return null;
 
   const pipe = pipeAsset as Pipe;
   const lengthUnit = hydraulicModel.units.length;
   const distanceInModelUnits = convertTo(
-    { value: connection.distance, unit: "m" },
+    { value: anomaly.distance, unit: "m" },
     lengthUnit,
   );
   const distanceFormatted = localizeDecimal(distanceInModelUnits, {
@@ -318,11 +316,11 @@ const PossibleConnectionItem = ({
 
   return (
     <Button
-      onClick={() => onClick(connection)}
+      onClick={() => onClick(anomaly)}
       variant={"quiet"}
       role="button"
       aria-label={translate(
-        "networkReview.proximityCheck.issueLabel",
+        "networkReview.proximityAnomalies.issueLabel",
         nodeAsset.label,
         pipeAsset.label,
         distanceFormatted,

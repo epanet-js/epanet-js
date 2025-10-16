@@ -12,7 +12,7 @@ import { OrphanAssets } from "./orphan-assets";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "./common";
-import { ProximityCheck } from "./proximity-check";
+import { ProximityAnomalies } from "./proximity-anomalies";
 
 export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
@@ -24,8 +24,8 @@ export function NetworkReview() {
   switch (checkType) {
     case CheckType.orphanAssets:
       return <OrphanAssets onGoBack={goBackToSummary} />;
-    case CheckType.proximityCheck:
-      return <ProximityCheck onGoBack={goBackToSummary} />;
+    case CheckType.proximityAnomalies:
+      return <ProximityAnomalies onGoBack={goBackToSummary} />;
     default:
       return (
         <NetworkReviewSummary
@@ -42,7 +42,7 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
-  const isProximityCheckEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
+  const isProximityAnomaliesEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
   const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
   const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
 
@@ -64,8 +64,11 @@ function NetworkReviewSummary({
         {isOrphanNodesEnabled && (
           <ReviewCheck checkType={CheckType.orphanAssets} onClick={onClick} />
         )}
-        {isProximityCheckEnabled && (
-          <ReviewCheck checkType={CheckType.proximityCheck} onClick={onClick} />
+        {isProximityAnomaliesEnabled && (
+          <ReviewCheck
+            checkType={CheckType.proximityAnomalies}
+            onClick={onClick}
+          />
         )}
         {isCrossingPipesEnabled && (
           <ReviewCheck checkType={CheckType.crossingPipes} onClick={onClick} />
@@ -78,14 +81,14 @@ function NetworkReviewSummary({
 const iconsByCheckType = {
   [CheckType.orphanAssets]: <OrphanNodeIcon />,
   [CheckType.connectivityTrace]: <ConnectivityTraceIcon />,
-  [CheckType.proximityCheck]: <ProximityCheckIcon />,
+  [CheckType.proximityAnomalies]: <ProximityCheckIcon />,
   [CheckType.crossingPipes]: <PipesCrossinIcon />,
 };
 
 const labelKeyByCheckType = {
   [CheckType.orphanAssets]: "networkReview.orphanAssets.title",
   [CheckType.connectivityTrace]: "networkReview.connectivityTrace.title",
-  [CheckType.proximityCheck]: "networkReview.proximityCheck.title",
+  [CheckType.proximityAnomalies]: "networkReview.proximityAnomalies.title",
   [CheckType.crossingPipes]: "networkReview.crossingPipes.title",
 };
 
@@ -134,13 +137,13 @@ const ReviewCheck = ({
 
 export const useNetworkReviewEnabled = () => {
   const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
-  const isProximityCheckEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
+  const isProximityAnomaliesEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
   const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
   const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
 
   return (
     isOrphanNodesEnabled ||
-    isProximityCheckEnabled ||
+    isProximityAnomaliesEnabled ||
     isConnectivityTraceEnabled ||
     isCrossingPipesEnabled
   );

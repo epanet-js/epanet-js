@@ -3,20 +3,20 @@ import * as Comlink from "comlink";
 import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorkers } from "src/infra/worker";
 import {
-  decodePossibleConnections,
-  EncodedPossibleConnections,
+  decodeProximityAnomalies,
+  EncodedProximityAnomalies,
   encodeHydraulicModel,
-  PossibleConnection,
+  ProximityAnomaly,
   RunData,
 } from "./data";
-import { findPossibleConnections } from "./find-possible-connections";
+import { findProximityAnomalies } from "./find-proximity-anomalies";
 import { ProximityCheckWorkerAPI } from "./worker";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
   distanceInMeters: number = 0.5,
   bufferType: ArrayBufferType = "array",
-): Promise<PossibleConnection[]> => {
+): Promise<ProximityAnomaly[]> => {
   const { idsLookup, ...inputData } = encodeHydraulicModel(
     hydraulicModel,
     bufferType,
@@ -24,21 +24,21 @@ export const runCheck = async (
 
   const useWorker = canUseWorkers(bufferType);
 
-  const encodedPossibleConnections = useWorker
+  const encodedProximityAnomalies = useWorker
     ? await runWithWorker(inputData, distanceInMeters)
-    : findPossibleConnections(inputData, distanceInMeters);
+    : findProximityAnomalies(inputData, distanceInMeters);
 
-  return decodePossibleConnections(
+  return decodeProximityAnomalies(
     hydraulicModel,
     idsLookup,
-    encodedPossibleConnections,
+    encodedProximityAnomalies,
   );
 };
 
 const runWithWorker = async (
   data: RunData,
   distance: number,
-): Promise<EncodedPossibleConnections> => {
+): Promise<EncodedProximityAnomalies> => {
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
   });
@@ -46,7 +46,7 @@ const runWithWorker = async (
   const workerAPI = Comlink.wrap<ProximityCheckWorkerAPI>(worker);
 
   try {
-    return await workerAPI.findPossibleConnections(data, distance);
+    return await workerAPI.findProximityAnomalies(data, distance);
   } finally {
     worker.terminate();
   }

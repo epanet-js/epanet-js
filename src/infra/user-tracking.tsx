@@ -549,7 +549,7 @@ type NetworkReviewClosed = {
 type NetworkReviewChecked = {
   name:
     | "networkReview.orphanAssets.opened"
-    | "networkReview.proximityCheck.opened"
+    | "networkReview.proximityAnomalies.opened"
     | "networkReview.connectivityTrace.opened"
     | "networkReview.crossingPipes.opened";
 };
@@ -557,7 +557,7 @@ type NetworkReviewChecked = {
 type NetworkReviewChanged = {
   name:
     | "networkReview.orphanAssets.changed"
-    | "networkReview.proximityCheck.changed"
+    | "networkReview.proximityAnomalies.changed"
     | "networkReview.connectivityTrace.changed"
     | "networkReview.crossingPipes.changed";
   count: number;
@@ -566,7 +566,7 @@ type NetworkReviewChanged = {
 type NetworkReviewBack = {
   name:
     | "networkReview.orphanAssets.back"
-    | "networkReview.proximityCheck.back"
+    | "networkReview.proximityAnomalies.back"
     | "networkReview.connectivityTrace.back"
     | "networkReview.crossingPipes.back";
   count: number;

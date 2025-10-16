@@ -1,22 +1,22 @@
 import Flatbush from "flatbush";
 import {
   TopologyBufferView,
-  EncodedPossibleConnections,
+  EncodedProximityAnomalies,
   RunData,
   Node,
   SegmentsGeometriesBufferView,
-  EncodedPipeConnection,
+  EncodedAlternativeConnection,
 } from "./data";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";
 import { Position } from "geojson";
 
-export function findPossibleConnections(
+export function findProximityAnomalies(
   input: RunData,
   distanceInMeters: number = 0.5,
   connectedJunctionTolerance: number = 0.1,
-): EncodedPossibleConnections {
+): EncodedProximityAnomalies {
   const topology = new TopologyBufferView(input.nodeBuffer, input.linksBuffer);
   const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
   const pipeSegmentsLookup = new SegmentsGeometriesBufferView(
@@ -26,20 +26,23 @@ export function findPossibleConnections(
   const { nodeLinksConnectivityLookup, nodesConnectivityLookookup } =
     createConnectivityLookups(topology);
 
-  const results: EncodedPossibleConnections = [];
+  const results: EncodedProximityAnomalies = [];
 
   for (const node of topology.nodes()) {
+    const alreadyConnectedLinks =
+      nodeLinksConnectivityLookup.get(node.id) || new Set();
+
+    if (alreadyConnectedLinks.size === 0) continue;
+
     const candidateConnectionSegments = findCandidateConnectionSegments(
       node,
       pipeSegmentsGeoIndex,
       distanceInMeters,
     );
 
-    const alreadyConnectedLinks =
-      nodeLinksConnectivityLookup.get(node.id) || new Set();
     const connectedNodes = nodesConnectivityLookookup.get(node.id) || new Set();
 
-    const candidate = findBestConnectionCandidate(
+    const alternativeConnection = findBestAlternativeConnection(
       node,
       candidateConnectionSegments,
       pipeSegmentsLookup,
@@ -50,10 +53,10 @@ export function findPossibleConnections(
       connectedJunctionTolerance,
     );
 
-    if (candidate) {
+    if (alternativeConnection) {
       results.push({
         nodeId: node.id,
-        connection: candidate,
+        connection: alternativeConnection,
       });
       continue;
     }
@@ -144,7 +147,7 @@ function findNearestPointOnSegment(
   };
 }
 
-function findBestConnectionCandidate(
+function findBestAlternativeConnection(
   node: Node,
   candidateConnectionSegments: number[],
   pipeSegmentsLookup: SegmentsGeometriesBufferView,
@@ -154,7 +157,7 @@ function findBestConnectionCandidate(
   distanceInMeters: number,
   connectedJunctionTolerance: number = 0.1,
 ) {
-  const validCandidates: EncodedPipeConnection[] = [];
+  const validCandidates: EncodedAlternativeConnection[] = [];
 
   for (const candidateSegment of candidateConnectionSegments) {
     const pipeId = pipeSegmentsLookup.getId(candidateSegment);

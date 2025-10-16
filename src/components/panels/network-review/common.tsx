@@ -8,7 +8,7 @@ import { NoIssuesIcon } from "src/icons";
 export const enum CheckType {
   connectivityTrace = "connectivityTrace",
   orphanAssets = "orphanAssets",
-  proximityCheck = "proximityCheck",
+  proximityAnomalies = "proximityAnomalies",
   crossingPipes = "crossingPipes",
 }
 

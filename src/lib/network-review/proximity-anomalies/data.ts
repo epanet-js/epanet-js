@@ -18,20 +18,20 @@ export type EncodedHydraulicModel = {
 
 export type RunData = Omit<EncodedHydraulicModel, "idsLookup">;
 
-interface EncodedPossibleConnection {
+interface EncodedProximityAnomaly {
   nodeId: number;
-  connection: EncodedPipeConnection;
+  connection: EncodedAlternativeConnection;
 }
 
-export type EncodedPossibleConnections = EncodedPossibleConnection[];
+export type EncodedProximityAnomalies = EncodedProximityAnomaly[];
 
-export interface EncodedPipeConnection {
+export interface EncodedAlternativeConnection {
   pipeId: number;
   distance: number;
   nearestPointOnPipe: Position;
 }
 
-export interface PossibleConnection {
+export interface ProximityAnomaly {
   nodeId: AssetId;
   pipeId: AssetId;
   distance: number;
@@ -219,20 +219,20 @@ export function encodeHydraulicModel(
   };
 }
 
-export function decodePossibleConnections(
+export function decodeProximityAnomalies(
   model: HydraulicModel,
   idsLookup: string[],
-  encodedPossibleConnections: EncodedPossibleConnection[],
-): PossibleConnection[] {
-  const possibleConnections: PossibleConnection[] = [];
+  encodedProximityAnomalies: EncodedProximityAnomaly[],
+): ProximityAnomaly[] {
+  const proximityAnomalies: ProximityAnomaly[] = [];
 
-  encodedPossibleConnections.forEach((encoded) => {
+  encodedProximityAnomalies.forEach((encoded) => {
     const nodeId = idsLookup[encoded.nodeId];
     const connection = encoded.connection;
     const pipeId = idsLookup[connection.pipeId];
     const pipeAsset = model.assets.get(pipeId);
     if (pipeAsset && pipeAsset.type === "pipe") {
-      possibleConnections.push({
+      proximityAnomalies.push({
         nodeId,
         pipeId,
         distance: connection.distance,
@@ -241,8 +241,8 @@ export function decodePossibleConnections(
     }
   });
 
-  return possibleConnections.sort(
-    (a: PossibleConnection, b: PossibleConnection) => {
+  return proximityAnomalies.sort(
+    (a: ProximityAnomaly, b: ProximityAnomaly) => {
       const nodeA = model.assets.get(a.nodeId);
       const nodeB = model.assets.get(b.nodeId);
       const labelA = nodeA ? nodeA.label.toUpperCase() : a.nodeId.toUpperCase();

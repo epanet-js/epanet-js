@@ -590,7 +590,7 @@
       "issueLabel": "Orphan {{1}}: {{2}}",
       "emptyMessage": "There are no orphan assets in your network. Well done!"
     },
-    "proximityCheck": {
+    "proximityAnomalies": {
       "title": "Proximity check",
       "description": "Finds junctions located close to nearby pipes that may need to be connected.",
       "summary_zero": "No potential connections found",
