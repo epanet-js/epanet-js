@@ -59,8 +59,8 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 
   useEffect(() => {
-    const selectedAnomaly = proximityAnomalies.find(
-      (anomaly) => isSelected(anomaly.nodeId) && isSelected(anomaly.pipeId),
+    const selectedAnomaly = proximityAnomalies.find((anomaly) =>
+      isSelected(anomaly.nodeId),
     );
 
     if (!selectedAnomaly) {
