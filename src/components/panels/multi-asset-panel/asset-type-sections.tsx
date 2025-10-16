@@ -30,7 +30,11 @@ export function AssetTypeSections({
         if (sectionKey === "simulationResults" && !hasSimulation) return null;
 
         return (
-          <Section key={sectionKey} title={translate(sectionKey)}>
+          <Section
+            key={sectionKey}
+            title={translate(sectionKey)}
+            variant="secondary"
+          >
             {stats.map((stat) => (
               <MultiValueRow
                 key={stat.property}

@@ -64,15 +64,24 @@ export const VerticalField = ({
 export const Section = ({
   title,
   button,
+  variant = "primary",
   children,
 }: {
   title: string;
   button?: React.ReactNode;
+  variant?: "primary" | "secondary";
   children: React.ReactNode;
 }) => {
   return (
     <div className="flex flex-col">
-      <div className="flex items-start justify-between text-sm font-semibold pb-2">
+      <div
+        className={clsx(
+          "flex items-start justify-between text-sm font-semibold pb-2",
+          {
+            "text-gray-500": variant === "secondary",
+          },
+        )}
+      >
         {title}
         {button && button}
       </div>
