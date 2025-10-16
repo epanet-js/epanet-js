@@ -241,20 +241,18 @@ export function decodeProximityAnomalies(
     }
   });
 
-  return proximityAnomalies.sort(
-    (a: ProximityAnomaly, b: ProximityAnomaly) => {
-      const nodeA = model.assets.get(a.nodeId);
-      const nodeB = model.assets.get(b.nodeId);
-      const labelA = nodeA ? nodeA.label.toUpperCase() : a.nodeId.toUpperCase();
-      const labelB = nodeB ? nodeB.label.toUpperCase() : b.nodeId.toUpperCase();
+  return proximityAnomalies.sort((a: ProximityAnomaly, b: ProximityAnomaly) => {
+    const nodeA = model.assets.get(a.nodeId);
+    const nodeB = model.assets.get(b.nodeId);
+    const labelA = nodeA ? nodeA.label.toUpperCase() : a.nodeId.toUpperCase();
+    const labelB = nodeB ? nodeB.label.toUpperCase() : b.nodeId.toUpperCase();
 
-      if (labelA < labelB) return -1;
-      if (labelA > labelB) return 1;
-      if (a.distance < b.distance) return -1;
-      if (a.distance > b.distance) return 1;
-      return 0;
-    },
-  );
+    if (a.distance < b.distance) return -1;
+    if (a.distance > b.distance) return 1;
+    if (labelA < labelB) return -1;
+    if (labelA > labelB) return 1;
+    return 0;
+  });
 }
 
 export interface Node {

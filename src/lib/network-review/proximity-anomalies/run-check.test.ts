@@ -39,7 +39,7 @@ describe("runCheck", () => {
     expect(proximityAnomalies).toHaveLength(0);
   });
 
-  it("sorts results by node label", async () => {
+  it("sorts results by distance, then by node label", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [0, 0], label: "J1" })
       .aJunction("J2", { coordinates: [0, 0.002], label: "J2" })
@@ -52,8 +52,11 @@ describe("runCheck", () => {
     const proximityAnomalies = await runCheck(model, 50);
 
     expect(proximityAnomalies).toHaveLength(2);
-    expect(proximityAnomalies[0].nodeId).toEqual("J3");
-    expect(proximityAnomalies[1].nodeId).toEqual("J5");
+    expect(proximityAnomalies[0].nodeId).toEqual("J5");
+    expect(proximityAnomalies[1].nodeId).toEqual("J3");
+    expect(proximityAnomalies[0].distance).toBeLessThan(
+      proximityAnomalies[1].distance,
+    );
   });
 
   it("works with array buffer type", async () => {
