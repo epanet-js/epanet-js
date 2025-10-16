@@ -6,14 +6,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { SectionList, Section } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
-import {
-  JunctionSection,
-  PipeSection,
-  PumpSection,
-  ValveSection,
-  ReservoirSection,
-  TankSection,
-} from "./asset-type-sections";
+import { AssetTypeSections } from "./asset-type-sections";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
@@ -68,7 +61,7 @@ export function MultiAssetPanel({
 
       {assetCounts.junction > 0 && (
         <Section title={`${translate("junction")} (${assetCounts.junction})`}>
-          <JunctionSection
+          <AssetTypeSections
             sections={multiAssetData.junction}
             hasSimulation={hasSimulation}
           />
@@ -77,7 +70,7 @@ export function MultiAssetPanel({
 
       {assetCounts.pipe > 0 && (
         <Section title={`${translate("pipe")} (${assetCounts.pipe})`}>
-          <PipeSection
+          <AssetTypeSections
             sections={multiAssetData.pipe}
             hasSimulation={hasSimulation}
           />
@@ -86,7 +79,7 @@ export function MultiAssetPanel({
 
       {assetCounts.pump > 0 && (
         <Section title={`${translate("pump")} (${assetCounts.pump})`}>
-          <PumpSection
+          <AssetTypeSections
             sections={multiAssetData.pump}
             hasSimulation={hasSimulation}
           />
@@ -95,7 +88,7 @@ export function MultiAssetPanel({
 
       {assetCounts.valve > 0 && (
         <Section title={`${translate("valve")} (${assetCounts.valve})`}>
-          <ValveSection
+          <AssetTypeSections
             sections={multiAssetData.valve}
             hasSimulation={hasSimulation}
           />
@@ -104,13 +97,13 @@ export function MultiAssetPanel({
 
       {assetCounts.reservoir > 0 && (
         <Section title={`${translate("reservoir")} (${assetCounts.reservoir})`}>
-          <ReservoirSection sections={multiAssetData.reservoir} />
+          <AssetTypeSections sections={multiAssetData.reservoir} />
         </Section>
       )}
 
       {assetCounts.tank > 0 && (
         <Section title={`${translate("tank")} (${assetCounts.tank})`}>
-          <TankSection
+          <AssetTypeSections
             sections={multiAssetData.tank}
             hasSimulation={hasSimulation}
           />
