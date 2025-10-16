@@ -98,6 +98,7 @@
     "@turf/helpers": "^6.5.0",
     "@turf/invariant": "^6.5.0",
     "@turf/length": "^6.5.0",
+    "@turf/line-intersect": "^7.2.0",
     "@turf/line-segment": "^6.5.0",
     "@turf/line-split": "^7.2.0",
     "@turf/meta": "^6.5.0",
