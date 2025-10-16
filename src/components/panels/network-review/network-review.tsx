@@ -13,6 +13,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
+import { CrossingPipes } from "./crossing-pipes";
 
 export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
@@ -26,6 +27,8 @@ export function NetworkReview() {
       return <OrphanAssets onGoBack={goBackToSummary} />;
     case CheckType.proximityAnomalies:
       return <ProximityAnomalies onGoBack={goBackToSummary} />;
+    case CheckType.crossingPipes:
+      return <CrossingPipes onGoBack={goBackToSummary} />;
     default:
       return (
         <NetworkReviewSummary
