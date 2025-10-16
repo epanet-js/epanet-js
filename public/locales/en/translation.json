@@ -213,6 +213,8 @@
   "autoLengths": "Auto-lengths",
   "autoElevations": "Auto-elevations",
   "on": "On",
+  "yes": "Yes",
+  "no": "No",
   "viewReport": "View report",
   "viewNetworkReview": "Review network",
   "ignore": "Ignore",

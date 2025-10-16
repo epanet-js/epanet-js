@@ -127,7 +127,11 @@ const computePipeData = (
 
   for (const asset of assets) {
     const pipe = asset as Pipe;
-    updateCategoryStats(statsMap, "initialStatus", pipe.initialStatus);
+    updateCategoryStats(
+      statsMap,
+      "initialStatus",
+      "pipe." + pipe.initialStatus,
+    );
     updateQuantityStats(
       statsMap,
       "diameter",
@@ -210,7 +214,11 @@ const computePumpData = (
     const pump = asset as Pump;
     const pumpType = pump.definitionType === "power" ? "power" : "flowVsHead";
     updateCategoryStats(statsMap, "pumpType", pumpType);
-    updateCategoryStats(statsMap, "initialStatus", pump.initialStatus);
+    updateCategoryStats(
+      statsMap,
+      "initialStatus",
+      "pump." + pump.initialStatus,
+    );
 
     if (pump.power !== null) {
       updateQuantityStats(statsMap, "power", pump.power, quantitiesMetadata);
@@ -276,7 +284,11 @@ const computeValveData = (
   for (const asset of assets) {
     const valve = asset as Valve;
     updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
-    updateCategoryStats(statsMap, "initialStatus", valve.initialStatus);
+    updateCategoryStats(
+      statsMap,
+      "initialStatus",
+      "valve." + valve.initialStatus,
+    );
     updateQuantityStats(statsMap, "setting", valve.setting, quantitiesMetadata);
     updateQuantityStats(
       statsMap,
@@ -404,7 +416,11 @@ const computeTankData = (
     );
 
     if (tank.overflow !== undefined) {
-      updateCategoryStats(statsMap, "overflow", tank.overflow ? "yes" : "no");
+      updateCategoryStats(
+        statsMap,
+        "canOverflow",
+        tank.overflow ? "yes" : "no",
+      );
     }
 
     if (tank.pressure !== null) {
@@ -434,7 +450,7 @@ const computeTankData = (
       "maxLevel",
       "diameter",
       "minVolume",
-      "overflow",
+      "canOverflow",
     ]),
     demands: [],
     simulationResults: getStatsForProperties(statsMap, [

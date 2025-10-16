@@ -169,8 +169,8 @@ describe("computeMultiAssetData", () => {
     expect(statusStat).toBeDefined();
     expect(statusStat?.type).toBe("category");
     if (statusStat?.type === "category") {
-      expect(statusStat.values.get("open")).toBe(2);
-      expect(statusStat.values.get("closed")).toBe(1);
+      expect(statusStat.values.get("pipe.open")).toBe(2);
+      expect(statusStat.values.get("pipe.closed")).toBe(1);
     }
   });
 
