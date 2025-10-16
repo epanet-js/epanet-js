@@ -123,15 +123,17 @@ const DistanceInput = ({
   const label = `${translate("networkReview.proximityAnomalies.distance")} (${distance.unit})`;
 
   return (
-    <div className="flex gap-2 flex-row p-3 items-center">
-      <label className="pr-2 text-sm flex-1">{label}</label>
-      <div className="flex-1">
-        <NumericField
-          label={label}
-          displayValue={localizeDecimal(distance.value)}
-          onChangeValue={onChange}
-          styleOptions={{ padding: "sm", textSize: "sm" }}
-        />
+    <div className="px-1">
+      <div className="flex gap-2 flex-row p-3 items-center">
+        <label className="pr-2 text-sm flex-1">{label}</label>
+        <div className="flex-1">
+          <NumericField
+            label={label}
+            displayValue={localizeDecimal(distance.value)}
+            onChangeValue={onChange}
+            styleOptions={{ padding: "sm", textSize: "sm" }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -84,7 +84,7 @@ export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
     <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
-      <div className="text-green-600">
+      <div className="text-gray-400">
         <NoIssuesIcon size={96} />
       </div>
       <p className="text-sm text-center py-4 text-gray-600 max-w-48">

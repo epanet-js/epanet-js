@@ -3,7 +3,6 @@ import {
   LucideIcon,
   ArrowDownUp,
   ArrowRight,
-  BadgeCheck,
   Bell,
   Check,
   ChevronDown,
@@ -24,6 +23,7 @@ import {
   FilePlus,
   FileSpreadsheet,
   FileText,
+  Goal,
   Globe,
   Grid2X2,
   GripVertical,
@@ -155,7 +155,7 @@ export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
 export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
-export const NoIssuesIcon = icon(BadgeCheck);
+export const NoIssuesIcon = icon(Goal);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
