@@ -16,8 +16,10 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    expect(result.junction).toBeDefined();
-    expect(result.pipe).toBeDefined();
+    expect(result.data.junction).toBeDefined();
+    expect(result.data.pipe).toBeDefined();
+    expect(result.counts.junction).toBe(2);
+    expect(result.counts.pipe).toBe(1);
   });
 
   it("computes junction stats with sections", () => {
@@ -29,7 +31,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const junctionData = result.junction;
+    const junctionData = result.data.junction;
     expect(junctionData.modelAttributes).toBeDefined();
     expect(junctionData.demands).toBeDefined();
     expect(junctionData.simulationResults).toBeDefined();
@@ -68,7 +70,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const simulationStats = result.junction.simulationResults;
+    const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats).toHaveLength(0);
   });
 
@@ -87,7 +89,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const simulationStats = result.junction.simulationResults;
+    const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats.length).toBeGreaterThan(0);
 
     const pressureStat = simulationStats.find((s) => s.property === "pressure");
@@ -123,7 +125,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const pipeData = result.pipe;
+    const pipeData = result.data.pipe;
     expect(pipeData.modelAttributes).toBeDefined();
     expect(pipeData.simulationResults).toBeDefined();
 
@@ -163,7 +165,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const statusStat = result.pipe.modelAttributes.find(
+    const statusStat = result.data.pipe.modelAttributes.find(
       (s) => s.property === "initialStatus",
     );
     expect(statusStat).toBeDefined();
@@ -177,9 +179,9 @@ describe("computeMultiAssetData", () => {
   it("handles empty asset arrays", () => {
     const result = computeMultiAssetData([], quantities);
 
-    expect(result.junction.modelAttributes).toEqual([]);
-    expect(result.junction.demands).toEqual([]);
-    expect(result.junction.simulationResults).toEqual([]);
+    expect(result.data.junction.modelAttributes).toEqual([]);
+    expect(result.data.junction.demands).toEqual([]);
+    expect(result.data.junction.simulationResults).toEqual([]);
   });
 
   it("handles mixed asset types", () => {
@@ -192,9 +194,9 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    expect(result.junction.modelAttributes.length).toBeGreaterThan(0);
-    expect(result.reservoir.modelAttributes.length).toBeGreaterThan(0);
-    expect(result.pipe.modelAttributes.length).toBeGreaterThan(0);
+    expect(result.data.junction.modelAttributes.length).toBeGreaterThan(0);
+    expect(result.data.reservoir.modelAttributes.length).toBeGreaterThan(0);
+    expect(result.data.pipe.modelAttributes.length).toBeGreaterThan(0);
   });
 
   it("computes pump stats with type categories", () => {
@@ -212,7 +214,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const pumpData = result.pump;
+    const pumpData = result.data.pump;
     expect(pumpData.modelAttributes).toBeDefined();
 
     const typeStat = pumpData.modelAttributes.find(
@@ -237,7 +239,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const simulationStats = result.junction.simulationResults;
+    const simulationStats = result.data.junction.simulationResults;
     const pressureStat = simulationStats.find((s) => s.property === "pressure");
 
     if (pressureStat?.type === "quantity") {
@@ -262,7 +264,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const valveData = result.valve;
+    const valveData = result.data.valve;
     const typeStat = valveData.modelAttributes.find(
       (s) => s.property === "valveType",
     );
@@ -286,7 +288,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const tankData = result.tank;
+    const tankData = result.data.tank;
     expect(tankData.modelAttributes.length).toBeGreaterThan(0);
 
     const elevationStat = tankData.modelAttributes.find(
@@ -308,7 +310,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(model.assets.values());
     const result = computeMultiAssetData(assets, quantities);
 
-    const reservoirData = result.reservoir;
+    const reservoirData = result.data.reservoir;
     expect(reservoirData.modelAttributes.length).toBeGreaterThan(0);
 
     const elevationStat = reservoirData.modelAttributes.find(

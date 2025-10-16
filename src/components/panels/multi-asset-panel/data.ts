@@ -31,83 +31,129 @@ export type MultiAssetsData = {
   [type in Asset["type"]]: AssetPropertySections;
 };
 
+export type AssetCounts = {
+  [type in Asset["type"]]: number;
+};
+
+export type ComputedMultiAssetData = {
+  data: MultiAssetsData;
+  counts: AssetCounts;
+};
+
 export const computeMultiAssetData = (
   assets: Asset[],
   quantitiesMetadata: Quantities,
-): MultiAssetsData => {
-  const assetsByType = groupAssetsByType(assets);
+): ComputedMultiAssetData => {
+  const counts: AssetCounts = {
+    junction: 0,
+    pipe: 0,
+    pump: 0,
+    valve: 0,
+    reservoir: 0,
+    tank: 0,
+  };
+
+  const statsMaps = {
+    junction: new Map<string, AssetPropertyStats>(),
+    pipe: new Map<string, AssetPropertyStats>(),
+    pump: new Map<string, AssetPropertyStats>(),
+    valve: new Map<string, AssetPropertyStats>(),
+    reservoir: new Map<string, AssetPropertyStats>(),
+    tank: new Map<string, AssetPropertyStats>(),
+  };
+
+  for (const asset of assets) {
+    switch (asset.type) {
+      case "junction":
+        counts.junction++;
+        appendJunctionStats(
+          statsMaps.junction,
+          asset as Junction,
+          quantitiesMetadata,
+        );
+        break;
+      case "pipe":
+        counts.pipe++;
+        appendPipeStats(statsMaps.pipe, asset as Pipe, quantitiesMetadata);
+        break;
+      case "pump":
+        counts.pump++;
+        appendPumpStats(statsMaps.pump, asset as Pump, quantitiesMetadata);
+        break;
+      case "valve":
+        counts.valve++;
+        appendValveStats(statsMaps.valve, asset as Valve, quantitiesMetadata);
+        break;
+      case "reservoir":
+        counts.reservoir++;
+        appendReservoirStats(
+          statsMaps.reservoir,
+          asset as Reservoir,
+          quantitiesMetadata,
+        );
+        break;
+      case "tank":
+        counts.tank++;
+        appendTankStats(statsMaps.tank, asset as Tank, quantitiesMetadata);
+        break;
+    }
+  }
 
   return {
-    junction: computeJunctionData(assetsByType.junction, quantitiesMetadata),
-    pipe: computePipeData(assetsByType.pipe, quantitiesMetadata),
-    pump: computePumpData(assetsByType.pump, quantitiesMetadata),
-    valve: computeValveData(assetsByType.valve, quantitiesMetadata),
-    reservoir: computeReservoirData(assetsByType.reservoir, quantitiesMetadata),
-    tank: computeTankData(assetsByType.tank, quantitiesMetadata),
+    data: {
+      junction: buildJunctionSections(statsMaps.junction),
+      pipe: buildPipeSections(statsMaps.pipe),
+      pump: buildPumpSections(statsMaps.pump),
+      valve: buildValveSections(statsMaps.valve),
+      reservoir: buildReservoirSections(statsMaps.reservoir),
+      tank: buildTankSections(statsMaps.tank),
+    },
+    counts,
   };
 };
 
-const groupAssetsByType = (assets: Asset[]) => {
-  const grouped = {
-    junction: [] as Asset[],
-    pipe: [] as Asset[],
-    pump: [] as Asset[],
-    valve: [] as Asset[],
-    reservoir: [] as Asset[],
-    tank: [] as Asset[],
-  };
-
-  for (const asset of assets) {
-    if (asset.type in grouped) {
-      grouped[asset.type as keyof typeof grouped].push(asset);
-    }
-  }
-
-  return grouped;
-};
-
-const computeJunctionData = (
-  assets: Asset[],
+const appendJunctionStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  junction: Junction,
   quantitiesMetadata: Quantities,
-): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
+) => {
+  updateQuantityStats(
+    statsMap,
+    "elevation",
+    junction.elevation,
+    quantitiesMetadata,
+  );
+  updateQuantityStats(
+    statsMap,
+    "baseDemand",
+    junction.baseDemand,
+    quantitiesMetadata,
+  );
 
-  for (const asset of assets) {
-    const junction = asset as Junction;
+  if (junction.pressure !== null) {
     updateQuantityStats(
       statsMap,
-      "elevation",
-      junction.elevation,
+      "pressure",
+      junction.pressure,
       quantitiesMetadata,
     );
-    updateQuantityStats(
-      statsMap,
-      "baseDemand",
-      junction.baseDemand,
-      quantitiesMetadata,
-    );
-
-    if (junction.pressure !== null) {
-      updateQuantityStats(
-        statsMap,
-        "pressure",
-        junction.pressure,
-        quantitiesMetadata,
-      );
-    }
-    if (junction.head !== null) {
-      updateQuantityStats(statsMap, "head", junction.head, quantitiesMetadata);
-    }
-    if (junction.actualDemand !== null) {
-      updateQuantityStats(
-        statsMap,
-        "actualDemand",
-        junction.actualDemand,
-        quantitiesMetadata,
-      );
-    }
   }
+  if (junction.head !== null) {
+    updateQuantityStats(statsMap, "head", junction.head, quantitiesMetadata);
+  }
+  if (junction.actualDemand !== null) {
+    updateQuantityStats(
+      statsMap,
+      "actualDemand",
+      junction.actualDemand,
+      quantitiesMetadata,
+    );
+  }
+};
 
+const buildJunctionSections = (
+  statsMap: Map<string, AssetPropertyStats>,
+): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
     demands: getStatsForProperties(statsMap, ["baseDemand"]),
@@ -119,72 +165,63 @@ const computeJunctionData = (
   };
 };
 
-const computePipeData = (
-  assets: Asset[],
+const appendPipeStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  pipe: Pipe,
   quantitiesMetadata: Quantities,
-): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
+) => {
+  updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
+  updateQuantityStats(statsMap, "diameter", pipe.diameter, quantitiesMetadata);
+  updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "roughness",
+    pipe.roughness,
+    quantitiesMetadata,
+  );
+  updateQuantityStats(
+    statsMap,
+    "minorLoss",
+    pipe.minorLoss,
+    quantitiesMetadata,
+  );
 
-  for (const asset of assets) {
-    const pipe = asset as Pipe;
-    updateCategoryStats(
-      statsMap,
-      "initialStatus",
-      "pipe." + pipe.initialStatus,
-    );
-    updateQuantityStats(
-      statsMap,
-      "diameter",
-      pipe.diameter,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata);
-    updateQuantityStats(
-      statsMap,
-      "roughness",
-      pipe.roughness,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "minorLoss",
-      pipe.minorLoss,
-      quantitiesMetadata,
-    );
-
-    if (pipe.flow !== null) {
-      updateQuantityStats(statsMap, "flow", pipe.flow, quantitiesMetadata);
-    }
-    if (pipe.velocity !== null) {
-      updateQuantityStats(
-        statsMap,
-        "velocity",
-        pipe.velocity,
-        quantitiesMetadata,
-      );
-    }
-    if (pipe.unitHeadloss !== null) {
-      updateQuantityStats(
-        statsMap,
-        "unitHeadloss",
-        pipe.unitHeadloss,
-        quantitiesMetadata,
-      );
-    }
-    if (pipe.headloss !== null) {
-      updateQuantityStats(
-        statsMap,
-        "headloss",
-        pipe.headloss,
-        quantitiesMetadata,
-      );
-    }
-    if (pipe.status !== null) {
-      const statusLabel = "pipe." + pipe.status;
-      updateCategoryStats(statsMap, "pipeStatus", statusLabel);
-    }
+  if (pipe.flow !== null) {
+    updateQuantityStats(statsMap, "flow", pipe.flow, quantitiesMetadata);
   }
+  if (pipe.velocity !== null) {
+    updateQuantityStats(
+      statsMap,
+      "velocity",
+      pipe.velocity,
+      quantitiesMetadata,
+    );
+  }
+  if (pipe.unitHeadloss !== null) {
+    updateQuantityStats(
+      statsMap,
+      "unitHeadloss",
+      pipe.unitHeadloss,
+      quantitiesMetadata,
+    );
+  }
+  if (pipe.headloss !== null) {
+    updateQuantityStats(
+      statsMap,
+      "headloss",
+      pipe.headloss,
+      quantitiesMetadata,
+    );
+  }
+  if (pipe.status !== null) {
+    const statusLabel = "pipe." + pipe.status;
+    updateCategoryStats(statsMap, "pipeStatus", statusLabel);
+  }
+};
 
+const buildPipeSections = (
+  statsMap: Map<string, AssetPropertyStats>,
+): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, [
       "initialStatus",
@@ -204,59 +241,55 @@ const computePipeData = (
   };
 };
 
-const computePumpData = (
-  assets: Asset[],
+const appendPumpStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  pump: Pump,
   quantitiesMetadata: Quantities,
-): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
+) => {
+  const pumpType = pump.definitionType === "power" ? "power" : "flowVsHead";
+  updateCategoryStats(statsMap, "pumpType", pumpType);
+  updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
 
-  for (const asset of assets) {
-    const pump = asset as Pump;
-    const pumpType = pump.definitionType === "power" ? "power" : "flowVsHead";
-    updateCategoryStats(statsMap, "pumpType", pumpType);
-    updateCategoryStats(
+  if (pump.power !== null) {
+    updateQuantityStats(statsMap, "power", pump.power, quantitiesMetadata);
+  }
+  if (pump.designFlow !== null) {
+    updateQuantityStats(
       statsMap,
-      "initialStatus",
-      "pump." + pump.initialStatus,
+      "designFlow",
+      pump.designFlow,
+      quantitiesMetadata,
     );
-
-    if (pump.power !== null) {
-      updateQuantityStats(statsMap, "power", pump.power, quantitiesMetadata);
-    }
-    if (pump.designFlow !== null) {
-      updateQuantityStats(
-        statsMap,
-        "designFlow",
-        pump.designFlow,
-        quantitiesMetadata,
-      );
-    }
-    if (pump.designHead !== null) {
-      updateQuantityStats(
-        statsMap,
-        "designHead",
-        pump.designHead,
-        quantitiesMetadata,
-      );
-    }
-    if (pump.speed !== null) {
-      updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata);
-    }
-
-    if (pump.flow !== null) {
-      updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
-    }
-    if (pump.head !== null) {
-      updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
-    }
-    if (pump.status !== null) {
-      const statusLabel = pump.statusWarning
-        ? `pump.${pump.status}.${pump.statusWarning}`
-        : "pump." + pump.status;
-      updateCategoryStats(statsMap, "pumpStatus", statusLabel);
-    }
+  }
+  if (pump.designHead !== null) {
+    updateQuantityStats(
+      statsMap,
+      "designHead",
+      pump.designHead,
+      quantitiesMetadata,
+    );
+  }
+  if (pump.speed !== null) {
+    updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata);
   }
 
+  if (pump.flow !== null) {
+    updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
+  }
+  if (pump.head !== null) {
+    updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
+  }
+  if (pump.status !== null) {
+    const statusLabel = pump.statusWarning
+      ? `pump.${pump.status}.${pump.statusWarning}`
+      : "pump." + pump.status;
+    updateCategoryStats(statsMap, "pumpStatus", statusLabel);
+  }
+};
+
+const buildPumpSections = (
+  statsMap: Map<string, AssetPropertyStats>,
+): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, [
       "pumpType",
@@ -275,59 +308,54 @@ const computePumpData = (
   };
 };
 
-const computeValveData = (
-  assets: Asset[],
+const appendValveStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  valve: Valve,
   quantitiesMetadata: Quantities,
-): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
+) => {
+  updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
+  updateCategoryStats(
+    statsMap,
+    "initialStatus",
+    "valve." + valve.initialStatus,
+  );
+  updateQuantityStats(statsMap, "setting", valve.setting, quantitiesMetadata);
+  updateQuantityStats(statsMap, "diameter", valve.diameter, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "minorLoss",
+    valve.minorLoss,
+    quantitiesMetadata,
+  );
 
-  for (const asset of assets) {
-    const valve = asset as Valve;
-    updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
-    updateCategoryStats(
-      statsMap,
-      "initialStatus",
-      "valve." + valve.initialStatus,
-    );
-    updateQuantityStats(statsMap, "setting", valve.setting, quantitiesMetadata);
-    updateQuantityStats(
-      statsMap,
-      "diameter",
-      valve.diameter,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "minorLoss",
-      valve.minorLoss,
-      quantitiesMetadata,
-    );
-
-    if (valve.flow !== null) {
-      updateQuantityStats(statsMap, "flow", valve.flow, quantitiesMetadata);
-    }
-    if (valve.velocity !== null) {
-      updateQuantityStats(
-        statsMap,
-        "velocity",
-        valve.velocity,
-        quantitiesMetadata,
-      );
-    }
-    if (valve.headloss !== null) {
-      updateQuantityStats(
-        statsMap,
-        "headloss",
-        valve.headloss,
-        quantitiesMetadata,
-      );
-    }
-    if (valve.status !== null) {
-      const statusLabel = `valve.${valve.status}`;
-      updateCategoryStats(statsMap, "valveStatus", statusLabel);
-    }
+  if (valve.flow !== null) {
+    updateQuantityStats(statsMap, "flow", valve.flow, quantitiesMetadata);
   }
+  if (valve.velocity !== null) {
+    updateQuantityStats(
+      statsMap,
+      "velocity",
+      valve.velocity,
+      quantitiesMetadata,
+    );
+  }
+  if (valve.headloss !== null) {
+    updateQuantityStats(
+      statsMap,
+      "headloss",
+      valve.headloss,
+      quantitiesMetadata,
+    );
+  }
+  if (valve.status !== null) {
+    const statusLabel = `valve.${valve.status}`;
+    updateCategoryStats(statsMap, "valveStatus", statusLabel);
+  }
+};
 
+const buildValveSections = (
+  statsMap: Map<string, AssetPropertyStats>,
+): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, [
       "valveType",
@@ -346,23 +374,23 @@ const computeValveData = (
   };
 };
 
-const computeReservoirData = (
-  assets: Asset[],
+const appendReservoirStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  reservoir: Reservoir,
   quantitiesMetadata: Quantities,
+) => {
+  updateQuantityStats(
+    statsMap,
+    "elevation",
+    reservoir.elevation,
+    quantitiesMetadata,
+  );
+  updateQuantityStats(statsMap, "head", reservoir.head, quantitiesMetadata);
+};
+
+const buildReservoirSections = (
+  statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
-
-  for (const asset of assets) {
-    const reservoir = asset as Reservoir;
-    updateQuantityStats(
-      statsMap,
-      "elevation",
-      reservoir.elevation,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(statsMap, "head", reservoir.head, quantitiesMetadata);
-  }
-
   return {
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
     demands: [],
@@ -370,78 +398,59 @@ const computeReservoirData = (
   };
 };
 
-const computeTankData = (
-  assets: Asset[],
+const appendTankStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  tank: Tank,
   quantitiesMetadata: Quantities,
-): AssetPropertySections => {
-  const statsMap = new Map<string, AssetPropertyStats>();
+) => {
+  updateQuantityStats(
+    statsMap,
+    "elevation",
+    tank.elevation,
+    quantitiesMetadata,
+  );
+  updateQuantityStats(
+    statsMap,
+    "initialLevel",
+    tank.initialLevel,
+    quantitiesMetadata,
+  );
+  updateQuantityStats(statsMap, "minLevel", tank.minLevel, quantitiesMetadata);
+  updateQuantityStats(statsMap, "maxLevel", tank.maxLevel, quantitiesMetadata);
+  updateQuantityStats(statsMap, "diameter", tank.diameter, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "minVolume",
+    tank.minVolume,
+    quantitiesMetadata,
+  );
 
-  for (const asset of assets) {
-    const tank = asset as Tank;
-    updateQuantityStats(
-      statsMap,
-      "elevation",
-      tank.elevation,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "initialLevel",
-      tank.initialLevel,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "minLevel",
-      tank.minLevel,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "maxLevel",
-      tank.maxLevel,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "diameter",
-      tank.diameter,
-      quantitiesMetadata,
-    );
-    updateQuantityStats(
-      statsMap,
-      "minVolume",
-      tank.minVolume,
-      quantitiesMetadata,
-    );
-
-    if (tank.overflow !== undefined) {
-      updateCategoryStats(
-        statsMap,
-        "canOverflow",
-        tank.overflow ? "yes" : "no",
-      );
-    }
-
-    if (tank.pressure !== null) {
-      updateQuantityStats(
-        statsMap,
-        "pressure",
-        tank.pressure,
-        quantitiesMetadata,
-      );
-    }
-    if (tank.head !== null) {
-      updateQuantityStats(statsMap, "head", tank.head, quantitiesMetadata);
-    }
-    if (tank.level !== null) {
-      updateQuantityStats(statsMap, "level", tank.level, quantitiesMetadata);
-    }
-    if (tank.volume !== null) {
-      updateQuantityStats(statsMap, "volume", tank.volume, quantitiesMetadata);
-    }
+  if (tank.overflow !== undefined) {
+    updateCategoryStats(statsMap, "canOverflow", tank.overflow ? "yes" : "no");
   }
 
+  if (tank.pressure !== null) {
+    updateQuantityStats(
+      statsMap,
+      "pressure",
+      tank.pressure,
+      quantitiesMetadata,
+    );
+  }
+  if (tank.head !== null) {
+    updateQuantityStats(statsMap, "head", tank.head, quantitiesMetadata);
+  }
+  if (tank.level !== null) {
+    updateQuantityStats(statsMap, "level", tank.level, quantitiesMetadata);
+  }
+  if (tank.volume !== null) {
+    updateQuantityStats(statsMap, "volume", tank.volume, quantitiesMetadata);
+  }
+};
+
+const buildTankSections = (
+  statsMap: Map<string, AssetPropertyStats>,
+): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",

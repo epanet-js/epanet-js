@@ -22,30 +22,10 @@ export function MultiAssetPanel({
   const simulationState = useAtomValue(simulationAtom);
   const hasSimulation = simulationState.status !== "idle";
 
-  const multiAssetData = useMemo(() => {
+  const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(assets, quantitiesMetadata);
   }, [selectedFeatures, quantitiesMetadata]);
-
-  const assetCounts = useMemo(() => {
-    const counts = {
-      junction: 0,
-      pipe: 0,
-      pump: 0,
-      valve: 0,
-      reservoir: 0,
-      tank: 0,
-    };
-
-    selectedFeatures.forEach((feature) => {
-      const asset = feature as Asset;
-      if (asset.type in counts) {
-        counts[asset.type as keyof typeof counts]++;
-      }
-    });
-
-    return counts;
-  }, [selectedFeatures]);
 
   return (
     <SectionList>
