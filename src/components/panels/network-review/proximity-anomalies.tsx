@@ -16,8 +16,8 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "src/components/elements";
-import { JunctionIcon, PipeIcon, ReservoirIcon, TankIcon } from "src/icons";
-import { AssetType, Pipe } from "src/hydraulic-model";
+import { PipeIcon } from "src/icons";
+import { Pipe } from "src/hydraulic-model";
 
 export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
@@ -275,15 +275,6 @@ const IssuesList = ({
   );
 };
 
-const iconByAssetType: { [key in AssetType]: React.ReactNode } = {
-  junction: <JunctionIcon />,
-  tank: <TankIcon />,
-  reservoir: <ReservoirIcon />,
-  valve: <PipeIcon />,
-  pump: <PipeIcon />,
-  pipe: <PipeIcon />,
-};
-
 const ProximityAnomalyItem = ({
   anomaly,
   onClick,
@@ -332,12 +323,9 @@ const ProximityAnomalyItem = ({
       <div
         className="grid gap-x-2 items-start p-1 pr-0 text-sm w-full"
         style={{
-          gridTemplateColumns: "auto 1fr auto",
+          gridTemplateColumns: "1fr auto",
         }}
       >
-        <div className="pt-[.125rem] flex-shrink-0">
-          {iconByAssetType[nodeAsset.type]}
-        </div>
         <div className="text-left min-w-0">
           <div className="text-sm font-semibold truncate">
             {nodeAsset.label}
