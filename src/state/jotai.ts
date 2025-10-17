@@ -210,7 +210,7 @@ export const defaultSplits: Splits = {
   rightOpen: true,
   right: 320,
   leftOpen: false,
-  left: 220,
+  left: 320,
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
 
