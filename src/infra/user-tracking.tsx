@@ -1,5 +1,5 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Asset, HeadlossFormula } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO, SimulationState } from "src/state/jotai";
@@ -795,5 +795,8 @@ export const useUserTracking = () => {
     }
   }, [posthog]);
 
-  return { identify, capture, isIdentified, reset, reloadFeatureFlags };
+  return useMemo(
+    () => ({ identify, capture, isIdentified, reset, reloadFeatureFlags }),
+    [identify, capture, isIdentified, reset, reloadFeatureFlags],
+  );
 };

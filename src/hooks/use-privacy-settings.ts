@@ -1,5 +1,6 @@
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { useCallback, useMemo } from "react";
 
 export type PrivacyPreferences = {
   skipAnalytics: boolean;
@@ -17,23 +18,29 @@ export const usePrivacySettings = () => {
   const [privacySettings, setPrivacySettingsAtom] =
     useAtom(privacySettingsAtom);
 
-  const setPrivacySettings = (preferences: PrivacyPreferences) => {
-    setPrivacySettingsAtom(preferences);
-    return Promise.resolve();
-  };
+  const setPrivacySettings = useCallback(
+    (preferences: PrivacyPreferences) => {
+      setPrivacySettingsAtom(preferences);
+      return Promise.resolve();
+    },
+    [setPrivacySettingsAtom],
+  );
 
-  const enableAllTracking = () => {
+  const enableAllTracking = useCallback(() => {
     void setPrivacySettings({
       skipErrorReporting: false,
       skipAnalytics: false,
     });
-  };
+  }, [setPrivacySettings]);
 
-  return {
-    privacySettings,
-    setPrivacySettings,
-    enableAllTracking,
-  };
+  return useMemo(
+    () => ({
+      privacySettings,
+      setPrivacySettings,
+      enableAllTracking,
+    }),
+    [privacySettings, setPrivacySettings, enableAllTracking],
+  );
 };
 
 export const readRawPrivacySettings = (): PrivacyPreferences => {

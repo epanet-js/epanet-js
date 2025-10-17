@@ -68,24 +68,31 @@ export function EpanetApp() {
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();
+  const hasIdentifiedRef = useRef(false);
 
   useEffect(() => {
-    if (isSignedIn && user && !userTracking.isIdentified()) {
-      enableAllTracking();
-      userTracking.identify(user);
-      userTracking.reloadFeatureFlags();
-      setUserContext({
-        id: user.id as string,
-        email: user.email,
-        plan: user.plan,
-      });
+    if (isSignedIn && user && !hasIdentifiedRef.current) {
+      if (!userTracking.isIdentified()) {
+        enableAllTracking();
+        userTracking.identify(user);
+        userTracking.reloadFeatureFlags();
+        setUserContext({
+          id: user.id as string,
+          email: user.email,
+          plan: user.plan,
+        });
+        hasIdentifiedRef.current = true;
+      }
     }
 
-    if (!isSignedIn && userTracking.isIdentified()) {
-      userTracking.capture({ name: "logOut.completed" });
-      userTracking.reset();
-      localStorage.clear();
-      setUserContext(null);
+    if (!isSignedIn && hasIdentifiedRef.current) {
+      if (userTracking.isIdentified()) {
+        userTracking.capture({ name: "logOut.completed" });
+        userTracking.reset();
+        localStorage.clear();
+        setUserContext(null);
+        hasIdentifiedRef.current = false;
+      }
     }
   }, [isSignedIn, user, userTracking, enableAllTracking]);
 

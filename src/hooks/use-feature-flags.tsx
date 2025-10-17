@@ -1,5 +1,5 @@
 import { usePostHog } from "posthog-js/react";
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState, createContext, useContext, useRef } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 import {
@@ -19,9 +19,12 @@ const FeatureFlagsPostHogProvider = ({
   const posthog = usePostHog();
   const [flagsVersion, setFlagsVersion] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (posthog) {
+    if (posthog && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+
       const featureFlagsPromise = new Promise<string[]>((resolve) => {
         posthog.onFeatureFlags((flagsEnabled) => {
           resolve(flagsEnabled);
@@ -36,15 +39,11 @@ const FeatureFlagsPostHogProvider = ({
         .then((flagsEnabled) => {
           setFlagsContext(flagsEnabled);
           setFlagsVersion((prev) => prev + 1);
-          if (!isReady) {
-            setIsReady(true);
-          }
+          setIsReady(true);
         })
         .catch(() => {
           setFlagsContext([]);
-          if (!isReady) {
-            setIsReady(true);
-          }
+          setIsReady(true);
         });
     }
   }, [posthog, isReady]);
