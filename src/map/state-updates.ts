@@ -27,7 +27,6 @@ import {
 } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import loadAndAugmentStyle from "src/lib/load-and-augment-style";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -42,7 +41,6 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -193,7 +191,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isMapBlinkFixOn = useFeatureFlag("FLAG_MAP_BLINK");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -231,19 +228,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       try {
         if (hasNewStyles) {
           resetMapState(map);
-          if (isMapBlinkFixOn) {
-            await buildBaseStyleAndSetOnMap(
-              map,
-              mapState.stylesConfig,
-              translate,
-            );
-          } else {
-            await loadAndAugmentStyleDeprecated(
-              map,
-              mapState.stylesConfig,
-              translate,
-            );
-          }
+          await buildBaseStyleAndSetOnMap(
+            map,
+            mapState.stylesConfig,
+            translate,
+          );
         }
 
         if (hasNewSymbology || hasNewStyles) {
@@ -376,7 +365,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewStyles && isMapBlinkFixOn) {
+        if (hasNewStyles) {
           addEditingLayersToMap(map, mapState.stylesConfig);
         }
 
@@ -423,7 +412,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isMapBlinkFixOn,
   ]);
 
   doUpdates();
@@ -450,21 +438,6 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
     await map.setStyle(style);
   },
   { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
-);
-
-const loadAndAugmentStyleDeprecated = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    styles: StylesConfig,
-    translate: (key: string) => string,
-  ) => {
-    const style = await loadAndAugmentStyle({
-      ...styles,
-      translate,
-    });
-    await map.setStyle(style);
-  },
-  { name: "MAP_STATE:LOAD_AUGMENT_STYLE_DEPRECATED", maxDurationMs: 1000 },
 );
 
 const toggleAnalysisLayers = withDebugInstrumentation(

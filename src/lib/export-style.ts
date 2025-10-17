@@ -1,8 +1,4 @@
-import {
-  CIRCLE_PAINT,
-  FILL_PAINT,
-  LINE_PAINT,
-} from "src/lib/load-and-augment-style";
+import { CIRCLE_PAINT, FILL_PAINT, LINE_PAINT } from "src/map/paint-styles";
 import { ISymbology } from "src/types";
 import { asColorExpression } from "./symbolization-deprecated";
 

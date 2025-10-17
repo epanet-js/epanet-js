@@ -66,4 +66,194 @@ export function defineEmptySources(style: Style) {
   style.sources["ephemeral"] = emptyGeoJSONSource;
 }
 
-export { makeLayers } from "../lib/load-and-augment-style";
+import type { PreviewProperty } from "src/state/jotai";
+import type { ISymbology } from "src/types";
+import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
+import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";
+import { junctionResultsLayer } from "src/map/layers/junctions";
+import { pumpIcons, pumpLines } from "src/map/layers/pumps";
+import { valveIcons, valveLines } from "src/map/layers/valves";
+import { linkLabelsLayer } from "src/map/layers/link-labels";
+import { nodeLabelsLayer } from "src/map/layers/node-labels";
+import { tankLayers } from "src/map/layers/tank";
+import {
+  ephemeralDraftLineLayer,
+  ephemeralIconHighlightLayers,
+  ephemeralJunctionHighlightLayers,
+  ephemeralHaloLayer,
+  ephemeralPipeHighlightLayer,
+  ephemeralShadowLineLayer,
+} from "src/map/layers/ephemeral-state";
+import type * as mapboxgl from "mapbox-gl";
+
+const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
+const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
+const FEATURES_LINE_LAYER_NAME = "features-line";
+const FEATURES_POINT_LAYER_NAME = "features-symbol";
+
+const CONTENT_LAYER_FILTERS: {
+  [key: string]: mapboxgl.Layer["filter"];
+} = {
+  [FEATURES_LINE_LAYER_NAME]: [
+    "any",
+    ["==", "$type", "LineString"],
+    ["==", "$type", "Polygon"],
+  ],
+  [FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
+};
+
+function addPreviewFilter(
+  filters: mapboxgl.Layer["filter"],
+  previewProperty: PreviewProperty,
+): mapboxgl.Layer["filter"] {
+  if (!previewProperty) return filters;
+  return ["all", filters, ["has", previewProperty]];
+}
+
+function LABEL_PAINT(
+  _symbology: ISymbology,
+  _previewProperty: PreviewProperty,
+): mapboxgl.SymbolPaint {
+  const paint: mapboxgl.SymbolPaint = {
+    "text-halo-color": "#fff",
+    "text-halo-width": 1,
+    "text-halo-blur": 0.8,
+  };
+  return paint;
+}
+
+function LABEL_LAYOUT(
+  previewProperty: PreviewProperty,
+  placement: mapboxgl.SymbolLayout["symbol-placement"],
+): mapboxgl.SymbolLayout {
+  const paint: mapboxgl.SymbolLayout = {
+    "text-field": ["get", previewProperty],
+    "text-variable-anchor": ["top", "bottom", "left", "right"],
+    "text-radial-offset": 0.5,
+    "symbol-placement": placement,
+    "icon-optional": true,
+    "text-size": 13,
+    "text-justify": "auto",
+  };
+  return paint;
+}
+
+export function makeLayers({
+  symbology,
+  previewProperty,
+}: {
+  symbology: ISymbology;
+  previewProperty: PreviewProperty;
+}): mapboxgl.AnyLayer[] {
+  return [
+    ephemeralHaloLayer({ source: "ephemeral" }),
+    pipesLayer({
+      source: "imported-features",
+      layerId: "imported-pipes",
+      symbology,
+    }),
+    pipesLayer({
+      source: "features",
+      layerId: "pipes",
+      symbology,
+    }),
+    pumpLines({
+      source: "imported-features",
+      layerId: "imported-pump-lines",
+      symbology,
+    }),
+    pumpLines({
+      source: "features",
+      layerId: "pump-lines",
+      symbology,
+    }),
+    valveLines({
+      source: "imported-features",
+      layerId: "imported-valve-lines",
+      symbology,
+    }),
+    valveLines({
+      source: "features",
+      layerId: "valve-lines",
+      symbology,
+    }),
+    ephemeralShadowLineLayer({ source: "ephemeral" }),
+    ephemeralDraftLineLayer({ source: "ephemeral" }),
+    ephemeralPipeHighlightLayer({ source: "ephemeral" }),
+    pipeArrows({
+      source: "imported-features",
+      layerId: "imported-pipe-arrows",
+      symbology,
+    }),
+    pipeArrows({
+      source: "features",
+      layerId: "pipe-arrows",
+      symbology,
+    }),
+    junctionsLayer({
+      source: "imported-features",
+      layerId: "imported-junctions",
+      symbology,
+    }),
+    junctionsLayer({
+      source: "features",
+      layerId: "junctions",
+      symbology,
+    }),
+    junctionResultsLayer({
+      source: "imported-features",
+      layerId: "imported-junction-results",
+      symbology,
+    }),
+    junctionResultsLayer({
+      source: "features",
+      layerId: "junction-results",
+      symbology,
+    }),
+    ...valveIcons({
+      source: "icons",
+      layerId: "valve-icons",
+    }),
+    checkValveIcons({
+      source: "icons",
+      layerId: "check-valve-icons",
+    }),
+    ...pumpIcons({
+      source: "icons",
+      layerId: "pump-icons",
+      symbology,
+    }),
+    ...reservoirLayers({ sources: ["icons"] }),
+    ...tankLayers({ sources: ["icons"] }),
+    ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
+    ephemeralIconHighlightLayers({ source: "ephemeral" }),
+    ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
+    ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
+    ...(typeof previewProperty === "string"
+      ? [
+          {
+            id: FEATURES_POINT_LABEL_LAYER_NAME,
+            type: "symbol",
+            source: "features",
+            paint: LABEL_PAINT(symbology, previewProperty),
+            layout: LABEL_LAYOUT(previewProperty, "point"),
+            filter: addPreviewFilter(
+              CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+              previewProperty,
+            ),
+          } as mapboxgl.AnyLayer,
+          {
+            id: FEATURES_LINE_LABEL_LAYER_NAME,
+            type: "symbol",
+            source: "features",
+            paint: LABEL_PAINT(symbology, previewProperty),
+            layout: LABEL_LAYOUT(previewProperty, "line"),
+            filter: addPreviewFilter(
+              CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
+              previewProperty,
+            ),
+          } as mapboxgl.AnyLayer,
+        ]
+      : []),
+  ].filter((l) => !!l);
+}
