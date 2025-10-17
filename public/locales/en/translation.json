@@ -600,12 +600,12 @@
     },
     "crossingPipes": {
       "title": "Crossing pipes",
-       "description": "Finds intersecting pipes that may need to be connected.",
-      "summary_zero": "No potential connections found",
-      "summary_one": "1 potential connection found",
-      "summary_other": "{{count}} potential connections found",
-      "issueLabel": "Potential connection for {{1}}",
-      "emptyMessage": "No unconnected intersecting pipes found."
+       "description": "Find pipes that intersect without a connecting node.",
+      "summary_zero": "No intersections found",
+      "summary_one": "1 intersection found",
+      "summary_other": "{{count}} intersections found",
+      "issueLabel": "Intersection for pipes {{1}} and {{2}}",
+      "emptyMessage": "No crossing pipes found in your network"
     }
   },
   "privacyBanner": {
