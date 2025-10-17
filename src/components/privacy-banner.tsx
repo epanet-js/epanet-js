@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "src/auth";
-import { useUrlFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type PrivacyPreferences,
   usePrivacySettings,
@@ -13,11 +12,10 @@ type View = "banner" | "preferences";
 
 export const PrivacyBanner = () => {
   const { isLoaded } = useAuth();
-  const isPrivacyBannerOn = useUrlFeatureFlag("FLAG_PRIVACY_BANNER");
   const { privacySettings, setPrivacySettings } = usePrivacySettings();
   const [view, setView] = useState<View>("banner");
 
-  if (!isLoaded || !isPrivacyBannerOn || privacySettings !== undefined) {
+  if (!isLoaded || privacySettings !== undefined) {
     return null;
   }
 
