@@ -1,11 +1,9 @@
 import { useUserTracking } from "src/infra/user-tracking";
 import { Button } from "./elements";
 import { supportEmail } from "src/global-config";
-import { useTranslate } from "src/hooks/use-translate";
 import { ErrorIcon } from "src/icons";
 
 export const FallbackError = () => {
-  const translate = useTranslate();
   const userTracking = useUserTracking();
 
   return (
@@ -13,11 +11,12 @@ export const FallbackError = () => {
       <div className="bg-white text-gray-900 rounded-lg p-4 shadow-lg w-full max-w-lg">
         <span className="flex items-center gap-x-2 text-xl text-black mb-4">
           <ErrorIcon />
-          {translate("oopsSomethingWrong")}
+          Oops! Something went wrong
         </span>
 
         <p className="text-sm mb-4">
-          {translate("errorProcessingRequest")} {translate("pleaseTryAgain")}{" "}
+          An error occurred while processing your request. Please try again or
+          contact us at{" "}
           <a href={`mailto:${supportEmail}`} className="text-purple-800">
             {supportEmail}
           </a>
@@ -34,7 +33,7 @@ export const FallbackError = () => {
               window.location.reload();
             }}
           >
-            {translate("reloadPage")}
+            Reload Page
           </Button>
         </div>
       </div>
