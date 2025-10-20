@@ -82,13 +82,18 @@ export const buildModel = (
     });
   }
 
+  let customerPointIdCounter = 1;
   for (const customerPointData of inpData.customerPoints) {
+    const id = options?.customerLabels
+      ? String(customerPointIdCounter++)
+      : customerPointData.label;
+
     const customerPoint = CustomerPoint.build(
-      customerPointData.id,
+      id,
       customerPointData.coordinates,
       {
         baseDemand: customerPointData.baseDemand,
-        label: customerPointData.label || customerPointData.id,
+        label: customerPointData.label,
       },
     );
 
@@ -109,7 +114,7 @@ export const buildModel = (
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
     }
 
-    hydraulicModel.customerPoints.set(customerPointData.id, customerPoint);
+    hydraulicModel.customerPoints.set(id, customerPoint);
   }
 
   return { hydraulicModel, modelMetadata: { quantities } };

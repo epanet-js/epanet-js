@@ -64,7 +64,6 @@ export type ValveData = {
 
 export type CustomerPointData =
   | {
-      id: string;
       label: string;
       coordinates: [number, number];
       baseDemand: number;
@@ -73,7 +72,6 @@ export type CustomerPointData =
       snapPoint: [number, number];
     }
   | {
-      id: string;
       label: string;
       coordinates: [number, number];
       baseDemand: number;

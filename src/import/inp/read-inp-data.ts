@@ -163,7 +163,7 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
   if (parts.length < 4) return;
 
   const [
-    id,
+    label,
     x,
     y,
     demand,
@@ -177,8 +177,7 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
 
   if (hasConnection) {
     inpData.customerPoints.push({
-      id,
-      label: id,
+      label,
       coordinates: [parseFloat(x), parseFloat(y)],
       baseDemand: parseFloat(demand),
       pipeId,
@@ -187,8 +186,7 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
     });
   } else {
     inpData.customerPoints.push({
-      id,
-      label: id,
+      label,
       coordinates: [parseFloat(x), parseFloat(y)],
       baseDemand: parseFloat(demand),
     });
