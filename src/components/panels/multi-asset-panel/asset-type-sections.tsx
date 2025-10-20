@@ -21,7 +21,7 @@ export function AssetTypeSections({
   ];
 
   return (
-    <SectionList padding={0} gap={3}>
+    <SectionList padding={0} gap={3} overflow={false}>
       {sectionKeys.map((sectionKey) => {
         const stats = sections[sectionKey];
 

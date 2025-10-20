@@ -94,13 +94,19 @@ export const SectionList = ({
   children,
   gap = 5,
   padding = 4,
+  overflow = true,
 }: {
   children: React.ReactNode;
   gap?: 1 | 2 | 3 | 4 | 5 | 6;
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  overflow?: boolean;
 }) => {
   return (
-    <div className="flex-auto overflow-y-auto placemark-scrollbar">
+    <div
+      className={clsx(
+        overflow ? "flex-auto overflow-y-auto placemark-scrollbar" : "",
+      )}
+    >
       <div
         className={clsx("flex flex-col", {
           "gap-1": gap === 1,
