@@ -10,6 +10,7 @@ export function* parseCustomerPoints(
   demandTargetUnit: Unit,
   startingId: number = 1,
   demandPropertyName: string = "demand",
+  labelPropertyName: string | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
@@ -24,6 +25,7 @@ export function* parseCustomerPoints(
           demandTargetUnit,
           startingId,
           demandPropertyName,
+          labelPropertyName,
         );
         return;
       }
@@ -37,6 +39,7 @@ export function* parseCustomerPoints(
     demandTargetUnit,
     startingId,
     demandPropertyName,
+    labelPropertyName,
   );
 }
 
@@ -47,6 +50,7 @@ function* parseGeoJSONFeatures(
   demandTargetUnit: Unit,
   startingId: number = 1,
   demandPropertyName: string = "demand",
+  labelPropertyName: string | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
@@ -62,6 +66,7 @@ function* parseGeoJSONFeatures(
       demandImportUnit,
       demandTargetUnit,
       demandPropertyName,
+      labelPropertyName,
     );
     yield result.customerPoint;
     currentId = result.nextId;
@@ -75,6 +80,7 @@ function* parseGeoJSONLFeatures(
   demandTargetUnit: Unit,
   startingId: number = 1,
   demandPropertyName: string = "demand",
+  labelPropertyName: string | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
   let currentId = startingId;
@@ -95,6 +101,7 @@ function* parseGeoJSONLFeatures(
           demandImportUnit,
           demandTargetUnit,
           demandPropertyName,
+          labelPropertyName,
         );
         yield result.customerPoint;
         currentId = result.nextId;
@@ -117,6 +124,7 @@ const processGeoJSONFeature = (
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
   demandPropertyName: string = "demand",
+  labelPropertyName: string | null = null,
 ): ProcessFeatureResult => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
@@ -180,10 +188,20 @@ const processGeoJSONFeature = (
       demandTargetUnit,
     );
 
+    const id = currentId.toString();
+    let label = id;
+
+    if (labelPropertyName && feature.properties) {
+      const labelValue = feature.properties[labelPropertyName];
+      if (labelValue != null && labelValue !== "") {
+        label = String(labelValue);
+      }
+    }
+
     const customerPoint = CustomerPoint.build(
-      currentId.toString(),
+      id,
       [coordinates[0], coordinates[1]] as Position,
-      { baseDemand: demandInTargetUnit },
+      { baseDemand: demandInTargetUnit, label },
     );
 
     return { customerPoint, nextId: currentId + 1 };

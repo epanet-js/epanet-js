@@ -1,4 +1,3 @@
-import { validateCustomerPoint } from "./customer-points";
 import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
 
 describe("CustomerPoint", () => {
@@ -58,25 +57,5 @@ describe("CustomerPoint", () => {
 
     expect(originalPoint.connection).not.toBeNull();
     expect(copiedPoint.connection).toBeNull();
-  });
-});
-
-describe("validateCustomerPoint", () => {
-  it("validates correct customer point", () => {
-    const customerPoint = {
-      id: "1",
-      coordinates: [10, 20],
-      properties: { name: "Test" },
-    };
-
-    expect(validateCustomerPoint(customerPoint)).toBe(true);
-  });
-
-  it("rejects invalid customer point", () => {
-    expect(validateCustomerPoint({})).toBe(false);
-    expect(validateCustomerPoint({ id: "1" })).toBe(false);
-    expect(validateCustomerPoint({ id: "1", coordinates: "invalid" })).toBe(
-      false,
-    );
   });
 });

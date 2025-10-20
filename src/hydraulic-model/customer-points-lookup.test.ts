@@ -6,10 +6,16 @@ describe("CustomerPointsLookup", () => {
   it("provides customer points connected to an asset", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], { baseDemand: 20 });
+    const cp2 = new CustomerPoint("cp2", [0, 0], {
+      baseDemand: 20,
+      label: "cp2",
+    });
     cp2.connect({ pipeId: "pipe1", snapPoint: [2, 2], junctionId: "j2" });
 
     lookup.addConnection(cp1);
@@ -23,10 +29,16 @@ describe("CustomerPointsLookup", () => {
   it("removes customer points when removing connections", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], { baseDemand: 20 });
+    const cp2 = new CustomerPoint("cp2", [0, 0], {
+      baseDemand: 20,
+      label: "cp2",
+    });
     cp2.connect({ pipeId: "pipe1", snapPoint: [2, 2], junctionId: "j1" });
 
     lookup.addConnection(cp1);
@@ -41,10 +53,16 @@ describe("CustomerPointsLookup", () => {
   it("does not crash when removing missing customer point", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], { baseDemand: 20 });
+    const cp2 = new CustomerPoint("cp2", [0, 0], {
+      baseDemand: 20,
+      label: "cp2",
+    });
     cp2.connect({ pipeId: "pipe2", snapPoint: [2, 2], junctionId: "j2" });
 
     lookup.addConnection(cp1);
@@ -57,10 +75,16 @@ describe("CustomerPointsLookup", () => {
   it("allows multiple customer points on same pipe and junction", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], { baseDemand: 20 });
+    const cp2 = new CustomerPoint("cp2", [0, 0], {
+      baseDemand: 20,
+      label: "cp2",
+    });
     cp2.connect({ pipeId: "pipe1", snapPoint: [2, 2], junctionId: "j1" });
 
     lookup.addConnection(cp1);
@@ -73,7 +97,10 @@ describe("CustomerPointsLookup", () => {
   it("handles customer points with no connections", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
 
     lookup.addConnection(cp1);
 
@@ -84,7 +111,10 @@ describe("CustomerPointsLookup", () => {
   it("cleans up empty sets when removing last customer point", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
     lookup.addConnection(cp1);
@@ -99,7 +129,10 @@ describe("CustomerPointsLookup", () => {
   it("can clear all connections", () => {
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], { baseDemand: 10 });
+    const cp1 = new CustomerPoint("cp1", [0, 0], {
+      baseDemand: 10,
+      label: "cp1",
+    });
     cp1.connect({ pipeId: "pipe1", snapPoint: [1, 1], junctionId: "j1" });
 
     lookup.addConnection(cp1);

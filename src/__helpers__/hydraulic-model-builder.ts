@@ -100,10 +100,11 @@ export const buildCustomerPoint = (
     demand?: number;
     coordinates?: Position;
     junctionId?: string;
+    label?: string;
   } = {},
 ) => {
-  const { demand = 0, coordinates = [0, 0] } = options;
-  return CustomerPoint.build(id, coordinates, { baseDemand: demand });
+  const { demand = 0, coordinates = [0, 0], label = id } = options;
+  return CustomerPoint.build(id, coordinates, { baseDemand: demand, label });
 };
 
 export class HydraulicModelBuilder {

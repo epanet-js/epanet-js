@@ -29,6 +29,7 @@ export interface CustomerPointConnection {
 
 export class CustomerPoint {
   public readonly id: string;
+  public readonly label: string;
   public readonly coordinates: Position;
   private properties: { baseDemand: number };
   private connectionData: CustomerPointConnection | null = null;
@@ -36,17 +37,18 @@ export class CustomerPoint {
   constructor(
     id: string,
     coordinates: Position,
-    properties: { baseDemand: number },
+    properties: { baseDemand: number; label: string },
   ) {
     this.id = id;
+    this.label = properties.label;
     this.coordinates = coordinates;
-    this.properties = properties;
+    this.properties = { baseDemand: properties.baseDemand };
   }
 
   static build(
     id: string,
     coordinates: Position,
-    properties: { baseDemand: number },
+    properties: { baseDemand: number; label: string },
   ): CustomerPoint {
     return new CustomerPoint(id, roundCoordinates(coordinates), properties);
   }
@@ -70,21 +72,10 @@ export class CustomerPoint {
   copyDisconnected(): CustomerPoint {
     return new CustomerPoint(this.id, [...this.coordinates], {
       baseDemand: this.baseDemand,
+      label: this.label,
     });
   }
 }
-
-export const validateCustomerPoint = (data: any): data is CustomerPoint => {
-  return (
-    typeof data === "object" &&
-    typeof data.id === "string" &&
-    Array.isArray(data.coordinates) &&
-    data.coordinates.length === 2 &&
-    typeof data.coordinates[0] === "number" &&
-    typeof data.coordinates[1] === "number" &&
-    typeof data.properties === "object"
-  );
-};
 
 export class CustomerPoints extends Map<string, CustomerPoint> {}
 

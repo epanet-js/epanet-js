@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -52,7 +52,11 @@ export const DataMappingStep: React.FC<{
   } = wizardState;
 
   const parseInputDataToCustomerPoints = useCallback(
-    (inputData: InputData, demandPropertyName: string) => {
+    (
+      inputData: InputData,
+      demandPropertyName: string,
+      labelPropertyName: string | null = null,
+    ) => {
       setLoading(true);
       setError(null);
 
@@ -80,6 +84,7 @@ export const DataMappingStep: React.FC<{
             demandTargetUnit,
             1,
             demandPropertyName,
+            labelPropertyName,
           )) {
             totalCount++;
             if (customerPoint) {
@@ -139,7 +144,11 @@ export const DataMappingStep: React.FC<{
       });
       setSelectedDemandProperty(property);
       setParsedDataSummary(null);
-      parseInputDataToCustomerPoints(inputData as InputData, property);
+      parseInputDataToCustomerPoints(
+        inputData as InputData,
+        property,
+        selectedLabelProperty,
+      );
     },
     [
       userTracking,
@@ -147,6 +156,7 @@ export const DataMappingStep: React.FC<{
       setParsedDataSummary,
       parseInputDataToCustomerPoints,
       inputData,
+      selectedLabelProperty,
     ],
   );
 
@@ -157,8 +167,23 @@ export const DataMappingStep: React.FC<{
         property,
       });
       setSelectedLabelProperty(property);
+      if (selectedDemandProperty) {
+        setParsedDataSummary(null);
+        parseInputDataToCustomerPoints(
+          inputData as InputData,
+          selectedDemandProperty,
+          property,
+        );
+      }
     },
-    [userTracking, setSelectedLabelProperty],
+    [
+      userTracking,
+      setSelectedLabelProperty,
+      selectedDemandProperty,
+      setParsedDataSummary,
+      parseInputDataToCustomerPoints,
+      inputData,
+    ],
   );
 
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
@@ -303,8 +328,6 @@ export const DataMappingStep: React.FC<{
                   maxPreviewRows={MAX_PREVIEW_ROWS}
                   parsedDataSummary={parsedDataSummary}
                   wizardState={wizardState}
-                  inputData={inputData}
-                  selectedLabelProperty={selectedLabelProperty}
                   isCustomerLabelEnabled={isCustomerLabelEnabled}
                 />
               </div>
@@ -353,8 +376,6 @@ type CustomerPointsTableProps = {
   maxPreviewRows: number;
   parsedDataSummary: ParsedDataSummary;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
-  inputData: InputData | null;
-  selectedLabelProperty: string | null;
   isCustomerLabelEnabled: boolean;
 };
 
@@ -363,8 +384,6 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   maxPreviewRows,
   parsedDataSummary: _,
   wizardState,
-  inputData,
-  selectedLabelProperty,
   isCustomerLabelEnabled,
 }) => {
   const translate = useTranslate();
@@ -374,47 +393,6 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
-
-  const featureById = useMemo(() => {
-    const map = new Map<string, Feature>();
-    if (inputData && inputData.features) {
-      let currentId = 1;
-
-      for (const feature of inputData.features) {
-        const isValid =
-          feature.geometry?.type === "Point" &&
-          Array.isArray(feature.geometry.coordinates) &&
-          feature.geometry.coordinates.length >= 2;
-
-        if (isValid) {
-          map.set(String(currentId), feature);
-          currentId++;
-        }
-      }
-    }
-    return map;
-  }, [inputData]);
-
-  const getLabelValue = useCallback(
-    (point: CustomerPoint): string => {
-      if (!isCustomerLabelEnabled || !selectedLabelProperty) {
-        return point.id;
-      }
-
-      const feature = featureById.get(point.id);
-      if (
-        feature &&
-        feature.properties &&
-        selectedLabelProperty in feature.properties
-      ) {
-        const value = feature.properties[selectedLabelProperty];
-        return value != null ? String(value) : point.id;
-      }
-
-      return point.id;
-    },
-    [isCustomerLabelEnabled, selectedLabelProperty, featureById],
-  );
 
   if (validCount === 0) {
     return (
@@ -461,7 +439,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
               key={point.id}
               className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
-              <td className="px-3 py-2 border-b">{getLabelValue(point)}</td>
+              <td className="px-3 py-2 border-b">{point.label}</td>
               <td className="px-3 py-2 border-b">
                 {localizeDecimal(point.coordinates[1], { decimals: 6 })}
               </td>

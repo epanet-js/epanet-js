@@ -534,7 +534,7 @@ const appendCustomerPoint = (
     sections.customers.push(
       ";" +
         [
-          customerPoint.id,
+          customerPoint.label,
           x,
           y,
           baseDemand,
@@ -546,7 +546,7 @@ const appendCustomerPoint = (
     );
   } else {
     sections.customers.push(
-      ";" + [customerPoint.id, x, y, baseDemand, "", "", "", ""].join("\t"),
+      ";" + [customerPoint.label, x, y, baseDemand, "", "", "", ""].join("\t"),
     );
   }
 };

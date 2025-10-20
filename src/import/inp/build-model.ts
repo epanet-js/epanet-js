@@ -86,7 +86,10 @@ export const buildModel = (
     const customerPoint = CustomerPoint.build(
       customerPointData.id,
       customerPointData.coordinates,
-      { baseDemand: customerPointData.baseDemand },
+      {
+        baseDemand: customerPointData.baseDemand,
+        label: customerPointData.label || customerPointData.id,
+      },
     );
 
     if (
