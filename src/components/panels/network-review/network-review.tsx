@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -16,7 +16,6 @@ import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
-import { CommingSoonBadge } from "src/components/comming-soon-badge";
 
 export function NetworkReview() {
   const [checkType, setCheckType] = useState<CheckType | null>(null);
@@ -71,8 +70,60 @@ function NetworkReviewSummary({
   const enabledChecks = allChecks.filter((check) => check.isEnabled);
   const disabledChecks = allChecks.filter((check) => !check.isEnabled);
 
+  const [selectedCheckType, setSelectedCheckType] = useState<CheckType>(
+    CheckType.orphanAssets,
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(function autoFocusOnMount() {
+    const timer = setTimeout(() => {
+      containerRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (enabledChecks.length === 0) return;
+
+      const currentIndex = enabledChecks.findIndex(
+        (check) => check.checkType === selectedCheckType,
+      );
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          const nextIndex = Math.min(
+            currentIndex + 1,
+            enabledChecks.length - 1,
+          );
+          setSelectedCheckType(enabledChecks[nextIndex].checkType);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          const prevIndex = Math.max(currentIndex - 1, 0);
+          setSelectedCheckType(enabledChecks[prevIndex].checkType);
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (currentIndex === -1) break;
+          const selectedCheck = enabledChecks[currentIndex];
+          if (selectedCheck?.isEnabled) {
+            onClick(selectedCheck.checkType);
+            break;
+          }
+      }
+    },
+    [enabledChecks, selectedCheckType, onClick],
+  );
+
   return (
-    <div className="flex-auto overflow-y-auto placemark-scrollbar">
+    <div
+      ref={containerRef}
+      className="flex-auto overflow-y-auto placemark-scrollbar"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
       <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100 flex flex-row gap-2 justify-between items-center">
         <span>{translate("networkReview.title")}</span>
         <EarlyAccessBadge />
@@ -87,14 +138,19 @@ function NetworkReviewSummary({
             checkType={checkType}
             onClick={onClick}
             isEnabled={true}
+            isSelected={selectedCheckType === checkType}
           />
         ))}
+        <div className="uppercase text-gray-700 dark:text-gray-200 px-4 py-2 text-sm">
+          {translate("comingSoon")}
+        </div>
         {disabledChecks.map(({ checkType }) => (
           <ReviewCheck
             key={checkType}
             checkType={checkType}
             onClick={onClick}
             isEnabled={false}
+            isSelected={selectedCheckType === checkType}
           />
         ))}
       </div>
@@ -120,10 +176,12 @@ const ReviewCheck = ({
   onClick,
   checkType,
   isEnabled,
+  isSelected,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
   isEnabled: boolean;
+  isSelected: boolean;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -144,10 +202,13 @@ const ReviewCheck = ({
   return (
     <Button
       onClick={selectCheck}
-      variant={"quiet/mode"}
+      variant={"quiet/list"}
       role="button"
       aria-label={label}
+      aria-checked={isSelected}
+      aria-expanded={isSelected ? true : false}
       className="group w-full"
+      disabled={!isEnabled}
     >
       <div
         className="grid gap-x-2 items-start p-2 pr-0 text-sm w-full"
@@ -158,7 +219,6 @@ const ReviewCheck = ({
         <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
         <div className="flex flex-row gap-2 flex-wrap items-center">
           <div className="text-sm font-bold text-left">{label}</div>
-          {!isEnabled && <CommingSoonBadge />}
         </div>
         {isEnabled && (
           <div className="pt-[.125rem] opacity-0 group-hover:opacity-100 transition-opacity">
