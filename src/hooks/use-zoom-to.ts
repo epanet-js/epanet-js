@@ -13,7 +13,12 @@ export function useZoomTo() {
 
   return useAtomCallback(
     useCallback(
-      (get, _set, selection: Sel | IWrappedFeature[] | Maybe<BBox>) => {
+      (
+        get,
+        _set,
+        selection: Sel | IWrappedFeature[] | Maybe<BBox>,
+        maxZoom?: number,
+      ) => {
         const data = get(dataAtom);
         let extent: Maybe<BBox>;
         if (Maybe.isMaybe(selection)) {
@@ -37,7 +42,7 @@ export function useZoomTo() {
             animate: false,
             // Avoid extreme zooms when we're locating a point.
             // Otherwise, zoom to the thing.
-            maxZoom: isBBoxEmpty(extent) ? 18 : Infinity,
+            maxZoom: maxZoom ?? (isBBoxEmpty(extent) ? 18 : Infinity),
           });
         });
       },

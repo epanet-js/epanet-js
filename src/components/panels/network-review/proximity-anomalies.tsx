@@ -23,6 +23,9 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { Button } from "src/components/elements";
 import { PipeIcon } from "src/icons";
 import { Pipe } from "src/hydraulic-model";
+import { Maybe } from "purify-ts/Maybe";
+import bbox from "@turf/bbox";
+import { lineString } from "@turf/helpers";
 
 export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
@@ -64,7 +67,12 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
       const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
       setSelectedConnectionId(connectionId);
       setSelection(USelection.fromIds([anomaly.nodeId, anomaly.pipeId]));
-      zoomTo([nodeAsset]);
+
+      const nodeGeometry = nodeAsset.feature.geometry as GeoJSON.Point;
+      const boundingBox = bbox(
+        lineString([nodeGeometry.coordinates, anomaly.nearestPointOnPipe]),
+      );
+      zoomTo(Maybe.of(boundingBox), 20);
     },
     [clearSelection, hydraulicModel.assets, setSelection, zoomTo],
   );
