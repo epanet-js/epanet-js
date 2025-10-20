@@ -1,5 +1,8 @@
 import { Feature, FeatureCollection, Position } from "geojson";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  MAX_CUSTOMER_POINT_LABEL_LENGTH,
+} from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
 
@@ -194,7 +197,10 @@ const processGeoJSONFeature = (
     if (labelPropertyName && feature.properties) {
       const labelValue = feature.properties[labelPropertyName];
       if (labelValue != null && labelValue !== "") {
-        label = String(labelValue);
+        label = String(labelValue).substring(
+          0,
+          MAX_CUSTOMER_POINT_LABEL_LENGTH,
+        );
       }
     }
 

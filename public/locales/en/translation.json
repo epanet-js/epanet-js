@@ -478,7 +478,8 @@
         },
         "labelSelector": {
           "label": "Label",
-          "placeholder": "Select label property (optional)..."
+          "placeholder": "Select label property (optional)...",
+          "description": "Labels will be trimmed to {{1}} characters"
         },
         "table": {
           "id": "ID",

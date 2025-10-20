@@ -20,6 +20,7 @@ import {
   parseValve,
   unsupported,
 } from "./row-parsers";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 
 const commentIdentifier = ";";
 
@@ -163,7 +164,7 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
   if (parts.length < 4) return;
 
   const [
-    label,
+    rawLabel,
     x,
     y,
     demand,
@@ -172,6 +173,8 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
     snapX = "",
     snapY = "",
   ] = parts;
+
+  const label = rawLabel.substring(0, MAX_CUSTOMER_POINT_LABEL_LENGTH);
 
   const hasConnection = pipeId && junctionId && snapX && snapY;
 

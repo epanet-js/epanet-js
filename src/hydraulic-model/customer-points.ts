@@ -2,6 +2,8 @@ import { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { roundCoordinates } from "src/lib/geometry";
 
+export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
+
 export type AllocationRule = {
   maxDistance: number;
   maxDiameter: number;

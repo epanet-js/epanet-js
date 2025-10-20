@@ -11,7 +11,10 @@ import {
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
 } from "src/import/customer-points/parse-customer-points-issues";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  MAX_CUSTOMER_POINT_LABEL_LENGTH,
+} from "src/hydraulic-model/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   WizardState,
@@ -439,7 +442,11 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
               key={point.id}
               className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
-              <td className="px-3 py-2 border-b">{point.label}</td>
+              <td className="px-3 py-2 border-b">
+                <div className="truncate" title={point.label}>
+                  {point.label}
+                </div>
+              </td>
               <td className="px-3 py-2 border-b">
                 {localizeDecimal(point.coordinates[1], { decimals: 6 })}
               </td>
@@ -677,6 +684,12 @@ const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
           </option>
         ))}
       </select>
+      <p className="text-xs text-gray-500 mt-1">
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.labelSelector.description",
+          String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+        )}
+      </p>
     </div>
   );
 };
