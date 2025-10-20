@@ -74,7 +74,7 @@ export function MultiValueRow({
             {pluralize(translate, "value", propertyStats.values.size)}
           </P.Trigger>
           <P.Portal>
-            <StyledPopoverContent onKeyDown={handleContentKeyDown}>
+            <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
               <StyledPopoverArrow />
               {propertyStats.type === "quantity" && (
                 <QuantityStatsDeprecatedFields
