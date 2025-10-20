@@ -475,3 +475,22 @@ export const circleTypeAtom = atomWithStorage<CIRCLE_TYPE>(
   "circleType",
   CIRCLE_TYPE.MERCATOR,
 );
+
+export type MultiAssetPanelCollapse = {
+  junction: boolean;
+  pipe: boolean;
+  pump: boolean;
+  valve: boolean;
+  reservoir: boolean;
+  tank: boolean;
+};
+
+export const multiAssetPanelCollapseAtom =
+  atomWithStorage<MultiAssetPanelCollapse>("multiAssetPanelCollapse", {
+    junction: true,
+    pipe: true,
+    pump: true,
+    valve: true,
+    reservoir: true,
+    tank: true,
+  });

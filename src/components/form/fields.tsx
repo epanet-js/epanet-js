@@ -137,17 +137,25 @@ export const CollapsibleSection = ({
   title,
   variant = "primary",
   defaultOpen = true,
+  open: controlledOpen,
+  onOpenChange,
   children,
 }: {
   title: string;
   variant?: "primary" | "secondary";
   defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }) => {
-  const [open, setOpen] = useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const handleOpenChange = isControlled ? onOpenChange! : setUncontrolledOpen;
 
   return (
-    <C.Root open={open} onOpenChange={setOpen}>
+    <C.Root open={open} onOpenChange={handleOpenChange}>
       <div className="flex flex-col">
         <C.Trigger
           className={clsx(

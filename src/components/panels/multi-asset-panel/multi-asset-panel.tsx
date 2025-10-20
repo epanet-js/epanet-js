@@ -7,8 +7,12 @@ import { SectionList, CollapsibleSection } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
-import { useAtomValue } from "jotai";
-import { simulationAtom, dataAtom } from "src/state/jotai";
+import { useAtom, useAtomValue } from "jotai";
+import {
+  simulationAtom,
+  dataAtom,
+  multiAssetPanelCollapseAtom,
+} from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 
 export function MultiAssetPanel({
@@ -22,6 +26,9 @@ export function MultiAssetPanel({
   const simulationState = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const hasSimulation = simulationState.status !== "idle";
+  const [collapseState, setCollapseState] = useAtom(
+    multiAssetPanelCollapseAtom,
+  );
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
@@ -43,6 +50,10 @@ export function MultiAssetPanel({
       {assetCounts.junction > 0 && (
         <CollapsibleSection
           title={`${translate("junction")} (${assetCounts.junction})`}
+          open={collapseState.junction}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, junction: open }))
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
@@ -54,6 +65,10 @@ export function MultiAssetPanel({
       {assetCounts.pipe > 0 && (
         <CollapsibleSection
           title={`${translate("pipe")} (${assetCounts.pipe})`}
+          open={collapseState.pipe}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, pipe: open }))
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
@@ -65,6 +80,10 @@ export function MultiAssetPanel({
       {assetCounts.pump > 0 && (
         <CollapsibleSection
           title={`${translate("pump")} (${assetCounts.pump})`}
+          open={collapseState.pump}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, pump: open }))
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.pump}
@@ -76,6 +95,10 @@ export function MultiAssetPanel({
       {assetCounts.valve > 0 && (
         <CollapsibleSection
           title={`${translate("valve")} (${assetCounts.valve})`}
+          open={collapseState.valve}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, valve: open }))
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
@@ -87,6 +110,10 @@ export function MultiAssetPanel({
       {assetCounts.reservoir > 0 && (
         <CollapsibleSection
           title={`${translate("reservoir")} (${assetCounts.reservoir})`}
+          open={collapseState.reservoir}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, reservoir: open }))
+          }
         >
           <AssetTypeSections sections={multiAssetData.reservoir} />
         </CollapsibleSection>
@@ -95,6 +122,10 @@ export function MultiAssetPanel({
       {assetCounts.tank > 0 && (
         <CollapsibleSection
           title={`${translate("tank")} (${assetCounts.tank})`}
+          open={collapseState.tank}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, tank: open }))
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.tank}
