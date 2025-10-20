@@ -121,6 +121,8 @@ export const VirtualizedIssuesList = <T,>({
   const headerRows = 1;
   const listRef = useRef<HTMLDivElement>(null);
   const isScrollingRef = useRef(false);
+  const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
+  const lastProcessedSelectedIdRef = useRef<string | null>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: issues.length + headerRows,
@@ -129,15 +131,34 @@ export const VirtualizedIssuesList = <T,>({
   });
 
   const handleItemClick = useCallback(
-    (issue: T) => {
+    (issue: T, index: number) => {
+      lastKeyboardNavigatedIndexRef.current = index;
+      lastProcessedSelectedIdRef.current = getIdFromIssue(issue);
+
       onSelect(issue);
-      // Focus the list container so keyboard navigation works immediately
       if (listRef.current) {
         listRef.current.focus();
       }
     },
-    [onSelect],
+    [onSelect, getIdFromIssue],
   );
+
+  const ensureItemIsVisible = useCallback(() => {
+    if (lastKeyboardNavigatedIndexRef.current === null) return;
+
+    const rowIndex = lastKeyboardNavigatedIndexRef.current + headerRows;
+    const range = rowVirtualizer.range;
+
+    if (!range) return;
+    const { startIndex, endIndex } = range;
+    if (rowIndex >= startIndex && rowIndex < endIndex) {
+      return;
+    }
+
+    rowVirtualizer.scrollToIndex(rowIndex, {
+      align: "center",
+    });
+  }, [rowVirtualizer]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -146,20 +167,26 @@ export const VirtualizedIssuesList = <T,>({
       const range = rowVirtualizer.range;
       if (!range) return;
 
-      const currentIndex = selectedId
-        ? issues.findIndex((issue) => getIdFromIssue(issue) === selectedId)
-        : -1;
+      const currentIndex = lastKeyboardNavigatedIndexRef.current ?? -1;
 
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
           const nextIndex = Math.min(currentIndex + 1, issues.length - 1);
           onSelect(issues[nextIndex]);
+          lastKeyboardNavigatedIndexRef.current = nextIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[nextIndex],
+          );
           break;
         case "ArrowUp":
           e.preventDefault();
           const prevIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
           onSelect(issues[prevIndex]);
+          lastKeyboardNavigatedIndexRef.current = prevIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[prevIndex],
+          );
           break;
         case "PageDown":
           e.preventDefault();
@@ -169,43 +196,57 @@ export const VirtualizedIssuesList = <T,>({
             issues.length - 1,
           );
           onSelect(issues[nextPageIndex]);
+          lastKeyboardNavigatedIndexRef.current = nextPageIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[nextPageIndex],
+          );
           break;
         case "PageUp":
           e.preventDefault();
           const { startIndex } = range;
           const previousPageIndex = Math.max(startIndex - headerRows - 1, 0);
           onSelect(issues[previousPageIndex]);
+          lastKeyboardNavigatedIndexRef.current = previousPageIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[previousPageIndex],
+          );
           break;
         case "Escape":
           e.preventDefault();
+          lastKeyboardNavigatedIndexRef.current = null;
+          lastProcessedSelectedIdRef.current = null;
           onSelect(null);
           break;
       }
+
+      ensureItemIsVisible();
     },
-    [issues, selectedId, onSelect, getIdFromIssue, rowVirtualizer],
+    [
+      issues,
+      rowVirtualizer.range,
+      ensureItemIsVisible,
+      onSelect,
+      getIdFromIssue,
+    ],
   );
 
   useEffect(
-    function autoscrollToSelectedItem() {
-      if (selectedId === null) return;
-
-      const rowIndex =
-        issues.findIndex((issue) => getIdFromIssue(issue) === selectedId) +
-        headerRows;
-
-      const range = rowVirtualizer.range;
-
-      if (!range) return;
-      const { startIndex, endIndex } = range;
-      if (rowIndex >= startIndex && rowIndex < endIndex) {
-        return;
+    function syncIndexWhenSelectedIdChangesExternally() {
+      if (
+        selectedId !== lastProcessedSelectedIdRef.current &&
+        selectedId !== null
+      ) {
+        const newIndex = issues.findIndex(
+          (issue) => getIdFromIssue(issue) === selectedId,
+        );
+        if (newIndex !== -1) {
+          lastKeyboardNavigatedIndexRef.current = newIndex;
+          lastProcessedSelectedIdRef.current = selectedId;
+          ensureItemIsVisible();
+        }
       }
-
-      rowVirtualizer.scrollToIndex(rowIndex, {
-        align: "center",
-      });
     },
-    [selectedId, issues, rowVirtualizer, getIdFromIssue],
+    [selectedId, issues, getIdFromIssue, ensureItemIsVisible],
   );
 
   useEffect(
@@ -294,6 +335,10 @@ export const VirtualizedIssuesList = <T,>({
             }
 
             const issue = issues[virtualRow.index - headerRows];
+            const issueIndex = virtualRow.index - headerRows;
+            const handleClickWithIndex = (clickedIssue: T) =>
+              handleItemClick(clickedIssue, issueIndex);
+
             return (
               <div
                 key={getIdFromIssue(issue)}
@@ -302,7 +347,7 @@ export const VirtualizedIssuesList = <T,>({
                 ref={rowVirtualizer.measureElement}
                 role="listItem"
               >
-                {renderItem(issue, selectedId, handleItemClick)}
+                {renderItem(issue, selectedId, handleClickWithIndex)}
               </div>
             );
           })}
