@@ -70,8 +70,8 @@ function NetworkReviewSummary({
   const enabledChecks = allChecks.filter((check) => check.isEnabled);
   const disabledChecks = allChecks.filter((check) => !check.isEnabled);
 
-  const [selectedCheckType, setSelectedCheckType] = useState<CheckType>(
-    CheckType.orphanAssets,
+  const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
+    null,
   );
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +112,10 @@ function NetworkReviewSummary({
             onClick(selectedCheck.checkType);
             break;
           }
+        case "Escape":
+          e.preventDefault();
+          setSelectedCheckType(null);
+          break;
       }
     },
     [enabledChecks, selectedCheckType, onClick],
@@ -221,7 +225,11 @@ const ReviewCheck = ({
           <div className="text-sm font-bold text-left">{label}</div>
         </div>
         {isEnabled && (
-          <div className="pt-[.125rem] opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className={`pt-[.125rem] transition-opacity ${
+              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
             <ChevronRightIcon />
           </div>
         )}
