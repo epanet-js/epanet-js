@@ -7,6 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface CustomerPointsPopoverProps {
   customerPoints: CustomerPoint[];
@@ -27,6 +28,7 @@ export const CustomerPointsPopover = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const useLabelFlag = useFeatureFlag("FLAG_CUSTOMER_LABEL");
 
   const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
     setEphemeralState({
@@ -95,12 +97,15 @@ export const CustomerPointsPopover = ({
                 customerUnit,
               ),
             );
+            const displayValue = useLabelFlag
+              ? customerPoint.label
+              : customerPoint.id;
 
             return (
               <div
                 key={virtualRow.index}
                 role="listitem"
-                aria-label={`Customer point ${customerPoint.id}: ${demandValue}`}
+                aria-label={`Customer point ${displayValue}: ${demandValue}`}
                 className="top-0 left-0 block w-full absolute py-2 px-2 flex items-center
                 hover:bg-gray-200 dark:hover:bg-gray-700
                 gap-x-2 even:bg-gray-100 dark:even:bg-gray-800"
@@ -112,10 +117,10 @@ export const CustomerPointsPopover = ({
                 onMouseLeave={handleCustomerPointLeave}
               >
                 <div
-                  title={customerPoint.id}
+                  title={displayValue}
                   className="flex-auto font-mono text-xs truncate"
                 >
-                  {customerPoint.id}
+                  {displayValue}
                 </div>
                 <div
                   className="text-xs font-mono text-gray-600 dark:text-gray-300"
