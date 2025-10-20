@@ -223,7 +223,7 @@ export const DataMappingStep: React.FC<{
                 "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
               )}
             </p>
-            <div className="space-y-4">
+            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               <DemandPropertySelector
                 availableProperties={Array.from(inputData.properties)}
                 selectedProperty={selectedDemandProperty}
@@ -623,7 +623,7 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
         {translate(
           "importCustomerPoints.wizard.dataMapping.demandSelector.label",
         )}
@@ -631,7 +631,7 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
       <select
         value={selectedProperty || ""}
         onChange={(e) => e.target.value && onSelectProperty(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
       >
         <option value="" disabled>
           {translate(
@@ -663,7 +663,7 @@ const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
         {translate(
           "importCustomerPoints.wizard.dataMapping.labelSelector.label",
         )}
@@ -671,7 +671,7 @@ const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
       <select
         value={selectedProperty || ""}
         onChange={(e) => onSelectProperty(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
       >
         <option value="">
           {translate(
