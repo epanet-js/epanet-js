@@ -11,8 +11,10 @@ import {
   Pump,
   Reservoir,
   Tank,
+  HydraulicModel,
 } from "src/hydraulic-model";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 
 export type QuantityStats = QuantityStatsDeprecated & {
   decimals: number;
@@ -43,6 +45,7 @@ export type ComputedMultiAssetData = {
 export const computeMultiAssetData = (
   assets: Asset[],
   quantitiesMetadata: Quantities,
+  hydraulicModel: HydraulicModel,
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -70,6 +73,7 @@ export const computeMultiAssetData = (
           statsMaps.junction,
           asset as Junction,
           quantitiesMetadata,
+          hydraulicModel.customerPointsLookup,
         );
         break;
       case "pipe":
@@ -116,6 +120,7 @@ const appendJunctionStats = (
   statsMap: Map<string, AssetPropertyStats>,
   junction: Junction,
   quantitiesMetadata: Quantities,
+  customerPointsLookup: CustomerPointsLookup,
 ) => {
   updateQuantityStats(
     statsMap,
@@ -129,6 +134,27 @@ const appendJunctionStats = (
     junction.baseDemand,
     quantitiesMetadata,
   );
+
+  const customerPoints = customerPointsLookup.getCustomerPoints(junction.id);
+  if (customerPoints.size > 0) {
+    const totalCustomerDemand = Array.from(customerPoints).reduce(
+      (sum, cp) => sum + cp.baseDemand,
+      0,
+    );
+
+    updateQuantityStats(
+      statsMap,
+      "customerDemand",
+      totalCustomerDemand,
+      quantitiesMetadata,
+    );
+
+    updateCustomerCountStats(
+      statsMap,
+      "connectedCustomers",
+      customerPoints.size,
+    );
+  }
 
   if (junction.pressure !== null) {
     updateQuantityStats(
@@ -156,7 +182,11 @@ const buildJunctionSections = (
 ): AssetPropertySections => {
   return {
     modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
-    demands: getStatsForProperties(statsMap, ["baseDemand"]),
+    demands: getStatsForProperties(statsMap, [
+      "baseDemand",
+      "customerDemand",
+      "connectedCustomers",
+    ]),
     simulationResults: getStatsForProperties(statsMap, [
       "pressure",
       "head",
@@ -513,6 +543,39 @@ const updateQuantityStats = (
 
   const mean = stats.sum / stats.times;
   stats.mean = roundToDecimal(mean, stats.decimals);
+};
+
+const updateCustomerCountStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  property: string,
+  value: number,
+) => {
+  if (!statsMap.has(property)) {
+    statsMap.set(property, {
+      type: "quantity",
+      property,
+      sum: 0,
+      min: Infinity,
+      max: -Infinity,
+      mean: 0,
+      values: new Map(),
+      times: 0,
+      decimals: 0,
+      unit: null,
+    });
+  }
+
+  const stats = statsMap.get(property) as QuantityStats;
+
+  if (value < stats.min) stats.min = value;
+  if (value > stats.max) stats.max = value;
+
+  stats.sum += value;
+  stats.times += 1;
+  stats.values.set(value, (stats.values.get(value) || 0) + 1);
+
+  const mean = stats.sum / stats.times;
+  stats.mean = roundToDecimal(mean, 0);
 };
 
 const updateCategoryStats = (

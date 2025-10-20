@@ -8,7 +8,7 @@ import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/jotai";
+import { simulationAtom, dataAtom } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 
 export function MultiAssetPanel({
@@ -20,12 +20,13 @@ export function MultiAssetPanel({
 }) {
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
+  const { hydraulicModel } = useAtomValue(dataAtom);
   const hasSimulation = simulationState.status !== "idle";
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return computeMultiAssetData(assets, quantitiesMetadata);
-  }, [selectedFeatures, quantitiesMetadata]);
+    return computeMultiAssetData(assets, quantitiesMetadata, hydraulicModel);
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
 
   return (
     <SectionList>

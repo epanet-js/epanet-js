@@ -7,14 +7,14 @@ describe("computeMultiAssetData", () => {
   const quantities = new Quantities(presets.LPS);
 
   it("groups assets by type", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1")
       .aJunction("J2")
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     expect(result.data.junction).toBeDefined();
     expect(result.data.pipe).toBeDefined();
@@ -23,13 +23,13 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes junction stats with sections", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { elevation: 100, baseDemand: 10 })
       .aJunction("J2", { elevation: 150, baseDemand: 20 })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const junctionData = result.data.junction;
     expect(junctionData.modelAttributes).toBeDefined();
@@ -62,20 +62,20 @@ describe("computeMultiAssetData", () => {
   });
 
   it("excludes null simulation results from stats", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { elevation: 100 })
       .aJunction("J2", { elevation: 150 })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats).toHaveLength(0);
   });
 
   it("includes simulation results when available", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", {
         elevation: 100,
         simulation: { pressure: 50, head: 150, demand: 10 },
@@ -86,8 +86,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats.length).toBeGreaterThan(0);
@@ -103,7 +103,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes pipe stats with sections", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1")
       .aJunction("J2")
       .aPipe("P1", {
@@ -122,8 +122,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const pipeData = result.data.pipe;
     expect(pipeData.modelAttributes).toBeDefined();
@@ -141,7 +141,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes category stats for status properties", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1")
       .aJunction("J2")
       .aJunction("J3")
@@ -162,8 +162,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const statusStat = result.data.pipe.modelAttributes.find(
       (s) => s.property === "initialStatus",
@@ -177,7 +177,8 @@ describe("computeMultiAssetData", () => {
   });
 
   it("handles empty asset arrays", () => {
-    const result = computeMultiAssetData([], quantities);
+    const hydraulicModel = HydraulicModelBuilder.empty();
+    const result = computeMultiAssetData([], quantities, hydraulicModel);
 
     expect(result.data.junction.modelAttributes).toEqual([]);
     expect(result.data.junction.demands).toEqual([]);
@@ -185,14 +186,14 @@ describe("computeMultiAssetData", () => {
   });
 
   it("handles mixed asset types", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", { elevation: 100 })
       .aReservoir("R1", { elevation: 200 })
       .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     expect(result.data.junction.modelAttributes.length).toBeGreaterThan(0);
     expect(result.data.reservoir.modelAttributes.length).toBeGreaterThan(0);
@@ -200,7 +201,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes pump stats with type categories", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1")
       .aJunction("J2")
       .aPump("PU1", {
@@ -211,8 +212,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const pumpData = result.data.pump;
     expect(pumpData.modelAttributes).toBeDefined();
@@ -227,7 +228,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("handles partial simulation results", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1", {
         elevation: 100,
         simulation: { pressure: 50, head: 150, demand: 10 },
@@ -236,8 +237,8 @@ describe("computeMultiAssetData", () => {
       .aJunction("J3", { elevation: 200 })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const simulationStats = result.data.junction.simulationResults;
     const pressureStat = simulationStats.find((s) => s.property === "pressure");
@@ -250,7 +251,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes valve stats with valve type categories", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction("J1")
       .aJunction("J2")
       .aValve("V1", {
@@ -261,8 +262,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const valveData = result.data.valve;
     const typeStat = valveData.modelAttributes.find(
@@ -275,7 +276,7 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes tank stats with sections", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aTank("T1", {
         elevation: 100,
         initialLevel: 10,
@@ -285,8 +286,8 @@ describe("computeMultiAssetData", () => {
       })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const tankData = result.data.tank;
     expect(tankData.modelAttributes.length).toBeGreaterThan(0);
@@ -302,13 +303,13 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes reservoir stats", () => {
-    const model = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir("R1", { elevation: 200 })
       .aReservoir("R2", { elevation: 250 })
       .build();
 
-    const assets = Array.from(model.assets.values());
-    const result = computeMultiAssetData(assets, quantities);
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const reservoirData = result.data.reservoir;
     expect(reservoirData.modelAttributes.length).toBeGreaterThan(0);
