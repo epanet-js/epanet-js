@@ -30,7 +30,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     useCheckProximityAnomalies();
   const { distanceInM, localizedDistance, updateDistance } = useDistance();
   const selection = useAtomValue(selectionAtom);
-  const { setSelection, isSelected } = useSelection(selection);
+  const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedConnectionId, setSelectedConnectionId] = useState<
@@ -52,6 +52,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     (anomaly: ProximityAnomaly | null) => {
       if (!anomaly) {
         setSelectedConnectionId(null);
+        clearSelection();
         return;
       }
       const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
@@ -110,6 +111,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         onGoBack={onGoBack}
         itemsCount={proximityAnomalies.length}
         checkType={CheckType.proximityAnomalies}
+        autoFocus={proximityAnomalies.length === 0}
       />
       <DistanceInput
         distance={localizedDistance}
@@ -121,6 +123,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
           issues={proximityAnomalies}
           onClick={selectProximityAnomaly}
           selectedId={selectedConnectionId}
+          onGoBack={onGoBack}
         />
       ) : (
         <>
@@ -212,10 +215,12 @@ const IssuesList = ({
   issues,
   onClick,
   selectedId,
+  onGoBack,
 }: {
   issues: ProximityAnomaly[];
   onClick: (issue: ProximityAnomaly | null) => void;
   selectedId: string | null;
+  onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
@@ -231,6 +236,7 @@ const IssuesList = ({
         />
       )}
       checkType={CheckType.proximityAnomalies}
+      onGoBack={onGoBack}
     />
   );
 };

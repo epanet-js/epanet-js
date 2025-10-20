@@ -26,7 +26,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
   const { checkCrossingPipes, crossingPipes } = useCheckCrossingPipes();
   const selection = useAtomValue(selectionAtom);
-  const { setSelection, isSelected } = useSelection(selection);
+  const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedCrossingId, setSelectedCrossingId] = useState<string | null>(
@@ -58,6 +58,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
     (crossing: CrossingPipe | null) => {
       if (!crossing) {
         setSelectedCrossingId(null);
+        clearSelection();
         return;
       }
 
@@ -73,7 +74,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
       const [lon, lat] = crossing.intersectionPoint;
       zoomTo(Maybe.of([lon, lat, lon, lat]));
     },
-    [hydraulicModel, setSelection, zoomTo],
+    [clearSelection, hydraulicModel.assets, setSelection, zoomTo],
   );
 
   useEffect(() => {
@@ -105,12 +106,14 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
         onGoBack={onGoBack}
         itemsCount={crossingPipes.length}
         checkType={CheckType.crossingPipes}
+        autoFocus={crossingPipes.length === 0}
       />
       {crossingPipes.length > 0 ? (
         <IssuesList
           issues={crossingPipes}
           onClick={selectCrossingPipes}
           selectedId={selectedCrossingId}
+          onGoBack={onGoBack}
         />
       ) : (
         <>
@@ -126,10 +129,12 @@ const IssuesList = ({
   issues,
   onClick,
   selectedId,
+  onGoBack,
 }: {
   issues: CrossingPipe[];
   onClick: (issue: CrossingPipe | null) => void;
   selectedId: string | null;
+  onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
@@ -145,6 +150,7 @@ const IssuesList = ({
         />
       )}
       checkType={CheckType.crossingPipes}
+      onGoBack={onGoBack}
     />
   );
 };

@@ -17,13 +17,16 @@ export const ToolHeader = ({
   onGoBack,
   itemsCount,
   checkType,
+  autoFocus = false,
 }: {
   onGoBack: () => void;
   itemsCount: number;
   checkType: CheckType;
+  autoFocus?: boolean;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const goBack = useCallback(() => {
     userTracking.capture({
@@ -33,12 +36,34 @@ export const ToolHeader = ({
     onGoBack();
   }, [onGoBack, userTracking, itemsCount, checkType]);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        goBack();
+      }
+    },
+    [goBack],
+  );
+
+  useEffect(() => {
+    if (autoFocus && headerRef.current) {
+      const timer = setTimeout(() => {
+        headerRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
   return (
     <div
+      ref={headerRef}
       className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 py-3"
       style={{
         gridTemplateColumns: "auto 1fr",
       }}
+      tabIndex={autoFocus ? 0 : undefined}
+      onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
       <Button
         className="mt-[-.25rem] py-1.5"
@@ -104,6 +129,7 @@ export const VirtualizedIssuesList = <T,>({
   checkType,
   estimateSize = 35,
   autoFocus = true,
+  onGoBack,
 }: {
   issues: T[];
   selectedId: string | null;
@@ -117,6 +143,7 @@ export const VirtualizedIssuesList = <T,>({
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
+  onGoBack: () => void;
 }) => {
   const headerRows = 1;
   const listRef = useRef<HTMLDivElement>(null);
@@ -213,9 +240,13 @@ export const VirtualizedIssuesList = <T,>({
           break;
         case "Escape":
           e.preventDefault();
-          lastKeyboardNavigatedIndexRef.current = null;
-          lastProcessedSelectedIdRef.current = null;
-          onSelect(null);
+          if (lastKeyboardNavigatedIndexRef.current !== null) {
+            lastKeyboardNavigatedIndexRef.current = null;
+            lastProcessedSelectedIdRef.current = null;
+            onSelect(null);
+          } else if (onGoBack) {
+            onGoBack();
+          }
           break;
       }
 
@@ -227,6 +258,7 @@ export const VirtualizedIssuesList = <T,>({
       ensureItemIsVisible,
       onSelect,
       getIdFromIssue,
+      onGoBack,
     ],
   );
 

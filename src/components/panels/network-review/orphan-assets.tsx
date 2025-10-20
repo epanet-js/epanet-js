@@ -31,7 +31,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
   const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
-  const { selectFeature, isSelected } = useSelection(selection);
+  const { selectFeature, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
@@ -52,6 +52,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
     (orphanAsset: OrphanAsset | null) => {
       if (!orphanAsset) {
         setSelectedOrphanAssetId(null);
+        clearSelection();
         return;
       }
 
@@ -64,7 +65,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
       selectFeature(orphanAsset.assetId);
       zoomTo([fullAsset]);
     },
-    [hydraulicModel, selectFeature, zoomTo],
+    [hydraulicModel, selectFeature, zoomTo, clearSelection],
   );
 
   useEffect(() => {
@@ -99,12 +100,14 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         checkType={CheckType.orphanAssets}
         onGoBack={onGoBack}
         itemsCount={orphanAssets.length}
+        autoFocus={orphanAssets.length === 0}
       />
       {orphanAssets.length > 0 ? (
         <IssuesList
           issues={orphanAssets}
           onClick={selectOrphanAsset}
           selectedId={selectedOrphanAssetId}
+          onGoBack={onGoBack}
         />
       ) : (
         <>
@@ -120,10 +123,12 @@ const IssuesList = ({
   issues,
   onClick,
   selectedId,
+  onGoBack,
 }: {
   issues: OrphanAsset[];
   onClick: (issue: OrphanAsset | null) => void;
   selectedId: string | null;
+  onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
@@ -139,6 +144,7 @@ const IssuesList = ({
         />
       )}
       checkType={CheckType.orphanAssets}
+      onGoBack={onGoBack}
     />
   );
 };
