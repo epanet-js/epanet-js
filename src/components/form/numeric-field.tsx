@@ -25,6 +25,7 @@ export const NumericField = ({
   readOnly = false,
   isNullable = true,
   styleOptions = {},
+  tabIndex = 1,
 }: {
   label: string;
   displayValue: string;
@@ -33,6 +34,7 @@ export const NumericField = ({
   positiveOnly?: boolean;
   readOnly?: boolean;
   styleOptions?: Partial<StyleOptions>;
+  tabIndex?: number;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
@@ -138,7 +140,7 @@ export const NumericField = ({
       ref={inputRef}
       value={inputValue}
       onFocus={handleFocus}
-      tabIndex={1}
+      tabIndex={tabIndex}
       className={styledInput(styleOptions)}
     />
   );

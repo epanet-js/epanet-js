@@ -66,7 +66,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
       setSelection(USelection.fromIds([anomaly.nodeId, anomaly.pipeId]));
       zoomTo([nodeAsset]);
     },
-    [hydraulicModel, setSelection, zoomTo],
+    [clearSelection, hydraulicModel.assets, setSelection, zoomTo],
   );
 
   useEffect(() => {
@@ -99,7 +99,9 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   useEffect(() => {
     if (proximityAnomalies.length === 0 && distanceInputRef.current) {
       const timer = setTimeout(() => {
-        distanceInputRef.current?.focus();
+        // Find the actual input element within the wrapper and focus it
+        const input = distanceInputRef.current?.querySelector("input");
+        input?.focus();
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -111,7 +113,6 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         onGoBack={onGoBack}
         itemsCount={proximityAnomalies.length}
         checkType={CheckType.proximityAnomalies}
-        autoFocus={proximityAnomalies.length === 0}
       />
       <DistanceInput
         distance={localizedDistance}
@@ -152,7 +153,7 @@ const DistanceInput = ({
   const label = `${translate("networkReview.proximityAnomalies.distance")} (${distance.unit})`;
 
   return (
-    <div className="px-1" ref={inputRef} tabIndex={-1}>
+    <div className="px-1" ref={inputRef}>
       <div className="flex gap-2 flex-row p-3 items-center">
         <label className="pr-2 text-sm flex-1">{label}</label>
         <div className="flex-1">
@@ -161,6 +162,7 @@ const DistanceInput = ({
             displayValue={localizeDecimal(distance.value)}
             onChangeValue={onChange}
             styleOptions={{ padding: "sm", textSize: "sm" }}
+            tabIndex={0}
           />
         </div>
       </div>
