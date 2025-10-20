@@ -1,4 +1,7 @@
 import clsx from "clsx";
+import { useState } from "react";
+import * as C from "@radix-ui/react-collapsible";
+import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
@@ -127,5 +130,38 @@ export const SectionList = ({
         {children}
       </div>
     </div>
+  );
+};
+
+export const CollapsibleSection = ({
+  title,
+  variant = "primary",
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  variant?: "primary" | "secondary";
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <C.Root open={open} onOpenChange={setOpen}>
+      <div className="flex flex-col">
+        <C.Trigger
+          className={clsx(
+            "flex items-center justify-between text-sm font-semibold pb-2 cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+            {
+              "text-gray-500": variant === "secondary",
+            },
+          )}
+        >
+          <span>{title}</span>
+          {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        </C.Trigger>
+        <C.Content className="flex flex-col gap-1">{children}</C.Content>
+      </div>
+    </C.Root>
   );
 };

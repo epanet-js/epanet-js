@@ -3,7 +3,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { SectionList, Section } from "src/components/form/fields";
+import { SectionList, CollapsibleSection } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
@@ -41,54 +41,66 @@ export function MultiAssetPanel({
       </div>
 
       {assetCounts.junction > 0 && (
-        <Section title={`${translate("junction")} (${assetCounts.junction})`}>
+        <CollapsibleSection
+          title={`${translate("junction")} (${assetCounts.junction})`}
+        >
           <AssetTypeSections
             sections={multiAssetData.junction}
             hasSimulation={hasSimulation}
           />
-        </Section>
+        </CollapsibleSection>
       )}
 
       {assetCounts.pipe > 0 && (
-        <Section title={`${translate("pipe")} (${assetCounts.pipe})`}>
+        <CollapsibleSection
+          title={`${translate("pipe")} (${assetCounts.pipe})`}
+        >
           <AssetTypeSections
             sections={multiAssetData.pipe}
             hasSimulation={hasSimulation}
           />
-        </Section>
+        </CollapsibleSection>
       )}
 
       {assetCounts.pump > 0 && (
-        <Section title={`${translate("pump")} (${assetCounts.pump})`}>
+        <CollapsibleSection
+          title={`${translate("pump")} (${assetCounts.pump})`}
+        >
           <AssetTypeSections
             sections={multiAssetData.pump}
             hasSimulation={hasSimulation}
           />
-        </Section>
+        </CollapsibleSection>
       )}
 
       {assetCounts.valve > 0 && (
-        <Section title={`${translate("valve")} (${assetCounts.valve})`}>
+        <CollapsibleSection
+          title={`${translate("valve")} (${assetCounts.valve})`}
+        >
           <AssetTypeSections
             sections={multiAssetData.valve}
             hasSimulation={hasSimulation}
           />
-        </Section>
+        </CollapsibleSection>
       )}
 
       {assetCounts.reservoir > 0 && (
-        <Section title={`${translate("reservoir")} (${assetCounts.reservoir})`}>
+        <CollapsibleSection
+          title={`${translate("reservoir")} (${assetCounts.reservoir})`}
+        >
           <AssetTypeSections sections={multiAssetData.reservoir} />
-        </Section>
+        </CollapsibleSection>
       )}
 
       {assetCounts.tank > 0 && (
-        <Section title={`${translate("tank")} (${assetCounts.tank})`}>
+        <CollapsibleSection
+          title={`${translate("tank")} (${assetCounts.tank})`}
+        >
           <AssetTypeSections
             sections={multiAssetData.tank}
             hasSimulation={hasSimulation}
           />
-        </Section>
+        </CollapsibleSection>
       )}
     </SectionList>
   );
