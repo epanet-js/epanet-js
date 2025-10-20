@@ -28,6 +28,7 @@ export type WizardState = {
   parsedDataSummary: ParsedDataSummary | null;
   inputData: InputData | null;
   selectedDemandProperty: string | null;
+  selectedLabelProperty: string | null;
   isLoading: boolean;
   error: string | null;
   isProcessing: boolean;
@@ -49,6 +50,7 @@ export type WizardActions = {
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
   setInputData: (data: InputData | null) => void;
   setSelectedDemandProperty: (property: string | null) => void;
+  setSelectedLabelProperty: (property: string | null) => void;
   resetWizardData: () => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;

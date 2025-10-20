@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -33,6 +34,7 @@ export const DataMappingStep: React.FC<{
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { modelMetadata } = useAtomValue(dataAtom);
+  const isCustomerLabelEnabled = useFeatureFlag("FLAG_CUSTOMER_LABEL");
 
   const {
     parsedDataSummary,
@@ -40,10 +42,12 @@ export const DataMappingStep: React.FC<{
     inputData,
     selectedFile,
     selectedDemandProperty,
+    selectedLabelProperty,
     setLoading,
     setError,
     setParsedDataSummary,
     setSelectedDemandProperty,
+    setSelectedLabelProperty,
     isLoading,
   } = wizardState;
 
@@ -146,6 +150,17 @@ export const DataMappingStep: React.FC<{
     ],
   );
 
+  const handleLabelPropertyChange = useCallback(
+    (property: string) => {
+      userTracking.capture({
+        name: "importCustomerPoints.dataMapping.selectLabel",
+        property,
+      });
+      setSelectedLabelProperty(property);
+    },
+    [userTracking, setSelectedLabelProperty],
+  );
+
   const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
 
   const showAttributesMapping = !!inputData;
@@ -180,11 +195,20 @@ export const DataMappingStep: React.FC<{
                 "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
               )}
             </p>
-            <DemandPropertySelector
-              availableProperties={Array.from(inputData.properties)}
-              selectedProperty={selectedDemandProperty}
-              onSelectProperty={handleDemandPropertyChange}
-            />
+            <div className="space-y-4">
+              <DemandPropertySelector
+                availableProperties={Array.from(inputData.properties)}
+                selectedProperty={selectedDemandProperty}
+                onSelectProperty={handleDemandPropertyChange}
+              />
+              {isCustomerLabelEnabled && (
+                <LabelPropertySelector
+                  availableProperties={Array.from(inputData.properties)}
+                  selectedProperty={selectedLabelProperty}
+                  onSelectProperty={handleLabelPropertyChange}
+                />
+              )}
+            </div>
           </div>
 
           {showLoading && (
@@ -279,6 +303,9 @@ export const DataMappingStep: React.FC<{
                   maxPreviewRows={MAX_PREVIEW_ROWS}
                   parsedDataSummary={parsedDataSummary}
                   wizardState={wizardState}
+                  inputData={inputData}
+                  selectedLabelProperty={selectedLabelProperty}
+                  isCustomerLabelEnabled={isCustomerLabelEnabled}
                 />
               </div>
             )}
@@ -326,6 +353,9 @@ type CustomerPointsTableProps = {
   maxPreviewRows: number;
   parsedDataSummary: ParsedDataSummary;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
+  inputData: InputData | null;
+  selectedLabelProperty: string | null;
+  isCustomerLabelEnabled: boolean;
 };
 
 const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
@@ -333,6 +363,9 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   maxPreviewRows,
   parsedDataSummary: _,
   wizardState,
+  inputData,
+  selectedLabelProperty,
+  isCustomerLabelEnabled,
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -341,6 +374,47 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   const validCount = customerPoints.length;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
+
+  const featureById = useMemo(() => {
+    const map = new Map<string, Feature>();
+    if (inputData && inputData.features) {
+      let currentId = 1;
+
+      for (const feature of inputData.features) {
+        const isValid =
+          feature.geometry?.type === "Point" &&
+          Array.isArray(feature.geometry.coordinates) &&
+          feature.geometry.coordinates.length >= 2;
+
+        if (isValid) {
+          map.set(String(currentId), feature);
+          currentId++;
+        }
+      }
+    }
+    return map;
+  }, [inputData]);
+
+  const getLabelValue = useCallback(
+    (point: CustomerPoint): string => {
+      if (!isCustomerLabelEnabled || !selectedLabelProperty) {
+        return point.id;
+      }
+
+      const feature = featureById.get(point.id);
+      if (
+        feature &&
+        feature.properties &&
+        selectedLabelProperty in feature.properties
+      ) {
+        const value = feature.properties[selectedLabelProperty];
+        return value != null ? String(value) : point.id;
+      }
+
+      return point.id;
+    },
+    [isCustomerLabelEnabled, selectedLabelProperty, featureById],
+  );
 
   if (validCount === 0) {
     return (
@@ -358,7 +432,11 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate("importCustomerPoints.wizard.dataMapping.table.index")}
+              {translate(
+                isCustomerLabelEnabled
+                  ? "importCustomerPoints.wizard.dataMapping.table.label"
+                  : "importCustomerPoints.wizard.dataMapping.table.index",
+              )}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate(
@@ -383,7 +461,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
               key={point.id}
               className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
-              <td className="px-3 py-2 border-b">{point.id}</td>
+              <td className="px-3 py-2 border-b">{getLabelValue(point)}</td>
               <td className="px-3 py-2 border-b">
                 {localizeDecimal(point.coordinates[1], { decimals: 6 })}
               </td>
@@ -573,6 +651,46 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
         <option value="" disabled>
           {translate(
             "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+          )}
+        </option>
+        {availableProperties.map((property) => (
+          <option key={property} value={property}>
+            {property}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+type LabelPropertySelectorProps = {
+  availableProperties: string[];
+  selectedProperty: string | null;
+  onSelectProperty: (property: string) => void;
+};
+
+const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
+  availableProperties,
+  selectedProperty,
+  onSelectProperty,
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+        )}
+      </label>
+      <select
+        value={selectedProperty || ""}
+        onChange={(e) => onSelectProperty(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+      >
+        <option value="">
+          {translate(
+            "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
           )}
         </option>
         {availableProperties.map((property) => (

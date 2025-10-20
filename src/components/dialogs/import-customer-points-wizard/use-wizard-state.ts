@@ -23,6 +23,7 @@ const initialState: WizardState = {
   parsedDataSummary: null,
   inputData: null,
   selectedDemandProperty: null,
+  selectedLabelProperty: null,
   isLoading: false,
   error: null,
   isProcessing: false,
@@ -86,6 +87,10 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
 
   const setSelectedDemandProperty = (property: string | null) => {
     setWizardState((prev) => ({ ...prev, selectedDemandProperty: property }));
+  };
+
+  const setSelectedLabelProperty = (property: string | null) => {
+    setWizardState((prev) => ({ ...prev, selectedLabelProperty: property }));
   };
 
   const resetWizardData = () => {
@@ -162,6 +167,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setParsedDataSummary,
     setInputData,
     setSelectedDemandProperty,
+    setSelectedLabelProperty,
     resetWizardData,
     setError,
     setLoading,

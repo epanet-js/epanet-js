@@ -15,6 +15,7 @@ export const setWizardState = (
     parsedDataSummary: null,
     inputData: null,
     selectedDemandProperty: null,
+    selectedLabelProperty: null,
     isLoading: false,
     error: null,
     isProcessing: false,

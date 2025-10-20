@@ -211,6 +211,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     },
     inputData: null,
     selectedDemandProperty: "demand",
+    selectedLabelProperty: null,
     isLoading: false,
     error: null,
     isProcessing: false,

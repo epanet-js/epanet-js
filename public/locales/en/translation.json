@@ -476,9 +476,14 @@
           "label": "Demand",
           "placeholder": "Select demand property..."
         },
+        "labelSelector": {
+          "label": "Label",
+          "placeholder": "Select label property (optional)..."
+        },
         "table": {
           "id": "ID",
           "index": "Index",
+          "label": "Label",
           "latitude": "Latitude",
           "longitude": "Longitude",
           "demand": "Demand"
