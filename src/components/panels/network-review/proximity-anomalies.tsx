@@ -1,7 +1,13 @@
 import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 
-import { CheckType, EmptyState, ToolDescription, ToolHeader } from "./common";
+import {
+  CheckType,
+  EmptyState,
+  ToolDescription,
+  ToolHeader,
+  VirtualizedIssuesList,
+} from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom, selectionAtom } from "src/state/jotai";
@@ -14,7 +20,6 @@ import {
 import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "src/components/elements";
 import { PipeIcon } from "src/icons";
 import { Pipe } from "src/hydraulic-model";
@@ -33,6 +38,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   >(null);
 
   const lastIssuesCount = useRef(0);
+  const distanceInputRef = useRef<HTMLDivElement>(null);
 
   useEffect(
     function recomputeProximityAnomalies() {
@@ -43,7 +49,11 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 
   const selectProximityAnomaly = useCallback(
-    (anomaly: ProximityAnomaly) => {
+    (anomaly: ProximityAnomaly | null) => {
+      if (!anomaly) {
+        setSelectedConnectionId(null);
+        return;
+      }
       const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
       const pipeAsset = hydraulicModel.assets.get(anomaly.pipeId);
       if (!nodeAsset || !pipeAsset) {
@@ -84,6 +94,16 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [proximityAnomalies, userTracking]);
 
+  // Auto-focus the distance input when there are no results
+  useEffect(() => {
+    if (proximityAnomalies.length === 0 && distanceInputRef.current) {
+      const timer = setTimeout(() => {
+        distanceInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [proximityAnomalies.length]);
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
@@ -91,7 +111,11 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         itemsCount={proximityAnomalies.length}
         checkType={CheckType.proximityAnomalies}
       />
-      <DistanceInput distance={localizedDistance} onChange={updateDistance} />
+      <DistanceInput
+        distance={localizedDistance}
+        onChange={updateDistance}
+        inputRef={distanceInputRef}
+      />
       {proximityAnomalies.length > 0 ? (
         <IssuesList
           issues={proximityAnomalies}
@@ -114,16 +138,18 @@ const DEFAULT_DISTANCE_M = 0.5;
 const DistanceInput = ({
   onChange,
   distance,
+  inputRef,
 }: {
   onChange: (distance: number) => void;
   distance: Quantity;
+  inputRef?: React.RefObject<HTMLDivElement>;
 }) => {
   const translate = useTranslate();
 
   const label = `${translate("networkReview.proximityAnomalies.distance")} (${distance.unit})`;
 
   return (
-    <div className="px-1">
+    <div className="px-1" ref={inputRef} tabIndex={-1}>
       <div className="flex gap-2 flex-row p-3 items-center">
         <label className="pr-2 text-sm flex-1">{label}</label>
         <div className="flex-1">
@@ -188,92 +214,24 @@ const IssuesList = ({
   selectedId,
 }: {
   issues: ProximityAnomaly[];
-  onClick: (issue: ProximityAnomaly) => void;
+  onClick: (issue: ProximityAnomaly | null) => void;
   selectedId: string | null;
 }) => {
-  const headerRows = 1;
-  const parentRef = useRef(null);
-  const rowVirtualizer = useVirtualizer({
-    count: issues.length + headerRows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 35,
-  });
-
-  useEffect(() => {
-    if (selectedId === null) return;
-
-    const rowIndex =
-      issues.findIndex(
-        (anomaly) => `${anomaly.nodeId}-${anomaly.pipeId}` === selectedId,
-      ) + headerRows;
-
-    const range = rowVirtualizer.range;
-
-    if (!range) return;
-    const { startIndex, endIndex } = range;
-    if (rowIndex >= startIndex && rowIndex < endIndex) {
-      return;
-    }
-
-    rowVirtualizer.scrollToIndex(rowIndex, {
-      align: "center",
-    });
-  }, [selectedId, issues, rowVirtualizer]);
-
-  const items = rowVirtualizer.getVirtualItems();
-
   return (
-    <div
-      ref={parentRef}
-      className="flex-auto p-1 overflow-y-auto placemark-scrollbar"
-      style={{ contain: "strict" }}
-      tabIndex={0}
-    >
-      <div
-        className="w-full relative"
-        style={{ height: rowVirtualizer.getTotalSize() }}
-      >
-        <div
-          className="absolute top-0 left-0 w-full"
-          style={{
-            transform: `translateY(${items[0]?.start ?? 0}px)`,
-          }}
-        >
-          {items.map((virtualRow) => {
-            if (virtualRow.index === 0) {
-              return (
-                <div
-                  key="description"
-                  data-index={virtualRow.index}
-                  className="w-full"
-                  ref={rowVirtualizer.measureElement}
-                  role="listItem"
-                >
-                  <ToolDescription checkType={CheckType.proximityAnomalies} />
-                </div>
-              );
-            }
-
-            const issue = issues[virtualRow.index - headerRows];
-            return (
-              <div
-                key={`${issue.nodeId}-${issue.pipeId}`}
-                data-index={virtualRow.index}
-                className="w-full"
-                ref={rowVirtualizer.measureElement}
-                role="listItem"
-              >
-                <ProximityAnomalyItem
-                  anomaly={issue}
-                  selectedId={selectedId}
-                  onClick={onClick}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <VirtualizedIssuesList
+      issues={issues}
+      selectedId={selectedId}
+      onSelect={onClick}
+      getIdFromIssue={(issue) => `${issue.nodeId}-${issue.pipeId}`}
+      renderItem={(anomaly, selectedId, onClick) => (
+        <ProximityAnomalyItem
+          anomaly={anomaly}
+          selectedId={selectedId}
+          onClick={onClick}
+        />
+      )}
+      checkType={CheckType.proximityAnomalies}
+    />
   );
 };
 
@@ -310,7 +268,8 @@ const ProximityAnomalyItem = ({
   return (
     <Button
       onClick={() => onClick(anomaly)}
-      variant={"quiet"}
+      onMouseDown={(e) => e.preventDefault()}
+      variant={"quiet/list"}
       role="button"
       aria-label={translate(
         "networkReview.proximityAnomalies.issueLabel",
@@ -320,6 +279,8 @@ const ProximityAnomalyItem = ({
       )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
+      aria-selected={isSelected}
+      tabIndex={-1}
       className="group w-full"
     >
       <div

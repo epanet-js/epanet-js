@@ -659,6 +659,7 @@ export type B3Variant =
   | "quiet"
   | "code"
   | "quiet/mode"
+  | "quiet/list"
   | "destructive"
   | "danger"
   | "danger-quiet"
@@ -772,6 +773,8 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "quiet/mode":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+    case "quiet/list":
+      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "destructive":
     case "danger-quiet":
       return !disabled && `hover:bg-red-600/10 dark:hover:bg-red-400/20`;
@@ -793,6 +796,7 @@ const sharedText = (variant: B3Variant): ClassValue => {
     case "quiet":
     case "code":
     case "quiet/mode":
+    case "quiet/list":
     case "danger-quiet":
     case "default": {
       return "font-medium text-gray-700 dark:text-white";
@@ -831,17 +835,24 @@ export const styledButton = ({
   textAlign?: "start" | "center";
 }) =>
   clsx(
-    variant === "quiet/mode"
-      ? `aria-expanded:bg-purple-400 aria-expanded:text-white
+    variant === "quiet/list"
+      ? `
+    aria-expanded:bg-gray-200
+    dark:aria-expanded:bg-gray-700
+    group-focus-within:aria-expanded:bg-purple-300/40
+    transition-colors
+    `
+      : variant === "quiet/mode"
+        ? `aria-expanded:bg-purple-400 aria-expanded:text-white
       dark:aria-expanded:bg-purple-600
     data-state-on:bg-purple-400 dark:data-state-on:bg-gray-900`
-      : variant === "primary"
-        ? `aria-expanded:bg-purple-600
+        : variant === "primary"
+          ? `aria-expanded:bg-purple-600
     data-state-on:bg-purple-600`
-        : variant === "blue"
-          ? `aria-expanded:bg-blue-700
+          : variant === "blue"
+            ? `aria-expanded:bg-blue-700
     data-state-on:bg-blue-700`
-          : `
+            : `
     aria-expanded:bg-gray-200 dark:aria-expanded:bg-black
     data-state-on:bg-gray-200 dark:data-state-on:bg-gray-600`,
     "disabled:opacity-50 disabled:cursor-not-allowed",

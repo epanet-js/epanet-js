@@ -1,4 +1,10 @@
-import { CheckType, EmptyState, ToolDescription, ToolHeader } from "./common";
+import {
+  CheckType,
+  EmptyState,
+  ToolDescription,
+  ToolHeader,
+  VirtualizedIssuesList,
+} from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { dataAtom, selectionAtom } from "src/state/jotai";
@@ -9,7 +15,6 @@ import {
 } from "src/lib/network-review/crossing-pipes";
 import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "src/components/elements";
 import { Pipe } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
@@ -50,7 +55,12 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   }, [crossingPipes, userTracking]);
 
   const selectCrossingPipes = useCallback(
-    (crossing: CrossingPipe) => {
+    (crossing: CrossingPipe | null) => {
+      if (!crossing) {
+        setSelectedCrossingId(null);
+        return;
+      }
+
       const pipe1Asset = hydraulicModel.assets.get(crossing.pipe1Id);
       const pipe2Asset = hydraulicModel.assets.get(crossing.pipe2Id);
       if (!pipe1Asset || !pipe2Asset) {
@@ -118,92 +128,24 @@ const IssuesList = ({
   selectedId,
 }: {
   issues: CrossingPipe[];
-  onClick: (issue: CrossingPipe) => void;
+  onClick: (issue: CrossingPipe | null) => void;
   selectedId: string | null;
 }) => {
-  const headerRows = 1;
-  const parentRef = useRef(null);
-  const rowVirtualizer = useVirtualizer({
-    count: issues.length + headerRows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 35,
-  });
-
-  useEffect(() => {
-    if (selectedId === null) return;
-
-    const rowIndex =
-      issues.findIndex(
-        (crossing) => `${crossing.pipe1Id}-${crossing.pipe2Id}` === selectedId,
-      ) + headerRows;
-
-    const range = rowVirtualizer.range;
-
-    if (!range) return;
-    const { startIndex, endIndex } = range;
-    if (rowIndex >= startIndex && rowIndex < endIndex) {
-      return;
-    }
-
-    rowVirtualizer.scrollToIndex(rowIndex, {
-      align: "center",
-    });
-  }, [selectedId, issues, rowVirtualizer]);
-
-  const items = rowVirtualizer.getVirtualItems();
-
   return (
-    <div
-      ref={parentRef}
-      className="flex-auto p-1 overflow-y-auto placemark-scrollbar"
-      style={{ contain: "strict" }}
-      tabIndex={0}
-    >
-      <div
-        className="w-full relative"
-        style={{ height: rowVirtualizer.getTotalSize() }}
-      >
-        <div
-          className="absolute top-0 left-0 w-full"
-          style={{
-            transform: `translateY(${items[0]?.start ?? 0}px)`,
-          }}
-        >
-          {items.map((virtualRow) => {
-            if (virtualRow.index === 0) {
-              return (
-                <div
-                  key="description"
-                  data-index={virtualRow.index}
-                  className="w-full"
-                  ref={rowVirtualizer.measureElement}
-                  role="listItem"
-                >
-                  <ToolDescription checkType={CheckType.crossingPipes} />
-                </div>
-              );
-            }
-
-            const issue = issues[virtualRow.index - headerRows];
-            return (
-              <div
-                key={`${issue.pipe1Id}-${issue.pipe2Id}`}
-                data-index={virtualRow.index}
-                className="w-full"
-                ref={rowVirtualizer.measureElement}
-                role="listItem"
-              >
-                <CrossingPipeItem
-                  crossing={issue}
-                  selectedId={selectedId}
-                  onClick={onClick}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <VirtualizedIssuesList
+      issues={issues}
+      selectedId={selectedId}
+      onSelect={onClick}
+      getIdFromIssue={(issue) => `${issue.pipe1Id}-${issue.pipe2Id}`}
+      renderItem={(crossing, selectedId, onClick) => (
+        <CrossingPipeItem
+          crossing={crossing}
+          selectedId={selectedId}
+          onClick={onClick}
+        />
+      )}
+      checkType={CheckType.crossingPipes}
+    />
   );
 };
 
@@ -248,7 +190,8 @@ const CrossingPipeItem = ({
   return (
     <Button
       onClick={() => onClick(crossing)}
-      variant={"quiet"}
+      onMouseDown={(e) => e.preventDefault()}
+      variant={"quiet/list"}
       role="button"
       aria-label={translate(
         "networkReview.crossingPipes.issueLabel",
@@ -258,6 +201,8 @@ const CrossingPipeItem = ({
       )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
+      aria-selected={isSelected}
+      tabIndex={-1}
       className="group w-full"
     >
       <div
