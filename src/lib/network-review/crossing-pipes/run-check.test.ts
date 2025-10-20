@@ -20,7 +20,6 @@ describe("runCheck", () => {
           pipe1Id: "P1",
           pipe2Id: "P2",
           intersectionPoint: expect.any(Array),
-          distanceToNearestJunction: expect.any(Number),
         }),
       ]);
 
@@ -47,14 +46,12 @@ describe("runCheck", () => {
       expect(crossing).toHaveProperty("pipe1Id");
       expect(crossing).toHaveProperty("pipe2Id");
       expect(crossing).toHaveProperty("intersectionPoint");
-      expect(crossing).toHaveProperty("distanceToNearestJunction");
 
       // Verify types
       expect(typeof crossing.pipe1Id).toBe("string");
       expect(typeof crossing.pipe2Id).toBe("string");
       expect(Array.isArray(crossing.intersectionPoint)).toBe(true);
       expect(crossing.intersectionPoint).toHaveLength(2);
-      expect(typeof crossing.distanceToNearestJunction).toBe("number");
     });
 
     it("returns empty array when no crossings", async () => {
@@ -78,20 +75,22 @@ describe("runCheck", () => {
     it("accepts custom junction tolerance parameter", async () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 0.001] }) // ~111m apart
+        .aJunction("J2", { coordinates: [0, 10] })
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-0.0005, 0.0005] })
-        .aJunction("J4", { coordinates: [0.0005, 0.0005] })
+        .aJunction("J3", { coordinates: [-5, 5] })
+        .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        // Add a junction near the crossing point
+        .aJunction("JNearby", { coordinates: [0.0008, 5] }) // ~89m from intersection at (0,5)
         .build();
 
-      // With small tolerance: should find crossing
-      const crossings05 = await runCheck(model, 0.5);
-      expect(crossings05).toHaveLength(1);
+      // With small tolerance (0.0005 degrees ~55m): should find crossing (junction is 89m away)
+      const crossingsSmall = await runCheck(model, 0.0005);
+      expect(crossingsSmall).toHaveLength(1);
 
-      // With large tolerance: should NOT find crossing
-      const crossings100 = await runCheck(model, 100);
-      expect(crossings100).toHaveLength(0);
+      // With larger tolerance (0.001 degrees ~111m): should NOT find crossing (filters out intersections within 111m)
+      const crossingsLarge = await runCheck(model, 0.001);
+      expect(crossingsLarge).toHaveLength(0);
     });
 
     it("uses default tolerance when not specified", async () => {
@@ -152,23 +151,22 @@ describe("runCheck", () => {
       expect(crossings[0].intersectionPoint[1]).toBeCloseTo(25, 5);
     });
 
-    it("includes distance to nearest junction", async () => {
+    it("detects crossings with standard pipe sizes", async () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 0.0001] }) // ~11m apart
+        .aJunction("J2", { coordinates: [0, 10] })
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-0.00005, 0.00005] })
-        .aJunction("J4", { coordinates: [0.00005, 0.00005] })
+        .aJunction("J3", { coordinates: [-5, 5] })
+        .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
 
       const crossings = await runCheck(model, 0.5);
 
       expect(crossings).toHaveLength(1);
-      // Intersection at ~(0, 0.00005), nearest junction at (0, 0) or (0, 0.0001)
-      // Distance should be ~5-6 meters
-      expect(crossings[0].distanceToNearestJunction).toBeGreaterThan(4);
-      expect(crossings[0].distanceToNearestJunction).toBeLessThan(7);
+      // Intersection should be at approximately (0, 5)
+      expect(crossings[0].intersectionPoint[0]).toBeCloseTo(0, 5);
+      expect(crossings[0].intersectionPoint[1]).toBeCloseTo(5, 5);
     });
   });
 
@@ -201,7 +199,6 @@ describe("runCheck", () => {
         expect(crossing.pipe1Id).toBeTruthy();
         expect(crossing.pipe2Id).toBeTruthy();
         expect(crossing.intersectionPoint).toHaveLength(2);
-        expect(crossing.distanceToNearestJunction).toBeGreaterThan(0);
       });
     });
 

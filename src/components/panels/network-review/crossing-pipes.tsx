@@ -18,7 +18,6 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { Button } from "src/components/elements";
 import { Pipe } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
-import { convertTo } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Maybe } from "purify-ts/Maybe";
 
@@ -182,14 +181,7 @@ const CrossingPipeItem = ({
 
   const pipe1 = pipe1Asset as Pipe;
   const pipe2 = pipe2Asset as Pipe;
-  const lengthUnit = hydraulicModel.units.length;
-  const distanceInModelUnits = convertTo(
-    { value: crossing.distanceToNearestJunction, unit: "m" },
-    lengthUnit,
-  );
-  const distanceFormatted = localizeDecimal(distanceInModelUnits, {
-    decimals: 2,
-  });
+
   const diameter1Formatted = localizeDecimal(pipe1.diameter);
   const diameter2Formatted = localizeDecimal(pipe2.diameter);
 
@@ -203,7 +195,6 @@ const CrossingPipeItem = ({
         "networkReview.crossingPipes.issueLabel",
         pipe1Asset.label,
         pipe2Asset.label,
-        distanceFormatted,
       )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
@@ -211,25 +202,18 @@ const CrossingPipeItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div
-        className="grid gap-x-2 items-start p-1 pr-0 text-sm w-full text-left"
-        style={{
-          gridTemplateColumns: "1fr auto",
-        }}
-      >
-        <div className="text-sm flex items-center gap-1 min-w-0 truncate">
-          {pipe1Asset.label}
-        </div>
-        <span className="flex-shrink-0 whitespace-nowrap text-gray-500">
-          ⌀ {diameter1Formatted}
-        </span>
-        <div className="text-sm flex items-center gap-1 min-w-0 truncate">
-          {pipe2Asset.label}
-        </div>
-        <span className="flex-shrink-0 whitespace-nowrap text-gray-500">
-          ⌀ {diameter2Formatted}
-        </span>
+      <div className="flex items-center gap-1 min-w-0 truncate">
+        {pipe1Asset.label}
       </div>
+      <span className="flex-shrink-0 whitespace-nowrap text-gray-500">
+        ⌀ {diameter1Formatted}
+      </span>
+      <div className="flex items-center gap-1 min-w-0 truncate">
+        {pipe2Asset.label}
+      </div>
+      <span className="flex-shrink-0 whitespace-nowrap text-gray-500">
+        ⌀ {diameter2Formatted}
+      </span>
     </Button>
   );
 };
@@ -239,7 +223,7 @@ const useCheckCrossingPipes = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
 
   const checkCrossingPipes = useCallback(async () => {
-    const result = await findCrossingPipes(hydraulicModel, 0.5);
+    const result = await findCrossingPipes(hydraulicModel);
     setCrossingPipes(result);
   }, [hydraulicModel]);
 

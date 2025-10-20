@@ -14,7 +14,7 @@ import { CrossingPipesWorkerAPI } from "./worker";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
-  junctionTolerance: number = 0.5,
+  junctionTolerance: number = 0.0000045, // ~0.5 meters
   bufferType: ArrayBufferType = "array",
 ): Promise<CrossingPipe[]> => {
   const { idsLookup, ...inputData } = encodeHydraulicModel(

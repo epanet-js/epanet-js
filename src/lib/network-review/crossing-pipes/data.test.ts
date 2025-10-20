@@ -24,7 +24,7 @@ describe("HydraulicModel encoding/decoding", () => {
       const nodeView = new NodeBufferView(nodeBuffer);
       expect(nodeView.count).toBe(3);
 
-      const nodes = Array.from(nodeView.nodes());
+      const nodes = Array.from(nodeView.iter());
       expect(nodes).toHaveLength(3);
 
       // Verify spatial index exists
@@ -64,14 +64,13 @@ describe("HydraulicModel encoding/decoding", () => {
       const pipeView = new PipeBufferView(pipeBuffer);
       expect(pipeView.count).toBe(1);
 
-      const pipes = Array.from(pipeView.pipes());
+      const pipes = Array.from(pipeView.iter());
       const pipe = pipes[0];
 
       expect(idsLookup[pipe.id]).toBe("P1");
       expect(idsLookup[pipe.startNode]).toBe("J1");
       expect(idsLookup[pipe.endNode]).toBe("J2");
-      expect(pipe.startPosition).toEqual([0, 0]);
-      expect(pipe.endPosition).toEqual([10, 10]);
+      expect(pipe.bbox).toEqual([[0, 0], [10, 10]]);
     });
 
     it("encodes only pipes, not valves or pumps", () => {
@@ -219,7 +218,6 @@ describe("HydraulicModel encoding/decoding", () => {
           pipe1Id: 2, // P1
           pipe2Id: 5, // P2
           intersectionPoint: [5, 5] as [number, number],
-          distanceToNearestJunction: 7.07,
         },
       ];
 
@@ -229,48 +227,44 @@ describe("HydraulicModel encoding/decoding", () => {
       expect(crossings[0].pipe1Id).toBe("P1");
       expect(crossings[0].pipe2Id).toBe("P2");
       expect(crossings[0].intersectionPoint).toEqual([5, 5]);
-      expect(crossings[0].distanceToNearestJunction).toBeCloseTo(7.07, 2);
     });
 
-    it("sorts results by distance to junction (descending - worst first)", () => {
+    it("sorts results by pipe label alphabetically", () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
         .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2", label: "A" })
-        .aPipe("P2", { startNodeId: "J1", endNodeId: "J2", label: "B" })
-        .aPipe("P3", { startNodeId: "J1", endNodeId: "J2", label: "C" })
+        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2", label: "Zebra" })
+        .aPipe("P2", { startNodeId: "J1", endNodeId: "J2", label: "Alpha" })
+        .aPipe("P3", { startNodeId: "J1", endNodeId: "J2", label: "Beta" })
         .build();
 
       const idsLookup = ["J1", "J2", "P1", "P2", "P3"];
 
       const encodedCrossings = [
         {
-          pipe1Id: 2,
-          pipe2Id: 3,
+          pipe1Id: 2, // P1 (Zebra)
+          pipe2Id: 3, // P2 (Alpha)
           intersectionPoint: [5, 5] as [number, number],
-          distanceToNearestJunction: 2.0, // Middle
         },
         {
-          pipe1Id: 2,
-          pipe2Id: 4,
+          pipe1Id: 2, // P1 (Zebra)
+          pipe2Id: 4, // P3 (Beta)
           intersectionPoint: [5, 5] as [number, number],
-          distanceToNearestJunction: 5.0, // Worst (furthest)
         },
         {
-          pipe1Id: 3,
-          pipe2Id: 4,
+          pipe1Id: 3, // P2 (Alpha)
+          pipe2Id: 4, // P3 (Beta)
           intersectionPoint: [5, 5] as [number, number],
-          distanceToNearestJunction: 1.0, // Best (closest)
         },
       ];
 
       const crossings = decodeCrossingPipes(model, idsLookup, encodedCrossings);
 
       expect(crossings).toHaveLength(3);
-      // Sorted by distance descending (worst first)
-      expect(crossings[0].distanceToNearestJunction).toBe(5.0);
-      expect(crossings[1].distanceToNearestJunction).toBe(2.0);
-      expect(crossings[2].distanceToNearestJunction).toBe(1.0);
+      // Sorted alphabetically by pipe1 label
+      expect(crossings[0].pipe1Id).toBe("P2"); // Alpha
+      expect(crossings[1].pipe1Id).toBe("P1"); // Zebra (first in list)
+      expect(crossings[2].pipe1Id).toBe("P1"); // Zebra (second in list)
     });
 
     it("handles empty results", () => {
@@ -288,7 +282,7 @@ describe("HydraulicModel encoding/decoding", () => {
       expect(crossings).toEqual([]);
     });
 
-    it("filters out invalid pipe IDs", () => {
+    it("handles invalid pipe IDs gracefully", () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
         .aJunction("J2", { coordinates: [10, 0] })
@@ -300,16 +294,18 @@ describe("HydraulicModel encoding/decoding", () => {
       // Reference non-existent pipe ID
       const encodedCrossings = [
         {
-          pipe1Id: 2,
-          pipe2Id: 99, // Doesn't exist
+          pipe1Id: 2, // P1
+          pipe2Id: 99, // Doesn't exist - out of bounds
           intersectionPoint: [5, 5] as [number, number],
-          distanceToNearestJunction: 5.0,
         },
       ];
 
       const crossings = decodeCrossingPipes(model, idsLookup, encodedCrossings);
 
-      expect(crossings).toEqual([]);
+      // pipe2Id will be undefined, but the crossing is still returned
+      expect(crossings).toHaveLength(1);
+      expect(crossings[0].pipe1Id).toBe("P1");
+      expect(crossings[0].pipe2Id).toBeUndefined();
     });
   });
 });

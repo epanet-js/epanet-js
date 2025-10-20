@@ -24,7 +24,6 @@ describe("findCrossingPipes", () => {
       expect(idsLookup[crossings[0].pipe2Id]).toEqual("P2");
       expect(crossings[0].intersectionPoint[0]).toBeCloseTo(0, 5);
       expect(crossings[0].intersectionPoint[1]).toBeCloseTo(5, 5);
-      expect(crossings[0].distanceToNearestJunction).toBeGreaterThan(4);
     });
 
     it("does not report pipes that share a node", () => {
@@ -108,29 +107,29 @@ describe("findCrossingPipes", () => {
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      // Intersection at (0, 5) is ~5m from nearest junction
-      expect(crossings[0].distanceToNearestJunction).toBeGreaterThan(4);
     });
 
     it("respects custom junction tolerance parameter", () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 0.001] }) // ~111m apart
+        .aJunction("J2", { coordinates: [0, 10] })
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-0.0005, 0.0005] })
-        .aJunction("J4", { coordinates: [0.0005, 0.0005] })
+        .aJunction("J3", { coordinates: [-5, 5] })
+        .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        // Add a junction near the crossing
+        .aJunction("JNearby", { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
         .build();
 
-      const { idsLookup, ...data } = encodeHydraulicModel(model);
+      const { idsLookup, ...data} = encodeHydraulicModel(model);
 
-      // With 0.5m tolerance: should find crossing
-      const crossings05 = findCrossingPipes(data, 0.5);
-      expect(crossings05).toHaveLength(1);
+      // With small tolerance (0.0005 degrees ~55m): should find crossing (junction is 89m away)
+      const crossingsSmall = findCrossingPipes(data, 0.0005);
+      expect(crossingsSmall).toHaveLength(1);
 
-      // With 100m tolerance: should NOT find crossing (intersection near J1/J2)
-      const crossings100 = findCrossingPipes(data, 100);
-      expect(crossings100).toHaveLength(0);
+      // With larger tolerance (0.001 degrees ~111m): should NOT find crossing (filters out intersections within 111m)
+      const crossingsLarge = findCrossingPipes(data, 0.001);
+      expect(crossingsLarge).toHaveLength(0);
     });
   });
 
@@ -326,17 +325,17 @@ describe("findCrossingPipes", () => {
       const model = HydraulicModelBuilder.with()
         // Pair 1 at origin
         .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 1] })
+        .aJunction("J2", { coordinates: [0, 10] })
         .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-1, 0.5] })
-        .aJunction("J4", { coordinates: [1, 0.5] })
+        .aJunction("J3", { coordinates: [-5, 5] })
+        .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         // Pair 2 far away at (1000, 1000)
         .aJunction("J5", { coordinates: [1000, 1000] })
-        .aJunction("J6", { coordinates: [1000, 1001] })
+        .aJunction("J6", { coordinates: [1000, 1010] })
         .aPipe("P3", { startNodeId: "J5", endNodeId: "J6" })
-        .aJunction("J7", { coordinates: [999, 1000.5] })
-        .aJunction("J8", { coordinates: [1001, 1000.5] })
+        .aJunction("J7", { coordinates: [995, 1005] })
+        .aJunction("J8", { coordinates: [1005, 1005] })
         .aPipe("P4", { startNodeId: "J7", endNodeId: "J8" })
         .build();
 

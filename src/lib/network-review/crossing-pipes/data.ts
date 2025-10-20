@@ -23,7 +23,6 @@ interface EncodedCrossingPipe {
   pipe1Id: number;
   pipe2Id: number;
   intersectionPoint: Position;
-  distanceToNearestJunction: number;
 }
 
 export type EncodedCrossingPipes = EncodedCrossingPipe[];
@@ -32,7 +31,6 @@ export interface CrossingPipe {
   pipe1Id: AssetId;
   pipe2Id: AssetId;
   intersectionPoint: Position;
-  distanceToNearestJunction: number;
 }
 
 const UINT32_SIZE = 4;
@@ -40,7 +38,7 @@ const FLOAT64_SIZE = 8;
 const COORDINATES_SIZE = 2 * FLOAT64_SIZE;
 const BUFFER_HEADER_SIZE = UINT32_SIZE;
 const NODE_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE;
-const PIPE_BINARY_SIZE = UINT32_SIZE * 3 + COORDINATES_SIZE * 2; // id, start, end, startPos, endPos
+const PIPE_BINARY_SIZE = UINT32_SIZE * 3 + COORDINATES_SIZE * 2;
 const SEGMENT_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE * 2;
 
 export function encodeHydraulicModel(
@@ -48,7 +46,7 @@ export function encodeHydraulicModel(
   bufferType: "shared" | "array" = "array",
 ): EncodedHydraulicModel {
   const idsLookup: string[] = [];
-  const idxLookup = new Map<string, number>(); // string ID → numeric index
+  const idxLookup = new Map<string, number>();
 
   const getOrAssignIdx = (id: string) => {
     let idx = idxLookup.get(id);
@@ -65,8 +63,7 @@ export function encodeHydraulicModel(
     id: number;
     start: number;
     end: number;
-    startPosition: Position;
-    endPosition: Position;
+    bbox: [Position, Position]; // [minX, minY], [maxX, maxY]
   }[] = [];
   const pipeSegments: {
     pipeId: number;
@@ -93,24 +90,25 @@ export function encodeHydraulicModel(
         !endNode.isLink &&
         pipe.feature.geometry.type === "LineString"
       ) {
-        const startGeometry = startNode.feature.geometry as GeoJSON.Point;
-        const endGeometry = endNode.feature.geometry as GeoJSON.Point;
-
-        pipes.push({
-          id: idx,
-          start,
-          end,
-          startPosition: startGeometry.coordinates,
-          endPosition: endGeometry.coordinates,
-        });
-
-        // Create pipe segments for spatial indexing
         const pipeFeature = {
           type: "Feature" as const,
           geometry: pipe.feature.geometry,
           properties: {},
         };
         const segments = lineSegment(pipeFeature);
+
+        const [minX, minY, maxX, maxY] = bbox(pipeFeature);
+
+        pipes.push({
+          id: idx,
+          start,
+          end,
+          bbox: [
+            [minX, minY],
+            [maxX, maxY],
+          ],
+        });
+
         for (const segment of segments.features) {
           const [startPosition, endPosition] = segment.geometry.coordinates;
           pipeSegments.push({ pipeId: idx, startPosition, endPosition });
@@ -145,7 +143,6 @@ export function encodeHydraulicModel(
       offset += UINT32_SIZE;
       encodeCoordinates([n.position], offset, view);
 
-      // Add to spatial index (point has same min/max)
       const [lon, lat] = n.position;
       geoIndex.add(lon, lat, lon, lat);
     });
@@ -164,8 +161,7 @@ export function encodeHydraulicModel(
       id: number;
       start: number;
       end: number;
-      startPosition: Position;
-      endPosition: Position;
+      bbox: [Position, Position];
     }[],
   ): BinaryData {
     const recordSize = PIPE_BINARY_SIZE;
@@ -185,7 +181,7 @@ export function encodeHydraulicModel(
       offset += UINT32_SIZE;
       view.setUint32(offset, p.end, true);
       offset += UINT32_SIZE;
-      encodeCoordinates([p.startPosition, p.endPosition], offset, view);
+      encodeCoordinates([p.bbox[0], p.bbox[1]], offset, view);
     });
     return buffer;
   }
@@ -268,35 +264,18 @@ export function decodeCrossingPipes(
   idsLookup: string[],
   encodedCrossingPipes: EncodedCrossingPipes,
 ): CrossingPipe[] {
-  const crossingPipes: CrossingPipe[] = [];
-
-  encodedCrossingPipes.forEach((encoded) => {
+  const crossingPipes: CrossingPipe[] = encodedCrossingPipes.map((encoded) => {
     const pipe1Id = idsLookup[encoded.pipe1Id];
     const pipe2Id = idsLookup[encoded.pipe2Id];
-    const pipe1Asset = model.assets.get(pipe1Id);
-    const pipe2Asset = model.assets.get(pipe2Id);
 
-    if (
-      pipe1Asset &&
-      pipe1Asset.type === "pipe" &&
-      pipe2Asset &&
-      pipe2Asset.type === "pipe"
-    ) {
-      crossingPipes.push({
-        pipe1Id,
-        pipe2Id,
-        intersectionPoint: encoded.intersectionPoint,
-        distanceToNearestJunction: encoded.distanceToNearestJunction,
-      });
-    }
+    return {
+      pipe1Id,
+      pipe2Id,
+      intersectionPoint: encoded.intersectionPoint,
+    };
   });
 
-  // Sort by distance to nearest junction (descending - worst cases first)
   return crossingPipes.sort((a, b) => {
-    if (a.distanceToNearestJunction !== b.distanceToNearestJunction) {
-      return b.distanceToNearestJunction - a.distanceToNearestJunction;
-    }
-
     const pipe1A = model.assets.get(a.pipe1Id);
     const pipe1B = model.assets.get(b.pipe1Id);
     const labelA = pipe1A
@@ -310,39 +289,49 @@ export function decodeCrossingPipes(
   });
 }
 
-export interface Node {
+export interface EncodedNode {
   id: number;
   position: Position;
 }
 
-export interface PipeData {
+export interface EncodedPipe {
   id: number;
   startNode: number;
   endNode: number;
-  startPosition: Position;
-  endPosition: Position;
+  bbox: [Position, Position];
 }
 
 export class PipeBufferView {
   private view: DataView;
   readonly count: number;
+  private indexesLookup: Map<number, number> = new Map();
 
   constructor(public readonly buffer: BinaryData) {
     this.view = new DataView(buffer);
     this.count = this.decodeCount(this.view);
+
+    for (const [index, pipe] of this.enumerate(this.iter())) {
+      this.indexesLookup.set(pipe.id, index);
+    }
   }
 
   private decodeCount(view: DataView): number {
     return view.getUint32(0, true);
   }
 
-  *pipes(): Generator<PipeData> {
+  *iter(): Generator<EncodedPipe> {
     for (let i = 0; i < this.count; i++) {
       yield this.decodePipe(this.view, i);
     }
   }
 
-  private decodePipe(view: DataView, index: number): PipeData {
+  getByIndex(pipeId: number): EncodedPipe | null {
+    const pipeIndex = this.indexesLookup.get(pipeId);
+    if (pipeIndex === undefined) return null;
+    return this.decodePipe(this.view, pipeIndex);
+  }
+
+  private decodePipe(view: DataView, index: number): EncodedPipe {
     let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
     const id = view.getUint32(offset, true);
     offset += UINT32_SIZE;
@@ -350,12 +339,12 @@ export class PipeBufferView {
     offset += UINT32_SIZE;
     const endNode = view.getUint32(offset, true);
     offset += UINT32_SIZE;
-    const startPosition: Position = [
+    const bboxMin: Position = [
       view.getFloat64(offset, true),
       view.getFloat64(offset + FLOAT64_SIZE, true),
     ];
     offset += COORDINATES_SIZE;
-    const endPosition: Position = [
+    const bboxMax: Position = [
       view.getFloat64(offset, true),
       view.getFloat64(offset + FLOAT64_SIZE, true),
     ];
@@ -363,32 +352,43 @@ export class PipeBufferView {
       id,
       startNode,
       endNode,
-      startPosition,
-      endPosition,
+      bbox: [bboxMin, bboxMax],
     };
+  }
+
+  private *enumerate<T>(iterable: Iterable<T>): Generator<[number, T]> {
+    let i = 0;
+    for (const item of iterable) {
+      yield [i++, item];
+    }
   }
 }
 
 export class NodeBufferView {
   private view: DataView;
   readonly count: number;
+  private indexesLookup: Map<number, number> = new Map();
 
   constructor(public readonly buffer: BinaryData) {
     this.view = new DataView(buffer);
     this.count = this.decodeCount(this.view);
+
+    for (const [index, node] of this.enumerate(this.iter())) {
+      this.indexesLookup.set(node.id, index);
+    }
   }
 
   private decodeCount(view: DataView): number {
     return view.getUint32(0, true);
   }
 
-  *nodes(): Generator<Node> {
+  *iter(): Generator<EncodedNode> {
     for (let i = 0; i < this.count; i++) {
       yield this.decodeNode(this.view, i);
     }
   }
 
-  private decodeNode(view: DataView, index: number): Node {
+  private decodeNode(view: DataView, index: number): EncodedNode {
     let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
     const id = view.getUint32(offset, true);
     offset += UINT32_SIZE;
@@ -397,6 +397,19 @@ export class NodeBufferView {
       view.getFloat64(offset + FLOAT64_SIZE, true),
     ];
     return { id, position };
+  }
+
+  private *enumerate<T>(iterable: Iterable<T>): Generator<[number, T]> {
+    let i = 0;
+    for (const item of iterable) {
+      yield [i++, item];
+    }
+  }
+
+  getByIndex(id: number): EncodedNode | null {
+    const nodeIndex = this.indexesLookup.get(id);
+    if (nodeIndex === undefined) return null;
+    return this.decodeNode(this.view, nodeIndex);
   }
 }
 

@@ -1,145 +1,185 @@
-import type { EncodedCrossingPipes, RunData } from "./data";
-import {
-  PipeBufferView,
-  NodeBufferView,
-  SegmentsGeometriesBufferView,
-} from "./data";
-import type { Feature, LineString, Position } from "geojson";
+import type { EncodedCrossingPipes, EncodedPipe, RunData } from "./data";
+import { PipeBufferView, SegmentsGeometriesBufferView } from "./data";
+import type { Position } from "geojson";
 import Flatbush from "flatbush";
 import bbox from "@turf/bbox";
 import lineIntersect from "@turf/line-intersect";
-import distance from "@turf/distance";
-import { lineString, point } from "@turf/helpers";
+import { lineString } from "@turf/helpers";
 
 export function findCrossingPipes(
   input: RunData,
-  junctionTolerance: number = 0.5,
+  junctionTolerance: number,
 ): EncodedCrossingPipes {
-  const pipeData = new PipeBufferView(input.pipeBuffer);
+  const pipes = new PipeBufferView(input.pipeBuffer);
   const nodeGeoIndex = Flatbush.from(input.nodeGeoIndex);
-  const nodeData = new NodeBufferView(input.nodeBuffer);
   const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
   const pipeSegmentsLookup = new SegmentsGeometriesBufferView(
     input.pipeSegmentsBuffer,
   );
 
-  const pipes = Array.from(pipeData.pipes());
-  if (pipes.length < 2) {
-    return [];
-  }
-
-  const nodes = Array.from(nodeData.nodes());
-
-  const pipeConnections = new Map<number, Set<number>>();
-  for (const pipe of pipes) {
-    if (!pipeConnections.has(pipe.startNode)) {
-      pipeConnections.set(pipe.startNode, new Set());
-    }
-    if (!pipeConnections.has(pipe.endNode)) {
-      pipeConnections.set(pipe.endNode, new Set());
-    }
-    pipeConnections.get(pipe.startNode)!.add(pipe.id);
-    pipeConnections.get(pipe.endNode)!.add(pipe.id);
-  }
-
   const results: EncodedCrossingPipes = [];
-  const processedPairs = new Set<string>();
+  const alreadySearched = new Set<number>();
 
-  for (let i = 0; i < pipeSegmentsLookup.count; i++) {
-    const segment1PipeId = pipeSegmentsLookup.getId(i);
-    const segment1Coords = pipeSegmentsLookup.getCoordinates(i);
-    const segment1Line = lineString(segment1Coords);
-    const [minX, minY, maxX, maxY] = bbox(segment1Line);
-
-    const candidateIndices = pipeSegmentsGeoIndex.search(
-      minX,
-      minY,
-      maxX,
-      maxY,
+  for (const currentPipe of pipes.iter()) {
+    const otherPipeSegments = findOtherPipeSegmentsNearPipe(
+      currentPipe,
+      alreadySearched,
+      pipeSegmentsLookup,
+      pipeSegmentsGeoIndex,
+      pipes,
     );
 
-    for (const j of candidateIndices) {
-      const segment2PipeId = pipeSegmentsLookup.getId(j);
-
-      if (segment1PipeId >= segment2PipeId) continue;
-
-      const pairKey = `${segment1PipeId}-${segment2PipeId}`;
-      if (processedPairs.has(pairKey)) continue;
-
-      const pipe1 = pipes.find((p) => p.id === segment1PipeId);
-      const pipe2 = pipes.find((p) => p.id === segment2PipeId);
-
-      if (!pipe1 || !pipe2) continue;
-
-      if (
-        pipe1.startNode === pipe2.startNode ||
-        pipe1.startNode === pipe2.endNode ||
-        pipe1.endNode === pipe2.startNode ||
-        pipe1.endNode === pipe2.endNode
-      ) {
-        continue;
-      }
-
-      const segment2Coords = pipeSegmentsLookup.getCoordinates(j);
-      const segment2Line = lineString(segment2Coords);
-
-      const intersections = lineIntersect(
-        segment1Line as Feature<LineString>,
-        segment2Line as Feature<LineString>,
+    for (const otherPipeSegmentIdx of otherPipeSegments) {
+      const currentPipeSegments = findIntersectingPipeSegmentsForSegment(
+        otherPipeSegmentIdx,
+        currentPipe.id,
+        pipeSegmentsLookup,
+        pipeSegmentsGeoIndex,
       );
 
-      for (const intersection of intersections.features) {
-        if (intersection.geometry.type === "Point") {
-          const intersectionPoint = intersection.geometry.coordinates as [
-            number,
-            number,
-          ];
+      const otherPipeId = pipeSegmentsLookup.getId(otherPipeSegmentIdx);
 
-          const distanceToNearestJunction = findDistanceToNearestJunction(
-            intersectionPoint,
-            nodeGeoIndex,
-            nodes,
-          );
+      let foundIntersection = false;
+      for (const currentPipeSegmentIdx of currentPipeSegments) {
+        const intersections = calculateIntersectionPoints(
+          otherPipeSegmentIdx,
+          currentPipeSegmentIdx,
+          pipeSegmentsLookup,
+        );
 
-          if (distanceToNearestJunction > junctionTolerance) {
-            processedPairs.add(pairKey);
-            results.push({
-              pipe1Id: segment1PipeId,
-              pipe2Id: segment2PipeId,
+        for (const intersectionPoint of intersections) {
+          if (
+            !isTooCloseToNearestJunction(
               intersectionPoint,
-              distanceToNearestJunction,
+              junctionTolerance,
+              nodeGeoIndex,
+            )
+          ) {
+            foundIntersection = true;
+            results.push({
+              pipe1Id: currentPipe.id,
+              pipe2Id: otherPipeId,
+              intersectionPoint,
             });
             break;
           }
         }
+        if (foundIntersection) break;
       }
     }
+    alreadySearched.add(currentPipe.id);
   }
 
   return results;
 }
 
-function findDistanceToNearestJunction(
+function findOtherPipeSegmentsNearPipe(
+  pipe: EncodedPipe,
+  excludedPipes: Set<number>,
+  pipeSegmentsLookup: SegmentsGeometriesBufferView,
+  pipeSegmentsGeoIndex: Flatbush,
+  pipes: PipeBufferView,
+): number[] {
+  function isValidOtherPipeSegment(index: number) {
+    const segmentPipeId = pipeSegmentsLookup.getId(index);
+    if (segmentPipeId === pipe.id) {
+      return false;
+    }
+    if (excludedPipes.has(segmentPipeId)) {
+      return false;
+    }
+    if (arePipesConnected(pipe.id, segmentPipeId, pipes)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  const [[minX, minY], [maxX, maxY]] = pipe.bbox;
+
+  return pipeSegmentsGeoIndex.search(
+    minX,
+    minY,
+    maxX,
+    maxY,
+    isValidOtherPipeSegment,
+  );
+}
+
+function arePipesConnected(
+  pipeAIdx: number,
+  pipeBIdx: number,
+  pipesLookup: PipeBufferView,
+): boolean {
+  const pipeA = pipesLookup.getByIndex(pipeAIdx);
+  const pipeB = pipesLookup.getByIndex(pipeBIdx);
+
+  if (!pipeA || !pipeB) {
+    return false;
+  }
+
+  const pipeANodes = new Set([pipeA.startNode, pipeA.endNode]);
+  return pipeANodes.has(pipeB.startNode) || pipeANodes.has(pipeB.endNode);
+}
+
+function findIntersectingPipeSegmentsForSegment(
+  segmentId: number,
+  currentPipeId: number,
+  pipeSegments: SegmentsGeometriesBufferView,
+  pipeSegmentsGeoIndex: Flatbush,
+): number[] {
+  function isFromCurrentPipe(index: number) {
+    return pipeSegments.getId(index) === currentPipeId;
+  }
+
+  const segmentCoords = pipeSegments.getCoordinates(segmentId);
+  const [segMinX, segMinY, segMaxX, segMaxY] = bbox(lineString(segmentCoords));
+
+  return pipeSegmentsGeoIndex.search(
+    segMinX,
+    segMinY,
+    segMaxX,
+    segMaxY,
+    isFromCurrentPipe,
+  );
+}
+
+function calculateIntersectionPoints(
+  otherPipeSegmentIdx: number,
+  currentPipeSegmentIdx: number,
+  pipeSegments: SegmentsGeometriesBufferView,
+): Position[] {
+  const otherPipeCoords = pipeSegments.getCoordinates(otherPipeSegmentIdx);
+  const currentPipeCoords = pipeSegments.getCoordinates(currentPipeSegmentIdx);
+
+  const intersections = lineIntersect(
+    lineString(otherPipeCoords),
+    lineString(currentPipeCoords),
+  );
+
+  const intersectionPoints: Position[] = [];
+  for (const intersection of intersections.features) {
+    if (intersection.geometry.type === "Point") {
+      intersectionPoints.push(intersection.geometry.coordinates);
+    }
+  }
+
+  return intersectionPoints;
+}
+
+function isTooCloseToNearestJunction(
   intersectionPoint: Position,
+  distanceThreshold: number,
   nodeGeoIndex: Flatbush,
-  nodes: Array<{ id: number; position: Position }>,
-): number {
+): boolean {
   const [lon, lat] = intersectionPoint;
 
-  const nearestNodeIndices = nodeGeoIndex.neighbors(lon, lat, 1);
+  const tooCloseNodeIndices = nodeGeoIndex.neighbors(
+    lon,
+    lat,
+    1,
+    distanceThreshold,
+  );
 
-  if (nearestNodeIndices.length === 0) {
-    return Infinity;
-  }
-
-  const nearestNodeIndex = nearestNodeIndices[0];
-  const nearestNode = nodes[nearestNodeIndex];
-
-  if (!nearestNode) {
-    return Infinity;
-  }
-
-  return distance(point(intersectionPoint), point(nearestNode.position), {
-    units: "meters",
-  });
+  return tooCloseNodeIndices.length !== 0;
 }
