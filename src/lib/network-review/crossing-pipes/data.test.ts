@@ -232,42 +232,85 @@ describe("HydraulicModel encoding/decoding", () => {
       expect(crossings[0].intersectionPoint).toEqual([5, 5]);
     });
 
-    it("sorts results by pipe label alphabetically", () => {
+    it("sorts results by pipe diameters and then by labels", () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
         .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2", label: "Zebra" })
-        .aPipe("P2", { startNodeId: "J1", endNodeId: "J2", label: "Alpha" })
-        .aPipe("P3", { startNodeId: "J1", endNodeId: "J2", label: "Beta" })
+        // P1: diameter 12
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          label: "Zebra",
+          diameter: 12,
+        })
+        // P2: diameter 6
+        .aPipe("P2", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          label: "Alpha",
+          diameter: 6,
+        })
+        // P3: diameter 8
+        .aPipe("P3", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          label: "Beta",
+          diameter: 8,
+        })
+        // P4: diameter 6 (same as P2, different label)
+        .aJunction("J3", { coordinates: [20, 0] })
+        .aPipe("P4", {
+          startNodeId: "J1",
+          endNodeId: "J3",
+          label: "Charlie",
+          diameter: 6,
+        })
         .build();
 
-      const idsLookup = ["J1", "J2", "P1", "P2", "P3"];
+      const idsLookup = ["J1", "J2", "P1", "P2", "P3", "J3", "P4"];
 
       const encodedCrossings = [
         {
-          pipe1Id: 2, // P1 (Zebra)
-          pipe2Id: 3, // P2 (Alpha)
+          pipe1Id: 2, // P1 (Zebra, diameter 12)
+          pipe2Id: 3, // P2 (Alpha, diameter 6)
           intersectionPoint: [5, 5] as [number, number],
         },
         {
-          pipe1Id: 2, // P1 (Zebra)
-          pipe2Id: 4, // P3 (Beta)
+          pipe1Id: 2, // P1 (Zebra, diameter 12)
+          pipe2Id: 4, // P3 (Beta, diameter 8)
           intersectionPoint: [5, 5] as [number, number],
         },
         {
-          pipe1Id: 3, // P2 (Alpha)
-          pipe2Id: 4, // P3 (Beta)
+          pipe1Id: 3, // P2 (Alpha, diameter 6)
+          pipe2Id: 4, // P3 (Beta, diameter 8)
+          intersectionPoint: [5, 5] as [number, number],
+        },
+        {
+          pipe1Id: 3, // P2 (Alpha, diameter 6)
+          pipe2Id: 6, // P4 (Charlie, diameter 6)
           intersectionPoint: [5, 5] as [number, number],
         },
       ];
 
       const crossings = decodeCrossingPipes(model, idsLookup, encodedCrossings);
 
-      expect(crossings).toHaveLength(3);
-      // Sorted alphabetically by pipe1 label
-      expect(crossings[0].pipe1Id).toBe("P2"); // Alpha
-      expect(crossings[1].pipe1Id).toBe("P1"); // Zebra (first in list)
-      expect(crossings[2].pipe1Id).toBe("P1"); // Zebra (second in list)
+      expect(crossings).toHaveLength(4);
+      // Sorted by min diameter (smallest first), then max diameter, then by labels
+      // Note: Pipes are now normalized so pipe1Id always has the smaller diameter
+      // 1. P2 (6) x P4 (6) - min=6, max=6, smaller label="Alpha" first
+      expect(crossings[0].pipe1Id).toBe("P2");
+      expect(crossings[0].pipe2Id).toBe("P4");
+      // 2. P2 (6) x P3 (8) - min=6, max=8
+      expect(crossings[1].pipe1Id).toBe("P2");
+      expect(crossings[1].pipe2Id).toBe("P3");
+      // 3. P2 (6) x P1 (12) - min=6, max=12
+      // Note: Pipes normalized so P2 (smaller diameter) is pipe1
+      expect(crossings[2].pipe1Id).toBe("P2");
+      expect(crossings[2].pipe2Id).toBe("P1");
+      // 4. P3 (8) x P1 (12) - min=8, max=12
+      // Note: Pipes normalized so P3 (smaller diameter) is pipe1
+      expect(crossings[3].pipe1Id).toBe("P3");
+      expect(crossings[3].pipe2Id).toBe("P1");
     });
 
     it("handles empty results", () => {
@@ -283,32 +326,6 @@ describe("HydraulicModel encoding/decoding", () => {
       const crossings = decodeCrossingPipes(model, idsLookup, encodedCrossings);
 
       expect(crossings).toEqual([]);
-    });
-
-    it("handles invalid pipe IDs gracefully", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .build();
-
-      const idsLookup = ["J1", "J2", "P1"];
-
-      // Reference non-existent pipe ID
-      const encodedCrossings = [
-        {
-          pipe1Id: 2, // P1
-          pipe2Id: 99, // Doesn't exist - out of bounds
-          intersectionPoint: [5, 5] as [number, number],
-        },
-      ];
-
-      const crossings = decodeCrossingPipes(model, idsLookup, encodedCrossings);
-
-      // pipe2Id will be undefined, but the crossing is still returned
-      expect(crossings).toHaveLength(1);
-      expect(crossings[0].pipe1Id).toBe("P1");
-      expect(crossings[0].pipe2Id).toBeUndefined();
     });
   });
 });

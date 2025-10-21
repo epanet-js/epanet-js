@@ -265,8 +265,11 @@ export function decodeCrossingPipes(
   encodedCrossingPipes: EncodedCrossingPipes,
 ): CrossingPipe[] {
   const crossingPipes: CrossingPipe[] = encodedCrossingPipes.map((encoded) => {
-    const pipe1Id = idsLookup[encoded.pipe1Id];
-    const pipe2Id = idsLookup[encoded.pipe2Id];
+    const [pipe1Id, pipe2Id] = sortByDiameterAndLabel(
+      model,
+      idsLookup[encoded.pipe1Id],
+      idsLookup[encoded.pipe2Id],
+    );
 
     return {
       pipe1Id,
@@ -276,17 +279,41 @@ export function decodeCrossingPipes(
   });
 
   return crossingPipes.sort((a, b) => {
-    const pipe1A = model.assets.get(a.pipe1Id);
-    const pipe1B = model.assets.get(b.pipe1Id);
-    const labelA = pipe1A
-      ? pipe1A.label.toUpperCase()
-      : a.pipe1Id.toUpperCase();
-    const labelB = pipe1B
-      ? pipe1B.label.toUpperCase()
-      : b.pipe1Id.toUpperCase();
+    const pipe1A = model.assets.get(a.pipe1Id) as Pipe;
+    const pipe2A = model.assets.get(a.pipe2Id) as Pipe;
+    const pipe1B = model.assets.get(b.pipe1Id) as Pipe;
+    const pipe2B = model.assets.get(b.pipe2Id) as Pipe;
 
-    return labelA < labelB ? -1 : labelA > labelB ? 1 : 0;
+    if (pipe1A.diameter === pipe1B.diameter) {
+      if (pipe2A.diameter === pipe2B.diameter) {
+        return pipe1A.label.toUpperCase() < pipe1B.label.toUpperCase() ? -1 : 1;
+      }
+      return pipe2A.diameter - pipe2B.diameter;
+    }
+    return pipe1A.diameter - pipe1B.diameter;
   });
+}
+
+function sortByDiameterAndLabel(
+  model: HydraulicModel,
+  pipeAId: AssetId,
+  pipeBId: AssetId,
+): [AssetId, AssetId] {
+  const pipeAAsset = model.assets.get(pipeAId);
+  const pipeBAsset = model.assets.get(pipeBId);
+
+  const pipeA = pipeAAsset as Pipe;
+  const pipeB = pipeBAsset as Pipe;
+
+  if (pipeA.diameter === pipeB.diameter) {
+    return pipeA.label.toUpperCase() < pipeB.label.toUpperCase()
+      ? [pipeAId, pipeBId]
+      : [pipeBId, pipeAId];
+  }
+
+  return pipeA.diameter < pipeB.diameter
+    ? [pipeAId, pipeBId]
+    : [pipeBId, pipeAId];
 }
 
 export interface EncodedNode {
