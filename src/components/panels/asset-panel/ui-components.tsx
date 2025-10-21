@@ -257,13 +257,13 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-sm p-2 text-gray-700 border border-gray-300 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full bg-transparent flex items-center gap-x-2"
+          className="text-left text-sm p-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-sm hover:bg-gray-200 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full flex items-center gap-x-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
         >
           <MultipleValuesIcon />
           {customerCount}
         </P.Trigger>
         <P.Portal>
-          <StyledPopoverContent>
+          <StyledPopoverContent align="end">
             <StyledPopoverArrow />
             <CustomerPointsPopover
               customerPoints={customerPoints}
