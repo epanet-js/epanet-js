@@ -158,16 +158,18 @@ export const CollapsibleSection = ({
 
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
-      <div className={clsx("flex flex-col py-3", className)}>
+      <div className={clsx("flex flex-col", className)}>
         <C.Trigger
           className={clsx(
-            "flex items-center justify-between text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+            "flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
             {
               "text-gray-500": variant === "secondary",
+              "pb-2": open,
             },
           )}
         >
-          <span className={clsx({ "pb-2": open })}>{title}</span>
+          <span>{title}</span>
+          <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
           {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
         </C.Trigger>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
