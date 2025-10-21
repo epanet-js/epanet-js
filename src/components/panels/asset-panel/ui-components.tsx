@@ -33,7 +33,7 @@ export const AssetEditorContent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <SectionList>
+    <SectionList gap={3}>
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
           <span className="font-semibold truncate max-w-full" title={label}>
