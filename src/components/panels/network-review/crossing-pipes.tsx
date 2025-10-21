@@ -129,7 +129,10 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
             {isLoading && <LoadingState overlay />}
           </>
         ) : (
-          <LoadingState />
+          <>
+            <ToolDescription checkType={CheckType.crossingPipes} />
+            <LoadingState />
+          </>
         )}
       </div>
     </div>

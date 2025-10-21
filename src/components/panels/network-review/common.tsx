@@ -389,7 +389,7 @@ export const VirtualizedIssuesList = <T,>({
   return (
     <div
       ref={listRef}
-      className="group flex-auto p-1 overflow-y-auto placemark-scrollbar"
+      className="group flex-auto py-1 overflow-y-auto placemark-scrollbar"
       style={{ contain: "strict" }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
@@ -428,7 +428,7 @@ export const VirtualizedIssuesList = <T,>({
               <div
                 key={getIdFromIssue(item)}
                 data-index={virtualRow.index}
-                className="w-full"
+                className="w-full px-1"
                 ref={rowVirtualizer.measureElement}
                 role="listItem"
               >

@@ -4,8 +4,10 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   CheckType,
   EmptyState,
+  LoadingState,
   ToolDescription,
   ToolHeader,
+  useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,7 +29,7 @@ import { lineString } from "@turf/helpers";
 
 export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
-  const { checkProximityAnomalies, proximityAnomalies } =
+  const { checkProximityAnomalies, proximityAnomalies, isLoading, isReady } =
     useCheckProximityAnomalies();
   const { distanceInM, localizedDistance, updateDistance } = useDistance();
   const selection = useAtomValue(selectionAtom);
@@ -119,25 +121,39 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         onGoBack={onGoBack}
         itemsCount={proximityAnomalies.length}
         checkType={CheckType.proximityAnomalies}
+        autoFocus={proximityAnomalies.length === 0 && !isLoading}
       />
       <DistanceInput
         distance={localizedDistance}
         onChange={updateDistance}
         inputRef={distanceInputRef}
+        disabled={isLoading}
       />
-      {proximityAnomalies.length > 0 ? (
-        <IssuesList
-          issues={proximityAnomalies}
-          onClick={selectProximityAnomaly}
-          selectedId={selectedConnectionId}
-          onGoBack={onGoBack}
-        />
-      ) : (
-        <>
-          <ToolDescription checkType={CheckType.proximityAnomalies} />
-          <EmptyState checkType={CheckType.proximityAnomalies} />
-        </>
-      )}
+      <div className="relative flex-grow flex flex-col">
+        {isReady ? (
+          <>
+            {proximityAnomalies.length > 0 ? (
+              <IssuesList
+                issues={proximityAnomalies}
+                onClick={selectProximityAnomaly}
+                selectedId={selectedConnectionId}
+                onGoBack={onGoBack}
+              />
+            ) : (
+              <>
+                <ToolDescription checkType={CheckType.proximityAnomalies} />
+                <EmptyState checkType={CheckType.proximityAnomalies} />
+              </>
+            )}
+            {isLoading && <LoadingState overlay />}
+          </>
+        ) : (
+          <>
+            <ToolDescription checkType={CheckType.proximityAnomalies} />
+            <LoadingState />
+          </>
+        )}
+      </div>
     </div>
   );
 };
@@ -149,10 +165,12 @@ const DistanceInput = ({
   onChange,
   distance,
   inputRef,
+  disabled = false,
 }: {
   onChange: (distance: number) => void;
   distance: Quantity;
   inputRef?: React.RefObject<HTMLDivElement>;
+  disabled?: boolean;
 }) => {
   const translate = useTranslate();
 
@@ -168,6 +186,7 @@ const DistanceInput = ({
           onChangeValue={onChange}
           styleOptions={{ padding: "sm", textSize: "sm" }}
           tabIndex={0}
+          disabled={disabled}
         />
       </div>
     </div>
@@ -200,21 +219,35 @@ const useDistance = () => {
   };
 };
 
+const deferToAllowRender = () =>
+  new Promise((resolve) => setTimeout(resolve, 0));
+
 const useCheckProximityAnomalies = () => {
   const [proximityAnomalies, setProximityAnomalies] = useState<
     ProximityAnomaly[]
   >([]);
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const { startLoading, finishLoading, isLoading } = useLoadingStatus();
+  const isReady = useRef(false);
 
   const checkProximityAnomalies = useCallback(
     async (distance: number) => {
+      await deferToAllowRender();
+      startLoading();
       const result = await findProximityAnomalies(hydraulicModel, distance);
       setProximityAnomalies(result);
+      finishLoading();
+      isReady.current = true;
     },
-    [hydraulicModel],
+    [hydraulicModel, startLoading, finishLoading],
   );
 
-  return { checkProximityAnomalies, proximityAnomalies };
+  return {
+    checkProximityAnomalies,
+    proximityAnomalies,
+    isLoading,
+    isReady: isReady.current,
+  };
 };
 
 const IssuesList = ({

@@ -15,6 +15,7 @@ type StyleOptions = {
   border?: "sm" | "none";
   ghostBorder?: boolean;
   variant?: "default" | "warning";
+  disabled?: boolean;
 };
 
 export const NumericField = ({
@@ -23,6 +24,7 @@ export const NumericField = ({
   onChangeValue,
   positiveOnly = false,
   readOnly = false,
+  disabled = false,
   isNullable = true,
   styleOptions = {},
   tabIndex = 1,
@@ -33,6 +35,7 @@ export const NumericField = ({
   isNullable?: boolean;
   positiveOnly?: boolean;
   readOnly?: boolean;
+  disabled?: boolean;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
 }) => {
@@ -122,10 +125,11 @@ export const NumericField = ({
     inputRef.current.className = styledInput({
       ...styleOptions,
       variant: "warning",
+      disabled,
     });
   }
   if (!hasError && inputRef.current) {
-    inputRef.current.className = styledInput(styleOptions);
+    inputRef.current.className = styledInput({ ...styleOptions, disabled });
   }
 
   return (
@@ -136,12 +140,13 @@ export const NumericField = ({
       type="text"
       aria-label={`Value for: ${label}`}
       readOnly={readOnly}
+      disabled={disabled}
       onBlur={handleBlur}
       ref={inputRef}
       value={inputValue}
       onFocus={handleFocus}
       tabIndex={tabIndex}
-      className={styledInput(styleOptions)}
+      className={styledInput({ ...styleOptions, disabled })}
     />
   );
 };
@@ -152,9 +157,12 @@ function styledInput({
   variant = "default",
   textSize = "xs",
   ghostBorder = false,
+  disabled = false,
 }: StyleOptions = {}) {
   return clsx(
-    "text-gray-700 dark:text-gray-100",
+    disabled
+      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+      : "text-gray-700 dark:text-gray-100",
     {
       "p-1": padding === "sm",
       "p-2": padding === "md",
@@ -164,7 +172,7 @@ function styledInput({
       "border focus-visible:border-transparent": border === "sm",
     },
     ghostBorder ? "border-transparent" : "border-gray-300",
-    {
+    !disabled && {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
         variant === "default",
       "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":

@@ -22,14 +22,17 @@ import { dataAtom, selectionAtom } from "src/state/jotai";
 import {
   CheckType,
   EmptyState,
+  LoadingState,
   ToolDescription,
   ToolHeader,
+  useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
 
 export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
-  const { orphanAssets, checkOrphanAssets } = useCheckOrphanAssets();
+  const { orphanAssets, checkOrphanAssets, isLoading, isReady } =
+    useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
   const { selectFeature, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
@@ -99,21 +102,33 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         checkType={CheckType.orphanAssets}
         onGoBack={onGoBack}
         itemsCount={orphanAssets.length}
-        autoFocus={orphanAssets.length === 0}
+        autoFocus={orphanAssets.length === 0 && !isLoading}
       />
-      {orphanAssets.length > 0 ? (
-        <IssuesList
-          issues={orphanAssets}
-          onClick={selectOrphanAsset}
-          selectedId={selectedOrphanAssetId}
-          onGoBack={onGoBack}
-        />
-      ) : (
-        <>
-          <ToolDescription checkType={CheckType.orphanAssets} />
-          <EmptyState checkType={CheckType.orphanAssets} />
-        </>
-      )}
+      <div className="relative flex-grow flex flex-col">
+        {isReady ? (
+          <>
+            {orphanAssets.length > 0 ? (
+              <IssuesList
+                issues={orphanAssets}
+                onClick={selectOrphanAsset}
+                selectedId={selectedOrphanAssetId}
+                onGoBack={onGoBack}
+              />
+            ) : (
+              <>
+                <ToolDescription checkType={CheckType.orphanAssets} />
+                <EmptyState checkType={CheckType.orphanAssets} />
+              </>
+            )}
+            {isLoading && <LoadingState overlay />}
+          </>
+        ) : (
+          <>
+            <ToolDescription checkType={CheckType.orphanAssets} />
+            <LoadingState />
+          </>
+        )}
+      </div>
     </div>
   );
 };
@@ -196,14 +211,28 @@ const OrphanAssetItem = ({
   );
 };
 
+const deferToAllowRender = () =>
+  new Promise((resolve) => setTimeout(resolve, 0));
+
 const useCheckOrphanAssets = () => {
   const [orphanAssets, setOrphanAssets] = useState<OrphanAsset[]>([]);
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const { startLoading, finishLoading, isLoading } = useLoadingStatus();
+  const isReady = useRef(false);
 
   const checkOrphanAssets = useCallback(async () => {
+    await deferToAllowRender();
+    startLoading();
     const result = await findOrphanAssets(hydraulicModel);
     setOrphanAssets(result);
-  }, [hydraulicModel]);
+    finishLoading();
+    isReady.current = true;
+  }, [hydraulicModel, startLoading, finishLoading]);
 
-  return { checkOrphanAssets, orphanAssets };
+  return {
+    checkOrphanAssets,
+    orphanAssets,
+    isLoading,
+    isReady: isReady.current,
+  };
 };
