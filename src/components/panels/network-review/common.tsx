@@ -1,7 +1,7 @@
 import { ChevronLeftIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Button } from "src/components/elements";
+import { Button, Loading } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NoIssuesIcon } from "src/icons";
@@ -113,6 +113,35 @@ export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
       <p className="text-sm text-center py-4 text-gray-600 max-w-48">
         {translate(`networkReview.${checkType}.emptyMessage`)}
       </p>
+    </div>
+  );
+};
+
+export const useLoadingStatus = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const startLoading = useCallback(() => {
+    setIsLoading(true);
+  }, []);
+  const finishLoading = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
+  return { startLoading, finishLoading, isLoading };
+};
+
+export const LoadingState = ({ overlay = false }: { overlay?: boolean }) => {
+  if (overlay) {
+    return (
+      <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10">
+        <Loading />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+      <Loading />
     </div>
   );
 };

@@ -1,8 +1,10 @@
 import {
   CheckType,
   EmptyState,
+  LoadingState,
   ToolDescription,
   ToolHeader,
+  useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -23,7 +25,8 @@ import { Maybe } from "purify-ts/Maybe";
 
 export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
-  const { checkCrossingPipes, crossingPipes } = useCheckCrossingPipes();
+  const { checkCrossingPipes, crossingPipes, isLoading, isReady } =
+    useCheckCrossingPipes();
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
@@ -105,21 +108,30 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
         onGoBack={onGoBack}
         itemsCount={crossingPipes.length}
         checkType={CheckType.crossingPipes}
-        autoFocus={crossingPipes.length === 0}
+        autoFocus={crossingPipes.length === 0 && !isLoading}
       />
-      {crossingPipes.length > 0 ? (
-        <IssuesList
-          issues={crossingPipes}
-          onClick={selectCrossingPipes}
-          selectedId={selectedCrossingId}
-          onGoBack={onGoBack}
-        />
-      ) : (
-        <>
-          <ToolDescription checkType={CheckType.crossingPipes} />
-          <EmptyState checkType={CheckType.crossingPipes} />
-        </>
-      )}
+      <div className="relative flex-grow flex flex-col">
+        {isReady ? (
+          <>
+            {crossingPipes.length > 0 ? (
+              <IssuesList
+                issues={crossingPipes}
+                onClick={selectCrossingPipes}
+                selectedId={selectedCrossingId}
+                onGoBack={onGoBack}
+              />
+            ) : (
+              <>
+                <ToolDescription checkType={CheckType.crossingPipes} />
+                <EmptyState checkType={CheckType.crossingPipes} />
+              </>
+            )}
+            {isLoading && <LoadingState overlay />}
+          </>
+        ) : (
+          <LoadingState />
+        )}
+      </div>
     </div>
   );
 };
@@ -216,16 +228,30 @@ const CrossingPipeItem = ({
   );
 };
 
+const deferToAllowRender = () =>
+  new Promise((resolve) => setTimeout(resolve, 0));
+
 const useCheckCrossingPipes = () => {
   const [crossingPipes, setCrossingPipes] = useState<CrossingPipe[]>([]);
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const { startLoading, finishLoading, isLoading } = useLoadingStatus();
+  const isReady = useRef(false);
 
   const checkCrossingPipes = useCallback(async () => {
+    await deferToAllowRender();
+    startLoading();
     const result = await findCrossingPipes(hydraulicModel);
     setCrossingPipes(result);
-  }, [hydraulicModel]);
+    finishLoading();
+    isReady.current = true;
+  }, [hydraulicModel, startLoading, finishLoading]);
 
-  return { checkCrossingPipes, crossingPipes };
+  return {
+    checkCrossingPipes,
+    crossingPipes,
+    isLoading,
+    isReady: isReady.current,
+  };
 };
 
 const getCrossingId = (crossing: CrossingPipe) =>
