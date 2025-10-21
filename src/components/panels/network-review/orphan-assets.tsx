@@ -42,8 +42,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeOrphanAssets() {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      checkOrphanAssets();
+      void checkOrphanAssets();
     },
     [checkOrphanAssets],
   );
@@ -81,7 +80,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
           ? prev
           : selectedOrphanAsset.assetId,
       );
-  }, [orphanAssets, isSelected, setSelectedOrphanAssetId]);
+  }, [orphanAssets, isSelected]);
 
   useEffect(() => {
     const issuesCount = orphanAssets.length;
@@ -132,10 +131,10 @@ const IssuesList = ({
 }) => {
   return (
     <VirtualizedIssuesList
-      issues={issues}
+      items={issues}
       selectedId={selectedId}
       onSelect={onClick}
-      getIdFromIssue={(issue) => issue.assetId}
+      getItemId={(issue) => issue.assetId}
       renderItem={(orphanAsset, selectedId, onClick) => (
         <OrphanAssetItem
           orphanAsset={orphanAsset}

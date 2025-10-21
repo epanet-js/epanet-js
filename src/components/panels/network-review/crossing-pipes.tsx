@@ -36,8 +36,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeCrossingPipes() {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      checkCrossingPipes();
+      void checkCrossingPipes();
     },
     [checkCrossingPipes],
   );
@@ -77,22 +76,23 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 
   useEffect(() => {
-    let selectedCrossing = crossingPipes.find(
-      (crossing) =>
-        isSelected(crossing.pipe1Id) && isSelected(crossing.pipe2Id),
-    );
-
-    if (!selectedCrossing) {
-      selectedCrossing = crossingPipes.find(
+    const candidateCrossings = crossingPipes
+      .filter(
         (crossing) =>
           isSelected(crossing.pipe1Id) || isSelected(crossing.pipe2Id),
-      );
-    }
+      )
+      .sort((a, b) => {
+        if (isSelected(a.pipe1Id) && isSelected(a.pipe2Id)) return -1;
+        if (isSelected(b.pipe1Id) && isSelected(b.pipe2Id)) return 1;
+        if (isSelected(a.pipe1Id)) return -1;
+        if (isSelected(b.pipe1Id)) return 1;
+        return -1;
+      });
 
-    if (!selectedCrossing) {
+    if (!candidateCrossings.length) {
       setSelectedCrossingId(null);
     } else {
-      const crossingId = `${selectedCrossing.pipe1Id}-${selectedCrossing.pipe2Id}`;
+      const crossingId = getCrossingId(candidateCrossings[0]);
       setSelectedCrossingId((prev) =>
         prev === crossingId ? prev : crossingId,
       );
@@ -137,10 +137,10 @@ const IssuesList = ({
 }) => {
   return (
     <VirtualizedIssuesList
-      issues={issues}
+      items={issues}
       selectedId={selectedId}
       onSelect={onClick}
-      getIdFromIssue={(issue) => `${issue.pipe1Id}-${issue.pipe2Id}`}
+      getItemId={getCrossingId}
       renderItem={(crossing, selectedId, onClick) => (
         <CrossingPipeItem
           crossing={crossing}
@@ -227,3 +227,6 @@ const useCheckCrossingPipes = () => {
 
   return { checkCrossingPipes, crossingPipes };
 };
+
+const getCrossingId = (crossing: CrossingPipe) =>
+  `${crossing.pipe1Id}-${crossing.pipe2Id}`;

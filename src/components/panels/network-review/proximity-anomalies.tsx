@@ -43,8 +43,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeProximityAnomalies() {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      checkProximityAnomalies(distanceInM);
+      void checkProximityAnomalies(distanceInM);
     },
     [distanceInM, checkProximityAnomalies],
   );
@@ -101,17 +100,18 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [proximityAnomalies, userTracking]);
 
-  // Auto-focus the distance input when there are no results
-  useEffect(() => {
-    if (proximityAnomalies.length === 0 && distanceInputRef.current) {
-      const timer = setTimeout(() => {
-        // Find the actual input element within the wrapper and focus it
-        const input = distanceInputRef.current?.querySelector("input");
-        input?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [proximityAnomalies.length]);
+  useEffect(
+    function autoFocusDistanceInputWhenNoResults() {
+      if (proximityAnomalies.length === 0 && distanceInputRef.current) {
+        const timer = setTimeout(() => {
+          const input = distanceInputRef.current?.querySelector("input");
+          input?.focus();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    },
+    [proximityAnomalies.length],
+  );
 
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -160,7 +160,7 @@ const DistanceInput = ({
 
   return (
     <div className="px-1" ref={inputRef}>
-      <div className="flex gap-2 flex-row p-3 items-center flex-wrap">
+      <div className="flex gap-2 flex-auto p-3 items-center flex-wrap">
         <label className="pr-2 text-sm text-gray-500">{label}</label>
         <NumericField
           label={label}
@@ -230,10 +230,10 @@ const IssuesList = ({
 }) => {
   return (
     <VirtualizedIssuesList
-      issues={issues}
+      items={issues}
       selectedId={selectedId}
       onSelect={onClick}
-      getIdFromIssue={(issue) => `${issue.nodeId}-${issue.pipeId}`}
+      getItemId={(issue) => `${issue.nodeId}-${issue.pipeId}`}
       renderItem={(anomaly, selectedId, onClick) => (
         <ProximityAnomalyItem
           anomaly={anomaly}
