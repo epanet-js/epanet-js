@@ -15,6 +15,7 @@ import { renderMap, matchPoint } from "./__helpers__/map";
 import { vi } from "vitest";
 import { act, waitFor } from "@testing-library/react";
 import { modeAtom } from "src/state/jotai";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("None mode selection", () => {
   beforeEach(() => {
@@ -201,6 +202,184 @@ describe("None mode selection", () => {
       expect(featuresAfterMove[0]).toEqual(
         matchPoint({ coordinates: moveToCoords }),
       );
+    });
+  });
+
+  describe("FLAG_TINY_MOVE", () => {
+    it("shows ephemeral state for tiny movements when flag is OFF", async () => {
+      stubFeatureOff("FLAG_TINY_MOVE");
+
+      const junctionCoords = [10, 20];
+      const createClick = { lng: 10, lat: 20 };
+      const selectClick = { lng: 10.001, lat: 20.001 };
+      const tinyMoveCoords = [10.0001, 20.0001];
+      const tinyMove = { lng: 10.0001, lat: 20.0001 };
+
+      const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, createClick);
+
+      await waitFor(() => {
+        const features = getSourceFeatures(map, "features");
+        expect(features).toHaveLength(1);
+      });
+
+      const features = getSourceFeatures(map, "features");
+      const junctionFeatureId = features[0].id as RawId;
+
+      act(() => {
+        store.set(modeAtom, { mode: Mode.NONE });
+      });
+
+      stubSnapping(map, [junctionFeatureId]);
+      await fireMapClick(map, selectClick);
+
+      await waitFor(() => {
+        expect(getFeatureState(map, "features", junctionFeatureId)).toEqual({
+          selected: "true",
+        });
+      });
+
+      await fireMapDown(map, selectClick);
+      await fireMapMove(map, tinyMove);
+
+      await waitFor(() => {
+        const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
+        expect(ephemeralFeatures).toHaveLength(1);
+        expect(ephemeralFeatures[0]).toEqual(
+          matchPoint({ coordinates: tinyMoveCoords }),
+        );
+      });
+
+      await fireMapUp(map, tinyMove);
+
+      await waitFor(() => {
+        const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
+        expect(ephemeralFeatures).toHaveLength(0);
+      });
+
+      await waitFor(() => {
+        const featuresAfterMove = getSourceFeatures(map, "features");
+        expect(featuresAfterMove).toHaveLength(1);
+        expect(featuresAfterMove[0]).toEqual(
+          matchPoint({ coordinates: junctionCoords }),
+        );
+      });
+    });
+
+    it("does NOT show ephemeral state for tiny movements when flag is ON", async () => {
+      stubFeatureOn("FLAG_TINY_MOVE");
+
+      const junctionCoords = [10, 20];
+      const createClick = { lng: 10, lat: 20 };
+      const selectClick = { lng: 10.001, lat: 20.001 };
+      const tinyMove = { lng: 10.0001, lat: 20.0001 };
+
+      const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, createClick);
+
+      await waitFor(() => {
+        const features = getSourceFeatures(map, "features");
+        expect(features).toHaveLength(1);
+      });
+
+      const features = getSourceFeatures(map, "features");
+      const junctionFeatureId = features[0].id as RawId;
+
+      act(() => {
+        store.set(modeAtom, { mode: Mode.NONE });
+      });
+
+      stubSnapping(map, [junctionFeatureId]);
+      await fireMapClick(map, selectClick);
+
+      await waitFor(() => {
+        expect(getFeatureState(map, "features", junctionFeatureId)).toEqual({
+          selected: "true",
+        });
+      });
+
+      await fireMapDown(map, selectClick);
+      await fireMapMove(map, tinyMove);
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
+      expect(ephemeralFeatures).toHaveLength(0);
+
+      await fireMapUp(map, tinyMove);
+
+      await waitFor(() => {
+        const featuresAfterMove = getSourceFeatures(map, "features");
+        expect(featuresAfterMove).toHaveLength(1);
+        expect(featuresAfterMove[0]).toEqual(
+          matchPoint({ coordinates: junctionCoords }),
+        );
+      });
+    });
+
+    it("shows ephemeral state for significant movements when flag is ON", async () => {
+      stubFeatureOn("FLAG_TINY_MOVE");
+
+      const createClick = { lng: 10, lat: 20 };
+      const selectClick = { lng: 10.001, lat: 20.001 };
+      const significantMoveCoords = [15, 25];
+      const significantMove = { lng: 15, lat: 25 };
+
+      const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, createClick);
+
+      await waitFor(() => {
+        const features = getSourceFeatures(map, "features");
+        expect(features).toHaveLength(1);
+      });
+
+      const features = getSourceFeatures(map, "features");
+      const junctionFeatureId = features[0].id as RawId;
+
+      act(() => {
+        store.set(modeAtom, { mode: Mode.NONE });
+      });
+
+      stubSnapping(map, [junctionFeatureId]);
+      await fireMapClick(map, selectClick);
+
+      await waitFor(() => {
+        expect(getFeatureState(map, "features", junctionFeatureId)).toEqual({
+          selected: "true",
+        });
+      });
+
+      await fireMapDown(map, selectClick);
+      await fireMapMove(map, significantMove);
+
+      await waitFor(() => {
+        const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
+        expect(ephemeralFeatures).toHaveLength(1);
+        expect(ephemeralFeatures[0]).toEqual(
+          matchPoint({ coordinates: significantMoveCoords }),
+        );
+      });
+
+      await fireMapUp(map, significantMove);
+
+      await waitFor(() => {
+        const ephemeralFeatures = getSourceFeatures(map, "ephemeral");
+        expect(ephemeralFeatures).toHaveLength(0);
+      });
+
+      await waitFor(() => {
+        const featuresAfterMove = getSourceFeatures(map, "features");
+        expect(featuresAfterMove).toHaveLength(1);
+        expect(featuresAfterMove[0]).toEqual(
+          matchPoint({ coordinates: significantMoveCoords }),
+        );
+      });
     });
   });
 });
