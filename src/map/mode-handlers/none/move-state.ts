@@ -97,6 +97,8 @@ export const useMoveState = () => {
   };
 
   const isCommitting = isCommittingRef.current;
+  const hasEphemeralFeedback =
+    state.type === "moveAssets" && state.targetAssets.length > 0;
 
   return {
     setStartPoint,
@@ -108,5 +110,6 @@ export const useMoveState = () => {
     finishCommit,
     isCommitting,
     isMoving: state.type === "moveAssets",
+    hasEphemeralFeedback,
   };
 };

@@ -68,6 +68,7 @@ export function useNoneHandlers({
     startCommit,
     finishCommit,
     isCommitting,
+    hasEphemeralFeedback,
   } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
@@ -258,10 +259,17 @@ export function useNoneHandlers({
         pipeIdToSplit = snappingCandidate.id;
       }
 
-      const significant =
-        startPoint && isMovementSignificant(e.point, startPoint);
+      let shouldCommit = false;
 
-      if (significant) {
+      if (isTinyMoveFixOn) {
+        shouldCommit = hasEphemeralFeedback;
+      } else {
+        const significant =
+          startPoint && isMovementSignificant(e.point, startPoint);
+        shouldCommit = !!significant;
+      }
+
+      if (shouldCommit) {
         startCommit();
 
         const lngLatForElevation = pipeIdToSplit
