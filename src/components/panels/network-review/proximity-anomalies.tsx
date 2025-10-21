@@ -232,8 +232,8 @@ const useCheckProximityAnomalies = () => {
 
   const checkProximityAnomalies = useCallback(
     async (distance: number) => {
-      await deferToAllowRender();
       startLoading();
+      await deferToAllowRender();
       const result = await findProximityAnomalies(hydraulicModel, distance);
       setProximityAnomalies(result);
       finishLoading();

@@ -221,8 +221,8 @@ const useCheckOrphanAssets = () => {
   const isReady = useRef(false);
 
   const checkOrphanAssets = useCallback(async () => {
-    await deferToAllowRender();
     startLoading();
+    await deferToAllowRender();
     const result = await findOrphanAssets(hydraulicModel);
     setOrphanAssets(result);
     finishLoading();

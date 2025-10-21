@@ -241,8 +241,8 @@ const useCheckCrossingPipes = () => {
   const isReady = useRef(false);
 
   const checkCrossingPipes = useCallback(async () => {
-    await deferToAllowRender();
     startLoading();
+    await deferToAllowRender();
     const result = await findCrossingPipes(hydraulicModel);
     setCrossingPipes(result);
     finishLoading();
