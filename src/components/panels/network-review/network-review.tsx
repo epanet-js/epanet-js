@@ -128,8 +128,10 @@ function NetworkReviewSummary({
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <div className="py-3 px-4 w-full text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100 flex flex-row gap-2 justify-between items-center">
+      <div className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100 w-full">
         <span>{translate("networkReview.title")}</span>
+      </div>
+      <div className="px-4 pt-3">
         <EarlyAccessBadge />
       </div>
       <div className="px-4 py-2 text-sm">

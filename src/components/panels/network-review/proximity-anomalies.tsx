@@ -324,10 +324,8 @@ const ProximityAnomalyItem = ({
       className="group w-full"
     >
       <div className="grid grid-cols-[1fr_auto] gap-x-2 items-center p-1 pr-0 text-sm w-full justify-between">
-        <div className="text-sm font-semibold truncate text-left">
-          {nodeAsset.label}
-        </div>
-        <div className="text-xs text-gray-500 min-w-0">
+        <div className="truncate text-left">{nodeAsset.label}</div>
+        <div className="text-gray-500 min-w-0">
           {distanceFormatted} {lengthUnit}
         </div>
       </div>
