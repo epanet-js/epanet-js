@@ -389,7 +389,7 @@ export const VirtualizedIssuesList = <T,>({
   return (
     <div
       ref={listRef}
-      className="group flex-auto py-1 overflow-y-auto placemark-scrollbar"
+      className="group flex-auto pb-1 overflow-y-auto placemark-scrollbar"
       style={{ contain: "strict" }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
