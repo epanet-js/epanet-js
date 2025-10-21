@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, canUseWorkers } from "src/infra/worker";
+import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   decodeProximityAnomalies,
   EncodedProximityAnomalies,
@@ -22,7 +22,7 @@ export const runCheck = async (
     bufferType,
   );
 
-  const useWorker = canUseWorkers(bufferType);
+  const useWorker = canUseWorker();
 
   const encodedProximityAnomalies = useWorker
     ? await runWithWorker(inputData, distanceInMeters)

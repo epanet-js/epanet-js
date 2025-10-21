@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, hasWebWorker } from "src/infra/worker";
+import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   decodeCrossingPipes,
   EncodedCrossingPipes,
@@ -22,7 +22,7 @@ export const runCheck = async (
     bufferType,
   );
 
-  const useWorker = hasWebWorker();
+  const useWorker = canUseWorker();
 
   const encodedCrossingPipes = useWorker
     ? await runWithWorker(inputData, junctionTolerance)

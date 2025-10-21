@@ -1,6 +1,6 @@
 export type ArrayBufferType = "shared" | "array";
 
-export const hasWebWorker = () => {
+export const canUseWorker = () => {
   try {
     return window.Worker !== undefined;
   } catch {
@@ -9,4 +9,4 @@ export const hasWebWorker = () => {
 };
 
 export const canUseWorkers = (bufferType: string = "array") =>
-  hasWebWorker() && bufferType === "shared";
+  canUseWorker() && bufferType === "shared";
