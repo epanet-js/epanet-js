@@ -121,7 +121,7 @@ describe("findCrossingPipes", () => {
         .aJunction("JNearby", { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
         .build();
 
-      const { idsLookup, ...data} = encodeHydraulicModel(model);
+      const { idsLookup, ...data } = encodeHydraulicModel(model);
 
       // With small tolerance (0.0005 degrees ~55m): should find crossing (junction is 89m away)
       const crossingsSmall = findCrossingPipes(data, 0.0005);

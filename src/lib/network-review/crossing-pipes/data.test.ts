@@ -70,7 +70,10 @@ describe("HydraulicModel encoding/decoding", () => {
       expect(idsLookup[pipe.id]).toBe("P1");
       expect(idsLookup[pipe.startNode]).toBe("J1");
       expect(idsLookup[pipe.endNode]).toBe("J2");
-      expect(pipe.bbox).toEqual([[0, 0], [10, 10]]);
+      expect(pipe.bbox).toEqual([
+        [0, 0],
+        [10, 10],
+      ]);
     });
 
     it("encodes only pipes, not valves or pumps", () => {
