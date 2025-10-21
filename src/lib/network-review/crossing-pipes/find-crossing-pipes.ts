@@ -19,6 +19,7 @@ export function findCrossingPipes(
 
   const results: EncodedCrossingPipes = [];
   const alreadySearched = new Set<number>();
+  const reportedPairs = new Set<string>();
 
   for (const currentPipe of pipes.iter()) {
     const otherPipeSegments = findOtherPipeSegmentsNearPipe(
@@ -39,6 +40,11 @@ export function findCrossingPipes(
 
       const otherPipeId = pipeSegmentsLookup.getId(otherPipeSegmentIdx);
 
+      const pairKey = createPairKey(currentPipe.id, otherPipeId);
+      if (reportedPairs.has(pairKey)) {
+        continue;
+      }
+
       let foundIntersection = false;
       for (const currentPipeSegmentIdx of currentPipeSegments) {
         const intersections = calculateIntersectionPoints(
@@ -56,6 +62,7 @@ export function findCrossingPipes(
             )
           ) {
             foundIntersection = true;
+            reportedPairs.add(pairKey);
             results.push({
               pipe1Id: currentPipe.id,
               pipe2Id: otherPipeId,
@@ -71,6 +78,12 @@ export function findCrossingPipes(
   }
 
   return results;
+}
+
+function createPairKey(pipe1Id: number, pipe2Id: number): string {
+  const minId = Math.min(pipe1Id, pipe2Id);
+  const maxId = Math.max(pipe1Id, pipe2Id);
+  return `${minId}-${maxId}`;
 }
 
 function findOtherPipeSegmentsNearPipe(

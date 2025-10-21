@@ -256,6 +256,36 @@ describe("findCrossingPipes", () => {
       expect(pipe1).not.toEqual(pipe2);
     });
 
+    it("reports same pipe pair only once even with multiple intersection points", () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: [0, 0] })
+        .aJunction("J2", { coordinates: [10, 0] })
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [3, 3],
+            [7, -3],
+            [10, 0],
+          ],
+        })
+        .aJunction("J3", { coordinates: [0, 0] })
+        .aJunction("J4", { coordinates: [10, 0] })
+        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .build();
+
+      const { idsLookup, ...data } = encodeHydraulicModel(model);
+      const crossings = findCrossingPipes(data, 0.5);
+
+      expect(crossings).toHaveLength(1);
+
+      const pipe1 = idsLookup[crossings[0].pipe1Id];
+      const pipe2 = idsLookup[crossings[0].pipe2Id];
+      expect(pipe1).toEqual("P1");
+      expect(pipe2).toEqual("P2");
+    });
+
     it("handles pipes that touch at endpoints (T-junction)", () => {
       const model = HydraulicModelBuilder.with()
         .aJunction("J1", { coordinates: [0, 0] })
