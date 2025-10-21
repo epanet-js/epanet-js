@@ -664,9 +664,9 @@ const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
   return (
     <div>
       <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {translate(
+        {`${translate(
           "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-        )}
+        )} (${translate("optional")})`}
       </label>
       <select
         value={selectedProperty || ""}

@@ -274,6 +274,7 @@
   "toggleVisibility": "Toggle visibility",
   "toggleLabelsVisibility": "Toggle labels visibility",
   "visible": "Visible",
+  "optional": "optional",
   "basemap": "Basemap",
   "back": "Back",
   "updateLayer": "Update layer",
@@ -478,7 +479,7 @@
         },
         "labelSelector": {
           "label": "Label",
-          "placeholder": "Select label property (optional)...",
+          "placeholder": "Select label property...",
           "description": "Labels will be trimmed to {{1}} characters"
         },
         "table": {
