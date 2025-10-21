@@ -610,7 +610,7 @@
       "summary_zero": "No intersections found",
       "summary_one": "1 intersection found",
       "summary_other": "{{count}} intersections found",
-      "issueLabel": "Intersection for pipes {{1}} and {{2}}",
+      "issueLabel": "Pipe {{1}} crosses pipe {{2}}",
       "emptyMessage": "No crossing pipes found in your network"
     }
   },

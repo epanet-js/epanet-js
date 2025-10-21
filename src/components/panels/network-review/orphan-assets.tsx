@@ -187,12 +187,7 @@ const OrphanAssetItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div
-        className="grid gap-x-2 items-start p-1 pr-0 text-sm w-full"
-        style={{
-          gridTemplateColumns: "auto 1fr",
-        }}
-      >
+      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-start p-1 pr-0 text-sm w-full">
         <div className="pt-[.125rem]">{iconByAssetType[orphanAsset.type]}</div>
         <div className="text-sm font-semibold text-left">
           {orphanAsset.label}

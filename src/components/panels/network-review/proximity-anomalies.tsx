@@ -21,8 +21,6 @@ import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import { Button } from "src/components/elements";
-import { PipeIcon } from "src/icons";
-import { Pipe } from "src/hydraulic-model";
 import { Maybe } from "purify-ts/Maybe";
 import bbox from "@turf/bbox";
 import { lineString } from "@turf/helpers";
@@ -162,17 +160,15 @@ const DistanceInput = ({
 
   return (
     <div className="px-1" ref={inputRef}>
-      <div className="flex gap-2 flex-row p-3 items-center">
-        <label className="pr-2 text-sm flex-1">{label}</label>
-        <div className="flex-1">
-          <NumericField
-            label={label}
-            displayValue={localizeDecimal(distance.value)}
-            onChangeValue={onChange}
-            styleOptions={{ padding: "sm", textSize: "sm" }}
-            tabIndex={0}
-          />
-        </div>
+      <div className="flex gap-2 flex-row p-3 items-center flex-wrap">
+        <label className="pr-2 text-sm text-gray-500">{label}</label>
+        <NumericField
+          label={label}
+          displayValue={localizeDecimal(distance.value)}
+          onChangeValue={onChange}
+          styleOptions={{ padding: "sm", textSize: "sm" }}
+          tabIndex={0}
+        />
       </div>
     </div>
   );
@@ -266,11 +262,9 @@ const ProximityAnomalyItem = ({
   const isSelected = selectedId === connectionId;
 
   const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
-  const pipeAsset = hydraulicModel.assets.get(anomaly.pipeId);
 
-  if (!nodeAsset || !pipeAsset || pipeAsset.type !== "pipe") return null;
+  if (!nodeAsset) return null;
 
-  const pipe = pipeAsset as Pipe;
   const lengthUnit = hydraulicModel.units.length;
   const distanceInModelUnits = convertTo(
     { value: anomaly.distance, unit: "m" },
@@ -279,7 +273,6 @@ const ProximityAnomalyItem = ({
   const distanceFormatted = localizeDecimal(distanceInModelUnits, {
     decimals: 2,
   });
-  const diameterFormatted = localizeDecimal(pipe.diameter);
 
   return (
     <Button
@@ -290,8 +283,6 @@ const ProximityAnomalyItem = ({
       aria-label={translate(
         "networkReview.proximityAnomalies.issueLabel",
         nodeAsset.label,
-        pipeAsset.label,
-        distanceFormatted,
       )}
       aria-checked={isSelected}
       aria-expanded={isSelected ? "true" : "false"}
@@ -299,25 +290,11 @@ const ProximityAnomalyItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div
-        className="grid gap-x-2 items-start p-1 pr-0 text-sm w-full"
-        style={{
-          gridTemplateColumns: "1fr auto",
-        }}
-      >
-        <div className="text-left min-w-0">
-          <div className="text-sm font-semibold truncate">
-            {nodeAsset.label}
-          </div>
-          <div className="text-xs text-gray-500 flex items-center gap-1 min-w-0">
-            <PipeIcon size={12} className="flex-shrink-0" />
-            <span className="truncate">{pipeAsset.label}</span>
-            <span className="flex-shrink-0 whitespace-nowrap">
-              ⌀ {diameterFormatted}
-            </span>
-          </div>
+      <div className="grid grid-cols-[1fr_auto] gap-x-2 items-center p-1 pr-0 text-sm w-full justify-between">
+        <div className="text-sm font-semibold truncate text-left">
+          {nodeAsset.label}
         </div>
-        <div className="text-xs text-gray-500 pt-[.125rem] flex-shrink-0 whitespace-nowrap">
+        <div className="text-xs text-gray-500 min-w-0">
           {distanceFormatted} {lengthUnit}
         </div>
       </div>

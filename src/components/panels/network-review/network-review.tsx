@@ -214,12 +214,7 @@ const ReviewCheck = ({
       className="group w-full"
       disabled={!isEnabled}
     >
-      <div
-        className="grid gap-x-2 items-start p-2 pr-0 text-sm w-full"
-        style={{
-          gridTemplateColumns: "auto 1fr auto",
-        }}
-      >
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-sm w-full">
         <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
         <div className="flex flex-row gap-2 flex-wrap items-center">
           <div className="text-sm font-bold text-left">{label}</div>
