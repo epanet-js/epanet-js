@@ -139,6 +139,7 @@ export const CollapsibleSection = ({
   defaultOpen = true,
   open: controlledOpen,
   onOpenChange,
+  className,
   children,
 }: {
   title: string;
@@ -146,6 +147,7 @@ export const CollapsibleSection = ({
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  className?: string;
   children: React.ReactNode;
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
@@ -156,10 +158,10 @@ export const CollapsibleSection = ({
 
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
-      <div className="flex flex-col">
+      <div className={clsx("flex flex-col py-3", className)}>
         <C.Trigger
           className={clsx(
-            "flex items-center justify-between text-sm font-semibold pb-2 cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+            "flex items-center justify-between text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
             {
               "text-gray-500": variant === "secondary",
             },
