@@ -58,10 +58,7 @@ export const ToolHeader = ({
   return (
     <div
       ref={headerRef}
-      className="grid gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 py-3"
-      style={{
-        gridTemplateColumns: "auto 1fr",
-      }}
+      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 py-3"
       tabIndex={autoFocus ? 0 : undefined}
       onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
@@ -236,6 +233,24 @@ export const VirtualizedIssuesList = <T,>({
           lastKeyboardNavigatedIndexRef.current = previousPageIndex;
           lastProcessedSelectedIdRef.current = getIdFromIssue(
             issues[previousPageIndex],
+          );
+          break;
+        case "Home":
+          e.preventDefault();
+          const firstIndex = 0;
+          onSelect(issues[firstIndex]);
+          lastKeyboardNavigatedIndexRef.current = firstIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[firstIndex],
+          );
+          break;
+        case "End":
+          e.preventDefault();
+          const lastIndex = issues.length - 1;
+          onSelect(issues[lastIndex]);
+          lastKeyboardNavigatedIndexRef.current = lastIndex;
+          lastProcessedSelectedIdRef.current = getIdFromIssue(
+            issues[lastIndex],
           );
           break;
         case "Escape":
