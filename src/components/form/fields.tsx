@@ -167,7 +167,7 @@ export const CollapsibleSection = ({
             },
           )}
         >
-          <span>{title}</span>
+          <span className={clsx({ "pb-2": open })}>{title}</span>
           {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
         </C.Trigger>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
