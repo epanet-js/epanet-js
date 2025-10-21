@@ -631,7 +631,7 @@ const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
       <select
         value={selectedProperty || ""}
         onChange={(e) => e.target.value && onSelectProperty(e.target.value)}
-        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white cursor-pointer"
       >
         <option value="" disabled>
           {translate(
@@ -671,7 +671,7 @@ const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
       <select
         value={selectedProperty || ""}
         onChange={(e) => onSelectProperty(e.target.value)}
-        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white"
+        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white cursor-pointer"
       >
         <option value="">
           {translate(
