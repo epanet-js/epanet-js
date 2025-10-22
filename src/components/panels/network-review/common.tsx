@@ -226,6 +226,7 @@ export const VirtualizedIssuesList = <T,>({
   onSelect: (item: T | null) => void;
   getItemId: (item: T) => string;
   renderItem: (
+    index: number,
     item: T,
     selectedId: string | null,
     onClick: (item: T) => void,
@@ -432,7 +433,12 @@ export const VirtualizedIssuesList = <T,>({
                 ref={rowVirtualizer.measureElement}
                 role="listItem"
               >
-                {renderItem(item, selectedId, handleClickWithIndex)}
+                {renderItem(
+                  virtualRow.index,
+                  item,
+                  selectedId,
+                  handleClickWithIndex,
+                )}
               </div>
             );
           })}

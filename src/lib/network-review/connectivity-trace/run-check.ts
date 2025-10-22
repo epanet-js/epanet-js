@@ -1,13 +1,13 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { Subnetwork } from "./data";
+import { SubNetwork } from "./data";
 import { findSubNetworks } from "./find-subnetworks";
 import type { ConnectivityTraceWorkerAPI } from "./worker";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
-): Promise<Subnetwork[]> => {
+): Promise<SubNetwork[]> => {
   const useWorker = false;
 
   if (useWorker) {
@@ -19,7 +19,7 @@ export const runCheck = async (
 
 const runWithWorker = async (
   hydraulicModel: HydraulicModel,
-): Promise<Subnetwork[]> => {
+): Promise<SubNetwork[]> => {
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
   });

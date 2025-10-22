@@ -1,5 +1,5 @@
 import { AssetId, HydraulicModel } from "src/hydraulic-model";
-import { Subnetwork, SUBNETWORK_COLORS } from "./data";
+import { SubNetwork } from "./data";
 import bbox from "@turf/bbox";
 import { lineString } from "@turf/helpers";
 import { BBox2d } from "@turf/helpers/dist/js/lib/geojson";
@@ -7,12 +7,12 @@ import { BBox2d } from "@turf/helpers/dist/js/lib/geojson";
 interface Component {
   nodeIds: AssetId[];
   linkIds: AssetId[];
-  hasTanks: boolean;
-  hasReservoirs: boolean;
+  supplySourceCount: number;
+  pipeCount: number;
   coordinates: [number, number][][];
 }
 
-export function findSubNetworks(model: HydraulicModel): Subnetwork[] {
+export function findSubNetworks(model: HydraulicModel): SubNetwork[] {
   const components = findConnectedComponentsUsingTopology(model);
   const subnetworks = buildSubnetworks(components);
 
@@ -31,8 +31,8 @@ function findConnectedComponentsUsingTopology(
     const component: Component = {
       nodeIds: [],
       linkIds: [],
-      hasTanks: false,
-      hasReservoirs: false,
+      supplySourceCount: 0,
+      pipeCount: 0,
       coordinates: [],
     };
 
@@ -49,10 +49,8 @@ function findConnectedComponentsUsingTopology(
 
       component.nodeIds.push(current);
 
-      if (currentAsset.type === "tank") {
-        component.hasTanks = true;
-      } else if (currentAsset.type === "reservoir") {
-        component.hasReservoirs = true;
+      if (currentAsset.type === "tank" || currentAsset.type === "reservoir") {
+        component.supplySourceCount++;
       }
 
       const linkIds = model.topology.getLinks(current);
@@ -68,6 +66,9 @@ function findConnectedComponentsUsingTopology(
             component.coordinates.push(
               link.feature.geometry.coordinates as [number, number][],
             );
+            if (link.type === "pipe") {
+              component.pipeCount++;
+            }
           }
         }
       }
@@ -81,23 +82,17 @@ function findConnectedComponentsUsingTopology(
   return components;
 }
 
-function buildSubnetworks(components: Component[]): Subnetwork[] {
+function buildSubnetworks(components: Component[]): SubNetwork[] {
   return components.map((component, idx) => {
     const bounds = calculateBounds(component.coordinates);
-
-    const hasSupplySource = component.hasTanks || component.hasReservoirs;
-    const supplySourceTypes: string[] = [];
-    if (component.hasReservoirs) supplySourceTypes.push("reservoir");
-    if (component.hasTanks) supplySourceTypes.push("tank");
 
     return {
       subnetworkId: idx,
       nodeIds: component.nodeIds,
       linkIds: component.linkIds,
-      hasSupplySource,
-      supplySourceTypes,
+      supplySourceCount: component.supplySourceCount,
+      pipeCount: component.pipeCount,
       bounds,
-      color: SUBNETWORK_COLORS[idx % SUBNETWORK_COLORS.length],
     };
   });
 }
