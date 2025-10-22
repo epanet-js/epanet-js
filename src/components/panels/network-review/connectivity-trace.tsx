@@ -8,7 +8,7 @@ import {
   findConnectivityTrace,
   Subnetwork,
 } from "src/lib/network-review/connectivity-trace";
-import { useSelection } from "src/selection";
+import { USelection, useSelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 import {
   CheckType,
@@ -27,7 +27,7 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
   const { subnetworks, checkConnectivityTrace, isLoading, isReady } =
     useCheckConnectivityTrace();
   const selection = useAtomValue(selectionAtom);
-  const { clearSelection } = useSelection(selection);
+  const { clearSelection, setSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const [selectedSubnetworkId, setSelectedSubnetworkId] = useState<
     number | null
@@ -52,11 +52,14 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
 
       setSelectedSubnetworkId(subnetwork.subnetworkId);
 
+      const allIds = [...subnetwork.nodeIds, ...subnetwork.linkIds];
+      setSelection(USelection.fromIds(allIds));
+
       if (subnetwork.bounds) {
         zoomTo(Maybe.of(subnetwork.bounds));
       }
     },
-    [clearSelection, zoomTo],
+    [clearSelection, setSelection, zoomTo],
   );
 
   useEffect(() => {
