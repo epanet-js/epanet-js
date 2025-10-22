@@ -585,7 +585,18 @@
     "issuesFound": "{{1}} issues found",
     "noIssuesFound": "No issues found",
     "connectivityTrace": {
-      "title": "Connectivity trace"
+      "title": "Connectivity trace",
+      "description": "Identify disconnected sub-networks and verify each has a water supply source",
+      "summary_zero": "No sub-networks found",
+      "summary_one": "1 sub-network found",
+      "summary_other": "{{count}} sub-networks found",
+      "issueLabel": "Sub-network {{1}}: {{2}} nodes, {{3}} links",
+      "emptyMessage": "Your network is fully connected",
+      "subnetwork": "Sub-network {{1}}",
+      "stats": "{{1}} nodes, {{2}} links",
+      "hasSupplySource": "Has supply source",
+      "noSupplySource": "Missing supply source",
+      "supplySourceTypes": "Supply: {{1}}"
     },
     "orphanAssets": {
       "title": "Orphan assets",

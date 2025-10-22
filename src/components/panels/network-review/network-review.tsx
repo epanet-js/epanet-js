@@ -14,6 +14,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
+import { ConnectivityTrace } from "./connectivity-trace";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 
@@ -31,6 +32,8 @@ export function NetworkReview() {
       return <ProximityAnomalies onGoBack={goBackToSummary} />;
     case CheckType.crossingPipes:
       return <CrossingPipes onGoBack={goBackToSummary} />;
+    case CheckType.connectivityTrace:
+      return <ConnectivityTrace onGoBack={goBackToSummary} />;
     default:
       return (
         <NetworkReviewSummary
