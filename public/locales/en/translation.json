@@ -480,7 +480,8 @@
         "labelSelector": {
           "label": "Label",
           "placeholder": "Select label property...",
-          "description": "Labels will be trimmed to {{1}} characters"
+          "description": "Labels will be trimmed to {{1}} characters",
+          "noneAutoGenerate": "None (Auto-generate labels)"
         },
         "table": {
           "id": "ID",

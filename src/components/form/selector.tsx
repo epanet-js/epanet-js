@@ -65,7 +65,48 @@ export const SelectorLikeButton = React.forwardRef<
   },
 );
 
-export const Selector = <T extends string>({
+type SelectorOption<T extends string> = {
+  label: string;
+  description?: string;
+  value: T;
+  disabled?: boolean;
+};
+
+type SelectorPropsBase<T extends string> = {
+  options: SelectorOption<T>[];
+  ariaLabel?: string;
+  tabIndex?: number;
+  styleOptions?: StyleOptions;
+  disableFocusOnClose?: boolean;
+};
+
+type SelectorPropsNonNullable<T extends string> = SelectorPropsBase<T> & {
+  selected: T;
+  onChange: (selected: T, oldValue: T) => void;
+  nullable?: false;
+  placeholder?: never;
+};
+
+type SelectorPropsNullable<T extends string> = SelectorPropsBase<T> & {
+  selected: T | null;
+  onChange: (selected: T | null, oldValue: T | null) => void;
+  nullable: true;
+  placeholder: string;
+};
+
+type SelectorProps<T extends string> =
+  | SelectorPropsNonNullable<T>
+  | SelectorPropsNullable<T>;
+
+export function Selector<T extends string>(
+  props: SelectorPropsNonNullable<T>,
+): JSX.Element;
+
+export function Selector<T extends string>(
+  props: SelectorPropsNullable<T>,
+): JSX.Element;
+
+export function Selector<T extends string>({
   options,
   selected,
   onChange,
@@ -73,25 +114,9 @@ export const Selector = <T extends string>({
   tabIndex = 1,
   disableFocusOnClose = false,
   styleOptions = {},
-}: {
-  options: {
-    label: string;
-    description?: string;
-    value: T;
-    disabled?: boolean;
-  }[];
-  selected: T;
-  onChange: (selected: T, oldValue: T) => void;
-  ariaLabel?: string;
-  tabIndex?: number;
-  styleOptions?: {
-    border?: boolean;
-    textSize?: "text-xs" | "text-sm";
-    paddingX?: number;
-    paddingY?: number;
-  };
-  disableFocusOnClose?: boolean;
-}) => {
+  nullable = false,
+  placeholder,
+}: SelectorProps<T>) {
   const effectiveStyleOptions = useMemo(
     () => ({ ...defaultStyleOptions, ...styleOptions }),
     [styleOptions],
@@ -117,18 +142,24 @@ export const Selector = <T extends string>({
     return `bg-white w-full border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50`;
   }, [effectiveStyleOptions.textSize]);
 
-  const handleValueChange = (newValue: T) => {
-    onChange(newValue, selected);
+  const handleValueChange = (newValue: string) => {
+    if (nullable && newValue === "") {
+      (onChange as (selected: T | null, oldValue: T | null) => void)(
+        null,
+        selected,
+      );
+    } else {
+      (onChange as (selected: T, oldValue: T) => void)(
+        newValue as T,
+        selected as T,
+      );
+    }
   };
-
-  const selectedOption = useMemo(() => {
-    return options.find((o) => o.value === selected);
-  }, [options, selected]);
 
   return (
     <div className="relative group-1">
       <Select.Root
-        value={selected}
+        value={selected ?? ""}
         open={isOpen}
         onOpenChange={handleOpenChange}
         onValueChange={handleValueChange}
@@ -138,9 +169,7 @@ export const Selector = <T extends string>({
           tabIndex={tabIndex}
           className={triggerStyles}
         >
-          <Select.Value>
-            {selectedOption ? selectedOption.label : ""}
-          </Select.Value>
+          <Select.Value placeholder={nullable ? placeholder : undefined} />
           <Select.Icon className="px-1">
             <ChevronDownIcon />
           </Select.Icon>
@@ -180,4 +209,4 @@ export const Selector = <T extends string>({
       </Select.Root>
     </div>
   );
-};
+}

@@ -26,6 +26,7 @@ import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
+import { Selector } from "src/components/form/selector";
 
 type TabType = "customerPoints" | "issues";
 
@@ -224,17 +225,69 @@ export const DataMappingStep: React.FC<{
               )}
             </p>
             <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              <DemandPropertySelector
-                availableProperties={Array.from(inputData.properties)}
-                selectedProperty={selectedDemandProperty}
-                onSelectProperty={handleDemandPropertyChange}
-              />
-              {isCustomerLabelEnabled && (
-                <LabelPropertySelector
-                  availableProperties={Array.from(inputData.properties)}
-                  selectedProperty={selectedLabelProperty}
-                  onSelectProperty={handleLabelPropertyChange}
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  {translate(
+                    "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                  )}
+                </label>
+                <Selector
+                  nullable={true}
+                  placeholder={translate(
+                    "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                  )}
+                  options={Array.from(inputData.properties).map((prop) => ({
+                    label: prop,
+                    value: prop,
+                  }))}
+                  selected={selectedDemandProperty}
+                  onChange={(value) => handleDemandPropertyChange(value || "")}
+                  ariaLabel={translate(
+                    "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                  )}
                 />
+              </div>
+              {isCustomerLabelEnabled && (
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    {`${translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                    )} (${translate("optional")})`}
+                  </label>
+                  <Selector
+                    nullable={true}
+                    placeholder={translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                    )}
+                    options={[
+                      {
+                        label: translate(
+                          "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                        ),
+                        value: "__NONE__",
+                      },
+                      ...Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      })),
+                    ]}
+                    selected={selectedLabelProperty || "__NONE__"}
+                    onChange={(value) =>
+                      handleLabelPropertyChange(
+                        value === "__NONE__" ? "" : value || "",
+                      )
+                    }
+                    ariaLabel={translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                    )}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.description",
+                      String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                    )}
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -604,92 +657,6 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-type DemandPropertySelectorProps = {
-  availableProperties: string[];
-  selectedProperty: string | null;
-  onSelectProperty: (property: string) => void;
-};
-
-const DemandPropertySelector: React.FC<DemandPropertySelectorProps> = ({
-  availableProperties,
-  selectedProperty,
-  onSelectProperty,
-}) => {
-  const translate = useTranslate();
-
-  return (
-    <div>
-      <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {translate(
-          "importCustomerPoints.wizard.dataMapping.demandSelector.label",
-        )}
-      </label>
-      <select
-        value={selectedProperty || ""}
-        onChange={(e) => e.target.value && onSelectProperty(e.target.value)}
-        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white cursor-pointer"
-      >
-        <option value="" disabled>
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
-          )}
-        </option>
-        {availableProperties.map((property) => (
-          <option key={property} value={property}>
-            {property}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
-
-type LabelPropertySelectorProps = {
-  availableProperties: string[];
-  selectedProperty: string | null;
-  onSelectProperty: (property: string) => void;
-};
-
-const LabelPropertySelector: React.FC<LabelPropertySelectorProps> = ({
-  availableProperties,
-  selectedProperty,
-  onSelectProperty,
-}) => {
-  const translate = useTranslate();
-
-  return (
-    <div>
-      <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {`${translate(
-          "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-        )} (${translate("optional")})`}
-      </label>
-      <select
-        value={selectedProperty || ""}
-        onChange={(e) => onSelectProperty(e.target.value)}
-        className="w-full px-2 py-2 text-sm border border-gray-300 rounded-sm focus:ring-purple-500 focus:border-purple-500 bg-white cursor-pointer"
-      >
-        <option value="">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
-          )}
-        </option>
-        {availableProperties.map((property) => (
-          <option key={property} value={property}>
-            {property}
-          </option>
-        ))}
-      </select>
-      <p className="text-xs text-gray-500 mt-1">
-        {translate(
-          "importCustomerPoints.wizard.dataMapping.labelSelector.description",
-          String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
-        )}
-      </p>
     </div>
   );
 };
