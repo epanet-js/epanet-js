@@ -3,6 +3,8 @@ import {
   CategoryStats,
   QuantityStatsDeprecated,
 } from "../asset-property-stats";
+
+export type { CategoryStats };
 import { Quantities } from "src/model-metadata/quantities-spec";
 import {
   Asset,
@@ -23,7 +25,7 @@ export type QuantityStats = QuantityStatsDeprecated & {
 
 type Section = "modelAttributes" | "simulationResults" | "demands";
 
-type AssetPropertyStats = QuantityStats | CategoryStats;
+export type AssetPropertyStats = QuantityStats | CategoryStats;
 
 export type AssetPropertySections = {
   [section in Section]: AssetPropertyStats[];

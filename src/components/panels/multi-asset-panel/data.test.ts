@@ -1,10 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { computeMultiAssetData } from "./data";
+import {
+  computeMultiAssetData,
+  QuantityStats,
+  CategoryStats,
+  AssetPropertyStats,
+} from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { presets, Quantities } from "src/model-metadata/quantities-spec";
 
 describe("computeMultiAssetData", () => {
   const quantities = new Quantities(presets.LPS);
+
+  const findQuantityStat = (
+    stats: AssetPropertyStats[],
+    property: string,
+  ): QuantityStats => {
+    const stat = stats.find((s) => s.property === property);
+    expect(stat).toBeDefined();
+    expect(stat?.type).toBe("quantity");
+    return stat as QuantityStats;
+  };
+
+  const findCategoryStat = (
+    stats: AssetPropertyStats[],
+    property: string,
+  ): CategoryStats => {
+    const stat = stats.find((s) => s.property === property);
+    expect(stat).toBeDefined();
+    expect(stat?.type).toBe("category");
+    return stat as CategoryStats;
+  };
 
   it("groups assets by type", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -36,29 +61,20 @@ describe("computeMultiAssetData", () => {
     expect(junctionData.demands).toBeDefined();
     expect(junctionData.simulationResults).toBeDefined();
 
-    const elevationStat = junctionData.modelAttributes.find(
-      (s) => s.property === "elevation",
+    const elevationStat = findQuantityStat(
+      junctionData.modelAttributes,
+      "elevation",
     );
-    expect(elevationStat).toBeDefined();
-    expect(elevationStat?.type).toBe("quantity");
-    if (elevationStat?.type === "quantity") {
-      expect(elevationStat.min).toBe(100);
-      expect(elevationStat.max).toBe(150);
-      expect(elevationStat.mean).toBe(125);
-      expect(elevationStat.unit).toBe("m");
-      expect(elevationStat.decimals).toBe(3);
-    }
+    expect(elevationStat.min).toBe(100);
+    expect(elevationStat.max).toBe(150);
+    expect(elevationStat.mean).toBe(125);
+    expect(elevationStat.unit).toBe("m");
+    expect(elevationStat.decimals).toBe(3);
 
-    const demandStat = junctionData.demands.find(
-      (s) => s.property === "baseDemand",
-    );
-    expect(demandStat).toBeDefined();
-    expect(demandStat?.type).toBe("quantity");
-    if (demandStat?.type === "quantity") {
-      expect(demandStat.min).toBe(10);
-      expect(demandStat.max).toBe(20);
-      expect(demandStat.unit).toBe("l/s");
-    }
+    const demandStat = findQuantityStat(junctionData.demands, "baseDemand");
+    expect(demandStat.min).toBe(10);
+    expect(demandStat.max).toBe(20);
+    expect(demandStat.unit).toBe("l/s");
   });
 
   it("excludes null simulation results from stats", () => {
@@ -92,14 +108,10 @@ describe("computeMultiAssetData", () => {
     const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats.length).toBeGreaterThan(0);
 
-    const pressureStat = simulationStats.find((s) => s.property === "pressure");
-    expect(pressureStat).toBeDefined();
-    expect(pressureStat?.type).toBe("quantity");
-    if (pressureStat?.type === "quantity") {
-      expect(pressureStat.min).toBe(50);
-      expect(pressureStat.max).toBe(60);
-      expect(pressureStat.unit).toBe("mwc");
-    }
+    const pressureStat = findQuantityStat(simulationStats, "pressure");
+    expect(pressureStat.min).toBe(50);
+    expect(pressureStat.max).toBe(60);
+    expect(pressureStat.unit).toBe("mwc");
   });
 
   it("computes pipe stats with sections", () => {
@@ -129,15 +141,10 @@ describe("computeMultiAssetData", () => {
     expect(pipeData.modelAttributes).toBeDefined();
     expect(pipeData.simulationResults).toBeDefined();
 
-    const diameterStat = pipeData.modelAttributes.find(
-      (s) => s.property === "diameter",
-    );
-    expect(diameterStat).toBeDefined();
-    if (diameterStat?.type === "quantity") {
-      expect(diameterStat.min).toBe(200);
-      expect(diameterStat.max).toBe(300);
-      expect(diameterStat.unit).toBe("mm");
-    }
+    const diameterStat = findQuantityStat(pipeData.modelAttributes, "diameter");
+    expect(diameterStat.min).toBe(200);
+    expect(diameterStat.max).toBe(300);
+    expect(diameterStat.unit).toBe("mm");
   });
 
   it("computes category stats for status properties", () => {
@@ -165,15 +172,12 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(hydraulicModel.assets.values());
     const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
-    const statusStat = result.data.pipe.modelAttributes.find(
-      (s) => s.property === "initialStatus",
+    const statusStat = findCategoryStat(
+      result.data.pipe.modelAttributes,
+      "initialStatus",
     );
-    expect(statusStat).toBeDefined();
-    expect(statusStat?.type).toBe("category");
-    if (statusStat?.type === "category") {
-      expect(statusStat.values.get("pipe.open")).toBe(2);
-      expect(statusStat.values.get("pipe.closed")).toBe(1);
-    }
+    expect(statusStat.values.get("pipe.open")).toBe(2);
+    expect(statusStat.values.get("pipe.closed")).toBe(1);
   });
 
   it("handles empty asset arrays", () => {
@@ -218,13 +222,8 @@ describe("computeMultiAssetData", () => {
     const pumpData = result.data.pump;
     expect(pumpData.modelAttributes).toBeDefined();
 
-    const typeStat = pumpData.modelAttributes.find(
-      (s) => s.property === "pumpType",
-    );
-    expect(typeStat?.type).toBe("category");
-    if (typeStat?.type === "category") {
-      expect(typeStat.values.get("power")).toBe(1);
-    }
+    const typeStat = findCategoryStat(pumpData.modelAttributes, "pumpType");
+    expect(typeStat.values.get("power")).toBe(1);
   });
 
   it("handles partial simulation results", () => {
@@ -241,13 +240,11 @@ describe("computeMultiAssetData", () => {
     const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const simulationStats = result.data.junction.simulationResults;
-    const pressureStat = simulationStats.find((s) => s.property === "pressure");
+    const pressureStat = findQuantityStat(simulationStats, "pressure");
 
-    if (pressureStat?.type === "quantity") {
-      expect(pressureStat.times).toBe(1);
-      expect(pressureStat.min).toBe(50);
-      expect(pressureStat.max).toBe(50);
-    }
+    expect(pressureStat.times).toBe(1);
+    expect(pressureStat.min).toBe(50);
+    expect(pressureStat.max).toBe(50);
   });
 
   it("computes valve stats with valve type categories", () => {
@@ -266,13 +263,8 @@ describe("computeMultiAssetData", () => {
     const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const valveData = result.data.valve;
-    const typeStat = valveData.modelAttributes.find(
-      (s) => s.property === "valveType",
-    );
-    expect(typeStat?.type).toBe("category");
-    if (typeStat?.type === "category") {
-      expect(typeStat.values.get("valve.prv")).toBe(1);
-    }
+    const typeStat = findCategoryStat(valveData.modelAttributes, "valveType");
+    expect(typeStat.values.get("valve.prv")).toBe(1);
   });
 
   it("computes tank stats with sections", () => {
@@ -292,14 +284,12 @@ describe("computeMultiAssetData", () => {
     const tankData = result.data.tank;
     expect(tankData.modelAttributes.length).toBeGreaterThan(0);
 
-    const elevationStat = tankData.modelAttributes.find(
-      (s) => s.property === "elevation",
+    const elevationStat = findQuantityStat(
+      tankData.modelAttributes,
+      "elevation",
     );
-    expect(elevationStat).toBeDefined();
-    if (elevationStat?.type === "quantity") {
-      expect(elevationStat.min).toBe(100);
-      expect(elevationStat.unit).toBe("m");
-    }
+    expect(elevationStat.min).toBe(100);
+    expect(elevationStat.unit).toBe("m");
   });
 
   it("computes reservoir stats", () => {
@@ -314,13 +304,11 @@ describe("computeMultiAssetData", () => {
     const reservoirData = result.data.reservoir;
     expect(reservoirData.modelAttributes.length).toBeGreaterThan(0);
 
-    const elevationStat = reservoirData.modelAttributes.find(
-      (s) => s.property === "elevation",
+    const elevationStat = findQuantityStat(
+      reservoirData.modelAttributes,
+      "elevation",
     );
-    expect(elevationStat).toBeDefined();
-    if (elevationStat?.type === "quantity") {
-      expect(elevationStat.min).toBe(200);
-      expect(elevationStat.max).toBe(250);
-    }
+    expect(elevationStat.min).toBe(200);
+    expect(elevationStat.max).toBe(250);
   });
 });
