@@ -424,9 +424,15 @@ export function useDrawLinkHandlers({
       resetDrawing();
     },
     exit() {
-      resetDrawing();
-      setMode({ mode: Mode.NONE });
-      clearSelection();
+      const currentDrawing = getDrawingState();
+
+      if (isSelectLastOn && !currentDrawing.isNull) {
+        resetDrawing();
+      } else {
+        resetDrawing();
+        setMode({ mode: Mode.NONE });
+        clearSelection();
+      }
     },
     touchstart: (e) => {
       usingTouchEvents.current = true;

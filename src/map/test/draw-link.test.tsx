@@ -17,7 +17,7 @@ import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
 import { UIDMap } from "src/lib/id-mapper";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { dataAtom, selectionAtom, modeAtom } from "src/state/jotai";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
@@ -474,6 +474,77 @@ describe("Drawing a pipe", () => {
           expect(pipes).toHaveLength(1);
           expect(selection.id).toBe(pipes[0].id);
         }
+      });
+    });
+
+    it("cancels drawing but keeps selection when ESC during ctrl+click continue", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const secondClick = { lng: 30, lat: 40 };
+      const thirdClick = { lng: 50, lat: 60 };
+
+      const store = setInitialState({ mode: Mode.DRAW_PIPE });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, secondClick);
+      stubKeyboardState({ ctrl: true });
+      await fireMapClick(map, secondClick);
+      stubKeyboardState({ ctrl: false });
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(2);
+      });
+
+      await fireMapMove(map, thirdClick);
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.DRAW_PIPE);
+      });
+    });
+
+    it("exits mode completely when ESC during drawing with flag disabled", async () => {
+      stubFeatureOff("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const secondClick = { lng: 30, lat: 40 };
+      const thirdClick = { lng: 50, lat: 60 };
+
+      const store = setInitialState({ mode: Mode.DRAW_PIPE });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, secondClick);
+      stubKeyboardState({ ctrl: true });
+      await fireMapClick(map, secondClick);
+      stubKeyboardState({ ctrl: false });
+
+      await waitFor(() => {
+        expect(getSourceFeatures(map, "features")).toHaveLength(3);
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(2);
+      });
+
+      await fireMapMove(map, thirdClick);
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("none");
+
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.NONE);
       });
     });
   });
