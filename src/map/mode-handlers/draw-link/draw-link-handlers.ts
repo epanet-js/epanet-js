@@ -22,6 +22,7 @@ import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useSelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -66,7 +67,7 @@ export function useDrawLinkHandlers({
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const { clearSelection } = useSelection(selection);
+  const { clearSelection, selectFeature } = useSelection(selection);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -76,6 +77,7 @@ export function useDrawLinkHandlers({
     idMap,
     hydraulicModel.assets,
   );
+  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
@@ -229,6 +231,11 @@ export function useDrawLinkHandlers({
 
     userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);
+
+    if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
+      const newLinkId = moment.putAssets[0].id;
+      selectFeature(newLinkId);
+    }
 
     const [, , endNodeUpdated] = moment.putAssets || [];
     return endNodeUpdated as NodeAsset;

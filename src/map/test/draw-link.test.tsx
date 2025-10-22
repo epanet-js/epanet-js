@@ -16,6 +16,10 @@ import { waitFor } from "@testing-library/react";
 import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
 import { UIDMap } from "src/lib/id-mapper";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { dataAtom, selectionAtom } from "src/state/jotai";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -358,6 +362,119 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+    });
+  });
+
+  describe("FLAG_SELECT_LAST", () => {
+    it("selects the newly drawn pipe when flag is enabled (double-click)", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const secondClick = { lng: 30, lat: 40 };
+
+      const store = setInitialState({ mode: Mode.DRAW_PIPE });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, secondClick);
+      await fireDoubleClick(map, secondClick);
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+        if (selection.type === "single") {
+          const {
+            hydraulicModel: { assets },
+          } = store.get(dataAtom);
+          const pipes = getAssetsByType<Pipe>(assets, "pipe");
+          expect(pipes).toHaveLength(1);
+          expect(selection.id).toBe(pipes[0].id);
+        }
+      });
+    });
+
+    it("does not select the pipe when flag is disabled (double-click)", async () => {
+      stubFeatureOff("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const secondClick = { lng: 30, lat: 40 };
+
+      const store = setInitialState({ mode: Mode.DRAW_PIPE });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, secondClick);
+      await fireDoubleClick(map, secondClick);
+
+      await waitFor(() => {
+        const features = getSourceFeatures(map, "features");
+        expect(features.length).toBeGreaterThan(0);
+      });
+
+      const selection = store.get(selectionAtom);
+      expect(selection.type).toBe("none");
+    });
+
+    it("selects the pipe when snapping to existing node with flag enabled", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const existingNodeCoords = [50, 60];
+      const nearbyEndClick = { lng: 50.001, lat: 60.001 };
+
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction("J1", { coordinates: existingNodeCoords })
+        .build();
+      const junction = hydraulicModel.assets.get("J1") as Asset;
+      const idMap = UIDMap.empty();
+      UIDMap.pushUUID(idMap, junction.id);
+
+      const store = setInitialState({
+        mode: Mode.DRAW_PIPE,
+        hydraulicModel,
+      });
+      const map = await renderMap(store, idMap);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, nearbyEndClick);
+      stubSnappingOnce(map, [buildFeatureId(idMap, junction.id)]);
+      await fireDoubleClick(map, nearbyEndClick);
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+        if (selection.type === "single") {
+          const {
+            hydraulicModel: { assets },
+          } = store.get(dataAtom);
+          const pipes = getAssetsByType<Pipe>(assets, "pipe");
+          expect(pipes).toHaveLength(1);
+          expect(selection.id).toBe(pipes[0].id);
+        }
+      });
+    });
+
+    it("selects the pipe when drawing one pipe with flag enabled", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+      const firstClick = { lng: 10, lat: 20 };
+      const secondClick = { lng: 30, lat: 40 };
+
+      const store = setInitialState({ mode: Mode.DRAW_PIPE });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, firstClick);
+      await fireMapMove(map, secondClick);
+      await fireDoubleClick(map, secondClick);
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+        if (selection.type === "single") {
+          const {
+            hydraulicModel: { assets },
+          } = store.get(dataAtom);
+          const pipes = getAssetsByType<Pipe>(assets, "pipe");
+          expect(pipes).toHaveLength(1);
+          expect(selection.id).toBe(pipes[0].id);
+        }
+      });
     });
   });
 });
