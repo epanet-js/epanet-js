@@ -45,7 +45,11 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeProximityAnomalies() {
-      void checkProximityAnomalies(distanceInM);
+      const abortController = new AbortController();
+      void checkProximityAnomalies(distanceInM, abortController.signal);
+      return () => {
+        abortController.abort();
+      };
     },
     [distanceInM, checkProximityAnomalies],
   );
@@ -92,15 +96,18 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   }, [proximityAnomalies, isSelected]);
 
   useEffect(() => {
+    if (isLoading) return;
     const issuesCount = proximityAnomalies.length;
     if (lastIssuesCount.current !== issuesCount) {
       lastIssuesCount.current = issuesCount;
       userTracking.capture({
         name: "networkReview.proximityAnomalies.changed",
         count: issuesCount,
+        distance: localizedDistance.value,
+        units: localizedDistance.unit || "",
       });
     }
-  }, [proximityAnomalies, userTracking]);
+  }, [proximityAnomalies, userTracking, localizedDistance, isLoading]);
 
   useEffect(
     function autoFocusDistanceInputWhenNoResults() {
@@ -231,13 +238,30 @@ const useCheckProximityAnomalies = () => {
   const isReady = useRef(false);
 
   const checkProximityAnomalies = useCallback(
-    async (distance: number) => {
+    async (distance: number, signal?: AbortSignal) => {
       startLoading();
       await deferToAllowRender();
-      const result = await findProximityAnomalies(hydraulicModel, distance);
-      setProximityAnomalies(result);
-      finishLoading();
-      isReady.current = true;
+
+      try {
+        const result = await findProximityAnomalies(
+          hydraulicModel,
+          distance,
+          "array",
+          signal,
+        );
+
+        if (!signal?.aborted) {
+          setProximityAnomalies(result);
+          finishLoading();
+          isReady.current = true;
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+        finishLoading();
+        throw error;
+      }
     },
     [hydraulicModel, startLoading, finishLoading],
   );

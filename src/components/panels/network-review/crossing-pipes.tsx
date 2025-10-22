@@ -39,7 +39,11 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeCrossingPipes() {
-      void checkCrossingPipes();
+      const abortController = new AbortController();
+      void checkCrossingPipes(abortController.signal);
+      return () => {
+        abortController.abort();
+      };
     },
     [checkCrossingPipes],
   );
@@ -240,14 +244,34 @@ const useCheckCrossingPipes = () => {
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
-  const checkCrossingPipes = useCallback(async () => {
-    startLoading();
-    await deferToAllowRender();
-    const result = await findCrossingPipes(hydraulicModel);
-    setCrossingPipes(result);
-    finishLoading();
-    isReady.current = true;
-  }, [hydraulicModel, startLoading, finishLoading]);
+  const checkCrossingPipes = useCallback(
+    async (signal?: AbortSignal) => {
+      startLoading();
+      await deferToAllowRender();
+
+      try {
+        const result = await findCrossingPipes(
+          hydraulicModel,
+          0.0000045,
+          "array",
+          signal,
+        );
+
+        if (!signal?.aborted) {
+          setCrossingPipes(result);
+          finishLoading();
+          isReady.current = true;
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+        finishLoading();
+        throw error;
+      }
+    },
+    [hydraulicModel, startLoading, finishLoading],
+  );
 
   return {
     checkCrossingPipes,

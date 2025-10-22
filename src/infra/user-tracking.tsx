@@ -559,14 +559,20 @@ type NetworkReviewChecked = {
     | "networkReview.crossingPipes.opened";
 };
 
-type NetworkReviewChanged = {
-  name:
-    | "networkReview.orphanAssets.changed"
-    | "networkReview.proximityAnomalies.changed"
-    | "networkReview.connectivityTrace.changed"
-    | "networkReview.crossingPipes.changed";
-  count: number;
-};
+type NetworkReviewChanged =
+  | {
+      name:
+        | "networkReview.orphanAssets.changed"
+        | "networkReview.connectivityTrace.changed"
+        | "networkReview.crossingPipes.changed";
+      count: number;
+    }
+  | {
+      name: "networkReview.proximityAnomalies.changed";
+      count: number;
+      distance: number;
+      units: string;
+    };
 
 type NetworkReviewBack = {
   name:

@@ -45,7 +45,11 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
 
   useEffect(
     function recomputeOrphanAssets() {
-      void checkOrphanAssets();
+      const abortController = new AbortController();
+      void checkOrphanAssets(abortController.signal);
+      return () => {
+        abortController.abort();
+      };
     },
     [checkOrphanAssets],
   );
@@ -218,14 +222,29 @@ const useCheckOrphanAssets = () => {
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
-  const checkOrphanAssets = useCallback(async () => {
-    startLoading();
-    await deferToAllowRender();
-    const result = await findOrphanAssets(hydraulicModel);
-    setOrphanAssets(result);
-    finishLoading();
-    isReady.current = true;
-  }, [hydraulicModel, startLoading, finishLoading]);
+  const checkOrphanAssets = useCallback(
+    async (signal?: AbortSignal) => {
+      startLoading();
+      await deferToAllowRender();
+
+      try {
+        const result = await findOrphanAssets(hydraulicModel, "array", signal);
+
+        if (!signal?.aborted) {
+          setOrphanAssets(result);
+          finishLoading();
+          isReady.current = true;
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+        finishLoading();
+        throw error;
+      }
+    },
+    [hydraulicModel, startLoading, finishLoading],
+  );
 
   return {
     checkOrphanAssets,
