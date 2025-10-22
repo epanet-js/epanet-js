@@ -17,7 +17,6 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -80,7 +79,6 @@ export function useNoneHandlers({
     idMap,
     hydraulicModel.assets,
   );
-  const isTinyMoveFixOn = useFeatureFlag("FLAG_TINY_MOVE");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -212,13 +210,11 @@ export function useNoneHandlers({
         });
 
         if (putAssets) {
-          if (isTinyMoveFixOn) {
-            if (!moveActivated) {
-              const significant =
-                startPoint && isMovementSignificant(e.point, startPoint);
-              if (!significant) {
-                return;
-              }
+          if (!moveActivated) {
+            const significant =
+              startPoint && isMovementSignificant(e.point, startPoint);
+            if (!significant) {
+              return;
             }
           }
           updateMoveWithSnapping(putAssets, snappingInfo);
@@ -261,15 +257,7 @@ export function useNoneHandlers({
         pipeIdToSplit = snappingCandidate.id;
       }
 
-      let shouldCommit = false;
-
-      if (isTinyMoveFixOn) {
-        shouldCommit = moveActivated;
-      } else {
-        const significant =
-          startPoint && isMovementSignificant(e.point, startPoint);
-        shouldCommit = !!significant;
-      }
+      const shouldCommit = moveActivated;
 
       if (shouldCommit) {
         startCommit();
