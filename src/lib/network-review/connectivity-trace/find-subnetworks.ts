@@ -9,7 +9,7 @@ interface Component {
   linkIds: AssetId[];
   hasTanks: boolean;
   hasReservoirs: boolean;
-  coordinates: [number, number][];
+  coordinates: [number, number][][];
 }
 
 export function findSubNetworks(model: HydraulicModel): Subnetwork[] {
@@ -55,9 +55,6 @@ function findConnectedComponentsUsingTopology(
         component.hasReservoirs = true;
       }
 
-      const geometry = currentAsset.feature.geometry as GeoJSON.Point;
-      component.coordinates.push(geometry.coordinates as [number, number]);
-
       const linkIds = model.topology.getLinks(current);
       for (const linkId of linkIds) {
         const link = model.assets.get(linkId);
@@ -68,6 +65,9 @@ function findConnectedComponentsUsingTopology(
           if (!visited.has(neighborId)) {
             stack.push(neighborId);
             component.linkIds.push(linkId);
+            component.coordinates.push(
+              link.feature.geometry.coordinates as [number, number][],
+            );
           }
         }
       }
@@ -102,5 +102,5 @@ function buildSubnetworks(components: Component[]): Subnetwork[] {
   });
 }
 
-const calculateBounds = (coordinates: [number, number][]): BBox2d =>
-  bbox(lineString(coordinates)) as BBox2d;
+const calculateBounds = (coordinates: [number, number][][]): BBox2d =>
+  bbox(lineString(coordinates.flat())) as BBox2d;
