@@ -4,15 +4,18 @@ import {
   Mode,
   ephemeralStateAtom,
   cursorStyleAtom,
+  selectionAtom,
 } from "src/state/jotai";
 import noop from "lodash/noop";
-import { useSetAtom, useAtom } from "jotai";
+import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSelection } from "src/selection";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -26,6 +29,7 @@ export function useDrawNodeHandlers({
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
+  const selection = useAtomValue(selectionAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { units } = hydraulicModel;
@@ -35,6 +39,8 @@ export function useDrawNodeHandlers({
     idMap,
     hydraulicModel.assets,
   );
+  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
+  const { selectFeature } = useSelection(selection);
 
   const submitNode = (
     nodeType: NodeType,
@@ -50,6 +56,11 @@ export function useDrawNodeHandlers({
     });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });
+
+    if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
+      const newNodeId = moment.putAssets[0].id;
+      selectFeature(newNodeId);
+    }
   };
 
   return {
