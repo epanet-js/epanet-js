@@ -590,14 +590,13 @@
       "summary_zero": "No sub-networks found",
       "summary_one": "1 sub-network found",
       "summary_other": "{{count}} sub-networks found",
-      "issueLabel": "Network {{1}}",
+      "issueLabel": "Sub-network {{1}}: {{2}} nodes, {{3}} links",
       "emptyMessage": "Your network is fully connected",
-      "subnetwork": "Network {{1}}",
-      "supplySourceCount_zero": "No supply source",
-      "supplySourceCount_one": "1 supply source",
-      "supplySourceCount_other": "{{count}} supply sources",
-      "pipesCount_one": "1 pipe",
-      "pipesCount_other": "{{count}} pipes"
+      "subnetwork": "Sub-network {{1}}",
+      "stats": "{{1}} nodes, {{2}} links",
+      "hasSupplySource": "Has supply source",
+      "noSupplySource": "Missing supply source",
+      "supplySourceTypes": "Supply: {{1}}"
     },
     "orphanAssets": {
       "title": "Orphan assets",

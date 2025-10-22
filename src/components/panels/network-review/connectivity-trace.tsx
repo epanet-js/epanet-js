@@ -19,6 +19,7 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
+import { CheckCircleIcon, AlertTriangleIcon } from "lucide-react";
 import { Maybe } from "purify-ts/Maybe";
 
 export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
@@ -126,9 +127,8 @@ const IssuesList = ({
       selectedId={selectedId !== null ? String(selectedId) : null}
       onSelect={onClick}
       getItemId={(issue) => String(issue.subnetworkId)}
-      renderItem={(index, subnetwork, selectedId, onClick) => (
+      renderItem={(subnetwork, selectedId, onClick) => (
         <SubnetworkItem
-          index={index}
           subnetwork={subnetwork}
           selectedId={selectedId}
           onClick={onClick}
@@ -141,12 +141,10 @@ const IssuesList = ({
 };
 
 const SubnetworkItem = ({
-  index,
   subnetwork,
   onClick,
   selectedId,
 }: {
-  index: number;
   subnetwork: Subnetwork;
   onClick: (subnetwork: Subnetwork) => void;
   selectedId: string | null;
@@ -154,14 +152,12 @@ const SubnetworkItem = ({
   const translate = useTranslate();
   const isSelected = selectedId === String(subnetwork.subnetworkId);
 
-  const supplySourceText = translate(
-    "networkReview.connectivityTrace.supplySourceCount",
-    subnetwork.supplySourceCount,
-  );
-  const pipesText = translate(
-    "networkReview.connectivityTrace.pipesCount",
-    subnetwork.linkIds.length,
-  );
+  const supplySourceLabel = subnetwork.hasSupplySource
+    ? translate(
+        "networkReview.connectivityTrace.supplySourceTypes",
+        subnetwork.supplySourceTypes.join(", "),
+      )
+    : translate("networkReview.connectivityTrace.noSupplySource");
 
   return (
     <Button
@@ -171,8 +167,8 @@ const SubnetworkItem = ({
       role="button"
       aria-label={translate(
         "networkReview.connectivityTrace.issueLabel",
-        String(index),
-        String(subnetwork.supplySourceCount),
+        String(subnetwork.subnetworkId + 1),
+        String(subnetwork.nodeIds.length),
         String(subnetwork.linkIds.length),
       )}
       aria-checked={isSelected}
@@ -181,15 +177,45 @@ const SubnetworkItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div className="flex flex-col items-start p-1 pr-0 text-sm w-full text-left">
-        <div className="truncate">
-          {translate(
-            "networkReview.connectivityTrace.subnetwork",
-            String(index),
-          )}
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-1 pr-0 text-sm w-full">
+        <div
+          className="w-4 h-4 rounded-full mt-1"
+          style={{ backgroundColor: subnetwork.color }}
+        />
+
+        <div className="text-left min-w-0">
+          <div className="font-medium">
+            {translate(
+              "networkReview.connectivityTrace.subnetwork",
+              String(subnetwork.subnetworkId + 1),
+            )}
+          </div>
+          <div className="text-sm text-gray-500">
+            {translate(
+              "networkReview.connectivityTrace.stats",
+              String(subnetwork.nodeIds.length),
+              String(subnetwork.linkIds.length),
+            )}
+          </div>
+          <div
+            className={`text-sm ${
+              subnetwork.hasSupplySource ? "text-green-600" : "text-orange-600"
+            }`}
+          >
+            {supplySourceLabel}
+          </div>
         </div>
-        <div className="text-gray-500 truncate">
-          {supplySourceText} · {pipesText}
+
+        <div
+          className={`pt-[.125rem] ${
+            subnetwork.hasSupplySource ? "text-green-600" : "text-orange-600"
+          }`}
+        >
+          {subnetwork.hasSupplySource ? (
+            <CheckCircleIcon size={20} />
+          ) : (
+            <AlertTriangleIcon size={20} />
+          )}
         </div>
       </div>
     </Button>
