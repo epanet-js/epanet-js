@@ -56,10 +56,13 @@ export const TextField = ({
   padding?: "sm" | "md";
 }) => (
   <span
-    className={clsx("block w-full text-sm text-gray-700", {
-      "p-1": padding === "sm",
-      "p-2": padding === "md",
-    })}
+    className={clsx(
+      "block w-full text-sm text-gray-700 border border-transparent",
+      {
+        "p-1": padding === "sm",
+        "p-2": padding === "md",
+      },
+    )}
   >
     {children}
   </span>
