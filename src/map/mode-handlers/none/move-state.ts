@@ -9,6 +9,7 @@ export type EphemeralMoveAssets = {
   oldAssets: Asset[];
   targetAssets: Asset[];
   startPoint?: mapboxgl.Point;
+  moveActivated?: boolean;
   pipeSnappingPosition?: [number, number];
   pipeId?: string;
   nodeSnappingId?: string;
@@ -26,6 +27,7 @@ export const useMoveState = () => {
       startPoint,
       oldAssets: [],
       targetAssets: [],
+      moveActivated: false,
     });
   };
 
@@ -67,6 +69,7 @@ export const useMoveState = () => {
           startPoint: nullPoint,
           targetAssets,
           oldAssets: targetAssets,
+          moveActivated: true,
           pipeSnappingPosition: snappingInfo?.pipeSnappingPosition,
           pipeId: snappingInfo?.pipeId,
           nodeSnappingId: snappingInfo?.nodeSnappingId,
@@ -77,6 +80,7 @@ export const useMoveState = () => {
         ...prev,
         targetAssets,
         oldAssets: prev.oldAssets.length > 0 ? prev.oldAssets : targetAssets,
+        moveActivated: true,
         pipeSnappingPosition: snappingInfo?.pipeSnappingPosition,
         pipeId: snappingInfo?.pipeId,
         nodeSnappingId: snappingInfo?.nodeSnappingId,
@@ -99,6 +103,8 @@ export const useMoveState = () => {
   const isCommitting = isCommittingRef.current;
   const hasEphemeralFeedback =
     state.type === "moveAssets" && state.targetAssets.length > 0;
+  const moveActivated =
+    state.type === "moveAssets" ? (state.moveActivated ?? false) : false;
 
   return {
     setStartPoint,
@@ -111,5 +117,6 @@ export const useMoveState = () => {
     isCommitting,
     isMoving: state.type === "moveAssets",
     hasEphemeralFeedback,
+    moveActivated,
   };
 };

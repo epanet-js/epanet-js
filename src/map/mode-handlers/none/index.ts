@@ -68,7 +68,7 @@ export function useNoneHandlers({
     startCommit,
     finishCommit,
     isCommitting,
-    hasEphemeralFeedback,
+    moveActivated,
   } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
@@ -213,10 +213,12 @@ export function useNoneHandlers({
 
         if (putAssets) {
           if (isTinyMoveFixOn) {
-            const significant =
-              startPoint && isMovementSignificant(e.point, startPoint);
-            if (!significant) {
-              return;
+            if (!moveActivated) {
+              const significant =
+                startPoint && isMovementSignificant(e.point, startPoint);
+              if (!significant) {
+                return;
+              }
             }
           }
           updateMoveWithSnapping(putAssets, snappingInfo);
@@ -262,7 +264,7 @@ export function useNoneHandlers({
       let shouldCommit = false;
 
       if (isTinyMoveFixOn) {
-        shouldCommit = hasEphemeralFeedback;
+        shouldCommit = moveActivated;
       } else {
         const significant =
           startPoint && isMovementSignificant(e.point, startPoint);
