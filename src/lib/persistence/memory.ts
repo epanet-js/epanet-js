@@ -19,6 +19,8 @@ import {
   modeAtom,
   ephemeralStateAtom,
   selectionAtom,
+  splitsAtom,
+  defaultSplits,
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -71,6 +73,7 @@ export class MemPersistence implements IPersistence {
         hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
       });
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
+      this.store.set(splitsAtom, defaultSplits);
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),
