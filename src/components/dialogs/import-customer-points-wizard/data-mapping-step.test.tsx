@@ -56,7 +56,7 @@ describe("DataMappingStep", () => {
 
       renderWizard(store);
 
-      const demandSelector = screen.getByRole("combobox");
+      const demandSelector = screen.getByRole("combobox", { name: "Demand" });
       await user.click(demandSelector);
 
       const demandOption = await screen.findByRole("option", {
@@ -120,7 +120,7 @@ describe("DataMappingStep", () => {
 
       renderWizard(store);
 
-      const demandSelector = screen.getByRole("combobox");
+      const demandSelector = screen.getByRole("combobox", { name: "Demand" });
       await user.click(demandSelector);
 
       const demandOption = await screen.findByRole("option", {
@@ -188,7 +188,7 @@ describe("DataMappingStep", () => {
 
       expect(screen.getByText("Demand")).toBeInTheDocument();
 
-      const selectElement = screen.getByRole("combobox");
+      const selectElement = screen.getByRole("combobox", { name: "Demand" });
       expect(selectElement).toBeInTheDocument();
       expect(selectElement).toHaveTextContent("Select demand property...");
     });

@@ -45,8 +45,9 @@ J2	3	4
     expect(isMadeByApp).toBe(true);
     expect(hydraulicModel.customerPoints.size).toBe(2);
 
-    const cp1 = hydraulicModel.customerPoints.get("CP1");
+    const cp1 = hydraulicModel.customerPoints.get("1");
     expect(cp1).toBeDefined();
+    expect(cp1?.label).toBe("CP1");
     expect(cp1?.coordinates).toEqual([1.5, 2.5]);
     expect(cp1?.baseDemand).toBe(2.5);
     const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
@@ -57,8 +58,9 @@ J2	3	4
     expect(cp1?.connection?.junctionId).toBe(junction.id);
     expect(cp1?.connection?.snapPoint).toEqual([1.2, 2.2]);
 
-    const cp2 = hydraulicModel.customerPoints.get("CP2");
+    const cp2 = hydraulicModel.customerPoints.get("2");
     expect(cp2).toBeDefined();
+    expect(cp2?.label).toBe("CP2");
     expect(cp2?.coordinates).toEqual([5, 6]);
     expect(cp2?.baseDemand).toBe(1.8);
     expect(cp2?.connection).toBeNull();
@@ -152,8 +154,8 @@ J1	1	2
     const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
 
     expect(hydraulicModel.customerPoints.size).toBe(2);
-    expect(hydraulicModel.customerPoints.has("CP1")).toBe(true);
-    expect(hydraulicModel.customerPoints.has("CP2")).toBe(true);
+    expect(hydraulicModel.customerPoints.has("1")).toBe(true);
+    expect(hydraulicModel.customerPoints.has("2")).toBe(true);
   });
 
   it("integrates customer points with lookup system", () => {
@@ -190,8 +192,10 @@ J1	1	2
 
     expect(connectedToP1.size).toBe(1);
     expect(connectedToJ1.size).toBe(1);
-    expect([...connectedToP1][0].id).toBe("CP1");
-    expect([...connectedToJ1][0].id).toBe("CP1");
+    expect([...connectedToP1][0].id).toBe("1");
+    expect([...connectedToJ1][0].id).toBe("1");
+    expect([...connectedToP1][0].label).toBe("CP1");
+    expect([...connectedToJ1][0].label).toBe("CP1");
   });
 
   it("resolves junction labels to actual junction IDs", () => {
@@ -218,8 +222,9 @@ Junction-B	3	4
 
     const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
 
-    const cp1 = hydraulicModel.customerPoints.get("CP1");
+    const cp1 = hydraulicModel.customerPoints.get("1");
     expect(cp1).toBeDefined();
+    expect(cp1?.label).toBe("CP1");
     expect(cp1?.connection).toBeDefined();
 
     const junction = getByLabel(

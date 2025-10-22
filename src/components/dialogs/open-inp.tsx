@@ -16,7 +16,6 @@ import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { ErrorIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -37,7 +36,6 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const useLabelFlag = useFeatureFlag("FLAG_CUSTOMER_LABEL");
 
   const importInp = useCallback(async () => {
     try {
@@ -50,7 +48,7 @@ export function OpenInpDialog({
       const content = new TextDecoder().decode(arrayBuffer);
       const { hydraulicModel, modelMetadata, issues, isMadeByApp } = parseInp(
         content,
-        { customerPoints: true, customerLabels: useLabelFlag },
+        { customerPoints: true },
       );
       if (
         !issues ||
@@ -88,15 +86,7 @@ export function OpenInpDialog({
       captureError(error as Error);
       setError(true);
     }
-  }, [
-    file,
-    map?.map,
-    onClose,
-    transactImport,
-    setFileInfo,
-    setDialogState,
-    useLabelFlag,
-  ]);
+  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
 
   useEffect(
     function onRender() {

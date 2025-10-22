@@ -84,9 +84,7 @@ export const buildModel = (
 
   let customerPointIdCounter = 1;
   for (const customerPointData of inpData.customerPoints) {
-    const id = options?.customerLabels
-      ? String(customerPointIdCounter++)
-      : customerPointData.label;
+    const id = String(customerPointIdCounter++);
 
     const customerPoint = CustomerPoint.build(
       id,

@@ -7,7 +7,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface CustomerPointsPopoverProps {
   customerPoints: CustomerPoint[];
@@ -28,7 +27,6 @@ export const CustomerPointsPopover = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const useLabelFlag = useFeatureFlag("FLAG_CUSTOMER_LABEL");
 
   const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
     setEphemeralState({
@@ -97,9 +95,7 @@ export const CustomerPointsPopover = ({
                 customerUnit,
               ),
             );
-            const displayValue = useLabelFlag
-              ? customerPoint.label
-              : customerPoint.id;
+            const displayValue = customerPoint.label;
 
             return (
               <div

@@ -5,7 +5,6 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -38,7 +37,6 @@ export const DataMappingStep: React.FC<{
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { modelMetadata } = useAtomValue(dataAtom);
-  const isCustomerLabelEnabled = useFeatureFlag("FLAG_CUSTOMER_LABEL");
 
   const {
     parsedDataSummary,
@@ -247,48 +245,46 @@ export const DataMappingStep: React.FC<{
                   )}
                 />
               </div>
-              {isCustomerLabelEnabled && (
-                <div>
-                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
-                    {`${translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                    )} (${translate("optional")})`}
-                  </label>
-                  <Selector
-                    nullable={true}
-                    placeholder={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
-                    )}
-                    options={[
-                      {
-                        label: translate(
-                          "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
-                        ),
-                        value: "__NONE__",
-                      },
-                      ...Array.from(inputData.properties).map((prop) => ({
-                        label: prop,
-                        value: prop,
-                      })),
-                    ]}
-                    selected={selectedLabelProperty || "__NONE__"}
-                    onChange={(value) =>
-                      handleLabelPropertyChange(
-                        value === "__NONE__" ? "" : value || "",
-                      )
-                    }
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                    )}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.description",
-                      String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
-                    )}
-                  </p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  {`${translate(
+                    "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                  )} (${translate("optional")})`}
+                </label>
+                <Selector
+                  nullable={true}
+                  placeholder={translate(
+                    "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                  )}
+                  options={[
+                    {
+                      label: translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                      ),
+                      value: "__NONE__",
+                    },
+                    ...Array.from(inputData.properties).map((prop) => ({
+                      label: prop,
+                      value: prop,
+                    })),
+                  ]}
+                  selected={selectedLabelProperty || "__NONE__"}
+                  onChange={(value) =>
+                    handleLabelPropertyChange(
+                      value === "__NONE__" ? "" : value || "",
+                    )
+                  }
+                  ariaLabel={translate(
+                    "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                  )}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {translate(
+                    "importCustomerPoints.wizard.dataMapping.labelSelector.description",
+                    String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                  )}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -384,7 +380,6 @@ export const DataMappingStep: React.FC<{
                   maxPreviewRows={MAX_PREVIEW_ROWS}
                   parsedDataSummary={parsedDataSummary}
                   wizardState={wizardState}
-                  isCustomerLabelEnabled={isCustomerLabelEnabled}
                 />
               </div>
             )}
@@ -432,7 +427,6 @@ type CustomerPointsTableProps = {
   maxPreviewRows: number;
   parsedDataSummary: ParsedDataSummary;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
-  isCustomerLabelEnabled: boolean;
 };
 
 const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
@@ -440,7 +434,6 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   maxPreviewRows,
   parsedDataSummary: _,
   wizardState,
-  isCustomerLabelEnabled,
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -466,11 +459,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate(
-                isCustomerLabelEnabled
-                  ? "importCustomerPoints.wizard.dataMapping.table.label"
-                  : "importCustomerPoints.wizard.dataMapping.table.index",
-              )}
+              {translate("importCustomerPoints.wizard.dataMapping.table.label")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
               {translate(
