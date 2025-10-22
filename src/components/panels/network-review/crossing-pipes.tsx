@@ -160,7 +160,7 @@ const IssuesList = ({
       selectedId={selectedId}
       onSelect={onClick}
       getItemId={getCrossingId}
-      renderItem={(crossing, selectedId, onClick) => (
+      renderItem={(_index, crossing, selectedId, onClick) => (
         <CrossingPipeItem
           crossing={crossing}
           selectedId={selectedId}

@@ -291,7 +291,7 @@ const IssuesList = ({
       selectedId={selectedId}
       onSelect={onClick}
       getItemId={(issue) => `${issue.nodeId}-${issue.pipeId}`}
-      renderItem={(anomaly, selectedId, onClick) => (
+      renderItem={(_index, anomaly, selectedId, onClick) => (
         <ProximityAnomalyItem
           anomaly={anomaly}
           selectedId={selectedId}

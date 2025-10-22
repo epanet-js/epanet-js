@@ -154,7 +154,7 @@ const IssuesList = ({
       selectedId={selectedId}
       onSelect={onClick}
       getItemId={(issue) => issue.assetId}
-      renderItem={(orphanAsset, selectedId, onClick) => (
+      renderItem={(_index, orphanAsset, selectedId, onClick) => (
         <OrphanAssetItem
           orphanAsset={orphanAsset}
           selectedId={selectedId}
