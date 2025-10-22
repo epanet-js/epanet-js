@@ -162,9 +162,10 @@ export const CollapsibleSection = ({
         <C.Trigger
           className={clsx(
             "flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+            "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
             {
               "text-gray-500": variant === "secondary",
-              "pb-2": open,
+              "mb-1": open,
             },
           )}
         >
