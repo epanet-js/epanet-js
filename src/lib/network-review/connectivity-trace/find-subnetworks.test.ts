@@ -16,8 +16,7 @@ describe("findSubNetworks", () => {
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].nodeIds).toHaveLength(3);
     expect(subnetworks[0].linkIds).toHaveLength(2);
-    expect(subnetworks[0].hasSupplySource).toBe(true);
-    expect(subnetworks[0].supplySourceTypes).toContain("reservoir");
+    expect(subnetworks[0].supplySourceCount).toBe(1);
   });
 
   it("should identify multiple disconnected sub-networks", () => {
@@ -37,8 +36,12 @@ describe("findSubNetworks", () => {
 
     expect(subnetworks).toHaveLength(3);
 
-    const networksWithSupply = subnetworks.filter((s) => s.hasSupplySource);
-    const networksWithoutSupply = subnetworks.filter((s) => !s.hasSupplySource);
+    const networksWithSupply = subnetworks.filter(
+      (s) => s.supplySourceCount > 0,
+    );
+    const networksWithoutSupply = subnetworks.filter(
+      (s) => s.supplySourceCount === 0,
+    );
 
     expect(networksWithSupply).toHaveLength(2);
     expect(networksWithoutSupply).toHaveLength(1);
@@ -54,8 +57,7 @@ describe("findSubNetworks", () => {
     const subnetworks = findSubNetworks(model);
 
     expect(subnetworks).toHaveLength(1);
-    expect(subnetworks[0].hasSupplySource).toBe(false);
-    expect(subnetworks[0].supplySourceTypes).toHaveLength(0);
+    expect(subnetworks[0].supplySourceCount).toBe(0);
   });
 
   it("should sort sub-networks by size (largest first)", () => {
@@ -109,7 +111,7 @@ describe("findSubNetworks", () => {
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].nodeIds).toHaveLength(4);
     expect(subnetworks[0].linkIds).toHaveLength(3);
-    expect(subnetworks[0].hasSupplySource).toBe(true);
+    expect(subnetworks[0].supplySourceCount).toBe(1);
   });
 
   it("does not report isolated single nodes", () => {
@@ -137,9 +139,6 @@ describe("findSubNetworks", () => {
     const subnetworks = findSubNetworks(model);
 
     expect(subnetworks).toHaveLength(1);
-    expect(subnetworks[0].hasSupplySource).toBe(true);
-    expect(subnetworks[0].supplySourceTypes).toContain("tank");
-    expect(subnetworks[0].supplySourceTypes).toContain("reservoir");
-    expect(subnetworks[0].supplySourceTypes).toHaveLength(2);
+    expect(subnetworks[0].supplySourceCount).toBe(2);
   });
 });
