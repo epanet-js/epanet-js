@@ -756,4 +756,157 @@ describe("splitPipe", () => {
     expect(cp2.connection?.pipeId).toBe(splitPipe2.id);
     expect(cp2.connection?.junctionId).toBe("J1");
   });
+
+  describe("with FLAG_VERTEX_SNAP enabled", () => {
+    it("removes matching vertex when splitting at vertex location", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .build();
+
+      const pipe = hydraulicModel.assets.get("P1") as Pipe;
+      const splitNode = hydraulicModel.assetBuilder.buildJunction({
+        label: "J3",
+        coordinates: [5, 0],
+      });
+
+      const { putAssets } = splitPipe(hydraulicModel, {
+        pipe,
+        splits: [splitNode],
+        enableVertexSnap: true,
+      });
+
+      const [pipe1, pipe2] = putAssets as Pipe[];
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [5, 0],
+        [10, 0],
+      ]);
+    });
+
+    it("does not remove vertex when flag is disabled", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .build();
+
+      const pipe = hydraulicModel.assets.get("P1") as Pipe;
+      const splitNode = hydraulicModel.assetBuilder.buildJunction({
+        label: "J3",
+        coordinates: [5, 0],
+      });
+
+      const { putAssets } = splitPipe(hydraulicModel, {
+        pipe,
+        splits: [splitNode],
+        enableVertexSnap: false,
+      });
+
+      const [pipe1, pipe2] = putAssets as Pipe[];
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [5, 0],
+        [5, 0],
+        [10, 0],
+      ]);
+    });
+
+    it("handles multiple vertices correctly", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [20, 0])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+            [15, 0],
+            [20, 0],
+          ],
+        })
+        .build();
+
+      const pipe = hydraulicModel.assets.get("P1") as Pipe;
+      const splitNode = hydraulicModel.assetBuilder.buildJunction({
+        label: "J3",
+        coordinates: [10, 0],
+      });
+
+      const { putAssets } = splitPipe(hydraulicModel, {
+        pipe,
+        splits: [splitNode],
+        enableVertexSnap: true,
+      });
+
+      const [pipe1, pipe2] = putAssets as Pipe[];
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+        [10, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [10, 0],
+        [15, 0],
+        [20, 0],
+      ]);
+    });
+
+    it("does not remove first or last vertex", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .build();
+
+      const pipe = hydraulicModel.assets.get("P1") as Pipe;
+      const splitNodeAtStart = hydraulicModel.assetBuilder.buildJunction({
+        label: "J3",
+        coordinates: [0, 0],
+      });
+
+      const { putAssets } = splitPipe(hydraulicModel, {
+        pipe,
+        splits: [splitNodeAtStart],
+        enableVertexSnap: true,
+      });
+
+      const [pipe1, pipe2] = putAssets as Pipe[];
+      expect(pipe1.coordinates.length).toBeGreaterThan(1);
+      expect(pipe2.coordinates.length).toBeGreaterThan(1);
+    });
+  });
 });

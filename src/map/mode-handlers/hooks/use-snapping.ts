@@ -4,11 +4,15 @@ import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode, LinkAsset } from "src/hydraulic-model";
-import { searchNearbyRenderedFeatures } from "../../search";
+import {
+  searchNearbyRenderedFeatures,
+  DEFAULT_SNAP_DISTANCE_PIXELS,
+} from "../../search";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { SnappingCandidate } from "../draw-link/draw-link-handlers";
 import { DataSource } from "../../data-source";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SnappingOptions = {
   enableNodeSnapping?: boolean;
@@ -30,6 +34,7 @@ export const useSnapping = (
     enablePipeSnapping: true,
   },
 ) => {
+  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
   const getNeighborPoint = (
     point: mapboxgl.Point,
     excludeIds?: string[],
@@ -105,11 +110,30 @@ export const useSnapping = (
       const mousePoint = point(mouseCoord);
       const result = findNearestPointOnLine(pipeLineString, mousePoint);
 
+      let snapPosition = result.coordinates;
+
+      if (isVertexSnapOn) {
+        const mouseScreen = screenPoint;
+
+        for (const vertex of pipeGeometry.coordinates) {
+          const vertexScreen = map.map.project([vertex[0], vertex[1]]);
+          const pixelDistance = Math.sqrt(
+            Math.pow(vertexScreen.x - mouseScreen.x, 2) +
+              Math.pow(vertexScreen.y - mouseScreen.y, 2),
+          );
+
+          if (pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS) {
+            snapPosition = vertex;
+            break;
+          }
+        }
+      }
+
       const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {
         closestPipe = {
           pipeId: uuid,
-          snapPosition: result.coordinates,
+          snapPosition: snapPosition,
           distance: distance,
         };
       }

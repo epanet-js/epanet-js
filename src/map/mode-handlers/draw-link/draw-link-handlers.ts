@@ -78,6 +78,7 @@ export function useDrawLinkHandlers({
     hydraulicModel.assets,
   );
   const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
+  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
@@ -227,6 +228,7 @@ export function useDrawLinkHandlers({
       endNode,
       startPipeId,
       endPipeId,
+      enableVertexSnap: isVertexSnapOn,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });

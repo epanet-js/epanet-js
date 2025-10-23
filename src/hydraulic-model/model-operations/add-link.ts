@@ -15,11 +15,19 @@ type InputData = {
   endNode: NodeAsset;
   startPipeId?: AssetId;
   endPipeId?: AssetId;
+  enableVertexSnap?: boolean;
 };
 
 export const addLink: ModelOperation<InputData> = (
   hydraulicModel,
-  { link, startNode, endNode, startPipeId, endPipeId },
+  {
+    link,
+    startNode,
+    endNode,
+    startPipeId,
+    endPipeId,
+    enableVertexSnap = false,
+  },
 ) => {
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
@@ -42,6 +50,7 @@ export const addLink: ModelOperation<InputData> = (
     startPipeId,
     endPipeId,
     hydraulicModel,
+    enableVertexSnap,
   });
 
   return {
@@ -82,6 +91,7 @@ const handlePipeSplits = ({
   startPipeId,
   endPipeId,
   hydraulicModel,
+  enableVertexSnap = false,
 }: {
   link: LinkAsset;
   startNode: NodeAsset;
@@ -89,6 +99,7 @@ const handlePipeSplits = ({
   startPipeId?: AssetId;
   endPipeId?: AssetId;
   hydraulicModel: HydraulicModel;
+  enableVertexSnap?: boolean;
 }): {
   putAssets: Asset[];
   deleteAssets: AssetId[];
@@ -107,6 +118,7 @@ const handlePipeSplits = ({
     const splitResult = splitPipe(hydraulicModel, {
       pipe,
       splits: [startNode, endNode],
+      enableVertexSnap,
     });
     allPutAssets.push(...splitResult.putAssets!);
     allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
@@ -121,6 +133,7 @@ const handlePipeSplits = ({
       const startPipeSplitResult = splitPipe(hydraulicModel, {
         pipe: startPipe,
         splits: [startNode],
+        enableVertexSnap,
       });
       allPutAssets.push(...startPipeSplitResult.putAssets!);
       allPutCustomerPoints.push(
@@ -138,6 +151,7 @@ const handlePipeSplits = ({
       const endPipeSplitResult = splitPipe(hydraulicModel, {
         pipe: endPipe,
         splits: [endNode],
+        enableVertexSnap,
       });
       allPutAssets.push(...endPipeSplitResult.putAssets!);
       allPutCustomerPoints.push(

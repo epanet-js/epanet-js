@@ -7,6 +7,8 @@ import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import measureLength from "@turf/length";
+import distance from "@turf/distance";
+import { Position } from "src/types";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,
@@ -17,17 +19,23 @@ type CopyablePipePropertyKeys = keyof CopyablePipeProperties;
 type SplitPipeInput = {
   pipe: Pipe;
   splits: NodeAsset[];
+  enableVertexSnap?: boolean;
 };
 
 export const splitPipe: ModelOperation<SplitPipeInput> = (
   hydraulicModel,
-  { pipe, splits },
+  { pipe, splits, enableVertexSnap = false },
 ) => {
   if (splits.length === 0) {
     throw new Error("At least one split is required");
   }
 
-  const newPipes = splitPipeIteratively(hydraulicModel, pipe, splits);
+  const newPipes = splitPipeIteratively(
+    hydraulicModel,
+    pipe,
+    splits,
+    enableVertexSnap,
+  );
 
   const tempAssets = new Map(hydraulicModel.assets);
   for (const splitNode of splits) {
@@ -94,6 +102,7 @@ const splitPipeIteratively = (
   hydraulicModel: HydraulicModel,
   originalPipe: Pipe,
   splits: NodeAsset[],
+  enableVertexSnap: boolean,
 ): Pipe[] => {
   if (splits.length === 0) {
     return [originalPipe];
@@ -116,6 +125,7 @@ const splitPipeIteratively = (
       hydraulicModel,
       targetPipe,
       splitToProcess,
+      enableVertexSnap,
     );
 
     currentPipes.splice(targetPipeIndex, 1, pipe1, pipe2);
@@ -149,11 +159,29 @@ const splitPipeAtPointSimple = (
   hydraulicModel: HydraulicModel,
   pipe: Pipe,
   split: NodeAsset,
+  enableVertexSnap: boolean,
 ): [Pipe, Pipe] => {
   const splitPoint = point(split.coordinates);
 
-  const originalCoords = pipe.coordinates;
+  let originalCoords = pipe.coordinates;
   const [originalStartNodeId, originalEndNodeId] = pipe.connections;
+
+  if (enableVertexSnap) {
+    const matchingVertexIndex = originalCoords.findIndex((coord) =>
+      isAlmostTheSamePoint(coord, split.coordinates),
+    );
+
+    if (
+      matchingVertexIndex !== -1 &&
+      matchingVertexIndex > 0 &&
+      matchingVertexIndex < originalCoords.length - 1
+    ) {
+      originalCoords = [
+        ...originalCoords.slice(0, matchingVertexIndex),
+        ...originalCoords.slice(matchingVertexIndex + 1),
+      ];
+    }
+  }
 
   let splitIndex = -1;
   let minDistance = Number.MAX_VALUE;
@@ -291,4 +319,10 @@ const reconnectCustomerPointToPipe = (
   });
 
   return reconnectedPoint;
+};
+
+const isAlmostTheSamePoint = (a: Position, b: Position): boolean => {
+  const minResolutionInMeters = 1;
+  const distanceInMeters = distance(a, b) * 1000;
+  return distanceInMeters <= minResolutionInMeters;
 };
