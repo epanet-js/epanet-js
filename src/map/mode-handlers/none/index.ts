@@ -17,6 +17,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -79,6 +80,7 @@ export function useNoneHandlers({
     idMap,
     hydraulicModel.assets,
   );
+  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -279,7 +281,9 @@ export function useNoneHandlers({
               pipeIdToSplit,
             });
             transact(moment);
-            clearSelection();
+            if (!isSelectLastOn) {
+              clearSelection();
+            }
             resetMove();
             setTimeout(finishCommit, stateUpdateTime);
           })
