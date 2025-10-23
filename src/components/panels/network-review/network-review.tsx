@@ -131,7 +131,7 @@ function NetworkReviewSummary({
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <div className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white border-b-2 border-gray-100 w-full">
+      <div className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white border-b border-gray-200 w-full">
         <span>{translate("networkReview.title")}</span>
       </div>
       <div className="px-4 pt-3">

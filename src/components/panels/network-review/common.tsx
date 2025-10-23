@@ -58,7 +58,7 @@ export const ToolHeader = ({
   return (
     <div
       ref={headerRef}
-      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b-2 border-gray-100 pl-1 py-3"
+      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b border-gray-200 pl-1 py-3"
       tabIndex={autoFocus ? 0 : undefined}
       onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
