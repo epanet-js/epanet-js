@@ -41,6 +41,7 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -153,6 +154,7 @@ const detectChanges = (
   hasNewStyles: boolean;
   hasNewSelection: boolean;
   hasNewEphemeralState: boolean;
+  hasEphemeralStateReset: boolean;
   hasNewSimulation: boolean;
   hasNewSymbology: boolean;
   hasNewCustomerPoints: boolean;
@@ -166,6 +168,9 @@ const detectChanges = (
       (!state.isOffline && prev.isOffline),
     hasNewSelection: state.selection !== prev.selection,
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
+    hasEphemeralStateReset:
+      prev.ephemeralState.type !== "none" &&
+      state.ephemeralState.type === "none",
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
     hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
@@ -191,6 +196,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -207,6 +213,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewEditions,
       hasNewSelection,
       hasNewEphemeralState,
+      hasEphemeralStateReset,
       hasNewSymbology,
       hasNewSimulation,
       hasNewCustomerPoints,
@@ -304,7 +311,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoom || hasNewSelection || hasNewSymbology) {
+        if (
+          hasNewZoom ||
+          hasNewSelection ||
+          hasNewSymbology ||
+          (hasEphemeralStateReset && isSelectLastOn)
+        ) {
           customerPointsOverlayRef.current =
             updateCustomerPointsOverlayVisibility(
               customerPointsOverlayRef.current,
@@ -412,6 +424,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isSelectLastOn,
   ]);
 
   doUpdates();

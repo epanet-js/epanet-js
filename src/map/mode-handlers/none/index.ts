@@ -326,8 +326,15 @@ export function useNoneHandlers({
       }
     },
     exit() {
-      resetMove();
-      clearSelection();
+      if (isMoving) {
+        resetMove();
+        if (!isSelectLastOn) {
+          clearSelection();
+        }
+      } else {
+        resetMove();
+        clearSelection();
+      }
     },
   };
 
