@@ -547,5 +547,107 @@ describe("Drawing a pipe", () => {
         expect(mode.mode).toBe(Mode.NONE);
       });
     });
+
+    it("preserves selection when escaping from redraw mode without drawing", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+
+      const model = HydraulicModelBuilder.with()
+        .aPipe("P1", {
+          coordinates: [
+            [10, 20],
+            [30, 40],
+          ],
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel: model,
+        selection: { type: "single", id: "P1", parts: [] },
+        mode: Mode.REDRAW_LINK,
+      });
+      await renderMap(store);
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.REDRAW_LINK);
+      });
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.NONE);
+      });
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("none");
+      });
+    });
+
+    it("preserves selection when escaping from redraw mode with partial drawing", async () => {
+      stubFeatureOn("FLAG_SELECT_LAST");
+
+      const model = HydraulicModelBuilder.with()
+        .aPipe("P1", {
+          coordinates: [
+            [10, 20],
+            [30, 40],
+          ],
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel: model,
+        selection: { type: "single", id: "P1", parts: [] },
+        mode: Mode.REDRAW_LINK,
+      });
+      const map = await renderMap(store);
+
+      await fireMapClick(map, { lng: 10, lat: 20 });
+
+      await waitFor(() => {
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(3);
+      });
+
+      await fireMapMove(map, { lng: 50, lat: 60 });
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        expect(getSourceFeatures(map, "ephemeral")).toHaveLength(1);
+
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.REDRAW_LINK);
+
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+      });
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const mode = store.get(modeAtom);
+        expect(mode.mode).toBe(Mode.NONE);
+
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("single");
+      });
+
+      triggerShortcut("esc");
+
+      await waitFor(() => {
+        const selection = store.get(selectionAtom);
+        expect(selection.type).toBe("none");
+      });
+    });
   });
 });

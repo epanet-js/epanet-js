@@ -439,6 +439,9 @@ export function useDrawLinkHandlers({
         } else {
           resetDrawing();
         }
+      } else if (isSelectLastOn && sourceLink) {
+        resetDrawing();
+        setMode({ mode: Mode.NONE });
       } else {
         resetDrawing();
         setMode({ mode: Mode.NONE });
