@@ -3,10 +3,11 @@ import { useDrawLinkHandlers, type SubmitLinkParams } from "../draw-link";
 import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom, modeAtom, Mode } from "src/state/jotai";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
-import { USelection, SELECTION_NONE } from "src/selection";
+import { USelection, SELECTION_NONE, useSelection } from "src/selection";
 import { replaceLink } from "src/hydraulic-model/model-operations";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,
@@ -18,6 +19,8 @@ export function useRedrawLinkHandlers(
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
+  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
+  const { selectFeature } = useSelection(selection);
 
   const selectedIds = USelection.toIds(selection);
   const selectedAssets = selectedIds
@@ -52,7 +55,13 @@ export function useRedrawLinkHandlers(
     transact(moment);
 
     setMode({ mode: Mode.NONE });
-    setSelection(SELECTION_NONE);
+
+    if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
+      const newLinkId = moment.putAssets[0].id;
+      selectFeature(newLinkId);
+    } else {
+      setSelection(SELECTION_NONE);
+    }
 
     const [, , endNodeUpdated] = moment.putAssets || [];
     return endNodeUpdated as NodeAsset;
