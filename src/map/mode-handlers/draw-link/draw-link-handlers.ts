@@ -427,7 +427,16 @@ export function useDrawLinkHandlers({
       const currentDrawing = getDrawingState();
 
       if (isSelectLastOn && !currentDrawing.isNull) {
-        resetDrawing();
+        if (sourceLink) {
+          setEphemeralState({
+            type: "drawLink",
+            linkType,
+            snappingCandidate: null,
+            sourceLink,
+          });
+        } else {
+          resetDrawing();
+        }
       } else {
         resetDrawing();
         setMode({ mode: Mode.NONE });
