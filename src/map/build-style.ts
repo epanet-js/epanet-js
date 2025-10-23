@@ -63,6 +63,7 @@ export function defineEmptySources(style: Style) {
   style.sources["imported-features"] = emptyGeoJSONSource;
   style.sources["features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
+  style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
 }
 
@@ -84,6 +85,14 @@ import {
   ephemeralPipeHighlightLayer,
   ephemeralShadowLineLayer,
 } from "src/map/layers/ephemeral-state";
+import {
+  selectedPipesLayer,
+  selectedPumpLinesLayer,
+  selectedValveLinesLayer,
+  selectedJunctionsLayer,
+  selectedIconsLayer,
+  selectedIconsHaloLayer,
+} from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
 
 const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
@@ -157,6 +166,10 @@ export function makeLayers({
       layerId: "pipes",
       symbology,
     }),
+    selectedPipesLayer({
+      source: "selected-features",
+      layerId: "selected-pipes",
+    }),
     pumpLines({
       source: "imported-features",
       layerId: "imported-pump-lines",
@@ -167,6 +180,10 @@ export function makeLayers({
       layerId: "pump-lines",
       symbology,
     }),
+    selectedPumpLinesLayer({
+      source: "selected-features",
+      layerId: "selected-pump-lines",
+    }),
     valveLines({
       source: "imported-features",
       layerId: "imported-valve-lines",
@@ -176,6 +193,10 @@ export function makeLayers({
       source: "features",
       layerId: "valve-lines",
       symbology,
+    }),
+    selectedValveLinesLayer({
+      source: "selected-features",
+      layerId: "selected-valve-lines",
     }),
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
@@ -200,6 +221,10 @@ export function makeLayers({
       layerId: "junctions",
       symbology,
     }),
+    selectedJunctionsLayer({
+      source: "selected-features",
+      layerId: "selected-junctions",
+    }),
     junctionResultsLayer({
       source: "imported-features",
       layerId: "imported-junction-results",
@@ -209,6 +234,10 @@ export function makeLayers({
       source: "features",
       layerId: "junction-results",
       symbology,
+    }),
+    selectedIconsHaloLayer({
+      source: "selected-features",
+      layerId: "selected-icons-halo",
     }),
     ...valveIcons({
       source: "icons",
@@ -225,6 +254,10 @@ export function makeLayers({
     }),
     ...reservoirLayers({ sources: ["icons"] }),
     ...tankLayers({ sources: ["icons"] }),
+    selectedIconsLayer({
+      source: "selected-features",
+      layerId: "selected-icons",
+    }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     ...linkLabelsLayer({ sources: ["imported-features", "features"] }),

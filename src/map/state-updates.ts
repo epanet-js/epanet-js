@@ -24,6 +24,7 @@ import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
   buildEphemeralStateSource,
+  buildSelectionSource,
 } from "./data-source";
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
@@ -182,6 +183,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
   const mapState = useAtomValue(mapStateAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
+  const isSelectionLayersEnabled = useFeatureFlag("FLAG_SELECTION_LAYERS");
 
   const assets = useAtomValue(assetsAtom);
   const {
@@ -369,12 +371,21 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewSelection || hasNewStyles) {
-          updateSelection(
-            map,
-            mapState.selection,
-            previousMapState.selection,
-            idMap,
-          );
+          if (isSelectionLayersEnabled) {
+            void updateSelectionWithSource(
+              map,
+              mapState.selection,
+              assets,
+              idMap,
+            );
+          } else {
+            updateSelection(
+              map,
+              mapState.selection,
+              previousMapState.selection,
+              idMap,
+            );
+          }
         }
 
         if (hasNewStyles) {
@@ -425,6 +436,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translateUnit,
     hydraulicModel,
     isSelectLastOn,
+    isSelectionLayersEnabled,
   ]);
 
   doUpdates();
@@ -590,6 +602,7 @@ const updateEditionsVisibility = withDebugInstrumentation(
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.showFeature("features", featureId);
       map.showFeature("icons", featureId);
+      map.showFeature("selected-features", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
@@ -600,6 +613,7 @@ const updateEditionsVisibility = withDebugInstrumentation(
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.hideFeature("features", featureId);
       map.hideFeature("icons", featureId);
+      map.hideFeature("selected-features", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
@@ -610,6 +624,19 @@ const updateEditionsVisibility = withDebugInstrumentation(
     name: "MAP_STATE:UPDATE_EDITIONS_VISIBILITY",
     maxDurationMs: 100,
   },
+);
+
+const updateSelectionWithSource = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    selection: Sel,
+    assets: AssetsMap,
+    idMap: IDMap,
+  ): Promise<void> => {
+    const features = buildSelectionSource(assets, idMap, selection);
+    await map.setSource("selected-features", features);
+  },
+  { name: "MAP_STATE:UPDATE_SELECTION_SOURCE", maxDurationMs: 100 },
 );
 
 const updateSelection = withDebugInstrumentation(
