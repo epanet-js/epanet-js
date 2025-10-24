@@ -3,6 +3,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { WizardState, WizardActions } from "./types";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const DemandOptionsStep: React.FC<{
   onNext: () => void;
@@ -12,9 +13,16 @@ export const DemandOptionsStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { keepDemands, setKeepDemands, error } = wizardState;
+  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
-    <div className="space-y-4">
+    <div
+      className={
+        isModalLayoutEnabled
+          ? "overflow-y-auto flex flex-col gap-4 h-full"
+          : "space-y-4"
+      }
+    >
       <h2 className="text-lg font-semibold">
         {translate("importCustomerPoints.wizard.demandOptions.title")}
       </h2>

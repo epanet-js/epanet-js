@@ -1,3 +1,4 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
 // eslint-disable-next-line
 const colors = require("tailwindcss/colors");
 // eslint-disable-next-line
@@ -45,6 +46,33 @@ module.exports = {
       },
       fontFamily: {
         handwritten: ["Caveat", "cursive"],
+      },
+      screens: {
+        vsm: { raw: "(width < 768px) and (orientation: portrait)" },
+        vmd: { raw: "(width >= 768px) and (orientation: portrait)" },
+
+        hxs: { raw: "(height < 400px) and (orientation: landscape)" },
+        hsm: { raw: "(height >= 400px) and (orientation: landscape)" },
+        hmd: { raw: "(height >= 640px) and (orientation: landscape)" },
+        hlg: { raw: "(height >= 800px) and (orientation: landscape)" },
+        hxl: { raw: "(height > 1080px) and (orientation: landscape)" },
+
+        // Manually generate max-<size> classes due to this bug https://github.com/tailwindlabs/tailwindcss/issues/13022
+        "max-sm": {
+          raw: `not all and (min-width: ${defaultTheme.screens.sm})`,
+        },
+        "max-md": {
+          raw: `not all and (min-width: ${defaultTheme.screens.md})`,
+        },
+        "max-lg": {
+          raw: `not all and (min-width: ${defaultTheme.screens.lg})`,
+        },
+        "max-xl": {
+          raw: `not all and (min-width: ${defaultTheme.screens.xl})`,
+        },
+        "max-2xl": {
+          raw: `not all and (min-width: ${defaultTheme.screens["2xl"]})`,
+        },
       },
     },
   },

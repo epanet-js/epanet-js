@@ -12,6 +12,7 @@ import {
   customerPointsImportVideoUrl,
 } from "src/global-config";
 import { Trans } from "react-i18next";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
@@ -154,12 +155,21 @@ export const DataInputStep: React.FC<{
       projections,
     ],
   );
+  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
-    <div className="space-y-6">
+    <div
+      className={isModalLayoutEnabled ? "flex flex-col flex-grow" : "space-y-6"}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - File Input */}
-        <div className="bg-white dark:bg-slate-800 p-6 space-y-6 h-full">
+        <div
+          className={
+            isModalLayoutEnabled
+              ? "bg-white dark:bg-slate-800 space-y-6 h-full md:p-6 p-2"
+              : "bg-white dark:bg-slate-800 p-6 space-y-6 h-full"
+          }
+        >
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {translate("importCustomerPoints.dataSource.title")}
           </h2>
@@ -193,7 +203,13 @@ export const DataInputStep: React.FC<{
         </div>
 
         {/* Right Column - Video Tutorial */}
-        <div className="bg-white dark:bg-slate-800 p-6 h-full space-y-6">
+        <div
+          className={
+            isModalLayoutEnabled
+              ? "bg-white dark:bg-slate-800 h-full space-y-6 md:p-6 p-2"
+              : "bg-white dark:bg-slate-800 p-6 h-full space-y-6"
+          }
+        >
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {translate("importCustomerPoints.wizard.videoTutorial.title")}
           </h2>
