@@ -162,25 +162,14 @@ const splitPipeAtPointSimple = (
   enableVertexSnap: boolean,
 ): [Pipe, Pipe] => {
   const splitPoint = point(split.coordinates);
-
-  let originalCoords = pipe.coordinates;
+  const originalCoords = pipe.coordinates;
   const [originalStartNodeId, originalEndNodeId] = pipe.connections;
 
+  let matchingVertexIndex = -1;
   if (enableVertexSnap) {
-    const matchingVertexIndex = originalCoords.findIndex((coord) =>
+    matchingVertexIndex = originalCoords.findIndex((coord) =>
       isAlmostTheSamePoint(coord, split.coordinates),
     );
-
-    if (
-      matchingVertexIndex !== -1 &&
-      matchingVertexIndex > 0 &&
-      matchingVertexIndex < originalCoords.length - 1
-    ) {
-      originalCoords = [
-        ...originalCoords.slice(0, matchingVertexIndex),
-        ...originalCoords.slice(matchingVertexIndex + 1),
-      ];
-    }
   }
 
   let splitIndex = -1;
@@ -203,11 +192,23 @@ const splitPipeAtPointSimple = (
     splitIndex = Math.floor((originalCoords.length - 1) / 2);
   }
 
-  const coords1 = originalCoords.slice(0, splitIndex + 1);
-  coords1.push(split.coordinates);
+  let coords1: Position[];
+  let coords2: Position[];
 
-  const coords2 = [split.coordinates];
-  coords2.push(...originalCoords.slice(splitIndex + 1));
+  if (
+    matchingVertexIndex !== -1 &&
+    matchingVertexIndex > 0 &&
+    matchingVertexIndex < originalCoords.length - 1
+  ) {
+    coords1 = originalCoords.slice(0, matchingVertexIndex + 1);
+    coords2 = originalCoords.slice(matchingVertexIndex);
+  } else {
+    coords1 = originalCoords.slice(0, splitIndex + 1);
+    coords1.push(split.coordinates);
+
+    coords2 = [split.coordinates];
+    coords2.push(...originalCoords.slice(splitIndex + 1));
+  }
 
   const pipe1 = hydraulicModel.assetBuilder.buildPipe({
     label: pipe.label,
