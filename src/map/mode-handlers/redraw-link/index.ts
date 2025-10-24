@@ -20,7 +20,7 @@ export function useRedrawLinkHandlers(
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
   const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
-  const { selectFeature } = useSelection(selection);
+  const { selectAsset } = useSelection(selection);
 
   const selectedIds = USelection.toIds(selection);
   const selectedAssets = selectedIds
@@ -58,7 +58,7 @@ export function useRedrawLinkHandlers(
 
     if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
       const newLinkId = moment.putAssets[0].id;
-      selectFeature(newLinkId);
+      selectAsset(newLinkId);
     } else {
       setSelection(SELECTION_NONE);
     }

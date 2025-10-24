@@ -67,7 +67,7 @@ export function useDrawLinkHandlers({
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const { clearSelection, selectFeature } = useSelection(selection);
+  const { clearSelection, selectAsset } = useSelection(selection);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -236,7 +236,7 @@ export function useDrawLinkHandlers({
 
     if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
       const newLinkId = moment.putAssets[0].id;
-      selectFeature(newLinkId);
+      selectAsset(newLinkId);
     }
 
     const [, , endNodeUpdated] = moment.putAssets || [];

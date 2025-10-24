@@ -21,7 +21,7 @@ export const SimulationReportDialog = () => {
   const simulation = useAtomValue(simulationAtom);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const selection = useAtomValue(selectionAtom);
-  const { selectFeature } = useSelection(selection);
+  const { selectAsset } = useSelection(selection);
   const setDialog = useSetAtom(dialogAtom);
   const zoomTo = useZoomTo();
   const userTracking = useUserTracking();
@@ -30,7 +30,7 @@ export const SimulationReportDialog = () => {
     (assetId: AssetId) => {
       const asset = hydraulicModel.assets.get(assetId);
       if (asset) {
-        selectFeature(assetId);
+        selectAsset(assetId);
         zoomTo([asset]);
         setDialog(null);
       }
@@ -39,7 +39,7 @@ export const SimulationReportDialog = () => {
         assetType: asset ? asset.type : null,
       });
     },
-    [selectFeature, setDialog, hydraulicModel.assets, zoomTo, userTracking],
+    [selectAsset, setDialog, hydraulicModel.assets, zoomTo, userTracking],
   );
 
   const renderRowWithSlots = useCallback(

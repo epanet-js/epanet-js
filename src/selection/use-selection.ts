@@ -1,7 +1,6 @@
 import { useSetAtom } from "jotai";
 import { USelection } from "./selection";
 import { Sel, TabOption, selectionAtom, tabAtom } from "src/state/jotai";
-import { IWrappedFeature } from "src/types";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -15,21 +14,21 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
-  const extendSelection = (featureId: IWrappedFeature["id"]) => {
+  const extendSelection = (assetId: AssetId) => {
     userTracking.capture({
       name: "multiSelect.updated",
       count: getSelectionIds().length + 1,
     });
-    setSelection(USelection.addSelectionId(selection, featureId));
+    setSelection(USelection.addSelectionId(selection, assetId));
     setTab(TabOption.Asset);
   };
 
-  const isSelected = (featureId: IWrappedFeature["id"]) => {
-    return USelection.isSelected(selection, featureId);
+  const isSelected = (assetId: AssetId) => {
+    return USelection.isSelected(selection, assetId);
   };
 
-  const selectFeature = (featureId: IWrappedFeature["id"]) => {
-    setSelection(USelection.single(featureId));
+  const selectAsset = (assetId: AssetId) => {
+    setSelection(USelection.single(assetId));
     setTab(TabOption.Asset);
   };
 
@@ -38,12 +37,12 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
-  const removeFromSelection = (featureId: IWrappedFeature["id"]) => {
+  const removeFromSelection = (assetId: AssetId) => {
     userTracking.capture({
       name: "multiSelect.updated",
       count: getSelectionIds().length - 1,
     });
-    setSelection(USelection.removeFeatureFromSelection(selection, featureId));
+    setSelection(USelection.removeFeatureFromSelection(selection, assetId));
   };
 
   const clearSelection = () => {
@@ -59,7 +58,7 @@ export const useSelection = (selection: Sel) => {
     extendSelection,
     isSelected,
     removeFromSelection,
-    selectFeature,
+    selectAsset,
     selectCustomerPoint,
     getSelectionIds,
   };

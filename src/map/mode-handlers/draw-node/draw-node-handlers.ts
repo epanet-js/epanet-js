@@ -40,7 +40,7 @@ export function useDrawNodeHandlers({
     hydraulicModel.assets,
   );
   const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
-  const { selectFeature } = useSelection(selection);
+  const { selectAsset } = useSelection(selection);
 
   const submitNode = (
     nodeType: NodeType,
@@ -59,7 +59,7 @@ export function useDrawNodeHandlers({
 
     if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
       const newNodeId = moment.putAssets[0].id;
-      selectFeature(newNodeId);
+      selectAsset(newNodeId);
     }
   };
 

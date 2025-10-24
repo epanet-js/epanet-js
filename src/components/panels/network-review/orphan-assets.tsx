@@ -34,7 +34,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const { orphanAssets, checkOrphanAssets, isLoading, isReady } =
     useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
-  const { selectFeature, isSelected, clearSelection } = useSelection(selection);
+  const { selectAsset, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
@@ -68,10 +68,10 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         return;
       }
       setSelectedOrphanAssetId(orphanAsset.assetId);
-      selectFeature(orphanAsset.assetId);
+      selectAsset(orphanAsset.assetId);
       zoomTo([fullAsset]);
     },
-    [hydraulicModel, selectFeature, zoomTo, clearSelection],
+    [hydraulicModel, selectAsset, zoomTo, clearSelection],
   );
 
   useEffect(() => {
