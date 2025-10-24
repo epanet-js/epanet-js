@@ -1,14 +1,13 @@
 import * as Comlink from "comlink";
-import { HydraulicModel } from "src/hydraulic-model";
-import { SubNetwork } from "./data";
-import { findSubNetworks } from "./find-subnetworks";
+import { RunData, EncodedSubNetworks } from "./data";
+import { findSubNetworksFromBuffers } from "./find-subnetworks";
 
 export interface ConnectivityTraceWorkerAPI {
-  findSubNetworks: (hydraulicModel: HydraulicModel) => SubNetwork[];
+  findSubNetworksFromBuffers: (input: RunData) => EncodedSubNetworks;
 }
 
 const workerAPI: ConnectivityTraceWorkerAPI = {
-  findSubNetworks,
+  findSubNetworksFromBuffers,
 };
 
 Comlink.expose(workerAPI);
