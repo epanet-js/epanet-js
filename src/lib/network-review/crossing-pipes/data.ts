@@ -5,8 +5,19 @@ import lineSegment from "@turf/line-segment";
 import Flatbush from "flatbush";
 import bbox from "@turf/bbox";
 import { lineString } from "@turf/helpers";
-
-export type BinaryData = ArrayBuffer | SharedArrayBuffer;
+import {
+  BinaryData,
+  BufferType,
+  IdMapper,
+  UINT32_SIZE,
+  COORDINATES_SIZE,
+  BUFFER_HEADER_SIZE,
+  createBuffer,
+  encodeCount,
+  decodeCount,
+  encodeCoordinates,
+  decodeCoordinates,
+} from "../shared";
 
 export type EncodedHydraulicModel = {
   nodeBuffer: BinaryData;
@@ -33,37 +44,22 @@ export interface CrossingPipe {
   intersectionPoint: Position;
 }
 
-const UINT32_SIZE = 4;
-const FLOAT64_SIZE = 8;
-const COORDINATES_SIZE = 2 * FLOAT64_SIZE;
-const BUFFER_HEADER_SIZE = UINT32_SIZE;
 const NODE_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE;
 const PIPE_BINARY_SIZE = UINT32_SIZE * 3 + COORDINATES_SIZE * 2;
 const SEGMENT_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE * 2;
 
 export function encodeHydraulicModel(
   model: HydraulicModel,
-  bufferType: "shared" | "array" = "array",
+  bufferType: BufferType = "array",
 ): EncodedHydraulicModel {
-  const idsLookup: string[] = [];
-  const idxLookup = new Map<string, number>();
-
-  const getOrAssignIdx = (id: string) => {
-    let idx = idxLookup.get(id);
-    if (idx === undefined) {
-      idx = idsLookup.length;
-      idxLookup.set(id, idx);
-      idsLookup.push(id);
-    }
-    return idx;
-  };
+  const idMapper = new IdMapper();
 
   const nodes: { id: number; position: Position }[] = [];
   const pipes: {
     id: number;
     start: number;
     end: number;
-    bbox: [Position, Position]; // [minX, minY], [maxX, maxY]
+    bbox: [Position, Position];
   }[] = [];
   const pipeSegments: {
     pipeId: number;
@@ -72,13 +68,13 @@ export function encodeHydraulicModel(
   }[] = [];
 
   for (const [id, asset] of model.assets) {
-    const idx = getOrAssignIdx(id);
+    const idx = idMapper.getOrAssignIdx(id);
 
     if (asset.isLink && asset.type === "pipe") {
       const pipe = asset as Pipe;
       const [startId, endId] = pipe.connections;
-      const start = getOrAssignIdx(startId);
-      const end = getOrAssignIdx(endId);
+      const start = idMapper.getOrAssignIdx(startId);
+      const end = idMapper.getOrAssignIdx(endId);
 
       const startNode = model.assets.get(startId);
       const endNode = model.assets.get(endId);
@@ -123,140 +119,127 @@ export function encodeHydraulicModel(
     }
   }
 
-  function encodeNodes(nodes: { id: number; position: Position }[]): {
-    buffer: BinaryData;
-    geoIndex: BinaryData;
-  } {
-    const recordSize = NODE_BINARY_SIZE;
-    const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
-    const buffer =
-      bufferType === "shared"
-        ? new SharedArrayBuffer(totalSize)
-        : new ArrayBuffer(totalSize);
-    const geoIndex = new Flatbush(Math.max(nodes.length, 1));
-
-    const view = new DataView(buffer);
-    view.setUint32(0, nodes.length, true);
-    nodes.forEach((n, i) => {
-      let offset = UINT32_SIZE + i * recordSize;
-      view.setUint32(offset, n.id, true);
-      offset += UINT32_SIZE;
-      encodeCoordinates([n.position], offset, view);
-
-      const [lon, lat] = n.position;
-      geoIndex.add(lon, lat, lon, lat);
-    });
-
-    if (nodes.length === 0) {
-      geoIndex.add(0, 0, 0, 0);
-    }
-
-    geoIndex.finish();
-
-    return { buffer, geoIndex: geoIndex.data };
-  }
-
-  function encodePipes(
-    pipes: {
-      id: number;
-      start: number;
-      end: number;
-      bbox: [Position, Position];
-    }[],
-  ): BinaryData {
-    const recordSize = PIPE_BINARY_SIZE;
-    const totalSize = BUFFER_HEADER_SIZE + pipes.length * recordSize;
-    const buffer =
-      bufferType === "shared"
-        ? new SharedArrayBuffer(totalSize)
-        : new ArrayBuffer(totalSize);
-
-    const view = new DataView(buffer);
-    view.setUint32(0, pipes.length, true);
-    pipes.forEach((p, i) => {
-      let offset = UINT32_SIZE + i * recordSize;
-      view.setUint32(offset, p.id, true);
-      offset += UINT32_SIZE;
-      view.setUint32(offset, p.start, true);
-      offset += UINT32_SIZE;
-      view.setUint32(offset, p.end, true);
-      offset += UINT32_SIZE;
-      encodeCoordinates([p.bbox[0], p.bbox[1]], offset, view);
-    });
-    return buffer;
-  }
-
-  function encodePipeSegments(
-    segments: {
-      pipeId: number;
-      startPosition: Position;
-      endPosition: Position;
-    }[],
-  ): {
-    buffer: BinaryData;
-    geoIndex: BinaryData;
-  } {
-    const count = segments.length;
-    const recordSize = SEGMENT_BINARY_SIZE;
-    const totalSize = BUFFER_HEADER_SIZE + count * recordSize;
-    const buffer =
-      bufferType === "shared"
-        ? new SharedArrayBuffer(totalSize)
-        : new ArrayBuffer(totalSize);
-    const geoIndex = new Flatbush(Math.max(count, 1));
-
-    const view = new DataView(buffer);
-    view.setUint32(0, segments.length, true);
-
-    segments.forEach((segment, i) => {
-      let offset = UINT32_SIZE + i * recordSize;
-      view.setUint32(offset, segment.pipeId, true);
-      offset += UINT32_SIZE;
-      encodeCoordinates(
-        [segment.startPosition, segment.endPosition],
-        offset,
-        view,
-      );
-
-      const [minX, minY, maxX, maxY] = bbox(
-        lineString([segment.startPosition, segment.endPosition]),
-      );
-      geoIndex.add(minX, minY, maxX, maxY);
-    });
-
-    if (count === 0) {
-      geoIndex.add(0, 0, 0, 0);
-    }
-
-    geoIndex.finish();
-
-    return { buffer, geoIndex: geoIndex.data };
-  }
-
-  function encodeCoordinates(
-    coordinates: Position[],
-    offset: number,
-    view: DataView,
-  ): void {
-    coordinates.forEach((coord, i) => {
-      const coordOffset = offset + i * COORDINATES_SIZE;
-      view.setFloat64(coordOffset, coord[0], true);
-      view.setFloat64(coordOffset + FLOAT64_SIZE, coord[1], true);
-    });
-  }
-
   const { buffer: pipeSegmentsBuffer, geoIndex: pipeSegmentsGeoIndex } =
-    encodePipeSegments(pipeSegments);
-  const { buffer: nodeBuffer, geoIndex: nodeGeoIndex } = encodeNodes(nodes);
+    encodePipeSegmentsBuffer(pipeSegments, bufferType);
+  const { buffer: nodeBuffer, geoIndex: nodeGeoIndex } = encodeNodesBuffer(
+    nodes,
+    bufferType,
+  );
 
   return {
     nodeBuffer,
     nodeGeoIndex,
-    pipeBuffer: encodePipes(pipes),
+    pipeBuffer: encodePipesBuffer(pipes, bufferType),
     pipeSegmentsBuffer,
     pipeSegmentsGeoIndex,
-    idsLookup: idsLookup,
+    idsLookup: idMapper.getIdsLookup(),
   };
+}
+
+function encodeNodesBuffer(
+  nodes: { id: number; position: Position }[],
+  bufferType: BufferType,
+): {
+  buffer: BinaryData;
+  geoIndex: BinaryData;
+} {
+  const recordSize = NODE_BINARY_SIZE;
+  const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
+  const buffer = createBuffer(totalSize, bufferType);
+  const geoIndex = new Flatbush(Math.max(nodes.length, 1));
+
+  const view = new DataView(buffer);
+  encodeCount(view, nodes.length);
+  nodes.forEach((n, i) => {
+    let offset = BUFFER_HEADER_SIZE + i * recordSize;
+    view.setUint32(offset, n.id, true);
+    offset += UINT32_SIZE;
+    encodeCoordinates([n.position], offset, view);
+
+    const [lon, lat] = n.position;
+    geoIndex.add(lon, lat, lon, lat);
+  });
+
+  if (nodes.length === 0) {
+    geoIndex.add(0, 0, 0, 0);
+  }
+
+  geoIndex.finish();
+
+  return { buffer, geoIndex: geoIndex.data };
+}
+
+function encodePipesBuffer(
+  pipes: {
+    id: number;
+    start: number;
+    end: number;
+    bbox: [Position, Position];
+  }[],
+  bufferType: BufferType,
+): BinaryData {
+  const recordSize = PIPE_BINARY_SIZE;
+  const totalSize = BUFFER_HEADER_SIZE + pipes.length * recordSize;
+  const buffer = createBuffer(totalSize, bufferType);
+
+  const view = new DataView(buffer);
+  encodeCount(view, pipes.length);
+  pipes.forEach((p, i) => {
+    let offset = BUFFER_HEADER_SIZE + i * recordSize;
+    view.setUint32(offset, p.id, true);
+    offset += UINT32_SIZE;
+    view.setUint32(offset, p.start, true);
+    offset += UINT32_SIZE;
+    view.setUint32(offset, p.end, true);
+    offset += UINT32_SIZE;
+    encodeCoordinates([p.bbox[0], p.bbox[1]], offset, view);
+  });
+  return buffer;
+}
+
+function encodePipeSegmentsBuffer(
+  segments: {
+    pipeId: number;
+    startPosition: Position;
+    endPosition: Position;
+  }[],
+  bufferType: BufferType,
+): {
+  buffer: BinaryData;
+  geoIndex: BinaryData;
+} {
+  const count = segments.length;
+  const recordSize = SEGMENT_BINARY_SIZE;
+  const totalSize = BUFFER_HEADER_SIZE + count * recordSize;
+  const buffer = createBuffer(totalSize, bufferType);
+  const geoIndex = new Flatbush(Math.max(count, 1));
+
+  const view = new DataView(buffer);
+  encodeCount(view, segments.length);
+
+  segments.forEach((segment, i) => {
+    let offset = BUFFER_HEADER_SIZE + i * recordSize;
+    view.setUint32(offset, segment.pipeId, true);
+    offset += UINT32_SIZE;
+    encodeCoordinates(
+      [segment.startPosition, segment.endPosition],
+      offset,
+      view,
+    );
+
+    const [minX, minY, maxX, maxY] = bbox(
+      lineString([segment.startPosition, segment.endPosition]),
+    );
+    geoIndex.add(minX, minY, maxX, maxY);
+  });
+
+  if (count === 0) {
+    geoIndex.add(0, 0, 0, 0);
+  }
+
+  geoIndex.finish();
+
+  return { buffer, geoIndex: geoIndex.data };
 }
 
 export function decodeCrossingPipes(
@@ -335,46 +318,47 @@ export class PipeBufferView {
 
   constructor(public readonly buffer: BinaryData) {
     this.view = new DataView(buffer);
-    this.count = this.decodeCount(this.view);
+    this.count = decodeCount(this.view);
 
     for (const [index, pipe] of this.enumerate(this.iter())) {
       this.indexesLookup.set(pipe.id, index);
     }
   }
 
-  private decodeCount(view: DataView): number {
-    return view.getUint32(0, true);
-  }
-
   *iter(): Generator<EncodedPipe> {
     for (let i = 0; i < this.count; i++) {
-      yield this.decodePipe(this.view, i);
+      let offset = BUFFER_HEADER_SIZE + i * PIPE_BINARY_SIZE;
+      const id = this.view.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const startNode = this.view.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const endNode = this.view.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const bboxMin = decodeCoordinates(offset, this.view);
+      offset += COORDINATES_SIZE;
+      const bboxMax = decodeCoordinates(offset, this.view);
+      yield {
+        id,
+        startNode,
+        endNode,
+        bbox: [bboxMin, bboxMax],
+      };
     }
   }
 
   getByIndex(pipeId: number): EncodedPipe | null {
     const pipeIndex = this.indexesLookup.get(pipeId);
     if (pipeIndex === undefined) return null;
-    return this.decodePipe(this.view, pipeIndex);
-  }
-
-  private decodePipe(view: DataView, index: number): EncodedPipe {
-    let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
-    const id = view.getUint32(offset, true);
+    let offset = BUFFER_HEADER_SIZE + pipeIndex * PIPE_BINARY_SIZE;
+    const id = this.view.getUint32(offset, true);
     offset += UINT32_SIZE;
-    const startNode = view.getUint32(offset, true);
+    const startNode = this.view.getUint32(offset, true);
     offset += UINT32_SIZE;
-    const endNode = view.getUint32(offset, true);
+    const endNode = this.view.getUint32(offset, true);
     offset += UINT32_SIZE;
-    const bboxMin: Position = [
-      view.getFloat64(offset, true),
-      view.getFloat64(offset + FLOAT64_SIZE, true),
-    ];
+    const bboxMin = decodeCoordinates(offset, this.view);
     offset += COORDINATES_SIZE;
-    const bboxMax: Position = [
-      view.getFloat64(offset, true),
-      view.getFloat64(offset + FLOAT64_SIZE, true),
-    ];
+    const bboxMax = decodeCoordinates(offset, this.view);
     return {
       id,
       startNode,
@@ -398,32 +382,21 @@ export class NodeBufferView {
 
   constructor(public readonly buffer: BinaryData) {
     this.view = new DataView(buffer);
-    this.count = this.decodeCount(this.view);
+    this.count = decodeCount(this.view);
 
     for (const [index, node] of this.enumerate(this.iter())) {
       this.indexesLookup.set(node.id, index);
     }
   }
 
-  private decodeCount(view: DataView): number {
-    return view.getUint32(0, true);
-  }
-
   *iter(): Generator<EncodedNode> {
     for (let i = 0; i < this.count; i++) {
-      yield this.decodeNode(this.view, i);
+      let offset = BUFFER_HEADER_SIZE + i * NODE_BINARY_SIZE;
+      const id = this.view.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const position = decodeCoordinates(offset, this.view);
+      yield { id, position };
     }
-  }
-
-  private decodeNode(view: DataView, index: number): EncodedNode {
-    let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
-    const id = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const position: Position = [
-      view.getFloat64(offset, true),
-      view.getFloat64(offset + FLOAT64_SIZE, true),
-    ];
-    return { id, position };
   }
 
   private *enumerate<T>(iterable: Iterable<T>): Generator<[number, T]> {
@@ -436,7 +409,11 @@ export class NodeBufferView {
   getByIndex(id: number): EncodedNode | null {
     const nodeIndex = this.indexesLookup.get(id);
     if (nodeIndex === undefined) return null;
-    return this.decodeNode(this.view, nodeIndex);
+    let offset = BUFFER_HEADER_SIZE + nodeIndex * NODE_BINARY_SIZE;
+    const nodeId = this.view.getUint32(offset, true);
+    offset += UINT32_SIZE;
+    const position = decodeCoordinates(offset, this.view);
+    return { id: nodeId, position };
   }
 }
 
@@ -446,32 +423,21 @@ export class SegmentsGeometriesBufferView {
 
   constructor(public readonly buffer: BinaryData) {
     this.view = new DataView(buffer);
-    this.count = this.decodeCount(this.view);
-  }
-
-  private decodeCount(view: DataView): number {
-    return view.getUint32(0, true);
+    this.count = decodeCount(this.view);
   }
 
   getId(index: number): number {
-    const id = this.view.getUint32(
+    return this.view.getUint32(
       BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE,
       true,
     );
-    return id;
   }
 
   getCoordinates(index: number): [Position, Position] {
-    const offset =
-      BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE + UINT32_SIZE;
-    const startPosition: Position = [
-      this.view.getFloat64(offset, true),
-      this.view.getFloat64(offset + FLOAT64_SIZE, true),
-    ];
-    const endPosition: Position = [
-      this.view.getFloat64(offset + COORDINATES_SIZE, true),
-      this.view.getFloat64(offset + COORDINATES_SIZE + FLOAT64_SIZE, true),
-    ];
+    let offset = BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE + UINT32_SIZE;
+    const startPosition = decodeCoordinates(offset, this.view);
+    offset += COORDINATES_SIZE;
+    const endPosition = decodeCoordinates(offset, this.view);
     return [startPosition, endPosition];
   }
 }

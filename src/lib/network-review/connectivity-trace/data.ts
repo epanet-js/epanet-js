@@ -1,6 +1,18 @@
 import bbox from "@turf/bbox";
 import { AssetId, HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "src/hydraulic-model/asset-types";
+import {
+  BinaryData,
+  BufferType,
+  IdMapper,
+  UINT32_SIZE,
+  UINT8_SIZE,
+  FLOAT64_SIZE,
+  BUFFER_HEADER_SIZE,
+  createBuffer,
+  encodeCount,
+  decodeCount,
+} from "../shared";
 
 export interface SubNetwork {
   subnetworkId: number;
@@ -10,8 +22,6 @@ export interface SubNetwork {
   pipeCount: number;
   bounds: [number, number, number, number];
 }
-
-export type BinaryData = ArrayBuffer | SharedArrayBuffer;
 
 export type EncodedHydraulicModelForSubnetworks = {
   nodeBuffer: BinaryData;
@@ -32,10 +42,6 @@ export type EncodedSubNetworks = {
   }[];
 };
 
-const UINT32_SIZE = 4;
-const UINT8_SIZE = 1;
-const FLOAT64_SIZE = 8;
-const BUFFER_HEADER_SIZE = UINT32_SIZE;
 const NODE_BINARY_SIZE = UINT32_SIZE + UINT8_SIZE;
 const LINK_BINARY_SIZE = UINT32_SIZE * 3 + UINT8_SIZE + FLOAT64_SIZE * 4;
 
@@ -44,20 +50,9 @@ const LINK_TYPE_MAP = { pipe: 0, valve: 1, pump: 2 } as const;
 
 export function encodeHydraulicModelForSubnetworks(
   model: HydraulicModel,
-  bufferType: "shared" | "array" = "array",
+  bufferType: BufferType = "array",
 ): EncodedHydraulicModelForSubnetworks {
-  const idsLookup: string[] = [];
-  const idxLookup = new Map<string, number>();
-
-  const getOrAssignIdx = (id: string) => {
-    let idx = idxLookup.get(id);
-    if (idx === undefined) {
-      idx = idsLookup.length;
-      idxLookup.set(id, idx);
-      idsLookup.push(id);
-    }
-    return idx;
-  };
+  const idMapper = new IdMapper();
 
   const nodes: { id: number; type: number }[] = [];
   const links: {
@@ -69,12 +64,12 @@ export function encodeHydraulicModelForSubnetworks(
   }[] = [];
 
   for (const [id, asset] of model.assets) {
-    const idx = getOrAssignIdx(id);
+    const idx = idMapper.getOrAssignIdx(id);
 
     if (asset.isLink) {
       const [startId, endId] = (asset as Pipe).connections;
-      const start = getOrAssignIdx(startId);
-      const end = getOrAssignIdx(endId);
+      const start = idMapper.getOrAssignIdx(startId);
+      const end = idMapper.getOrAssignIdx(endId);
 
       const linkType =
         LINK_TYPE_MAP[asset.type as keyof typeof LINK_TYPE_MAP] ?? 0;
@@ -95,69 +90,67 @@ export function encodeHydraulicModelForSubnetworks(
     }
   }
 
-  function encodeNodes(nodes: { id: number; type: number }[]): BinaryData {
-    const recordSize = NODE_BINARY_SIZE;
-    const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
-    const buffer =
-      bufferType === "shared"
-        ? new SharedArrayBuffer(totalSize)
-        : new ArrayBuffer(totalSize);
-
-    const view = new DataView(buffer);
-    view.setUint32(0, nodes.length, true);
-    nodes.forEach((n, i) => {
-      let offset = BUFFER_HEADER_SIZE + i * recordSize;
-      view.setUint32(offset, n.id, true);
-      offset += UINT32_SIZE;
-      view.setUint8(offset, n.type);
-    });
-    return buffer;
-  }
-
-  function encodeLinks(
-    links: {
-      id: number;
-      start: number;
-      end: number;
-      type: number;
-      bounds: [number, number, number, number];
-    }[],
-  ): BinaryData {
-    const recordSize = LINK_BINARY_SIZE;
-    const totalSize = BUFFER_HEADER_SIZE + links.length * recordSize;
-    const buffer =
-      bufferType === "shared"
-        ? new SharedArrayBuffer(totalSize)
-        : new ArrayBuffer(totalSize);
-
-    const view = new DataView(buffer);
-    view.setUint32(0, links.length, true);
-    links.forEach((l, i) => {
-      let offset = BUFFER_HEADER_SIZE + i * recordSize;
-      view.setUint32(offset, l.id, true);
-      offset += UINT32_SIZE;
-      view.setUint32(offset, l.start, true);
-      offset += UINT32_SIZE;
-      view.setUint32(offset, l.end, true);
-      offset += UINT32_SIZE;
-      view.setUint8(offset, l.type);
-      offset += UINT8_SIZE;
-      view.setFloat64(offset, l.bounds[0], true);
-      offset += FLOAT64_SIZE;
-      view.setFloat64(offset, l.bounds[1], true);
-      offset += FLOAT64_SIZE;
-      view.setFloat64(offset, l.bounds[2], true);
-      offset += FLOAT64_SIZE;
-      view.setFloat64(offset, l.bounds[3], true);
-    });
-    return buffer;
-  }
-
   return {
-    nodeBuffer: encodeNodes(nodes),
-    linkBuffer: encodeLinks(links),
-    idsLookup: idsLookup,
+    nodeBuffer: encodeNodesBuffer(nodes, bufferType),
+    linkBuffer: encodeLinksBuffer(links, bufferType),
+    idsLookup: idMapper.getIdsLookup(),
   };
+}
+
+function encodeNodesBuffer(
+  nodes: { id: number; type: number }[],
+  bufferType: BufferType,
+): BinaryData {
+  const recordSize = NODE_BINARY_SIZE;
+  const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
+  const buffer = createBuffer(totalSize, bufferType);
+
+  const view = new DataView(buffer);
+  encodeCount(view, nodes.length);
+  nodes.forEach((n, i) => {
+    let offset = BUFFER_HEADER_SIZE + i * recordSize;
+    view.setUint32(offset, n.id, true);
+    offset += UINT32_SIZE;
+    view.setUint8(offset, n.type);
+  });
+  return buffer;
+}
+
+function encodeLinksBuffer(
+  links: {
+    id: number;
+    start: number;
+    end: number;
+    type: number;
+    bounds: [number, number, number, number];
+  }[],
+  bufferType: BufferType,
+): BinaryData {
+  const recordSize = LINK_BINARY_SIZE;
+  const totalSize = BUFFER_HEADER_SIZE + links.length * recordSize;
+  const buffer = createBuffer(totalSize, bufferType);
+
+  const view = new DataView(buffer);
+  encodeCount(view, links.length);
+  links.forEach((l, i) => {
+    let offset = BUFFER_HEADER_SIZE + i * recordSize;
+    view.setUint32(offset, l.id, true);
+    offset += UINT32_SIZE;
+    view.setUint32(offset, l.start, true);
+    offset += UINT32_SIZE;
+    view.setUint32(offset, l.end, true);
+    offset += UINT32_SIZE;
+    view.setUint8(offset, l.type);
+    offset += UINT8_SIZE;
+    view.setFloat64(offset, l.bounds[0], true);
+    offset += FLOAT64_SIZE;
+    view.setFloat64(offset, l.bounds[1], true);
+    offset += FLOAT64_SIZE;
+    view.setFloat64(offset, l.bounds[2], true);
+    offset += FLOAT64_SIZE;
+    view.setFloat64(offset, l.bounds[3], true);
+  });
+  return buffer;
 }
 
 export function decodeSubNetworks(
@@ -201,57 +194,45 @@ export class HydraulicModelBufferViewForSubnetworks {
     this.nodeView = new DataView(nodeBuffer);
     this.linkView = new DataView(linkBuffer);
 
-    this.nodeCount = this.decodeCount(this.nodeView);
-    this.linkCount = this.decodeCount(this.linkView);
+    this.nodeCount = decodeCount(this.nodeView);
+    this.linkCount = decodeCount(this.linkView);
   }
 
   *nodes(): Generator<Node> {
     for (let i = 0; i < this.nodeCount; i++) {
-      yield this.decodeNode(this.nodeView, i);
+      let offset = BUFFER_HEADER_SIZE + i * NODE_BINARY_SIZE;
+      const id = this.nodeView.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const nodeType = this.nodeView.getUint8(offset);
+      yield { id, nodeType };
     }
   }
 
   *links(): Generator<Link> {
     for (let i = 0; i < this.linkCount; i++) {
-      yield this.decodeLink(this.linkView, i);
+      let offset = BUFFER_HEADER_SIZE + i * LINK_BINARY_SIZE;
+      const id = this.linkView.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const startNode = this.linkView.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const endNode = this.linkView.getUint32(offset, true);
+      offset += UINT32_SIZE;
+      const linkType = this.linkView.getUint8(offset);
+      offset += UINT8_SIZE;
+      const minX = this.linkView.getFloat64(offset, true);
+      offset += FLOAT64_SIZE;
+      const minY = this.linkView.getFloat64(offset, true);
+      offset += FLOAT64_SIZE;
+      const maxX = this.linkView.getFloat64(offset, true);
+      offset += FLOAT64_SIZE;
+      const maxY = this.linkView.getFloat64(offset, true);
+      yield {
+        id,
+        startNode,
+        endNode,
+        linkType,
+        bounds: [minX, minY, maxX, maxY],
+      };
     }
-  }
-
-  private decodeCount(view: DataView): number {
-    return view.getUint32(0, true);
-  }
-
-  private decodeNode(view: DataView, index: number): Node {
-    let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
-    const id = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const nodeType = view.getUint8(offset);
-    return { id, nodeType };
-  }
-
-  private decodeLink(view: DataView, index: number): Link {
-    let offset = BUFFER_HEADER_SIZE + index * LINK_BINARY_SIZE;
-    const id = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const startNode = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const endNode = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const linkType = view.getUint8(offset);
-    offset += UINT8_SIZE;
-    const minX = view.getFloat64(offset, true);
-    offset += FLOAT64_SIZE;
-    const minY = view.getFloat64(offset, true);
-    offset += FLOAT64_SIZE;
-    const maxX = view.getFloat64(offset, true);
-    offset += FLOAT64_SIZE;
-    const maxY = view.getFloat64(offset, true);
-    return {
-      id,
-      startNode,
-      endNode,
-      linkType,
-      bounds: [minX, minY, maxX, maxY],
-    };
   }
 }
