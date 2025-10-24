@@ -148,9 +148,11 @@ function NetworkReviewSummary({
             isSelected={selectedCheckType === checkType}
           />
         ))}
-        <div className="uppercase text-gray-700 dark:text-gray-200 px-4 py-2 text-sm">
-          {translate("comingSoon")}
-        </div>
+        {disabledChecks.length > 0 && (
+          <div className="uppercase text-gray-700 dark:text-gray-200 px-4 py-2 text-sm">
+            {translate("comingSoon")}
+          </div>
+        )}
         {disabledChecks.map(({ checkType }) => (
           <ReviewCheck
             key={checkType}
