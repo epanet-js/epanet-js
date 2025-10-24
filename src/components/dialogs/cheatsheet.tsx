@@ -8,7 +8,6 @@ import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
-import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 
 export const SEARCH_KEYBINDING = "Command+k";
@@ -35,20 +34,14 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   "Command+z": translate("undo"),
   "Command+y": translate("redo"),
   [toggleSidePanelShortcut]: translate("toggleSidePanel"),
+  [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
 });
 
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
-  const BINDINGS = {
-    ...getBindings(translate),
-    ...(isNetworkReviewEnabled
-      ? { [toggleNetworkReviewShortcut]: translate("networkReview.toggle") }
-      : {}),
-  };
-
+  const BINDINGS = getBindings(translate);
   return (
     <>
       <DialogHeader

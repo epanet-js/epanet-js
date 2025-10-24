@@ -46,7 +46,6 @@ import {
   useToggleNetworkReview,
 } from "src/commands/toggle-network-review";
 import { ContextActions } from "../context-actions";
-import { useNetworkReviewEnabled } from "../panels/network-review/network-review";
 import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
@@ -210,7 +209,6 @@ const Divider = () => {
 const LayoutActions = () => {
   const translate = useTranslate();
   const { leftOpen, rightOpen } = useAtomValue(splitsAtom);
-  const isNetworkReviewEnabled = useNetworkReviewEnabled();
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
 
@@ -224,18 +222,16 @@ const LayoutActions = () => {
 
   return (
     <>
-      {isNetworkReviewEnabled && (
-        <MenuAction
-          label={translate("networkReview.toggle")}
-          role="button"
-          onClick={() => {
-            toggleNetworkReview({ source: "toolbar" });
-          }}
-          readOnlyHotkey={toggleNetworkReviewShortcut}
-        >
-          {leftPanelIcon}
-        </MenuAction>
-      )}
+      <MenuAction
+        label={translate("networkReview.toggle")}
+        role="button"
+        onClick={() => {
+          toggleNetworkReview({ source: "toolbar" });
+        }}
+        readOnlyHotkey={toggleNetworkReviewShortcut}
+      >
+        {leftPanelIcon}
+      </MenuAction>
       <MenuAction
         label={translate("toggleSidePanel")}
         role="button"

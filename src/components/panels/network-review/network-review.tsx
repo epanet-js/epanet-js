@@ -49,16 +49,14 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
-  const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
-  const isProximityAnomaliesEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
   const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
   const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
 
   const allChecks = [
-    { checkType: CheckType.orphanAssets, isEnabled: isOrphanNodesEnabled },
+    { checkType: CheckType.orphanAssets, isEnabled: true },
     {
       checkType: CheckType.proximityAnomalies,
-      isEnabled: isProximityAnomaliesEnabled,
+      isEnabled: true,
     },
     {
       checkType: CheckType.crossingPipes,
@@ -235,19 +233,5 @@ const ReviewCheck = ({
         )}
       </div>
     </Button>
-  );
-};
-
-export const useNetworkReviewEnabled = () => {
-  const isOrphanNodesEnabled = useFeatureFlag("FLAG_ORPHAN_NODES");
-  const isProximityAnomaliesEnabled = useFeatureFlag("FLAG_PROXIMITY_CHECK");
-  const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
-  const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
-
-  return (
-    isOrphanNodesEnabled ||
-    isProximityAnomaliesEnabled ||
-    isConnectivityTraceEnabled ||
-    isCrossingPipesEnabled
   );
 };

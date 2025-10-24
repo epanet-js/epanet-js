@@ -62,7 +62,6 @@ import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
 } from "src/commands/toggle-network-review";
-import { useNetworkReviewEnabled } from "./panels/network-review/network-review";
 import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
@@ -91,8 +90,6 @@ export const CommandShortcuts = () => {
   const simulation = useAtomValue(simulationAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
-
-  const isNetworkReviewEnabled = useNetworkReviewEnabled();
 
   useHotkeys(
     showReportShorcut,
@@ -320,7 +317,6 @@ export const CommandShortcuts = () => {
     },
     [toggleNetworkReview],
     "Toggle network review",
-    !isNetworkReviewEnabled,
   );
 
   useHotkeys(
