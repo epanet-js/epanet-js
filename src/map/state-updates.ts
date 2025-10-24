@@ -198,7 +198,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -317,7 +316,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewZoom ||
           hasNewSelection ||
           hasNewSymbology ||
-          (hasEphemeralStateReset && isSelectLastOn)
+          hasEphemeralStateReset
         ) {
           customerPointsOverlayRef.current =
             updateCustomerPointsOverlayVisibility(
@@ -435,7 +434,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isSelectLastOn,
     isSelectionLayersEnabled,
   ]);
 

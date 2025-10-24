@@ -67,7 +67,7 @@ export function useDrawLinkHandlers({
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const { clearSelection, selectAsset } = useSelection(selection);
+  const { selectAsset } = useSelection(selection);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -77,7 +77,6 @@ export function useDrawLinkHandlers({
     idMap,
     hydraulicModel.assets,
   );
-  const isSelectLastOn = useFeatureFlag("FLAG_SELECT_LAST");
   const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
@@ -234,7 +233,7 @@ export function useDrawLinkHandlers({
     userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);
 
-    if (isSelectLastOn && moment.putAssets && moment.putAssets.length > 0) {
+    if (moment.putAssets && moment.putAssets.length > 0) {
       const newLinkId = moment.putAssets[0].id;
       selectAsset(newLinkId);
     }
@@ -428,7 +427,7 @@ export function useDrawLinkHandlers({
     exit() {
       const currentDrawing = getDrawingState();
 
-      if (isSelectLastOn && !currentDrawing.isNull) {
+      if (!currentDrawing.isNull) {
         if (sourceLink) {
           setEphemeralState({
             type: "drawLink",
@@ -439,13 +438,12 @@ export function useDrawLinkHandlers({
         } else {
           resetDrawing();
         }
-      } else if (isSelectLastOn && sourceLink) {
+      } else if (sourceLink) {
         resetDrawing();
         setMode({ mode: Mode.NONE });
       } else {
         resetDrawing();
         setMode({ mode: Mode.NONE });
-        clearSelection();
       }
     },
     touchstart: (e) => {
