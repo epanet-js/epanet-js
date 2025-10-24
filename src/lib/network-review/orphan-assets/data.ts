@@ -4,8 +4,7 @@ import {
   BinaryData,
   BufferType,
   IdMapper,
-  UINT32_SIZE,
-  BUFFER_HEADER_SIZE,
+  DataSize,
   createBuffer,
   encodeCount,
   decodeCount,
@@ -35,8 +34,8 @@ export interface OrphanAsset {
   label: string;
 }
 
-const NODE_BINARY_SIZE = UINT32_SIZE;
-const LINK_BINARY_SIZE = UINT32_SIZE * 3;
+const NODE_BINARY_SIZE = DataSize.id;
+const LINK_BINARY_SIZE = DataSize.id * 3;
 
 export function encodeHydraulicModel(
   model: HydraulicModel,
@@ -79,13 +78,13 @@ function encodeNodesBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = NODE_BINARY_SIZE;
-  const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
+  const totalSize = DataSize.count + nodes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, nodes.length);
   nodes.forEach((n, i) => {
-    const offset = BUFFER_HEADER_SIZE + i * recordSize;
+    const offset = DataSize.count + i * recordSize;
     encodeNodeId(offset, view, n.id);
   });
   return buffer;
@@ -96,13 +95,13 @@ function encodeLinksBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = LINK_BINARY_SIZE;
-  const totalSize = BUFFER_HEADER_SIZE + links.length * recordSize;
+  const totalSize = DataSize.count + links.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, links.length);
   links.forEach((l, i) => {
-    const offset = BUFFER_HEADER_SIZE + i * recordSize;
+    const offset = DataSize.count + i * recordSize;
     encodeLink(offset, view, l.id, l.start, l.end);
   });
   return buffer;
@@ -197,27 +196,21 @@ export class HydraulicModelBufferView {
   *nodes(): Generator<Node> {
     for (let i = 0; i < this.nodeCount; i++) {
       yield {
-        id: decodeNodeId(
-          BUFFER_HEADER_SIZE + i * NODE_BINARY_SIZE,
-          this.nodeView,
-        ),
+        id: decodeNodeId(DataSize.count + i * NODE_BINARY_SIZE, this.nodeView),
       };
     }
   }
 
   *pipes(): Generator<Link> {
     for (let i = 0; i < this.pipeCount; i++) {
-      yield decodeLink(
-        BUFFER_HEADER_SIZE + i * LINK_BINARY_SIZE,
-        this.pipeView,
-      );
+      yield decodeLink(DataSize.count + i * LINK_BINARY_SIZE, this.pipeView);
     }
   }
 
   *otherLinks(): Generator<Link> {
     for (let i = 0; i < this.otherLinkCount; i++) {
       yield decodeLink(
-        BUFFER_HEADER_SIZE + i * LINK_BINARY_SIZE,
+        DataSize.count + i * LINK_BINARY_SIZE,
         this.otherLinkView,
       );
     }

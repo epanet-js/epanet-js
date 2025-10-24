@@ -9,14 +9,17 @@ import {
   BinaryData,
   BufferType,
   IdMapper,
-  UINT32_SIZE,
-  COORDINATES_SIZE,
-  BUFFER_HEADER_SIZE,
+  DataSize,
   createBuffer,
   encodeCount,
   decodeCount,
-  encodeCoordinates,
-  decodeCoordinates,
+  encodePosition,
+  decodePosition,
+  encodeLineCoordinates,
+  encodeId,
+  decodeId,
+  encodeBounds,
+  decodeBounds,
 } from "../shared";
 
 export type EncodedHydraulicModel = {
@@ -44,9 +47,9 @@ export interface CrossingPipe {
   intersectionPoint: Position;
 }
 
-const NODE_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE;
-const PIPE_BINARY_SIZE = UINT32_SIZE * 3 + COORDINATES_SIZE * 2;
-const SEGMENT_BINARY_SIZE = UINT32_SIZE + COORDINATES_SIZE * 2;
+const NODE_BINARY_SIZE = DataSize.id + DataSize.position;
+const PIPE_BINARY_SIZE = DataSize.id * 3 + DataSize.position * 2;
+const SEGMENT_BINARY_SIZE = DataSize.id + DataSize.position * 2;
 
 export function encodeHydraulicModel(
   model: HydraulicModel,
@@ -144,17 +147,17 @@ function encodeNodesBuffer(
   geoIndex: BinaryData;
 } {
   const recordSize = NODE_BINARY_SIZE;
-  const totalSize = BUFFER_HEADER_SIZE + nodes.length * recordSize;
+  const totalSize = DataSize.count + nodes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
   const geoIndex = new Flatbush(Math.max(nodes.length, 1));
 
   const view = new DataView(buffer);
   encodeCount(view, nodes.length);
   nodes.forEach((n, i) => {
-    let offset = BUFFER_HEADER_SIZE + i * recordSize;
-    view.setUint32(offset, n.id, true);
-    offset += UINT32_SIZE;
-    encodeCoordinates([n.position], offset, view);
+    let offset = DataSize.count + i * recordSize;
+    encodeId(n.id, offset, view);
+    offset += DataSize.id;
+    encodePosition(n.position, offset, view);
 
     const [lon, lat] = n.position;
     geoIndex.add(lon, lat, lon, lat);
@@ -179,20 +182,24 @@ function encodePipesBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = PIPE_BINARY_SIZE;
-  const totalSize = BUFFER_HEADER_SIZE + pipes.length * recordSize;
+  const totalSize = DataSize.count + pipes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, pipes.length);
   pipes.forEach((p, i) => {
-    let offset = BUFFER_HEADER_SIZE + i * recordSize;
-    view.setUint32(offset, p.id, true);
-    offset += UINT32_SIZE;
-    view.setUint32(offset, p.start, true);
-    offset += UINT32_SIZE;
-    view.setUint32(offset, p.end, true);
-    offset += UINT32_SIZE;
-    encodeCoordinates([p.bbox[0], p.bbox[1]], offset, view);
+    let offset = DataSize.count + i * recordSize;
+    encodeId(p.id, offset, view);
+    offset += DataSize.id;
+    encodeId(p.start, offset, view);
+    offset += DataSize.id;
+    encodeId(p.end, offset, view);
+    offset += DataSize.id;
+    encodeBounds(
+      [p.bbox[0][0], p.bbox[0][1], p.bbox[1][0], p.bbox[1][1]],
+      offset,
+      view,
+    );
   });
   return buffer;
 }
@@ -210,7 +217,7 @@ function encodePipeSegmentsBuffer(
 } {
   const count = segments.length;
   const recordSize = SEGMENT_BINARY_SIZE;
-  const totalSize = BUFFER_HEADER_SIZE + count * recordSize;
+  const totalSize = DataSize.count + count * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
   const geoIndex = new Flatbush(Math.max(count, 1));
 
@@ -218,10 +225,10 @@ function encodePipeSegmentsBuffer(
   encodeCount(view, segments.length);
 
   segments.forEach((segment, i) => {
-    let offset = BUFFER_HEADER_SIZE + i * recordSize;
-    view.setUint32(offset, segment.pipeId, true);
-    offset += UINT32_SIZE;
-    encodeCoordinates(
+    let offset = DataSize.count + i * recordSize;
+    encodeId(segment.pipeId, offset, view);
+    offset += DataSize.id;
+    encodeLineCoordinates(
       [segment.startPosition, segment.endPosition],
       offset,
       view,
@@ -327,16 +334,16 @@ export class PipeBufferView {
 
   *iter(): Generator<EncodedPipe> {
     for (let i = 0; i < this.count; i++) {
-      let offset = BUFFER_HEADER_SIZE + i * PIPE_BINARY_SIZE;
-      const id = this.view.getUint32(offset, true);
-      offset += UINT32_SIZE;
-      const startNode = this.view.getUint32(offset, true);
-      offset += UINT32_SIZE;
-      const endNode = this.view.getUint32(offset, true);
-      offset += UINT32_SIZE;
-      const bboxMin = decodeCoordinates(offset, this.view);
-      offset += COORDINATES_SIZE;
-      const bboxMax = decodeCoordinates(offset, this.view);
+      let offset = DataSize.count + i * PIPE_BINARY_SIZE;
+      const id = decodeId(offset, this.view);
+      offset += DataSize.id;
+      const startNode = decodeId(offset, this.view);
+      offset += DataSize.id;
+      const endNode = decodeId(offset, this.view);
+      offset += DataSize.id;
+      const bounds = decodeBounds(offset, this.view);
+      const bboxMin: Position = [bounds[0], bounds[1]];
+      const bboxMax: Position = [bounds[2], bounds[3]];
       yield {
         id,
         startNode,
@@ -349,16 +356,16 @@ export class PipeBufferView {
   getByIndex(pipeId: number): EncodedPipe | null {
     const pipeIndex = this.indexesLookup.get(pipeId);
     if (pipeIndex === undefined) return null;
-    let offset = BUFFER_HEADER_SIZE + pipeIndex * PIPE_BINARY_SIZE;
-    const id = this.view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const startNode = this.view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const endNode = this.view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const bboxMin = decodeCoordinates(offset, this.view);
-    offset += COORDINATES_SIZE;
-    const bboxMax = decodeCoordinates(offset, this.view);
+    let offset = DataSize.count + pipeIndex * PIPE_BINARY_SIZE;
+    const id = decodeId(offset, this.view);
+    offset += DataSize.id;
+    const startNode = decodeId(offset, this.view);
+    offset += DataSize.id;
+    const endNode = decodeId(offset, this.view);
+    offset += DataSize.id;
+    const bounds = decodeBounds(offset, this.view);
+    const bboxMin: Position = [bounds[0], bounds[1]];
+    const bboxMax: Position = [bounds[2], bounds[3]];
     return {
       id,
       startNode,
@@ -391,10 +398,10 @@ export class NodeBufferView {
 
   *iter(): Generator<EncodedNode> {
     for (let i = 0; i < this.count; i++) {
-      let offset = BUFFER_HEADER_SIZE + i * NODE_BINARY_SIZE;
-      const id = this.view.getUint32(offset, true);
-      offset += UINT32_SIZE;
-      const position = decodeCoordinates(offset, this.view);
+      let offset = DataSize.count + i * NODE_BINARY_SIZE;
+      const id = decodeId(offset, this.view);
+      offset += DataSize.id;
+      const position = decodePosition(offset, this.view);
       yield { id, position };
     }
   }
@@ -409,10 +416,10 @@ export class NodeBufferView {
   getByIndex(id: number): EncodedNode | null {
     const nodeIndex = this.indexesLookup.get(id);
     if (nodeIndex === undefined) return null;
-    let offset = BUFFER_HEADER_SIZE + nodeIndex * NODE_BINARY_SIZE;
-    const nodeId = this.view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-    const position = decodeCoordinates(offset, this.view);
+    let offset = DataSize.count + nodeIndex * NODE_BINARY_SIZE;
+    const nodeId = decodeId(offset, this.view);
+    offset += DataSize.id;
+    const position = decodePosition(offset, this.view);
     return { id: nodeId, position };
   }
 }
@@ -427,17 +434,14 @@ export class SegmentsGeometriesBufferView {
   }
 
   getId(index: number): number {
-    return this.view.getUint32(
-      BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE,
-      true,
-    );
+    return decodeId(DataSize.count + index * SEGMENT_BINARY_SIZE, this.view);
   }
 
   getCoordinates(index: number): [Position, Position] {
-    let offset = BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE + UINT32_SIZE;
-    const startPosition = decodeCoordinates(offset, this.view);
-    offset += COORDINATES_SIZE;
-    const endPosition = decodeCoordinates(offset, this.view);
+    let offset = DataSize.count + index * SEGMENT_BINARY_SIZE + DataSize.id;
+    const startPosition = decodePosition(offset, this.view);
+    offset += DataSize.position;
+    const endPosition = decodePosition(offset, this.view);
     return [startPosition, endPosition];
   }
 }
