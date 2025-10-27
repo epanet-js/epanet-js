@@ -8,4 +8,5 @@ export interface EphemeralDrawNode {
   pipeSnappingPosition: Position | null;
   pipeId: string | null;
   nodeSnappingId: string | null;
+  nodeReplacementId: string | null;
 }

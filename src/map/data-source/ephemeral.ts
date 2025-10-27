@@ -232,7 +232,30 @@ const buildDrawNodeSourceData = (
   assets: AssetsMap,
 ): Feature[] => {
   const features: Feature[] = [];
-  if (!ephemeralState.pipeSnappingPosition) return [];
+
+  if (ephemeralState.nodeReplacementId) {
+    const nodeToReplace = assets.get(
+      ephemeralState.nodeReplacementId,
+    ) as NodeAsset;
+    if (nodeToReplace && !nodeToReplace.isLink) {
+      const properties: any = { halo: true };
+      if (ephemeralState.nodeType !== "junction") {
+        properties.icon = `${ephemeralState.nodeType}-highlight`;
+      }
+
+      features.push({
+        type: "Feature",
+        id: `node-replacement-${ephemeralState.nodeReplacementId}`,
+        properties,
+        geometry: {
+          type: "Point",
+          coordinates: nodeToReplace.coordinates,
+        },
+      });
+    }
+  }
+
+  if (!ephemeralState.pipeSnappingPosition) return features;
 
   if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
     const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;

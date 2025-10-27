@@ -308,6 +308,7 @@ describe("build ephemeral state source", () => {
         pipeSnappingPosition: [5, 0],
         pipeId: "P1",
         nodeSnappingId: null,
+        nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
@@ -338,6 +339,7 @@ describe("build ephemeral state source", () => {
         pipeSnappingPosition: [5, 0],
         pipeId: "P1",
         nodeSnappingId: null,
+        nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
@@ -368,6 +370,7 @@ describe("build ephemeral state source", () => {
         pipeSnappingPosition: [5, 0],
         pipeId: "P1",
         nodeSnappingId: null,
+        nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
