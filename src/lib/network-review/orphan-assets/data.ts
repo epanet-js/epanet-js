@@ -1,12 +1,5 @@
 import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
-import { BinaryData, BufferWithIndex } from "../shared";
-
-export type RunData = {
-  linksConnections: BinaryData;
-  linkTypes: BinaryData;
-  nodeConnections: BufferWithIndex;
-};
 
 export type EncodedOrphanAssets = {
   orphanNodes: number[];

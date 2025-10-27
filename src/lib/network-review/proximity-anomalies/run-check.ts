@@ -6,9 +6,8 @@ import {
   decodeProximityAnomalies,
   EncodedProximityAnomalies,
   ProximityAnomaly,
-  RunData,
 } from "./data";
-import { HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
 import { findProximityAnomalies } from "./find-proximity-anomalies";
 import { ProximityCheckWorkerAPI } from "./worker";
 
@@ -27,22 +26,13 @@ export const runCheck = async (
     links: new Set(["connections", "geoIndex"]),
     bufferType,
   });
-  const { nodes, links, pipeSegments, linkIdsLookup, nodeIdsLookup } =
-    encoder.buildBuffers();
-  const inputData: RunData = {
-    nodePositions: nodes.positions,
-    nodeConnections: nodes.connections,
-    linksConnections: links.connections,
-    pipeSegmentIds: pipeSegments.ids,
-    pipeSegmentCoordinates: pipeSegments.coordinates,
-    pipeSegmentsGeoIndex: pipeSegments.geoIndex,
-  };
+  const { linkIdsLookup, nodeIdsLookup, ...data } = encoder.buildBuffers();
 
   const useWorker = canUseWorker();
 
   const encodedProximityAnomalies = useWorker
-    ? await runWithWorker(inputData, distanceInMeters, signal)
-    : findProximityAnomalies(inputData, distanceInMeters);
+    ? await runWithWorker(data, distanceInMeters, signal)
+    : findProximityAnomalies(data, distanceInMeters);
 
   return decodeProximityAnomalies(
     hydraulicModel,
@@ -53,7 +43,7 @@ export const runCheck = async (
 };
 
 const runWithWorker = async (
-  data: RunData,
+  data: HydraulicModelBuffers,
   distance: number,
   signal?: AbortSignal,
 ): Promise<EncodedProximityAnomalies> => {

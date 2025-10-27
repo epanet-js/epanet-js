@@ -1,10 +1,11 @@
 import * as Comlink from "comlink";
-import { RunData, EncodedCrossingPipes } from "./data";
+import { EncodedCrossingPipes } from "./data";
 import { findCrossingPipes } from "./find-crossing-pipes";
+import { HydraulicModelBuffers } from "../shared";
 
 export interface CrossingPipesWorkerAPI {
   findCrossingPipes: (
-    input: RunData,
+    buffers: HydraulicModelBuffers,
     junctionTolerance: number,
   ) => EncodedCrossingPipes;
 }

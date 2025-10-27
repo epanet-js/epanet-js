@@ -9,20 +9,52 @@ import {
 import { Position } from "geojson";
 import bbox from "@turf/bbox";
 import lineSegment from "@turf/line-segment";
+import Flatbush from "flatbush";
 
 import { GeoIndexBuilder } from "./geo-buffer";
 import { IdMapper } from "./id-mapper";
-import { BufferType, NetworkReviewBuffers } from "./types";
 import {
+  BinaryData,
+  BufferType,
+  BufferWithIndex,
   DataSize,
   decodeDecimal,
   decodeNumber,
+  decodeType,
   encodeDecimal,
   encodeNumber,
   encodeType,
   FixedSizeBufferBuilder,
+  FixedSizeBufferView,
   VariableSizeBufferBuilder,
+  VariableSizeBufferView,
 } from "./buffers";
+
+export interface EncodedHydraulicModel {
+  links: {
+    connections: BinaryData;
+    bounds: BinaryData;
+    types: BinaryData;
+  };
+  nodes: {
+    positions: BinaryData;
+    connections: BufferWithIndex;
+    types: BinaryData;
+    geoIndex: BinaryData;
+  };
+  pipeSegments: {
+    ids: BinaryData;
+    coordinates: BinaryData;
+    geoIndex: BinaryData;
+  };
+  nodeIdsLookup: string[];
+  linkIdsLookup: string[];
+}
+
+export type HydraulicModelBuffers = Omit<
+  EncodedHydraulicModel,
+  "nodeIdsLookup" | "linkIdsLookup"
+>;
 
 type EncodingOptions = {
   nodes?: Set<"connections" | "types" | "geoIndex" | "bounds">;
@@ -55,7 +87,7 @@ export class HydraulicModelEncoder {
     private encodingOptions: EncodingOptions,
   ) {}
 
-  buildBuffers(): NetworkReviewBuffers {
+  buildBuffers(): EncodedHydraulicModel {
     this.prepareMappings();
     const {
       nodePositions,
@@ -365,6 +397,128 @@ export class HydraulicModelEncoder {
     }
     const geometry = asset.feature.geometry as GeoJSON.Point;
     nodeGeoIndex.add([geometry.coordinates]);
+  }
+}
+
+export class HydraulicModelBuffersView {
+  private _linksConnectionsView?: FixedSizeBufferView<[number, number]>;
+  private _linkBoundsView?: FixedSizeBufferView<
+    [number, number, number, number]
+  >;
+  private _linkTypesView?: FixedSizeBufferView<number>;
+  private _nodePositionsView?: FixedSizeBufferView<Position>;
+  private _nodeConnectionsView?: VariableSizeBufferView<number[]>;
+  private _nodeTypesView?: FixedSizeBufferView<number>;
+  private _nodeGeoIndexView?: Flatbush;
+  private _pipeSegmentIdsView?: FixedSizeBufferView<number>;
+  private _pipeSegmentCoordinatesView?: FixedSizeBufferView<
+    [Position, Position]
+  >;
+  private _pipeSegmentsGeoIndexView?: Flatbush;
+
+  constructor(private buffers: HydraulicModelBuffers) {}
+
+  get linksConnections(): FixedSizeBufferView<[number, number]> {
+    if (!this._linksConnectionsView) {
+      this._linksConnectionsView = new FixedSizeBufferView(
+        this.buffers.links.connections,
+        EncodedSize.id * 2,
+        decodeLinkConnections,
+      );
+    }
+    return this._linksConnectionsView;
+  }
+
+  get linkBounds(): FixedSizeBufferView<[number, number, number, number]> {
+    if (!this._linkBoundsView) {
+      this._linkBoundsView = new FixedSizeBufferView(
+        this.buffers.links.bounds,
+        EncodedSize.bounds,
+        decodeBounds,
+      );
+    }
+    return this._linkBoundsView;
+  }
+
+  get linkTypes(): FixedSizeBufferView<number> {
+    if (!this._linkTypesView) {
+      this._linkTypesView = new FixedSizeBufferView(
+        this.buffers.links.types,
+        DataSize.type,
+        decodeType,
+      );
+    }
+    return this._linkTypesView;
+  }
+
+  get nodePositions(): FixedSizeBufferView<Position> {
+    if (!this._nodePositionsView) {
+      this._nodePositionsView = new FixedSizeBufferView(
+        this.buffers.nodes.positions,
+        EncodedSize.position,
+        decodePosition,
+      );
+    }
+    return this._nodePositionsView;
+  }
+
+  get nodeConnections(): VariableSizeBufferView<number[]> {
+    if (!this._nodeConnectionsView) {
+      this._nodeConnectionsView = new VariableSizeBufferView(
+        this.buffers.nodes.connections,
+        decodeIdsList,
+      );
+    }
+    return this._nodeConnectionsView;
+  }
+
+  get nodeTypes(): FixedSizeBufferView<number> {
+    if (!this._nodeTypesView) {
+      this._nodeTypesView = new FixedSizeBufferView(
+        this.buffers.nodes.types,
+        DataSize.type,
+        decodeType,
+      );
+    }
+    return this._nodeTypesView;
+  }
+
+  get nodeGeoIndex(): Flatbush {
+    if (!this._nodeGeoIndexView) {
+      this._nodeGeoIndexView = Flatbush.from(this.buffers.nodes.geoIndex);
+    }
+    return this._nodeGeoIndexView;
+  }
+
+  get pipeSegmentIds(): FixedSizeBufferView<number> {
+    if (!this._pipeSegmentIdsView) {
+      this._pipeSegmentIdsView = new FixedSizeBufferView(
+        this.buffers.pipeSegments.ids,
+        EncodedSize.id,
+        decodeId,
+      );
+    }
+    return this._pipeSegmentIdsView;
+  }
+
+  get pipeSegmentCoordinates(): FixedSizeBufferView<[Position, Position]> {
+    if (!this._pipeSegmentCoordinatesView) {
+      this._pipeSegmentCoordinatesView = new FixedSizeBufferView(
+        this.buffers.pipeSegments.coordinates,
+        EncodedSize.position * 2,
+        decodeLineCoordinates,
+      );
+    }
+    return this._pipeSegmentCoordinatesView;
+  }
+
+  get pipeSegmentsGeoIndex(): Flatbush {
+    if (!this._pipeSegmentsGeoIndexView) {
+      this._pipeSegmentsGeoIndexView = Flatbush.from(
+        this.buffers.pipeSegments.geoIndex,
+      );
+    }
+    return this._pipeSegmentsGeoIndexView;
   }
 }
 

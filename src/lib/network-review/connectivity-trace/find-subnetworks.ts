@@ -1,118 +1,160 @@
-import { RunData, EncodedSubNetworks } from "./data";
+import { EncodedSubNetwork } from "./data";
 import {
-  FixedSizeBufferView,
-  EncodedSize,
-  decodeId,
-  decodeType,
-  decodeBounds,
-  VariableSizeBufferView,
+  HydraulicModelBuffers,
+  HydraulicModelBuffersView,
   toNodeType,
-  decodeIdsList,
 } from "../shared";
+import { NodeType } from "src/hydraulic-model";
 
-export function findSubNetworks(input: RunData): EncodedSubNetworks {
-  const linksView = new FixedSizeBufferView<{
-    startNode: number;
-    endNode: number;
-  }>(input.linksConnections, EncodedSize.id * 2, (offset, view) => ({
-    startNode: decodeId(offset, view),
-    endNode: decodeId(offset + EncodedSize.id, view),
-  }));
-  const nodesConnectionsView = new VariableSizeBufferView(
-    input.nodesConnections,
-    decodeIdsList,
-  );
-  const nodeTypesView = new FixedSizeBufferView<number>(
-    input.nodeTypes,
-    EncodedSize.type,
-    decodeType,
-  );
-  const linkTypesView = new FixedSizeBufferView<number>(
-    input.linkTypes,
-    EncodedSize.type,
-    decodeType,
-  );
-  const linkBoundsView = new FixedSizeBufferView<
-    [number, number, number, number]
-  >(input.linkBounds, EncodedSize.bounds, decodeBounds);
-
+export function findSubNetworks(
+  buffers: HydraulicModelBuffers,
+): EncodedSubNetwork[] {
+  const views = new HydraulicModelBuffersView(buffers);
   const visited = new Set<number>();
-  const components: EncodedSubNetworks["subnetworks"] = [];
+  const subNetworks: EncodedSubNetwork[] = [];
   let subnetworkId = 0;
 
-  for (const [nodeId] of nodesConnectionsView.enumerate()) {
+  for (let nodeId = 0; nodeId < views.nodeConnections.count; nodeId++) {
     if (visited.has(nodeId)) continue;
 
-    const component = {
-      subnetworkId: subnetworkId++,
-      nodeIndices: [] as number[],
-      linkIndices: [] as number[],
-      supplySourceCount: 0,
-      pipeCount: 0,
-      bounds: [Infinity, Infinity, -Infinity, -Infinity] as [
-        number,
-        number,
-        number,
-        number,
-      ],
-    };
+    const subnetwork = traverseSubNetwork(
+      nodeId,
+      subnetworkId++,
+      visited,
+      views,
+    );
 
-    const visitedLinks = new Set<number>();
-    const stack: number[] = [nodeId];
-
-    while (stack.length > 0) {
-      const current = stack.pop()!;
-      if (visited.has(current)) continue;
-
-      visited.add(current);
-      component.nodeIndices.push(current);
-
-      const nodeType = toNodeType(nodeTypesView.getById(current) ?? 0);
-      if (nodeType === "reservoir" || nodeType === "tank") {
-        component.supplySourceCount++;
-      }
-
-      const linkIds = nodesConnectionsView.getById(current) || [];
-      for (const linkId of linkIds) {
-        if (visitedLinks.has(linkId)) continue;
-
-        visitedLinks.add(linkId);
-        const linkType = linkTypesView.getById(linkId) ?? 0;
-        if (linkType === 0) {
-          component.pipeCount++;
-        }
-
-        component.linkIndices.push(linkId);
-
-        const bounds = linkBoundsView.getById(linkId);
-        if (bounds) {
-          const [minX, minY, maxX, maxY] = bounds;
-          component.bounds[0] = Math.min(component.bounds[0], minX);
-          component.bounds[1] = Math.min(component.bounds[1], minY);
-          component.bounds[2] = Math.max(component.bounds[2], maxX);
-          component.bounds[3] = Math.max(component.bounds[3], maxY);
-        }
-
-        const linkConnection = linksView.getById(linkId);
-        if (linkConnection) {
-          const neighborId =
-            linkConnection.startNode === current
-              ? linkConnection.endNode
-              : linkConnection.startNode;
-
-          if (!visited.has(neighborId)) {
-            stack.push(neighborId);
-          }
-        }
-      }
-    }
-
-    if (component.nodeIndices.length > 1) {
-      components.push(component);
+    if (shouldIncludeSubNetwork(subnetwork)) {
+      subNetworks.push(subnetwork);
     }
   }
 
-  components.sort((a, b) => b.nodeIndices.length - a.nodeIndices.length);
+  return sortSubNetworksBySize(subNetworks);
+}
 
-  return { subnetworks: components };
+function traverseSubNetwork(
+  startNodeId: number,
+  subnetworkId: number,
+  visited: Set<number>,
+  views: HydraulicModelBuffersView,
+): EncodedSubNetwork {
+  const subNetwork: EncodedSubNetwork = {
+    subnetworkId,
+    nodeIndices: [],
+    linkIndices: [],
+    supplySourceCount: 0,
+    pipeCount: 0,
+    bounds: [Infinity, Infinity, -Infinity, -Infinity],
+  };
+
+  const visitedLinks = new Set<number>();
+  const stack: number[] = [startNodeId];
+
+  while (stack.length > 0) {
+    const currentNodeId = stack.pop()!;
+    if (visited.has(currentNodeId)) continue;
+
+    processNode(currentNodeId, visited, views, subNetwork);
+
+    const linkIds = views.nodeConnections.getById(currentNodeId) || [];
+    for (const linkId of linkIds) {
+      if (visitedLinks.has(linkId)) continue;
+
+      const neighborId = processLink(
+        linkId,
+        currentNodeId,
+        visitedLinks,
+        views,
+        subNetwork,
+      );
+
+      if (!visited.has(neighborId)) {
+        stack.push(neighborId);
+      }
+    }
+  }
+
+  return subNetwork;
+}
+
+function processNode(
+  nodeId: number,
+  visited: Set<number>,
+  views: HydraulicModelBuffersView,
+  subNetwork: EncodedSubNetwork,
+): void {
+  visited.add(nodeId);
+  subNetwork.nodeIndices.push(nodeId);
+
+  const nodeType = toNodeType(views.nodeTypes.getById(nodeId) ?? 0);
+  if (isSupplySource(nodeType)) {
+    subNetwork.supplySourceCount++;
+  }
+}
+
+function processLink(
+  linkId: number,
+  currentNodeId: number,
+  visitedLinks: Set<number>,
+  views: HydraulicModelBuffersView,
+  subNetwork: EncodedSubNetwork,
+): number {
+  visitedLinks.add(linkId);
+
+  const linkTypeId = views.linkTypes.getById(linkId) ?? 0;
+  if (isPipe(linkTypeId)) {
+    subNetwork.pipeCount++;
+  }
+
+  subNetwork.linkIndices.push(linkId);
+
+  const bounds = views.linkBounds.getById(linkId);
+  if (bounds) {
+    subNetwork.bounds = expandBounds(subNetwork.bounds, bounds);
+  }
+
+  const linkConnections = views.linksConnections.getById(linkId);
+  return getNeighborNode(linkConnections, currentNodeId);
+}
+
+function isSupplySource(nodeType: NodeType): boolean {
+  return nodeType === "reservoir" || nodeType === "tank";
+}
+
+function isPipe(linkTypeId: number): boolean {
+  return linkTypeId === 0;
+}
+
+function expandBounds(
+  currentBounds: [number, number, number, number],
+  newBounds: [number, number, number, number],
+): [number, number, number, number] {
+  const [minX, minY, maxX, maxY] = newBounds;
+  return [
+    Math.min(currentBounds[0], minX),
+    Math.min(currentBounds[1], minY),
+    Math.max(currentBounds[2], maxX),
+    Math.max(currentBounds[3], maxY),
+  ];
+}
+
+function getNeighborNode(
+  linkConnections: [number, number],
+  currentNodeId: number,
+): number {
+  return linkConnections[0] === currentNodeId
+    ? linkConnections[1]
+    : linkConnections[0];
+}
+
+function shouldIncludeSubNetwork(subNetwork: EncodedSubNetwork): boolean {
+  return subNetwork.nodeIndices.length > 1;
+}
+
+function sortSubNetworksBySize(
+  subNetworks: EncodedSubNetwork[],
+): EncodedSubNetwork[] {
+  return subNetworks.sort(
+    (a, b) => b.nodeIndices.length - a.nodeIndices.length,
+  );
 }

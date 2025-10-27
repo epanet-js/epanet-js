@@ -1,8 +1,8 @@
 import bbox from "@turf/bbox";
 import { lineString } from "@turf/helpers";
 import Flatbush from "flatbush";
-import { BinaryData } from "./types";
 import { Position } from "geojson";
+import { BinaryData } from "./buffers";
 
 export class GeoIndexBuilder {
   private geoIndex: Flatbush;

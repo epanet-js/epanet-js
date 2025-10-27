@@ -1,11 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findSubNetworks } from "./find-subnetworks";
-import { HydraulicModelEncoder } from "../shared";
-import { RunData, decodeSubNetworks } from "./data";
+import { EncodedHydraulicModel, HydraulicModelEncoder } from "../shared";
+import { decodeSubNetworks } from "./data";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findSubNetworks", () => {
-  function encodeData(model: HydraulicModel) {
+  function encodeData(model: HydraulicModel): EncodedHydraulicModel {
     const encoder = new HydraulicModelEncoder(model, {
       nodes: new Set(["types", "connections"]),
       links: new Set(["types", "connections", "bounds"]),
@@ -22,19 +22,12 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
       .aPipe("P2", { startNodeId: "J1", endNodeId: "J2" })
       .build();
+    const { linkIdsLookup, nodeIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -56,19 +49,12 @@ describe("findSubNetworks", () => {
       .aNode("J4")
       .aPipe("P3", { startNodeId: "J3", endNodeId: "J4" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -91,19 +77,12 @@ describe("findSubNetworks", () => {
       .aNode("J2")
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -124,19 +103,12 @@ describe("findSubNetworks", () => {
       .aPipe("P3", { startNodeId: "J3", endNodeId: "J4" })
       .aPipe("P4", { startNodeId: "J4", endNodeId: "J5" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -152,19 +124,12 @@ describe("findSubNetworks", () => {
       .aNode("J2", [0, 3])
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -182,19 +147,12 @@ describe("findSubNetworks", () => {
       .aNode("J3")
       .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -211,19 +169,12 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .aNode("IsolatedNode")
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 
@@ -238,19 +189,12 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "T1", endNodeId: "J1" })
       .aPipe("P2", { startNodeId: "R1", endNodeId: "J1" })
       .build();
+    const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-    const encoded = encodeData(model);
-    const data: RunData = {
-      linksConnections: encoded.links.connections,
-      nodesConnections: encoded.nodes.connections,
-      nodeTypes: encoded.nodes.types,
-      linkTypes: encoded.links.types,
-      linkBounds: encoded.links.bounds,
-    };
     const encodedSubNetworks = findSubNetworks(data);
     const subnetworks = decodeSubNetworks(
-      encoded.nodeIdsLookup,
-      encoded.linkIdsLookup,
+      nodeIdsLookup,
+      linkIdsLookup,
       encodedSubNetworks,
     );
 

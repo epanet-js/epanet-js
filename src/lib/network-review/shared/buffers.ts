@@ -1,8 +1,15 @@
-import { BinaryData, BufferType, BufferWithIndex } from "./types";
-
 const UINT32_SIZE = 4;
 const UINT8_SIZE = 1;
 const FLOAT64_SIZE = 8;
+
+export type BinaryData = ArrayBuffer | SharedArrayBuffer;
+
+export type BufferType = "shared" | "array";
+
+export interface BufferWithIndex {
+  data: BinaryData;
+  index: BinaryData;
+}
 
 export const DataSize = {
   type: UINT8_SIZE,

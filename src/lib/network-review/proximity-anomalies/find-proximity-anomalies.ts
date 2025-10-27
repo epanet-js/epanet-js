@@ -1,61 +1,26 @@
-import Flatbush from "flatbush";
 import {
   EncodedProximityAnomalies,
-  RunData,
   Node,
   EncodedAlternativeConnection,
 } from "./data";
-import {
-  FixedSizeBufferView,
-  VariableSizeBufferView,
-  EncodedSize,
-  decodePosition,
-  decodeId,
-  decodeLinkConnections,
-  decodeLineCoordinates,
-  decodeIdsList,
-} from "../shared";
+import { HydraulicModelBuffers, HydraulicModelBuffersView } from "../shared";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";
 import { Position } from "geojson";
 
 export function findProximityAnomalies(
-  input: RunData,
+  buffers: HydraulicModelBuffers,
   distanceInMeters: number = 0.5,
   connectedJunctionTolerance: number = 0.1,
 ): EncodedProximityAnomalies {
-  const nodePositionsView = new FixedSizeBufferView<Position>(
-    input.nodePositions,
-    EncodedSize.position,
-    decodePosition,
-  );
-  const nodeConnectionsView = new VariableSizeBufferView(
-    input.nodeConnections,
-    decodeIdsList,
-  );
-  const linkConnectionsView = new FixedSizeBufferView(
-    input.linksConnections,
-    EncodedSize.id * 2,
-    decodeLinkConnections,
-  );
-  const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
-  const pipeSegmentIdsView = new FixedSizeBufferView(
-    input.pipeSegmentIds,
-    EncodedSize.id,
-    decodeId,
-  );
-  const pipeSegmentCoordinatesView = new FixedSizeBufferView(
-    input.pipeSegmentCoordinates,
-    EncodedSize.position * 2,
-    decodeLineCoordinates,
-  );
+  const views = new HydraulicModelBuffersView(buffers);
 
   const results: EncodedProximityAnomalies = [];
 
-  for (const [nodeId, position] of nodePositionsView.enumerate()) {
+  for (const [nodeId, position] of views.nodePositions.enumerate()) {
     const node: Node = { id: nodeId, position };
-    const connectedLinkIds = nodeConnectionsView.getById(node.id) ?? [];
+    const connectedLinkIds = views.nodeConnections.getById(node.id) ?? [];
 
     if (connectedLinkIds.length === 0) {
       continue;
@@ -63,24 +28,22 @@ export function findProximityAnomalies(
 
     const candidateConnectionSegments = findCandidateConnectionSegments(
       node,
-      pipeSegmentsGeoIndex,
+      views,
       distanceInMeters,
     );
 
     const connectedNodeIds = getConnectedNodes(
       connectedLinkIds,
       node.id,
-      linkConnectionsView,
+      views,
     );
 
     const alternativeConnection = findBestAlternativeConnection(
       node,
       candidateConnectionSegments,
-      pipeSegmentIdsView,
-      pipeSegmentCoordinatesView,
+      views,
       connectedLinkIds,
       connectedNodeIds,
-      nodePositionsView,
       distanceInMeters,
       connectedJunctionTolerance,
     );
@@ -99,12 +62,12 @@ export function findProximityAnomalies(
 function getConnectedNodes(
   connectedLinkIds: number[],
   nodeId: number,
-  linkConnectionsView: FixedSizeBufferView<[number, number]>,
+  views: HydraulicModelBuffersView,
 ): number[] {
   const connectedNodes: number[] = [];
 
   for (const linkId of connectedLinkIds) {
-    const [startNode, endNode] = linkConnectionsView.getById(linkId);
+    const [startNode, endNode] = views.linksConnections.getById(linkId);
 
     if (startNode === nodeId) {
       connectedNodes.push(endNode);
@@ -121,7 +84,7 @@ const MIN_SEARCH_RADIUS_IN_METERS = 0.1;
 
 function findCandidateConnectionSegments(
   node: Node,
-  geoIndex: Flatbush,
+  views: HydraulicModelBuffersView,
   distanceInMeters: number,
 ): number[] {
   const [lon, lat] = node.position;
@@ -131,7 +94,7 @@ function findCandidateConnectionSegments(
     searchRadius /
     (LAT_DEGREE_IN_METERS_AT_EQUATOR * Math.cos((lat * Math.PI) / 180));
 
-  const candidateSegmentIds = geoIndex.search(
+  const candidateSegmentIds = views.pipeSegmentsGeoIndex.search(
     lon - deltaLng,
     lat - deltaLat,
     lon + deltaLng,
@@ -144,9 +107,9 @@ function findCandidateConnectionSegments(
 function findNearestPointOnSegment(
   node: Node,
   segmentIndex: number,
-  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
+  views: HydraulicModelBuffersView,
 ): { position: Position; distance: number } {
-  const segment = pipeSegmentCoordinatesView.getById(segmentIndex);
+  const segment = views.pipeSegmentCoordinates.getById(segmentIndex);
   const lineGeom = lineString(segment);
   const nearest = nearestPointOnLine(lineGeom, node.position, {
     units: "meters",
@@ -161,11 +124,9 @@ function findNearestPointOnSegment(
 function findBestAlternativeConnection(
   node: Node,
   candidateConnectionSegments: number[],
-  pipeSegmentIdsView: FixedSizeBufferView<number>,
-  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
+  views: HydraulicModelBuffersView,
   alreadyConnectedLinks: number[],
   connectedNodes: number[],
-  nodePositionsView: FixedSizeBufferView<Position>,
   distanceInMeters: number,
   connectedJunctionTolerance: number = 0.1,
 ) {
@@ -173,13 +134,13 @@ function findBestAlternativeConnection(
   const alreadyConnectedLinksSet = new Set(alreadyConnectedLinks);
 
   for (const candidateSegment of candidateConnectionSegments) {
-    const pipeId = pipeSegmentIdsView.getById(candidateSegment);
+    const pipeId = views.pipeSegmentIds.getById(candidateSegment);
     if (alreadyConnectedLinksSet.has(pipeId)) continue;
 
     const nearestPoint = findNearestPointOnSegment(
       node,
       candidateSegment,
-      pipeSegmentCoordinatesView,
+      views,
     );
     if (nearestPoint.distance > distanceInMeters) continue;
 
@@ -187,7 +148,7 @@ function findBestAlternativeConnection(
       isTooCloseToConnectedJunctions(
         nearestPoint.position,
         connectedNodes,
-        nodePositionsView,
+        views,
         connectedJunctionTolerance,
       )
     )
@@ -208,11 +169,11 @@ function findBestAlternativeConnection(
 function isTooCloseToConnectedJunctions(
   nearestPoint: Position,
   connectedNodeIds: number[],
-  nodePositionsView: FixedSizeBufferView<Position>,
+  views: HydraulicModelBuffersView,
   tolerance: number = 0.1,
 ): boolean {
   for (const connectedNodeId of connectedNodeIds) {
-    const connectedNodePosition = nodePositionsView.getById(connectedNodeId);
+    const connectedNodePosition = views.nodePositions.getById(connectedNodeId);
     if (!connectedNodePosition) continue;
 
     const dist = distance(point(nearestPoint), point(connectedNodePosition), {

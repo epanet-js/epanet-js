@@ -1,9 +1,10 @@
 import * as Comlink from "comlink";
-import { RunData, EncodedOrphanAssets } from "./data";
+import { EncodedOrphanAssets } from "./data";
 import { findOrphanAssets } from "./find-orphan-assets";
+import { HydraulicModelBuffers } from "../shared";
 
 export interface OrphanAssetsWorkerAPI {
-  findOrphanAssets: (input: RunData) => EncodedOrphanAssets;
+  findOrphanAssets: (buffers: HydraulicModelBuffers) => EncodedOrphanAssets;
 }
 
 const workerAPI: OrphanAssetsWorkerAPI = {

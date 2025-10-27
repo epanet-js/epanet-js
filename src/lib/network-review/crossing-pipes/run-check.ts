@@ -6,9 +6,8 @@ import {
   decodeCrossingPipes,
   EncodedCrossingPipes,
   CrossingPipe,
-  RunData,
 } from "./data";
-import { HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
 import { findCrossingPipes } from "./find-crossing-pipes";
 import { CrossingPipesWorkerAPI } from "./worker";
 
@@ -27,21 +26,13 @@ export const runCheck = async (
     links: new Set(["connections", "bounds", "geoIndex"]),
     bufferType,
   });
-  const { nodes, links, pipeSegments, linkIdsLookup } = encoder.buildBuffers();
-  const inputData: RunData = {
-    nodeGeoIndex: nodes.geoIndex,
-    linksConnections: links.connections,
-    linkBounds: links.bounds,
-    pipeSegmentIds: pipeSegments.ids,
-    pipeSegmentCoordinates: pipeSegments.coordinates,
-    pipeSegmentsGeoIndex: pipeSegments.geoIndex,
-  };
+  const { linkIdsLookup, nodeIdsLookup, ...data } = encoder.buildBuffers();
 
   const useWorker = canUseWorker();
 
   const encodedCrossingPipes = useWorker
-    ? await runWithWorker(inputData, junctionTolerance, signal)
-    : findCrossingPipes(inputData, junctionTolerance);
+    ? await runWithWorker(data, junctionTolerance, signal)
+    : findCrossingPipes(data, junctionTolerance);
 
   return decodeCrossingPipes(
     hydraulicModel,
@@ -51,7 +42,7 @@ export const runCheck = async (
 };
 
 const runWithWorker = async (
-  data: RunData,
+  data: HydraulicModelBuffers,
   junctionTolerance: number,
   signal?: AbortSignal,
 ): Promise<EncodedCrossingPipes> => {

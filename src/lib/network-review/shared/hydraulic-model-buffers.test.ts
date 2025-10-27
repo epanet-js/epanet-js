@@ -7,7 +7,7 @@ import {
   decodePosition,
   EncodedSize,
   HydraulicModelEncoder,
-} from "./hydraulic-model-encoder";
+} from "./hydraulic-model-buffers";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   decodeType,

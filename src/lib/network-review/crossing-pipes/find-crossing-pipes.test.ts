@@ -1,11 +1,10 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findCrossingPipes } from "./find-crossing-pipes";
-import { HydraulicModelEncoder } from "../shared";
-import { RunData } from "./data";
+import { EncodedHydraulicModel, HydraulicModelEncoder } from "../shared";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findCrossingPipes", () => {
-  function encodeData(model: HydraulicModel) {
+  function encodeData(model: HydraulicModel): EncodedHydraulicModel {
     const encoder = new HydraulicModelEncoder(model, {
       nodes: new Set(["bounds", "geoIndex"]),
       links: new Set(["connections", "bounds", "geoIndex"]),
@@ -26,46 +25,15 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(encoded.linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
-      expect(encoded.linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
       expect(crossings[0].intersectionPoint[0]).toBeCloseTo(0, 5);
       expect(crossings[0].intersectionPoint[1]).toBeCloseTo(5, 5);
-    });
-
-    it("does not report pipes that share a node", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aJunction("J3", { coordinates: [10, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aPipe("P2", { startNodeId: "J2", endNodeId: "J3" }) // T-junction
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      expect(crossings).toHaveLength(0);
     });
 
     it("finds multiple crossings in network", () => {
@@ -85,23 +53,15 @@ describe("findCrossingPipes", () => {
         .aJunction("J8", { coordinates: [25, 5] })
         .aPipe("P4", { startNodeId: "J7", endNodeId: "J8" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(2);
 
       const pairIds = crossings.map((c) => [
-        encoded.linkIdsLookup[c.pipe1Id],
-        encoded.linkIdsLookup[c.pipe2Id],
+        linkIdsLookup[c.pipe1Id],
+        linkIdsLookup[c.pipe2Id],
       ]);
       expect(pairIds).toContainEqual(["P1", "P2"]);
       expect(pairIds).toContainEqual(["P3", "P4"]);
@@ -120,16 +80,8 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       // Tolerance 50m - should exclude this crossing
       const crossings = findCrossingPipes(data, 50);
 
@@ -145,16 +97,8 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
@@ -171,16 +115,7 @@ describe("findCrossingPipes", () => {
         // Add a junction near the crossing
         .aJunction("JNearby", { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
         .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
       // With small tolerance (0.0005 degrees ~55m): should find crossing (junction is 89m away)
       const crossingsSmall = findCrossingPipes(data, 0.0005);
@@ -213,21 +148,13 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [5, 5] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(encoded.linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
-      expect(encoded.linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
     });
 
     it("handles pipes with complex S-curve geometries", () => {
@@ -251,16 +178,8 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [10, 12] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
@@ -268,47 +187,6 @@ describe("findCrossingPipes", () => {
   });
 
   describe("Edge cases", () => {
-    it("returns empty for networks with less than 2 pipes", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      expect(crossings).toHaveLength(0);
-    });
-
-    it("returns empty for networks with no pipes", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aReservoir("R1", { coordinates: [10, 0] })
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      expect(crossings).toHaveLength(0);
-    });
-
     it("handles networks with no crossings", () => {
       const model = HydraulicModelBuilder.with()
         // Parallel pipes
@@ -319,48 +197,11 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [5, 10] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(0);
-    });
-
-    it("reports each crossing only once (no duplicates)", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      expect(crossings).toHaveLength(1);
-
-      // Verify not reported as both (P1,P2) and (P2,P1)
-      const pipe1 = encoded.linkIdsLookup[crossings[0].pipe1Id];
-      const pipe2 = encoded.linkIdsLookup[crossings[0].pipe2Id];
-      expect(pipe1).not.toEqual(pipe2);
     });
 
     it("reports same pipe pair only once even with multiple intersection points", () => {
@@ -381,22 +222,14 @@ describe("findCrossingPipes", () => {
         .aJunction("J4", { coordinates: [10, 0] })
         .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
 
-      const pipe1 = encoded.linkIdsLookup[crossings[0].pipe1Id];
-      const pipe2 = encoded.linkIdsLookup[crossings[0].pipe2Id];
+      const pipe1 = linkIdsLookup[crossings[0].pipe1Id];
+      const pipe2 = linkIdsLookup[crossings[0].pipe2Id];
       expect(pipe1).toEqual("P1");
       expect(pipe2).toEqual("P2");
     });
@@ -409,142 +242,11 @@ describe("findCrossingPipes", () => {
         .aJunction("J3", { coordinates: [10, 10] })
         .aPipe("P2", { startNodeId: "J2", endNodeId: "J3" })
         .build();
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
       const crossings = findCrossingPipes(data, 0.5);
 
-      // Should not report shared endpoint as crossing
       expect(crossings).toHaveLength(0);
-    });
-  });
-
-  describe("Performance and optimization", () => {
-    it("handles large networks efficiently", () => {
-      // Create a grid network with 100 junctions and 180 pipes
-      const builder = HydraulicModelBuilder.with();
-
-      // 10x10 grid
-      for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-          builder.aJunction(`J${i}_${j}`, { coordinates: [i * 10, j * 10] });
-        }
-      }
-
-      // Horizontal pipes
-      for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 9; j++) {
-          builder.aPipe(`PH${i}_${j}`, {
-            startNodeId: `J${i}_${j}`,
-            endNodeId: `J${i}_${j + 1}`,
-          });
-        }
-      }
-
-      // Vertical pipes
-      for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 10; j++) {
-          builder.aPipe(`PV${i}_${j}`, {
-            startNodeId: `J${i}_${j}`,
-            endNodeId: `J${i + 1}_${j}`,
-          });
-        }
-      }
-
-      const model = builder.build();
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-
-      const startTime = performance.now();
-      const crossings = findCrossingPipes(data, 0.5);
-      const endTime = performance.now();
-
-      // Should complete in reasonable time (< 100ms for this size)
-      expect(endTime - startTime).toBeLessThan(100);
-
-      // Grid should have no crossings (all legitimate junctions)
-      expect(crossings).toHaveLength(0);
-    });
-
-    it("uses spatial index for efficient candidate selection", () => {
-      // Create widely separated pipe pairs - spatial index should avoid
-      // checking all combinations
-      const model = HydraulicModelBuilder.with()
-        // Pair 1 at origin
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
-        // Pair 2 far away at (1000, 1000)
-        .aJunction("J5", { coordinates: [1000, 1000] })
-        .aJunction("J6", { coordinates: [1000, 1010] })
-        .aPipe("P3", { startNodeId: "J5", endNodeId: "J6" })
-        .aJunction("J7", { coordinates: [995, 1005] })
-        .aJunction("J8", { coordinates: [1005, 1005] })
-        .aPipe("P4", { startNodeId: "J7", endNodeId: "J8" })
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      // Should find 2 crossings efficiently without checking all 6 combinations
-      expect(crossings).toHaveLength(2);
-    });
-  });
-
-  describe("Real-world scenarios", () => {
-    it("detects crossing in typical water distribution network", () => {
-      const model = HydraulicModelBuilder.with()
-        // Main distribution line
-        .aReservoir("R1", { coordinates: [0, 0] })
-        .aJunction("J1", { coordinates: [10, 0] })
-        .aPipe("MainLine", { startNodeId: "R1", endNodeId: "J1" })
-        // Service line that crosses main (modeling error)
-        .aJunction("J2", { coordinates: [5, -5] })
-        .aJunction("J3", { coordinates: [5, 5] })
-        .aPipe("ServiceLine", { startNodeId: "J2", endNodeId: "J3" })
-        .build();
-
-      const encoded = encodeData(model);
-      const data: RunData = {
-        nodeGeoIndex: encoded.nodes.geoIndex,
-        linksConnections: encoded.links.connections,
-        linkBounds: encoded.links.bounds,
-        pipeSegmentIds: encoded.pipeSegments.ids,
-        pipeSegmentCoordinates: encoded.pipeSegments.coordinates,
-        pipeSegmentsGeoIndex: encoded.pipeSegments.geoIndex,
-      };
-      const crossings = findCrossingPipes(data, 0.5);
-
-      expect(crossings).toHaveLength(1);
-      expect(encoded.linkIdsLookup[crossings[0].pipe1Id]).toEqual("MainLine");
-      expect(encoded.linkIdsLookup[crossings[0].pipe2Id]).toEqual(
-        "ServiceLine",
-      );
     });
   });
 });

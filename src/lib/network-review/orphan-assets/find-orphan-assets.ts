@@ -1,42 +1,24 @@
-import { EncodedOrphanAssets, RunData } from "./data";
+import { EncodedOrphanAssets } from "./data";
 import {
-  FixedSizeBufferView,
-  EncodedSize,
-  decodeType,
-  VariableSizeBufferView,
-  decodeIdsList,
+  HydraulicModelBuffers,
+  HydraulicModelBuffersView,
   toLinkType,
-  decodeLinkConnections,
 } from "../shared";
 
-export function findOrphanAssets(input: RunData): EncodedOrphanAssets {
-  const linksView = new FixedSizeBufferView<[number, number]>(
-    input.linksConnections,
-    EncodedSize.id * 2,
-    decodeLinkConnections,
-  );
-  const linkTypesView = new FixedSizeBufferView<number>(
-    input.linkTypes,
-    EncodedSize.type,
-    decodeType,
-  );
-  const nodeConnectionsView = new VariableSizeBufferView(
-    input.nodeConnections,
-    decodeIdsList,
-  );
+export function findOrphanAssets(
+  buffers: HydraulicModelBuffers,
+): EncodedOrphanAssets {
+  const views = new HydraulicModelBuffersView(buffers);
 
   const orphanLinks: number[] = [];
-  for (const [id, linkType] of linkTypesView.enumerate()) {
+  for (const [id, linkType] of views.linkTypes.enumerate()) {
     if (toLinkType(linkType) === "pipe") continue;
 
-    const linkConnections = linksView.getById(id);
-    if (!linkConnections) continue;
+    const [startNode, endNode] = views.linksConnections.getById(id);
 
-    const [startNode, endNode] = linkConnections;
-    const startNodeConnections = (nodeConnectionsView.getById(startNode) ?? [])
-      .length;
-    const endNodeConnections = (nodeConnectionsView.getById(endNode) ?? [])
-      .length;
+    const startNodeConnections =
+      views.nodeConnections.getById(startNode).length;
+    const endNodeConnections = views.nodeConnections.getById(endNode).length;
 
     if (startNodeConnections <= 1 && endNodeConnections <= 1) {
       orphanLinks.push(id);
@@ -44,7 +26,7 @@ export function findOrphanAssets(input: RunData): EncodedOrphanAssets {
   }
 
   const orphanNodes: number[] = [];
-  for (const [id, connections] of nodeConnectionsView.enumerate()) {
+  for (const [id, connections] of views.nodeConnections.enumerate()) {
     if (connections.length === 0) orphanNodes.push(id);
   }
 

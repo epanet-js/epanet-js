@@ -1,21 +1,19 @@
-import { decodeSubNetworks } from "./data";
+import { decodeSubNetworks, EncodedSubNetwork } from "./data";
 
 describe("decodeSubNetworks", () => {
   it("correctly maps node indices to asset IDs", () => {
     const nodeIdsLookup = ["J1", "J2", "J3", "R1"];
     const linkIdsLookup = ["P1", "P2"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0, 1, 2],
-          linkIndices: [0, 1],
-          supplySourceCount: 0,
-          pipeCount: 2,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0, 1, 2],
+        linkIndices: [0, 1],
+        supplySourceCount: 0,
+        pipeCount: 2,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -30,18 +28,16 @@ describe("decodeSubNetworks", () => {
   it("correctly maps link indices to asset IDs", () => {
     const nodeIdsLookup = ["J1", "J2"];
     const linkIdsLookup = ["P1", "P2", "P3"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0, 1],
-          linkIndices: [0, 2],
-          supplySourceCount: 0,
-          pipeCount: 2,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0, 1],
+        linkIndices: [0, 2],
+        supplySourceCount: 0,
+        pipeCount: 2,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -56,18 +52,16 @@ describe("decodeSubNetworks", () => {
   it("preserves subnetworkId", () => {
     const nodeIdsLookup = ["J1"];
     const linkIdsLookup = ["P1"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 42,
-          nodeIndices: [0],
-          linkIndices: [0],
-          supplySourceCount: 0,
-          pipeCount: 1,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 42,
+        nodeIndices: [0],
+        linkIndices: [0],
+        supplySourceCount: 0,
+        pipeCount: 1,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -82,18 +76,16 @@ describe("decodeSubNetworks", () => {
   it("preserves supplySourceCount", () => {
     const nodeIdsLookup = ["R1", "J1"];
     const linkIdsLookup = ["P1"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0, 1],
-          linkIndices: [0],
-          supplySourceCount: 3,
-          pipeCount: 1,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0, 1],
+        linkIndices: [0],
+        supplySourceCount: 3,
+        pipeCount: 1,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -108,18 +100,16 @@ describe("decodeSubNetworks", () => {
   it("preserves pipeCount", () => {
     const nodeIdsLookup = ["J1"];
     const linkIdsLookup = ["P1", "P2", "P3"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0],
-          linkIndices: [0, 1, 2],
-          supplySourceCount: 0,
-          pipeCount: 5,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0],
+        linkIndices: [0, 1, 2],
+        supplySourceCount: 0,
+        pipeCount: 5,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -134,23 +124,21 @@ describe("decodeSubNetworks", () => {
   it("preserves bounds array", () => {
     const nodeIdsLookup = ["J1"];
     const linkIdsLookup = ["P1"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0],
-          linkIndices: [0],
-          supplySourceCount: 0,
-          pipeCount: 1,
-          bounds: [-123.456, 78.9, 100.5, 200.75] as [
-            number,
-            number,
-            number,
-            number,
-          ],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0],
+        linkIndices: [0],
+        supplySourceCount: 0,
+        pipeCount: 1,
+        bounds: [-123.456, 78.9, 100.5, 200.75] as [
+          number,
+          number,
+          number,
+          number,
+        ],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -165,26 +153,24 @@ describe("decodeSubNetworks", () => {
   it("handles multiple subnetworks correctly", () => {
     const nodeIdsLookup = ["J1", "J2", "J3", "J4", "R1", "T1"];
     const linkIdsLookup = ["P1", "P2", "P3", "P4"];
-    const encodedSubNetworks = {
-      subnetworks: [
-        {
-          subnetworkId: 0,
-          nodeIndices: [0, 1, 4],
-          linkIndices: [0, 1],
-          supplySourceCount: 1,
-          pipeCount: 2,
-          bounds: [0, 0, 10, 10] as [number, number, number, number],
-        },
-        {
-          subnetworkId: 1,
-          nodeIndices: [2, 3, 5],
-          linkIndices: [2, 3],
-          supplySourceCount: 1,
-          pipeCount: 2,
-          bounds: [20, 20, 30, 30] as [number, number, number, number],
-        },
-      ],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [
+      {
+        subnetworkId: 0,
+        nodeIndices: [0, 1, 4],
+        linkIndices: [0, 1],
+        supplySourceCount: 1,
+        pipeCount: 2,
+        bounds: [0, 0, 10, 10] as [number, number, number, number],
+      },
+      {
+        subnetworkId: 1,
+        nodeIndices: [2, 3, 5],
+        linkIndices: [2, 3],
+        supplySourceCount: 1,
+        pipeCount: 2,
+        bounds: [20, 20, 30, 30] as [number, number, number, number],
+      },
+    ];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,
@@ -212,9 +198,7 @@ describe("decodeSubNetworks", () => {
   it("handles empty subnetworks array", () => {
     const nodeIdsLookup = ["J1"];
     const linkIdsLookup = ["P1"];
-    const encodedSubNetworks = {
-      subnetworks: [],
-    };
+    const encodedSubNetworks: EncodedSubNetwork[] = [];
 
     const subnetworks = decodeSubNetworks(
       nodeIdsLookup,

@@ -1,16 +1,6 @@
 import { AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
 import { Position } from "geojson";
-import { BinaryData, BufferWithIndex } from "../shared";
-
-export type RunData = {
-  nodePositions: BinaryData;
-  nodeConnections: BufferWithIndex;
-  linksConnections: BinaryData;
-  pipeSegmentIds: BinaryData;
-  pipeSegmentCoordinates: BinaryData;
-  pipeSegmentsGeoIndex: BinaryData;
-};
 
 interface EncodedProximityAnomaly {
   nodeId: number;

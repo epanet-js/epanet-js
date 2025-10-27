@@ -2,13 +2,8 @@ import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorker } from "src/infra/worker";
-import {
-  EncodedOrphanAssets,
-  decodeOrphanAssets,
-  OrphanAsset,
-  RunData,
-} from "./data";
-import { HydraulicModelEncoder } from "../shared";
+import { EncodedOrphanAssets, decodeOrphanAssets, OrphanAsset } from "./data";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker";
 
@@ -26,18 +21,13 @@ export const runCheck = async (
     nodes: new Set(["connections"]),
     bufferType,
   });
-  const { links, nodes, linkIdsLookup, nodeIdsLookup } = encoder.buildBuffers();
-  const inputData: RunData = {
-    linksConnections: links.connections,
-    linkTypes: links.types,
-    nodeConnections: nodes.connections,
-  };
+  const { linkIdsLookup, nodeIdsLookup, ...data } = encoder.buildBuffers();
 
   const useWorker = canUseWorker();
 
   const encodedOrphanAssets = useWorker
-    ? await runWithWorker(inputData, signal)
-    : findOrphanAssets(inputData);
+    ? await runWithWorker(data, signal)
+    : findOrphanAssets(data);
 
   return decodeOrphanAssets(
     hydraulicModel,
@@ -48,7 +38,7 @@ export const runCheck = async (
 };
 
 const runWithWorker = async (
-  data: RunData,
+  data: HydraulicModelBuffers,
   signal?: AbortSignal,
 ): Promise<EncodedOrphanAssets> => {
   if (signal?.aborted) {

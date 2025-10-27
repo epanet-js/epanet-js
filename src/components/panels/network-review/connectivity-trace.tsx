@@ -6,7 +6,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   findConnectivityTrace,
-  Subnetwork,
+  SubNetwork,
 } from "src/lib/network-review/connectivity-trace";
 import { USelection, useSelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
@@ -42,7 +42,7 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 
   const selectSubnetwork = useCallback(
-    (subnetwork: Subnetwork | null) => {
+    (subnetwork: SubNetwork | null) => {
       if (!subnetwork) {
         setSelectedSubnetworkId(null);
         clearSelection();
@@ -115,8 +115,8 @@ const IssuesList = ({
   selectedId,
   onGoBack,
 }: {
-  issues: Subnetwork[];
-  onClick: (issue: Subnetwork | null) => void;
+  issues: SubNetwork[];
+  onClick: (issue: SubNetwork | null) => void;
   selectedId: number | null;
   onGoBack: () => void;
 }) => {
@@ -147,8 +147,8 @@ const SubnetworkItem = ({
   selectedId,
 }: {
   index: number;
-  subnetwork: Subnetwork;
-  onClick: (subnetwork: Subnetwork) => void;
+  subnetwork: SubNetwork;
+  onClick: (subnetwork: SubNetwork) => void;
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
@@ -200,7 +200,7 @@ const deferToAllowRender = () =>
   new Promise((resolve) => setTimeout(resolve, 0));
 
 const useCheckConnectivityTrace = () => {
-  const [subnetworks, setSubnetworks] = useState<Subnetwork[]>([]);
+  const [subnetworks, setSubnetworks] = useState<SubNetwork[]>([]);
   const { hydraulicModel } = useAtomValue(dataAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);

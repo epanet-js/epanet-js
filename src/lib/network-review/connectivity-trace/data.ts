@@ -1,5 +1,4 @@
 import { AssetId } from "src/hydraulic-model";
-import { BinaryData, BufferWithIndex } from "../shared";
 
 export interface SubNetwork {
   subnetworkId: number;
@@ -10,36 +9,26 @@ export interface SubNetwork {
   bounds: [number, number, number, number];
 }
 
-export type RunData = {
-  linksConnections: BinaryData;
-  nodesConnections: BufferWithIndex;
-  nodeTypes: BinaryData;
-  linkTypes: BinaryData;
-  linkBounds: BinaryData;
-};
-
-export type EncodedSubNetworks = {
-  subnetworks: {
-    subnetworkId: number;
-    nodeIndices: number[];
-    linkIndices: number[];
-    supplySourceCount: number;
-    pipeCount: number;
-    bounds: [number, number, number, number];
-  }[];
+export type EncodedSubNetwork = {
+  subnetworkId: number;
+  nodeIndices: number[];
+  linkIndices: number[];
+  supplySourceCount: number;
+  pipeCount: number;
+  bounds: [number, number, number, number];
 };
 
 export function decodeSubNetworks(
   nodeIdsLookup: string[],
   linkIdsLookup: string[],
-  encodedSubNetworks: EncodedSubNetworks,
+  encodedSubNetworks: EncodedSubNetwork[],
 ): SubNetwork[] {
-  return encodedSubNetworks.subnetworks.map((component) => ({
-    subnetworkId: component.subnetworkId,
-    nodeIds: component.nodeIndices.map((idx) => nodeIdsLookup[idx]),
-    linkIds: component.linkIndices.map((idx) => linkIdsLookup[idx]),
-    supplySourceCount: component.supplySourceCount,
-    pipeCount: component.pipeCount,
-    bounds: component.bounds,
+  return encodedSubNetworks.map((subNetwork) => ({
+    subnetworkId: subNetwork.subnetworkId,
+    nodeIds: subNetwork.nodeIndices.map((idx) => nodeIdsLookup[idx]),
+    linkIds: subNetwork.linkIndices.map((idx) => linkIdsLookup[idx]),
+    supplySourceCount: subNetwork.supplySourceCount,
+    pipeCount: subNetwork.pipeCount,
+    bounds: subNetwork.bounds,
   }));
 }

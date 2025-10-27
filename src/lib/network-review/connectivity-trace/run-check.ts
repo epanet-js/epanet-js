@@ -2,15 +2,10 @@ import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorker } from "src/infra/worker";
-import {
-  SubNetwork,
-  RunData,
-  EncodedSubNetworks,
-  decodeSubNetworks,
-} from "./data";
+import { EncodedSubNetwork, SubNetwork, decodeSubNetworks } from "./data";
 import { findSubNetworks } from "./find-subnetworks";
 import type { ConnectivityTraceWorkerAPI } from "./worker";
-import { HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
@@ -26,20 +21,13 @@ export const runCheck = async (
     links: new Set(["types", "connections", "bounds"]),
     bufferType,
   });
-  const { nodes, links, nodeIdsLookup, linkIdsLookup } = encoder.buildBuffers();
-  const inputData: RunData = {
-    linksConnections: links.connections,
-    nodesConnections: nodes.connections,
-    nodeTypes: nodes.types,
-    linkTypes: links.types,
-    linkBounds: links.bounds,
-  };
+  const { nodeIdsLookup, linkIdsLookup, ...data } = encoder.buildBuffers();
 
   const useWorker = canUseWorker();
 
   const encodedSubNetworks = useWorker
-    ? await runWithWorker(inputData, signal)
-    : findSubNetworks(inputData);
+    ? await runWithWorker(data, signal)
+    : findSubNetworks(data);
 
   const result = decodeSubNetworks(
     nodeIdsLookup,
@@ -51,9 +39,9 @@ export const runCheck = async (
 };
 
 const runWithWorker = async (
-  data: RunData,
+  data: HydraulicModelBuffers,
   signal?: AbortSignal,
-): Promise<EncodedSubNetworks> => {
+): Promise<EncodedSubNetwork[]> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
