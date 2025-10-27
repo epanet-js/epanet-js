@@ -165,9 +165,11 @@ function arePipesConnected(
   const pipeAConnections = linksView.getById(pipeAId);
   const pipeBConnections = linksView.getById(pipeBId);
 
-  const pipeANodes = new Set(pipeAConnections);
   return (
-    pipeANodes.has(pipeBConnections[0]) || pipeANodes.has(pipeBConnections[1])
+    pipeAConnections[0] === pipeBConnections[0] ||
+    pipeAConnections[0] === pipeBConnections[1] ||
+    pipeAConnections[1] === pipeBConnections[0] ||
+    pipeAConnections[1] === pipeBConnections[1]
   );
 }
 

@@ -12,11 +12,13 @@ export class IdMapper {
     return idx;
   }
 
-  getIdx(id: string): number | undefined {
-    return this.idxLookup.get(id);
+  getIdx(id: string): number {
+    const idx = this.idxLookup.get(id);
+    if (idx === undefined) throw new RangeError("Index out of range");
+    return idx;
   }
 
-  getId(idx: number): string | undefined {
+  getId(idx: number): string {
     return this.idsLookup[idx];
   }
 

@@ -53,13 +53,11 @@ export function findProximityAnomalies(
 
   const results: EncodedProximityAnomalies = [];
 
-  let nodeId = 0;
-  for (const position of nodePositionsView.iter()) {
+  for (const [nodeId, position] of nodePositionsView.enumerate()) {
     const node: Node = { id: nodeId, position };
     const connectedLinkIds = nodeConnectionsView.getById(node.id) ?? [];
 
     if (connectedLinkIds.length === 0) {
-      nodeId++;
       continue;
     }
 
@@ -74,7 +72,6 @@ export function findProximityAnomalies(
       node.id,
       linkConnectionsView,
     );
-    nodeId++;
 
     const alternativeConnection = findBestAlternativeConnection(
       node,
@@ -93,7 +90,6 @@ export function findProximityAnomalies(
         nodeId: node.id,
         connection: alternativeConnection,
       });
-      continue;
     }
   }
 
@@ -129,12 +125,7 @@ function findCandidateConnectionSegments(
   distanceInMeters: number,
 ): number[] {
   const [lon, lat] = node.position;
-  const searchRadius = Math.max(
-    distanceInMeters < 10
-      ? distanceInMeters + MIN_SEARCH_RADIUS_IN_METERS
-      : distanceInMeters,
-    MIN_SEARCH_RADIUS_IN_METERS,
-  );
+  const searchRadius = Math.max(distanceInMeters, MIN_SEARCH_RADIUS_IN_METERS);
   const deltaLat = searchRadius / LAT_DEGREE_IN_METERS_AT_EQUATOR;
   const deltaLng =
     searchRadius /

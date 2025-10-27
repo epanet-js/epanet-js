@@ -12,7 +12,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0, 1],
           supplySourceCount: 0,
           pipeCount: 2,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
       ],
     };
@@ -38,7 +38,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0, 2],
           supplySourceCount: 0,
           pipeCount: 2,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
       ],
     };
@@ -64,7 +64,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0],
           supplySourceCount: 0,
           pipeCount: 1,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
       ],
     };
@@ -90,7 +90,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0],
           supplySourceCount: 3,
           pipeCount: 1,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
       ],
     };
@@ -116,7 +116,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0, 1, 2],
           supplySourceCount: 0,
           pipeCount: 5,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
       ],
     };
@@ -142,7 +142,12 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0],
           supplySourceCount: 0,
           pipeCount: 1,
-          bounds: [-123.456, 78.9, 100.5, 200.75],
+          bounds: [-123.456, 78.9, 100.5, 200.75] as [
+            number,
+            number,
+            number,
+            number,
+          ],
         },
       ],
     };
@@ -168,7 +173,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [0, 1],
           supplySourceCount: 1,
           pipeCount: 2,
-          bounds: [0, 0, 10, 10],
+          bounds: [0, 0, 10, 10] as [number, number, number, number],
         },
         {
           subnetworkId: 1,
@@ -176,7 +181,7 @@ describe("decodeSubNetworks", () => {
           linkIndices: [2, 3],
           supplySourceCount: 1,
           pipeCount: 2,
-          bounds: [20, 20, 30, 30],
+          bounds: [20, 20, 30, 30] as [number, number, number, number],
         },
       ],
     };

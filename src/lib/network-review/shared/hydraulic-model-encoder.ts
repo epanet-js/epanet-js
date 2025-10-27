@@ -48,6 +48,7 @@ export class HydraulicModelEncoder {
     startPosition: Position;
     endPosition: Position;
   }[][] = [];
+  private nodeConnectionsCache = new Map<string, string[]>();
 
   constructor(
     private model: HydraulicModel,
@@ -123,12 +124,7 @@ export class HydraulicModelEncoder {
     }
 
     if (asset.type === "pipe" && asset.feature.geometry.type === "LineString") {
-      const pipeFeature = {
-        type: "Feature" as const,
-        geometry: asset.feature.geometry,
-        properties: {},
-      };
-      const segments = lineSegment(pipeFeature);
+      const segments = lineSegment(asset.feature.geometry);
       const segmentsData = segments.features.map((segment) => {
         const [startPosition, endPosition] = segment.geometry.coordinates;
         return { startPosition, endPosition };
@@ -150,6 +146,7 @@ export class HydraulicModelEncoder {
     }
 
     const connectedLinkIds = this.model.topology.getLinks(id);
+    this.nodeConnectionsCache.set(id, connectedLinkIds);
     this.totalConnectionsSize += getIdsListSize(connectedLinkIds);
   }
 
@@ -261,8 +258,8 @@ export class HydraulicModelEncoder {
     }
 
     const [startId, endId] = (asset as Pipe).connections;
-    const start = this.nodeIdMapper.getIdx(startId)!;
-    const end = this.nodeIdMapper.getIdx(endId)!;
+    const start = this.nodeIdMapper.getIdx(startId);
+    const end = this.nodeIdMapper.getIdx(endId);
     linkConnections.add([start, end]);
   }
 
@@ -343,10 +340,10 @@ export class HydraulicModelEncoder {
     if (this.encodingOptions.nodes?.has("connections") !== true) {
       return;
     }
-    const connectedLinkIds = this.model.topology.getLinks(id);
-    const connectedLinkIdxs = connectedLinkIds
-      .map((linkId) => this.linkIdMapper.getIdx(linkId))
-      .filter((idx): idx is number => idx !== undefined);
+    const connectedLinkIds = this.nodeConnectionsCache.get(id) ?? [];
+    const connectedLinkIdxs = connectedLinkIds.map((linkId) =>
+      this.linkIdMapper.getIdx(linkId),
+    );
 
     nodeConnections.add(connectedLinkIdxs);
   }
