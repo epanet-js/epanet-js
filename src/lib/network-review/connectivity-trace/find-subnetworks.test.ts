@@ -1,7 +1,19 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findSubNetworks } from "./find-subnetworks";
+import { HydraulicModelEncoder } from "../shared";
+import { RunData, decodeSubNetworks } from "./data";
+import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findSubNetworks", () => {
+  function encodeData(model: HydraulicModel) {
+    const encoder = new HydraulicModelEncoder(model, {
+      nodes: new Set(["types", "connections"]),
+      links: new Set(["types", "connections", "bounds"]),
+      bufferType: "array",
+    });
+    return encoder.buildBuffers();
+  }
+
   it("should identify a single connected network", () => {
     const model = HydraulicModelBuilder.with()
       .aReservoir("R1")
@@ -11,7 +23,20 @@ describe("findSubNetworks", () => {
       .aPipe("P2", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].nodeIds).toHaveLength(3);
@@ -32,7 +57,20 @@ describe("findSubNetworks", () => {
       .aPipe("P3", { startNodeId: "J3", endNodeId: "J4" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(3);
 
@@ -54,7 +92,20 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].supplySourceCount).toBe(0);
@@ -74,7 +125,20 @@ describe("findSubNetworks", () => {
       .aPipe("P4", { startNodeId: "J4", endNodeId: "J5" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(2);
     expect(subnetworks[0].nodeIds.length).toBeGreaterThan(
@@ -89,7 +153,20 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].bounds).toEqual([0, 2, 1, 3]);
@@ -106,7 +183,20 @@ describe("findSubNetworks", () => {
       .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].nodeIds).toHaveLength(4);
@@ -122,7 +212,20 @@ describe("findSubNetworks", () => {
       .aNode("IsolatedNode")
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
   });
@@ -136,7 +239,20 @@ describe("findSubNetworks", () => {
       .aPipe("P2", { startNodeId: "R1", endNodeId: "J1" })
       .build();
 
-    const subnetworks = findSubNetworks(model);
+    const encoded = encodeData(model);
+    const data: RunData = {
+      linksConnections: encoded.links.connections,
+      nodesConnections: encoded.nodes.connections,
+      nodeTypes: encoded.nodes.types,
+      linkTypes: encoded.links.types,
+      linkBounds: encoded.links.bounds,
+    };
+    const encodedSubNetworks = findSubNetworks(data);
+    const subnetworks = decodeSubNetworks(
+      encoded.nodeIdsLookup,
+      encoded.linkIdsLookup,
+      encodedSubNetworks,
+    );
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].supplySourceCount).toBe(2);

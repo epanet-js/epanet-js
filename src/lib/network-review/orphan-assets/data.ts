@@ -1,11 +1,6 @@
 import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
-import {
-  BinaryData,
-  BufferWithIndex,
-  HydraulicModelEncoder,
-  NetworkReviewBuffers,
-} from "../shared";
+import { BinaryData, BufferWithIndex } from "../shared";
 
 export type RunData = {
   linksConnections: BinaryData;
@@ -31,17 +26,6 @@ enum typeOrder {
   "pump" = 2,
   "junction" = 1,
   "pipe" = 0,
-}
-
-export function encodeNetworkReviewBuffers(
-  model: HydraulicModel,
-): NetworkReviewBuffers {
-  const encoder = new HydraulicModelEncoder(model, {
-    links: new Set(["connections", "types"]),
-    nodes: new Set(["connections"]),
-    bufferType: "array",
-  });
-  return encoder.buildBuffers();
 }
 
 export function decodeOrphanAssets(

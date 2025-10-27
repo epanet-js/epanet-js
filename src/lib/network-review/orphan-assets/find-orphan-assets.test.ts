@@ -1,8 +1,19 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findOrphanAssets } from "./find-orphan-assets";
-import { encodeNetworkReviewBuffers } from "./data";
+import { HydraulicModelEncoder } from "../shared";
+import { RunData } from "./data";
+import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findOrphanAssets", () => {
+  function encodeData(model: HydraulicModel) {
+    const encoder = new HydraulicModelEncoder(model, {
+      links: new Set(["connections", "types"]),
+      nodes: new Set(["connections"]),
+      bufferType: "array",
+    });
+    return encoder.buildBuffers();
+  }
+
   it("should find nodes not connected to other assets in the network", () => {
     const model = HydraulicModelBuilder.with()
       .aNode("J1")
@@ -10,8 +21,8 @@ describe("findOrphanAssets", () => {
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .aNode("Orphan")
       .build();
-    const encoded = encodeNetworkReviewBuffers(model);
-    const data = {
+    const encoded = encodeData(model);
+    const data: RunData = {
       linksConnections: encoded.links.connections,
       linkTypes: encoded.links.types,
       nodeConnections: encoded.nodes.connections,
@@ -33,8 +44,8 @@ describe("findOrphanAssets", () => {
       .aNode("NoPipeNode")
       .aValve("OrphanValve", { startNodeId: "T1", endNodeId: "NoPipeNode" })
       .build();
-    const encoded = encodeNetworkReviewBuffers(model);
-    const data = {
+    const encoded = encodeData(model);
+    const data: RunData = {
       linksConnections: encoded.links.connections,
       linkTypes: encoded.links.types,
       nodeConnections: encoded.nodes.connections,
@@ -47,7 +58,7 @@ describe("findOrphanAssets", () => {
     expect(encoded.linkIdsLookup[orphanLinks[0]]).toEqual("OrphanValve");
   });
 
-  it("should find valves not connected on both ends to other network pipes", () => {
+  it("should find pumps not connected on both ends to other network pipes", () => {
     const model = HydraulicModelBuilder.with()
       .aNode("J1")
       .aNode("J2")
@@ -56,8 +67,8 @@ describe("findOrphanAssets", () => {
       .aNode("NoPipeNode")
       .aPump("OrphanPump", { startNodeId: "T1", endNodeId: "NoPipeNode" })
       .build();
-    const encoded = encodeNetworkReviewBuffers(model);
-    const data = {
+    const encoded = encodeData(model);
+    const data: RunData = {
       linksConnections: encoded.links.connections,
       linkTypes: encoded.links.types,
       nodeConnections: encoded.nodes.connections,
@@ -79,8 +90,8 @@ describe("findOrphanAssets", () => {
       .aNode("J2")
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
-    const encoded = encodeNetworkReviewBuffers(model);
-    const data = {
+    const encoded = encodeData(model);
+    const data: RunData = {
       linksConnections: encoded.links.connections,
       linkTypes: encoded.links.types,
       nodeConnections: encoded.nodes.connections,

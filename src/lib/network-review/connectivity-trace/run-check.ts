@@ -6,11 +6,11 @@ import {
   SubNetwork,
   RunData,
   EncodedSubNetworks,
-  encodeHydraulicModelForSubnetworks,
   decodeSubNetworks,
 } from "./data";
-import { findSubNetworksFromBuffers } from "./find-subnetworks";
+import { findSubNetworks } from "./find-subnetworks";
 import type { ConnectivityTraceWorkerAPI } from "./worker";
+import { HydraulicModelEncoder } from "../shared";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
@@ -21,18 +21,31 @@ export const runCheck = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const { idsLookup, ...inputData } = encodeHydraulicModelForSubnetworks(
-    hydraulicModel,
+  const encoder = new HydraulicModelEncoder(hydraulicModel, {
+    nodes: new Set(["types", "connections"]),
+    links: new Set(["types", "connections", "bounds"]),
     bufferType,
-  );
+  });
+  const { nodes, links, nodeIdsLookup, linkIdsLookup } = encoder.buildBuffers();
+  const inputData: RunData = {
+    linksConnections: links.connections,
+    nodesConnections: nodes.connections,
+    nodeTypes: nodes.types,
+    linkTypes: links.types,
+    linkBounds: links.bounds,
+  };
 
   const useWorker = canUseWorker();
 
   const encodedSubNetworks = useWorker
     ? await runWithWorker(inputData, signal)
-    : findSubNetworksFromBuffers(inputData);
+    : findSubNetworks(inputData);
 
-  const result = decodeSubNetworks(idsLookup, encodedSubNetworks);
+  const result = decodeSubNetworks(
+    nodeIdsLookup,
+    linkIdsLookup,
+    encodedSubNetworks,
+  );
 
   return result;
 };
@@ -55,7 +68,7 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.findSubNetworksFromBuffers(data);
+    return await workerAPI.findSubNetworks(data);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

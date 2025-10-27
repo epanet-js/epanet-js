@@ -1,13 +1,13 @@
 import * as Comlink from "comlink";
 import { RunData, EncodedSubNetworks } from "./data";
-import { findSubNetworksFromBuffers } from "./find-subnetworks";
+import { findSubNetworks } from "./find-subnetworks";
 
 export interface ConnectivityTraceWorkerAPI {
-  findSubNetworksFromBuffers: (input: RunData) => EncodedSubNetworks;
+  findSubNetworks: (input: RunData) => EncodedSubNetworks;
 }
 
 const workerAPI: ConnectivityTraceWorkerAPI = {
-  findSubNetworksFromBuffers,
+  findSubNetworks,
 };
 
 Comlink.expose(workerAPI);
