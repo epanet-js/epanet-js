@@ -233,7 +233,7 @@ export class HydraulicModelEncoder {
     linkBounds: FixedSizeBufferBuilder<[number, number, number, number]>,
     linkTypes: FixedSizeBufferBuilder<number>,
     pipeSegmentIds: FixedSizeBufferBuilder<number>,
-    pipeSegmentCoordinates: FixedSizeBufferBuilder<Position[]>,
+    pipeSegmentCoordinates: FixedSizeBufferBuilder<[Position, Position]>,
     pipeSegmentsGeoIndex: GeoIndexBuilder,
   ) {
     for (let linkIdx = 0; linkIdx < this.linkIdMapper.count; linkIdx++) {
@@ -292,7 +292,7 @@ export class HydraulicModelEncoder {
   private encodePipeSegments(
     linkIdx: number,
     pipeSegmentIds: FixedSizeBufferBuilder<number>,
-    pipeSegmentCoordinates: FixedSizeBufferBuilder<Position[]>,
+    pipeSegmentCoordinates: FixedSizeBufferBuilder<[Position, Position]>,
     pipeSegmentsGeoIndex: GeoIndexBuilder,
   ) {
     if (this.encodingOptions.links?.has("geoIndex") !== true) {
@@ -444,27 +444,22 @@ export function decodeBounds(
 }
 
 export function encodeLineCoordinates(
-  positions: Position[],
+  positions: [Position, Position],
   offset: number,
   view: DataView,
 ): void {
-  positions.forEach((position, i) => {
-    const positionOffset = offset + i * EncodedSize.position;
-    encodePosition(position, positionOffset, view);
-  });
+  encodePosition(positions[0], offset, view);
+  encodePosition(positions[1], offset + EncodedSize.position, view);
 }
 
 export function decodeLineCoordinates(
-  count: number,
   offset: number,
   view: DataView,
-): Position[] {
-  const positions: Position[] = [];
-  for (let i = 0; i < count; i++) {
-    const positionOffset = offset + i * EncodedSize.position;
-    positions.push(decodePosition(positionOffset, view));
-  }
-  return positions;
+): [Position, Position] {
+  return [
+    decodePosition(offset, view),
+    decodePosition(offset + EncodedSize.position, view),
+  ];
 }
 
 export function encodeIdsList(

@@ -5,10 +5,10 @@ import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   decodeProximityAnomalies,
   EncodedProximityAnomalies,
-  encodeHydraulicModel,
   ProximityAnomaly,
   RunData,
 } from "./data";
+import { HydraulicModelEncoder } from "../shared";
 import { findProximityAnomalies } from "./find-proximity-anomalies";
 import { ProximityCheckWorkerAPI } from "./worker";
 
@@ -22,10 +22,21 @@ export const runCheck = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const { idsLookup, ...inputData } = encodeHydraulicModel(
-    hydraulicModel,
+  const encoder = new HydraulicModelEncoder(hydraulicModel, {
+    nodes: new Set(["bounds", "connections"]),
+    links: new Set(["connections", "geoIndex"]),
     bufferType,
-  );
+  });
+  const { nodes, links, pipeSegments, linkIdsLookup, nodeIdsLookup } =
+    encoder.buildBuffers();
+  const inputData: RunData = {
+    nodePositions: nodes.positions,
+    nodeConnections: nodes.connections,
+    linksConnections: links.connections,
+    pipeSegmentIds: pipeSegments.ids,
+    pipeSegmentCoordinates: pipeSegments.coordinates,
+    pipeSegmentsGeoIndex: pipeSegments.geoIndex,
+  };
 
   const useWorker = canUseWorker();
 
@@ -35,7 +46,8 @@ export const runCheck = async (
 
   return decodeProximityAnomalies(
     hydraulicModel,
-    idsLookup,
+    nodeIdsLookup,
+    linkIdsLookup,
     encodedProximityAnomalies,
   );
 };

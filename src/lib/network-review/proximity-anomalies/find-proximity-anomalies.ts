@@ -1,12 +1,20 @@
 import Flatbush from "flatbush";
 import {
-  TopologyBufferView,
   EncodedProximityAnomalies,
   RunData,
   Node,
-  SegmentsGeometriesBufferView,
   EncodedAlternativeConnection,
 } from "./data";
+import {
+  FixedSizeBufferView,
+  VariableSizeBufferView,
+  EncodedSize,
+  decodePosition,
+  decodeId,
+  decodeLinkConnections,
+  decodeLineCoordinates,
+  decodeIdsList,
+} from "../shared";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";
@@ -17,22 +25,43 @@ export function findProximityAnomalies(
   distanceInMeters: number = 0.5,
   connectedJunctionTolerance: number = 0.1,
 ): EncodedProximityAnomalies {
-  const topology = new TopologyBufferView(input.nodeBuffer, input.linksBuffer);
-  const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
-  const pipeSegmentsLookup = new SegmentsGeometriesBufferView(
-    input.pipeSegmentsBuffer,
+  const nodePositionsView = new FixedSizeBufferView<Position>(
+    input.nodePositions,
+    EncodedSize.position,
+    decodePosition,
   );
-
-  const { nodeLinksConnectivityLookup, nodesConnectivityLookookup } =
-    createConnectivityLookups(topology);
+  const nodeConnectionsView = new VariableSizeBufferView(
+    input.nodeConnections,
+    decodeIdsList,
+  );
+  const linkConnectionsView = new FixedSizeBufferView(
+    input.linksConnections,
+    EncodedSize.id * 2,
+    decodeLinkConnections,
+  );
+  const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
+  const pipeSegmentIdsView = new FixedSizeBufferView(
+    input.pipeSegmentIds,
+    EncodedSize.id,
+    decodeId,
+  );
+  const pipeSegmentCoordinatesView = new FixedSizeBufferView(
+    input.pipeSegmentCoordinates,
+    EncodedSize.position * 2,
+    decodeLineCoordinates,
+  );
 
   const results: EncodedProximityAnomalies = [];
 
-  for (const node of topology.nodes()) {
-    const alreadyConnectedLinks =
-      nodeLinksConnectivityLookup.get(node.id) || new Set();
+  let nodeId = 0;
+  for (const position of nodePositionsView.iter()) {
+    const node: Node = { id: nodeId, position };
+    const connectedLinkIds = nodeConnectionsView.getById(node.id) ?? [];
 
-    if (alreadyConnectedLinks.size === 0) continue;
+    if (connectedLinkIds.length === 0) {
+      nodeId++;
+      continue;
+    }
 
     const candidateConnectionSegments = findCandidateConnectionSegments(
       node,
@@ -40,15 +69,21 @@ export function findProximityAnomalies(
       distanceInMeters,
     );
 
-    const connectedNodes = nodesConnectivityLookookup.get(node.id) || new Set();
+    const connectedNodeIds = getConnectedNodes(
+      connectedLinkIds,
+      node.id,
+      linkConnectionsView,
+    );
+    nodeId++;
 
     const alternativeConnection = findBestAlternativeConnection(
       node,
       candidateConnectionSegments,
-      pipeSegmentsLookup,
-      alreadyConnectedLinks,
-      connectedNodes,
-      topology,
+      pipeSegmentIdsView,
+      pipeSegmentCoordinatesView,
+      connectedLinkIds,
+      connectedNodeIds,
+      nodePositionsView,
       distanceInMeters,
       connectedJunctionTolerance,
     );
@@ -65,39 +100,24 @@ export function findProximityAnomalies(
   return results;
 }
 
-function createConnectivityLookups(data: TopologyBufferView) {
-  const nodeLinksConnectivityLookup = new Map<number, Set<number>>();
-  const nodesConnectivityLookookup = new Map<number, Set<number>>();
+function getConnectedNodes(
+  connectedLinkIds: number[],
+  nodeId: number,
+  linkConnectionsView: FixedSizeBufferView<[number, number]>,
+): number[] {
+  const connectedNodes: number[] = [];
 
-  for (const link of data.links()) {
-    const { startNode, endNode, id: linkId } = link;
+  for (const linkId of connectedLinkIds) {
+    const [startNode, endNode] = linkConnectionsView.getById(linkId);
 
-    // Map the upstream node to the link
-    if (!nodeLinksConnectivityLookup.has(startNode)) {
-      nodeLinksConnectivityLookup.set(startNode, new Set());
+    if (startNode === nodeId) {
+      connectedNodes.push(endNode);
+    } else if (endNode === nodeId) {
+      connectedNodes.push(startNode);
     }
-    nodeLinksConnectivityLookup.get(startNode)!.add(linkId);
-
-    // Map the downstream node to the link
-    if (!nodeLinksConnectivityLookup.has(endNode)) {
-      nodeLinksConnectivityLookup.set(endNode, new Set());
-    }
-    nodeLinksConnectivityLookup.get(endNode)!.add(linkId);
-
-    // Map the upstream node to the downstream node
-    if (!nodesConnectivityLookookup.has(startNode)) {
-      nodesConnectivityLookookup.set(startNode, new Set());
-    }
-    nodesConnectivityLookookup.get(startNode)!.add(endNode);
-
-    // Map the downstream node to the upstream node
-    if (!nodesConnectivityLookookup.has(endNode)) {
-      nodesConnectivityLookookup.set(endNode, new Set());
-    }
-    nodesConnectivityLookookup.get(endNode)!.add(startNode);
   }
 
-  return { nodeLinksConnectivityLookup, nodesConnectivityLookookup };
+  return connectedNodes;
 }
 
 const LAT_DEGREE_IN_METERS_AT_EQUATOR = 111320;
@@ -133,9 +153,9 @@ function findCandidateConnectionSegments(
 function findNearestPointOnSegment(
   node: Node,
   segmentIndex: number,
-  pipeSegments: SegmentsGeometriesBufferView,
+  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
 ): { position: Position; distance: number } {
-  const segment = pipeSegments.getCoordinates(segmentIndex);
+  const segment = pipeSegmentCoordinatesView.getById(segmentIndex);
   const lineGeom = lineString(segment);
   const nearest = nearestPointOnLine(lineGeom, node.position, {
     units: "meters",
@@ -150,23 +170,25 @@ function findNearestPointOnSegment(
 function findBestAlternativeConnection(
   node: Node,
   candidateConnectionSegments: number[],
-  pipeSegmentsLookup: SegmentsGeometriesBufferView,
-  alreadyConnectedLinks: Set<number>,
-  connectedNodes: Set<number>,
-  topology: TopologyBufferView,
+  pipeSegmentIdsView: FixedSizeBufferView<number>,
+  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
+  alreadyConnectedLinks: number[],
+  connectedNodes: number[],
+  nodePositionsView: FixedSizeBufferView<Position>,
   distanceInMeters: number,
   connectedJunctionTolerance: number = 0.1,
 ) {
   const validCandidates: EncodedAlternativeConnection[] = [];
+  const alreadyConnectedLinksSet = new Set(alreadyConnectedLinks);
 
   for (const candidateSegment of candidateConnectionSegments) {
-    const pipeId = pipeSegmentsLookup.getId(candidateSegment);
-    if (alreadyConnectedLinks.has(pipeId)) continue;
+    const pipeId = pipeSegmentIdsView.getById(candidateSegment);
+    if (alreadyConnectedLinksSet.has(pipeId)) continue;
 
     const nearestPoint = findNearestPointOnSegment(
       node,
       candidateSegment,
-      pipeSegmentsLookup,
+      pipeSegmentCoordinatesView,
     );
     if (nearestPoint.distance > distanceInMeters) continue;
 
@@ -174,7 +196,7 @@ function findBestAlternativeConnection(
       isTooCloseToConnectedJunctions(
         nearestPoint.position,
         connectedNodes,
-        topology,
+        nodePositionsView,
         connectedJunctionTolerance,
       )
     )
@@ -194,15 +216,15 @@ function findBestAlternativeConnection(
 
 function isTooCloseToConnectedJunctions(
   nearestPoint: Position,
-  connectedNodeIds: Set<number>,
-  topology: TopologyBufferView,
+  connectedNodeIds: number[],
+  nodePositionsView: FixedSizeBufferView<Position>,
   tolerance: number = 0.1,
 ): boolean {
   for (const connectedNodeId of connectedNodeIds) {
-    const connectedNode = topology.getNodeByIndex(connectedNodeId);
-    if (!connectedNode) continue;
+    const connectedNodePosition = nodePositionsView.getById(connectedNodeId);
+    if (!connectedNodePosition) continue;
 
-    const dist = distance(point(nearestPoint), point(connectedNode.position), {
+    const dist = distance(point(nearestPoint), point(connectedNodePosition), {
       units: "meters",
     });
     if (dist < tolerance) {
