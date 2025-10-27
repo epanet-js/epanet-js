@@ -59,10 +59,12 @@ export function useDrawLinkHandlers({
   linkType,
   sourceLink,
   onSubmitLink,
+  disableEndAndContinue,
 }: HandlerContext & {
   linkType: LinkType;
   sourceLink?: LinkAsset;
   onSubmitLink?: (params: SubmitLinkParams) => NodeAsset | undefined;
+  disableEndAndContinue?: boolean;
 }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -243,7 +245,9 @@ export function useDrawLinkHandlers({
   };
 
   const isSnapping = () => !isShiftHeld();
-  const isEndAndContinueOn = isControlHeld;
+  const isEndAndContinueOn = disableEndAndContinue
+    ? () => false
+    : isControlHeld;
 
   const coordinatesToLngLat = (coordinates: Position) => {
     const [lng, lat] = coordinates;
@@ -313,6 +317,10 @@ export function useDrawLinkHandlers({
       isClickInProgress.current = true;
 
       const doAsyncClick = async () => {
+        if (disableEndAndContinue && isControlHeld()) {
+          return;
+        }
+
         const isCurrentlySnapping = isSnapping();
         const snappingCandidate = isCurrentlySnapping
           ? findSnappingCandidate(e, getMapCoord(e))
