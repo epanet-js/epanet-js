@@ -5,10 +5,10 @@ import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   decodeCrossingPipes,
   EncodedCrossingPipes,
-  encodeHydraulicModel,
   CrossingPipe,
   RunData,
 } from "./data";
+import { HydraulicModelEncoder } from "../shared";
 import { findCrossingPipes } from "./find-crossing-pipes";
 import { CrossingPipesWorkerAPI } from "./worker";
 
@@ -22,10 +22,20 @@ export const runCheck = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const { idsLookup, ...inputData } = encodeHydraulicModel(
-    hydraulicModel,
+  const encoder = new HydraulicModelEncoder(hydraulicModel, {
+    nodes: new Set(["geoIndex"]),
+    links: new Set(["connections", "bounds", "geoIndex"]),
     bufferType,
-  );
+  });
+  const { nodes, links, pipeSegments, linkIdsLookup } = encoder.buildBuffers();
+  const inputData: RunData = {
+    nodeGeoIndex: nodes.geoIndex,
+    linksConnections: links.connections,
+    linkBounds: links.bounds,
+    pipeSegmentIds: pipeSegments.ids,
+    pipeSegmentCoordinates: pipeSegments.coordinates,
+    pipeSegmentsGeoIndex: pipeSegments.geoIndex,
+  };
 
   const useWorker = canUseWorker();
 
@@ -33,7 +43,11 @@ export const runCheck = async (
     ? await runWithWorker(inputData, junctionTolerance, signal)
     : findCrossingPipes(inputData, junctionTolerance);
 
-  return decodeCrossingPipes(hydraulicModel, idsLookup, encodedCrossingPipes);
+  return decodeCrossingPipes(
+    hydraulicModel,
+    linkIdsLookup,
+    encodedCrossingPipes,
+  );
 };
 
 const runWithWorker = async (

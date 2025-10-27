@@ -1,6 +1,13 @@
 import type { EncodedCrossingPipes, EncodedPipe, RunData } from "./data";
-import { PipeBufferView, SegmentsGeometriesBufferView } from "./data";
 import type { Position } from "geojson";
+import {
+  FixedSizeBufferView,
+  EncodedSize,
+  decodeId,
+  decodeBounds,
+  decodeLinkConnections,
+  decodeLineCoordinates,
+} from "../shared";
 import Flatbush from "flatbush";
 import bbox from "@turf/bbox";
 import lineIntersect from "@turf/line-intersect";
@@ -10,35 +17,66 @@ export function findCrossingPipes(
   input: RunData,
   junctionTolerance: number,
 ): EncodedCrossingPipes {
-  const pipes = new PipeBufferView(input.pipeBuffer);
+  const linkConnectionsView = new FixedSizeBufferView(
+    input.linksConnections,
+    EncodedSize.id * 2,
+    decodeLinkConnections,
+  );
+  const linkBoundsView = new FixedSizeBufferView(
+    input.linkBounds,
+    EncodedSize.bounds,
+    decodeBounds,
+  );
   const nodeGeoIndex = Flatbush.from(input.nodeGeoIndex);
   const pipeSegmentsGeoIndex = Flatbush.from(input.pipeSegmentsGeoIndex);
-  const pipeSegmentsLookup = new SegmentsGeometriesBufferView(
-    input.pipeSegmentsBuffer,
+  const pipeSegmentIdsView = new FixedSizeBufferView(
+    input.pipeSegmentIds,
+    EncodedSize.id,
+    decodeId,
+  );
+  const pipeSegmentCoordinatesView = new FixedSizeBufferView<
+    [Position, Position]
+  >(
+    input.pipeSegmentCoordinates,
+    EncodedSize.position * 2,
+    decodeLineCoordinates,
   );
 
   const results: EncodedCrossingPipes = [];
   const alreadySearched = new Set<number>();
   const reportedPairs = new Set<string>();
 
-  for (const currentPipe of pipes.iter()) {
+  for (const [linkId, connections] of linkConnectionsView.enumerate()) {
+    const bounds = linkBoundsView.getById(linkId);
+
+    const currentPipe: EncodedPipe = {
+      id: linkId,
+      startNode: connections[0],
+      endNode: connections[1],
+      bbox: [
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+      ],
+    };
+
     const otherPipeSegments = findOtherPipeSegmentsNearPipe(
       currentPipe,
       alreadySearched,
-      pipeSegmentsLookup,
+      pipeSegmentIdsView,
       pipeSegmentsGeoIndex,
-      pipes,
+      linkConnectionsView,
     );
 
     for (const otherPipeSegmentIdx of otherPipeSegments) {
       const currentPipeSegments = findIntersectingPipeSegmentsForSegment(
         otherPipeSegmentIdx,
         currentPipe.id,
-        pipeSegmentsLookup,
+        pipeSegmentIdsView,
+        pipeSegmentCoordinatesView,
         pipeSegmentsGeoIndex,
       );
 
-      const otherPipeId = pipeSegmentsLookup.getId(otherPipeSegmentIdx);
+      const otherPipeId = pipeSegmentIdsView.getById(otherPipeSegmentIdx);
 
       const pairKey = createPairKey(currentPipe.id, otherPipeId);
       if (reportedPairs.has(pairKey)) {
@@ -50,7 +88,7 @@ export function findCrossingPipes(
         const intersections = calculateIntersectionPoints(
           otherPipeSegmentIdx,
           currentPipeSegmentIdx,
-          pipeSegmentsLookup,
+          pipeSegmentCoordinatesView,
         );
 
         for (const intersectionPoint of intersections) {
@@ -89,19 +127,19 @@ function createPairKey(pipe1Id: number, pipe2Id: number): string {
 function findOtherPipeSegmentsNearPipe(
   pipe: EncodedPipe,
   excludedPipes: Set<number>,
-  pipeSegmentsLookup: SegmentsGeometriesBufferView,
+  pipeSegmentIdsView: FixedSizeBufferView<number>,
   pipeSegmentsGeoIndex: Flatbush,
-  pipes: PipeBufferView,
+  linksView: FixedSizeBufferView<[number, number]>,
 ): number[] {
   function isValidOtherPipeSegment(index: number) {
-    const segmentPipeId = pipeSegmentsLookup.getId(index);
+    const segmentPipeId = pipeSegmentIdsView.getById(index);
     if (segmentPipeId === pipe.id) {
       return false;
     }
     if (excludedPipes.has(segmentPipeId)) {
       return false;
     }
-    if (arePipesConnected(pipe.id, segmentPipeId, pipes)) {
+    if (arePipesConnected(pipe.id, segmentPipeId, linksView)) {
       return false;
     }
 
@@ -120,32 +158,31 @@ function findOtherPipeSegmentsNearPipe(
 }
 
 function arePipesConnected(
-  pipeAIdx: number,
-  pipeBIdx: number,
-  pipesLookup: PipeBufferView,
+  pipeAId: number,
+  pipeBId: number,
+  linksView: FixedSizeBufferView<[number, number]>,
 ): boolean {
-  const pipeA = pipesLookup.getByIndex(pipeAIdx);
-  const pipeB = pipesLookup.getByIndex(pipeBIdx);
+  const pipeAConnections = linksView.getById(pipeAId);
+  const pipeBConnections = linksView.getById(pipeBId);
 
-  if (!pipeA || !pipeB) {
-    return false;
-  }
-
-  const pipeANodes = new Set([pipeA.startNode, pipeA.endNode]);
-  return pipeANodes.has(pipeB.startNode) || pipeANodes.has(pipeB.endNode);
+  const pipeANodes = new Set(pipeAConnections);
+  return (
+    pipeANodes.has(pipeBConnections[0]) || pipeANodes.has(pipeBConnections[1])
+  );
 }
 
 function findIntersectingPipeSegmentsForSegment(
   segmentId: number,
   currentPipeId: number,
-  pipeSegments: SegmentsGeometriesBufferView,
+  pipeSegmentIdsView: FixedSizeBufferView<number>,
+  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
   pipeSegmentsGeoIndex: Flatbush,
 ): number[] {
   function isFromCurrentPipe(index: number) {
-    return pipeSegments.getId(index) === currentPipeId;
+    return pipeSegmentIdsView.getById(index) === currentPipeId;
   }
 
-  const segmentCoords = pipeSegments.getCoordinates(segmentId);
+  const segmentCoords = pipeSegmentCoordinatesView.getById(segmentId);
   const [segMinX, segMinY, segMaxX, segMaxY] = bbox(lineString(segmentCoords));
 
   return pipeSegmentsGeoIndex.search(
@@ -160,10 +197,13 @@ function findIntersectingPipeSegmentsForSegment(
 function calculateIntersectionPoints(
   otherPipeSegmentIdx: number,
   currentPipeSegmentIdx: number,
-  pipeSegments: SegmentsGeometriesBufferView,
+  pipeSegmentCoordinatesView: FixedSizeBufferView<[Position, Position]>,
 ): Position[] {
-  const otherPipeCoords = pipeSegments.getCoordinates(otherPipeSegmentIdx);
-  const currentPipeCoords = pipeSegments.getCoordinates(currentPipeSegmentIdx);
+  const otherPipeCoords =
+    pipeSegmentCoordinatesView.getById(otherPipeSegmentIdx);
+  const currentPipeCoords = pipeSegmentCoordinatesView.getById(
+    currentPipeSegmentIdx,
+  );
 
   const intersections = lineIntersect(
     lineString(otherPipeCoords),
