@@ -123,7 +123,7 @@ export function useDrawNodeHandlers({
           snappingCandidate && snappingCandidate.type === "pipe";
 
         if (isNodeSnapping) {
-          setCursor(isReplaceNodeOn ? "crosshair" : "not-allowed");
+          setCursor(isReplaceNodeOn ? "replace" : "not-allowed");
         } else {
           setCursor("default");
         }

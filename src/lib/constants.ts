@@ -122,6 +122,7 @@ export const SUPPORT_EMAIL = "support@epanetjs.com";
 export const emptySelection = new Set<RawId>();
 export const CURSOR_DEFAULT = "";
 export const CURSOR_CROSSHAIR = "crosshair";
+export const CURSOR_REPLACE = "replace";
 
 export const MAX_GEOCODER_ROWS = 100;
 
