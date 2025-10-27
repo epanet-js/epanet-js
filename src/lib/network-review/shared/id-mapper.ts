@@ -12,6 +12,14 @@ export class IdMapper {
     return idx;
   }
 
+  getIdx(id: string): number | undefined {
+    return this.idxLookup.get(id);
+  }
+
+  getId(idx: number): string | undefined {
+    return this.idsLookup[idx];
+  }
+
   getIdsLookup(): string[] {
     return this.idsLookup;
   }

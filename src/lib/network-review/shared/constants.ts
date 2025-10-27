@@ -10,6 +10,7 @@ export const DataSize = {
   coordinate: FLOAT64_SIZE,
   position: COORDINATES_SIZE,
   bounds: COORDINATES_SIZE * 4,
+  number: UINT32_SIZE,
 } as const;
 
 export const BUFFER_HEADER_SIZE = DataSize.count;

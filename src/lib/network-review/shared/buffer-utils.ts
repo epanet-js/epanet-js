@@ -8,13 +8,22 @@ export function createBuffer(size: number, bufferType: BufferType): BinaryData {
     : new ArrayBuffer(size);
 }
 
-export function encodeCount(view: DataView, count: number): void {
-  view.setUint32(0, count, true);
+export function decodeNumber(offset: number, view: DataView): number {
+  return view.getUint32(offset, true);
 }
 
-export function decodeCount(view: DataView): number {
-  return view.getUint32(0, true);
+export function encodeNumber(
+  value: number,
+  offset: number,
+  view: DataView,
+): void {
+  view.setUint32(offset, value, true);
 }
+
+export const encodeCount = (view: DataView, count: number) =>
+  encodeNumber(count, 0, view);
+
+export const decodeCount = (view: DataView): number => decodeNumber(0, view);
 
 export function encodePosition(
   position: Position,
@@ -56,47 +65,11 @@ export function decodeLineCoordinates(
   return positions;
 }
 
-export function encodeNodeId(offset: number, view: DataView, id: number): void {
-  view.setUint32(offset, id, true);
-}
+export const encodeId = (id: number, offset: number, view: DataView) =>
+  encodeNumber(id, offset, view);
 
-export function decodeNodeId(offset: number, view: DataView): number {
-  return view.getUint32(offset, true);
-}
-
-export function encodeLink(
-  offset: number,
-  view: DataView,
-  id: number,
-  start: number,
-  end: number,
-): void {
-  view.setUint32(offset, id, true);
-  offset += DataSize.id;
-  view.setUint32(offset, start, true);
-  offset += DataSize.id;
-  view.setUint32(offset, end, true);
-}
-
-export function decodeLink(
-  offset: number,
-  view: DataView,
-): { id: number; startNode: number; endNode: number } {
-  const id = view.getUint32(offset, true);
-  offset += DataSize.id;
-  const startNode = view.getUint32(offset, true);
-  offset += DataSize.id;
-  const endNode = view.getUint32(offset, true);
-  return { id, startNode, endNode };
-}
-
-export function encodeId(id: number, offset: number, view: DataView): void {
-  view.setUint32(offset, id, true);
-}
-
-export function decodeId(offset: number, view: DataView): number {
-  return view.getUint32(offset, true);
-}
+export const decodeId = (offset: number, view: DataView) =>
+  decodeNumber(offset, view);
 
 export function encodeType(type: number, offset: number, view: DataView): void {
   view.setUint8(offset, type);
@@ -128,3 +101,65 @@ export function decodeBounds(
     view.getFloat64(offset + DataSize.coordinate * 3, true),
   ];
 }
+
+export function encodeNodeConnections(
+  connectedLinkIds: number[],
+  offset: number,
+  view: DataView,
+): number {
+  encodeCount(view, connectedLinkIds.length);
+  connectedLinkIds.forEach((linkId, idx) => {
+    encodeId(linkId, offset + DataSize.count + idx * DataSize.id, view);
+  });
+
+  return offset;
+}
+
+export function decodeNodeConnections(
+  offset: number,
+  view: DataView,
+): number[] {
+  const linkIds: number[] = [];
+  const offsetStart = offset;
+  const count = decodeNumber(offsetStart, view);
+
+  for (let i = 0; i < count; i++) {
+    const linkId = decodeId(
+      offsetStart + DataSize.count + i * DataSize.id,
+      view,
+    );
+    linkIds.push(linkId);
+  }
+
+  return linkIds;
+}
+
+export function encodeLink(
+  offset: number,
+  view: DataView,
+  id: number,
+  start: number,
+  end: number,
+): void {
+  view.setUint32(offset, id, true);
+  offset += DataSize.id;
+  view.setUint32(offset, start, true);
+  offset += DataSize.id;
+  view.setUint32(offset, end, true);
+}
+
+export function decodeLink(
+  offset: number,
+  view: DataView,
+): { id: number; startNode: number; endNode: number } {
+  const id = view.getUint32(offset, true);
+  offset += DataSize.id;
+  const startNode = view.getUint32(offset, true);
+  offset += DataSize.id;
+  const endNode = view.getUint32(offset, true);
+  return { id, startNode, endNode };
+}
+
+export const encodeNodeId = (offset: number, view: DataView, id: number) =>
+  encodeId(id, offset, view);
+export const decodeNodeId = decodeId;
